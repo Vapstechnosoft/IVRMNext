@@ -21,11 +21,11 @@ export default function MasterSponsorsPage(props: { searchParams: SearchParams }
 
     return (
         <FormProvider<IMasterSponsor>>
-            <MasterSponsorPageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <MasterSponsorPageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -92,9 +92,6 @@ function MasterSponsorPageContent({
                         columns={MasterSponsorColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master sponsors...'
@@ -158,11 +155,7 @@ function MasterSponsorPageContent({
 
                 {/* Toggle Form */}
                 {isToggleFormOpen && selectedRow && (
-                    <ToggleMasterSponsorForm
-                        rowData={selectedRow}
-                        onClose={closeToggleForm}
-                        onSuccess={refetchAll}
-                    />
+                    <ToggleMasterSponsorForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />
                 )}
             </div>
         </div>

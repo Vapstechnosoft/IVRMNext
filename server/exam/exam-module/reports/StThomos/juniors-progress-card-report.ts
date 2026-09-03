@@ -2,7 +2,6 @@
 
 import { api } from '@/lib/apiService';
 import { getAcademicYearDropdown } from '@/server/fees/masters/class_yearly_category';
-import type { IMasterInstitution } from '@/types/exam/exam-module/report';
 
 const ACADEMIC_YEARS = [{ asmaY_Id: 2023, asmaY_Year: '2023-2024' }];
 
@@ -64,26 +63,18 @@ export async function getReportDetails(data: any) {
         return response.data;
     } catch (error) {
         console.error('getReportDetails API Error:', error);
-        // Fallback to mock data
         return {
-            year: '2023-2024',
-            class: 'I',
-            section: 'A',
-            exam: 'Mid Term',
-            students: (data.selectedStudents || []).map((id: string) => {
-                const student = STUDENTS.find((s) => String(s.amsT_Id) === String(id));
-                return {
-                    ...student,
-                    AMST_Id: Number(id),
-                    subjects: [
-                        { name: 'English', marks: 85, grade: 'A' },
-                        { name: 'Maths', marks: 92, grade: 'A+' },
-                        { name: 'Science', marks: 78, grade: 'B' }
-                    ],
-                    total: 255,
-                    percentage: 85
-                };
-            })
+            getstudentdetails: [],
+            getgroupdetails: [],
+            getgroupexamdetails: [],
+            getstudentwisesubjectlist: [],
+            getstudentmarksdetails: [],
+            getstudent_examwisemarks: [],
+            getallgrade: [],
+            present_attendence: [],
+            work_attendence: [],
+            savelisttot: [],
+            getpromotionremarksdetails: []
         };
     }
 }

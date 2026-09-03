@@ -27,7 +27,7 @@ export async function getCollegeConfirmReport(values: any): Promise<CollegeConfi
     const payload = {
         type: values.type,
         frmdate: format(new Date(values.fromDate), 'yyyy-MM-dd'),
-        todate: format(new Date(values.toDate), 'yyyy-MM-dd'),
+        todate: format(new Date(values.toDate), 'yyyy-MM-dd')
     };
 
     // Try CLGHostelConfirmReport/getreport

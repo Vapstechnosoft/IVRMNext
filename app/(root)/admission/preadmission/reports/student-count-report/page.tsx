@@ -6,18 +6,18 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useStudentCountReport } from '@/hooks/admission/preadmission/useReports';
+import { addOrUpdateStudentCountReport } from '@/server/admission/preadmission/reports/student_count_report';
 import type { IMasterStudentCountReportList } from '@/types/admission/preadmission/reports';
+import { FileDown, Printer } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 import PreadmissionStatusCountReport from '../../transactions/application-form/_components/preadmission-status-count-report';
 import AddStudentCountReportForm from './_components/add-from';
-import { toast } from 'sonner';
-import { addOrUpdateStudentCountReport } from '@/server/admission/preadmission/reports/student_count_report';
+import AddressBookPrint from './_components/address-book-print';
 import { getStudentCountReportColumns } from './_components/columns';
 import StudentCountReportPrint from './_components/report-print';
-import AddressBookPrint from './_components/address-book-print';
-import { FileDown, Printer } from 'lucide-react';
-import * as XLSX from 'xlsx';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -106,7 +106,7 @@ function StudentCountReportPageContent({
 
     const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: printMode === 'report' ? 'Student Count Report' : 'Address Book',
+        documentTitle: printMode === 'report' ? 'Student Count Report' : 'Address Book'
     });
 
     const handlePrintAll = async (mode: 'report' | 'address') => {
@@ -123,7 +123,7 @@ function StudentCountReportPageContent({
             if (response.success && response.data) {
                 const records = Array.isArray(response.data) ? response.data : [];
                 setAllData(records);
-                
+
                 // Increase timeout to ensure render
                 setTimeout(() => {
                     handlePrint();
@@ -145,7 +145,7 @@ function StudentCountReportPageContent({
     const exportToExcel = async () => {
         try {
             toast.loading('Preparing all records for excel export...', { id: 'excel-loading' });
-            
+
             const response = await addOrUpdateStudentCountReport(filterPayload, {
                 page: 1,
                 page_size: 100000 // Large number to get all records
@@ -211,7 +211,7 @@ function StudentCountReportPageContent({
                                 size='sm'
                                 onClick={() => handlePrintAll('report')}
                                 disabled={isFetchingAll}
-                                className='flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white border-none shadow-md transition-all hover:scale-105'>
+                                className='flex items-center gap-2 border-none bg-blue-600 text-white shadow-md transition-all hover:scale-105 hover:bg-blue-700'>
                                 <Printer className='h-4 w-4' />
                                 {isFetchingAll && printMode === 'report' ? 'Preparing...' : 'Print Report (All)'}
                             </Button>
@@ -220,7 +220,7 @@ function StudentCountReportPageContent({
                                 size='sm'
                                 onClick={() => handlePrintAll('address')}
                                 disabled={isFetchingAll}
-                                className='flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white border-none shadow-md transition-all hover:scale-105'>
+                                className='flex items-center gap-2 border-none bg-emerald-600 text-white shadow-md transition-all hover:scale-105 hover:bg-emerald-700'>
                                 <Printer className='h-4 w-4' />
                                 {isFetchingAll && printMode === 'address' ? 'Preparing...' : 'Print Address Book (All)'}
                             </Button>
@@ -228,7 +228,7 @@ function StudentCountReportPageContent({
                                 variant='default'
                                 size='sm'
                                 onClick={exportToExcel}
-                                className='flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white border-none shadow-md transition-all hover:scale-105'>
+                                className='flex items-center gap-2 border-none bg-orange-600 text-white shadow-md transition-all hover:scale-105 hover:bg-orange-700'>
                                 <FileDown className='h-4 w-4' />
                                 Export to Excel
                             </Button>
@@ -250,7 +250,18 @@ function StudentCountReportPageContent({
 
                         {/* Print Content - Hidden from screen, visible for print */}
                         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: 0, overflow: 'hidden', zIndex: -1000 }}>
-                            <div ref={printRef} key={allData.length + printMode} className="printable-content" style={{ background: 'white', color: 'black', opacity: 1, visibility: 'visible', height: 'auto', display: 'block' }}>
+                            <div
+                                ref={printRef}
+                                key={allData.length + printMode}
+                                className='printable-content'
+                                style={{
+                                    background: 'white',
+                                    color: 'black',
+                                    opacity: 1,
+                                    visibility: 'visible',
+                                    height: 'auto',
+                                    display: 'block'
+                                }}>
                                 {printMode === 'report' ? (
                                     <StudentCountReportPrint
                                         data={allData}
@@ -258,7 +269,7 @@ function StudentCountReportPageContent({
                                         rangeType={filterPayload.type}
                                         fromDate={filterPayload.from_date}
                                         toDate={filterPayload.to_date}
-                                        academicYear={''} 
+                                        academicYear={''}
                                     />
                                 ) : (
                                     <AddressBookPrint

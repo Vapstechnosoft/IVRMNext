@@ -1,15 +1,14 @@
 'use client';
 
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { useInvTGRN } from '@/hooks/inventory/transactions/use-inv-t-grn';
 import type { IInvTGRN } from '@/types/inventory/transactions/inv-t-grn';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { useCallback } from 'react';
-import { useInvTGRN } from '@/hooks/inventory/transactions/use-inv-t-grn';
 
 export const invTGRNColumns: ColumnDef<IInvTGRN>[] = [
     {
@@ -56,12 +55,12 @@ export const invTGRNColumns: ColumnDef<IInvTGRN>[] = [
         cell: ({ row }) => <div className='text-right'>{Number(row.getValue('invmgrN_TotalAmount')).toFixed(2)}</div>
     },
     {
-        accessorKey: 'invtgrN_ActiveFlg',
+        accessorKey: 'invmgrN_ActiveFlg',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
         cell: ({ row }) => {
-            const status = row.original.invtgrN_ActiveFlg;
+            const status = row.original.invmgrN_ActiveFlg;
             return (
-                <Badge className={status ? 'bg-purple-600 hover:bg-purple-700' : 'bg-red-600 hover:bg-red-700'}>
+                <Badge className={status ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}>
                     {status ? 'Active' : 'Inactive'}
                 </Badge>
             );
@@ -94,8 +93,8 @@ function InvTGRNActionButtons({ rowData }: { rowData: IInvTGRN }) {
                 buttons={{ edit: true, delete: false, toggle: true, view: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                // onView={handleView}
-                toggleConditionKey='invtgrN_ActiveFlg'
+                onView={handleView}
+                toggleConditionKey='invmgrN_ActiveFlg'
             />
         </div>
     );

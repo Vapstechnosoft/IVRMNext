@@ -92,7 +92,7 @@ export interface MassUpdationSaveRequest {
 }
 
 // Save Response
-export interface MassUpdationSaveResponse extends MassUpdationOnloadResponse { }
+export interface MassUpdationSaveResponse extends MassUpdationOnloadResponse {}
 
 // Search Request
 export interface MassUpdationSearchRequest {

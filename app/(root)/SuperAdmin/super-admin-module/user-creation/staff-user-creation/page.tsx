@@ -6,6 +6,7 @@ import {
     getAdminUserList,
     getCategoryDropdownByInstitution,
     getInstitutionDropdown,
+    getMasterPageListGridOnChangeOfModule,
     getMasterPageListGridOnChangeOfStaff,
     getMobileAppMasterPageListOnChangeOfStaff,
     getModuleDropdownByInstitution,
@@ -21,8 +22,7 @@ import {
     saveStaffUser,
     sendOTPSms,
     updateUsername,
-    verifyOTP,
-    getMasterPageListGridOnChangeOfModule
+    verifyOTP
 } from '@/server/super-admin/user-creation/staff-user-creation';
 import type { ApiSearchparams } from '@/types';
 import type {
@@ -39,7 +39,7 @@ import type {
     TrustDTO
 } from '@/types/super-admin/user-creation/staff-user-creation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RotateCcw, Save, X, Loader2 } from 'lucide-react';
+import { Loader2, RotateCcw, Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -152,6 +152,11 @@ export default function StaffUserCreationPage() {
     const watchFilterData = methods.watch('filterData');
     const watchUserName = methods.watch('userName');
 
+    const isRoleSelected = !!watchRoleType && watchRoleType !== '';
+    const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType);
+    const roleName = selectedRole?.ivrmrT_Role || '';
+    const isAdmin = roleName.toUpperCase() === 'ADMIN' || roleName.toUpperCase() === 'SUPER ADMIN';
+
     const clearGrids = () => {
         setWebPages([]);
         setStagedWebPages([]);
@@ -243,6 +248,7 @@ export default function StaffUserCreationPage() {
                 console.info(`📡 [CLIENT] Fetching modules for MI_Id: ${watchInstitution}`);
                 setIsModulesLoading(true);
                 const moduleResult = await getModuleDropdownByInstitution(Number(watchInstitution));
+                console.log('moduleResult', moduleResult);
                 if (moduleResult.success && moduleResult.data) {
                     setModules(moduleResult.data);
                 }
@@ -326,8 +332,14 @@ export default function StaffUserCreationPage() {
                     }
 
                     // Call the new API to fetch username and handle field state
-                    console.info(`📡 [CLIENT] Fetching staff username for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}. role_id: ${watchRoleType}`);
-                    const usernameResult = await getUsernameOnStaffSelection(Number(watchStaffId), Number(watchInstitution), Number(watchRoleType));
+                    console.info(
+                        `📡 [CLIENT] Fetching staff username for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}. role_id: ${watchRoleType}`
+                    );
+                    const usernameResult = await getUsernameOnStaffSelection(
+                        Number(watchStaffId),
+                        Number(watchInstitution),
+                        Number(watchRoleType)
+                    );
                     console.log(' Username Result:', usernameResult);
                     if (usernameResult.success && usernameResult.data && usernameResult.data.length > 0) {
                         const userData = usernameResult.data[0];
@@ -373,17 +385,9 @@ export default function StaffUserCreationPage() {
             }
         };
         handleStaffChange();
-    }, [
-        watchStaffId,
-        watchFilterData,
-        watchInstitution,
-        watchRoleType,
-        methods
-    ]);
+    }, [watchStaffId, watchFilterData, watchInstitution, watchRoleType, methods]);
 
-    const effectiveStaffId = watchFilterData === 'Single' 
-        ? (watchStaffId ? Number(watchStaffId) : null)
-        : lastSelectedStaffId;
+    const effectiveStaffId = watchFilterData === 'Single' ? (watchStaffId ? Number(watchStaffId) : null) : lastSelectedStaffId;
 
     useEffect(() => {
         if (effectiveStaffId && watchInstitution && watchRoleType) {
@@ -423,7 +427,7 @@ export default function StaffUserCreationPage() {
                 params
             );
 
-            console.log("master web pages list",result)
+            console.log('master web pages list', result);
 
             if (result.success && result.data) {
                 const mappedPages = Array.isArray(result.data)
@@ -512,12 +516,7 @@ export default function StaffUserCreationPage() {
             console.info(
                 `📡 [CLIENT] Fetching Saved List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
             );
-            const result = await getSavedListGridOnChangeOfStaff(
-                effectiveStaffId,
-                Number(watchInstitution),
-                Number(watchRoleType),
-                params
-            );
+            const result = await getSavedListGridOnChangeOfStaff(effectiveStaffId, Number(watchInstitution), Number(watchRoleType), params);
 
             if (result.success && result.data) {
                 setSavedGrid(result.data.map((p: any) => ({ ...p, checked: false })));
@@ -555,7 +554,7 @@ export default function StaffUserCreationPage() {
         if (checked) {
             setLastSelectedStaffId(id);
         } else if (lastSelectedStaffId === id) {
-            const firstSelected = updated.find(s => s.Selected);
+            const firstSelected = updated.find((s) => s.Selected);
             setLastSelectedStaffId(firstSelected ? firstSelected.hrmE_Id : null);
         }
     };
@@ -628,19 +627,20 @@ export default function StaffUserCreationPage() {
             return;
         }
 
-        console.log("stagedWebPages:", stagedWebPages);
-        console.log("savedGrid:", savedGrid);
-        console.log("mobilePages:", mobilePages);
-        console.log("savedMobilePages:", savedMobilePages);
+        console.log('stagedWebPages:', stagedWebPages);
+        console.log('savedGrid:', savedGrid);
+        console.log('mobilePages:', mobilePages);
+        console.log('savedMobilePages:', savedMobilePages);
 
-        console.log("stagedWebPages in submit:", stagedWebPages);
+        console.log('stagedWebPages in submit:', stagedWebPages);
 
         const payload = {
             mI_Id: Number(data.institution) || selectedInstitutes[0].mi_id,
             staffId: data.filterData === 'Single' ? Number(data.staffId) : 0,
             userName: data.userName || '',
             mode: data.filterData,
-            multipleStaff: data.filterData === 'Multiple' ? staffList.filter(s => s.Selected).map(s => ({ ivrmstauL_Id: s.hrmE_Id })) : [],
+            multipleStaff:
+                data.filterData === 'Multiple' ? staffList.filter((s) => s.Selected).map((s) => ({ ivrmstauL_Id: s.hrmE_Id })) : [],
             machineIp: machineIp || '127.0.0.1',
             roleTypeId: Number(data.roleType),
             userId: userId || 0,
@@ -696,13 +696,13 @@ export default function StaffUserCreationPage() {
                 }))
         };
 
-        console.log("payload",payload)
+        console.log('payload', payload);
 
         setIsSaving(true);
         try {
             const result = await saveStaffUser(payload);
 
-            console.log("reponse final ", result);
+            console.log('reponse final ', result);
             if (result.success) {
                 toast.success(result.message || 'Saved successfully');
                 // Clear form fields
@@ -711,11 +711,11 @@ export default function StaffUserCreationPage() {
                 methods.setValue('roleType', '');
                 methods.setValue('trust', '');
                 methods.setValue('institution', '');
-                
+
                 // Uncheck all staff in Multiple mode
-                setStaffList(staffList.map(s => ({ ...s, Selected: false })));
+                setStaffList(staffList.map((s) => ({ ...s, Selected: false })));
                 setLastSelectedStaffId(null);
-                
+
                 // Clear grids
                 clearGrids();
             } else {
@@ -729,17 +729,12 @@ export default function StaffUserCreationPage() {
         }
     };
 
-
     const handleModulesChange = (updatedModules: ModuleDTO[]) => {
         setModules(updatedModules);
 
-        const checkedModuleIds = updatedModules
-            .filter((mod) => mod.model)
-            .map((mod) => mod.ivrmM_Id);
+        const checkedModuleIds = updatedModules.filter((mod) => mod.model).map((mod) => mod.ivrmM_Id);
 
-        const uncheckedModuleIds = updatedModules
-            .filter((mod) => !mod.model)
-            .map((mod) => mod.ivrmM_Id);
+        const uncheckedModuleIds = updatedModules.filter((mod) => !mod.model).map((mod) => mod.ivrmM_Id);
 
         console.log('Checked module IDs:', checkedModuleIds);
         console.log('Unchecked module IDs:', uncheckedModuleIds);
@@ -756,9 +751,7 @@ export default function StaffUserCreationPage() {
         }
 
         const selectedInstitutions =
-            watchFilterData === 'Multiple'
-                ? institutions.filter((i) => i.Selected).map((i) => i.mI_Id)
-                : [Number(watchInstitution)];
+            watchFilterData === 'Multiple' ? institutions.filter((i) => i.Selected).map((i) => i.mI_Id) : [Number(watchInstitution)];
 
         const payloadUserName = watchUserName || methods.getValues('userName') || '';
         console.info(`📡 [CLIENT] Fetching pages based on modules: ${moduleIds}`);
@@ -772,7 +765,7 @@ export default function StaffUserCreationPage() {
                 selectedInstitutions.length > 0 ? selectedInstitutions : [Number(watchInstitution)]
             );
 
-            console.log("onchange result",result)
+            console.log('onchange result', result);
 
             if (result.success) {
                 const mappedPages = Array.isArray(result.data)
@@ -834,10 +827,10 @@ export default function StaffUserCreationPage() {
                     <FormProvider {...methods}>
                         <form onSubmit={methods.handleSubmit(onSubmit)} className='space-y-8'>
                             <SelectionForm
-                                roleTypes={roleTypes}
-                                trusts={trusts}
-                                institutions={institutions}
-                                staffList={staffList}
+                                roleTypes={roleTypes.filter((v, i, a) => a.findIndex((t) => t.ivrmrT_Id === v.ivrmrT_Id) === i)}
+                                trusts={trusts.filter((v, i, a) => a.findIndex((t) => t.mO_Id === v.mO_Id) === i)}
+                                institutions={institutions.filter((v, i, a) => a.findIndex((t) => t.mI_Id === v.mI_Id) === i)}
+                                staffList={staffList.filter((v, i, a) => a.findIndex((t) => t.hrmE_Id === v.hrmE_Id) === i)}
                                 isOnloadLoading={isOnloadLoading}
                                 isStaffListLoading={isStaffListLoading}
                                 isStaffDataLoading={isStaffDataLoading}
@@ -849,65 +842,80 @@ export default function StaffUserCreationPage() {
                                 showViewUsernames={true} // Visibility now handled inside SelectionForm based on isAdmin
                             />
 
-                            <UserDetails
-                                categories={categories}
-                                onCategoryChange={setCategories}
-                                modules={modules}
-                                onModuleChange={handleModulesChange}
-                                onSelectAllCategories={handleSelectAllCategories}
-                                onSelectAllModules={handleSelectAllModules}
-                                isUserNameDisabled={isUserNameDisabled}
-                                onChangeUsernameToggle={() => setIsChangeModalOpen(true)}
-                                isStaffDataLoading={isStaffDataLoading}
-                            />
+                            {/* UserDetails & Modules (Only visible when role and institution/staff selections are made) */}
+                            {isRoleSelected &&
+                                (isAdmin
+                                    ? watchFilterData === 'Multiple'
+                                        ? institutions.some((i) => i.Selected)
+                                        : !!watchInstitution
+                                    : !!watchInstitution && (watchFilterData === 'Multiple' || !!watchStaffId)) && (
+                                    <>
+                                        <UserDetails
+                                            categories={categories}
+                                            onCategoryChange={setCategories}
+                                            modules={modules}
+                                            onModuleChange={handleModulesChange}
+                                            onSelectAllCategories={handleSelectAllCategories}
+                                            onSelectAllModules={handleSelectAllModules}
+                                            isUserNameDisabled={isUserNameDisabled}
+                                            onChangeUsernameToggle={() => setIsChangeModalOpen(true)}
+                                            isStaffDataLoading={isStaffDataLoading}
+                                        />
 
-                            {/* Conditional Rendering of Mapping Grids */}
-                            {(watchFilterData === 'Single' ? isUserNameDisabled : staffList.some(s => s.Selected)) && (
-                                <PageMappingGrids
-                                    webPages={webPages}
-                                    onWebPageUpdate={setWebPages}
-                                    stagedWebPages={stagedWebPages}
-                                    onStagedWebPageUpdate={setStagedWebPages}
-                                    webPageTotal={webPageTotal}
-                                    onWebPageParamsChange={setWebPageParams}
-                                    currentWebPageParams={webPageParams}
-                                    isWebPageLoading={isWebPageLoading}
-                                    savedGridTotal={savedGridTotal}
-                                    onSavedGridParamsChange={setSavedGridParams}
-                                    currentSavedGridParams={savedGridParams}
-                                    isSavedGridLoading={isSavedGridLoading}
-                                    mobilePageTotal={mobilePageTotal}
-                                    onMobilePageParamsChange={setMobilePageParams}
-                                    currentMobilePageParams={mobilePageParams}
-                                    isMobilePageLoading={isMobilePageLoading}
-                                    savedMobilePageTotal={savedMobilePageTotal}
-                                    onSavedMobilePageParamsChange={setSavedMobilePageParams}
-                                    currentSavedMobilePageParams={savedMobilePageParams}
-                                    isSavedMobilePageLoading={isSavedMobilePageLoading}
-                                    mobilePages={mobilePages}
-                                    onMobilePageUpdate={setMobilePages}
-                                    savedGrid={savedGrid}
-                                    onSavedGridUpdate={setSavedGrid}
-                                    savedMobilePages={savedMobilePages}
-                                    onSavedMobileUpdate={setSavedMobilePages}
-                                    showInstitution={!!watchTrust}
-                                />
-                            )}
+                                        {/* Conditional Rendering of Mapping Grids */}
+                                        {(watchFilterData === 'Single' ? isUserNameDisabled : staffList.some((s) => s.Selected)) && (
+                                            <PageMappingGrids
+                                                webPages={webPages}
+                                                onWebPageUpdate={setWebPages}
+                                                stagedWebPages={stagedWebPages}
+                                                onStagedWebPageUpdate={setStagedWebPages}
+                                                webPageTotal={webPageTotal}
+                                                onWebPageParamsChange={setWebPageParams}
+                                                currentWebPageParams={webPageParams}
+                                                isWebPageLoading={isWebPageLoading}
+                                                savedGridTotal={savedGridTotal}
+                                                onSavedGridParamsChange={setSavedGridParams}
+                                                currentSavedGridParams={savedGridParams}
+                                                isSavedGridLoading={isSavedGridLoading}
+                                                mobilePageTotal={mobilePageTotal}
+                                                onMobilePageParamsChange={setMobilePageParams}
+                                                currentMobilePageParams={mobilePageParams}
+                                                isMobilePageLoading={isMobilePageLoading}
+                                                savedMobilePageTotal={savedMobilePageTotal}
+                                                onSavedMobilePageParamsChange={setSavedMobilePageParams}
+                                                currentSavedMobilePageParams={savedMobilePageParams}
+                                                isSavedMobilePageLoading={isSavedMobilePageLoading}
+                                                mobilePages={mobilePages}
+                                                onMobilePageUpdate={setMobilePages}
+                                                savedGrid={savedGrid}
+                                                onSavedGridUpdate={setSavedGrid}
+                                                savedMobilePages={savedMobilePages}
+                                                onSavedMobileUpdate={setSavedMobilePages}
+                                                showInstitution={!!watchTrust}
+                                            />
+                                        )}
 
-                            <div className='flex justify-center gap-4'>
-                                <Button type='submit' className='px-8 shadow-md' size='lg' disabled={isSaving}>
-                                    {isSaving ? (
-                                        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                                    ) : (
-                                        <Save className='mr-2 h-4 w-4' />
-                                    )}
-                                    {isSaving ? "Saving..." : "Save"}
-                                </Button>
-                                <Button type='button' variant='outline' onClick={() => methods.reset()} className='px-8' size='lg'>
-                                    <X className='mr-2 h-4 w-4' />
-                                    Cancel
-                                </Button>
-                            </div>
+                                        <div className='flex justify-center gap-4'>
+                                            <Button type='submit' className='px-8 shadow-md' size='lg' disabled={isSaving}>
+                                                {isSaving ? (
+                                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                ) : (
+                                                    <Save className='mr-2 h-4 w-4' />
+                                                )}
+                                                {isSaving ? 'Saving...' : 'Save'}
+                                            </Button>
+                                            <Button
+                                                type='button'
+                                                variant='outline'
+                                                onClick={() => methods.reset()}
+                                                className='px-8'
+                                                size='lg'>
+                                                <X className='mr-2 h-4 w-4' />
+                                                Cancel
+                                            </Button>
+                                        </div>
+                                    </>
+                                )}
                         </form>
                     </FormProvider>
                 </CardContent>

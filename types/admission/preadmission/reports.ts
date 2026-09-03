@@ -136,12 +136,16 @@ export interface IScheduleReportInitialDetailsResponse {
     classname: { asmcL_Id: number; asmcL_ClassName: string }[];
 }
 
-export type IScheduleListResponse = {
-    writentestlist: { disid: number; disname: string }[];
-} | { disid: number; disname: string }[];
+export type IScheduleListResponse =
+    | {
+          writentestlist: { disid: number; disname: string }[];
+      }
+    | { disid: number; disname: string }[];
 
-export type IScheduleReportDetailsResponse = {
-    searchstudentlist?: IScheduleReportList[];
-    student?: IScheduleReportList[];
-    StudentList?: IScheduleReportList[];
-} | IScheduleReportList[];
+export type IScheduleReportDetailsResponse =
+    | {
+          searchstudentlist?: IScheduleReportList[];
+          student?: IScheduleReportList[];
+          StudentList?: IScheduleReportList[];
+      }
+    | IScheduleReportList[];

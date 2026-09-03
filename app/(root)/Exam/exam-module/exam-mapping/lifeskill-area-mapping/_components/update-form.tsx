@@ -112,21 +112,17 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
     }, [rowData, dropdownsReady, reset]);
 
     const onSubmit = async (data: FormFields) => {
-        if (Object.keys(errors).length > 0) {
-            toast.error('Please fill all required fields');
-            return;
-        }
-
         const payload = {
             ecS_Id: data.ecS_Id ?? 0,
             mI_Id: orgId,
             ecS_SkillName: data.ecS_SkillName ?? 'Default Skill',
             ecS_SkillCode: data.ecS_SkillCode ?? 'CODE',
-            subexamDTO: data.subexamDTO.map((s) => ({
-                ecsA_Id: s.ecsA_Id ?? 0,
-                ecsA_SkillOrder: s.ecsA_SkillOrder ?? 1,
-                ecsA_SkillArea: s.ecsA_SkillArea ?? ''
-            })),
+            subexamDTO:
+                data.subexamDTO?.map((s) => ({
+                    ecsA_Id: s.ecsA_Id ?? 0,
+                    ecsA_SkillOrder: s.ecsA_SkillOrder ?? 1,
+                    ecsA_SkillArea: s.ecsA_SkillArea ?? ''
+                })) ?? [],
             mappingDTO: data.mappingDTO.map((m) => ({
                 ecsaM_Id: m.ecsaM_Id ?? 0,
                 asmaY_Id: m.asmaY_Id,
@@ -153,13 +149,21 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
         }
     };
 
+    const onInvalid = (formErrors: typeof errors) => {
+        console.error('❌ Form validation errors:', formErrors);
+        toast.error('Please fill all required fields correctly.');
+    };
+
     return (
         <div className='flex w-full flex-col gap-6'>
             {!isDataBound ? (
                 <DataTableSkeleton columnCount={5} rowCount={10} showPagination={false} showViewOptions={false} />
             ) : (
                 <FormProvider {...methods}>
-                    <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md' noValidate>
+                    <form
+                        onSubmit={handleSubmit(onSubmit, onInvalid)}
+                        className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'
+                        noValidate>
                         <div className='grid grid-cols-2 gap-6'>
                             {/* Academic Year */}
                             <Controller
@@ -168,7 +172,10 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
                                 render={({ field, fieldState }) => (
                                     <div>
                                         <Label>Academic Year *</Label>
-                                        <Select value={String(field.value || '')} onValueChange={(val) => field.onChange(Number(val))}>
+                                        <Select
+                                            key={field.value}
+                                            value={field.value ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Year' />
                                             </SelectTrigger>
@@ -202,7 +209,10 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
                                 render={({ field, fieldState }) => (
                                     <div>
                                         <Label>Life Skill *</Label>
-                                        <Select value={String(field.value || '')} onValueChange={(val) => field.onChange(Number(val))}>
+                                        <Select
+                                            key={field.value}
+                                            value={field.value ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Life Skill' />
                                             </SelectTrigger>
@@ -226,7 +236,10 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
                                 render={({ field, fieldState }) => (
                                     <div>
                                         <Label>Skill Area *</Label>
-                                        <Select value={String(field.value || '')} onValueChange={(val) => field.onChange(Number(val))}>
+                                        <Select
+                                            key={field.value}
+                                            value={field.value ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Skill Area' />
                                             </SelectTrigger>
@@ -250,7 +263,10 @@ export default function UpdateLifeSkillAreaMapping({ rowData, onSuccess }: Updat
                                 render={({ field, fieldState }) => (
                                     <div>
                                         <Label>Master Grade *</Label>
-                                        <Select value={String(field.value || '')} onValueChange={(val) => field.onChange(Number(val))}>
+                                        <Select
+                                            key={field.value}
+                                            value={field.value ? String(field.value) : undefined}
+                                            onValueChange={(val) => field.onChange(Number(val))}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Grade' />
                                             </SelectTrigger>

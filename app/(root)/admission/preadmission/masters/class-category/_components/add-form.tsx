@@ -15,7 +15,7 @@ import { addMasterClassCategory } from '@/server/admission/preadmission/masters/
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -28,6 +28,7 @@ interface AddMasterClassCategoryFormProps {
 }
 
 export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClassCategoryFormProps) {
+    const [clearKey, setClearKey] = useState(0);
     const { refetchAll } = useMasterClassCategory();
     const { data: academicYears } = useAcademicYearDropdown();
     const { data: categories } = useMasterCategoryDropdown();
@@ -53,9 +54,6 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
         onSuccess: (data: any) => {
             console.log('Add Master Class Category Response:', data);
 
-            // Permissive success logic:
-            // 1. Explicit success flags
-            // 2. OR Object with NO error flags (handles empty object, or object with just data)
             if (
                 data?.returnval === true ||
                 data?.message === 'Saved Successfully' ||
@@ -132,8 +130,13 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ''}>
+                                <FormLabel>
+                                    Academic Year <span className='ml-1 text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={`year-${clearKey}`}
+                                    onValueChange={(value) => field.onChange(Number(value))}
+                                    value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger disabled={!academicYears}>
                                             <SelectValue placeholder='Select Academic Year' />
@@ -160,8 +163,13 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         name='amC_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Category</FormLabel>
-                                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ''}>
+                                <FormLabel>
+                                    Category <span className='ml-1 text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={`category-${clearKey}`}
+                                    onValueChange={(value) => field.onChange(Number(value))}
+                                    value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger disabled={!categories}>
                                             <SelectValue placeholder='Select Category' />
@@ -190,7 +198,9 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         name='category_classes'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Select Classes</FormLabel>
+                                <FormLabel>
+                                    Select Classes <span className='ml-1 text-red-500'>*</span>
+                                </FormLabel>
                                 <FormControl>
                                     <CustomMultiSelect
                                         options={classOptions}
@@ -217,7 +227,9 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         name='category_class_sections'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Select Sections</FormLabel>
+                                <FormLabel>
+                                    Select Sections <span className='ml-1 text-red-500'>*</span>
+                                </FormLabel>
                                 <FormControl>
                                     <CustomMultiSelect
                                         options={sectionOptions}
@@ -253,7 +265,10 @@ export default function AddMasterClassCategoryForm({ onSuccess }: AddMasterClass
                         size='sm'
                         variant='outline'
                         className='w-full sm:w-auto'
-                        onClick={() => window.location.reload()}>
+                        onClick={() => {
+                            form.reset();
+                            setClearKey((prev) => prev + 1);
+                        }}>
                         Clear
                     </Button>
                 </div>

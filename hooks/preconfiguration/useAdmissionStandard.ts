@@ -1,7 +1,6 @@
+import { getAdmissionStandardData, saveAdmissionStandardData } from '@/server/preconfiguration/admission-standard';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getAdmissionStandardData, saveAdmissionStandardData } from '@/server/preconfiguration/admission-standard';
-import type { IAdmissionStandardPayload } from '@/types/preconfiguration/admission-standard';
 
 const QUERY_KEYS = {
     admissionStandard: ['admissionStandard']
@@ -39,7 +38,7 @@ export function useSaveAdmissionStandard() {
         onSuccess: (response) => {
             const msg = response.message || '';
             const isActuallySuccess = response.success || msg.toLowerCase().includes('success');
-            
+
             if (isActuallySuccess) {
                 toast.success(msg || 'Record Saved Successfully');
                 queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admissionStandard });

@@ -141,71 +141,76 @@ export const experienceDetailSchema = z
     );
 
 // Document schema
-export const documentSchema = z.object({
-    documentName: z.string().min(1, 'Name of Document is required').max(255, 'Name of Document must not exceed 255 characters'),
-    documentDescription: z.string().min(1, 'Document Description is required').max(400, 'Document Description must not exceed 400 characters'),
-    document: z.any(),
-    // Optional fields for existing documents (used during updates)
-    documentImageName: z.string().optional(),
-    fileName: z.string().optional(),
-    imageName: z.string().optional()
-}).superRefine((data, ctx) => {
-    const file = data.document;
+export const documentSchema = z
+    .object({
+        documentName: z.string().min(1, 'Name of Document is required').max(255, 'Name of Document must not exceed 255 characters'),
+        documentDescription: z
+            .string()
+            .min(1, 'Document Description is required')
+            .max(400, 'Document Description must not exceed 400 characters'),
+        document: z.any(),
+        // Optional fields for existing documents (used during updates)
+        documentImageName: z.string().optional(),
+        fileName: z.string().optional(),
+        imageName: z.string().optional()
+    })
+    .superRefine((data, ctx) => {
+        const file = data.document;
 
-    // If there's an existing document (documentImageName, fileName, or imageName), allow it
-    if (data.documentImageName || data.fileName || data.imageName) {
-        return;
-    }
+        // If there's an existing document (documentImageName, fileName, or imageName), allow it
+        if (data.documentImageName || data.fileName || data.imageName) {
+            return;
+        }
 
-    // Handle null/undefined - only fail if no existing document
-    if (!file) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'upload document is mandatory (JPEG, DOC, DOCX, or PDF, max 2MB)',
-            path: ['document']
-        });
-        return;
-    }
+        // Handle null/undefined - only fail if no existing document
+        if (!file) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'upload document is mandatory (JPEG, DOC, DOCX, or PDF, max 2MB)',
+                path: ['document']
+            });
+            return;
+        }
 
-    // Handle FileList - extract first file
-    let actualFile: File | null = null;
-    if (file instanceof FileList) {
-        actualFile = file[0] || null;
-    } else if (file instanceof File) {
-        actualFile = file;
-    } else if (Array.isArray(file) && file.length > 0 && file[0] instanceof File) {
-        // Handle array of files (sometimes React Hook Form returns arrays)
-        actualFile = file[0];
-    } else if (typeof file === 'string' && file.length > 0) {
-        // For edit mode, document might be a string (existing file path/base64)
-        return;
-    }
+        // Handle FileList - extract first file
+        let actualFile: File | null = null;
+        if (file instanceof FileList) {
+            actualFile = file[0] || null;
+        } else if (file instanceof File) {
+            actualFile = file;
+        } else if (Array.isArray(file) && file.length > 0 && file[0] instanceof File) {
+            // Handle array of files (sometimes React Hook Form returns arrays)
+            actualFile = file[0];
+        } else if (typeof file === 'string' && file.length > 0) {
+            // For edit mode, document might be a string (existing file path/base64)
+            return;
+        }
 
-    if (!actualFile) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'upload document is mandatory (JPEG, DOC, DOCX, or PDF, max 2MB)',
-            path: ['document']
-        });
-        return;
-    }
+        if (!actualFile) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'upload document is mandatory (JPEG, DOC, DOCX, or PDF, max 2MB)',
+                path: ['document']
+            });
+            return;
+        }
 
-    const maxSize = 2 * 1024 * 1024; // 2MB
-    const allowedTypes = [
-        'image/jpeg',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/pdf'
-    ];
+        const maxSize = 2 * 1024 * 1024; // 2MB
+        const allowedTypes = [
+            'image/jpeg',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/pdf'
+        ];
 
-    if (actualFile.size > maxSize || !allowedTypes.includes(actualFile.type)) {
-        ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'upload document is mandatory (JPEG, DOC, DOCX, or PDF, max 2MB)',
-            path: ['document']
-        });
-    }
-});
+        if (actualFile.size > maxSize || !allowedTypes.includes(actualFile.type)) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'upload document is mandatory (JPEG, DOC, DOCX, or PDF, max 2MB)',
+                path: ['document']
+            });
+        }
+    });
 
 // Payroll Item Schema (for earnings, deductions, arrears)
 export const payrollItemSchema = z.object({
@@ -219,9 +224,9 @@ export const payrollItemSchema = z.object({
 // Base employee register object schema (without refinements)
 const baseEmployeeRegisterSchema = z.object({
     // Employee tab fields
-    firstName: createStringOnlySchema('Name of the Employee', 1, 50),
+    firstName: createStringOnlySchema('First Name', 1, 50),
     middleName: z.string().max(50, 'Middle Name must not exceed 50 characters').optional(),
-    lastName: z.string().max(50, 'Last Name must not exceed 50 characters').optional(),
+    lastName: createStringOnlySchema('Last Name', 1, 50),
     employeeCode: z.string().min(1, 'Employee Code Required').max(20, 'Employee Code must not exceed 20 characters'),
     typeOfEmployment: z.string().min(1, 'Type of Employment Required'),
     employeeGroup: z.string().min(1, 'Employee Group Required'),
@@ -260,7 +265,11 @@ const baseEmployeeRegisterSchema = z.object({
     epf: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
     ppf: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
     phdResearchGuide: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
-    recognitionYear: z.string().max(4, 'Recognition Year must not exceed 4 characters').regex(/^\d*$/, 'Recognition Year must contain only numbers').optional(),
+    recognitionYear: z
+        .string()
+        .max(4, 'Recognition Year must not exceed 4 characters')
+        .regex(/^\d*$/, 'Recognition Year must contain only numbers')
+        .optional(),
     teachingNonTeaching: z.string().min(1, 'Teaching/Non-Teaching Required'),
     pfApplicable: z.preprocess((val) => val === true || val === 'on', z.boolean()).optional(),
     ptMaxAmount: z
@@ -280,7 +289,11 @@ const baseEmployeeRegisterSchema = z.object({
     esiAccNo: z.string().max(10, 'ESI Acc. No. must not exceed 10 characters').optional(),
     gratuityAccNo: z.string().max(25, 'Gratuity Acc No. must not exceed 20 characters').optional(),
     esiDate: z.string().optional(),
-    nationalSSN: z.string().max(9, 'National SSN must not exceed 9 characters').regex(/^\d*$/, 'National SSN must contain only numbers').optional(),
+    nationalSSN: z
+        .string()
+        .max(9, 'National SSN must not exceed 9 characters')
+        .regex(/^\d*$/, 'National SSN must contain only numbers')
+        .optional(),
     aadharNo: z
         .string()
         .min(1, 'Aadhaar No. Required')

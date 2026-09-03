@@ -79,10 +79,8 @@ export default function UpdateMasterLanguageForm({ onSuccess, className = '', se
                             required
                             id='lmL_LanguageName'
                             {...register('lmL_LanguageName', {
-                                required: 'Language Name is required',
-                                pattern: {
-                                    value: /^[A-Za-z ]+$/,
-                                    message: 'Only letters and spaces allowed'
+                                onChange: (e) => {
+                                    e.target.value = e.target.value.replace(/[^a-zA-Z0-9\s]/g, '');
                                 }
                             })}
                             error={errors.lmL_LanguageName?.message}

@@ -199,12 +199,14 @@ export default function UpdateGradeForm({ onSuccess, className = '', selectedRow
 
                         <div className='flex flex-col gap-2'>
                             {/* biome-ignore lint/nursery/useSortedClasses: <explanation> */}
-{/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-<label className='text-sm font-medium'>Pay Scale Range</label>
+                            {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
+                            <label className='text-sm font-medium'>Pay Scale Range</label>
                             <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50'>
                                 <PayScaleRangeDisplay control={control} />
                             </div>
-                            {errors.hrmG_PayScaleTo && <p className='text-[0.8rem] font-medium text-destructive'>{errors.hrmG_PayScaleTo.message}</p>}
+                            {errors.hrmG_PayScaleTo && (
+                                <p className='font-medium text-[0.8rem] text-destructive'>{errors.hrmG_PayScaleTo.message}</p>
+                            )}
                         </div>
 
                         {/* Order field removed as per request */}
@@ -226,10 +228,10 @@ export default function UpdateGradeForm({ onSuccess, className = '', selectedRow
                         disabled={isSubmitting || !isDirty}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Grade
+                            Update Grade
                         </div>
                     </Button>
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}

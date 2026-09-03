@@ -7,24 +7,26 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
 import { format } from 'date-fns';
 import { CalendarIcon, Eye, Loader2, Trash, Upload } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
-import { uploadDocument, deleteDocument } from '@/server/document_upload';
 import { toast } from 'sonner';
 
 export default function TabBookDetails({
     dropdownData,
     onNext,
     onCancel,
-    onClear
+    onClear,
+    isSaving
 }: {
     dropdownData: any;
     onNext: () => void;
     onCancel: () => void;
     onClear: () => void;
+    isSaving?: boolean;
 }) {
     const {
         control,
@@ -120,8 +122,16 @@ export default function TabBookDetails({
                                     </SelectTrigger>
                                     <SelectContent>
                                         {deptList.map((item: any) => {
-                                            const deptId = item.lmD_Id || item.lmd_Id || item.hrmD_Id || item.HRMD_Id || item.id || item.value;
-                                            const deptName = item.lmD_DepartmentName || item.lmd_DepartmentName || item.hrmD_DepartmentName || item.HRMD_DepartmentName || item.name || item.label || item.departmentName;
+                                            const deptId =
+                                                item.lmD_Id || item.lmd_Id || item.hrmD_Id || item.HRMD_Id || item.id || item.value;
+                                            const deptName =
+                                                item.lmD_DepartmentName ||
+                                                item.lmd_DepartmentName ||
+                                                item.hrmD_DepartmentName ||
+                                                item.HRMD_DepartmentName ||
+                                                item.name ||
+                                                item.label ||
+                                                item.departmentName;
                                             return (
                                                 <SelectItem key={deptId} value={deptId?.toString()}>
                                                     {deptName}
@@ -177,11 +187,21 @@ export default function TabBookDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {subjectList.map((item: any) => (
-                                            <SelectItem key={item.lmS_Id} value={item.lmS_Id.toString()}>
-                                                {item.lmS_SubjectName}
-                                            </SelectItem>
-                                        ))}
+                                        {subjectList.map((item: any) => {
+                                            const subId = item.lmS_Id || item.lms_Id || item.LMS_Id || item.id || item.value;
+                                            const subName =
+                                                item.lmS_SubjectName ||
+                                                item.lms_SubjectName ||
+                                                item.LMS_SubjectName ||
+                                                item.name ||
+                                                item.label ||
+                                                item.subjectName;
+                                            return (
+                                                <SelectItem key={subId} value={subId?.toString()}>
+                                                    {subName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -226,10 +246,6 @@ export default function TabBookDetails({
                     <InputText label='Volume No' {...register('lmB_VolNo')} error={errors.lmB_VolNo?.message} />
                     <InputText label='Book KeyFactor' {...register('lmBkf_KeyFactor')} error={errors.lmBkf_KeyFactor?.message} />
                     <InputText label='Book PageNo' {...register('lmBkf_PageNo')} error={errors.lmBkf_PageNo?.message} />
-                    
-                    <InputText label='First Summary' {...register('lmB_FirstSummary')} />
-                    <InputText label='Second Summary' {...register('lmB_SecondSummary')} />
-                    <InputText label='Third Summary' {...register('lmB_ThirdSummary')} />
 
                     <div className='flex flex-col gap-1.5'>
                         <Label>
@@ -246,11 +262,21 @@ export default function TabBookDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {libList.map((item: any) => (
-                                            <SelectItem key={item.lmaL_Id} value={item.lmaL_Id.toString()}>
-                                                {item.lmaL_LibraryName}
-                                            </SelectItem>
-                                        ))}
+                                        {libList.map((item: any) => {
+                                            const libId = item.lmaL_Id || item.lmal_Id || item.LMAL_Id || item.id || item.value;
+                                            const libName =
+                                                item.lmaL_LibraryName ||
+                                                item.lmal_LibraryName ||
+                                                item.LMAL_LibraryName ||
+                                                item.name ||
+                                                item.label ||
+                                                item.libraryName;
+                                            return (
+                                                <SelectItem key={libId} value={libId?.toString()}>
+                                                    {libName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -270,14 +296,28 @@ export default function TabBookDetails({
             </div>
 
             {/* Action Buttons */}
-            <div className='flex justify-center gap-2 pt-4 border-t'>
-                <Button type='button' variant='destructive' onClick={onClear} className='bg-red-500 hover:bg-red-600 uppercase text-xs font-bold px-6'>
+            <div className='flex justify-center gap-2 border-t pt-4'>
+                <Button
+                    type='button'
+                    variant='destructive'
+                    onClick={onClear}
+                    className='bg-red-500 px-6 font-bold text-xs uppercase hover:bg-red-600'>
                     Clear
                 </Button>
-                <Button type='button' variant='warning' onClick={onCancel} className='bg-orange-500 hover:bg-orange-600 uppercase text-xs font-bold px-6'>
+                <Button
+                    type='button'
+                    variant='warning'
+                    onClick={onCancel}
+                    className='bg-orange-500 px-6 font-bold text-xs uppercase hover:bg-orange-600'>
                     Cancel
                 </Button>
-                <Button type='button' variant='default' onClick={onNext} className='bg-blue-600 hover:bg-blue-700 uppercase text-xs font-bold px-6'>
+                <Button
+                    type='button'
+                    variant='default'
+                    onClick={onNext}
+                    isLoading={isSaving}
+                    disabled={isSaving}
+                    className='bg-blue-600 px-6 font-bold text-xs uppercase hover:bg-blue-700'>
                     Save & Next
                 </Button>
             </div>
@@ -362,15 +402,15 @@ function PhotoUploadBox({
                     {isUploading ? (
                         <div className='flex flex-col items-center gap-1'>
                             <Loader2 className='h-5 w-5 animate-spin text-primary' />
-                            <span className='font-medium text-primary text-[10px]'>Uploading...</span>
+                            <span className='font-medium text-[10px] text-primary'>Uploading...</span>
                         </div>
                     ) : (
                         <div className='flex flex-col items-center gap-2'>
                             <Upload className='h-6 w-6 text-blue-600' />
-                            <div className='flex h-7 w-44 items-center justify-center rounded border border-gray-400 bg-yellow-400 px-2 text-[10px] font-bold text-black transition-colors hover:bg-yellow-500'>
+                            <div className='flex h-7 w-44 items-center justify-center rounded border border-gray-400 bg-yellow-400 px-2 font-bold text-[10px] text-black transition-colors hover:bg-yellow-500'>
                                 Choose File
                             </div>
-                            <span className='font-bold text-gray-500 text-[9px] uppercase tracking-wider'>Upload {label}</span>
+                            <span className='font-bold text-[9px] text-gray-500 uppercase tracking-wider'>Upload {label}</span>
                         </div>
                     )}
                     <input type='file' className='hidden' accept='image/*' onChange={handlePhotoUpload} disabled={isUploading} />
@@ -379,7 +419,7 @@ function PhotoUploadBox({
                 <div className='space-y-2'>
                     <div className='relative h-32 overflow-hidden rounded-lg border-2 border-green-300 shadow-sm'>
                         <img src={value} alt={label} className='h-full w-full object-cover' />
-                        <div className='absolute right-1 top-1 flex gap-1'>
+                        <div className='absolute top-1 right-1 flex gap-1'>
                             <Button
                                 type='button'
                                 variant='secondary'

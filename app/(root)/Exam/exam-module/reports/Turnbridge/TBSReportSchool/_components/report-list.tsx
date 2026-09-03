@@ -14,10 +14,26 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         window.print();
     };
 
-    let reportData = (data && data.studentdetails && data.studentdetails.length > 0) ? data : getMockTBSReportData();
+    const rawStudentList = data?.studentdetails || data?.getstudentdetails || data?.data?.studentdetails || data?.data?.getstudentdetails;
+    const hasRealStudents = Array.isArray(rawStudentList) && rawStudentList.length > 0;
+
+    let reportData = hasRealStudents ? {
+        ...data,
+        studentdetails: rawStudentList,
+        getstudentdetails: rawStudentList,
+        getstudentwisesubjectlist: data?.getstudentwisesubjectlist || data?.studentwisesubjectlist || data?.data?.getstudentwisesubjectlist || [],
+        getstudentmarksdetails: data?.getstudentmarksdetails || data?.studentmarksdetails || data?.data?.getstudentmarksdetails || [],
+        getstudentwisetermwisedetails: data?.getstudentwisetermwisedetails || data?.studentwisetermwisedetails || data?.data?.getstudentwisetermwisedetails || [],
+        getstudentwiseattendancedetails: data?.getstudentwiseattendancedetails || data?.studentwiseattendancedetails || data?.data?.getstudentwiseattendancedetails || [],
+        examwiseremarks: data?.examwiseremarks || data?.data?.examwiseremarks || [],
+        getpromotionremarksdetails: data?.getpromotionremarksdetails || data?.promotionremarksdetails || data?.data?.getpromotionremarksdetails || [],
+        getgroupdetails: data?.getgroupdetails || data?.groupdetails || data?.data?.getgroupdetails || [],
+        getgroupexamdetails: data?.getgroupexamdetails || data?.groupexamdetails || data?.data?.getgroupexamdetails || [],
+        getstudent_examwisemarks: data?.getstudent_examwisemarks || data?.student_examwisemarks || data?.data?.getstudent_examwisemarks || []
+    } : getMockTBSReportData();
 
     // If using mock data and we have selected students in params, update the mock data to reflect them
-    if ((!data || !data.studentdetails || data.studentdetails.length === 0) && params?.selectedStudentDetails?.length > 0) {
+    if (!hasRealStudents && params?.selectedStudentDetails?.length > 0) {
         const mockBase = getMockTBSReportData();
         const newStudentDetails = params.selectedStudentDetails.map((s: any, idx: number) => ({
             AMST_Id: s.amsT_Id,
@@ -28,7 +44,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             asmaY_Year: params.academicYearName || '2024-2025',
             TOTALAttendancePercentage: '95.0'
         }));
-        
+
         // Map subjects and marks for each selected student
         const newSubjects: any[] = [];
         const newMarks: any[] = [];
@@ -43,7 +59,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             [101, 102, 103, 104, 105].forEach((id, sidx) => {
                 const subNames = ['English', 'Mathematics', 'Science', 'Social Studies', 'Hindi'];
                 newSubjects.push({ AMST_Id: std.AMST_Id, ISMS_Id: id, ISMS_SubjectName: subNames[sidx], EYCES_MarksDisplayFlg: true, GropuFlag: 0 });
-                
+
                 // T1 marks
                 newMarks.push({ AMST_Id: std.AMST_Id, ISMS_Id: id, EME_Id: 1, EMPSG_DisplayName: 'T1', ObtainedMarks: 80 + (std.AMST_Id % 10), EYCES_MarksDisplayFlg: true, PassFailFlag: 'P' });
                 // T2 marks
@@ -55,19 +71,20 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             newExamMarks.push({ AMST_Id: std.AMST_Id, EME_Id: 9800000, EMPSG_DisplayName: 'T1', ObtainedMarks: 410, TotalMarks: 500, TotalPercentage: '82.0' });
 
             newTermWise.push({ AMST_Id: std.AMST_Id, ESTMPP_TotalObtMarks: 835, ESTMPP_TotalMaxMarks: 1000, ESTMPP_Percentage: '83.5' });
-            
+
             newAttendance.push({ AMST_Id: std.AMST_Id, EME_Id: 1, EMPSG_DisplayName: 'T1', TOTALAttendancePercentage: 94, TOTALPRESENTDAYS: 47, TOTALWORKINGDAYS: 50 });
             newAttendance.push({ AMST_Id: std.AMST_Id, EME_Id: 2, EMPSG_DisplayName: 'T2', TOTALAttendancePercentage: 96, TOTALPRESENTDAYS: 48, TOTALWORKINGDAYS: 50 });
 
             newRemarks.push({ AMST_Id: std.AMST_Id, EME_ExamName: 'TERM 1', ESTMP_ClassRank: 1, EMER_Remarks: 'Excellent effort.' });
             newRemarks.push({ AMST_Id: std.AMST_Id, EME_ExamName: 'TERM 2', ESTMP_ClassRank: 1, EMER_Remarks: 'Consistent performance.' });
-            
+
             newPromoRemarks.push({ amsT_Id: std.AMST_Id, eprD_ClassPromoted: params.classname || '6', eprD_Remarks: 'Promoted' });
         });
 
         reportData = {
             ...mockBase,
             studentdetails: newStudentDetails,
+            getstudentdetails: newStudentDetails,
             getstudentwisesubjectlist: newSubjects,
             getstudentmarksdetails: newMarks,
             getstudent_examwisemarks: newExamMarks,
@@ -78,7 +95,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         };
     }
 
-    if (!reportData || !reportData.studentdetails || reportData.studentdetails.length === 0) {
+    if (!reportData || (!reportData.studentdetails && !reportData.getstudentdetails)) {
         return (
             <div className='flex h-40 items-center justify-center rounded-lg border bg-card text-muted-foreground'>
                 No data available to display.
@@ -152,54 +169,73 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         (getstudentmarksdetails || []).filter((m: any) => m.AMST_Id === amstId);
 
     const getExamwiseMarks = (amstId: number) =>
-        (getstudent_examwisemarks || []).filter((m: any) => m.AMST_Id === amstId);
+        (getstudent_examwisemarks || []).filter((m: any) => (m.AMST_Id ?? m.amsT_Id) === amstId);
 
-    const getStudentMark = (studentmarks: any[], subjectId: number, examId: number, displayName: string) =>
-        studentmarks.find((m: any) => m.ISMS_Id === subjectId && m.EME_Id === examId && m.EMPSG_DisplayName === displayName);
+    const getStudentMark = (studentmarks: any[], subjectId: number, examId: number, displayName: string) => {
+        let mark = studentmarks.find((m: any) => (m.ISMS_Id === subjectId || m.isms_id === subjectId) && m.EME_Id === examId && m.EMPSG_DisplayName === displayName);
+        if (!mark) {
+            mark = studentmarks.find((m: any) => (m.ISMS_Id === subjectId || m.isms_id === subjectId) && m.EME_Id === examId);
+        }
+        if (!mark && examId === 9800000) {
+            const groupExams = (getgroupexamdetails || []).filter((d: any) => d.empG_DistplayName === displayName || d.EMPSG_DisplayName === displayName);
+            const groupExamIds = groupExams.map((g: any) => g.emE_Id || g.EME_Id);
+
+            const groupMarks = studentmarks.filter((m: any) =>
+                (m.ISMS_Id === subjectId || m.isms_id === subjectId) &&
+                (groupExamIds.length === 0 || groupExamIds.includes(m.EME_Id) || m.EMPSG_DisplayName === displayName)
+            );
+
+            if (groupMarks.length > 0) {
+                const totalObtained = groupMarks.reduce((sum: number, m: any) => sum + Number(m.ObtainedMarks ?? m.obtainedMarks ?? 0), 0);
+                const hasPassFail = groupMarks.some((m: any) => ['AB', 'M', 'L'].includes(m.PassFailFlag));
+                return {
+                    ObtainedMarks: totalObtained,
+                    EYCES_MarksDisplayFlg: true,
+                    PassFailFlag: hasPassFail ? groupMarks.find((m: any) => ['AB', 'M', 'L'].includes(m.PassFailFlag))?.PassFailFlag : 'P'
+                };
+            }
+        }
+        return mark;
+    };
 
     const getStudentExamMark = (examwisemarks: any[], examId: number, displayName: string) =>
         examwisemarks.find((m: any) => m.EME_Id === examId && m.EMPSG_DisplayName === displayName);
 
     const renderMarkValue = (mark: any, grpexam: any, subj: any) => {
         if (!mark) return '';
-        const passFailFlag = mark.PassFailFlag || '';
-        const obtainedMarks = mark.ObtainedMarks ?? '';
-        const obtainedGrade = mark.ObtainedGrade ?? '';
-        const marksDisplayFlg = mark.EYCES_MarksDisplayFlg;
-        const gradeDisplayFlg = mark.EYCES_GradeDisplayFlg;
-        const examName = grpexam.EME_ExamName;
+        const passFailFlag = mark.PassFailFlag || mark.passFailFlag || '';
+        const obtainedMarks = mark.ObtainedMarks ?? mark.obtainedMarks;
+        const obtainedGrade = mark.ObtainedGrade ?? mark.obtainedGrade ?? '';
         const emeId = grpexam.EME_Id;
 
         if (['AB', 'M', 'L'].includes(passFailFlag)) {
             return passFailFlag;
         }
 
-        // Not AB/M/L cases
-        if (marksDisplayFlg && emeId !== 9800001 && emeId !== 9800000 && Number(obtainedMarks) > 0) {
-            if (examName !== 'Term Average') return String(obtainedMarks);
+        if (obtainedMarks !== '' && obtainedMarks !== null && obtainedMarks !== undefined) {
             return String(obtainedMarks);
         }
-        if (!marksDisplayFlg && gradeDisplayFlg && emeId !== 9800001 && emeId !== 9800000) {
-            return String(obtainedGrade);
-        }
 
-        // Yearly aggregate (9800001)
-        if (marksDisplayFlg && emeId === 9800001) {
-            if (mark.GropuFlag === 1 && Number(mark.GroupMarks) > 0) return String(mark.GroupMarks);
-            if (mark.GropuFlag === 0 && Number(obtainedMarks) > 0) return String(obtainedMarks);
-        }
-        if (gradeDisplayFlg && !marksDisplayFlg && (emeId === 9800000 || emeId === 9800001)) {
+        if (obtainedGrade) {
             return String(obtainedGrade);
         }
 
         return '';
     };
 
-    const renderYearlyAggregate = (subj: any) => {
-        const passFailFlag = subj.PassFailFlag || '';
+    const renderYearlyAggregate = (subj: any, amstId: number) => {
+        const passFailFlag = subj.PassFailFlag || subj.passFailFlag || '';
         if (passFailFlag === 'AB') return 'AB';
-        if (subj.EYCES_GradeDisplayFlg && !subj.EYCES_MarksDisplayFlg) return subj.ESTMPPSG_GroupObtGrade || '';
-        if (subj.EYCES_MarksDisplayFlg) return subj.ESTMPPSG_GroupObtMarks || '';
+        if (subj.ESTMPPSG_GroupObtMarks || subj.estmppsg_GroupObtMarks) return String(subj.ESTMPPSG_GroupObtMarks || subj.estmppsg_GroupObtMarks);
+        if (subj.ESTMPPSG_GroupObtGrade || subj.estmppsg_GroupObtGrade) return String(subj.ESTMPPSG_GroupObtGrade || subj.estmppsg_GroupObtGrade);
+
+        const studentmarks = getStudentMarks(amstId);
+        const subjectMarks = studentmarks.filter((m: any) => (m.ISMS_Id === subj.ISMS_Id || m.isms_id === subj.ISMS_Id) && m.EME_Id !== 9800000 && m.EME_Id !== 9800001);
+        if (subjectMarks.length > 0) {
+            const sumObtained = subjectMarks.reduce((sum: number, m: any) => sum + Number(m.ObtainedMarks ?? m.obtainedMarks ?? 0), 0);
+            return String(sumObtained);
+        }
+
         return '';
     };
 
@@ -374,9 +410,13 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                 const skipCell = subj.GropuFlag === 1 && grpexam.EME_Id === 9800001 && subj.colspan === -1;
                                                                 if (skipCell) return null;
 
-                                                                const rowSpan = subj.colspan > 1 && subj.GropuFlag === 1 && grpexam.EME_Id !== 9800000 && grpexam.EME_Id === 9800001
-                                                                    ? subj.colspan
-                                                                    : 1;
+                                                                const rowSpan =
+                                                                    subj.colspan > 1 &&
+                                                                        subj.GropuFlag === 1 &&
+                                                                        grpexam.EME_Id !== 9800000 &&
+                                                                        grpexam.EME_Id === 9800001
+                                                                        ? subj.colspan
+                                                                        : 1;
 
                                                                 return (
                                                                     <td key={`mark-${gi}`} rowSpan={rowSpan}>
@@ -385,7 +425,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                 );
                                                             })}
                                                             {/* Yearly Aggregate */}
-                                                            <td>{renderYearlyAggregate(subj)}</td>
+                                                            <td>{renderYearlyAggregate(subj, amstId)}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>

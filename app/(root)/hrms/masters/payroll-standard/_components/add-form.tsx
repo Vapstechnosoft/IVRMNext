@@ -11,7 +11,6 @@ import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import type { IMasterPayrollStandardList, IMonthDropdown } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { error } from 'node:console';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -65,7 +64,6 @@ const defaultFormValues: any = {
     HRC_ActiveFlag: true
 };
 
-
 export default function PayrollStandardForm({ existingData, className = '' }: PayrollStandardFormProps) {
     const { saveMutation } = useMasterPayrollStandard();
     const { mutate: savePayrollStandard, isPending } = saveMutation;
@@ -118,7 +116,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                 HRC_EducationCess: existingData.hrC_EducationCess,
                 HRC_PartAMaxLimit: existingData.hrC_partAmaxflag,
                 HRC_PartBMaxLimit: existingData.hrC_partBmaxflag,
-                HRC_AsPerEmployee: existingData.hrC_AsPerEmpFlag,
+                HRC_AsPerEmployee: existingData.hrC_AsPerEmpFlag ?? false,
                 HRC_RetirementYrs: existingData.hrC_RetirementYrs,
                 // ESI
                 HRC_ESIAccPrefix: existingData.hrC_ECodePrefix,
@@ -129,19 +127,17 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                 HRC_ArrearSalaryReport: existingData.hrC_ArrSalaryFlag ? 'Separate' : 'OnlyArrearHead',
                 HRC_ArrearRequired: existingData.hrC_CummArrFlag ? 'Cumulative' : 'Monthwise',
                 // Approval Process
-                HRC_SalaryApproval: existingData.hrC_SalApprovalFlg,
-                HRC_SalaryAdvance: existingData.hrC_SalAdvApprovalFlg,
-                HRC_Loan: existingData.hrC_LoanApprovalFlg,
-                HRC_Leave: existingData.hrC_LeaveApprovalFlg,
-                HRC_Increment: existingData.hrC_IncrementApprovalFlg,
-                HRC_Probation: existingData.hrC_ProbationApprovalFlg,
+                HRC_SalaryApproval: existingData.hrC_SalApprovalFlg ?? false,
+                HRC_SalaryAdvance: existingData.hrC_SalAdvApprovalFlg ?? false,
+                HRC_Loan: existingData.hrC_LoanApprovalFlg ?? false,
+                HRC_Leave: existingData.hrC_LeaveApprovalFlg ?? false,
+                HRC_Increment: existingData.hrC_IncrementApprovalFlg ?? false,
+                HRC_Probation: existingData.hrC_ProbationApprovalFlg ?? false,
                 // Payment Method
-                HRC_PaymentMethod: existingData.hrC_PayMethodFlg
-                    ? Number(existingData.hrC_PayMethodFlg.toString().replace(/\D/g, ''))
-                    : 0,
+                HRC_PaymentMethod: existingData.hrC_PayMethodFlg ? Number(existingData.hrC_PayMethodFlg.toString().replace(/\D/g, '')) : 0,
                 // Increment Process
                 HRC_OptionalHolidays: existingData.hrC_NoOfOptionalHolidays,
-                HRC_ApplicableFlag: existingData.hrC_FixedIncrmentFlg,
+                HRC_ApplicableFlag: existingData.hrC_FixedIncrmentFlg ?? false,
                 HRC_MinimumPeriods: existingData.hrC_MinimumWorkingPeriod,
                 HRC_IncrementMonth: incrementMonthValue,
                 HRC_IncrementOnceInMonths: existingData.hrC_IncrementOnceInMonths,
@@ -204,8 +200,10 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
             HRC_SalaryToDay: data.HRC_SalaryToDay,
             HRC_ActiveFlag: data.HRC_ActiveFlag ?? true
         };
+        console.log('Payload : ', payload);
         savePayrollStandard(payload, {
             onSuccess: (response) => {
+                console.log('Response 123', response);
                 if (response?.success) {
                     toast.success(response.message || 'Payroll standard saved successfully');
                 } else {
@@ -220,13 +218,15 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
     const [resetKey, setResetKey] = useState(0);
     const handleReset = () => {
         reset(defaultFormValues);
-        setResetKey(prev => prev + 1);
+        setResetKey((prev) => prev + 1);
     };
     // Add debug logging for form state changes
     const _formValues = watch();
     // Error handling for HRC_SalaryFromDay and HRC_SalaryToDay done in form validation
     const handleFormSubmit = (e?: React.FormEvent) => {
-        return handleSubmit(onSubmit)(e);
+        return handleSubmit(onSubmit, (errors) => {
+            console.log('Validation Errors:', errors);
+        })(e);
     };
     return (
         <div className={className}>
@@ -1463,9 +1463,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                                 Method {method}
                                             </Label>
                                         )}
-
                                     </div>
-
                                 );
                             })}
                         </div>
@@ -1539,11 +1537,7 @@ export default function PayrollStandardForm({ existingData, className = '' }: Pa
                                     name='HRC_ApplicableFlag'
                                     control={control}
                                     render={({ field }) => (
-                                        <Checkbox
-                                            id='HRC_ApplicableFlag'
-                                            checked={field.value}
-                                            onCheckedChange={field.onChange}
-                                        />
+                                        <Checkbox id='HRC_ApplicableFlag' checked={field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
                                 <Label htmlFor='HRC_ApplicableFlag' className='cursor-pointer font-normal'>

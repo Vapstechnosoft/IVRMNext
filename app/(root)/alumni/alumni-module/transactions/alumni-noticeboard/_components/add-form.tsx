@@ -162,7 +162,13 @@ export default function AddAlumniNoticeBoardForm({ onSuccess, mI_Id, className =
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit, onError)} className='space-y-6'>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    <InputText label='Notice Title' required maxLength={25} {...register('alntB_Title')} error={errors.alntB_Title?.message} />
+                    <InputText
+                        label='Notice Title'
+                        required
+                        maxLength={25}
+                        {...register('alntB_Title')}
+                        error={errors.alntB_Title?.message}
+                    />
 
                     <div className='md:col-span-2'>
                         <InputTextarea label='Description' {...register('alntB_Description')} error={errors.alntB_Description?.message} />

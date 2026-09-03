@@ -110,6 +110,7 @@ export default function UpdateMasterCategoryForm({ initialData, onSuccess, class
                         <InputText
                             label='Category Name'
                             required
+                            placeholder='Enter Category Name'
                             id='emcA_CategoryName'
                             {...register('emcA_CategoryName')}
                             error={errors.emcA_CategoryName?.message}

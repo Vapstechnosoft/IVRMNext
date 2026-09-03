@@ -8,11 +8,11 @@ import { autoMappingSchema } from '@/schemas/super-admin/super-admin-module/inst
 import { saveAutoMapping } from '@/server/super-admin/super-admin-module/institution/auto-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-import { getInstitutionDropdown, type InstitutionDropdown } from '@/server/super-admin/super-admin-module/masters/institution-facade';
+import { type InstitutionDropdown, getInstitutionDropdown } from '@/server/super-admin/super-admin-module/masters/institution-facade';
 import { useEffect, useState } from 'react';
 
 // Temporary Mock Data Removed
@@ -78,14 +78,16 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 pt-4'>
             <div className='mx-auto max-w-2xl space-y-4'>
                 <div className='flex flex-col space-y-2'>
-                    <Label htmlFor='Pervious_MI_Id'>Reference Institute Name <span className='text-red-500'>*</span></Label>
+                    <Label htmlFor='Pervious_MI_Id'>
+                        Reference Institute Name <span className='text-red-500'>*</span>
+                    </Label>
                     <Controller
                         name='Pervious_MI_Id'
                         control={control}
                         render={({ field }) => (
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                 <SelectTrigger id='Pervious_MI_Id'>
-                                    <SelectValue placeholder="Select Reference Institute" />
+                                    <SelectValue placeholder='Select Reference Institute' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {institutionOptions?.length > 0 ? (
@@ -95,7 +97,7 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
                                             </SelectItem>
                                         ))
                                     ) : (
-                                        <div className='p-2 text-center text-sm text-muted-foreground'>No Institutions Found</div>
+                                        <div className='p-2 text-center text-muted-foreground text-sm'>No Institutions Found</div>
                                     )}
                                 </SelectContent>
                             </Select>
@@ -105,14 +107,16 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
                 </div>
 
                 <div className='flex flex-col space-y-2'>
-                    <Label htmlFor='Current_MI_Id'>Current Institute Name <span className='text-red-500'>*</span></Label>
+                    <Label htmlFor='Current_MI_Id'>
+                        Current Institute Name <span className='text-red-500'>*</span>
+                    </Label>
                     <Controller
                         name='Current_MI_Id'
                         control={control}
                         render={({ field }) => (
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                 <SelectTrigger id='Current_MI_Id'>
-                                    <SelectValue placeholder="Select Current Institute" />
+                                    <SelectValue placeholder='Select Current Institute' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {institutionOptions?.length > 0 ? (
@@ -122,7 +126,7 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
                                             </SelectItem>
                                         ))
                                     ) : (
-                                        <div className='p-2 text-center text-sm text-muted-foreground'>No Institutions Found</div>
+                                        <div className='p-2 text-center text-muted-foreground text-sm'>No Institutions Found</div>
                                     )}
                                 </SelectContent>
                             </Select>
@@ -141,10 +145,7 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
                 />
 
                 <div className='flex justify-center gap-3 pt-4'>
-                    <Button
-                        type='submit'
-                        disabled={isSubmitting}
-                        className='w-fit transition-all duration-200 hover:scale-105'>
+                    <Button type='submit' disabled={isSubmitting} className='w-fit transition-all duration-200 hover:scale-105'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             Save

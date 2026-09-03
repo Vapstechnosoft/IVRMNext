@@ -17,8 +17,8 @@ import { toast } from 'sonner';
 
 /* ─────────────────── Types ─────────────────── */
 interface CartItem {
-    order: string;               // '1' | '2' | '3' | '4'
-    approvalPerson: string;      // numeric ID as string (value from approvalPersonOptions)
+    order: string; // '1' | '2' | '3' | '4'
+    approvalPerson: string; // numeric ID as string (value from approvalPersonOptions)
     approvalPersonLabel: string; // display name
     finalFlag: boolean;
 }
@@ -159,8 +159,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
         const isDuplicate = cart.some((item) => item.approvalPerson === values.hrmE_EmployeeFirstName);
         if (isDuplicate) {
             const label =
-                approvalPersonOptions.find((o) => o.value === values.hrmE_EmployeeFirstName)?.label ||
-                values.hrmE_EmployeeFirstName;
+                approvalPersonOptions.find((o) => o.value === values.hrmE_EmployeeFirstName)?.label || values.hrmE_EmployeeFirstName;
             toast.error(`"${label}" is already added to the cart. Please select a different person.`);
             return;
         }
@@ -181,8 +180,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
         }
 
         const approvalPersonLabel =
-            approvalPersonOptions.find((o) => o.value === values.hrmE_EmployeeFirstName)?.label ||
-            values.hrmE_EmployeeFirstName;
+            approvalPersonOptions.find((o) => o.value === values.hrmE_EmployeeFirstName)?.label || values.hrmE_EmployeeFirstName;
 
         const newItem: CartItem = {
             order: values.hrlaoN_SanctionLevelNo,
@@ -227,11 +225,11 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
         }
 
         // Resolve numeric IDs from the selected dropdown values
-        const gradeId     = Number(dd.grades?.find((g: any) => g.value == data.hrmG_GradeName)?.value || 0);
+        const gradeId = Number(dd.grades?.find((g: any) => g.value == data.hrmG_GradeName)?.value || 0);
         const groupTypeId = Number(dd.groupTypes?.find((g: any) => g.value == data.hrmgT_EmployeeGroupType)?.value || 0);
-        const deptId      = Number(dd.departments?.find((d: any) => d.value == data.hrmD_DepartmentName)?.value || 0);
-        const desigId     = Number(dd.designations?.find((d: any) => d.value == data.hrmdeS_DesignationName)?.value || 0);
-        const leaveId     = Number(dd.leaveTypes?.find((l: any) => l.value == data.hrmL_LeaveName)?.value || 0);
+        const deptId = Number(dd.departments?.find((d: any) => d.value == data.hrmD_DepartmentName)?.value || 0);
+        const desigId = Number(dd.designations?.find((d: any) => d.value == data.hrmdeS_DesignationName)?.value || 0);
+        const leaveId = Number(dd.leaveTypes?.find((l: any) => l.value == data.hrmL_LeaveName)?.value || 0);
 
         // Build ONE payload with all cart items as approvalUser[]
         const payload = {
@@ -282,7 +280,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
     return (
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
-
                 {/* ── Institution ── */}
                 <div className='mb-4'>
                     <Controller
@@ -301,7 +298,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                     disabled={headerLocked}>
                                     <SelectTrigger
                                         id='institution-select'
-                                        className={`${errors.institution ? 'border-red-500' : ''} ${headerLocked ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                                        className={`${errors.institution ? 'border-red-500' : ''} ${headerLocked ? 'cursor-not-allowed opacity-70' : ''}`}>
                                         <SelectValue placeholder={isLoadingInstitutions ? 'Loading...' : '--Select Institution--'} />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -326,10 +323,8 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
 
                 {/* ── 2-column Grid ── */}
                 <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-
                     {/* Left Column – Header fields (locked after first cart add) */}
                     <div className='space-y-4'>
-
                         {/* Grade */}
                         <Controller
                             name='hrmG_GradeName'
@@ -347,7 +342,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                         disabled={headerLocked}>
                                         <SelectTrigger
                                             id='grade-select'
-                                            className={`${errors.hrmG_GradeName ? 'border-red-500' : ''} ${headerLocked ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                                            className={`${errors.hrmG_GradeName ? 'border-red-500' : ''} ${headerLocked ? 'cursor-not-allowed opacity-70' : ''}`}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -386,7 +381,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                         disabled={headerLocked}>
                                         <SelectTrigger
                                             id='group-type-select'
-                                            className={`${errors.hrmgT_EmployeeGroupType ? 'border-red-500' : ''} ${headerLocked ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                                            className={`${errors.hrmgT_EmployeeGroupType ? 'border-red-500' : ''} ${headerLocked ? 'cursor-not-allowed opacity-70' : ''}`}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -425,7 +420,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                         disabled={headerLocked}>
                                         <SelectTrigger
                                             id='department-select'
-                                            className={`${errors.hrmD_DepartmentName ? 'border-red-500' : ''} ${headerLocked ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                                            className={`${errors.hrmD_DepartmentName ? 'border-red-500' : ''} ${headerLocked ? 'cursor-not-allowed opacity-70' : ''}`}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -464,7 +459,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                         disabled={headerLocked}>
                                         <SelectTrigger
                                             id='designation-select'
-                                            className={`${errors.hrmdeS_DesignationName ? 'border-red-500' : ''} ${headerLocked ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                                            className={`${errors.hrmdeS_DesignationName ? 'border-red-500' : ''} ${headerLocked ? 'cursor-not-allowed opacity-70' : ''}`}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -489,7 +484,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
 
                     {/* Right Column – Per-row fields + cart controls */}
                     <div className='space-y-4'>
-
                         {/* Leave Type */}
                         <Controller
                             name='hrmL_LeaveName'
@@ -507,7 +501,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                         disabled={headerLocked}>
                                         <SelectTrigger
                                             id='leave-type-select'
-                                            className={`${errors.hrmL_LeaveName ? 'border-red-500' : ''} ${headerLocked ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                                            className={`${errors.hrmL_LeaveName ? 'border-red-500' : ''} ${headerLocked ? 'cursor-not-allowed opacity-70' : ''}`}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent side='top'>
@@ -590,8 +584,7 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                             // Block re-selection of already-used persons
                                             const alreadyUsed = cart.some((item) => item.approvalPerson === value);
                                             if (alreadyUsed) {
-                                                const label =
-                                                    approvalPersonOptions.find((o) => o.value === value)?.label || value;
+                                                const label = approvalPersonOptions.find((o) => o.value === value)?.label || value;
                                                 toast.error(`"${label}" is already in the cart. Please select a different person.`);
                                                 return;
                                             }
@@ -611,8 +604,9 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                                             key={option.value}
                                                             value={option.value}
                                                             disabled={isUsed}
-                                                            className={isUsed ? 'opacity-40 line-through cursor-not-allowed' : ''}>
-                                                            {option.label}{isUsed ? ' (already added)' : ''}
+                                                            className={isUsed ? 'cursor-not-allowed line-through opacity-40' : ''}>
+                                                            {option.label}
+                                                            {isUsed ? ' (already added)' : ''}
                                                         </SelectItem>
                                                     );
                                                 })
@@ -646,30 +640,27 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                                     </div>
                                 )}
                             />
-                            {hasFinalFlag && (
-                                <p className='mt-1 text-green-600 text-xs'>✓ Final flag already set in cart</p>
-                            )}
+                            {hasFinalFlag && <p className='mt-1 text-green-600 text-xs'>✓ Final flag already set in cart</p>}
                         </div>
-
                     </div>
-                        {/* Add To Cart Button */}
-                        <div className='pt-1'>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={handleAddToCart}
-                                disabled={hasFinalFlag || nextAvailableOrder === null || mastersLoading}
-                                className='w-fit border-dashed border-primary text-primary hover:bg-primary/5'>
-                                <Plus className='mr-2 h-4 w-4' />
-                                Add To Cart
-                            </Button>
-                        </div>
+                    {/* Add To Cart Button */}
+                    <div className='pt-1'>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            onClick={handleAddToCart}
+                            disabled={hasFinalFlag || nextAvailableOrder === null || mastersLoading}
+                            className='w-fit border-primary border-dashed text-primary hover:bg-primary/5'>
+                            <Plus className='mr-2 h-4 w-4' />
+                            Add To Cart
+                        </Button>
+                    </div>
                 </div>
 
                 {/* ── Cart Table ── */}
                 {cart.length > 0 && (
                     <div className='mt-4 overflow-hidden rounded-lg border border-gray-200'>
-                        <div className='bg-gray-50 px-4 py-2 border-b border-gray-200'>
+                        <div className='border-gray-200 border-b bg-gray-50 px-4 py-2'>
                             <h4 className='font-semibold text-gray-700 text-sm'>
                                 Cart Details ({cart.length} item{cart.length !== 1 ? 's' : ''})
                             </h4>
@@ -686,17 +677,17 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                             </thead>
                             <tbody>
                                 {cart.map((item, index) => (
-                                    <tr key={index} className='border-t border-gray-100 hover:bg-gray-50 transition-colors'>
+                                    <tr key={index} className='border-gray-100 border-t transition-colors hover:bg-gray-50'>
                                         <td className='px-3 py-2 text-center font-medium text-gray-500'>{index + 1}</td>
                                         <td className='px-3 py-2 text-gray-800'>{item.approvalPersonLabel}</td>
                                         <td className='px-3 py-2 text-center font-semibold text-primary'>{item.order}</td>
                                         <td className='px-3 py-2 text-center'>
                                             {item.finalFlag ? (
-                                                <span className='inline-flex h-6 w-6 items-center justify-center rounded-full bg-green-100 border border-green-200 mx-auto'>
+                                                <span className='mx-auto inline-flex h-6 w-6 items-center justify-center rounded-full border border-green-200 bg-green-100'>
                                                     <Check className='h-3.5 w-3.5 text-green-700' strokeWidth={3} />
                                                 </span>
                                             ) : (
-                                                <span className='inline-flex h-6 w-6 items-center justify-center rounded-full bg-red-100 border border-red-200 mx-auto'>
+                                                <span className='mx-auto inline-flex h-6 w-6 items-center justify-center rounded-full border border-red-200 bg-red-100'>
                                                     <X className='h-3.5 w-3.5 text-red-700' strokeWidth={3} />
                                                 </span>
                                             )}
@@ -717,16 +708,18 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                             </tbody>
                         </table>
                         {!hasFinalFlag && (
-                            <div className='bg-amber-50 px-4 py-2 border-t border-amber-100'>
+                            <div className='border-amber-100 border-t bg-amber-50 px-4 py-2'>
                                 <p className='text-amber-700 text-xs'>
-                                    ⚠ Check <strong>Final Flag</strong> on the last approval person and click <strong>Add To Cart</strong> to enable Save.
+                                    ⚠ Check <strong>Final Flag</strong> on the last approval person and click <strong>Add To Cart</strong>{' '}
+                                    to enable Save.
                                 </p>
                             </div>
                         )}
                         {hasFinalFlag && (
-                            <div className='bg-green-50 px-4 py-2 border-t border-green-100'>
+                            <div className='border-green-100 border-t bg-green-50 px-4 py-2'>
                                 <p className='text-green-700 text-xs'>
-                                    ✓ Final flag is set. You can now <strong>Save</strong> all {cart.length} cart item{cart.length !== 1 ? 's' : ''}.
+                                    ✓ Final flag is set. You can now <strong>Save</strong> all {cart.length} cart item
+                                    {cart.length !== 1 ? 's' : ''}.
                                 </p>
                             </div>
                         )}
@@ -758,7 +751,6 @@ export default function AddLeaveAuthorizationForm({ onSuccess, onCancel, classNa
                         {isPending || isSubmitting ? 'Saving...' : 'Save'}
                     </Button>
                 </div>
-
             </form>
         </div>
     );

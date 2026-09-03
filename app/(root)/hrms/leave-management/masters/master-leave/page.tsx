@@ -6,12 +6,12 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useDeleteMasterLeave, useMasterLeave, useToggleMasterLeave, useUpdateMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
-import AddMasterLeaveForm from './_components/add-form';
-import { type MasterLeave, getMasterLeaveColumns } from './_components/columns';
-import UpdateMasterLeaveForm from './_components/update-form';
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs';
 import { useMemo } from 'react';
+import AddMasterLeaveForm from './_components/add-form';
+import { type MasterLeave, getMasterLeaveColumns } from './_components/columns';
+import ReorderMasterLeaveForm from './_components/reorder-form';
+import UpdateMasterLeaveForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -26,16 +26,19 @@ export default function MasterLeavePage(_props: { searchParams: SearchParams }) 
     });
 
     // Normalize params for useMasterLeave
-    const normalizedParams = useMemo(() => ({
-        page: params.page,
-        page_size: params.page_size,
-        search_query: params.search_query || '',
-        sort_column: params.sort_column || '',
-        sort_direction: params.sort_direction as 'asc' | 'desc'
-    }), [params]);
+    const normalizedParams = useMemo(
+        () => ({
+            page: params.page,
+            page_size: params.page_size,
+            search_query: params.search_query || '',
+            sort_column: params.sort_column || '',
+            sort_direction: params.sort_direction as 'asc' | 'desc'
+        }),
+        [params]
+    );
 
     const { data: response, isLoading, error } = useMasterLeave(normalizedParams);
-
+    console.log('leave respone', response);
     return (
         <FormProvider<MasterLeave>>
             <MasterLeavePageContent response={response} isLoading={isLoading} error={error} />
@@ -84,6 +87,9 @@ function MasterLeavePageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <div className='mb-4 flex justify-end'>
+                        <ReorderMasterLeaveForm />
+                    </div>
                     <GenericDataTable<MasterLeave>
                         {...tableProps}
                         columns={columns}
@@ -230,8 +236,8 @@ function FormSections() {
                                         ? 'Activating...'
                                         : 'Deactivating...'
                                     : selectedRow.isActive
-                                        ? 'Activate'
-                                        : 'Deactivate'}
+                                      ? 'Activate'
+                                      : 'Deactivate'}
                             </Button>
                         </div>
                     </div>

@@ -1,11 +1,12 @@
-import { z } from 'zod';
 import { createStringOnlySchema, deleteIdSchema } from '@/schemas/validationSchemas';
+import { z } from 'zod';
 
 export const DeputationSchema = z.object({
-    asmaY_Id: z.string().min(1, 'Academic Year is required'),
+    asmaY_Id: z.string().optional(),
     ttmD_Date: z.date({ required_error: 'Date is required' }),
     absent_Staff_Flag: z.boolean().default(false),
-    hrE_Id: z.string().min(1, 'Staff Name is required'),
+    hrmE_Id: z.string().min(1, 'Staff Name is required'),
+    ttmD_Id: z.number().optional(),
     ttmD_Day: z.string().optional(),
     ttmD_Remarks: z.string().optional(),
     sms_Flag: z.boolean().default(false),
@@ -24,11 +25,11 @@ export type ManualPeriodInsertionValues = z.infer<typeof ManualPeriodInsertionSc
 export const StaffRepacementExistingToNewSchema = z.object({
     asmaY_Id: z.string().optional(), //Academic Year
     ttmC_Id: z.string().min(1, 'Please Provide Category'), //category
-    asmcL_Id: z.string().optional(), //Class
-    asms_Id: z.string().optional(), //Section
+    asmcL_Id: z.string().min(1, 'Please Select Class'), //Class
+    asms_Id: z.string().min(1, 'Please Select Section'), //Section
     hrmE_Id_From: z.string().min(1, 'Replace Staff From is required'), //staff from
     hrmE_Id_To: z.string().min(1, 'Replace Staff To is required'), //staff to
-    ismS_Id: z.string().optional() //Subject
+    ismS_Id: z.string().min(1, 'Please Select Subject') //Subject
 });
 export type StaffReplacementExistingToNewValues = z.infer<typeof StaffRepacementExistingToNewSchema>;
 
@@ -57,7 +58,7 @@ export const timeTableGenerationSchema = z.object({
     hrmE_Id: z.string().optional(),
     asmcL_Id: z.string().optional(),
     asms_Id: z.string().optional(),
-    notConfirmedPeriods: z.string().optional(),
+    notConfirmedPeriods: z.string().optional()
 });
 export const ttGenerationSchema = {
     addOrUpdate: z.object({

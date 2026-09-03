@@ -2,19 +2,26 @@
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { ReadOnlyMultiSelect } from './read-only-multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterClassCategory, useMasterSectionDropdown, useMasterClassCategorySection, useAcademicYearDropdown, useMasterCategoryDropdown, useMasterClassDropdown } from '@/hooks/admission/preadmission/useMasters';
+import {
+    useAcademicYearDropdown,
+    useMasterCategoryDropdown,
+    useMasterClassCategory,
+    useMasterClassCategorySection,
+    useMasterClassDropdown,
+    useMasterSectionDropdown
+} from '@/hooks/admission/preadmission/useMasters';
 import { masterClassCategorySchema } from '@/schemas/admission/preadmission/masters';
 import { addMasterClassCategory } from '@/server/admission/preadmission/masters/class_category';
+import type { IMasterClassCategoryList, IMasterClassCategorySectionList } from '@/types/admission/preadmission/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
-import type { IMasterClassCategoryList, IMasterClassCategorySectionList } from '@/types/admission/preadmission/masters';
+import type { z } from 'zod';
+import { ReadOnlyMultiSelect } from './read-only-multi-select';
 
 type MasterClassCategoryFormValues = z.infer<typeof masterClassCategorySchema.add>;
 
@@ -24,6 +31,7 @@ interface UpdateMasterClassCategoryFormProps {
 }
 
 export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: UpdateMasterClassCategoryFormProps) {
+    const [clearKey, setClearKey] = useState(0);
     const { refetchAll } = useMasterClassCategory();
     const { data: sections } = useMasterSectionDropdown();
     const { data: academicYears } = useAcademicYearDropdown();
@@ -50,8 +58,8 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
     // Optimistic Population: Show data immediately while existingData loads
     useEffect(() => {
         if (rowData) {
-            console.log("=== Optimistic Population ===");
-            console.log("rowData:", rowData);
+            console.log('=== Optimistic Population ===');
+            console.log('rowData:', rowData);
 
             // optimized matching
             let yearId = 0;
@@ -59,58 +67,62 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
             let classId = 0;
 
             if (academicYears?.data) {
-                const year = academicYears.data.find(y => y.asmaY_Year === rowData.asmaY_Year);
+                const year = academicYears.data.find((y) => y.asmaY_Year === rowData.asmaY_Year);
                 if (year) {
                     yearId = year.asmaY_Id;
-                    console.log("Found year:", year);
+                    console.log('Found year:', year);
                 }
             }
 
             if (categories?.data) {
-                console.log("Looking for category:", rowData.amC_Name);
-                console.log("Available categories:", categories.data.map(c => c.amC_Name));
-                const cat = categories.data.find(c => c.amC_Name === rowData.amC_Name);
+                console.log('Looking for category:', rowData.amC_Name);
+                console.log(
+                    'Available categories:',
+                    categories.data.map((c) => c.amC_Name)
+                );
+                const cat = categories.data.find((c) => c.amC_Name === rowData.amC_Name);
                 if (cat) {
                     catId = cat.amC_Id;
-                    console.log("Found category:", cat);
+                    console.log('Found category:', cat);
                 } else {
-                    console.warn("Category not found:", rowData.amC_Name);
+                    console.warn('Category not found:', rowData.amC_Name);
                 }
             }
 
             if (classes?.data) {
-                const cls = classes.data.find(c => c.asmcL_ClassName === rowData.asmcL_ClassName);
+                const cls = classes.data.find((c) => c.asmcL_ClassName === rowData.asmcL_ClassName);
                 if (cls) {
                     classId = cls.asmcL_Id;
-                    console.log("Found class:", cls);
+                    console.log('Found class:', cls);
                 }
             }
 
             if (yearId > 0) {
-                console.log("Setting yearId:", yearId);
+                console.log('Setting yearId:', yearId);
                 form.setValue('asmaY_Id', yearId);
             }
             if (catId > 0) {
-                console.log("Setting catId:", catId);
+                console.log('Setting catId:', catId);
                 form.setValue('amC_Id', catId);
             }
             if (classId > 0) {
-                console.log("Setting classId:", classId);
+                console.log('Setting classId:', classId);
                 form.setValue('category_classes', [String(classId)]);
             }
         }
     }, [rowData.asmaY_Year, rowData.amC_Name, rowData.asmcL_ClassName, academicYears, categories, classes, form]);
 
-
     // Authoritative Population: Use existingData (which has IDs) when it loads.
     // This serves as correction/validation and populates Sections.
     useEffect(() => {
         if (existingData) {
-            console.log("=== Existing Data Loaded ===", existingData);
-            console.log("Current lastLoadedId:", lastLoadedId.current);
-            console.log("Current rowData.asmcC_Id:", rowData.asmcC_Id);
+            console.log('=== Existing Data Loaded ===', existingData);
+            console.log('Current lastLoadedId:', lastLoadedId.current);
+            console.log('Current rowData.asmcC_Id:', rowData.asmcC_Id);
 
-            const details = Array.isArray(existingData) ? existingData[0] as IMasterClassCategorySectionList : existingData as IMasterClassCategorySectionList;
+            const details = Array.isArray(existingData)
+                ? (existingData[0] as IMasterClassCategorySectionList)
+                : (existingData as IMasterClassCategorySectionList);
 
             const extractSectionIds = (data: any): string[] => {
                 if (!data) return [];
@@ -128,21 +140,21 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                         if (item.sections && Array.isArray(item.sections)) {
                             item.sections.forEach(traverse);
                         }
-                        Object.values(item).forEach(val => {
+                        Object.values(item).forEach((val) => {
                             if (Array.isArray(val)) val.forEach(traverse);
                             else if (typeof val === 'object') traverse(val);
                         });
                     }
-                }
+                };
                 traverse(data);
                 return Array.from(ids);
             };
 
             const sectionIds = extractSectionIds(existingData);
-            console.log("Extracted Section IDs:", sectionIds);
+            console.log('Extracted Section IDs:', sectionIds);
 
             if (details) {
-                console.log("Details object:", details);
+                console.log('Details object:', details);
 
                 const newValues = {
                     asmcC_Id: rowData.asmcC_Id,
@@ -153,63 +165,62 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                     category_class_sections: sectionIds.length > 0 ? sectionIds : []
                 };
 
-                console.log("New values to set:", newValues);
+                console.log('New values to set:', newValues);
 
                 // Reset if we have valid data (category OR class must be present)
                 const hasValidData = (newValues.amC_Id > 0 || newValues.category_classes.length > 0) && newValues.asmaY_Id > 0;
 
                 if (hasValidData) {
-                    console.log("Valid data found, resetting form");
+                    console.log('Valid data found, resetting form');
                     form.reset(newValues);
                     lastLoadedId.current = rowData.asmcC_Id;
-                    console.log("Form reset complete");
+                    console.log('Form reset complete');
                 } else {
-                    console.warn("Invalid data - missing required fields");
-                    console.warn("amC_Id:", newValues.amC_Id, "asmaY_Id:", newValues.asmaY_Id, "classes:", newValues.category_classes);
+                    console.warn('Invalid data - missing required fields');
+                    console.warn('amC_Id:', newValues.amC_Id, 'asmaY_Id:', newValues.asmaY_Id, 'classes:', newValues.category_classes);
 
                     // Set fields individually if reset is skipped
                     if (newValues.amC_Id > 0) {
-                        console.log("Setting category separately:", newValues.amC_Id);
+                        console.log('Setting category separately:', newValues.amC_Id);
                         form.setValue('amC_Id', newValues.amC_Id);
                     }
                     if (newValues.asmaY_Id > 0) {
-                        console.log("Setting year separately:", newValues.asmaY_Id);
+                        console.log('Setting year separately:', newValues.asmaY_Id);
                         form.setValue('asmaY_Id', newValues.asmaY_Id);
                     }
                     if (newValues.category_classes.length > 0) {
-                        console.log("Setting classes separately:", newValues.category_classes);
+                        console.log('Setting classes separately:', newValues.category_classes);
                         form.setValue('category_classes', newValues.category_classes);
                     }
                     if (sectionIds.length > 0) {
-                        console.log("Setting sections separately:", sectionIds);
+                        console.log('Setting sections separately:', sectionIds);
                         form.setValue('category_class_sections', sectionIds);
                     }
                 }
             } else {
-                console.warn("No details found in existingData");
+                console.warn('No details found in existingData');
             }
         }
     }, [existingData, form, rowData.asmcC_Id]);
 
-
     const { mutate: updateClassCategory, isPending } = useMutation({
         mutationFn: addMasterClassCategory,
         onSuccess: (data: any) => {
-            console.log("Update response:", data);
-            if (data?.returnval === true ||
+            console.log('Update response:', data);
+            if (
+                data?.returnval === true ||
                 data?.message === 'Saved Successfully' ||
                 data?.message === 'Updated Successfully' ||
-                (data && typeof data === 'object' && !data.returnduplicatestatus && !data.errors)) {
-
+                (data && typeof data === 'object' && !data.returnduplicatestatus && !data.errors)
+            ) {
                 toast.success('Master Class Category updated successfully');
                 refetchAll();
                 onSuccess();
             } else if (data?.returnduplicatestatus === 'Duplicate' || data?.returnduplicatestatus === 'Record Already Exists') {
                 toast.warning('Record already exists.');
             } else {
-                const errorMsg = typeof data?.returnduplicatestatus === 'string'
-                    ? data.returnduplicatestatus
-                    : 'Failed to update Master Class Category';
+                const errorMsg =
+                    typeof data?.returnduplicatestatus === 'string' ? data.returnduplicatestatus : 'Failed to update Master Class Category';
                 toast.error(errorMsg);
             }
         },
@@ -233,38 +244,39 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
             })),
             is_Active: true
         };
-        console.log("Submitting update payload:", payload);
+        console.log('Submitting update payload:', payload);
         updateClassCategory(payload);
     };
 
     // Disable all options for readonly display
-    const sectionOptions = sections?.data
-        ?.filter((item) => item.asmS_Id && Number(item.asmS_Id) > 0)
-        ?.map((item) => ({
-            label: item.asmC_SectionName,
-            value: String(item.asmS_Id),
-            disabled: true // Disable interaction
-        })) || [];
+    const sectionOptions =
+        sections?.data
+            ?.filter((item) => item.asmS_Id && Number(item.asmS_Id) > 0)
+            ?.map((item) => ({
+                label: item.asmC_SectionName,
+                value: String(item.asmS_Id),
+                disabled: true // Disable interaction
+            })) || [];
 
     // Disable all classes
-    const classOptions = classes?.data
-        ?.filter((item) => item.asmcL_Id && Number(item.asmcL_Id) > 0)
-        ?.map((item) => ({
-            label: item.asmcL_ClassName,
-            value: String(item.asmcL_Id),
-            disabled: true // Disable interaction
-        })) || [];
+    const classOptions =
+        classes?.data
+            ?.filter((item) => item.asmcL_Id && Number(item.asmcL_Id) > 0)
+            ?.map((item) => ({
+                label: item.asmcL_ClassName,
+                value: String(item.asmcL_Id),
+                disabled: true // Disable interaction
+            })) || [];
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4 p-4'>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-
                     {/* Academic Year - READ ONLY */}
                     <FormItem>
                         <FormLabel>Academic Year</FormLabel>
-                        <div className="p-2 border rounded-md bg-gray-50 text-sm">
-                            {academicYears?.data?.find(y => y.asmaY_Id === form.getValues('asmaY_Id'))?.asmaY_Year || rowData.asmaY_Year}
+                        <div className='rounded-md border bg-gray-50 p-2 text-sm'>
+                            {academicYears?.data?.find((y) => y.asmaY_Id === form.getValues('asmaY_Id'))?.asmaY_Year || rowData.asmaY_Year}
                         </div>
                     </FormItem>
 
@@ -276,9 +288,9 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                             <FormItem>
                                 <FormLabel>Category</FormLabel>
                                 <Select
+                                    key={`category-${clearKey}`}
                                     onValueChange={(value) => field.onChange(Number(value))}
-                                    value={String(field.value ?? '')}
-                                >
+                                    value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
                                         <SelectTrigger disabled={!categories}>
                                             <SelectValue placeholder='Select Category' />
@@ -315,7 +327,7 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
                                         placeholder={!classes ? 'Loading classes...' : 'Select classes'}
-                                        variant="default"
+                                        variant='default'
                                         maxCount={5}
                                     />
                                 </FormControl>
@@ -337,8 +349,10 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                                         options={sectionOptions}
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
-                                        placeholder={isLoadingSections ? 'Loading details...' : (!sections ? 'Loading sections...' : 'Select sections')}
-                                        variant="default"
+                                        placeholder={
+                                            isLoadingSections ? 'Loading details...' : !sections ? 'Loading sections...' : 'Select sections'
+                                        }
+                                        variant='default'
                                         maxCount={5}
                                     />
                                 </FormControl>
@@ -350,12 +364,7 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
 
                 {/* Update Button */}
                 <div className='flex items-center justify-center gap-2 pt-4'>
-                    <Button
-                        type='submit'
-                        size='sm'
-                        className='min-w-[100px]'
-                        disabled={isPending}
-                    >
+                    <Button type='submit' size='sm' className='min-w-[100px]' disabled={isPending}>
                         {isPending ? (
                             <>
                                 <Loader2 className='mr-2 h-4 w-4 animate-spin' />
@@ -370,7 +379,10 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                         size='sm'
                         variant='outline'
                         className='min-w-[100px]'
-                        onClick={() => window.location.reload()}>
+                        onClick={() => {
+                            form.reset();
+                            setClearKey((prev) => prev + 1);
+                        }}>
                         Clear
                     </Button>
                 </div>
@@ -378,4 +390,3 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
         </Form>
     );
 }
-

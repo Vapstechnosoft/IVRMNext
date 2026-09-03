@@ -80,8 +80,5 @@ export interface IClassWorkSave {
     ICW_Attachment?: string;
 }
 export interface IClassWorkMarksInitialData {
-academicyear: any;
-
-
-    
+    academicyear: any;
 }

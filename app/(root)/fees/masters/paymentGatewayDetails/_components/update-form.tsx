@@ -11,7 +11,7 @@ import { addOrUpdatepaymentgatewaydetails } from '@/server/fees/masters/fee_paym
 import type { IMasterPaymentGatewayList } from '@/types/fees/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Minus, Plus, Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -91,24 +91,27 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
         }
     }, [selectedRow, reset]);
 
+    const [resetKey, setResetKey] = useState(0);
+
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
+        const submerchants = data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => item.id) ?? [];
+
         const payload = {
-            // user_id: 20612,
-            // mi_id: 30,
             fpgD_Id: selectedRow.fpgD_Id,
-            fpgD_SaltKey: data.fpgD_SaltKey,
+            mI_Id: 0,
+            user_id: 0,
             fpgD_MerchantId: data.fpgD_MerchantId,
-            fpgD_Image: data.fpgD_Image,
-            fpgD_URL: data.fpgD_URL,
-            fpgD_AccNo: data.fpgD_AccNo,
-            // submerchantIds:
-            //     data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => ({ fpgD_SubMerchantId: item.id })) || [],
-
-            submerchantIds: data.submerchantIds?.filter((item) => item.id.trim() !== '').map((item) => item.id) || [],
-
+            fpgD_SaltKey: data.fpgD_SaltKey,
             fpgD_AuthorisationKey: data.fpgD_MerchantKey,
+            fpgD_URL: data.fpgD_URL,
+            fpgD_SubMerchantId: submerchants.length > 0 ? submerchants[0] : '',
             impG_Id: data.impG_Id,
-            fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag
+            fpgD_Image: data.fpgD_Image,
+            fpgD_PGName: '',
+            fmpG_PGName: '',
+            fpgD_MobileActiveFlag: data.fpgD_MobileActiveFlag,
+            fpgD_AccNo: data.fpgD_AccNo,
+            submerchantIds: submerchants
         };
 
         console.log('Payload to be sent:', JSON.stringify(payload));
@@ -119,7 +122,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
             if (response.success) {
                 toast.success(response.message);
                 reset();
-                refetchAll();
+                await refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(response.message);
@@ -144,14 +147,24 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                     <label htmlFor='fpgD_MerchantId'>
                         Merchant Id <span className='text-red-500'>*</span>
                     </label>
-                    <InputText id='fpgD_MerchantId' {...register('fpgD_MerchantId')} error={errors.fpgD_MerchantId?.message} />
+                    <InputText
+                        id='fpgD_MerchantId'
+                        placeholder='Enter Merchant Id'
+                        {...register('fpgD_MerchantId')}
+                        error={errors.fpgD_MerchantId?.message}
+                    />
                 </div>
 
                 <div className='flex flex-col gap-1.5'>
                     <label htmlFor='fpgD_SaltKey'>
                         Salt Key<span className='text-red-500'>*</span>
                     </label>
-                    <InputText id='fpgD_SaltKey' {...register('fpgD_SaltKey')} error={errors.fpgD_SaltKey?.message} />
+                    <InputText
+                        id='fpgD_SaltKey'
+                        placeholder='Enter Salt Key'
+                        {...register('fpgD_SaltKey')}
+                        error={errors.fpgD_SaltKey?.message}
+                    />
                 </div>
 
                 <div className='flex flex-col gap-1.5'>
@@ -183,6 +196,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                         //   label="Image"
                         //   required
                         id='fpgD_Image'
+                        placeholder='Enter Image'
                         {...register('fpgD_Image', {
                             required: 'Image URL is required',
                             validate: (value) =>
@@ -199,6 +213,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
 
                     <InputText
                         id='fpgD_URL'
+                        placeholder='Enter URL'
                         {...register('fpgD_URL', {
                             required: 'URL is required',
                             validate: (value) =>
@@ -237,6 +252,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                     </label>
                     <InputText
                         id='fpgD_AccNo'
+                        placeholder='Enter Account Number'
                         {...register('fpgD_AccNo')}
                         error={errors.fpgD_AccNo?.message}
                         onKeyDown={(e) => {
@@ -264,6 +280,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                     </label>
                     <InputText
                         id='fpgD_MerchantKey'
+                        placeholder='Enter Merchant Key'
                         {...register('fpgD_MerchantKey')}
                         error={errors.fpgD_MerchantKey?.message}
                         onKeyDown={(e) => {
@@ -296,6 +313,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                         defaultValue={selectedRow?.impG_Id ?? 0}
                         render={({ field }) => (
                             <Select
+                                key={resetKey}
                                 onValueChange={(value) => field.onChange(Number(value))}
                                 value={field.value ? field.value.toString() : ''}>
                                 <SelectTrigger>
@@ -336,6 +354,7 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
                             <input
                                 id={`submerchantIds.${index}.id`}
                                 type='text'
+                                placeholder='Enter Sub Merchant Id'
                                 {...register(`submerchantIds.${index}.id`, { required: true })}
                                 className='w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary'
                                 onKeyDown={(e) => {
@@ -399,7 +418,14 @@ export default function UpdatePaymentGatewayDetailsForm({ onSuccess, selectedRow
             </div>
 
             <div className='flex gap-3 border-t pt-4'>
-                <Button type='button' variant='outline' onClick={() => reset()} disabled={isSubmitting}>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                        reset();
+                        setResetKey((prev) => prev + 1);
+                    }}
+                    disabled={isSubmitting}>
                     Reset
                 </Button>
                 <Button type='submit' disabled={isSubmitting} isLoading={isSubmitting} loadingText='Saving...'>

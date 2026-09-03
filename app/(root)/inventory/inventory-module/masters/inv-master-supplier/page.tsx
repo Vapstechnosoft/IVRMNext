@@ -1,13 +1,13 @@
 'use client';
 
-import { use } from 'react';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Plus, X, Truck, PlusCircle, Pencil } from 'lucide-react';
 import { useInvMasterSupplier } from '@/hooks/inventory/masters/use-inv-master-supplier';
 import type { IInvMasterSupplier } from '@/types/inventory/masters/inv-master-supplier';
+import { Pencil, Plus, PlusCircle, Truck, X } from 'lucide-react';
+import { use } from 'react';
 import AddInvMasterSupplierForm from './_components/add-form';
 import { invMasterSupplierColumns } from './_components/columns';
 import ToggleInvMasterSupplierForm from './_components/toggle-form';
@@ -38,8 +38,8 @@ function InvMasterSupplierPageContent({
     refetchAll: any;
 }) {
     const { openAddForm } = useFormContext<IInvMasterSupplier>();
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_supplier',
+    const tableProps = useDataTableProps(response, {
+        dataKey: 'data',
         totalKey: 'total'
     });
 
@@ -65,7 +65,7 @@ function InvMasterSupplierPageContent({
                     icon={<Truck className='h-5 w-5' />}>
                     <GenericDataTable<IInvMasterSupplier>
                         {...tableProps}
-                        data={response?.data?.get_supplier || []}
+                        data={response?.data || []}
                         columns={invMasterSupplierColumns}
                         isLoading={isLoading}
                         error={error}
@@ -117,7 +117,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddInvMasterSupplierForm onSuccess={closeAddForm} />
+                            <AddInvMasterSupplierForm onSuccess={closeAddForm} onCancel={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -141,7 +141,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateInvMasterSupplierForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateInvMasterSupplierForm selectedRow={selectedRow} onSuccess={closeEditForm} onCancel={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

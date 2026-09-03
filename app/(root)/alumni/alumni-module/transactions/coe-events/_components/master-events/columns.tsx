@@ -1,29 +1,24 @@
 'use client';
-
-import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterEvent } from '@/types/alumni/master-coe';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
 export const MasterEventsColumns: ColumnDef<IMasterEvent>[] = [
     {
         accessorKey: 'sno',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='justify-center text-center font-bold text-black' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Sl.No' className='justify-center text-center font-bold text-black' />
+        ),
         cell: (info) => <div className='text-center'>{info.row.index + 1}</div>,
         enableSorting: false
     },
     {
         accessorKey: 'coemE_EventName',
         header: ({ column }) => (
-            <DataTableColumnHeader
-                column={column}
-                title='Event Name'
-                className='justify-center text-center font-bold text-black'
-            />
+            <DataTableColumnHeader column={column} title='Event Name' className='justify-center text-center font-bold text-black' />
         ),
         cell: (info) => <div className='text-center'>{info.getValue() as string}</div>,
         enableSorting: true
@@ -31,11 +26,7 @@ export const MasterEventsColumns: ColumnDef<IMasterEvent>[] = [
     {
         accessorKey: 'coemE_EventDesc',
         header: ({ column }) => (
-            <DataTableColumnHeader
-                column={column}
-                title='Description'
-                className='justify-center text-center font-bold text-black'
-            />
+            <DataTableColumnHeader column={column} title='Description' className='justify-center text-center font-bold text-black' />
         ),
         cell: (info) => {
             const desc = info.getValue() as string | null;

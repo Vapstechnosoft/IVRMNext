@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -12,12 +13,11 @@ import {
     type SportVenuewiseParticipationReportFormData,
     sportVenuewiseParticipationReportSchema
 } from '@/schemas/sports/transactions/sport-venuewise-participation-report';
-import { type ISportVenueWiseParticipationReportPayload, type SportVenuewiseReportData } from '@/types/sports/reports/venue-wise-participation-report';
+import type { ISportVenueWiseParticipationReportPayload } from '@/types/sports/reports/venue-wise-participation-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState, use, useMemo } from 'react';
-import { Controller, useForm, FormProvider } from 'react-hook-form';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { use, useEffect, useMemo, useState } from 'react';
+import { Controller, FormProvider, useForm } from 'react-hook-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -26,22 +26,23 @@ export default function SportVenuewiseParticipationReportPage(props: { searchPar
     const { loadData, refetchAll } = useSportVenuewiseParticipationReport(searchParams);
 
     return (
-        <FormProvider {...useForm<SportVenuewiseParticipationReportFormData>({
-            resolver: zodResolver(sportVenuewiseParticipationReportSchema),
-            defaultValues: {
-                type: 'House',
-                asmaY_Id: undefined,
-                spccmeV_Id: [],
-                spccmH_Id: [],
-                asmcL_Id: undefined,
-                asmS_Id: []
-            }
-        })}>
-            <SportVenuewiseParticipationReportPageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+        <FormProvider
+            {...useForm<SportVenuewiseParticipationReportFormData>({
+                resolver: zodResolver(sportVenuewiseParticipationReportSchema),
+                defaultValues: {
+                    type: 'House',
+                    asmaY_Id: undefined,
+                    spccmeV_Id: [],
+                    spccmH_Id: [],
+                    asmcL_Id: undefined,
+                    asmS_Id: []
+                }
+            })}>
+            <SportVenuewiseParticipationReportPageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
                 searchParams={searchParams}
             />
         </FormProvider>
@@ -85,9 +86,15 @@ function SportVenuewiseParticipationReportPageContent({ response, isLoading, err
                 {
                     onSuccess: (res) => {
                         if (res.success && res.data) {
-                            setClassOptions(res.data.classList?.map((c) => ({ label: c.asmcL_ClassName, value: c.asmcL_Id.toString() })) || []);
-                            setHouseOptions(res.data.houseList?.map((h) => ({ label: h.spccmH_HouseName, value: h.spccmH_Id.toString() })) || []);
-                            setVenueOptions(res.data.venueList?.map((v) => ({ label: v.spccmeV_EventVenue, value: v.spccmeV_Id.toString() })) || []);
+                            setClassOptions(
+                                res.data.classList?.map((c) => ({ label: c.asmcL_ClassName, value: c.asmcL_Id.toString() })) || []
+                            );
+                            setHouseOptions(
+                                res.data.houseList?.map((h) => ({ label: h.spccmH_HouseName, value: h.spccmH_Id.toString() })) || []
+                            );
+                            setVenueOptions(
+                                res.data.venueList?.map((v) => ({ label: v.spccmeV_EventVenue, value: v.spccmeV_Id.toString() })) || []
+                            );
                         }
                     }
                 }
@@ -106,7 +113,9 @@ function SportVenuewiseParticipationReportPageContent({ response, isLoading, err
                 {
                     onSuccess: (res) => {
                         if (res.success && res.data?.sectionList) {
-                            setSectionOptions(res.data.sectionList.map((s) => ({ label: s.asmC_SectionName, value: s.asmS_Id.toString() })));
+                            setSectionOptions(
+                                res.data.sectionList.map((s) => ({ label: s.asmC_SectionName, value: s.asmS_Id.toString() }))
+                            );
                         }
                     }
                 }
@@ -119,9 +128,9 @@ function SportVenuewiseParticipationReportPageContent({ response, isLoading, err
     const onSubmit = (data: SportVenuewiseParticipationReportFormData) => {
         const payload: ISportVenueWiseParticipationReportPayload = {
             ...data,
-            selectedVenuelist: data.spccmeV_Id.map(id => ({ spccmeV_Id: id })),
-            selectedhouselist: data.spccmH_Id.map(id => ({ spccmH_Id: id })),
-            selectedSectionlist: data.asmS_Id?.map(id => ({ asmS_Id: id }))
+            selectedVenuelist: data.spccmeV_Id.map((id) => ({ spccmeV_Id: id })),
+            selectedhouselist: data.spccmH_Id.map((id) => ({ spccmH_Id: id })),
+            selectedSectionlist: data.asmS_Id?.map((id) => ({ asmS_Id: id }))
         };
         reportData.mutate(payload, {
             onSuccess: (res) => {
@@ -141,23 +150,63 @@ function SportVenuewiseParticipationReportPageContent({ response, isLoading, err
         setSectionOptions([]);
     };
 
-    const columns = useMemo(() => [
-        { id: 'id', header: 'SL. No.', cell: ({ row }: any) => <div>{row.index + 1}</div> },
-        { accessorKey: 'spccmH_HouseName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='House Name' />, enableSorting: true },
-        { accessorKey: 'spccmeV_EventVenue', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Venue' />, enableSorting: true },
-        { accessorKey: 'amsT_Name', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Student Name' />, enableSorting: true },
-        { accessorKey: 'amsT_AdmNo', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Adm. No.' />, enableSorting: true },
-        { accessorKey: 'asmcL_ClassName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Class' />, enableSorting: true },
-        { accessorKey: 'asmC_SectionName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Section' />, enableSorting: true },
-        { accessorKey: 'spccmE_EventName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Event' />, enableSorting: true },
-        { accessorKey: 'spccmscc_SportsCCName', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Sports Name' />, enableSorting: true },
-        { accessorKey: 'spccE_StartDate', header: ({ column }: any) => <DataTableColumnHeader column={column} title='Event Date' />, enableSorting: true }
-    ], []);
+    const columns = useMemo(
+        () => [
+            { id: 'id', header: 'SL. No.', cell: ({ row }: any) => <div>{row.index + 1}</div> },
+            {
+                accessorKey: 'spccmH_HouseName',
+                header: ({ column }: any) => <DataTableColumnHeader column={column} title='House Name' />,
+                enableSorting: true
+            },
+            {
+                accessorKey: 'spccmeV_EventVenue',
+                header: ({ column }: any) => <DataTableColumnHeader column={column} title='Venue' />,
+                enableSorting: true
+            },
+            {
+                accessorKey: 'amsT_Name',
+                header: ({ column }: any) => <DataTableColumnHeader column={column} title='Student Name' />,
+                enableSorting: true
+            },
+            {
+                accessorKey: 'amsT_AdmNo',
+                header: ({ column }: any) => <DataTableColumnHeader column={column} title='Adm. No.' />,
+                enableSorting: true
+            },
+            {
+                accessorKey: 'asmcL_ClassName',
+                header: ({ column }: any) => <DataTableColumnHeader column={column} title='Class' />,
+                enableSorting: true
+            },
+            {
+                accessorKey: 'asmC_SectionName',
+                header: ({ column }: any) => <DataTableColumnHeader column={column} title='Section' />,
+                enableSorting: true
+            },
+            {
+                accessorKey: 'spccmE_EventName',
+                header: ({ column }: any) => <DataTableColumnHeader column={column} title='Event' />,
+                enableSorting: true
+            },
+            {
+                accessorKey: 'spccmscc_SportsCCName',
+                header: ({ column }: any) => <DataTableColumnHeader column={column} title='Sports Name' />,
+                enableSorting: true
+            },
+            {
+                accessorKey: 'spccE_StartDate',
+                header: ({ column }: any) => <DataTableColumnHeader column={column} title='Event Date' />,
+                enableSorting: true
+            }
+        ],
+        []
+    );
 
-    const academicYears = response?.data?.yearlist?.map((y: any) => ({
-        id: y.asmaY_Id,
-        label: y.asmaY_Year
-    })) || [];
+    const academicYears =
+        response?.data?.yearlist?.map((y: any) => ({
+            id: y.asmaY_Id,
+            label: y.asmaY_Year
+        })) || [];
 
     const tableProps = useDataTableProps(reportData.data?.data || []);
 
@@ -341,9 +390,6 @@ function SportVenuewiseParticipationReportPageContent({ response, isLoading, err
                             columns={columns}
                             isLoading={reportData.isPending}
                             error={reportData.error}
-                            manualPagination={true}
-                            manualSorting={true}
-                            manualFiltering={true}
                             showSearchColumns={true}
                         />
                         <div className='mt-4 flex justify-end space-x-2'>

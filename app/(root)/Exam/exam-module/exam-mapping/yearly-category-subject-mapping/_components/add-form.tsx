@@ -21,7 +21,12 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof categorySubjectMappingSchema.addOrUpdate>;
 
-export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess?: () => void }, rowData?: IYearlyCategorySubjectMapping) {
+interface AddCategorySubjectMappingFormProps {
+    onSuccess?: () => void;
+    rowData?: IYearlyCategorySubjectMapping;
+}
+
+export default function AddCategorySubjectMappingForm({ onSuccess, rowData }: AddCategorySubjectMappingFormProps) {
     const methods = useForm<FormFields>({
         resolver: zodResolver(categorySubjectMappingSchema.addOrUpdate),
         mode: 'onSubmit',
@@ -44,6 +49,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
     const [subjects, setSubjects] = useState<{ ismS_Id: number; ismS_SubjectName: string }[]>([]);
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroupDropdownList();
+    const [resetKey, setResetKey] = useState(0);
     useEffect(() => {
         reset({
             userId: 1,
@@ -87,7 +93,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
             }
         }
         fetchCategories();
-    }, [selectedYearId]);
+    }, [selectedYearId, setValue]);
 
     const selectedGroupSubjectId = useWatch({
         control,
@@ -103,29 +109,73 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                 setSubjects(Array.isArray(subj) ? subj : []);
                 setValue('subjects_list', Array.isArray(subj) ? subj : []); // reset selected category whenever year changes
             } catch (err: any) {
-                toast.error(err?.message ?? 'Failed to load categories');
+                toast.error(err?.message ?? 'Failed to load subjects');
             }
         }
         fetchSubjects();
-    }, [selectedGroupSubjectId]);
+    }, [selectedGroupSubjectId, setValue]);
 
     const onSubmit = async (data: FormFields) => {
         try {
-            const res = await addOrUpdateYearlyCategorySubjectMapping(data);
-            if (res?.success) {
-                toast.success('Yearly category dates mapping saved successfully');
+            const res: any = await addOrUpdateYearlyCategorySubjectMapping(data);
+            const isSuccess =
+                res?.success === true ||
+                res?.returnval === true ||
+                res?.returnval === 'true' ||
+                res?.returnval === 'saved' ||
+                res?.returnVal === true ||
+                res?.returnVal === 'true' ||
+                res?.returnVal === 'saved' ||
+                res?.returnVal === 'updated' ||
+                res?.returnval === 'updated' ||
+                res?.returnval === 'Record Saved Successfully' ||
+                res?.returnVal === 'Record Saved Successfully' ||
+                (res &&
+                    typeof res === 'object' &&
+                    res?.success !== false &&
+                    res?.returnval !== false &&
+                    res?.returnVal !== false &&
+                    res?.returnval !== 'failed' &&
+                    res?.returnVal !== 'failed' &&
+                    res?.returnval !== 'duplicate' &&
+                    res?.returnVal !== 'duplicate' &&
+                    res?.returnval !== 'Duplicate' &&
+                    res?.returnVal !== 'Duplicate' &&
+                    !res?.error);
+
+            if (isSuccess) {
+                toast.success(res?.message || 'Data saved successfully');
                 reset();
+                setResetKey((prev) => prev + 1);
                 refetchAll();
                 onSuccess?.();
+            } else if (
+                res?.returnval === 'duplicate' ||
+                res?.returnVal === 'duplicate' ||
+                res?.returnval === 'Duplicate' ||
+                res?.returnVal === 'Duplicate'
+            ) {
+                toast.error(res?.message || 'Record already exists');
             } else {
-                toast.error(res?.message ?? 'Save failed');
+                toast.error(res?.message || 'Failed to save the data');
             }
         } catch (err: any) {
-            toast.error(err?.message ?? 'Failed to save');
+            toast.error(err?.message || 'Failed to save the data');
         }
     };
     const handleReset = () => {
-        window.location.reload();
+        reset({
+            userId: 1,
+            eycG_Id: 0,
+            asmaY_Id: undefined,
+            emcA_Id: undefined,
+            emG_Id: undefined,
+            subjects_list: [],
+            eyC_BasedOnPaperTypeFlg: false
+        });
+        setCategories([]);
+        setSubjects([]);
+        setResetKey((prev) => prev + 1);
     };
 
     return (
@@ -270,6 +320,7 @@ export default function AddCategorySubjectMappingForm({ onSuccess }: { onSuccess
                                         isSearchRequired={true}
                                         error={errors.subjects_list?.message}
                                         isRequired={true}
+                                        resetKey={resetKey}
                                     />
                                 )}
                             />

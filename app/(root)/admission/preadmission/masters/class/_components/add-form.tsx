@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
 import { masterClassSchema } from '@/schemas/admission/preadmission/masters';
 import { addOrUpdateMasterClass } from '@/server/admission/preadmission/masters/class';
@@ -74,11 +74,10 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             const response = await addOrUpdateMasterClass(payload);
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success('Record Saved Successfully');
                 reset();
                 refetchAll();
                 onSuccess?.();
-                window.location.href = window.location.pathname;
             } else {
                 toast.error(response.message);
             }
@@ -111,14 +110,6 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             id='asmcl_classname'
                             placeholder='Enter Class Name (e.g. Class I)'
                             {...register('asmcl_classname')}
-                            onKeyDown={(e) => {
-                                // Allow navigation keys (Backspace, Tab, Arrows, etc.)
-                                if (e.key.length > 1) return;
-                                // Allow only letters and spaces, block numbers and special characters
-                                if (!/^[A-Za-z\s]$/.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
                             error={errors.asmcl_classname?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -301,8 +292,8 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
                             <Label
                                 aria-label='Preadmission Class'
                                 htmlFor='asmcl_preadmflag'
-                                className='cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                                Preadmission Class <span className='ml-1 text-red-500'>*</span>
+                                className='cursor-pointer font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                Preadmission Class
                             </Label>
                         </div>
                         {errors.asmcl_preadmflag && <FormError>{errors.asmcl_preadmflag.message}</FormError>}

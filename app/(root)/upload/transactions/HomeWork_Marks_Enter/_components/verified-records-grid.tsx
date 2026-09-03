@@ -9,12 +9,8 @@ interface VerifiedRecordsGridProps {
 
 export default function VerifiedRecordsGrid({ records }: VerifiedRecordsGridProps) {
     return (
-        <div className='rounded-md border p-4 bg-white shadow-sm'>
-            <DataTable<any, any>
-                columns={verifiedRecordsColumns} 
-                data={records} 
-                totalItems={records.length}
-            />
+        <div className='rounded-md border bg-white p-4 shadow-sm'>
+            <DataTable<any, any> columns={verifiedRecordsColumns} data={records} totalItems={records.length} />
         </div>
     );
 }

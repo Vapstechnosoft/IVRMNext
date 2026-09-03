@@ -10,8 +10,8 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterHouseDesignationForm from './_components/add-form';
 import { MasterHouseDesignationColumns } from './_components/columns';
-import UpdateMasterHouseDesignationForm from './_components/update-form';
 import ToggleMasterHouseDesignationForm from './_components/toggle-form';
+import UpdateMasterHouseDesignationForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -85,9 +85,6 @@ function MasterHouseDesignationPageContent({
                     columns={MasterHouseDesignationColumns}
                     isLoading={isLoading}
                     error={error}
-                    manualPagination={true}
-                    manualSorting={true}
-                    manualFiltering={true}
                     showSearchColumns={true}
                     columnPinning={{ right: ['actions'] }}
                     loadingMessage='Loading master house designations...'
@@ -160,11 +157,7 @@ function MasterHouseDesignationPageContent({
 
             {/* Toggle Form */}
             {isToggleFormOpen && selectedRow && (
-                <ToggleMasterHouseDesignationForm
-                    rowData={selectedRow}
-                    onClose={closeToggleForm}
-                    onSuccess={refetchAll}
-                />
+                <ToggleMasterHouseDesignationForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />
             )}
         </>
     );

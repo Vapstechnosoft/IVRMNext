@@ -2,17 +2,17 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, X, RefreshCw } from 'lucide-react';
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { useAdmissionStandard, useSaveAdmissionStandard } from '@/hooks/preconfiguration/useAdmissionStandard';
 import type { IAdmissionStandardPayload } from '@/types/preconfiguration/admission-standard';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RefreshCw, Save, X } from 'lucide-react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
 const admissionStandardSchema = z.object({
     asC_Id: z.number().optional(),
@@ -26,21 +26,30 @@ const admissionStandardSchema = z.object({
     ASC_ParentsMonthlyIncome_Flag: z.boolean().default(false),
     ASC_ParentsAnnualIncome_Flag: z.boolean().default(false),
     ASC_Att_DefaultEntry_Type: z.enum(['P', 'A'], {
-        required_error: 'Select Attendance Entry Type'
+        required_error: 'Select Attendance Entry Type',
+        invalid_type_error: 'Select Attendance Entry Type'
     }),
     ASC_Default_Gender: z.enum(['M', 'F', 'Ot'], {
-        required_error: 'Select Gender'
+        required_error: 'Select Gender',
+        invalid_type_error: 'Select Gender'
     }),
     ASC_School_Address: z.boolean().default(false),
     ASC_Category_Address: z.boolean().default(false),
     ASC_DefaultPhotoUpload: z.enum(['1', '2', '0']).default('0'),
     ASC_DefaultSMS_Flag: z.enum(['F', 'M', 'S', 'B'], {
-        required_error: 'Select Default sms/email receiver'
+        required_error: 'Select Default sms/email receiver',
+        invalid_type_error: 'Select Default sms/email receiver'
     }),
     ASC_Att_Scheduler_Flag: z.enum(['Periodwise', 'EOD'], {
-        required_error: 'Select Attendance Scheduler Absent SMS'
+        required_error: 'Select Attendance Scheduler Absent SMS',
+        invalid_type_error: 'Select Attendance Scheduler Absent SMS'
     }),
-    ASC_Att_Default_OrderFlag: z.string().min(1, 'Select Default Order'),
+    ASC_Att_Default_OrderFlag: z
+        .string({
+            required_error: 'Select Default Order',
+            invalid_type_error: 'Select Default Order'
+        })
+        .min(1, 'Select Default Order'),
     ASC_Logo_Path: z.string().nullable().default(null)
 });
 
@@ -86,8 +95,10 @@ export default function AdmissionStandardForm() {
                 ASC_TC_Payment: config.admC_TCAllowBalanceFlg === 1,
                 ASC_TC_Library: config.asC_LibraryAllowBalanceFlg === 1,
                 ASC_ECS_Flag: config.asC_ECS_Flag === 1,
-                ASC_ParentsMonthlyIncome_Flag: config.asC_ParentsMonthlyIncome_Flag === 1,
-                ASC_ParentsAnnualIncome_Flag: config.asC_ParentsAnnualIncome_Flag === 1,
+                ASC_ParentsMonthlyIncome_Flag:
+                    (config.asC_ParentsMonthlyIncome_Flag as unknown as string) === 'Y' || config.asC_ParentsMonthlyIncome_Flag === 1,
+                ASC_ParentsAnnualIncome_Flag:
+                    (config.asC_ParentsAnnualIncome_Flag as unknown as string) === 'Y' || config.asC_ParentsAnnualIncome_Flag === 1,
                 ASC_Att_DefaultEntry_Type: config.asC_Att_DefaultEntry_Type as 'P' | 'A' | undefined,
                 ASC_Default_Gender: config.asC_Default_Gender as 'M' | 'F' | 'Ot' | undefined,
                 ASC_School_Address: config.asC_School_Address === 1,
@@ -111,8 +122,8 @@ export default function AdmissionStandardForm() {
             asc_TC_Payment: values.ASC_TC_Payment ? 1 : 0,
             asc_TC_Library: values.ASC_TC_Library ? 1 : 0,
             asc_ECS_Flag: values.ASC_ECS_Flag ? 1 : 0,
-            asc_ParentsMonthlyIncome_Flag: values.ASC_ParentsMonthlyIncome_Flag ? "Y" : "N",
-            asc_ParentsAnnualIncome_Flag: values.ASC_ParentsAnnualIncome_Flag ? "Y" : "N",
+            asc_ParentsMonthlyIncome_Flag: values.ASC_ParentsMonthlyIncome_Flag ? 'Y' : 'N',
+            asc_ParentsAnnualIncome_Flag: values.ASC_ParentsAnnualIncome_Flag ? 'Y' : 'N',
             asc_Att_DefaultEntry_Type: values.ASC_Att_DefaultEntry_Type,
             asc_Default_Gender: values.ASC_Default_Gender,
             asc_School_Address: values.ASC_School_Address ? 1 : 0,
@@ -121,12 +132,12 @@ export default function AdmissionStandardForm() {
             asc_DefaultSMS_Flag: values.ASC_DefaultSMS_Flag,
             asc_Att_Scheduler_Flag: values.ASC_Att_Scheduler_Flag,
             asc_Att_Default_OrderFlag: Number(values.ASC_Att_Default_OrderFlag),
-            asc_Logo_Path: values.ASC_Logo_Path || "/Uploads/Logo/",
-            asc_Stu_Photo_Path: "/Uploads/Students/",
-            asc_Staff_Photo_Path: "/Uploads/Staff/",
-            asc_Doc_Path: "/Uploads/Documents/",
-            asc_AdmNo_RegNo_RollNo_DefaultFlag: "ADM",
-            asc_DefaultDisplay_Flag: "Y",
+            asc_Logo_Path: values.ASC_Logo_Path || '/Uploads/Logo/',
+            asc_Stu_Photo_Path: '/Uploads/Students/',
+            asc_Staff_Photo_Path: '/Uploads/Staff/',
+            asc_Doc_Path: '/Uploads/Documents/',
+            asc_AdmNo_RegNo_RollNo_DefaultFlag: 'ADM',
+            asc_DefaultDisplay_Flag: 'Y',
             asc_Default_Clm__Adm_Flag: 1,
             asc_Default_Clm__Rol_Flag: 1,
             asc_Default_Clm__Reg_Flag: 1
@@ -139,6 +150,10 @@ export default function AdmissionStandardForm() {
         });
     };
 
+    const onError = () => {
+        toast.error('Please fill all required fields correctly.');
+    };
+
     if (isLoading) return <div>Loading configuration...</div>;
 
     return (
@@ -148,25 +163,20 @@ export default function AdmissionStandardForm() {
             </CardHeader>
             <CardContent className='p-6'>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+                    <form onSubmit={form.handleSubmit(onSubmit, onError)} className='space-y-6'>
+                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             {/* Left Column */}
                             <div className='space-y-6'>
-                                <div className='grid grid-cols-2 gap-4 p-4 border rounded-md bg-muted/20'>
+                                <div className='grid grid-cols-2 gap-4 rounded-md border bg-muted/20 p-4'>
                                     <FormField
                                         control={form.control}
                                         name='ASC_Adm_AddFieldsFlag'
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md'>
                                                 <FormControl>
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
+                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                 </FormControl>
-                                                <FormLabel className='font-normal'>
-                                                    Admission Additional Fields
-                                                </FormLabel>
+                                                <FormLabel className='font-normal'>Admission Additional Fields</FormLabel>
                                             </FormItem>
                                         )}
                                     />
@@ -176,34 +186,24 @@ export default function AdmissionStandardForm() {
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md'>
                                                 <FormControl>
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
+                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                 </FormControl>
-                                                <FormLabel className='font-normal'>
-                                                    TC Additional Fields
-                                                </FormLabel>
+                                                <FormLabel className='font-normal'>TC Additional Fields</FormLabel>
                                             </FormItem>
                                         )}
                                     />
                                 </div>
 
-                                <div className='grid grid-cols-2 gap-4 p-4 border rounded-md bg-muted/20'>
+                                <div className='grid grid-cols-2 gap-4 rounded-md border bg-muted/20 p-4'>
                                     <FormField
                                         control={form.control}
                                         name='ASC_MaxAgeApl_Flag'
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md'>
                                                 <FormControl>
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
+                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                 </FormControl>
-                                                <FormLabel className='font-normal'>
-                                                    Max Age Applicable
-                                                </FormLabel>
+                                                <FormLabel className='font-normal'>Max Age Applicable</FormLabel>
                                             </FormItem>
                                         )}
                                     />
@@ -213,34 +213,24 @@ export default function AdmissionStandardForm() {
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md'>
                                                 <FormControl>
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
+                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                 </FormControl>
-                                                <FormLabel className='font-normal'>
-                                                    Min Age Applicable
-                                                </FormLabel>
+                                                <FormLabel className='font-normal'>Min Age Applicable</FormLabel>
                                             </FormItem>
                                         )}
                                     />
                                 </div>
 
-                                <div className='grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 border rounded-md bg-muted/20'>
+                                <div className='grid grid-cols-1 gap-4 rounded-md border bg-muted/20 p-4 sm:grid-cols-3'>
                                     <FormField
                                         control={form.control}
                                         name='ASC_TC_Payment'
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md'>
                                                 <FormControl>
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
+                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                 </FormControl>
-                                                <FormLabel className='font-normal'>
-                                                    Payment Required For Permanent TC
-                                                </FormLabel>
+                                                <FormLabel className='font-normal'>Payment Required For Permanent TC</FormLabel>
                                             </FormItem>
                                         )}
                                     />
@@ -250,14 +240,9 @@ export default function AdmissionStandardForm() {
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md'>
                                                 <FormControl>
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
+                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                 </FormControl>
-                                                <FormLabel className='font-normal'>
-                                                    LibraryFlag
-                                                </FormLabel>
+                                                <FormLabel className='font-normal'>LibraryFlag</FormLabel>
                                             </FormItem>
                                         )}
                                     />
@@ -267,34 +252,24 @@ export default function AdmissionStandardForm() {
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md'>
                                                 <FormControl>
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
+                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                 </FormControl>
-                                                <FormLabel className='font-normal'>
-                                                    ECS Flag
-                                                </FormLabel>
+                                                <FormLabel className='font-normal'>ECS Flag</FormLabel>
                                             </FormItem>
                                         )}
                                     />
                                 </div>
 
-                                <div className='grid grid-cols-2 gap-4 p-4 border rounded-md bg-muted/20'>
+                                <div className='grid grid-cols-2 gap-4 rounded-md border bg-muted/20 p-4'>
                                     <FormField
                                         control={form.control}
                                         name='ASC_ParentsMonthlyIncome_Flag'
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md'>
                                                 <FormControl>
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
+                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                 </FormControl>
-                                                <FormLabel className='font-normal'>
-                                                    Parent&apos;s monthly income
-                                                </FormLabel>
+                                                <FormLabel className='font-normal'>Parent&apos;s monthly income</FormLabel>
                                             </FormItem>
                                         )}
                                     />
@@ -304,20 +279,15 @@ export default function AdmissionStandardForm() {
                                         render={({ field }) => (
                                             <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md'>
                                                 <FormControl>
-                                                    <Checkbox
-                                                        checked={field.value}
-                                                        onCheckedChange={field.onChange}
-                                                    />
+                                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                 </FormControl>
-                                                <FormLabel className='font-normal'>
-                                                    Parent&apos;s annual income
-                                                </FormLabel>
+                                                <FormLabel className='font-normal'>Parent&apos;s annual income</FormLabel>
                                             </FormItem>
                                         )}
                                     />
                                 </div>
 
-                                <div className='p-4 border rounded-md bg-muted/20'>
+                                <div className='rounded-md border bg-muted/20 p-4'>
                                     <FormField
                                         control={form.control}
                                         name='ASC_Att_DefaultEntry_Type'
@@ -354,7 +324,7 @@ export default function AdmissionStandardForm() {
 
                             {/* Right Column */}
                             <div className='space-y-6'>
-                                <div className='p-4 border rounded-md bg-muted/20'>
+                                <div className='rounded-md border bg-muted/20 p-4'>
                                     <FormField
                                         control={form.control}
                                         name='ASC_Default_Gender'
@@ -394,8 +364,8 @@ export default function AdmissionStandardForm() {
                                     />
                                 </div>
 
-                                <div className='p-4 border rounded-md bg-muted/20'>
-                                    <FormLabel className='block mb-3'>Admission Form Format</FormLabel>
+                                <div className='rounded-md border bg-muted/20 p-4'>
+                                    <FormLabel className='mb-3 block'>Admission Form Format</FormLabel>
                                     <div className='flex gap-4'>
                                         <FormField
                                             control={form.control}
@@ -403,14 +373,9 @@ export default function AdmissionStandardForm() {
                                             render={({ field }) => (
                                                 <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md'>
                                                     <FormControl>
-                                                        <Checkbox
-                                                            checked={field.value}
-                                                            onCheckedChange={field.onChange}
-                                                        />
+                                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                     </FormControl>
-                                                    <FormLabel className='font-normal'>
-                                                        School /College Address
-                                                    </FormLabel>
+                                                    <FormLabel className='font-normal'>School /College Address</FormLabel>
                                                 </FormItem>
                                             )}
                                         />
@@ -420,21 +385,16 @@ export default function AdmissionStandardForm() {
                                             render={({ field }) => (
                                                 <FormItem className='flex flex-row items-start space-x-3 space-y-0 rounded-md'>
                                                     <FormControl>
-                                                        <Checkbox
-                                                            checked={field.value}
-                                                            onCheckedChange={field.onChange}
-                                                        />
+                                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                     </FormControl>
-                                                    <FormLabel className='font-normal'>
-                                                        Category Address
-                                                    </FormLabel>
+                                                    <FormLabel className='font-normal'>Category Address</FormLabel>
                                                 </FormItem>
                                             )}
                                         />
                                     </div>
                                 </div>
 
-                                <div className='p-4 border rounded-md bg-muted/20'>
+                                <div className='rounded-md border bg-muted/20 p-4'>
                                     <FormField
                                         control={form.control}
                                         name='ASC_DefaultPhotoUpload'
@@ -466,7 +426,7 @@ export default function AdmissionStandardForm() {
                                     />
                                 </div>
 
-                                <div className='p-4 border rounded-md bg-muted/20'>
+                                <div className='rounded-md border bg-muted/20 p-4'>
                                     <FormField
                                         control={form.control}
                                         name='ASC_DefaultSMS_Flag'
@@ -512,7 +472,7 @@ export default function AdmissionStandardForm() {
                                     />
                                 </div>
 
-                                <div className='p-4 border rounded-md bg-muted/20'>
+                                <div className='rounded-md border bg-muted/20 p-4'>
                                     <FormField
                                         control={form.control}
                                         name='ASC_Att_Scheduler_Flag'
@@ -548,7 +508,7 @@ export default function AdmissionStandardForm() {
                             </div>
                         </div>
 
-                        <div className='w-full md:w-1/2 p-4 border rounded-md bg-muted/20'>
+                        <div className='w-full rounded-md border bg-muted/20 p-4 md:w-1/2'>
                             <FormField
                                 control={form.control}
                                 name='ASC_Att_Default_OrderFlag'
@@ -561,7 +521,7 @@ export default function AdmissionStandardForm() {
                                             <RadioGroup
                                                 onValueChange={field.onChange}
                                                 value={field.value ?? ''}
-                                                className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+                                                className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                                                 <FormItem className='flex items-center space-x-2 space-y-0'>
                                                     <FormControl>
                                                         <RadioGroupItem value='1' />
@@ -613,30 +573,27 @@ export default function AdmissionStandardForm() {
                         </div>
 
                         {/* Form Actions */}
-                        <div className='flex justify-center gap-4 mt-6'>
-                            <Button
-                                type='submit'
-                                className='w-32 bg-primary'
-                                disabled={saveMutation.isPending}>
-                                <Save className='w-4 h-4 mr-2' />
+                        <div className='mt-6 flex justify-center gap-4'>
+                            <Button type='submit' className='w-32 bg-primary' disabled={saveMutation.isPending}>
+                                <Save className='mr-2 h-4 w-4' />
                                 {saveMutation.isPending ? 'Saving...' : 'Save'}
                             </Button>
                             <Button
                                 type='button'
                                 variant='outline'
                                 className='w-32'
-                                onClick={() => form.reset()}
+                                onClick={() => window.location.reload()}
                                 disabled={saveMutation.isPending}>
-                                <X className='w-4 h-4 mr-2' />
+                                <X className='mr-2 h-4 w-4' />
                                 Clear
                             </Button>
                             <Button
                                 type='button'
                                 variant='secondary'
                                 className='w-32'
-                                onClick={() => refetchAll()}
+                                onClick={() => window.location.reload()}
                                 disabled={saveMutation.isPending}>
-                                <RefreshCw className='w-4 h-4 mr-2' />
+                                <RefreshCw className='mr-2 h-4 w-4' />
                                 Reset
                             </Button>
                         </div>

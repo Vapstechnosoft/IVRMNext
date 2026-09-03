@@ -2,23 +2,20 @@
 
 import { Button } from '@/components/ui/button';
 import { FormInput } from '@/components/ui/form/form-input';
-import { IMasterMessCategoryForm, masterMessCategorySchema } from '@/schemas/hostel/master-mess-category.schema';
+import { useMasterMessCategory } from '@/hooks/hostel/useMasterMessCategory';
+import { type IMasterMessCategoryForm, masterMessCategorySchema } from '@/schemas/hostel/master-mess-category.schema';
+import { saveMessCategory } from '@/server/hostel/hostel-management/masters/mess-category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useMasterMessCategory } from '@/hooks/hostel/useMasterMessCategory';
-import { saveMessCategory } from '@/server/hostel/hostel-management/masters/mess-category';
 
 interface AddMasterMessCategoryFormProps {
     onSuccess: () => void;
     initialData?: any;
 }
 
-export default function AddMasterMessCategoryForm({
-    onSuccess,
-    initialData
-}: AddMasterMessCategoryFormProps) {
+export default function AddMasterMessCategoryForm({ onSuccess, initialData }: AddMasterMessCategoryFormProps) {
     const { refetch } = useMasterMessCategory();
 
     const methods = useForm<IMasterMessCategoryForm>({
@@ -72,12 +69,18 @@ export default function AddMasterMessCategoryForm({
             <FormProvider {...methods}>
                 <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md' noValidate>
                     <div className='flex flex-col gap-4'>
-                        <FormInput control={control} name="hlmmC_Name" label="Mess Category Name" required placeholder='Enter Category Name' />
+                        <FormInput
+                            control={control}
+                            name='hlmmC_Name'
+                            label='Mess Category Name'
+                            required
+                            placeholder='Enter Category Name'
+                        />
                     </div>
 
                     <div className='flex justify-center gap-2'>
                         <Button type='submit' disabled={isSubmitting}>
-                            {isSubmitting ? (initialData ? 'Updating...' : 'Saving...') : (initialData ? 'Update' : 'Save')}
+                            {isSubmitting ? (initialData ? 'Updating...' : 'Saving...') : initialData ? 'Update' : 'Save'}
                         </Button>
                         <Button
                             type='button'
@@ -85,8 +88,7 @@ export default function AddMasterMessCategoryForm({
                             onClick={() => {
                                 reset();
                                 onSuccess();
-                            }}
-                        >
+                            }}>
                             Cancel
                         </Button>
                     </div>

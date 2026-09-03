@@ -42,7 +42,7 @@ export const invMasterSupplierColumns: ColumnDef<IInvMasterSupplier>[] = [
     {
         accessorKey: 'invmS_EmailId',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Email-ID' />,
-        cell: ({ row }) => <div className="lowercase">{row.getValue('invmS_EmailId')}</div>
+        cell: ({ row }) => <div className='lowercase'>{row.getValue('invmS_EmailId')}</div>
     },
     {
         accessorKey: 'invmS_GSTNo',
@@ -53,7 +53,7 @@ export const invMasterSupplierColumns: ColumnDef<IInvMasterSupplier>[] = [
         accessorKey: 'invmS_SupplierAddress',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Supplier Address' />,
         cell: ({ row }) => (
-            <div className="max-w-[200px] truncate" title={row.getValue('invmS_SupplierAddress')}>
+            <div className='max-w-[200px] truncate' title={row.getValue('invmS_SupplierAddress')}>
                 {row.getValue('invmS_SupplierAddress') || '-'}
             </div>
         )

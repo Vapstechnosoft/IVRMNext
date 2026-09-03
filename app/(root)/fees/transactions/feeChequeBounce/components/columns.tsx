@@ -1,13 +1,12 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { IFeeChequeBounceGrid } from '@/types/fees/transactions/feeChequeBounce';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
-import { format } from 'date-fns';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
+import { Trash2 } from 'lucide-react';
 
-export const feeChequeBounceColumns: ColumnDef<IFeeChequeBounceGrid>[] = [
+export const feeChequeBounceColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'slno',
         header: 'SLNO',
@@ -18,21 +17,34 @@ export const feeChequeBounceColumns: ColumnDef<IFeeChequeBounceGrid>[] = [
         header: 'Academic Year'
     },
     {
-        accessorKey: 'fcB_DATE',
-        header: 'Date',
-        cell: ({ row }) => format(new Date(row.original.fcB_DATE), 'dd-MM-yyyy')
-    },
-    {
-        id: 'studentName',
-        header: 'Student Name',
+        accessorKey: 'asmaY_From_Date',
+        header: 'From Date',
         cell: ({ row }) => {
-            const { amsT_FirstName, amsT_MiddleName, amsT_LastName } = row.original;
-            return `${amsT_FirstName} ${amsT_MiddleName || ''} ${amsT_LastName || ''}`.trim();
+            const date = row.original.asmaY_From_Date;
+            return date ? format(new Date(date), 'dd-MM-yyyy') : '-';
         }
     },
     {
-        accessorKey: 'fyP_Receipt_No',
-        header: 'Receipt No'
+        accessorKey: 'asmaY_To_Date',
+        header: 'To Date',
+        cell: ({ row }) => {
+            const date = row.original.asmaY_To_Date;
+            return date ? format(new Date(date), 'dd-MM-yyyy') : '-';
+        }
+    },
+    {
+        accessorKey: 'asmaY_AcademicYearCode',
+        header: 'Year Code'
+    },
+    {
+        accessorKey: 'is_Active',
+        header: 'Status',
+        cell: ({ row }) => (
+            <span
+                className={`inline-flex items-center rounded-full px-2 py-1 font-medium text-xs ${row.original.is_Active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {row.original.is_Active ? 'Active' : 'Inactive'}
+            </span>
+        )
     },
     {
         id: 'actions',
@@ -41,8 +53,8 @@ export const feeChequeBounceColumns: ColumnDef<IFeeChequeBounceGrid>[] = [
     }
 ];
 
-function ActionButtons({ row }: { row: IFeeChequeBounceGrid }) {
-    const { openDeleteForm } = useFormContext<IFeeChequeBounceGrid>();
+function ActionButtons({ row }: { row: any }) {
+    const { openDeleteForm } = useFormContext<any>();
 
     return (
         <div className='flex items-center justify-center gap-2'>
@@ -51,8 +63,7 @@ function ActionButtons({ row }: { row: IFeeChequeBounceGrid }) {
                 size='icon'
                 onClick={() => openDeleteForm(row)}
                 className='h-8 w-8 text-destructive hover:bg-destructive/10'
-                title='Delete'
-            >
+                title='Delete'>
                 <Trash2 className='h-4 w-4' />
             </Button>
         </div>

@@ -155,6 +155,7 @@ const MultipleExamCumulativeReportCalcuttaForm = ({}: MultipleExamCumulativeRepo
     }, [watchYear, watchClass, watchSection, form]);
 
     const onSubmit = (values: MultipleExamCumulativeReportCalcuttaValues) => {
+        setReportData(null);
         startTransition(async () => {
             try {
                 const payload = {
@@ -177,6 +178,7 @@ const MultipleExamCumulativeReportCalcuttaForm = ({}: MultipleExamCumulativeRepo
                 const res = await getMultipleExamCumulativeReportCalcutta(payload);
                 console.log('res', res);
                 if (res?.getcumulativereportdetails?.length > 0) {
+                if (res?.cumulativeReportDetails?.length > 0) {
                     // Inject metadata for printing
                     const yr = academicYears.find((y) => y.asmaY_Id === values.asmaY_Id)?.asmaY_Year;
                     const cla = classes.find((c) => c.asmcL_Id === values.asmcL_Id)?.asmcL_ClassName;
@@ -400,6 +402,14 @@ const MultipleExamCumulativeReportCalcuttaForm = ({}: MultipleExamCumulativeRepo
             </Form>
 
             {reportData && <MultipleExamCumulativeReportCalcuttaList data={reportData} />}
+            {isPending && (
+                <div className='flex min-h-[200px] flex-col items-center justify-center space-y-4 rounded-lg border border-sky-100 bg-white p-12 shadow-sm'>
+                    <Loader2 className='h-10 w-10 animate-spin text-sky-800' />
+                    <p className='animate-pulse font-medium text-slate-500 text-sm'>Generating cumulative report, please wait...</p>
+                </div>
+            )}
+
+            {!isPending && reportData && <MultipleExamCumulativeReportCalcuttaList data={reportData} />}
         </div>
     );
 };

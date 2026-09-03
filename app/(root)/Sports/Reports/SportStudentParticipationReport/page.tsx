@@ -9,12 +9,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStudentParticipationReport } from '@/hooks/sports/useStudentParticipationReport';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Printer, FileSpreadsheet } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { FileSpreadsheet, Loader2, Printer } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useReactToPrint } from 'react-to-print';
-import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 import { type SportStudentParticipationReportFormData, sportStudentParticipationReportSchema } from './schema';
 
 export default function SportStudentParticipationReportPage() {
@@ -39,8 +39,8 @@ export default function SportStudentParticipationReportPage() {
         if (reportData.data?.data) {
             const worksheet = XLSX.utils.json_to_sheet(reportData.data.data);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-            XLSX.writeFile(workbook, "StudentParticipationReport.xlsx");
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+            XLSX.writeFile(workbook, 'StudentParticipationReport.xlsx');
         }
     };
 
@@ -315,20 +315,15 @@ export default function SportStudentParticipationReportPage() {
                         <CardTitle>Report Details</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div ref={componentRef} className="print:p-0">
-                            <DataTable
-                                columns={columns}
-                                data={reportData.data.data}
-                                totalItems={reportData.data.data.length}
-                                //manualPagination={false}
-                            />
+                        <div ref={componentRef} className='print:p-0'>
+                            <DataTable columns={columns} data={reportData.data.data} totalItems={reportData.data.data.length} />
                         </div>
                         <div className='mt-4 flex justify-end space-x-2'>
-                            <Button variant="outline" size="sm" onClick={() => handlePrint()} className="border-2">
-                                <Printer className="h-4 w-4 mr-2 text-primary" /> Print
+                            <Button variant='outline' size='sm' onClick={() => handlePrint()} className='border-2'>
+                                <Printer className='mr-2 h-4 w-4 text-primary' /> Print
                             </Button>
-                            <Button variant="outline" size="sm" onClick={exportToExcel} className="border-2">
-                                <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" /> Excel
+                            <Button variant='outline' size='sm' onClick={exportToExcel} className='border-2'>
+                                <FileSpreadsheet className='mr-2 h-4 w-4 text-green-600' /> Excel
                             </Button>
                         </div>
                     </CardContent>

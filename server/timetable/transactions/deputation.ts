@@ -2,25 +2,49 @@
 
 import { api } from '@/lib/apiService';
 import { revalidatePath } from 'next/cache';
+import type {
+    IAbsentStaffPayload,
+    IFreeStaffPayload,
+    IPeriodAllotedPayload,
+    ISaveDeputationPayload,
+    IViewRecordsPopupPayload
+} from '@/types/timetable/Transaction/deputation';
 
-export async function getDeputationMasters() {
-    const url = '/DeputationNewFacade/GetDeputationMasters';
-    console.info('DeputationNewFacade', url);
+export async function getDeputationDetails() {
+    const url = '/DeputationFacade/getdetails';
+    console.info('DeputationFacade', url);
     return await api.get<any>('timetable', url);
 }
 
-export async function saveDeputation(data: any) {
-    const url = '/DeputationNewFacade/SaveDeputation';
-    console.info('DeputationNewFacade', url);
-    const response = await api.post<any>('timetable', url, data);
+export async function getAbsentStaff(payload: IAbsentStaffPayload) {
+    const url = '/DeputationFacade/getabsentstaff';
+    console.info('DeputationFacade', url, payload);
+    return await api.post<any>('timetable', url, payload);
+}
+
+export async function getPeriodAlloted(payload: IPeriodAllotedPayload) {
+    const url = '/DeputationFacade/get_period_alloted';
+    console.info('DeputationFacade', url, payload);
+    return await api.post<any>('timetable', url, payload);
+}
+
+export async function getFreeStaffDets(payload: IFreeStaffPayload) {
+    const url = '/DeputationFacade/get_free_stfdets';
+    console.info('DeputationFacade', url, payload);
+    return await api.post<any>('timetable', url, payload);
+}
+
+export async function getViewRecordsPopup9(payload: IViewRecordsPopupPayload) {
+    const url = '/DeputationFacade/viewrecordspopup9';
+    console.info('DeputationFacade', url, payload);
+    return await api.post<any>('timetable', url, payload);
+}
+
+export async function saveDeputationDetails(payload: ISaveDeputationPayload) {
+    const url = '/DeputationFacade/savedetails';
+    console.info('DeputationFacade', url, payload);
+    const response = await api.post<any>('timetable', url, payload);
     revalidatePath('/timetable/transactions/deputation');
     return response;
 }
 
-export async function getAbsentStaffList(payload: any) {
-    const { asmaY_Id, TTSD_Date, absFlag } = payload;
-    const formattedDate = TTSD_Date ? new Date(TTSD_Date).toISOString().split('T')[0] : '';
-    const url = `/DeputationNewFacade/getabsentstaff/${asmaY_Id}/${formattedDate}/${absFlag}`;
-    console.info('DeputationNewFacade', url);
-    return await api.get<any>('timetable', url);
-}

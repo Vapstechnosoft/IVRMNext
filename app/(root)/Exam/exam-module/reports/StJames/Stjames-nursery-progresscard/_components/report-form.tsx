@@ -128,13 +128,14 @@ export default function StJamesNurseryReportForm({
     const onSubmit = async (data: StJamesNurseryReportSchema) => {
         const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
         const selectedExamObj = exams.find((e) => e.emE_Id === data.emE_Id);
-        
+
         const payload = {
             ...data,
             asmaY_Year: selectedYearObj?.asmaY_Year || '',
             emE_ExamName: selectedExamObj?.emE_ExamName || ''
         };
 
+        console.log('payload', payload);
         if (onSuccess) {
             await onSuccess(payload);
         }
@@ -308,11 +309,11 @@ export default function StJamesNurseryReportForm({
                                 <Controller
                                     control={control}
                                     name='readmit'
-                                    render={({ field }) => (
-                                        <Checkbox id='readmit' checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
+                                    render={({ field }) => <Checkbox id='readmit' checked={field.value} onCheckedChange={field.onChange} />}
                                 />
-                                <Label htmlFor='readmit' className='cursor-pointer'>Display Promotion</Label>
+                                <Label htmlFor='readmit' className='cursor-pointer'>
+                                    Display Promotion
+                                </Label>
                             </div>
                             <div className='flex items-center gap-2'>
                                 <Controller
@@ -322,7 +323,9 @@ export default function StJamesNurseryReportForm({
                                         <Checkbox id='displayattendance' checked={field.value} onCheckedChange={field.onChange} />
                                     )}
                                 />
-                                <Label htmlFor='displayattendance' className='cursor-pointer'>Display Attendance</Label>
+                                <Label htmlFor='displayattendance' className='cursor-pointer'>
+                                    Display Attendance
+                                </Label>
                             </div>
                         </div>
 
@@ -334,11 +337,7 @@ export default function StJamesNurseryReportForm({
                                 className='min-w-[140px]'>
                                 Report
                             </Button>
-                            <Button
-                                type='button'
-                                variant='outline'
-                                onClick={() => reset()}
-                                className='min-w-[100px]'>
+                            <Button type='button' variant='outline' onClick={() => reset()} className='min-w-[100px]'>
                                 Cancel
                             </Button>
                         </div>

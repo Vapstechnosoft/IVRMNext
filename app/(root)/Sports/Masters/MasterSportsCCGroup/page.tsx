@@ -7,7 +7,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterSportsCCGroup } from '@/hooks/sports/useMasterSportsCCGroup';
 import type { IMasterSportsCCGroup } from '@/types/sports/masters/sports-cc-group';
 import { Plus, X } from 'lucide-react';
-import { use, useRef } from 'react';
+import { use } from 'react';
 import AddMasterSportsCCGroupForm from './_components/add-form';
 import { MasterSportsCCGroupColumns } from './_components/columns';
 import ToggleMasterSportsCCGroupForm from './_components/toggle-form';
@@ -21,11 +21,11 @@ export default function MasterSportsCCGroupPage(props: { searchParams: SearchPar
 
     return (
         <FormProvider<IMasterSportsCCGroup>>
-            <MasterSportsCCGroupPageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <MasterSportsCCGroupPageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -92,9 +92,6 @@ function MasterSportsCCGroupPageContent({
                         columns={MasterSportsCCGroupColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master sports cc groups...'
@@ -158,11 +155,7 @@ function MasterSportsCCGroupPageContent({
 
                 {/* Toggle Form */}
                 {isToggleFormOpen && selectedRow && (
-                    <ToggleMasterSportsCCGroupForm
-                        rowData={selectedRow}
-                        onClose={closeToggleForm}
-                        onSuccess={refetchAll}
-                    />
+                    <ToggleMasterSportsCCGroupForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />
                 )}
             </div>
         </div>

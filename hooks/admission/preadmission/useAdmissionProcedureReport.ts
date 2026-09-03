@@ -1,10 +1,10 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-    getAdmissionProcedureInitialDetails,
     getAdmissionProcedureClass,
+    getAdmissionProcedureInitialDetails,
     getAdmissionProcedureReport,
     viewAdmissionDetails
 } from '@/server/admission/preadmission/reports/admission_procedure_report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useAdmissionProcedureInitialDetails = () => {
     return useQuery({
@@ -33,7 +33,6 @@ export const useAdmissionProcedureReport = () => {
 
 export const useViewAdmissionDetails = () => {
     return useMutation({
-        mutationFn: (data: { AMST_Id: number; ASMCL_Id: number; ASMAY_Id: number }) =>
-            viewAdmissionDetails(data)
+        mutationFn: (data: { AMST_Id: number; ASMCL_Id: number; ASMAY_Id: number }) => viewAdmissionDetails(data)
     });
 };

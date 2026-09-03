@@ -1,8 +1,8 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
+import type { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns';
 
 export interface RoomTransferColumn {
     studentname?: string;
@@ -50,11 +50,11 @@ export const roomTransferColumns: ColumnDef<RoomTransferColumn, any>[] = [
     },
     {
         accessorKey: 'HLMH_Name',
-        header: ({ column }) => <ColumnHeader column={column} title='Hostel' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Hostel' />
     },
     {
         accessorKey: 'HRMRM_RoomNo',
-        header: ({ column }) => <ColumnHeader column={column} title='Room' />,
+        header: ({ column }) => <ColumnHeader column={column} title='Room' />
     },
     {
         accessorKey: 'HLHSALTC_VacatedDate',
@@ -68,7 +68,8 @@ export const roomTransferColumns: ColumnDef<RoomTransferColumn, any>[] = [
         accessorKey: 'HLHSALTC_VacateRemarks',
         header: ({ column }) => <ColumnHeader column={column} title='Remarks' />,
         cell: ({ row }) => {
-            const remarks = row.original.HLHSALTC_VacateRemarks || row.original.HLHSTALT_VacateRemarks || row.original.HLHGSTALT_VacateRemarks;
+            const remarks =
+                row.original.HLHSALTC_VacateRemarks || row.original.HLHSTALT_VacateRemarks || row.original.HLHGSTALT_VacateRemarks;
             return remarks || 'N/A';
         }
     }

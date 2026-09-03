@@ -17,6 +17,7 @@ import {
 import { getMasterMonthDropDownList, getMasterSectionHeld } from '@/server/admission/preadmission/masters/class_held';
 import { getEmployeeDrowpDown, getMasterClassTeacher, getTeacherClassSection } from '@/server/admission/preadmission/masters/class_teacher';
 import { getMasterDocument } from '@/server/admission/preadmission/masters/document';
+import { getMasterActivitiesDetails } from '@/server/admission/preadmission/masters/master_activity';
 import { getMasterReference } from '@/server/admission/preadmission/masters/reference';
 import { getMasterReligion } from '@/server/admission/preadmission/masters/religion';
 import {
@@ -25,7 +26,6 @@ import {
 } from '@/server/admission/preadmission/masters/religion_caste_category';
 import { getMasterSection, getSectionSetOrder } from '@/server/admission/preadmission/masters/section';
 import { getMasterSource } from '@/server/admission/preadmission/masters/source';
-import { getMasterActivitiesDetails } from '@/server/admission/preadmission/masters/master_activity';
 import { getConcessionDropdown } from '@/server/admission/preadmission/reports/report';
 import { getMasterSubjectDropdownList } from '@/server/exam/exam-module/masters/subject';
 import type { ApiSearchparams } from '@/types';
@@ -104,7 +104,10 @@ export const useAcademicYearDropdown = () => {
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.ACADEMIC_DROPDOWN],
-            queryFn: async () => getAcademicYearDropdown(),
+            queryFn: async () => {
+                const res = await getAcademicYearDropdown();
+                return res ?? null;
+            },
             staleTime: 0
         }),
         refetchAll: () => {

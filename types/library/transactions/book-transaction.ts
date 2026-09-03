@@ -181,8 +181,8 @@ export interface IReturnBookRequest {
     Book_Trans_Id: number;
     LMBANO_Id: number;
     LMB_Id: number;
-    Due_Date: Date;
-    Return_Date: Date;
+    Due_Date: string | Date;
+    Return_Date: string | Date;
     booktype: BookType;
     issuertype: MemberType;
     bookcat_type: BookCategory;

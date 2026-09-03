@@ -93,4 +93,3 @@ export interface EmployeeInOutReportEmployeeRequest {
 export interface EmployeeInOutReportEmployee {
     [key: string]: any; // Structure will be determined by API response
 }
-

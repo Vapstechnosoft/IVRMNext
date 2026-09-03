@@ -733,6 +733,15 @@ export const finalNdasReportCardSchema = z.object({
 
 export type FinalNdasReportCardSchema = z.infer<typeof finalNdasReportCardSchema>;
 
+export const ndasReportCardTermSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type NdasReportCardTermSchema = z.infer<typeof ndasReportCardTermSchema>;
+
 export const promotionReportCardSophiaSchema = z.object({
     mI_Id: z.number().optional(),
     asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
@@ -834,6 +843,28 @@ export const rainbowProgressCardReportSchema = z.object({
 });
 
 export type RainbowProgressCardReportSchema = z.infer<typeof rainbowProgressCardReportSchema>;
+
+export const hhsReportPreparatorySchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    AMST_Id: z.string().min(1, 'Student is required'),
+    EMGR_Id: z.string().min(1, 'Grade Group is required'),
+    re_opendate: z.coerce.date().optional()
+});
+
+export type HHSReportPreparatorySchema = z.infer<typeof hhsReportPreparatorySchema>;
+
+export const hhsIIVReportSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    AMST_Id: z.string().min(1, 'Student is required'),
+    EMGR_Id: z.string().min(1, 'Grade Group is required'),
+    re_opendate: z.coerce.date().optional()
+});
+
+export type HHSIIVReportSchema = z.infer<typeof hhsIIVReportSchema>;
 
 export const gmvpsPromotionReportCardSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
@@ -970,3 +1001,33 @@ export const finalPromReportChinmayI_IXSchema = z.object({
     reopen_date: z.string().min(1, 'Reopen Date is required'),
     selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
 });
+
+export const tbs_reportIXtoXSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Select Academic Year'),
+    ASMCL_Id: z.string().min(1, 'Select Class'),
+    ASMS_Id: z.string().min(1, 'Select Section'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type TBSReportIXtoXSchema = z.infer<typeof tbs_reportIXtoXSchema>;
+
+export const multipleProgressCardReportSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Select Academic Year'),
+    ASMCL_Id: z.string().min(1, 'Select Class'),
+    ASMS_Id: z.string().min(1, 'Select Section'),
+    selectedExams: z.array(z.string()).min(1, 'Select at least one exam'),
+    showAttendance: z.boolean().default(true)
+});
+
+export type MultipleProgressCardReportSchema = z.infer<typeof multipleProgressCardReportSchema>;
+
+export const hhsReport5to7Schema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    AMST_Id: z.string().min(1, 'Student Name is required'),
+    EMGR_Id: z.string().min(1, 'Grade is required'),
+    re_opendate: z.coerce.date().optional()
+});
+
+export type HHSReport5to7Schema = z.infer<typeof hhsReport5to7Schema>;

@@ -1,30 +1,19 @@
-
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useInvTItemConsumption } from '@/hooks/inventory/transactions/use-inv-t-item-consumption';
-import {
-    invTItemConsumptionSchema,
-    type InvTItemConsumptionSchema,
-} from '@/schemas/inventory/transactions/inv-t-item-consumption';
+import { type InvTItemConsumptionSchema, invTItemConsumptionSchema } from '@/schemas/inventory/transactions/inv-t-item-consumption';
 import type { InvTItemConsumption } from '@/types/inventory/transactions/inv-t-item-consumption';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Minus, Package, Plus, ReceiptText, RotateCcw, Save } from 'lucide-react';
+import { Minus, Plus, RotateCcw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -71,6 +60,10 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                     setStores(data);
                 } else if (data?.data && Array.isArray(data.data)) {
                     setStores(data.data);
+                } else if (data?.get_Store) {
+                    setStores(data.get_Store);
+                } else if (data?.get_store) {
+                    setStores(data.get_store);
                 }
             }
         });
@@ -82,6 +75,10 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                     setProducts(data);
                 } else if (data?.data && Array.isArray(data.data)) {
                     setProducts(data.data);
+                } else if (data?.get_Product) {
+                    setProducts(data.get_Product);
+                } else if (data?.get_product) {
+                    setProducts(data.get_product);
                 }
             }
         });
@@ -93,6 +90,10 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                     setEmployees(data);
                 } else if (data?.data && Array.isArray(data.data)) {
                     setEmployees(data.data);
+                } else if (data?.get_employee) {
+                    setEmployees(data.get_employee);
+                } else if (data?.get_Employee) {
+                    setEmployees(data.get_Employee);
                 }
             }
         });
@@ -103,53 +104,52 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
             const userflag = initialData.invmiC_StuOtherFlg;
 
             // Fetch Items and User details in parallel
-            Promise.all([
-                getICItemDetailsMutation.mutateAsync(INVMIC_Id),
-                getICUserDetailsMutation.mutateAsync({ INVMIC_Id, userflag })
-            ]).then(([itemRes, userRes]) => {
-                const itemData = itemRes?.data || itemRes || [];
-                const userData = userRes?.data || userRes || [];
-                const firstUser = userData[0] || {};
+            Promise.all([getICItemDetailsMutation.mutateAsync(INVMIC_Id), getICUserDetailsMutation.mutateAsync({ INVMIC_Id, userflag })])
+                .then(([itemRes, userRes]) => {
+                    const itemData = itemRes?.data || itemRes || [];
+                    const userData = userRes?.data || userRes || [];
+                    const firstUser = userData[0] || {};
 
-                const formValues: any = {
-                    invmiC_Id: INVMIC_Id,
-                    invmsT_Id: initialData.invmsT_Id,
-                    invmiC_ICNo: initialData.invmiC_ICNo,
-                    invmiC_ICDate: new Date(initialData.invmiC_ICDate),
-                    invmiC_StuOtherFlg: initialData.invmiC_StuOtherFlg,
-                    invmiC_Remarks: initialData.invmiC_Remarks || '',
-                    stu_Flag: 'CS',
-                    staffIds: [],
-                    arrayIC: (Array.isArray(itemData) ? itemData : []).map((objic: any) => ({
-                        invtiC_Id: objic.invtiC_Id || objic.invtic_id || 0,
-                        invmI_Id: objic.invmI_Id || objic.invmi_id,
-                        invmuoM_Id: objic.invmuoM_Id || objic.invmuom_id,
-                        invtiC_ICPrice: objic.invtiC_ICPrice || objic.invtic_icprice,
-                        invmP_Id: objic.invmP_Id || objic.invmp_id || 0,
-                        invtiC_BatchNo: objic.invtiC_BatchNo || objic.invtic_batchno,
-                        invtiC_ICQty: objic.invtiC_ICQty || objic.invtic_icqty,
-                        invtiC_Naration: objic.invtiC_Naration || objic.invtic_naration || ''
-                    }))
-                };
+                    const formValues: any = {
+                        invmiC_Id: INVMIC_Id,
+                        invmsT_Id: initialData.invmsT_Id,
+                        invmiC_ICNo: initialData.invmiC_ICNo,
+                        invmiC_ICDate: new Date(initialData.invmiC_ICDate),
+                        invmiC_StuOtherFlg: initialData.invmiC_StuOtherFlg,
+                        invmiC_Remarks: initialData.invmiC_Remarks || '',
+                        stu_Flag: 'CS',
+                        staffIds: [],
+                        arrayIC: (Array.isArray(itemData) ? itemData : []).map((objic: any) => ({
+                            invtiC_Id: objic.invtiC_Id || objic.invtic_id || 0,
+                            invmI_Id: objic.invmI_Id || objic.invmi_id,
+                            invmuoM_Id: objic.invmuoM_Id || objic.invmuom_id,
+                            invtiC_ICPrice: objic.invtiC_ICPrice || objic.invtic_icprice,
+                            invmP_Id: objic.invmP_Id || objic.invmp_id || 0,
+                            invtiC_BatchNo: objic.invtiC_BatchNo || objic.invtic_batchno,
+                            invtiC_ICQty: objic.invtiC_ICQty || objic.invtic_icqty,
+                            invtiC_Naration: objic.invtiC_Naration || objic.invtic_naration || ''
+                        }))
+                    };
 
-                if (initialData.invmiC_StuOtherFlg === 'Staff') {
-                    formValues.staffIds = userData.map((u: any) => u.hrmE_Id || u.HRME_Id || u.hrme_id || u.user_id);
-                } else if (initialData.invmiC_StuOtherFlg === 'Department') {
-                    formValues.hrmD_Id = firstUser.hrmD_Id || firstUser.HRMD_Id || firstUser.hrmd_id;
-                } else if (initialData.invmiC_StuOtherFlg === 'Student') {
-                    formValues.amsT_Id = firstUser.amsT_Id || firstUser.AMST_Id || firstUser.amst_id || 0;
-                    formValues.asmcL_Id = firstUser.asmcL_Id || firstUser.ASMCL_Id || firstUser.asmcl_id || 0;
-                    formValues.asmS_Id = firstUser.asmS_Id || firstUser.ASMS_Id || firstUser.asms_id || 0;
+                    if (initialData.invmiC_StuOtherFlg === 'Staff') {
+                        formValues.staffIds = userData.map((u: any) => u.hrmE_Id || u.HRME_Id || u.hrme_id || u.user_id);
+                    } else if (initialData.invmiC_StuOtherFlg === 'Department') {
+                        formValues.hrmD_Id = firstUser.hrmD_Id || firstUser.HRMD_Id || firstUser.hrmd_id;
+                    } else if (initialData.invmiC_StuOtherFlg === 'Student') {
+                        formValues.amsT_Id = firstUser.amsT_Id || firstUser.AMST_Id || firstUser.amst_id || 0;
+                        formValues.asmcL_Id = firstUser.asmcL_Id || firstUser.ASMCL_Id || firstUser.asmcl_id || 0;
+                        formValues.asmS_Id = firstUser.asmS_Id || firstUser.ASMS_Id || firstUser.asms_id || 0;
 
-                    // Fallback to initialData if available
-                    if (!formValues.amsT_Id && (initialData as any).amsT_Id) formValues.amsT_Id = (initialData as any).amsT_Id;
-                }
+                        // Fallback to initialData if available
+                        if (!formValues.amsT_Id && (initialData as any).amsT_Id) formValues.amsT_Id = (initialData as any).amsT_Id;
+                    }
 
-                reset(formValues);
-            }).catch(err => {
-                console.error("Error loading edit details:", err);
-                toast.error("Failed to load consumption details for editing");
-            });
+                    reset(formValues);
+                })
+                .catch((err) => {
+                    console.error('Error loading edit details:', err);
+                    toast.error('Failed to load consumption details for editing');
+                });
         }
     }, [initialData?.invmiC_Id]);
 
@@ -174,13 +174,21 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                     invmP_Id: 0
                 }
             ]
-        },
+        }
     });
 
-    const { control, handleSubmit, register, setValue, watch, reset, formState: { errors } } = form;
+    const {
+        control,
+        handleSubmit,
+        register,
+        setValue,
+        watch,
+        reset,
+        formState: { errors }
+    } = form;
     const { fields, append, remove } = useFieldArray({
         control,
-        name: 'arrayIC',
+        name: 'arrayIC'
     });
 
     const watchedStoreId = watch('invmsT_Id');
@@ -200,6 +208,10 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                         setDepartments(data);
                     } else if (data?.data && Array.isArray(data.data)) {
                         setDepartments(data.data);
+                    } else if (data?.get_department) {
+                        setDepartments(data.get_department);
+                    } else if (data?.get_Department) {
+                        setDepartments(data.get_Department);
                     }
                 }
             });
@@ -211,7 +223,7 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
         if (watchedType === 'Student') {
             studentClsSecMutation.mutate('CS', {
                 onSuccess: (res) => {
-                    const data = Array.isArray(res?.data) ? res.data : (res?.data?.get_Student_Cls_Sec || []);
+                    const data = Array.isArray(res?.data) ? res.data : res?.data?.get_Student_Cls_Sec || [];
                     setStudentClsSec(data);
                 }
             });
@@ -227,7 +239,7 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
             };
             sectionListMutation.mutate(data, {
                 onSuccess: (res) => {
-                    const data = Array.isArray(res?.data) ? res.data : (res?.data?.get_sectionlist || []);
+                    const data = Array.isArray(res?.data) ? res.data : res?.data?.get_sectionlist || [];
                     setSectionList(data);
                 }
             });
@@ -246,7 +258,11 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                 onSuccess: (res) => {
                     const list = Array.isArray(res?.data)
                         ? res.data
-                        : (res?.data?.get_Studentlist || res?.data?.get_StudentList || res?.data?.studentList || res?.data?.student_list || []);
+                        : res?.data?.get_Studentlist ||
+                          res?.data?.get_StudentList ||
+                          res?.data?.studentList ||
+                          res?.data?.student_list ||
+                          [];
                     setStudentList(list);
                 }
             });
@@ -276,7 +292,7 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                         setItemsList([]);
                         toast.info('No items found for this store');
                     }
-                },
+                }
             });
         }
     }, [watchedStoreId, loadData, watchedStudentId]);
@@ -311,7 +327,7 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
 
                     if (res?.data?.availablestock) {
                         let stock = 0;
-                        res.data.availablestock.forEach((s: any) => stock += (s.AvaiableStock || s.avaiableStock || 0));
+                        res.data.availablestock.forEach((s: any) => (stock += s.AvaiableStock || s.avaiableStock || 0));
                         setAvailableStock(stock);
                     }
                 }
@@ -334,20 +350,25 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
             ASMAY_Id: activeYearId,
 
             // Staff
-            arrayStaff: data.invmiC_StuOtherFlg === 'Staff' && data.staffIds ? data.staffIds.map(id => ({ HRME_Id: id })) : [],
+            arrayStaff: data.invmiC_StuOtherFlg === 'Staff' && data.staffIds ? data.staffIds.map((id) => ({ HRME_Id: id })) : [],
 
             // Department
             HRMD_Id: data.invmiC_StuOtherFlg === 'Department' ? data.hrmD_Id : 0,
 
             // Student
             FlagsC: data.invmiC_StuOtherFlg === 'Student' ? 'S' : '',
-            arrayStudentname: data.invmiC_StuOtherFlg === 'Student' ? [{
-                AMST_Id: data.amsT_Id,
-                AMSE_Id: 0 // Default
-            }] : [],
+            arrayStudentname:
+                data.invmiC_StuOtherFlg === 'Student'
+                    ? [
+                          {
+                              AMST_Id: data.amsT_Id,
+                              AMSE_Id: 0 // Default
+                          }
+                      ]
+                    : [],
 
             // Details
-            arrayIC: data.arrayIC.map(item => ({
+            arrayIC: data.arrayIC.map((item) => ({
                 INVTIC_Id: item.invtiC_Id || 0,
                 INVMI_Id: Number(item.invmI_Id),
                 INVMUOM_Id: Number(item.invmuoM_Id),
@@ -364,50 +385,44 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                 if (res.success || res.returnval) {
                     reset();
                     onSuccess();
-                    toast.success(res.message || "Consumption saved successfully");
+                    toast.success(res.message || 'Consumption saved successfully');
                 } else {
-                    toast.error(res.message || "Failed to save consumption");
+                    toast.error(res.message || 'Failed to save consumption');
                 }
-            },
+            }
         });
     };
 
     const staffOptions = employees.map((e: any) => ({
-        label: `${e.employeename} (${e.hrmE_EmployeeCode})`,
-        value: e.hrmE_Id.toString() // MultiSelect expects string values usually
+        label: `${e.employeename || e.employeeName || e.hrmE_EmployeeFirstName || 'Unknown'} (${e.hrmE_EmployeeCode || 'N/A'})`,
+        value: (e.hrmE_Id || e.hrme_id || '').toString() // MultiSelect expects string values usually
     }));
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 max-w-[1400px] mx-auto'>
-            <CollapsibleSection
-                title="Consumption Header"
-
-                defaultOpen={true}
-                className="shadow-sm border-primary/10"
-            >
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-6 p-1'>
-                    <div className='bg-muted/30 p-4 rounded-lg space-y-4'>
+        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-[1400px] space-y-6'>
+            <CollapsibleSection title='Consumption Header' defaultOpen={true} className='border-primary/10 shadow-sm'>
+                <div className='grid grid-cols-1 gap-6 p-1 md:grid-cols-2'>
+                    <div className='space-y-4 rounded-lg bg-muted/30 p-4'>
                         <Label>Type</Label>
                         <Controller
-                            name="invmiC_StuOtherFlg"
+                            name='invmiC_StuOtherFlg'
                             control={control}
                             render={({ field }) => (
                                 <RadioGroup
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    className="flex items-center space-x-4"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Staff" id="r1" />
-                                        <Label htmlFor="r1">Staff</Label>
+                                    className='flex items-center space-x-4'>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='Staff' id='r1' />
+                                        <Label htmlFor='r1'>Staff</Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Department" id="r2" />
-                                        <Label htmlFor="r2">Department</Label>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='Department' id='r2' />
+                                        <Label htmlFor='r2'>Department</Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Student" id="r3" />
-                                        <Label htmlFor="r3">Student</Label>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='Student' id='r3' />
+                                        <Label htmlFor='r3'>Student</Label>
                                     </div>
                                 </RadioGroup>
                             )}
@@ -416,7 +431,7 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
 
                     <div className='space-y-4'>
                         <div className='space-y-2'>
-                            <Label >IC Date</Label>
+                            <Label>IC Date</Label>
                             <Controller
                                 name='invmiC_ICDate'
                                 control={control}
@@ -433,16 +448,20 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                         </div>
 
                         <div className='space-y-2'>
-                            <Label >Store</Label>
+                            <Label>Store</Label>
                             <Controller
                                 name='invmsT_Id'
                                 control={control}
                                 render={({ field }) => (
                                     <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                        <SelectTrigger><SelectValue placeholder='Select Store' /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Store' />
+                                        </SelectTrigger>
                                         <SelectContent>
                                             {stores.map((s: any, index: number) => (
-                                                <SelectItem key={`${s.invmsT_Id}-${index}`} value={s.invmsT_Id.toString()}>{s.invmS_StoreName}</SelectItem>
+                                                <SelectItem key={`${s.invmsT_Id}-${index}`} value={s.invmsT_Id.toString()}>
+                                                    {s.invmS_StoreName}
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -461,18 +480,18 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                 </div>
 
                 {watchedType === 'Staff' && (
-                    <div className='mt-4 p-4 border rounded-md'>
-                        <Label >Select Staff</Label>
+                    <div className='mt-4 rounded-md border p-4'>
+                        <Label>Select Staff</Label>
                         <Controller
-                            name="staffIds"
+                            name='staffIds'
                             control={control}
                             render={({ field }) => (
                                 <MultiSelect
                                     options={staffOptions}
-                                    onValueChange={(vals) => field.onChange(vals.map(v => Number(v)))}
+                                    onValueChange={(vals) => field.onChange(vals.map((v) => Number(v)))}
                                     defaultValue={field.value?.map(String) || []}
-                                    placeholder="Select Staff..."
-                                    variant="inverted"
+                                    placeholder='Select Staff...'
+                                    variant='inverted'
                                 />
                             )}
                         />
@@ -481,17 +500,21 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                 )}
 
                 {watchedType === 'Department' && (
-                    <div className='mt-4 p-4 border rounded-md'>
-                        <Label >Department</Label>
+                    <div className='mt-4 rounded-md border p-4'>
+                        <Label>Department</Label>
                         <Controller
                             name='hrmD_Id'
                             control={control}
                             render={({ field }) => (
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select Department' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Department' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {departments.map((d: any, index: number) => (
-                                            <SelectItem key={`${d.hrmD_Id}-${index}`} value={d.hrmD_Id.toString()}>{d.hrmD_DepartmentName}</SelectItem>
+                                            <SelectItem key={`${d.hrmD_Id}-${index}`} value={d.hrmD_Id.toString()}>
+                                                {d.hrmD_DepartmentName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -502,8 +525,8 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                 )}
 
                 {watchedType === 'Student' && (
-                    <div className='mt-4 p-4 border rounded-md bg-secondary/5 space-y-4'>
-                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                    <div className='mt-4 space-y-4 rounded-md border bg-secondary/5 p-4'>
+                        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                             <div className='space-y-2'>
                                 <Label>Class</Label>
                                 <Controller
@@ -511,13 +534,19 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                                     control={control}
                                     render={({ field }) => (
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                            <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Class' />
+                                            </SelectTrigger>
                                             <SelectContent>
                                                 {studentClsSec.map((s: any, index: number) => {
                                                     const id = s.asmcL_Id || s.ASMCL_Id || s.asmcl_id;
                                                     const name = s.asmcL_ClassName || s.ASMCL_ClassName || s.asmcl_classname;
                                                     if (!id) return null;
-                                                    return <SelectItem key={`cls-${id}-${index}`} value={id.toString()}>{name}</SelectItem>;
+                                                    return (
+                                                        <SelectItem key={`cls-${id}-${index}`} value={id.toString()}>
+                                                            {name}
+                                                        </SelectItem>
+                                                    );
                                                 })}
                                             </SelectContent>
                                         </Select>
@@ -532,10 +561,14 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                                     control={control}
                                     render={({ field }) => (
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                            <SelectTrigger><SelectValue placeholder='Select Section' /></SelectTrigger>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Section' />
+                                            </SelectTrigger>
                                             <SelectContent>
                                                 {sectionList.map((s: any, index: number) => (
-                                                    <SelectItem key={`sec-${s.asmS_Id}-${index}`} value={s.asmS_Id.toString()}>{s.asmC_SectionName}</SelectItem>
+                                                    <SelectItem key={`sec-${s.asmS_Id}-${index}`} value={s.asmS_Id.toString()}>
+                                                        {s.asmC_SectionName}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -554,13 +587,19 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                                     control={control}
                                     render={({ field }) => (
                                         <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                            <SelectTrigger><SelectValue placeholder='Select Student' /></SelectTrigger>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Student' />
+                                            </SelectTrigger>
                                             <SelectContent>
                                                 {studentList.map((s: any, index: number) => {
                                                     const id = s.amst_id || s.amsT_Id || s.AMST_Id || s.amst_Id;
                                                     const name = s.studentname || s.studentName || s.student_name || s.ameS_StudentName;
                                                     if (!id) return null;
-                                                    return <SelectItem key={`stuname-${id}-${index}`} value={id.toString()}>{name}</SelectItem>;
+                                                    return (
+                                                        <SelectItem key={`stuname-${id}-${index}`} value={id.toString()}>
+                                                            {name}
+                                                        </SelectItem>
+                                                    );
                                                 })}
                                             </SelectContent>
                                         </Select>
@@ -571,29 +610,23 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                         )}
                     </div>
                 )}
-
             </CollapsibleSection>
 
-            <CollapsibleSection
-                title="Consumption Items"
-
-                defaultOpen={true}
-                className="shadow-sm border-primary/10"
-            >
-                <div className='overflow-x-auto -mx-1 p-1'>
-                    <table className='w-full border-collapse text-xs min-w-[1000px]'>
+            <CollapsibleSection title='Consumption Items' defaultOpen={true} className='border-primary/10 shadow-sm'>
+                <div className='-mx-1 overflow-x-auto p-1'>
+                    <table className='w-full min-w-[1000px] border-collapse text-xs'>
                         <thead>
-                            <tr className='bg-muted/50 text-muted-foreground uppercase tracking-wider text-[10px]'>
-                                <th className='border p-3 w-[40px] text-center'>#</th>
-                                <th className='border p-3 min-w-[200px] text-left'>Item Name</th>
-                                <th className='border p-3 w-[150px] text-left'>Product</th>
-                                <th className='border p-3 w-[100px] text-left'>Batch No</th>
-                                <th className='border p-3 w-[80px] text-right'>Qty</th>
-                                <th className='border p-3 min-w-[150px] text-left'>Narration</th>
-                                <th className='border p-3 w-[50px] text-center'></th>
+                            <tr className='bg-muted/50 text-[10px] text-muted-foreground uppercase tracking-wider'>
+                                <th className='w-[40px] border p-3 text-center'>#</th>
+                                <th className='min-w-[200px] border p-3 text-left'>Item Name</th>
+                                <th className='w-[150px] border p-3 text-left'>Product</th>
+                                <th className='w-[100px] border p-3 text-left'>Batch No</th>
+                                <th className='w-[80px] border p-3 text-right'>Qty</th>
+                                <th className='min-w-[150px] border p-3 text-left'>Narration</th>
+                                <th className='w-[50px] border p-3 text-center'></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y">
+                        <tbody className='divide-y'>
                             {fields.map((field, index) => (
                                 <tr key={field.id} className='hover:bg-primary/5'>
                                     <td className='border p-2 text-center'>{index + 1}</td>
@@ -602,12 +635,16 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                                             name={`arrayIC.${index}.invmI_Id`}
                                             control={control}
                                             render={({ field }) => (
-                                                <Select onValueChange={(val) => {
-                                                    const id = Number(val);
-                                                    field.onChange(id);
-                                                    handleItemChange(index, id);
-                                                }} value={field.value?.toString()}>
-                                                    <SelectTrigger><SelectValue placeholder='Select Item' /></SelectTrigger>
+                                                <Select
+                                                    onValueChange={(val) => {
+                                                        const id = Number(val);
+                                                        field.onChange(id);
+                                                        handleItemChange(index, id);
+                                                    }}
+                                                    value={field.value?.toString()}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select Item' />
+                                                    </SelectTrigger>
                                                     <SelectContent>
                                                         {itemsList.map((i: any, idx: number) => {
                                                             const id = i.invmi_Id || i.invmI_Id;
@@ -621,18 +658,26 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                                                 </Select>
                                             )}
                                         />
-                                        {errors.arrayIC?.[index]?.invmI_Id && <span className='text-destructive text-[10px]'>Required</span>}
+                                        {errors.arrayIC?.[index]?.invmI_Id && (
+                                            <span className='text-[10px] text-destructive'>Required</span>
+                                        )}
                                     </td>
                                     <td className='border p-2'>
                                         <Controller
                                             name={`arrayIC.${index}.invmP_Id`}
                                             control={control}
                                             render={({ field }) => (
-                                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString() || ''}>
-                                                    <SelectTrigger><SelectValue placeholder='Select Product' /></SelectTrigger>
+                                                <Select
+                                                    onValueChange={(val) => field.onChange(Number(val))}
+                                                    value={field.value?.toString() || ''}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select Product' />
+                                                    </SelectTrigger>
                                                     <SelectContent>
                                                         {products.map((p: any, idx: number) => (
-                                                            <SelectItem key={`${p.invmP_Id}-${idx}`} value={p.invmP_Id.toString()}>{p.invmP_ProductName}</SelectItem>
+                                                            <SelectItem key={`${p.invmP_Id}-${idx}`} value={p.invmP_Id.toString()}>
+                                                                {p.invmP_ProductName}
+                                                            </SelectItem>
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
@@ -641,11 +686,18 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                                     </td>
                                     <td className='border p-2'>
                                         <InputText {...register(`arrayIC.${index}.invtiC_BatchNo`)} className='h-8 text-xs' />
-                                        {errors.arrayIC?.[index]?.invtiC_BatchNo && <span className='text-destructive text-[10px]'>Required</span>}
+                                        {errors.arrayIC?.[index]?.invtiC_BatchNo && (
+                                            <span className='text-[10px] text-destructive'>Required</span>
+                                        )}
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`arrayIC.${index}.invtiC_ICQty`, { valueAsNumber: true })} className='h-8 text-xs text-right' />
-                                        {errors.arrayIC?.[index]?.invtiC_ICQty && <span className='text-destructive text-[10px]'>Invalid</span>}
+                                        <InputText
+                                            {...register(`arrayIC.${index}.invtiC_ICQty`, { valueAsNumber: true })}
+                                            className='h-8 text-right text-xs'
+                                        />
+                                        {errors.arrayIC?.[index]?.invtiC_ICQty && (
+                                            <span className='text-[10px] text-destructive'>Invalid</span>
+                                        )}
                                     </td>
                                     <td className='border p-2'>
                                         <InputText {...register(`arrayIC.${index}.invtiC_Naration`)} className='h-8 text-xs' />
@@ -657,8 +709,7 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                                             size='icon'
                                             className='h-7 w-7 text-destructive/60 hover:text-destructive'
                                             onClick={() => remove(index)}
-                                            disabled={fields.length === 1}
-                                        >
+                                            disabled={fields.length === 1}>
                                             <Minus className='h-3.5 w-3.5' />
                                         </Button>
                                     </td>
@@ -666,38 +717,36 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                             ))}
                         </tbody>
                     </table>
-                    <div className='mt-4 flex justify-between items-center'>
+                    <div className='mt-4 flex items-center justify-between'>
                         <Button
                             type='button'
                             variant='outline'
                             size='sm'
-                            onClick={() => append({
-                                invtiC_Id: 0,
-                                invmI_Id: 0,
-                                invtiC_BatchNo: '',
-                                invtiC_ICQty: 0,
-                                invtiC_ICPrice: 0,
-                                invmuoM_Id: 0,
-                                invtiC_Naration: '',
-                                invmP_Id: 0
-                            })}
-                            className='h-8 text-[11px] font-bold'
-                        >
+                            onClick={() =>
+                                append({
+                                    invtiC_Id: 0,
+                                    invmI_Id: 0,
+                                    invtiC_BatchNo: '',
+                                    invtiC_ICQty: 0,
+                                    invtiC_ICPrice: 0,
+                                    invmuoM_Id: 0,
+                                    invtiC_Naration: '',
+                                    invmP_Id: 0
+                                })
+                            }
+                            className='h-8 font-bold text-[11px]'>
                             <Plus className='mr-2 h-3 w-3' /> ADD ROW
                         </Button>
-                        <div className='text-sm font-medium'>
+                        <div className='font-medium text-sm'>
                             Total Available Stock: <span className='font-bold text-primary'>{availableStock}</span>
                         </div>
                     </div>
                 </div>
             </CollapsibleSection>
 
-            <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+            <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                 <div className='lg:col-span-2'>
-                    <CollapsibleSection
-                        title="Remarks"
-                        defaultOpen={true}
-                    >
+                    <CollapsibleSection title='Remarks' defaultOpen={true}>
                         <InputTextarea
                             label='Remarks / Narration'
                             {...register('invmiC_Remarks')}
@@ -712,7 +761,7 @@ export default function AddItemConsumptionForm({ initialData, onSuccess }: AddIt
                             <Save className='mr-2 h-5 w-5' /> {initialData ? 'Update Consumption' : 'Save Consumption'}
                         </Button>
                         <Button type='button' variant='outline' className='py-6' onClick={() => reset()}>
-                            <RotateCcw className='h-5 w-5 mr-2' /> {initialData ? 'Undo Changes' : 'Reset'}
+                            <RotateCcw className='mr-2 h-5 w-5' /> {initialData ? 'Undo Changes' : 'Reset'}
                         </Button>
                     </div>
                 </div>

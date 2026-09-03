@@ -6,7 +6,9 @@ export interface CumulativeSalaryReportRequest {
     hreS_Year: string;
     hreS_Month: string;
     hrmdeS_IdList: number[];
-    hrmdeS_Ids: string
+    hrmdeS_Ids: string;
+    hrmD_IdList: number[];
+    groupTypeIdList: number[];
 }
 
 export async function getCumulativeSalaryReport(data: CumulativeSalaryReportRequest) {
@@ -41,8 +43,11 @@ export async function getGroupTypes() {
     const url = '/api/MasterDropDown/GroupType';
     try {
         const response = await api.get<any>('hrms', url);
-        if (response.success) {
-            return { success: true, data: response.data };
+        if (response && typeof response === 'object' && 'success' in response) {
+            return { success: response.success, data: response.data || [] };
+        }
+        if (Array.isArray(response)) {
+            return { success: true, data: response };
         }
         return { success: false, data: [] };
     } catch (error) {
@@ -55,8 +60,11 @@ export async function getDepartmentsByGroupType(groupTypeIds: string) {
     const url = `/api/MasterDropDown/department_drop_down_by_group_Type/${groupTypeIds}`;
     try {
         const response = await api.get<any>('hrms', url);
-        if (response.success) {
-            return { success: true, data: response.data };
+        if (response && typeof response === 'object' && 'success' in response) {
+            return { success: response.success, data: response.data || [] };
+        }
+        if (Array.isArray(response)) {
+            return { success: true, data: response };
         }
         return { success: false, data: [] };
     } catch (error) {
@@ -92,9 +100,7 @@ export async function getEmployeesByDeptAndDesignation(deptIds: string, desigIds
 
 // API call for Getting employees based on GroupType, Department and Designation IDs
 
-export async function getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds: number[],
-    deptIds: number[],
-    desigIds: number[]) {
+export async function getEmployeesByGroupTypeDeptAndDesignation(groupTypeIds: number[], deptIds: number[], desigIds: number[]) {
     const requestBody = {
         hrmgT_IdList: groupTypeIds,
         hrmD_IdList: deptIds,

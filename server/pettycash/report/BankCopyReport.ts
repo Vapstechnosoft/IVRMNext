@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { IBankCopyReportParams, IBankCopyReportResponse } from '@/types/pettycash/report/BankCopyReport';
+import type { IBankCopyReportParams, IBankCopyReportResponse } from '@/types/pettycash/report/BankCopyReport';
 
 export async function getBankCopyReportInitialData() {
     const url = '/BankCopyReportVVVS/get_initial_data';

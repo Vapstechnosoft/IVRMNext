@@ -13,7 +13,6 @@ import { useAdmissionRegister } from '@/hooks/admission/preadmission/useReports'
 import { usePreadmissionClassDropdown1 } from '@/hooks/admission/preadmission/useTransactions';
 import { cn } from '@/lib/utils';
 import { admissionReportSchema } from '@/schemas/admission/preadmission/reports';
-import { getExcelAdmissionRegistrationReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { getAdmissionRegister } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Search, Square, X } from 'lucide-react';
@@ -22,10 +21,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
-import type { z } from 'zod';
 import * as XLSX from 'xlsx';
-import { FIELD_CONFIG, formatDate, getMasterAdmissionReportColumns } from './_components/columns';
+import type { z } from 'zod';
 import { AdmissionRegisterPrint } from './_components/admission-register-print';
+import { FIELD_CONFIG, formatDate, getMasterAdmissionReportColumns } from './_components/columns';
 
 type FormFields = z.infer<typeof admissionReportSchema>;
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -186,8 +185,8 @@ export default function AdmissionReportPage(props: {
                 typeof response.data === 'object' && response.data !== null && 'searchstudentDetails' in response.data
                     ? response.data.searchstudentDetails
                     : Array.isArray(response.data)
-                        ? response.data
-                        : [],
+                      ? response.data
+                      : [],
             total: response.total,
             page: response.page,
             page_size: response.page_size
@@ -208,14 +207,13 @@ export default function AdmissionReportPage(props: {
 
             const response: any = await getAdmissionRegister(academicYearValue, statusValue, requestPayload, printSearchParams);
 
-
             console.log(response);
             const allData =
                 response?.data && 'searchstudentDetails' in response.data
                     ? response.data.searchstudentDetails
                     : Array.isArray(response?.data)
-                        ? response.data
-                        : [];
+                      ? response.data
+                      : [];
 
             if (!allData || allData.length === 0) {
                 toast.dismiss('excel-download');
@@ -230,7 +228,7 @@ export default function AdmissionReportPage(props: {
                 for (const field of activeFields) {
                     const value = row[field.accessor];
                     const config = FIELD_CONFIG[field.id];
-                    mappedRow[field.label] = config?.isDate ? formatDate(value) : (value || 'N/A');
+                    mappedRow[field.label] = config?.isDate ? formatDate(value) : value || 'N/A';
                 }
                 return mappedRow;
             });
@@ -319,30 +317,11 @@ export default function AdmissionReportPage(props: {
     };
 
     const handleReset = () => {
-        reset({
-            academicYear: 0,
-            status: 0,
-            selectedClasses: [],
-            selectedFields: []
-        });
-        setClassSearch('');
-        setFieldSearch('');
-        setShowReport(false);
-        setRequestPayload(null);
-        setSelectedStudents([]);
-        tableRef.current?.resetSelection();
-
-        // Clear URL parameters
-        router.push(window.location.pathname, { scroll: false });
-
-        toast.success('Filters reset successfully');
+        window.location.reload();
     };
 
     const handleCancel = () => {
-        setShowReport(false);
-        setSelectedStudents([]);
-        tableRef.current?.resetSelection();
-        toast.info('Report cancelled');
+        window.location.reload();
     };
 
     const handlePrintRequest = useReactToPrint({
@@ -366,8 +345,8 @@ export default function AdmissionReportPage(props: {
                 response?.data && 'searchstudentDetails' in response.data
                     ? response.data.searchstudentDetails
                     : Array.isArray(response?.data)
-                        ? response.data
-                        : [];
+                      ? response.data
+                      : [];
 
             if (!allData || allData.length === 0) {
                 toast.error('No data available to print');
@@ -729,11 +708,7 @@ export default function AdmissionReportPage(props: {
 
                 {/* Hidden Print Component */}
                 <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '297mm' }}>
-                    <AdmissionRegisterPrint
-                        ref={componentRef}
-                        data={printData}
-                        selectedFields={selectedFields}
-                    />
+                    <AdmissionRegisterPrint ref={componentRef} data={printData} selectedFields={selectedFields} />
                 </div>
             </div>
         </div>

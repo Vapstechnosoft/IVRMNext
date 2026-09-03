@@ -21,11 +21,11 @@ export default function EventsMappingPage(props: { searchParams: SearchParams })
 
     return (
         <FormProvider<IEventsMappingData>>
-            <EventsMappingPageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <EventsMappingPageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -44,7 +44,7 @@ function EventsMappingPageContent({
         useFormContext<IEventsMappingData>();
 
     const tableProps = {
-        ...useDataTableProps(response?.data, { dataKey: 'records', totalKey: 'total' }), 
+        ...useDataTableProps(response?.data, { dataKey: 'records', totalKey: 'total' }),
         success: response?.success,
         errorMessage: response?.message
     };
@@ -75,9 +75,6 @@ function EventsMappingPageContent({
                         columns={eventsMappingColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         showViewOptions={false}
                         columnPinning={{ right: ['actions'] }}
@@ -137,4 +134,3 @@ function EventsMappingPageContent({
         </div>
     );
 }
-

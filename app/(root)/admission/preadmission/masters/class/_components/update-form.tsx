@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
 import { masterClassSchema } from '@/schemas/admission/preadmission/masters';
 import { addOrUpdateMasterClass } from '@/server/admission/preadmission/masters/class';
@@ -92,11 +92,10 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
             const response = await addOrUpdateMasterClass(payload);
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success('Record Updated Successfully');
                 reset();
                 refetchAll();
                 onSuccess?.();
-                window.location.href = window.location.pathname;
             } else {
                 toast.error(response.message);
             }
@@ -106,7 +105,22 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
     };
 
     const handleReset = () => {
-        reset();
+        if (row) {
+            reset({
+                asmcl_id: row.asmcL_Id,
+                asmcl_classcode: row.asmcL_ClassCode,
+                asmcl_classname: row.asmcL_ClassName,
+                asmcl_maxcapacity: row.asmcL_MaxCapacity,
+                asmcl_order: row.asmcL_Order,
+                asmcl_minageyear: row.asmcL_MinAgeYear,
+                asmcl_minagemonth: row.asmcL_MinAgeMonth,
+                asmcl_minagedays: row.asmcL_MinAgeDays,
+                asmcl_maxageyear: row.asmcL_MaxAgeYear,
+                asmcl_maxagemonth: row.asmcL_MaxAgeMonth,
+                asmcl_maxagedays: row.asmcL_MaxAgeDays,
+                asmcl_preadmflag: row.asmcL_PreadmFlag
+            });
+        }
     };
 
     return (
@@ -130,14 +144,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                             id='asmcl_classname'
                             //placeholder='Enter Class Name (e.g. Class I)'
                             {...register('asmcl_classname')}
-                            onKeyDown={(e) => {
-                                // Allow navigation keys (Backspace, Tab, Arrows, etc.)
-                                if (e.key.length > 1) return;
-                                // Allow only letters and spaces, block numbers and special characters
-                                if (!/^[A-Za-z\s]$/.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
                             defaultValue={row.asmcL_ClassName}
                             error={errors.asmcl_classname?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -152,7 +158,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Max Capacity'
                                         required
                                         id='asmcl_maxcapacity'
-                                        defaultValue={row.asmcL_MaxCapacity}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         step={1}
@@ -171,7 +177,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Class Order'
                                         required
                                         id='asmcl_order'
-                                        defaultValue={row.asmcL_Order}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         step={1}
@@ -192,7 +198,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Min Age Year'
                                         required
                                         id='asmcl_minageyear'
-                                        defaultValue={row.asmcL_MinAgeYear}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={100}
@@ -212,7 +218,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Min Age Month'
                                         required
                                         id='asmcl_minagemonth'
-                                        defaultValue={row.asmcL_MinAgeMonth}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={11}
@@ -232,7 +238,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Min Age Days'
                                         required
                                         id='asmcl_minagedays'
-                                        defaultValue={row.asmcL_MinAgeDays}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={31}
@@ -254,7 +260,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Max Age Year'
                                         required
                                         id='asmcl_maxageyear'
-                                        defaultValue={row.asmcL_MaxAgeYear}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={100}
@@ -274,7 +280,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Max Age Month'
                                         required
                                         id='asmcl_maxagemonth'
-                                        defaultValue={row.asmcL_MaxAgeMonth}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={11}
@@ -294,7 +300,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                                         placeholder='Enter Max Age Days'
                                         required
                                         id='asmcl_maxagedays'
-                                        defaultValue={row.asmcL_MaxAgeDays}
+                                        value={field.value ?? undefined}
                                         onChange={(value) => field.onChange(value)}
                                         minValue={0}
                                         maxValue={31}
@@ -321,8 +327,8 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                             <Label
                                 aria-label='Preadmission Class'
                                 htmlFor='asmcl_preadmflag'
-                                className='cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                                Preadmission Class <span className='ml-1 text-red-500'>*</span>
+                                className='cursor-pointer font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                Preadmission Class
                             </Label>
                         </div>
                         {errors.asmcl_preadmflag && <FormError>{errors.asmcl_preadmflag.message}</FormError>}
@@ -347,10 +353,10 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                         disabled={isSubmitting}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Class
+                            Update Master Class
                         </div>
                     </Button>
                 </div>

@@ -10,8 +10,8 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterUOMForm from './_components/add-form';
 import { MasterUOMColumns } from './_components/columns';
-import UpdateMasterUOMForm from './_components/update-form';
 import ToggleMasterUOMForm from './_components/toggle-form';
+import UpdateMasterUOMForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -21,11 +21,11 @@ export default function MasterUOMPage(props: { searchParams: SearchParams }) {
 
     return (
         <FormProvider<IMasterUOM>>
-            <MasterUOMPageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <MasterUOMPageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -91,9 +91,6 @@ function MasterUOMPageContent({
                         columns={MasterUOMColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading UOMs...'
@@ -161,11 +158,7 @@ function MasterUOMPageContent({
 
                 {/* Toggle Form */}
                 {isToggleFormOpen && selectedRow && (
-                    <ToggleMasterUOMForm
-                        rowData={selectedRow}
-                        onClose={closeToggleForm}
-                        onSuccess={refetchAll}
-                    />
+                    <ToggleMasterUOMForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />
                 )}
             </div>
         </div>

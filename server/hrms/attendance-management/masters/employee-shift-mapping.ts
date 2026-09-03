@@ -29,7 +29,7 @@ export async function addOrUpdateEmployeeShiftMapping(data: any) {
 /**
  * Delete Employee Shift Mapping record
  * DELETE /api/EmployeeShiftMapping/delete_employee_shift_by_id/{id}
- */// DELETE using POST as per VAPS pattern for some endpoints that require bodies
+ */ // DELETE using POST as per VAPS pattern for some endpoints that require bodies
 export async function deleteEmployeeShiftMapping(id: number, data?: any) {
     try {
         const url = `/api/EmployeeShiftMapping/delete_employee_shift_by_id/${id}`;

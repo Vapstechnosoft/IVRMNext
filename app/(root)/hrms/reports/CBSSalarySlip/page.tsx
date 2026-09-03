@@ -51,6 +51,7 @@ export default function SalarySlipPage() {
     });
 
     const [employees, setEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);
+    const [tableResponse, setTableResponse] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<Set<number>>(new Set());
     const [reportData, setReportData] = useState<any>(null);
@@ -101,6 +102,14 @@ export default function SalarySlipPage() {
         setFilters(newFilters);
 
         if (newFilters.groupType.length > 0 && newFilters.department.length > 0 && newFilters.designation.length > 0) {
+    useEffect(() => {
+        if (
+            filters.groupType.length > 0 &&
+            filters.department.length > 0 &&
+            filters.designation.length > 0 &&
+            filters.year &&
+            filters.month
+        ) {
             filterEmployees(
                 {
                     MI_Id: 30,
@@ -110,6 +119,12 @@ export default function SalarySlipPage() {
                     hrmgt_ids: newFilters.groupType.join(','),
                     hrmd_ids: newFilters.department.join(','),
                     hrmdes_ids: newFilters.designation.join(',')
+                    hreS_Year: filters.year,
+                    hreS_Month: filters.month,
+                    hrmgt_ids: filters.groupType.join(','),
+                    hrmd_ids: filters.department.join(','),
+                    hrmdes_ids: filters.designation.join(','),
+                    search: searchTerm || undefined
                 },
                 {
                     onSuccess: (res) => {
@@ -129,13 +144,23 @@ export default function SalarySlipPage() {
                             setEmployees(mapped);
                         } else {
                             setEmployees([]);
+                                isSelected: false,
+                                total_count: emp.total
+                            setTableResponse(res);
+                            setTableResponse(null);
                         }
                     }
                 }
             );
         } else {
             setEmployees([]);
+            setTableResponse(null);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.groupType, filters.department, filters.designation, filters.year, filters.month, searchTerm]);
+
+    const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
+        setFilters(newFilters);
     };
 
     const filteredEmployeesList = useMemo(() => {
@@ -161,6 +186,11 @@ export default function SalarySlipPage() {
                     next.add(emp.id);
                 } else {
                     next.delete(emp.id);
+    const handleSelectAll = (checked: boolean, ids?: number[]) => {
+            const targetIds = ids || filteredEmployeesList.map((emp) => emp.id);
+            targetIds.forEach((id) => {
+                    next.add(id);
+                    next.delete(id);
                 }
             });
             return next;
@@ -351,6 +381,7 @@ export default function SalarySlipPage() {
                 years={yearsData?.data || []}
                 employees={employees}
                 filteredEmployees={filteredEmployeesList}
+                tableResponse={tableResponse}
                 searchTerm={searchTerm}
                 selectedCount={selectedCount}
                 selectedEmployeeIds={selectedEmployeeIds}

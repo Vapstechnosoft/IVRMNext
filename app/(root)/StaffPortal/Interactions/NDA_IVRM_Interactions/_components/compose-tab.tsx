@@ -1,58 +1,32 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { uploadDocument } from '@/server/document_upload';
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter
-} from '@/components/ui/dialog';
-import {
-    Send,
-    X,
-    Plus,
-    Paperclip,
-    Loader2,
-    User,
-    Users,
-    Search,
-    GraduationCap,
-    School,
-    UserCheck,
-    ClipboardCheck,
-    Calendar,
-    Clock,
-    FileText,
-    Trash2,
-    Eye,
-    Download
-} from 'lucide-react';
-import {
-    getRecipientsByRole,
     getNDASectionsForInteraction,
+    getRecipientsByRole,
     getStudentsForInteraction,
     saveInteractionData
 } from '@/server/staff-portal/interactions';
-import { uploadDocument } from '@/server/document_upload';
-import type { IInteractionsInitialData, IRecipient, ISaveInteractionDataRequest, IFILESLISTdata } from '@/types/staff-portal/interactions';
+import type { IFILESLISTdata, IInteractionsInitialData, IRecipient } from '@/types/staff-portal/interactions';
+import { Calendar, Clock, Download, Eye, FileText, Loader2, Plus, Search, Send, Trash2, Users, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
 import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 import { saveAs } from 'file-saver';
+import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
-
 
 interface ComposeTabProps {
     data: IInteractionsInitialData;
@@ -60,7 +34,7 @@ interface ComposeTabProps {
     onCancel: () => void;
     onSuccess: () => void;
 }
-
+export const dynamic = 'force-dynamic';
 export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps) {
     const [userFlag, setUserFlag] = useState<string>('');
     const [recipients, setRecipients] = useState<IRecipient[]>([]);
@@ -126,7 +100,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
             try {
                 const res = await getRecipientsByRole(roleFlg, userFlag, Number(selectedYear));
                 if (res.success && res.data) {
-                    const detailList = Array.isArray(res.data) ? res.data : (res.data.getdetails || []);
+                    const detailList = Array.isArray(res.data) ? res.data : res.data.getdetails || [];
                     setRecipients(detailList);
                 } else {
                     setRecipients([]);
@@ -170,7 +144,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         try {
             const res = await getNDASectionsForInteraction(Number(classId), Number(selectedYear), roleFlg);
             if (res.success && res.data) {
-                const sectionList = Array.isArray(res.data) ? res.data : (res.data.sectionList || []);
+                const sectionList = Array.isArray(res.data) ? res.data : res.data.sectionList || [];
                 setSections(sectionList);
             }
         } catch (error) {
@@ -186,7 +160,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         try {
             const res = await getStudentsForInteraction(Number(selectedClass), Number(sectionId));
             if (res.success && res.data) {
-                const studentList = Array.isArray(res.data) ? res.data : (res.data.get_student || []);
+                const studentList = Array.isArray(res.data) ? res.data : res.data.get_student || [];
                 setStudents(studentList);
             }
         } catch (error) {
@@ -199,7 +173,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
     const handleSelectAll = (checked: boolean) => {
         const list = userFlag === 'Student' ? students : recipients;
         if (checked) {
-            const allIds = list.map(item => (userFlag === 'Student' ? item.AMST_Id : item.HRME_Id)).filter((id): id is number => !!id);
+            const allIds = list.map((item) => (userFlag === 'Student' ? item.AMST_Id : item.HRME_Id)).filter((id): id is number => !!id);
             setSelectedGroupItems(allIds);
         } else {
             setSelectedGroupItems([]);
@@ -207,9 +181,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
     };
 
     const toggleItemSelection = (id: number) => {
-        setSelectedGroupItems(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-        );
+        setSelectedGroupItems((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
     };
 
     const handleFileChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -287,7 +259,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                 userflag: userFlag,
                 ISMINT_Subject: subject,
                 ISMINT_Interaction: message,
-                images_paths: uploadedFiles.map(f => f.ISMID_Filepath),
+                images_paths: uploadedFiles.map((f) => f.ISMID_Filepath),
                 FILESLISTdata: uploadedFiles,
                 ISMINT_MACAddress: '00-14-22-01-23-45', // Standard legacy test values
                 ISMINT_ISPIPAddress: '192.168.1.1'
@@ -296,12 +268,12 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
             if (mode === 'Group') {
                 if (userFlag === 'Student') {
                     payload.arrayStudent = students
-                        .filter(s => selectedGroupItems.includes(s.AMST_Id!))
-                        .map(s => ({ AMST_Id: s.AMST_Id! }));
+                        .filter((s) => selectedGroupItems.includes(s.AMST_Id!))
+                        .map((s) => ({ AMST_Id: s.AMST_Id! }));
                 } else {
                     payload.arrayTeachers = recipients
-                        .filter(r => selectedGroupItems.includes(r.HRME_Id!))
-                        .map(r => ({ HRME_Id: r.HRME_Id! }));
+                        .filter((r) => selectedGroupItems.includes(r.HRME_Id!))
+                        .map((r) => ({ HRME_Id: r.HRME_Id! }));
                 }
             } else {
                 let toId = 0;
@@ -333,46 +305,47 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
         }
     };
 
-    const filteredRecipientsList = recipients.filter(r =>
-        (r.EmpName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (r.HRME_EmployeeCode || '').toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredRecipientsList = recipients.filter(
+        (r) =>
+            (r.EmpName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (r.HRME_EmployeeCode || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const filteredStudentsList = students.filter(s =>
-        (s.studentName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (s.AMST_AdmNo || '').toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredStudentsList = students.filter(
+        (s) =>
+            (s.studentName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (s.AMST_AdmNo || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto animate-in fade-in duration-500 pb-12">
+        <div className='fade-in mx-auto max-w-5xl animate-in space-y-6 pb-12 duration-500'>
             {/* Header Status */}
-            <div className="flex items-center justify-between px-2">
-                <div className="flex items-center gap-2">
-                    <div className="h-4 w-4 rounded-full bg-primary animate-pulse" />
-                    <h2 className="text-xl font-bold tracking-tight text-foreground/80">Compose Interaction</h2>
+            <div className='flex items-center justify-between px-2'>
+                <div className='flex items-center gap-2'>
+                    <div className='h-4 w-4 animate-pulse rounded-full bg-primary' />
+                    <h2 className='font-bold text-foreground/80 text-xl tracking-tight'>Compose Interaction</h2>
                 </div>
-                <Badge variant="outline" className="px-4 py-1.5 rounded-full bg-muted/30 border-primary/20 text-xs font-bold gap-2">
-                    <Calendar className="h-3.5 w-3.5 text-primary" />
+                <Badge variant='outline' className='gap-2 rounded-full border-primary/20 bg-muted/30 px-4 py-1.5 font-bold text-xs'>
+                    <Calendar className='h-3.5 w-3.5 text-primary' />
                     {format(new Date(), 'dd/MM/yyyy')}
-                    <span className="opacity-20">|</span>
-                    <Clock className="h-3.5 w-3.5 text-primary" />
+                    <span className='opacity-20'>|</span>
+                    <Clock className='h-3.5 w-3.5 text-primary' />
                     {format(currentTime, 'hh:mm a')}
                 </Badge>
             </div>
 
             {/* Selection Form Card - Centered Labels like Legacy */}
-            <Card className="border shadow-sm bg-background/50 backdrop-blur-sm overflow-hidden">
-                <CardContent className="p-8 space-y-6 max-w-3xl mx-auto">
+            <Card className='overflow-hidden border bg-background/50 shadow-sm backdrop-blur-sm'>
+                <CardContent className='mx-auto max-w-3xl space-y-6 p-8'>
                     {/* User Type Selection */}
                     <RadioGroup
                         value={userFlag}
                         onValueChange={setUserFlag}
-                        className="flex flex-wrap items-center justify-center gap-8 py-2"
-                    >
+                        className='flex flex-wrap items-center justify-center gap-8 py-2'>
                         {availableUserTypes.map((type) => (
-                            <div key={type.id} className="flex items-center space-x-2">
-                                <RadioGroupItem value={type.id} id={type.id} className="border-primary" />
-                                <Label htmlFor={type.id} className="text-sm font-bold cursor-pointer hover:text-primary transition-colors">
+                            <div key={type.id} className='flex items-center space-x-2'>
+                                <RadioGroupItem value={type.id} id={type.id} className='border-primary' />
+                                <Label htmlFor={type.id} className='cursor-pointer font-bold text-sm transition-colors hover:text-primary'>
                                     {type.label}
                                 </Label>
                             </div>
@@ -380,13 +353,13 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                     </RadioGroup>
 
                     {/* Form Fields */}
-                    <div className="space-y-4 pt-4 border-t border-dashed">
+                    <div className='space-y-4 border-t border-dashed pt-4'>
                         {/* Always show Year */}
-                        <div className="flex items-center gap-4">
-                            <Label className="w-24 text-sm font-bold text-right shrink-0">Academic Year :</Label>
+                        <div className='flex items-center gap-4'>
+                            <Label className='w-24 shrink-0 text-right font-bold text-sm'>Academic Year :</Label>
                             <Select value={selectedYear} onValueChange={setSelectedYear}>
-                                <SelectTrigger className="flex-1 h-9 bg-background border rounded-md font-medium text-sm">
-                                    <SelectValue placeholder="Select Year" />
+                                <SelectTrigger className='h-9 flex-1 rounded-md border bg-background font-medium text-sm'>
+                                    <SelectValue placeholder='Select Year' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {data.allacademicyear?.map((year) => (
@@ -400,11 +373,13 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
 
                         {userFlag === 'Student' && (
                             <>
-                                <div className="flex items-center gap-4">
-                                    <Label className="w-24 text-sm font-bold text-right shrink-0">Class : <span className="text-red-500">*</span></Label>
+                                <div className='flex items-center gap-4'>
+                                    <Label className='w-24 shrink-0 text-right font-bold text-sm'>
+                                        Class : <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Select value={selectedClass} onValueChange={handleClassChange}>
-                                        <SelectTrigger className="flex-1 h-9 bg-background border rounded-md font-medium text-sm">
-                                            <SelectValue placeholder="Select Class" />
+                                        <SelectTrigger className='h-9 flex-1 rounded-md border bg-background font-medium text-sm'>
+                                            <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {classList.map((cls: any) => (
@@ -415,11 +390,13 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <Label className="w-24 text-sm font-bold text-right shrink-0">Section : <span className="text-red-500">*</span></Label>
+                                <div className='flex items-center gap-4'>
+                                    <Label className='w-24 shrink-0 text-right font-bold text-sm'>
+                                        Section : <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Select value={selectedSection} onValueChange={handleSectionChange} disabled={!selectedClass}>
-                                        <SelectTrigger className="flex-1 h-9 bg-background border rounded-md font-medium text-sm">
-                                            <SelectValue placeholder="Select Section" />
+                                        <SelectTrigger className='h-9 flex-1 rounded-md border bg-background font-medium text-sm'>
+                                            <SelectValue placeholder='Select Section' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {sections.map((sec: any) => (
@@ -430,12 +407,17 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <Label className="w-24 text-sm font-bold text-right shrink-0">Student : <span className="text-red-500">*</span></Label>
+                                <div className='flex items-center gap-4'>
+                                    <Label className='w-24 shrink-0 text-right font-bold text-sm'>
+                                        Student : <span className='text-red-500'>*</span>
+                                    </Label>
                                     {mode === 'Individual' ? (
-                                        <Select value={selectedRecipientId} onValueChange={setSelectedRecipientId} disabled={!selectedSection}>
-                                            <SelectTrigger className="flex-1 h-9 bg-background border rounded-md font-medium text-sm">
-                                                <SelectValue placeholder="Select Student" />
+                                        <Select
+                                            value={selectedRecipientId}
+                                            onValueChange={setSelectedRecipientId}
+                                            disabled={!selectedSection}>
+                                            <SelectTrigger className='h-9 flex-1 rounded-md border bg-background font-medium text-sm'>
+                                                <SelectValue placeholder='Select Student' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {students.map((s) => (
@@ -446,8 +428,8 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                             </SelectContent>
                                         </Select>
                                     ) : (
-                                        <div className="flex-1">
-                                            <Badge variant="secondary" className="px-3 py-1 font-bold text-[10px] rounded-lg">
+                                        <div className='flex-1'>
+                                            <Badge variant='secondary' className='rounded-lg px-3 py-1 font-bold text-[10px]'>
                                                 {selectedGroupItems.length} selected
                                             </Badge>
                                         </div>
@@ -457,10 +439,12 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                         )}
 
                         {userFlag && userFlag !== 'Student' && mode === 'Individual' && (
-                            <div className="flex items-center gap-4">
-                                <Label className="w-24 text-sm font-bold text-right shrink-0">{userFlag} : <span className="text-red-500">*</span></Label>
+                            <div className='flex items-center gap-4'>
+                                <Label className='w-24 shrink-0 text-right font-bold text-sm'>
+                                    {userFlag} : <span className='text-red-500'>*</span>
+                                </Label>
                                 <Select value={selectedRecipientId} onValueChange={setSelectedRecipientId}>
-                                    <SelectTrigger className="flex-1 h-9 bg-background border rounded-md font-medium text-sm">
+                                    <SelectTrigger className='h-9 flex-1 rounded-md border bg-background font-medium text-sm'>
                                         <SelectValue placeholder={`Select ${userFlag.toLowerCase()}`} />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -479,36 +463,41 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
 
             {/* Recipient Grid for Group Mode */}
             {mode === 'Group' && userFlag && (
-                <Card className="border border-t-0 -mt-6 pt-6 rounded-t-none bg-muted/5">
-                    <CardContent className="p-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Users className="h-4 w-4 text-primary" />
-                                <span className="text-xs font-bold uppercase tracking-wider">Select Group Recipients</span>
+                <Card className='-mt-6 rounded-t-none border border-t-0 bg-muted/5 pt-6'>
+                    <CardContent className='space-y-4 p-6'>
+                        <div className='flex items-center justify-between'>
+                            <div className='flex items-center gap-2'>
+                                <Users className='h-4 w-4 text-primary' />
+                                <span className='font-bold text-xs uppercase tracking-wider'>Select Group Recipients</span>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <div className="relative w-48">
-                                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                            <div className='flex items-center gap-4'>
+                                <div className='relative w-48'>
+                                    <Search className='-translate-y-1/2 absolute top-1/2 left-2.5 h-3.5 w-3.5 text-muted-foreground' />
                                     <Input
-                                        className="h-8 pl-8 text-xs font-medium bg-background border shadow-none"
-                                        placeholder="Filter list..."
+                                        className='h-8 border bg-background pl-8 font-medium text-xs shadow-none'
+                                        placeholder='Filter list...'
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                     />
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className='flex items-center gap-2'>
                                     <Checkbox
-                                        id="sel-all"
-                                        checked={(userFlag === 'Student' ? students : recipients).length > 0 && selectedGroupItems.length === (userFlag === 'Student' ? students : recipients).length}
+                                        id='sel-all'
+                                        checked={
+                                            (userFlag === 'Student' ? students : recipients).length > 0 &&
+                                            selectedGroupItems.length === (userFlag === 'Student' ? students : recipients).length
+                                        }
                                         onCheckedChange={(checked) => handleSelectAll(checked === true)}
                                     />
-                                    <Label htmlFor="sel-all" className="text-xs font-bold uppercase">All</Label>
+                                    <Label htmlFor='sel-all' className='font-bold text-xs uppercase'>
+                                        All
+                                    </Label>
                                 </div>
                             </div>
                         </div>
-                        <ScrollArea className="h-[250px] border rounded-lg bg-background">
-                            <div className="p-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                                {(userFlag === 'Student' ? filteredStudentsList : filteredRecipientsList).map(item => {
+                        <ScrollArea className='h-[250px] rounded-lg border bg-background'>
+                            <div className='grid grid-cols-1 gap-2 p-3 md:grid-cols-2 lg:grid-cols-3'>
+                                {(userFlag === 'Student' ? filteredStudentsList : filteredRecipientsList).map((item) => {
                                     const id = userFlag === 'Student' ? item.AMST_Id! : item.HRME_Id!;
                                     const name = userFlag === 'Student' ? item.studentName : item.EmpName;
                                     const sub = userFlag === 'Student' ? item.AMST_AdmNo : item.HRME_EmployeeCode;
@@ -516,15 +505,14 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                         <div
                                             key={id}
                                             className={cn(
-                                                "flex items-center gap-3 p-2 rounded-md border text-xs font-medium cursor-pointer transition-colors",
-                                                selectedGroupItems.includes(id) ? "bg-primary/5 border-primary" : "hover:bg-muted/50"
+                                                'flex cursor-pointer items-center gap-3 rounded-md border p-2 font-medium text-xs transition-colors',
+                                                selectedGroupItems.includes(id) ? 'border-primary bg-primary/5' : 'hover:bg-muted/50'
                                             )}
-                                            onClick={() => toggleItemSelection(id)}
-                                        >
+                                            onClick={() => toggleItemSelection(id)}>
                                             <Checkbox checked={selectedGroupItems.includes(id)} />
-                                            <div className="flex flex-col min-w-0">
-                                                <span className="truncate block">{name}</span>
-                                                <span className="text-[10px] text-muted-foreground font-bold">{sub}</span>
+                                            <div className='flex min-w-0 flex-col'>
+                                                <span className='block truncate'>{name}</span>
+                                                <span className='font-bold text-[10px] text-muted-foreground'>{sub}</span>
                                             </div>
                                         </div>
                                     );
@@ -536,27 +524,29 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
             )}
 
             {/* Message Area Card - Integrated buttons exactly like legacy */}
-            <Card className="border shadow-md overflow-hidden ring-1 ring-primary/10">
-                <div className="bg-primary/90 text-white px-6 py-2.5 flex items-center justify-between">
-                    <h3 className="text-xs font-bold uppercase tracking-[0.1em]">New Message</h3>
-                    <div className="flex items-center gap-2 opacity-80 text-[10px] font-bold">
+            <Card className='overflow-hidden border shadow-md ring-1 ring-primary/10'>
+                <div className='flex items-center justify-between bg-primary/90 px-6 py-2.5 text-white'>
+                    <h3 className='font-bold text-xs uppercase tracking-[0.1em]'>New Message</h3>
+                    <div className='flex items-center gap-2 font-bold text-[10px] opacity-80'>
                         {format(currentTime, 'dd/MM/yyyy hh:mm a')}
                     </div>
                 </div>
-                <CardContent className="p-0">
-                    <div className="p-8 space-y-6">
-                        <div className="flex gap-6">
-                            <Label className="w-20 pt-2 text-sm font-bold text-right shrink-0">Subject : <span className="text-red-500">*</span></Label>
-                            <div className="flex-1 space-y-4">
+                <CardContent className='p-0'>
+                    <div className='space-y-6 p-8'>
+                        <div className='flex gap-6'>
+                            <Label className='w-20 shrink-0 pt-2 text-right font-bold text-sm'>
+                                Subject : <span className='text-red-500'>*</span>
+                            </Label>
+                            <div className='flex-1 space-y-4'>
                                 <Input
-                                    className="h-10 text-sm font-medium border focus-visible:ring-primary/20"
-                                    placeholder="Interaction Subject"
+                                    className='h-10 border font-medium text-sm focus-visible:ring-primary/20'
+                                    placeholder='Interaction Subject'
                                     value={subject}
                                     onChange={(e) => setSubject(e.target.value)}
                                 />
                                 <Textarea
-                                    className="min-h-[160px] text-sm font-medium border resize-none p-4"
-                                    placeholder="Message details..."
+                                    className='min-h-[160px] resize-none border p-4 font-medium text-sm'
+                                    placeholder='Message details...'
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
                                 />
@@ -564,89 +554,85 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                         </div>
 
                         {/* Action Buttons inside the card logic */}
-                        <div className="flex items-center justify-end gap-3 pt-4 border-t">
+                        <div className='flex items-center justify-end gap-3 border-t pt-4'>
                             <Button
-                                className="bg-primary hover:bg-primary/90 rounded-md font-bold px-8"
+                                className='rounded-md bg-primary px-8 font-bold hover:bg-primary/90'
                                 disabled={isSubmitting}
-                                onClick={handleSubmit}
-                            >
-                                {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Send className="h-4 w-4 mr-2" />}
+                                onClick={handleSubmit}>
+                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Send className='mr-2 h-4 w-4' />}
                                 SEND
                             </Button>
                             <Button
-                                variant="outline"
-                                className="bg-orange-500 hover:bg-orange-600 text-white border-none rounded-md font-bold px-8"
-                                onClick={onCancel}
-                            >
-                                <X className="h-4 w-4 mr-2" />
+                                variant='outline'
+                                className='rounded-md border-none bg-orange-500 px-8 font-bold text-white hover:bg-orange-600'
+                                onClick={onCancel}>
+                                <X className='mr-2 h-4 w-4' />
                                 CANCEL
                             </Button>
                         </div>
                     </div>
 
                     {/* Attachment Table-Like UI */}
-                    <div className="overflow-hidden border-t">
-                        <table className="w-full text-left border-collapse">
-                            <thead className="bg-[#1a5f7a] text-white text-[10px] font-bold uppercase">
+                    <div className='overflow-hidden border-t'>
+                        <table className='w-full border-collapse text-left'>
+                            <thead className='bg-[#1a5f7a] font-bold text-[10px] text-white uppercase'>
                                 <tr>
-                                    <th className="px-4 py-2 text-center border-r border-white/10 w-16">SL NO</th>
-                                    <th className="px-4 py-2 border-r border-white/10 w-32">Upload File</th>
-                                    <th className="px-4 py-2 border-r border-white/10">File Name</th>
-                                    <th className="px-4 py-2 border-r border-white/10 w-20 text-center">View</th>
-                                    <th className="px-4 py-2 text-center w-20">Action</th>
+                                    <th className='w-16 border-white/10 border-r px-4 py-2 text-center'>SL NO</th>
+                                    <th className='w-32 border-white/10 border-r px-4 py-2'>Upload File</th>
+                                    <th className='border-white/10 border-r px-4 py-2'>File Name</th>
+                                    <th className='w-20 border-white/10 border-r px-4 py-2 text-center'>View</th>
+                                    <th className='w-20 px-4 py-2 text-center'>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {files.map((file, idx) => (
-                                    <tr key={idx} className="border-b last:border-b-0 hover:bg-muted/30 transition-colors">
-                                        <td className="px-4 py-2 text-center border-r font-bold text-xs">{idx + 1}</td>
-                                        <td className="px-4 py-2 border-r relative">
-                                            <Button size="sm" variant="outline" className="h-7 w-full text-[10px] font-bold bg-primary/90 text-white border-none shadow-sm cursor-pointer relative overflow-hidden">
+                                    <tr key={idx} className='border-b transition-colors last:border-b-0 hover:bg-muted/30'>
+                                        <td className='border-r px-4 py-2 text-center font-bold text-xs'>{idx + 1}</td>
+                                        <td className='relative border-r px-4 py-2'>
+                                            <Button
+                                                size='sm'
+                                                variant='outline'
+                                                className='relative h-7 w-full cursor-pointer overflow-hidden border-none bg-primary/90 font-bold text-[10px] text-white shadow-sm'>
                                                 Browse
                                                 <input
-                                                    type="file"
-                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                    type='file'
+                                                    className='absolute inset-0 cursor-pointer opacity-0'
                                                     onChange={(e) => handleFileChange(idx, e)}
                                                 />
                                             </Button>
                                         </td>
-                                        <td className="px-4 py-2 border-r">
-                                            <div className="h-7 border rounded bg-background flex items-center px-2">
-                                                <span className="text-[10px] font-medium truncate max-w-[300px]">
-                                                    {file.name || ''}
-                                                </span>
+                                        <td className='border-r px-4 py-2'>
+                                            <div className='flex h-7 items-center rounded border bg-background px-2'>
+                                                <span className='max-w-[300px] truncate font-medium text-[10px]'>{file.name || ''}</span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-2 text-center border-r">
+                                        <td className='border-r px-4 py-2 text-center'>
                                             {file.name ? (
                                                 <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6 text-primary hover:bg-primary/10"
-                                                    onClick={() => handleViewFile(file)}
-                                                >
-                                                    <Eye className="h-4 w-4" />
+                                                    variant='ghost'
+                                                    size='icon'
+                                                    className='h-6 w-6 text-primary hover:bg-primary/10'
+                                                    onClick={() => handleViewFile(file)}>
+                                                    <Eye className='h-4 w-4' />
                                                 </Button>
                                             ) : null}
                                         </td>
-                                        <td className="px-4 py-2 text-center">
-                                            <div className="flex items-center justify-center gap-1">
+                                        <td className='px-4 py-2 text-center'>
+                                            <div className='flex items-center justify-center gap-1'>
                                                 <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6 text-primary hover:bg-primary/10 rounded-sm border"
-                                                    onClick={addNewFile}
-                                                >
-                                                    <Plus className="h-3.5 w-3.5" />
+                                                    variant='ghost'
+                                                    size='icon'
+                                                    className='h-6 w-6 rounded-sm border text-primary hover:bg-primary/10'
+                                                    onClick={addNewFile}>
+                                                    <Plus className='h-3.5 w-3.5' />
                                                 </Button>
                                                 {files.length > 1 && (
                                                     <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="h-6 w-6 text-red-500 hover:bg-red-50 rounded-sm border"
-                                                        onClick={() => removeFile(idx)}
-                                                    >
-                                                        <Trash2 className="h-3.5 w-3.5" />
+                                                        variant='ghost'
+                                                        size='icon'
+                                                        className='h-6 w-6 rounded-sm border text-red-500 hover:bg-red-50'
+                                                        onClick={() => removeFile(idx)}>
+                                                        <Trash2 className='h-3.5 w-3.5' />
                                                     </Button>
                                                 )}
                                             </div>
@@ -660,67 +646,69 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
             </Card>
 
             {/* Image Preview Modal */}
-            <Dialog open={!!previewFile} onOpenChange={(open) => {
-                if (!open) {
-                    setPreviewFile(null);
-                    setXlsxPreviewData(null);
-                    setDocxPreviewHtml(null);
-                }
-            }}>
-                <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden rounded-2xl border-none shadow-2xl">
-                    <DialogHeader className="p-6 bg-primary text-white flex-row items-center justify-between space-y-0">
-                        <DialogTitle className="text-lg font-bold truncate pr-8">{previewFile?.name}</DialogTitle>
+            <Dialog
+                open={!!previewFile}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setPreviewFile(null);
+                        setXlsxPreviewData(null);
+                        setDocxPreviewHtml(null);
+                    }
+                }}>
+                <DialogContent className='flex max-h-[90vh] max-w-4xl flex-col overflow-hidden rounded-2xl border-none p-0 shadow-2xl'>
+                    <DialogHeader className='flex-row items-center justify-between space-y-0 bg-primary p-6 text-white'>
+                        <DialogTitle className='truncate pr-8 font-bold text-lg'>{previewFile?.name}</DialogTitle>
                         <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-white hover:bg-white/20 rounded-full"
-                            onClick={() => setPreviewFile(null)}
-                        >
-                            <X className="h-5 w-5" />
+                            variant='ghost'
+                            size='icon'
+                            className='h-8 w-8 rounded-full text-white hover:bg-white/20'
+                            onClick={() => setPreviewFile(null)}>
+                            <X className='h-5 w-5' />
                         </Button>
                     </DialogHeader>
-                    <div className="flex-1 overflow-auto bg-muted/20 p-8 flex items-center justify-center min-h-[300px]">
-                        {previewFile?.url && (
-                            previewFile.type?.startsWith('video/') ? (
-                                <video
-                                    src={previewFile.url}
-                                    controls
-                                    className="max-w-full max-h-full rounded-lg shadow-xl"
-                                    autoPlay
-                                />
+                    <div className='flex min-h-[300px] flex-1 items-center justify-center overflow-auto bg-muted/20 p-8'>
+                        {previewFile?.url &&
+                            (previewFile.type?.startsWith('video/') ? (
+                                <video src={previewFile.url} controls className='max-h-full max-w-full rounded-lg shadow-xl' autoPlay />
                             ) : previewFile.type?.startsWith('audio/') ? (
-                                <div className="flex flex-col items-center gap-6 w-full max-w-md bg-background p-10 rounded-2xl shadow-xl border">
-                                    <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <FileText className="h-10 w-10 text-primary" />
+                                <div className='flex w-full max-w-md flex-col items-center gap-6 rounded-2xl border bg-background p-10 shadow-xl'>
+                                    <div className='flex h-20 w-20 items-center justify-center rounded-full bg-primary/10'>
+                                        <FileText className='h-10 w-10 text-primary' />
                                     </div>
-                                    <audio
-                                        src={previewFile.url}
-                                        controls
-                                        className="w-full"
-                                        autoPlay
-                                    />
-                                    <p className="text-sm font-bold text-muted-foreground">{previewFile.name}</p>
+                                    <audio src={previewFile.url} controls className='w-full' autoPlay />
+                                    <p className='font-bold text-muted-foreground text-sm'>{previewFile.name}</p>
                                 </div>
-                            ) : (previewFile.type === 'application/pdf' || previewFile.name.toLowerCase().endsWith('.docx') || previewFile.name.toLowerCase().endsWith('.doc')) ? (
+                            ) : previewFile.type === 'application/pdf' ||
+                              previewFile.name.toLowerCase().endsWith('.docx') ||
+                              previewFile.name.toLowerCase().endsWith('.doc') ? (
                                 <iframe
                                     src={previewFile.url}
-                                    className="w-full h-full min-h-[600px] border-none rounded-lg"
+                                    className='h-full min-h-[600px] w-full rounded-lg border-none'
                                     title={previewFile.name}
                                 />
                             ) : xlsxPreviewData ? (
-                                <div className="w-full h-full min-h-[500px] bg-background rounded-lg border overflow-hidden flex flex-col shadow-inner">
-                                    <div className="bg-muted/50 px-4 py-2 border-b flex items-center justify-between">
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Excel Preview (First 50 Rows)</span>
-                                        <Badge variant="outline" className="text-[9px] bg-green-50 text-green-700 border-green-200">XLSX DATA</Badge>
+                                <div className='flex h-full min-h-[500px] w-full flex-col overflow-hidden rounded-lg border bg-background shadow-inner'>
+                                    <div className='flex items-center justify-between border-b bg-muted/50 px-4 py-2'>
+                                        <span className='font-bold text-[10px] text-muted-foreground uppercase tracking-wider'>
+                                            Excel Preview (First 50 Rows)
+                                        </span>
+                                        <Badge variant='outline' className='border-green-200 bg-green-50 text-[9px] text-green-700'>
+                                            XLSX DATA
+                                        </Badge>
                                     </div>
-                                    <ScrollArea className="flex-1 w-full overflow-auto">
-                                        <div className="p-4">
-                                            <table className="w-full border-collapse text-[11px] font-medium">
+                                    <ScrollArea className='w-full flex-1 overflow-auto'>
+                                        <div className='p-4'>
+                                            <table className='w-full border-collapse font-medium text-[11px]'>
                                                 <tbody>
                                                     {xlsxPreviewData.slice(0, 50).map((row, rIdx) => (
-                                                        <tr key={rIdx} className={cn("hover:bg-muted/30 transition-colors", rIdx === 0 && "bg-muted/80 font-bold border-b-2")}>
+                                                        <tr
+                                                            key={rIdx}
+                                                            className={cn(
+                                                                'transition-colors hover:bg-muted/30',
+                                                                rIdx === 0 && 'border-b-2 bg-muted/80 font-bold'
+                                                            )}>
                                                             {row.map((cell: any, cIdx: number) => (
-                                                                <td key={cIdx} className="border p-2 min-w-[120px] whitespace-nowrap">
+                                                                <td key={cIdx} className='min-w-[120px] whitespace-nowrap border p-2'>
                                                                     {cell?.toString() || ''}
                                                                 </td>
                                                             ))}
@@ -729,7 +717,7 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                                 </tbody>
                                             </table>
                                             {xlsxPreviewData.length > 50 && (
-                                                <div className="p-4 text-center text-muted-foreground text-xs font-bold bg-muted/10 mt-2 border-t border-dashed">
+                                                <div className='mt-2 border-t border-dashed bg-muted/10 p-4 text-center font-bold text-muted-foreground text-xs'>
                                                     Showing first 50 rows. Download to see all {xlsxPreviewData.length} rows.
                                                 </div>
                                             )}
@@ -740,45 +728,46 @@ export function ComposeTab({ data, mode, onCancel, onSuccess }: ComposeTabProps)
                                 <img
                                     src={previewFile.url}
                                     alt={previewFile.name}
-                                    className="max-w-full max-h-full object-contain rounded-lg shadow-xl"
+                                    className='max-h-full max-w-full rounded-lg object-contain shadow-xl'
                                 />
                             ) : (
-                                <div className="flex flex-col items-center gap-6 w-full max-w-md bg-background p-10 rounded-2xl shadow-xl border">
-                                    <div className="h-20 w-20 rounded-full bg-slate-100 flex items-center justify-center">
-                                        <FileText className="h-10 w-10 text-slate-400" />
+                                <div className='flex w-full max-w-md flex-col items-center gap-6 rounded-2xl border bg-background p-10 shadow-xl'>
+                                    <div className='flex h-20 w-20 items-center justify-center rounded-full bg-slate-100'>
+                                        <FileText className='h-10 w-10 text-slate-400' />
                                     </div>
-                                    <div className="text-center space-y-2">
-                                        <h4 className="font-bold">Document Preview Unavailable</h4>
-                                        <p className="text-xs text-muted-foreground">This file type ({previewFile.name.split('.').pop()?.toUpperCase()}) cannot be viewed directly in the browser.</p>
+                                    <div className='space-y-2 text-center'>
+                                        <h4 className='font-bold'>Document Preview Unavailable</h4>
+                                        <p className='text-muted-foreground text-xs'>
+                                            This file type ({previewFile.name.split('.').pop()?.toUpperCase()}) cannot be viewed directly in
+                                            the browser.
+                                        </p>
                                     </div>
                                     <Button
-                                        className="w-full h-12 bg-primary hover:bg-primary/90 font-bold gap-2"
-                                        onClick={handleDownloadPreview}
-                                    >
-                                        <Download className="h-4 w-4" />
+                                        className='h-12 w-full gap-2 bg-primary font-bold hover:bg-primary/90'
+                                        onClick={handleDownloadPreview}>
+                                        <Download className='h-4 w-4' />
                                         Download to View
                                     </Button>
                                 </div>
-                            )
-                        )}
+                            ))}
                     </div>
-                    <DialogFooter className="p-6 bg-background border-t gap-3">
-                        <Button
-                            variant="outline"
-                            className="rounded-full px-6 font-bold"
-                            onClick={() => setPreviewFile(null)}
-                        >
+                    <DialogFooter className='gap-3 border-t bg-background p-6'>
+                        <Button variant='outline' className='rounded-full px-6 font-bold' onClick={() => setPreviewFile(null)}>
                             Close
                         </Button>
                         <Button
-                            className="rounded-full px-8 bg-primary hover:bg-primary/90 font-black gap-2 shadow-lg shadow-primary/20"
-                            onClick={handleDownloadPreview}
-                        >
-                            <Download className="h-4 w-4" />
-                            {previewFile?.type?.startsWith('video/') ? 'Download Video' :
-                                previewFile?.type?.startsWith('audio/') ? 'Download Audio' :
-                                    previewFile?.type?.startsWith('image/') ? 'Download Image' :
-                                        previewFile?.type === 'application/pdf' ? 'Download PDF' : 'Download File'}
+                            className='gap-2 rounded-full bg-primary px-8 font-black shadow-lg shadow-primary/20 hover:bg-primary/90'
+                            onClick={handleDownloadPreview}>
+                            <Download className='h-4 w-4' />
+                            {previewFile?.type?.startsWith('video/')
+                                ? 'Download Video'
+                                : previewFile?.type?.startsWith('audio/')
+                                  ? 'Download Audio'
+                                  : previewFile?.type?.startsWith('image/')
+                                    ? 'Download Image'
+                                    : previewFile?.type === 'application/pdf'
+                                      ? 'Download PDF'
+                                      : 'Download File'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

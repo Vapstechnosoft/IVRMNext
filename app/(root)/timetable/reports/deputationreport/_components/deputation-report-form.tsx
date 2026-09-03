@@ -4,23 +4,16 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
-import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    useClassDetails,
-    useDeputationAcademicYear,
-    useDeputationReportDetails,
-    useDeputationReportLoadData,
-    useSectionDropDown
-} from '@/hooks/timetable/reports';
+import { useDeputationAcademicYear, useDeputationReportDetails } from '@/hooks/timetable/reports';
 import { cn } from '@/lib/utils';
 import { deputationReportSchema } from '@/schemas/timetable/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Download, Printer, Search, X } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -33,22 +26,10 @@ type FormValues = z.infer<typeof deputationReportSchema.search>;
 
 export default function DeputationReportForm() {
     const { data: academicYearData, isLoading: academicYearLoading } = useDeputationAcademicYear();
-    const { data: classData, isLoading: classLoading } = useClassDetails();
-    const { data: sectionData, isLoading: sectionLoading } = useSectionDropDown();
-    const { data: loadData, isLoading: loadDataLoading } = useDeputationReportLoadData();
     const { mutateAsync: getReport, isPending: loadingReport } = useDeputationReportDetails();
-
     const academicList = Array.isArray(academicYearData)
         ? academicYearData
         : (academicYearData as any)?.data?.$values || (academicYearData as any)?.data || [];
-    const classList = Array.isArray(classData) ? classData : (classData as any)?.data?.$values || (classData as any)?.data || [];
-    const sectionList = Array.isArray(sectionData) ? sectionData : (sectionData as any)?.data?.$values || (sectionData as any)?.data || [];
-    const staffList =
-        (loadData as any)?.data?.stafflist?.$values ||
-        (loadData as any)?.data?.stafflist ||
-        (loadData as any)?.stafflist?.$values ||
-        (loadData as any)?.stafflist ||
-        [];
 
     const [reportData, setReportData] = useState<any[]>([]);
     const [reportType, setReportType] = useState<'D' | 'C' | null>(null);
@@ -58,10 +39,8 @@ export default function DeputationReportForm() {
         resolver: zodResolver(deputationReportSchema.search),
         defaultValues: {
             flag: 'D',
-            date: new Date(),
-            Classids: [],
-            sectionids: [],
-            staffids: []
+            fromdate: undefined as any,
+            todate: undefined as any
         }
     });
 
@@ -74,31 +53,29 @@ export default function DeputationReportForm() {
         getValues
     } = form;
 
-    // Initial value for asmaY_Id when academicList loads
-    useEffect(() => {
-        if (academicList && academicList.length > 0 && !getValues('asmaY_Id')) {
-            const firstItem = academicList[0];
-            const initialId = firstItem?.ttfG_Id || firstItem?.asmaY_Id;
-            if (initialId) {
-                setValue('asmaY_Id', initialId);
-            }
-        }
-    }, [academicList, setValue, getValues]);
-
     const handleFormSubmit = async (data: FormValues) => {
         try {
             const payload = {
                 ASMAY_Id: data.asmaY_Id,
-                date: format(data.date, 'yyyy-MM-dd'),
-                flag: data.flag,
-                Classids: data.Classids,
-                sectionids: data.sectionids,
-                staffids: data.staffids
+                fromdate: format(data.fromdate, 'yyyy-MM-dd'),
+                todate: format(data.todate, 'yyyy-MM-dd'),
+                flag: data.flag
             };
 
             const response = await getReport(payload);
-            const rawData = Array.isArray(response) ? response : response?.data?.$values || response?.data || [];
-            const dataList = Array.isArray(rawData) ? rawData : [];
+
+            let dataList: any[] = [];
+            if (Array.isArray(response)) {
+                dataList = response;
+            } else if (response?.data && Array.isArray(response.data)) {
+                dataList = response.data;
+            } else if (response?.data?.data && Array.isArray(response.data.data)) {
+                dataList = response.data.data;
+            } else if (response?.data?.$values && Array.isArray(response.data.$values)) {
+                dataList = response.data.$values;
+            } else if (response?.$values && Array.isArray(response.$values)) {
+                dataList = response.$values;
+            }
 
             if (dataList && dataList.length > 0) {
                 setReportData(dataList);
@@ -116,11 +93,9 @@ export default function DeputationReportForm() {
     const handleCancel = () => {
         reset({
             flag: 'D',
-            asmaY_Id: academicList && academicList.length > 0 ? academicList[0].ttfG_Id || academicList[0].asmaY_Id : undefined,
-            date: new Date(),
-            Classids: [],
-            sectionids: [],
-            staffids: []
+            asmaY_Id: undefined as any,
+            fromdate: undefined as any,
+            todate: undefined as any
         });
         setReportData([]);
         setReportType(null);
@@ -209,14 +184,14 @@ export default function DeputationReportForm() {
                         />
                     </div>
 
-                    {/* Date */}
+                    {/* From Date */}
                     <div className='space-y-2'>
                         <Label>
-                            Date <span className='text-red-500'>*</span>
+                            From Date <span className='text-red-500'>*</span>
                         </Label>
                         <Controller
                             control={control}
-                            name='date'
+                            name='fromdate'
                             render={({ field }) => (
                                 <Popover>
                                     <PopoverTrigger asChild>
@@ -239,72 +214,40 @@ export default function DeputationReportForm() {
                                 </Popover>
                             )}
                         />
+                        {errors.fromdate && <p className='text-red-500 text-sm'>{errors.fromdate.message}</p>}
                     </div>
 
-                    {/* Classes - Remove modalPopover */}
+                    {/* To Date */}
                     <div className='space-y-2'>
-                        <Label>Classes</Label>
+                        <Label>
+                            To Date <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
-                            name='Classids'
+                            name='todate'
                             render={({ field }) => (
-                                <MultiSelect
-                                    options={classList
-                                        .filter((cls: any) => cls.asmcL_Id != null)
-                                        .map((cls: any) => ({
-                                            label: cls.asmcL_ClassName,
-                                            value: cls.asmcL_Id.toString()
-                                        }))}
-                                    onValueChange={(vals) => field.onChange(vals.map(Number))}
-                                    defaultValue={field.value?.map(String) ?? []}
-                                    placeholder='Select Classes'
-                                />
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant='outline'
+                                            className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                            {field.value ? format(field.value, 'PPP') : 'Pick a date'}
+                                            <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className='w-auto p-0'>
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) => date > new Date()}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
                             )}
                         />
-                    </div>
-
-                    {/* Sections */}
-                    <div className='space-y-2'>
-                        <Label>Sections</Label>
-                        <Controller
-                            control={control}
-                            name='sectionids'
-                            render={({ field }) => (
-                                <MultiSelect
-                                    options={sectionList
-                                        .filter((sec: any) => sec.asmS_Id != null)
-                                        .map((sec: any) => ({
-                                            label: sec.asmC_SectionName,
-                                            value: sec.asmS_Id.toString()
-                                        }))}
-                                    onValueChange={(vals) => field.onChange(vals.map(Number))}
-                                    defaultValue={field.value?.map(String) ?? []}
-                                    placeholder='Select Sections'
-                                />
-                            )}
-                        />
-                    </div>
-
-                    {/* Staff */}
-                    <div className='space-y-2'>
-                        <Label>Staff</Label>
-                        <Controller
-                            control={control}
-                            name='staffids'
-                            render={({ field }) => (
-                                <MultiSelect
-                                    options={staffList
-                                        .filter((stf: any) => stf.hrmE_Id != null)
-                                        .map((stf: any) => ({
-                                            label: stf.staffName,
-                                            value: stf.hrmE_Id.toString()
-                                        }))}
-                                    onValueChange={(vals) => field.onChange(vals.map(Number))}
-                                    defaultValue={field.value?.map(String) ?? []}
-                                    placeholder='Select Staff'
-                                />
-                            )}
-                        />
+                        {errors.todate && <p className='text-red-500 text-sm'>{errors.todate.message}</p>}
                     </div>
                 </div>
                 <div className='mt-4 flex justify-center'>

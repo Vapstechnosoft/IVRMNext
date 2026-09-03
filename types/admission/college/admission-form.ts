@@ -140,6 +140,15 @@ export interface ICollegeAdmissionInitialData {
     allRefrence: IReference[];
     allSources: ISource[];
     sectionlist: ISection[];
+    studentList?: any[];
+    boardList?: any[];
+    schooltypelist?: any[];
+    documentList?: any[];
+    combinationlist?: any[];
+    mastersectionlist?: ISection[];
+    compExamarray?: any[];
+    compSubarray?: any[];
+    studentcurrenrtbranch?: any[];
 }
 
 export interface ICollegeAdmissionFormState {
@@ -217,7 +226,7 @@ export interface ICollegeAdmissionFormState {
     AMCST_FatherNationality: number;
     AMCST_FatherMonIncome?: string;
     AMCST_FatherAnnIncome?: string;
-    
+
     AMCST_MotherName: string;
     AMCST_MotherSurname?: string;
     AMCST_MotherAadharNo?: string;

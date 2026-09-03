@@ -7,7 +7,6 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
-
 export const ExamTTSessionColumns: ColumnDef<IExamTTSession>[] = [
     {
         id: 'serialNumber',
@@ -67,7 +66,7 @@ function ActionButtonsCell({ rowData }: { rowData: IExamTTSession }) {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onToggle={handleToggle}
-                toggleConditionKey='ETTS_Activeflag'
+                toggleConditionKey='eTTS_Activeflag'
             />
         </div>
     );

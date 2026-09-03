@@ -87,7 +87,7 @@ export default function UpdateMasterSectionForm({ onSuccess, className = '', sel
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                         <InputText
-                            label='Class Code'
+                            label='Section Code'
                             required
                             id='asmc_sectioncode'
                             {...register('asmc_sectioncode')}
@@ -96,7 +96,7 @@ export default function UpdateMasterSectionForm({ onSuccess, className = '', sel
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
-                            label='Class Name'
+                            label='Section Name'
                             required
                             id='asmc_sectionname'
                             {...register('asmc_sectionname')}
@@ -128,7 +128,7 @@ export default function UpdateMasterSectionForm({ onSuccess, className = '', sel
                                 control={control}
                                 render={({ field }) => (
                                     <InputNumber
-                                        label='Class Order'
+                                        label='Section Order'
                                         required
                                         id='asmc_order'
                                         defaultValue={row.asmC_Order}
@@ -163,7 +163,7 @@ export default function UpdateMasterSectionForm({ onSuccess, className = '', sel
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Master Section
+                            Update Master Section
                         </div>
                     </Button>
                 </div>

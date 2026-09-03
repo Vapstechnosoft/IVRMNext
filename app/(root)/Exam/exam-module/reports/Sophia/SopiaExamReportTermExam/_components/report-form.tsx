@@ -9,8 +9,8 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { getSopiaExamReportTermExam } from '@/server/exam/exam-module/reports/SopiaExamReportTermExam';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,7 +24,7 @@ const sopiaExamReportTermExamSchema = z.object({
     asmcL_Id: z.number().min(1, 'Select Class'),
     asmS_Id: z.number().min(1, 'Select Section'),
     emE_Id: z.number().min(1, 'Select Exam'),
-    studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one student'),
+    studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one student')
 });
 
 type SopiaExamReportTermExamSchema = z.infer<typeof sopiaExamReportTermExamSchema>;
@@ -203,7 +203,9 @@ export default function SopiaExamReportTermExamForm({
                                     name='asmaY_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>Academic Year <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Academic Year <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
                                                 <Select
                                                     key={field.value}
@@ -214,12 +216,18 @@ export default function SopiaExamReportTermExamForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {academicYearLoading ? (
-                                                            <SelectItem value='0' disabled>Loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Loading...
+                                                            </SelectItem>
                                                         ) : academicYears.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Academic Year found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Academic Year found
+                                                            </SelectItem>
                                                         ) : (
                                                             academicYears.map((y) => (
-                                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>
+                                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                    {y.asmaY_Year}
+                                                                </SelectItem>
                                                             ))
                                                         )}
                                                     </SelectContent>
@@ -235,7 +243,9 @@ export default function SopiaExamReportTermExamForm({
                                     name='asmcL_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>Class <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Class <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
                                                 <Select
                                                     key={field.value}
@@ -246,12 +256,18 @@ export default function SopiaExamReportTermExamForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingClasses ? (
-                                                            <SelectItem value='0' disabled>Loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Loading...
+                                                            </SelectItem>
                                                         ) : classes.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Classes found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Classes found
+                                                            </SelectItem>
                                                         ) : (
                                                             classes.map((c) => (
-                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>
+                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                    {c.asmcL_ClassName}
+                                                                </SelectItem>
                                                             ))
                                                         )}
                                                     </SelectContent>
@@ -267,7 +283,9 @@ export default function SopiaExamReportTermExamForm({
                                     name='asmS_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>Section <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Section <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
                                                 <Select
                                                     key={field.value}
@@ -278,12 +296,18 @@ export default function SopiaExamReportTermExamForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingSections ? (
-                                                            <SelectItem value='0' disabled>Loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Loading...
+                                                            </SelectItem>
                                                         ) : sections.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Sections found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Sections found
+                                                            </SelectItem>
                                                         ) : (
                                                             sections.map((s) => (
-                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>
+                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                    {s.asmC_SectionName}
+                                                                </SelectItem>
                                                             ))
                                                         )}
                                                     </SelectContent>
@@ -299,7 +323,9 @@ export default function SopiaExamReportTermExamForm({
                                     name='emE_Id'
                                     render={({ field, fieldState }) => (
                                         <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                            <Label className='font-medium text-sm sm:w-32'>Exam Name <span className='text-red-500'>*</span></Label>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Exam Name <span className='text-red-500'>*</span>
+                                            </Label>
                                             <div className='flex-1'>
                                                 <Select
                                                     key={field.value}
@@ -310,12 +336,18 @@ export default function SopiaExamReportTermExamForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingExams ? (
-                                                            <SelectItem value='0' disabled>Loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Loading...
+                                                            </SelectItem>
                                                         ) : exams.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Exams found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Exams found
+                                                            </SelectItem>
                                                         ) : (
                                                             exams.map((e) => (
-                                                                <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>{e.emE_ExamName}</SelectItem>
+                                                                <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
+                                                                    {e.emE_ExamName}
+                                                                </SelectItem>
                                                             ))
                                                         )}
                                                     </SelectContent>
@@ -334,7 +366,11 @@ export default function SopiaExamReportTermExamForm({
                                             checked={selectedStudentsList?.length === students.length && students.length > 0}
                                             onCheckedChange={(checked) => {
                                                 if (checked) {
-                                                    setValue('studentList', students.map((e) => ({ amsT_Id: e.amsT_Id })), { shouldValidate: true });
+                                                    setValue(
+                                                        'studentList',
+                                                        students.map((e) => ({ amsT_Id: e.amsT_Id })),
+                                                        { shouldValidate: true }
+                                                    );
                                                 } else {
                                                     setValue('studentList', [], { shouldValidate: true });
                                                 }
@@ -355,7 +391,8 @@ export default function SopiaExamReportTermExamForm({
                                                             <span className='text-muted-foreground text-sm'>No Students found</span>
                                                         ) : (
                                                             students.map((e) => {
-                                                                const isChecked = field.value?.some((val) => val.amsT_Id === e.amsT_Id) || false;
+                                                                const isChecked =
+                                                                    field.value?.some((val) => val.amsT_Id === e.amsT_Id) || false;
                                                                 return (
                                                                     <div key={e.amsT_Id} className='flex items-center space-x-2'>
                                                                         <Checkbox
@@ -363,13 +400,22 @@ export default function SopiaExamReportTermExamForm({
                                                                             checked={isChecked}
                                                                             onCheckedChange={(checked) => {
                                                                                 if (checked) {
-                                                                                    field.onChange([...(field.value || []), { amsT_Id: e.amsT_Id }]);
+                                                                                    field.onChange([
+                                                                                        ...(field.value || []),
+                                                                                        { amsT_Id: e.amsT_Id }
+                                                                                    ]);
                                                                                 } else {
-                                                                                    field.onChange((field.value || []).filter((val) => val.amsT_Id !== e.amsT_Id));
+                                                                                    field.onChange(
+                                                                                        (field.value || []).filter(
+                                                                                            (val) => val.amsT_Id !== e.amsT_Id
+                                                                                        )
+                                                                                    );
                                                                                 }
                                                                             }}
                                                                         />
-                                                                        <Label htmlFor={`student-${e.amsT_Id}`} className='font-medium text-sm leading-none'>
+                                                                        <Label
+                                                                            htmlFor={`student-${e.amsT_Id}`}
+                                                                            className='font-medium text-sm leading-none'>
                                                                             {e.studentName} {e.amsT_AdmNo ? `/ ${e.amsT_AdmNo}` : ''}
                                                                         </Label>
                                                                     </div>

@@ -9,7 +9,7 @@ import { masterCategorySchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterCategory } from '@/server/library/masters/library_category';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -99,7 +99,9 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                         />
 
                         <div className='space-y-2'>
-                            <label className='text-sm font-medium'>Category Type <span className="text-red-500">*</span></label>
+                            <label className='font-medium text-sm'>
+                                Category Type <span className='text-red-500'>*</span>
+                            </label>
                             <Controller
                                 name='lmC_BNBFlg'
                                 control={control}
@@ -129,13 +131,13 @@ export default function AddMasterCategoryForm({ onSuccess, className = '' }: Add
                         variant='outline'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='order-2 w-fit sm:order-1 transition-all duration-200 hover:scale-105'>
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
                     </Button>
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit sm:order-2 transition-all duration-200 hover:scale-105'
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
                         loadingText='Saving...'>
                         <div className='flex items-center'>

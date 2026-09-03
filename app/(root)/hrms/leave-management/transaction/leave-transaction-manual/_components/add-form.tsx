@@ -1,31 +1,14 @@
 'use client';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage
-} from '@/components/ui/form';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSaveLeaveTransactionManual } from '@/hooks/hrms/leave-management/useLeaveTransactionManual';
 import { useMasterLeaveDropdowns } from '@/hooks/hrms/leave-management/useMasters';
-import { useInstitutionsByLoginBased } from '@/hooks/hrms/leave-management/useMasters';
-import { DatePicker } from '@/components/ui/date-picker';
-import { useEffect, useState } from 'react';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { toast } from 'sonner';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import * as z from 'zod';
 
 const leaveTransactionSchema = z.object({
     hrmE_Id: z.number().min(1, 'Employee is required'),
@@ -43,10 +26,7 @@ interface AddLeaveTransactionManualFormProps {
     onCancel: () => void;
 }
 
-export function AddLeaveTransactionManualForm({
-    onSuccess,
-    onCancel
-}: AddLeaveTransactionManualFormProps) {
+export function AddLeaveTransactionManualForm({ onSuccess, onCancel }: AddLeaveTransactionManualFormProps) {
     const { mutate: saveTransaction, isPending } = useSaveLeaveTransactionManual();
     const { data: leaveDropdowns } = useMasterLeaveDropdowns();
 
@@ -70,20 +50,23 @@ export function AddLeaveTransactionManualForm({
     });
 
     const onSubmit = (values: FormValues) => {
-        saveTransaction({
-            hrelT_Id: 0,
-            hreltD_Id: 0,
-            hrmE_Id: values.hrmE_Id,
-            hrmL_LeaveType: values.hrmL_LeaveType,
-            hrmlY_Id: values.hrmlY_Id || 88,
-            hrelT_FromDate: values.hrelT_FromDate.toISOString(),
-            hrelT_ToDate: values.hrelT_ToDate.toISOString(),
-            hrelT_TotDays: values.hrelT_TotDays
-        } as any, {
-            onSuccess: () => {
-                onSuccess();
+        saveTransaction(
+            {
+                hrelT_Id: 0,
+                hreltD_Id: 0,
+                hrmE_Id: values.hrmE_Id,
+                hrmL_LeaveType: values.hrmL_LeaveType,
+                hrmlY_Id: values.hrmlY_Id || 88,
+                hrelT_FromDate: values.hrelT_FromDate.toISOString(),
+                hrelT_ToDate: values.hrelT_ToDate.toISOString(),
+                hrelT_TotDays: values.hrelT_TotDays
+            } as any,
+            {
+                onSuccess: () => {
+                    onSuccess();
+                }
             }
-        });
+        );
     };
 
     return (
@@ -97,10 +80,7 @@ export function AddLeaveTransactionManualForm({
                         render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Employee</FormLabel>
-                                <Select
-                                    onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value ? String(field.value) : ''}
-                                >
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
                                     <FormControl>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Employee' />
@@ -153,11 +133,7 @@ export function AddLeaveTransactionManualForm({
                             <FormItem>
                                 <FormLabel>From Date</FormLabel>
                                 <FormControl>
-                                    <DatePicker
-                                        date={field.value}
-                                        setDate={field.onChange}
-                                        placeholder='Pick a date'
-                                    />
+                                    <DatePicker date={field.value} setDate={field.onChange} placeholder='Pick a date' />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -172,11 +148,7 @@ export function AddLeaveTransactionManualForm({
                             <FormItem>
                                 <FormLabel>To Date</FormLabel>
                                 <FormControl>
-                                    <DatePicker
-                                        date={field.value}
-                                        setDate={field.onChange}
-                                        placeholder='Pick a date'
-                                    />
+                                    <DatePicker date={field.value} setDate={field.onChange} placeholder='Pick a date' />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -191,12 +163,7 @@ export function AddLeaveTransactionManualForm({
                             <FormItem>
                                 <FormLabel>Total Days</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        type='number'
-                                        step='0.5'
-                                        {...field}
-                                        onChange={(e) => field.onChange(Number(e.target.value))}
-                                    />
+                                    <Input type='number' step='0.5' {...field} onChange={(e) => field.onChange(Number(e.target.value))} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

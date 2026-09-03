@@ -17,13 +17,15 @@ export default function TabPurchaseDetails({
     onNext,
     onPrevious,
     onCancel,
-    onClear
+    onClear,
+    isSaving
 }: {
     dropdownData: any;
     onNext: () => void;
     onPrevious: () => void;
     onCancel: () => void;
     onClear: () => void;
+    isSaving?: boolean;
 }) {
     const {
         control,
@@ -32,6 +34,7 @@ export default function TabPurchaseDetails({
         formState: { errors }
     } = useFormContext<BookRegisterPayload>();
     const purchaseType = watch('lmB_PurOrDonated');
+    const publisherList = dropdownData?.publisherlist || dropdownData?.publisherList || [];
 
     return (
         <div className='flex flex-col gap-6'>
@@ -81,9 +84,9 @@ export default function TabPurchaseDetails({
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value='Purchased'>Purchased</SelectItem>
-                                    <SelectItem value='Donated'>Donated</SelectItem>
-                                    <SelectItem value='Specimen'>Specimen</SelectItem>
+                                    <SelectItem value='P'>Purchased</SelectItem>
+                                    <SelectItem value='D'>Donated</SelectItem>
+                                    <SelectItem value='S'>Specimen</SelectItem>
                                 </SelectContent>
                             </Select>
                         )}
@@ -146,7 +149,7 @@ export default function TabPurchaseDetails({
 
                 <InputText label='Bill No' {...register('lmB_BillNo')} placeholder='Enter Bill No.' />
 
-                {purchaseType === 'Donated' && (
+                {(purchaseType === 'Donated' || purchaseType === 'D') && (
                     <>
                         <InputText label='Donor Name' {...register('donor_Id')} />
                         <InputText label='Donor Address' {...register('lmB_DonorAddress')} />
@@ -167,7 +170,7 @@ export default function TabPurchaseDetails({
 
             {/* PUBLISHER DETAILS Section */}
             <div className='mt-4'>
-                <h3 className='mb-4 font-bold text-blue-800 border-b pb-2 uppercase tracking-wide'>Publisher Details</h3>
+                <h3 className='mb-4 border-b pb-2 font-bold text-blue-800 uppercase tracking-wide'>Publisher Details</h3>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <div className='flex flex-col gap-1.5'>
                         <Label>Publisher</Label>
@@ -182,11 +185,16 @@ export default function TabPurchaseDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {dropdownData?.publisherList?.map((item: any) => (
-                                            <SelectItem key={item.lmP_Id} value={item.lmP_Id.toString()}>
-                                                {item.lmP_PublisherName}
-                                            </SelectItem>
-                                        ))}
+                                        {publisherList?.map((item: any) => {
+                                            const publisherId = item.lmP_Id || item.lmp_Id || item.id || item.value;
+                                            const publisherName =
+                                                item.lmP_PublisherName || item.lmp_PublisherName || item.publisherName || item.name || '';
+                                            return (
+                                                <SelectItem key={publisherId} value={publisherId.toString()}>
+                                                    {publisherName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -208,17 +216,35 @@ export default function TabPurchaseDetails({
             </div>
 
             {/* Action Buttons */}
-            <div className='flex justify-center gap-2 pt-4 border-t'>
-                <Button type='button' variant='default' onClick={onPrevious} className='bg-blue-600 hover:bg-blue-700 uppercase text-xs font-bold px-6'>
+            <div className='flex justify-center gap-2 border-t pt-4'>
+                <Button
+                    type='button'
+                    variant='default'
+                    onClick={onPrevious}
+                    className='bg-blue-600 px-6 font-bold text-xs uppercase hover:bg-blue-700'>
                     Previous
                 </Button>
-                <Button type='button' variant='destructive' onClick={onClear} className='bg-red-500 hover:bg-red-600 uppercase text-xs font-bold px-6'>
+                <Button
+                    type='button'
+                    variant='destructive'
+                    onClick={onClear}
+                    className='bg-red-500 px-6 font-bold text-xs uppercase hover:bg-red-600'>
                     Clear
                 </Button>
-                <Button type='button' variant='warning' onClick={onCancel} className='bg-orange-500 hover:bg-orange-600 uppercase text-xs font-bold px-6'>
+                <Button
+                    type='button'
+                    variant='warning'
+                    onClick={onCancel}
+                    className='bg-orange-500 px-6 font-bold text-xs uppercase hover:bg-orange-600'>
                     Cancel
                 </Button>
-                <Button type='button' variant='default' onClick={onNext} className='bg-blue-600 hover:bg-blue-700 uppercase text-xs font-bold px-6'>
+                <Button
+                    type='button'
+                    variant='default'
+                    onClick={onNext}
+                    isLoading={isSaving}
+                    disabled={isSaving}
+                    className='bg-blue-600 px-6 font-bold text-xs uppercase hover:bg-blue-700'>
                     Save & Next
                 </Button>
             </div>

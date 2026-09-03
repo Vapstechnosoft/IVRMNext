@@ -8,7 +8,6 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Save, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
-import { useEffect } from 'react';
 
 export interface LeaveOpeningBalanceFormData {
     selectedTypes: number[];
@@ -114,33 +113,30 @@ export function LeaveOpeningBalanceForm({
                     <Label className='font-medium text-sm'>
                         Department <span className='text-red-500'>*</span>
                     </Label>
-                    {isLoadingDepartments ? (
-                        <div className='flex items-center justify-center rounded-md border p-3'>
-                            <div className='h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent' />
-                        </div>
-                    ) : (
-                        <Controller
-                            name='selectedDepartments'
-                            control={control}
-                            rules={{ required: 'Department is required' }}
-                            render={({ field }) => (
-                                <MultiSelect
-                                    options={departments.map((d) => ({ label: d.name, value: String(d.id) }))}
-                                    onValueChange={(values) => {
-                                        const numValues = values.map((v) => Number.parseInt(v));
-                                        field.onChange(numValues);
-                                        onFilterChange('departments', numValues);
-                                        // Clear dependent fields
-                                        setValue('selectedDesignations', []);
-                                        setValue('selectedEmployeeId', null);
-                                    }}
-                                    defaultValue={field.value?.map((v) => String(v)) || []}
-                                    placeholder='Select Departments'
-                                    maxHeight={200}
-                                />
-                            )}
-                        />
-                    )}
+
+                    <Controller
+                        name='selectedDepartments'
+                        control={control}
+                        rules={{ required: 'Department is required' }}
+                        render={({ field }) => (
+                            <MultiSelect
+                                options={departments.map((d) => ({ label: d.name, value: String(d.id) }))}
+                                onValueChange={(values) => {
+                                    const numValues = values.map((v) => Number.parseInt(v));
+                                    field.onChange(numValues);
+                                    onFilterChange('departments', numValues);
+                                    // Clear dependent fields
+                                    setValue('selectedDesignations', []);
+                                    setValue('selectedEmployeeId', null);
+                                }}
+                                defaultValue={field.value?.map((v) => String(v)) || []}
+                                placeholder={isLoadingDepartments ? 'Loading...' : 'Select Departments'}
+                                maxHeight={200}
+                                disabled={isLoadingTypes || departments?.length === 0}
+                            />
+                        )}
+                    />
+
                     {errors.selectedDepartments && <FormError>{errors.selectedDepartments.message}</FormError>}
                 </div>
 
@@ -149,31 +145,28 @@ export function LeaveOpeningBalanceForm({
                     <Label className='font-medium text-sm'>
                         Designation <span className='text-red-500'>*</span>
                     </Label>
-                    {isLoadingDesignations ? (
-                        <div className='flex items-center justify-center rounded-md border p-3'>
-                            <div className='h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent' />
-                        </div>
-                    ) : (
-                        <Controller
-                            name='selectedDesignations'
-                            control={control}
-                            rules={{ required: 'Designation is required' }}
-                            render={({ field }) => (
-                                <MultiSelect
-                                    options={designations.map((d) => ({ label: d.name, value: String(d.id) }))}
-                                    onValueChange={(values) => {
-                                        const numValues = values.map((v) => Number.parseInt(v));
-                                        field.onChange(numValues);
-                                        onFilterChange('designations', numValues);
-                                        setValue('selectedEmployeeId', null);
-                                    }}
-                                    defaultValue={field.value?.map((v) => String(v)) || []}
-                                    placeholder='Select Designations'
-                                    maxHeight={200}
-                                />
-                            )}
-                        />
-                    )}
+
+                    <Controller
+                        name='selectedDesignations'
+                        control={control}
+                        rules={{ required: 'Designation is required' }}
+                        render={({ field }) => (
+                            <MultiSelect
+                                options={designations.map((d) => ({ label: d.name, value: String(d.id) }))}
+                                onValueChange={(values) => {
+                                    const numValues = values.map((v) => Number.parseInt(v));
+                                    field.onChange(numValues);
+                                    onFilterChange('designations', numValues);
+                                    setValue('selectedEmployeeId', null);
+                                }}
+                                defaultValue={field.value?.map((v) => String(v)) || []}
+                                placeholder={isLoadingDesignations ? 'Loading...' : 'Select Designations'}
+                                maxHeight={200}
+                                disabled={isLoadingDepartments || designations?.length === 0}
+                            />
+                        )}
+                    />
+
                     {errors.selectedDesignations && <FormError>{errors.selectedDesignations.message}</FormError>}
                 </div>
             </div>
@@ -183,38 +176,34 @@ export function LeaveOpeningBalanceForm({
                 <Label htmlFor='employee-select' className='font-medium text-sm'>
                     Employee <span className='text-red-500'>*</span>
                 </Label>
-                {isLoadingEmployees ? (
-                    <div className='flex items-center justify-center rounded-md border p-3'>
-                        <div className='h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent' />
-                    </div>
-                ) : (
-                    <Controller
-                        name='selectedEmployeeId'
-                        control={control}
-                        rules={{ required: 'Employee is required' }}
-                        render={({ field }) => (
-                            <Select
-                                value={field.value ? field.value.toString() : ''}
-                                onValueChange={(value) => field.onChange(Number.parseInt(value))}
-                            >
-                                <SelectTrigger id='employee-select' className={errors.selectedEmployeeId ? 'border-red-500' : ''}>
-                                    <SelectValue placeholder='Select Employee' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {employees.length > 0 ? (
-                                        employees.map((emp) => (
-                                            <SelectItem key={emp.id} value={emp.id.toString()}>
-                                                {emp.employeeCode} : {emp.employeeName}
-                                            </SelectItem>
-                                        ))
-                                    ) : (
-                                        <div className='p-2 text-muted-foreground text-sm'>No employees found</div>
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
-                )}
+
+                <Controller
+                    name='selectedEmployeeId'
+                    control={control}
+                    rules={{ required: 'Employee is required' }}
+                    render={({ field }) => (
+                        <Select
+                            value={field.value ? field.value.toString() : ''}
+                            onValueChange={(value) => field.onChange(Number.parseInt(value))}
+                            disabled={!isLoadingDesignations && employees.length === 0}>
+                            <SelectTrigger id='employee-select' className={errors.selectedEmployeeId ? 'border-red-500' : ''}>
+                                <SelectValue placeholder={isLoadingEmployees ? 'Loading...' : 'Select Employee'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {employees.length > 0 ? (
+                                    employees.map((emp) => (
+                                        <SelectItem key={emp.id} value={emp.id.toString()}>
+                                            {emp.employeeCode} : {emp.employeeName}
+                                        </SelectItem>
+                                    ))
+                                ) : (
+                                    <div className='p-2 text-muted-foreground text-sm'>No employees found</div>
+                                )}
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
+
                 {errors.selectedEmployeeId && <FormError>{errors.selectedEmployeeId.message}</FormError>}
             </div>
 

@@ -1,7 +1,6 @@
 'use client';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,8 +8,10 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileText, Loader2, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { CustomPaginationTable, type CustomTableColumn } from '@/components/ui/view-data-table/custom-pagination-table';
+import { FileText, Loader2, X } from 'lucide-react';
+import { useState } from 'react';
 import type { EmployeeSalarySlipDisplay } from './columns';
-import { getSalarySlipColumns } from './columns';
 
 export interface SalarySlipFilters {
     groupType: number[];
@@ -53,6 +54,7 @@ interface SalarySlipFiltersProps {
     isLoadingDepartments: boolean;
     isLoadingDesignations: boolean;
     isLoadingYears: boolean;
+    tableResponse?: any;
 }
 
 export function SalarySlipFilters({
@@ -62,10 +64,12 @@ export function SalarySlipFilters({
     designations,
     months,
     years,
-    employees: _employees,
+    employees,
     filteredEmployees,
+    tableResponse,
     searchTerm,
     selectedCount,
+    selectedEmployeeIds,
     isFiltering,
     isGenerating,
     onFilterChange,
@@ -74,8 +78,8 @@ export function SalarySlipFilters({
     onSelectAll,
     onSelectEmployee,
     onGenerateSlip,
+    onCancel,
     onReset,
-    selectedEmployeeIds,
     isLoadingGroupTypes,
     isLoadingDepartments,
     isLoadingDesignations,
@@ -86,16 +90,34 @@ export function SalarySlipFilters({
         onReset();
         setResetKey((prevKey) => prevKey + 1);
     };
-    const [_currentYear, setCurrentYear] = useState<number | null>(null);
-    useEffect(() => {
-        setCurrentYear(new Date().getFullYear());
-    }, []);
 
     const isAllSelected = filteredEmployees.length > 0 && filteredEmployees.every((emp) => selectedEmployeeIds.has(emp.id));
     const isSomeSelected =
         filteredEmployees.length > 0 && !isAllSelected && filteredEmployees.some((emp) => selectedEmployeeIds.has(emp.id));
+    const handleSelectAllWrapper = (checked: boolean, ids: number[]) => {
+        // We will just call the parent's onSelectAll, but since we are doing
+        // client-side search inside CustomEmployeeList, we'll pass the ids if the parent supports it.
+        // We will modify the parent later to accept ids if needed.
+        (onSelectAll as any)(checked, ids);
+    };
 
-    const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected });
+    const columns: CustomTableColumn<EmployeeSalarySlipDisplay>[] = [
+        {
+            header: <div className='text-center font-medium'>SL. No</div>,
+            cell: (_, index, currentPage, itemsPerPage) => (
+                <div className='text-center'>{(currentPage - 1) * itemsPerPage + index + 1}</div>
+            ),
+            className: 'w-20'
+        },
+        {
+            header: 'Employee Code',
+            cell: (emp) => <div className='font-medium'>{emp.employeeCode}</div>
+        },
+        {
+            header: 'Employee Name',
+            cell: (emp) => <div>{emp.employeeName}</div>
+        }
+    ];
 
     return (
         <CollapsibleSection
@@ -188,7 +210,7 @@ export function SalarySlipFilters({
                                 Month
                             </Label>
                             <Select value={filters.month} onValueChange={(value) => onFilterChange({ ...filters, month: value })}>
-                                <SelectTrigger id='month-select'>
+                                <SelectTrigger id='month-select' disabled={isLoadingYears || !years?.length}>
                                     <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select month'} />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -332,10 +354,9 @@ export function SalarySlipFilters({
                         </div>
                     </div>
                     {/* Data Table */}
+                    {/* Custom Employee List with Pagination and Search */}
                     <div className='salary-slip-table-wrapper'>
-                        <DataTable
-                            isLoading={isFiltering}
-                            columns={columns}
+                        <CustomPaginationTable
                             data={filteredEmployees}
                             totalItems={filteredEmployees.length}
                             showViewOptions={true}
@@ -348,6 +369,13 @@ export function SalarySlipFilters({
                             scrollable={true}
                             maxHeight='250px'
                             columnPinning={{ left: ['select', 'id'] }}
+                            columns={columns}
+                            searchKeys={['employeeName', 'employeeCode']}
+                            idKey='id'
+                            selectedIds={selectedEmployeeIds}
+                            onSelect={onSelectEmployee}
+                            onSelectAll={handleSelectAllWrapper}
+                            searchPlaceholder='Search Name or Code...'
                         />
                     </div>
                 </div>

@@ -1,17 +1,17 @@
 'use client';
 
-import { use } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, X } from 'lucide-react';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { MasterSportsCCNameColumns } from './_components/columns';
-import { AddForm } from './_components/add-form';
-import { UpdateForm } from './_components/update-form';
-import { ToggleForm } from './_components/toggle-form';
 import { useSportsCCNames } from '@/hooks/sports/useSportsCCNames';
 import type { SportsCCNameDTO } from '@/types/sports/masters/sports-cc-name';
+import { Plus, X } from 'lucide-react';
+import { use } from 'react';
+import { AddForm } from './_components/add-form';
+import { MasterSportsCCNameColumns } from './_components/columns';
+import { ToggleForm } from './_components/toggle-form';
+import { UpdateForm } from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -21,11 +21,11 @@ export default function SportsCCNamePage(props: { searchParams: SearchParams }) 
 
     return (
         <FormProvider<SportsCCNameDTO>>
-            <SportsCCNamePageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <SportsCCNamePageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -56,8 +56,15 @@ function SportsCCNamePageContent({
     } = useFormContext<SportsCCNameDTO>();
 
     const tableData = response?.data?.sportsccName || response?.data?.groupNameList || response?.data || [];
-    const totalItems = response?.total || response?.data?.total || response?.data?.count || response?.data?.Count || response?.count || tableData.length || 0;
-    
+    const totalItems =
+        response?.total ||
+        response?.data?.total ||
+        response?.data?.count ||
+        response?.data?.Count ||
+        response?.count ||
+        tableData.length ||
+        0;
+
     const tableProps = {
         data: tableData,
         totalItems,
@@ -75,10 +82,10 @@ function SportsCCNamePageContent({
     const groupNameList = response?.data?.groupNameList || [];
 
     return (
-        <div className="container space-y-4 p-1">
-            <div className="flex items-center justify-between">
+        <div className='container space-y-4 p-1'>
+            <div className='flex items-center justify-between'>
                 <Button onClick={openAddForm} className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                    <Plus className="mr-2 h-4 w-4" /> Add Master SportsCC Name
+                    <Plus className='mr-2 h-4 w-4' /> Add Master SportsCC Name
                 </Button>
             </div>
 
@@ -92,9 +99,6 @@ function SportsCCNamePageContent({
                     columns={MasterSportsCCNameColumns}
                     isLoading={isLoading}
                     error={error}
-                    manualPagination={true}
-                    manualSorting={true}
-                    manualFiltering={true}
                     showSearchColumns={true}
                     columnPinning={{ right: ['actions'] }}
                     loadingMessage='Loading master sports cc names...'
@@ -120,11 +124,7 @@ function SportsCCNamePageContent({
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddForm
-                                onSuccess={handleSuccess}
-                                onCancel={closeAddForm}
-                                groupNameList={groupNameList}
-                            />
+                            <AddForm onSuccess={handleSuccess} onCancel={closeAddForm} groupNameList={groupNameList} />
                         </div>
                     </CollapsibleSection>
                 </div>

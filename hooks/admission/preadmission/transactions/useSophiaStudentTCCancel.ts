@@ -25,14 +25,12 @@ export const useSophiaStudentTCCancelOnChangeYear = () => {
 
 export const useSophiaStudentTCCancelOnStudentChange = () => {
     return useMutation({
-        mutationFn: (data: { asmayId: number; amstId: number }) =>
-            getSophiaStudentTCCancelOnStudentChange(data.asmayId, data.amstId)
+        mutationFn: (data: { asmayId: number; amstId: number }) => getSophiaStudentTCCancelOnStudentChange(data.asmayId, data.amstId)
     });
 };
 
 export const useSophiaStudentTCCancelSave = () => {
     return useMutation({
-        mutationFn: (data: { AMST_Id: number; ASMAY_Id: number; TC_CancelReason: string }) =>
-            saveSophiaStudentTCCancelDetails(data)
+        mutationFn: (data: { AMST_Id: number; ASMAY_Id: number; TC_CancelReason: string }) => saveSophiaStudentTCCancelDetails(data)
     });
 };

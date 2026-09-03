@@ -1,7 +1,6 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { useMasterGroupType } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
@@ -10,7 +9,7 @@ import type { IMasterGroupTypeList } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -103,7 +102,6 @@ export default function UpdateGroupTypeForm({ onSuccess, className = '', selecte
                             error={errors.hrmgT_Code?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
-
                     </div>
                 </div>
 
@@ -125,7 +123,7 @@ export default function UpdateGroupTypeForm({ onSuccess, className = '', selecte
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Group Type
+                            Update Group Type
                         </div>
                     </Button>
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}

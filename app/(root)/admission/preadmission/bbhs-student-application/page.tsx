@@ -1,25 +1,25 @@
 'use client';
 
+import BBHSAddStudentApplicationForm from '@/app/(root)/admission/preadmission/bbhs-student-application/_components/add-form';
+import { bbhsStudentApplicationColumns } from '@/app/(root)/admission/preadmission/bbhs-student-application/_components/columns';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { ROLES } from '@/constants';
 import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
-import { 
-    getActivePreadmissionDetails, 
-    getStudentApplicationList 
+import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
+import {
+    getActivePreadmissionDetails,
+    getStudentApplicationList
 } from '@/server/admission/preadmission/transactions/bbhs_student_application';
 import type { IPreadmissionStudentApplicationList } from '@/types/admission/preadmission/transactions';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react';
-import BBHSAddStudentApplicationForm from '@/app/(root)/admission/preadmission/bbhs-student-application/_components/add-form';
-import { bbhsStudentApplicationColumns } from '@/app/(root)/admission/preadmission/bbhs-student-application/_components/columns';
 import PreadmissionStatusCountReport from '../transactions/application-form/_components/preadmission-status-count-report';
 import ApplicationFormSuccessDialog from '../transactions/application-form/_components/success-dialog';
-import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -27,7 +27,7 @@ export default function BBHSStudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = (React as any).use(props.searchParams);
-    
+
     const { data: activePreadmission } = useQuery({
         queryKey: [PREADMISSION_QUERY_KEYS.ACTIVE_PREADMISSION_DETAILS, 'bbhs'],
         queryFn: () => getActivePreadmissionDetails()
@@ -35,7 +35,12 @@ export default function BBHSStudentApplicationPage(props: {
 
     const asmay_id = activePreadmission?.data?.asmaY_Id ?? 0;
 
-    const { data: response, isLoading, error, refetch } = useQuery({
+    const {
+        data: response,
+        isLoading,
+        error,
+        refetch
+    } = useQuery({
         queryKey: [PREADMISSION_QUERY_KEYS.STUDENT_APPLICATION_LIST, asmay_id, searchParams],
         queryFn: () => getStudentApplicationList(asmay_id, searchParams),
         enabled: !!asmay_id
@@ -96,7 +101,7 @@ function BBHSStudentApplicationContent({
                             type='button'
                             onClick={openAddForm}
                             className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                            <Plus className='h-4 w-4 mr-2' />
+                            <Plus className='mr-2 h-4 w-4' />
                             New Application
                         </Button>
                     </div>
@@ -125,7 +130,7 @@ function BBHSStudentApplicationContent({
 
                 {/* Data Table Section */}
                 <CollapsibleSection
-                    title="Student Applications"
+                    title='Student Applications'
                     defaultOpen={true}
                     variant='default'
                     size='lg'
@@ -179,7 +184,7 @@ function FormSections({
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive mr-2' /> Close
+                                <X className='mr-2 h-4 w-4 text-destructive' /> Close
                             </Button>
                             <BBHSAddStudentApplicationForm
                                 onSuccess={() => {
@@ -213,9 +218,11 @@ function FormSections({
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                                <X className='h-4 w-4 text-destructive mr-2' /> Close
+                                <X className='mr-2 h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <p className="p-4 text-muted-foreground italic">Edit functionality will be implemented following the Add form completion.</p>
+                            <p className='p-4 text-muted-foreground italic'>
+                                Edit functionality will be implemented following the Add form completion.
+                            </p>
                         </div>
                     </CollapsibleSection>
                 </div>

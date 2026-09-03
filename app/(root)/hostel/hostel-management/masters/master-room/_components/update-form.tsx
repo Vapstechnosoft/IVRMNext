@@ -5,18 +5,18 @@ import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { useFormContext } from '@/components/ui/form/form-provider';
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { masterRoomSchema, IMasterRoomForm } from '@/schemas/hostel/master-room.schema';
-import { IFacility, IFloor, IHostel, IRoomCategory, IRoomDisplay } from '@/types/hostel/hostel-management/masters';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { use, useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 import { FormInput } from '@/components/ui/form/form-input';
 import { FormTextarea } from '@/components/ui/form/form-textarea';
-import { saveRoom } from '@/server/hostel/hostel-management/masters/room';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { type IMasterRoomForm, masterRoomSchema } from '@/schemas/hostel/master-room.schema';
 import { fetchFloors } from '@/server/hostel/hostel-management/masters/bed';
+import { saveRoom } from '@/server/hostel/hostel-management/masters/room';
+import type { IFacility, IFloor, IHostel, IRoomCategory, IRoomDisplay } from '@/types/hostel/hostel-management/masters';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 interface UpdateMasterRoomFormProps {
     rowData: IRoomDisplay;
@@ -45,12 +45,18 @@ export default function UpdateMasterRoomForm({ rowData, onSuccess, hostels, faci
             hrmrM_SharingFlg: rowData.hrmrM_SharingFlg,
             hrmrM_RoomForStudentFlg: rowData.hrmrM_RoomForStudentFlg,
             hrmrM_RoomForStaffFlg: rowData.hrmrM_RoomForStaffFlg,
-            hrmrM_RoomForGuestFlg: rowData.hrmrM_RoomForGuestFlg,
+            hrmrM_RoomForGuestFlg: rowData.hrmrM_RoomForGuestFlg
             //facilities: rowData.facilities,
-        },
+        }
     });
 
-    const { control, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = form;
+    const {
+        control,
+        handleSubmit,
+        setValue,
+        watch,
+        formState: { errors, isSubmitting }
+    } = form;
 
     const selectedHostel = watch('hlmH_Id');
     const selectedFloor = watch('hlmF_Id');
@@ -87,7 +93,7 @@ export default function UpdateMasterRoomForm({ rowData, onSuccess, hostels, faci
     // Use `isDirty`? Or just compare with rowData.
     // For now, I'll rely on the user manually selecting if they change it.
 
-    const filteredCategories = categories.filter(c => !selectedFloor || c.hlmF_Id === Number(selectedFloor));
+    const filteredCategories = categories.filter((c) => !selectedFloor || c.hlmF_Id === Number(selectedFloor));
 
     const onSubmit = async (data: IMasterRoomForm) => {
         const result = await saveRoom(data);
@@ -101,28 +107,32 @@ export default function UpdateMasterRoomForm({ rowData, onSuccess, hostels, faci
     };
 
     return (
-        <div className="p-4 bg-background rounded-lg border">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className='rounded-lg border bg-background p-4'>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* LEFT COLUMN */}
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                         {/* Hostel */}
-                        <div className="space-y-2">
-                            <Label>Hostel Name <span className='ml-1 text-red-500'>*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Hostel Name <span className='ml-1 text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="hlmH_Id"
+                                name='hlmH_Id'
                                 render={({ field }) => (
-                                    <Select onValueChange={(val) => {
-                                        field.onChange(val);
-                                        // Only reset if value is different from initial or we want to force recheck
-                                        if (val !== rowData.hlmH_Id?.toString()) {
-                                            setValue('hlmF_Id', '');
-                                            setValue('hlmrcA_Id', '');
-                                        }
-                                    }} value={field.value}>
+                                    <Select
+                                        onValueChange={(val) => {
+                                            field.onChange(val);
+                                            // Only reset if value is different from initial or we want to force recheck
+                                            if (val !== rowData.hlmH_Id?.toString()) {
+                                                setValue('hlmF_Id', '');
+                                                setValue('hlmrcA_Id', '');
+                                            }
+                                        }}
+                                        value={field.value}>
                                         <SelectTrigger className={errors.hlmH_Id ? 'border-destructive' : ''}>
-                                            <SelectValue placeholder="--Select--" />
+                                            <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {hostels.map((h) => (
@@ -138,20 +148,25 @@ export default function UpdateMasterRoomForm({ rowData, onSuccess, hostels, faci
                         </div>
 
                         {/* Floor */}
-                        <div className="space-y-2">
-                            <Label >Floor Name <span className='ml-1 text-red-500'>*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Floor Name <span className='ml-1 text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="hlmF_Id"
+                                name='hlmF_Id'
                                 render={({ field }) => (
-                                    <Select onValueChange={(val) => {
-                                        field.onChange(val);
-                                        if (val !== rowData.hlmF_Id?.toString()) {
-                                            setValue('hlmrcA_Id', '');
-                                        }
-                                    }} value={field.value} disabled={!selectedHostel}>
+                                    <Select
+                                        onValueChange={(val) => {
+                                            field.onChange(val);
+                                            if (val !== rowData.hlmF_Id?.toString()) {
+                                                setValue('hlmrcA_Id', '');
+                                            }
+                                        }}
+                                        value={field.value}
+                                        disabled={!selectedHostel}>
                                         <SelectTrigger className={errors.hlmF_Id ? 'border-destructive' : ''}>
-                                            <SelectValue placeholder="--Select--" />
+                                            <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {floors.map((f) => (
@@ -167,15 +182,17 @@ export default function UpdateMasterRoomForm({ rowData, onSuccess, hostels, faci
                         </div>
 
                         {/* Room Category */}
-                        <div className="space-y-2">
-                            <Label>Room Category <span className='ml-1 text-red-500'>*</span></Label>
+                        <div className='space-y-2'>
+                            <Label>
+                                Room Category <span className='ml-1 text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
-                                name="hlmrcA_Id"
+                                name='hlmrcA_Id'
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value} disabled={!selectedFloor}>
                                         <SelectTrigger className={errors.hlmrcA_Id ? 'border-destructive' : ''}>
-                                            <SelectValue placeholder="--Select--" />
+                                            <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {filteredCategories.map((c) => (
@@ -191,37 +208,31 @@ export default function UpdateMasterRoomForm({ rowData, onSuccess, hostels, faci
                         </div>
 
                         {/* Room No */}
-                        <FormInput
-                            control={control}
-                            name="hrmrM_RoomNo"
-                            label="Room No."
-                            placeholder="Enter Room No."
-                            required
-                        />
+                        <FormInput control={control} name='hrmrM_RoomNo' label='Room No.' placeholder='Enter Room No.' required />
 
                         {/* Bed Capacity */}
                         <FormInput
                             control={control}
-                            name="hrmrM_BedCapacity"
-                            label="Bed Capacity"
-                            placeholder="Enter Bed Capacity"
+                            name='hrmrM_BedCapacity'
+                            label='Bed Capacity'
+                            placeholder='Enter Bed Capacity'
                             required
-                            pattern="^[0-9]*$"
+                            pattern='^[0-9]*$'
                             maxLength={5}
                         />
                     </div>
 
                     {/* RIGHT COLUMN */}
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                         {/* Facilities */}
                         <Controller
                             control={control}
-                            name="facilities"
+                            name='facilities'
                             render={({ field }) => (
                                 <CustomMultiSelectBox
-                                    label="Room Facilities"
+                                    label='Room Facilities'
                                     isRequired
-                                    options={facilities.map(f => ({ label: f.hlmftY_FacilityName, value: f.hlmftY_Id.toString() }))}
+                                    options={facilities.map((f) => ({ label: f.hlmftY_FacilityName, value: f.hlmftY_Id.toString() }))}
                                     value={field.value?.map(String) || []}
                                     onChange={(vals) => field.onChange(vals.map(Number))}
                                     error={errors.facilities?.message}
@@ -231,66 +242,50 @@ export default function UpdateMasterRoomForm({ rowData, onSuccess, hostels, faci
                         />
 
                         {/* Description */}
-                        <FormTextarea
-                            control={control}
-                            name="hrmrM_RoomDesc"
-                            label="Description"
-                            placeholder="Enter Description..."
-                        />
+                        <FormTextarea control={control} name='hrmrM_RoomDesc' label='Description' placeholder='Enter Description...' />
                     </div>
                 </div>
 
                 {/* Additional Settings Row */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                <div className='grid grid-cols-1 gap-6 pt-4 md:grid-cols-3'>
                     {/* AC Checkbox */}
-                    <div className="space-y-2 border p-2 rounded text-center">
+                    <div className='space-y-2 rounded border p-2 text-center'>
                         <Label>Room Type</Label>
-                        <div className="flex items-center justify-center space-x-2 mt-2">
+                        <div className='mt-2 flex items-center justify-center space-x-2'>
                             <Controller
                                 control={control}
-                                name="hrmrM_ACFlg"
-                                render={({ field }) => (
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
+                                name='hrmrM_ACFlg'
+                                render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                             />
-                            <span className="text-sm font-medium">Whether The Room Is Have AC?</span>
+                            <span className='font-medium text-sm'>Whether The Room Is Have AC?</span>
                         </div>
                     </div>
 
                     {/* Room Only For */}
-                    <div className="space-y-2 border p-2 rounded">
+                    <div className='space-y-2 rounded border p-2'>
                         <Label>Room Only for :</Label>
-                        <div className="flex flex-col space-y-2 mt-2 pl-4">
-                            <div className="flex items-center space-x-2">
+                        <div className='mt-2 flex flex-col space-y-2 pl-4'>
+                            <div className='flex items-center space-x-2'>
                                 <Controller
                                     control={control}
-                                    name="hrmrM_RoomForStudentFlg"
-                                    render={({ field }) => (
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
+                                    name='hrmrM_RoomForStudentFlg'
+                                    render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                                 />
                                 <span>Students</span>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className='flex items-center space-x-2'>
                                 <Controller
                                     control={control}
-                                    name="hrmrM_RoomForStaffFlg"
-                                    render={({ field }) => (
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
+                                    name='hrmrM_RoomForStaffFlg'
+                                    render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                                 />
                                 <span>Staffs</span>
                             </div>
-                            <div className="flex items-center space-x-2">
+                            <div className='flex items-center space-x-2'>
                                 <Controller
                                     control={control}
-                                    name="hrmrM_RoomForGuestFlg"
-                                    render={({ field }) => (
-                                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                                    )}
+                                    name='hrmrM_RoomForGuestFlg'
+                                    render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                                 />
                                 <span>Guests</span>
                             </div>
@@ -298,30 +293,25 @@ export default function UpdateMasterRoomForm({ rowData, onSuccess, hostels, faci
                     </div>
 
                     {/* Sharing Checkbox */}
-                    <div className="space-y-2 border p-2 rounded text-center">
+                    <div className='space-y-2 rounded border p-2 text-center'>
                         <Label>Room Share</Label>
-                        <div className="flex items-center justify-center space-x-2 mt-2">
+                        <div className='mt-2 flex items-center justify-center space-x-2'>
                             <Controller
                                 control={control}
-                                name="hrmrM_SharingFlg"
-                                render={({ field }) => (
-                                    <Checkbox
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                    />
-                                )}
+                                name='hrmrM_SharingFlg'
+                                render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} />}
                             />
-                            <span className="text-sm font-medium">Whether This Room Is Sharing?</span>
+                            <span className='font-medium text-sm'>Whether This Room Is Sharing?</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex justify-center gap-4 pt-4 border-t mt-4">
-                    <Button type="submit" disabled={isSubmitting} className="w-32">
+                <div className='mt-4 flex justify-center gap-4 border-t pt-4'>
+                    <Button type='submit' disabled={isSubmitting} className='w-32'>
                         {isSubmitting ? 'Saving...' : 'Update'}
                     </Button>
-                    <Button type="button" variant="destructive" onClick={closeEditForm} className="w-32">
+                    <Button type='button' variant='destructive' onClick={closeEditForm} className='w-32'>
                         Cancel
                     </Button>
                 </div>

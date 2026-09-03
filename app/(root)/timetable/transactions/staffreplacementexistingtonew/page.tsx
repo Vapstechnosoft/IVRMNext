@@ -5,35 +5,23 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { useStaffReplacementGridData } from '@/hooks/timetable/useTransactions';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import type { StaffReplacementGridData } from '@/types/timetable/Transaction/staffreplacementexistingtonew';
 import { List } from 'lucide-react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { use, useEffect, useRef, useState } from 'react';
 import { columns } from './_components/columns';
 import StaffReplacementExistingToNewForm from './_components/form';
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StaffReplacementExistingToNewPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
 
-    const [currentPage] = useQueryState(
-        tableSearchVariables.page,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
-    );
-    const [pageSize] = useQueryState(
-        tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
-    );
-    const [searchQuery] = useQueryState(
-        tableSearchVariables.search,
-        parseAsString.withOptions({ shallow: false }).withDefault('')
-    );
-    const [sortColumn] = useQueryState(
-        tableSearchVariables.sort_column,
-        parseAsString.withOptions({ shallow: false }).withDefault('')
-    );
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [sortColumn] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
     const [sortDirection] = useQueryState(
         tableSearchVariables.sort_direction,
         parseAsString.withOptions({ shallow: false }).withDefault('asc')
@@ -106,8 +94,6 @@ function StaffReplacementPageContent({
                     columns={columns}
                     isLoading={isLoading}
                     error={error}
-                    manualPagination={true}
-                    manualSorting={true}
                     isSearchRequired={true}
                     columnPinning={{ right: ['actions'] }}
                     loadingMessage='Loading data...'
@@ -133,5 +119,3 @@ function StaffReplacementPageContent({
         </div>
     );
 }
-
-

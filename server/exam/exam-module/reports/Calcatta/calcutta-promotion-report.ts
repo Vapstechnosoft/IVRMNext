@@ -1,6 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import { ensureArray } from '@/lib/utils';
 
 /**
  * Fetches the term details for the dropdown based on section selection
@@ -144,6 +145,7 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
         const promotedclass = promotionRemarks?.eprD_ClassPromoted || '';
 
         // Attendance
+        console.log('getstudentwiseattendancedetails', getstudentwiseattendancedetails);
         const attendance = getstudentwiseattendancedetails
             .filter((d: any) => {
                 const dId = d.AMST_Id || d.amsT_Id;
@@ -155,6 +157,9 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
                 classatt: d.PRESENTDAYS || d.presentdays,
                 percentage: d.ATTENDANCEPERCENTAGE || d.attendancepercentage,
                 term: d.EMPSG_DisplayName || d.empsG_DisplayName
+                percentage: d.totalAttendancePercentage,
+                term: d.EMPSG_DisplayName || d.empsG_DisplayName,
+                extra_filed: d.totalAttendancePercentage
             }));
 
         // Suggestions
@@ -211,6 +216,8 @@ export async function getCalcuttaPromotionReportI_IV(data: any) {
 
         return {
             ...stu,
+            asmcL_ClassName: stu.classname ?? stu.asmcL_ClassName ?? stu.ASMCL_ClassName ?? '',
+            asmC_SectionName: stu.sectionname ?? stu.asmC_SectionName ?? stu.ASMC_SectionName ?? '',
             studentsubjects: studentSubjects,
             studentmarks: studentMarks,
             student_marks: studentExamMarks,
@@ -448,6 +455,8 @@ export async function getCalcuttaPromotionReportI_V(data: any) {
 
         return {
             ...stu,
+            asmcL_ClassName: stu.classname ?? stu.asmcL_ClassName ?? stu.ASMCL_ClassName ?? '',
+            asmC_SectionName: stu.sectionname ?? stu.asmC_SectionName ?? stu.ASMC_SectionName ?? '',
             studentsubjects: studentSubjects,
             studentmarks: studentMarks,
             student_marks: studentExamMarks,
@@ -500,18 +509,54 @@ export async function getMultipleExamCumulativeReportCalcutta(data: any) {
     const res = await api.post<any>('exam', url, data);
     const response = res?.data || res || {};
 
-    // Data transformation logic based on AngularJS controller
-    const {
-        getinstitution = [],
-        getcumulativereportdetails = [],
-        getsubjectslist = [],
-        getstudentlist = [],
-        gettermdetails = []
-    } = response;
+    console.log('=== CALCUTTA CUMULATIVE REPORT API RESPONSE === :', response);
+    console.log('Response Keys:', Object.keys(response));
 
-    // Sub columns processing
+    // 1. Get raw arrays from response (supporting both casings and unwrapping $values wrapper)
+    const getinstitution = ensureArray(response.getinstitution || response.getInstitution);
+    const getcumulativereportdetails = ensureArray(
+        response.getcumulativereportdetails || response.cumulativeReportDetails || response.getcumulativeReportDetails
+    );
+    const getsubjectslist = ensureArray(response.getsubjectslist || response.getSubjectsList);
+    const getstudentlist = ensureArray(response.getstudentlist || response.getStudentList);
+    const gettermdetails = ensureArray(response.gettermdetails || response.getTermDetails);
+    const getsubjectwisetotaldetails = ensureArray(response.getsubjectwisetotaldetails || response.getSubjectWiseTotalDetails);
+
+    console.log('getinstitution count:', getinstitution.length);
+    console.log('getcumulativereportdetails count:', getcumulativereportdetails.length);
+    console.log('getsubjectslist count:', getsubjectslist.length);
+    console.log('getstudentlist count:', getstudentlist.length);
+    console.log('gettermdetails count:', gettermdetails.length);
+    console.log('getsubjectwisetotaldetails count:', getsubjectwisetotaldetails.length);
+
+    if (getsubjectslist.length > 0) {
+        console.log('First item in getsubjectslist:', JSON.stringify(getsubjectslist[0]));
+    }
+    if (gettermdetails.length > 0) {
+        console.log('First item in gettermdetails:', JSON.stringify(gettermdetails[0]));
+    }
+
+    // 2. Normalize fields of getinstitution
+    const normalizedInstitution = getinstitution.map((inst: any) => ({
+        mI_Id: inst.mI_Id ?? inst.mi_Id ?? inst.mI_id ?? inst.mi_id,
+        mI_Name: inst.mI_Name ?? inst.mi_Name ?? inst.mI_name ?? inst.mi_name ?? '',
+        mI_Address1: inst.mI_Address1 ?? inst.mi_Address1 ?? inst.mI_address1 ?? inst.mi_address1 ?? '',
+        ivrmmcT_Name: inst.ivrmmcT_Name ?? inst.ivrmmcT_name ?? inst.ivrmmct_Name ?? inst.ivrmmct_name ?? '',
+        mI_Pincode: inst.mI_Pincode ?? inst.mi_Pincode ?? inst.mI_pincode ?? inst.mi_pincode ?? ''
+    }));
+
+    // 3. Normalize fields of gettermdetails (sub-columns raw data)
+    const normalizedTermDetails = gettermdetails.map((term: any) => ({
+        ISMS_Id: term.ISMS_Id ?? term.isms_Id ?? term.isms_id ?? term.ismS_Id ?? 0,
+        EME_Id: term.EME_Id ?? term.eme_Id ?? term.eme_id ?? term.emE_Id ?? 0,
+        EMSE_SubExamName: term.EMSE_SubExamName ?? term.emse_SubExamName ?? term.emsE_SubExamName ?? term.emse_subExamName ?? '',
+        EME_ExamName: term.EME_ExamName ?? term.eme_ExamName ?? term.emE_ExamName ?? ''
+    }));
+
+    // 4. Build unique subcolmns list from normalized term details
     const subcolmns: any[] = [];
     for (const dev of gettermdetails) {
+    for (const dev of normalizedTermDetails) {
         const exists = subcolmns.find(
             (emp) => emp.ISMS_Id === dev.ISMS_Id && emp.EME_Id === dev.EME_Id && emp.EMSE_SubExamName === dev.EMSE_SubExamName
         );
@@ -520,30 +565,96 @@ export async function getMultipleExamCumulativeReportCalcutta(data: any) {
         }
     }
 
-    // Colspan calculation for subjects
-    for (const dev of getsubjectslist) {
+    // 5. Normalize fields of getsubjectslist and calculate colspan
+    const normalizedSubjectsList = getsubjectslist.map((sub: any) => {
+        const ismsId = sub.ISMS_Id ?? sub.isms_Id ?? sub.isms_id ?? sub.ismS_Id ?? 0;
+        const subName = sub.ISMS_SubjectName ?? sub.isms_SubjectName ?? sub.isms_subjectName ?? sub.ismS_SubjectName ?? '';
+
         let colspant = 0;
         for (const dId of subcolmns) {
-            if (dId.ISMS_Id === dev.ISMS_Id) {
+            if (dId.ISMS_Id === ismsId) {
                 colspant++;
             }
         }
-        dev.colspan = colspant;
-    }
 
-    // Student wise marks mapping
-    const studentListWithMarks = getstudentlist.map((stu: any) => {
-        const markslist = getcumulativereportdetails.filter((m: any) => m.AMST_Id === stu.AMST_Id);
+        return {
+            ISMS_Id: ismsId,
+            ISMS_SubjectName: subName,
+            colspan: colspant
+        };
+    });
+
+    // 6. Normalize fields of getcumulativereportdetails (marks details)
+    const normalizedCumulativeReportDetails = getcumulativereportdetails.map((m: any) => ({
+        AMST_Id: m.AMST_Id ?? m.amst_Id ?? m.amsT_Id ?? 0,
+        ISMS_Id: m.ISMS_Id ?? m.isms_Id ?? m.isms_id ?? 0,
+        EME_Id: m.EME_Id ?? m.eme_Id ?? m.eme_id ?? 0,
+        ESTMPSSS_PassFailFlg: m.ESTMPSSS_PassFailFlg ?? m.estmpssS_PassFailFlg ?? m.estmpsss_PassFailFlg ?? '',
+        EYCES_MarksDisplayFlg:
+            m.EYCES_MarksDisplayFlg === true ||
+            m.EYCES_MarksDisplayFlg === 1 ||
+            m.EYCES_MarksDisplayFlg === '1' ||
+            m.EYCES_MarksDisplayFlg === 'true' ||
+            m.eyceS_MarksDisplayFlg === true ||
+            m.eyceS_MarksDisplayFlg === 1 ||
+            m.eyceS_MarksDisplayFlg === '1' ||
+            m.eyceS_MarksDisplayFlg === 'true' ||
+            m.eyces_MarksDisplayFlg === true ||
+            m.eyces_MarksDisplayFlg === 1 ||
+            m.eyces_MarksDisplayFlg === '1' ||
+            m.eyces_MarksDisplayFlg === 'true' ||
+            false,
+        ESTMPSSS_ObtainedMarks: m.ESTMPSSS_ObtainedMarks ?? m.estmpssS_ObtainedMarks ?? m.estmpsss_ObtainedMarks ?? 0,
+        EYCES_GradeDisplayFlg:
+            m.EYCES_GradeDisplayFlg === true ||
+            m.EYCES_GradeDisplayFlg === 1 ||
+            m.EYCES_GradeDisplayFlg === '1' ||
+            m.EYCES_GradeDisplayFlg === 'true' ||
+            m.eyceS_GradeDisplayFlg === true ||
+            m.eyceS_GradeDisplayFlg === 1 ||
+            m.eyceS_GradeDisplayFlg === '1' ||
+            m.eyceS_GradeDisplayFlg === 'true' ||
+            m.eyces_GradeDisplayFlg === true ||
+            m.eyces_GradeDisplayFlg === 1 ||
+            m.eyces_GradeDisplayFlg === '1' ||
+            m.eyces_GradeDisplayFlg === 'true' ||
+            false,
+        ESTMPSSS_ObtainedGrade: m.ESTMPSSS_ObtainedGrade ?? m.estmpssS_ObtainedGrade ?? m.estmpsss_ObtainedGrade ?? ''
+    }));
+
+    // 7. Normalize fields of getsubjectwisetotaldetails (total and percentage details)
+    const normalizedSubjectWiseTotalDetails = getsubjectwisetotaldetails.map((t: any) => ({
+        AMST_Id: t.AMST_Id ?? t.amst_Id ?? t.amsT_Id ?? 0,
+        ISMS_Id: t.ISMS_Id ?? t.isms_Id ?? t.isms_id ?? 0,
+        MARKSOBTAINED: t.MARKSOBTAINED ?? t.marksobtained ?? t.marksObtained ?? 0,
+        PERCENTAGE: t.PERCENTAGE ?? t.percentage ?? 0
+    }));
+
+    // 8. Normalize fields of getstudentlist
+    const normalizedStudentList = getstudentlist.map((stu: any) => ({
+        AMST_Id: stu.AMST_Id ?? stu.amst_Id ?? stu.amsT_Id ?? 0,
+        AMAY_RollNo: stu.AMAY_RollNo ?? stu.amay_RollNo ?? stu.amaY_RollNo ?? 0,
+        AMST_FirstName: stu.AMST_FirstName ?? stu.amst_FirstName ?? stu.amsT_FirstName ?? '',
+        AMST_AdmNo: stu.AMST_AdmNo ?? stu.amst_AdmNo ?? stu.amsT_AdmNo ?? '',
+        ATTENDANCEPERCENTAGE: stu.ATTENDANCEPERCENTAGE ?? stu.attendancepercentage ?? 0
+    }));
+
+    // 9. Map marks and totals to students
+    const studentListWithMarks = normalizedStudentList.map((stu: any) => {
+        const markslist = normalizedCumulativeReportDetails.filter((m: any) => m.AMST_Id === stu.AMST_Id);
+        const totallist = normalizedSubjectWiseTotalDetails.filter((m: any) => m.AMST_Id === stu.AMST_Id);
         return {
             ...stu,
-            markslist
+            markslist,
+            totallist
         };
     });
 
     return {
-        getinstitution,
-        getcumulativereportdetails,
-        getsubjectslist,
+        getinstitution: normalizedInstitution,
+        cumulativeReportDetails: normalizedCumulativeReportDetails,
+        getcumulativereportdetails: normalizedCumulativeReportDetails,
+        getsubjectslist: normalizedSubjectsList,
         studentlistd: studentListWithMarks,
         subcolmns,
         colnspan: 6 + subcolmns.length

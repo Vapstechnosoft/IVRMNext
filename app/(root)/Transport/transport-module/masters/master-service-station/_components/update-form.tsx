@@ -23,11 +23,7 @@ interface UpdateServiceStationFormProps {
     className?: string;
 }
 
-export default function UpdateServiceStationForm({
-    rowData,
-    onSuccess,
-    className = ''
-}: UpdateServiceStationFormProps) {
+export default function UpdateServiceStationForm({ rowData, onSuccess, className = '' }: UpdateServiceStationFormProps) {
     const { refetchAll } = useMasterServiceStation();
 
     const {

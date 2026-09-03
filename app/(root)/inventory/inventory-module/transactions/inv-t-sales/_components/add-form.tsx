@@ -1,36 +1,24 @@
 'use client';
 
-import { useFieldArray, useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
-import { Label, FormError } from '@/components/ui/extension/field';
+import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-    invTSalesSchema,
-    type InvTSalesSchema
-} from '@/schemas/inventory/transactions/inv-t-sales';
-import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
-import { Plus, Minus, Save, RotateCcw, Calculator, Package, ReceiptIndianRupee, Info } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { format } from 'date-fns';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Card } from '@/components/ui/card';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
+import { type InvTSalesSchema, invTSalesSchema } from '@/schemas/inventory/transactions/inv-t-sales';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { Calculator, Minus, Plus, ReceiptIndianRupee, RotateCcw, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 // import { MultiSelect } from '@/components/ui/extension/multi-select';
+
+import { getInvMasterItemList } from '@/server/inventory/transactions/inv-stock';
 
 interface AddSalesFormProps {
     onSuccess: () => void;
@@ -78,17 +66,27 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
             SaleItem: [
                 {
                     invmI_Id: 0,
+                    invmuoM_Id: 0,
+                    INVMUOM_Id: 0,
                     invtsL_SalesQty: 0,
                     invtsL_SalesPrice: 0,
                     invtsL_DiscountAmt: 0,
                     invtsL_TaxAmt: 0,
-                    invtsL_Amount: 0,
+                    invtsL_Amount: 0
                 }
             ]
         }
     });
 
-    const { control, handleSubmit, register, setValue, watch, reset, formState: { errors } } = form;
+    const {
+        control,
+        handleSubmit,
+        register,
+        setValue,
+        watch,
+        reset,
+        formState: { errors }
+    } = form;
     const { fields, append, remove } = useFieldArray({
         control,
         name: 'SaleItem'
@@ -101,7 +99,42 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
     const watchedSectionId = watch('asmS_Id');
     const watchedStoreId = watch('invmsT_Id');
 
+    // Fetch Master Items on Mount using getInvMasterItemList
+    useEffect(() => {
+        const fetchItems = async () => {
+            try {
+                const res = await getInvMasterItemList();
+                const rawItems =
+                    (Array.isArray(res?.data) ? res.data : null) ||
+                    res?.data?.get_item ||
+                    res?.get_item ||
+                    res?.data?.get_Item ||
+                    res?.get_Item ||
+                    (Array.isArray(res) ? res : []);
 
+                if (Array.isArray(rawItems) && rawItems.length > 0) {
+                    const normalizedItems = rawItems
+                        .map((item: any) => ({
+                            invmI_Id: item.invmi_Id ?? item.invmI_Id ?? item.INVMI_Id,
+                            invmI_ItemName: item.invmi_ItemName ?? item.invmI_ItemName ?? item.INVMI_ItemName,
+                            invstO_SalesRate: item.invsto_SalesRate ?? item.invstO_SalesRate ?? item.INVSTO_SalesRate ?? 0,
+                            invstO_BatchNo: item.invsto_BatchNo ?? item.invstO_BatchNo ?? item.INVSTO_BatchNo ?? '',
+                            invstO_AvaiableStock: item.invsto_AvaiableStock ?? item.invstO_AvaiableStock ?? item.INVSTO_AvaiableStock ?? 0,
+                            INVMUOM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? item.invmuO_Id ?? item.INVMUO_Id ?? item.invmU_Id ?? item.INVMU_Id ?? 0,
+                            invmuoM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? item.invmuO_Id ?? item.INVMUO_Id ?? item.invmU_Id ?? item.INVMU_Id ?? 0
+                        }))
+                        .filter((i: any) => i.invmI_Id && i.invmI_ItemName);
+
+                    const uniqueItems = Array.from(new Map(normalizedItems.map((item: any) => [item.invmI_Id, item])).values());
+                    setItemsList(uniqueItems);
+                }
+            } catch (error) {
+                console.error('Failed to load items using getInvMasterItemList:', error);
+            }
+        };
+
+        fetchItems();
+    }, []);
 
     // Fetch Stores on Mount
     useEffect(() => {
@@ -127,16 +160,22 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
 
             itemOnStoreChangeMutation.mutate(payload, {
                 onSuccess: (res) => {
-                    const rawItems = Array.isArray(res.data) ? res.data : (res?.data?.get_item || []);
+                    const rawItems = Array.isArray(res.data) ? res.data : res?.data?.get_item || [];
                     // Normalize keys
                     const normalizedItems = rawItems.map((item: any) => ({
-                        invmI_Id: item.invmi_Id ?? item.invmI_Id,
-                        invmI_ItemName: item.invmi_ItemName ?? item.invmI_ItemName,
-                        invstO_SalesRate: item.invsto_SalesRate ?? item.invstO_SalesRate,
-                        invstO_BatchNo: item.invsto_BatchNo ?? item.invstO_BatchNo,
-                        invstO_AvaiableStock: item.invsto_AvaiableStock ?? item.invstO_AvaiableStock ?? 0
+                        invmI_Id: item.invmi_Id ?? item.invmI_Id ?? item.INVMI_Id,
+                        invmI_ItemName: item.invmi_ItemName ?? item.invmI_ItemName ?? item.INVMI_ItemName,
+                        invstO_SalesRate: item.invsto_SalesRate ?? item.invstO_SalesRate ?? item.INVSTO_SalesRate ?? 0,
+                        invstO_BatchNo: item.invsto_BatchNo ?? item.invstO_BatchNo ?? item.INVSTO_BatchNo ?? '',
+                        invstO_AvaiableStock: item.invsto_AvaiableStock ?? item.invstO_AvaiableStock ?? item.INVSTO_AvaiableStock ?? 0,
+                        INVMUOM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? item.invmuO_Id ?? item.INVMUO_Id ?? item.invmU_Id ?? item.INVMU_Id ?? 0,
+                        invmuoM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? item.invmuO_Id ?? item.INVMUO_Id ?? item.invmU_Id ?? item.INVMU_Id ?? 0
                     }));
-                    setItemsList(normalizedItems);
+
+                    // Deduplicate items to prevent duplicate Select values
+                    const uniqueItems = Array.from(new Map(normalizedItems.map((item: any) => [item.invmI_Id, item])).values());
+
+                    setItemsList(uniqueItems);
                 }
             });
         }
@@ -178,7 +217,7 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
             studentClsSecMutation.mutate(watchedStuFlag, {
                 onSuccess: (res) => {
                     // Check for flat data array or nested property
-                    const data = Array.isArray(res?.data) ? res.data : (res?.data?.get_Student_Cls_Sec || []);
+                    const data = Array.isArray(res?.data) ? res.data : res?.data?.get_Student_Cls_Sec || [];
                     setStudentClsSec(data);
                 }
             });
@@ -189,7 +228,6 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
     // Let's keep dependencies minimal. `watchedType` is required condition.
     // Better: split effects or ensure stability. Here, just minimizing deps.
     // REPLACEMENT:
-
 
     // Fetch Student List on Class Change (for I or C)
     useEffect(() => {
@@ -208,7 +246,7 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                 if (watchedStuFlag === 'C') {
                     studentListMutation.mutate(data, {
                         onSuccess: (res) => {
-                            const list = Array.isArray(res?.data) ? res.data : (res?.data?.get_Studentlist || res?.data?.studentList || []);
+                            const list = Array.isArray(res?.data) ? res.data : res?.data?.get_Studentlist || res?.data?.studentList || [];
                             setStudentList(list);
                         }
                     });
@@ -216,10 +254,10 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
 
                 // Fetch sections for both C (if implied?) or definitely for CS
                 if (watchedStuFlag === 'CS') {
-                    sectionListMutation.mutate(data, {
+                    sectionListMutation.mutate(watchedClassId, {
                         onSuccess: (res) => {
                             // Check for flat data array or nested property
-                            const data = Array.isArray(res?.data) ? res.data : (res?.data?.get_sectionlist || []);
+                            const data = Array.isArray(res?.data) ? res.data : res?.data?.get_sectionlist || [];
                             setSectionList(data);
                         }
                     });
@@ -238,13 +276,12 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
             };
             studentListMutation.mutate(data, {
                 onSuccess: (res) => {
-                    const list = Array.isArray(res?.data) ? res.data : (res?.data?.get_Studentlist || res?.data?.studentList || []);
+                    const list = Array.isArray(res?.data) ? res.data : res?.data?.get_Studentlist || res?.data?.studentList || [];
                     setStudentList(list);
                 }
             });
         }
     }, [watchedType, watchedStuFlag, watchedClassId, watchedSectionId]);
-
 
     // Calculate totals whenever items change
     useEffect(() => {
@@ -272,6 +309,12 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
     const handleItemChange = async (index: number, itemId: number) => {
         const item = itemsList.find((i: any) => i.invmI_Id === itemId);
         if (item) {
+            const initialUomId = item.INVMUOM_Id || item.invmuoM_Id || 0;
+            if (initialUomId) {
+                setValue(`SaleItem.${index}.invmuoM_Id`, initialUomId);
+                setValue(`SaleItem.${index}.INVMUOM_Id`, initialUomId);
+            }
+
             const storeId = watch('invmsT_Id');
             const payload = {
                 INVMI_Id: item.invmI_Id,
@@ -290,21 +333,46 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
 
                         const detail = detailList[0];
                         const stockObj = stockList[0];
-                        const availableStockVal = stockObj?.AvaiableStock ?? stockObj?.avaiableStock ?? stockObj?.AvailableStock ?? stockObj?.availableStock ?? stockObj?.INVSTO_AvaiableStock ?? stockObj?.invsto_AvaiableStock ?? 0;
+                        const availableStockVal =
+                            stockObj?.AvaiableStock ??
+                            stockObj?.avaiableStock ??
+                            stockObj?.AvailableStock ??
+                            stockObj?.availableStock ??
+                            stockObj?.INVSTO_AvaiableStock ??
+                            stockObj?.invsto_AvaiableStock ??
+                            0;
+
+                        const fetchedUomId =
+                            detail?.INVMUOM_Id ??
+                            detail?.invmuoM_Id ??
+                            detail?.invmuom_Id ??
+                            item.INVMUOM_Id ??
+                            item.invmuoM_Id ??
+                            0;
 
                         if (detail) {
                             // Bind Item Details
-                            setValue(`SaleItem.${index}.invmuoM_Id`, detail.INVMUOM_Id ?? detail.invmuoM_Id ?? detail.invmuom_Id);
-                            setValue(`SaleItem.${index}.invtsL_BatchNo`, detail.INVSTO_BatchNo ?? detail.invstO_BatchNo ?? detail.invsto_BatchNo);
-                            setValue(`SaleItem.${index}.invtsL_SalesPrice`, detail.INVSTO_SalesRate ?? detail.invstO_SalesRate ?? detail.invsto_SalesRate ?? 0);
+                            setValue(`SaleItem.${index}.invmuoM_Id`, fetchedUomId);
+                            setValue(`SaleItem.${index}.INVMUOM_Id`, fetchedUomId);
+                            setValue(
+                                `SaleItem.${index}.invtsL_BatchNo`,
+                                detail.INVSTO_BatchNo ?? detail.invstO_BatchNo ?? detail.invsto_BatchNo ?? item.invstO_BatchNo ?? ''
+                            );
+                            setValue(
+                                `SaleItem.${index}.invtsL_SalesPrice`,
+                                detail.INVSTO_SalesRate ?? detail.invstO_SalesRate ?? detail.invsto_SalesRate ?? item.invstO_SalesRate ?? 0
+                            );
+                        } else if (fetchedUomId) {
+                            setValue(`SaleItem.${index}.invmuoM_Id`, fetchedUomId);
+                            setValue(`SaleItem.${index}.INVMUOM_Id`, fetchedUomId);
                         }
 
                         // Bind Taxes
                         if (taxList.length > 0) {
-                            const mappedTaxes = taxList.map((t: any) => ({
-                                invmT_Id: t.INVMT_Id ?? t.invmT_Id ?? t.invmt_Id,
-                                invmT_TaxName: t.INVMT_TaxName ?? t.invmT_TaxName ?? t.invmt_TaxName ?? '',
-                                invtslT_TaxPer: t.INVMIT_TaxValue ?? t.invmiT_TaxValue ?? t.invmit_TaxValue ?? 0,
+                            const mappedTaxes = taxList.map((tax: any) => ({
+                                invmT_Id: tax.INVMT_Id ?? tax.invmT_Id ?? tax.invmt_Id,
+                                invmT_TaxName: tax.INVMT_TaxName ?? tax.invmT_TaxName ?? tax.invmt_TaxName ?? '',
+                                invtslT_TaxPer: tax.INVMIT_TaxValue ?? tax.invmiT_TaxValue ?? tax.invmit_TaxValue ?? 0,
                                 invtslT_TaxAmt: 0 // Will be calculated
                             }));
                             setValue(`SaleItem.${index}.SalesItemTax`, mappedTaxes);
@@ -316,7 +384,7 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                         setValue(`SaleItem.${index}.availableStock`, availableStockVal);
 
                         // Optional: clear qty or set default? Leaving as is or setting 0 implies user must enter.
-                        // Existing code might have had qty. If changing item, standard to reset qty or valid? 
+                        // Existing code might have had qty. If changing item, standard to reset qty or valid?
                         // Keeping existing qty might be confusing if new item has diff stock.
                         // But let's trigger calc logic.
                         calculateItemAmount(index);
@@ -332,7 +400,7 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
         const availableStock = form.getValues(`SaleItem.${index}.availableStock` as any) || 0;
 
         if (qty > availableStock) {
-            // We might want to show error. For now, we can clamp or just warn. 
+            // We might want to show error. For now, we can clamp or just warn.
             // Since we can't easily toast from here repeatedly, let's just create a side effect or console warn, or reset.
             // Angular shows alert.
             // We can set an error on the field.
@@ -353,8 +421,8 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
         if (discountType === 'P') {
             // If input is percentage
             const perc = discountAmt;
-            // Logic: if user typed 10 (as 10%), we calc amount. 
-            // But the field is `invtsL_DiscountAmt`. 
+            // Logic: if user typed 10 (as 10%), we calc amount.
+            // But the field is `invtsL_DiscountAmt`.
             // Angular has a toggle. Here we only have 1 input.
             // If we want to support percentage input, we need a separate state or field for Rate vs Amount.
             // For now, assuming Amount input as per schema.
@@ -390,7 +458,38 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
     };
 
     const onSubmit = (data: InvTSalesSchema) => {
-        saveMutation.mutate(data, {
+        const payload: any = {
+            ...data,
+            invmsL_SalesDate: format(data.invmsL_SalesDate, 'yyyy-MM-dd'),
+            student_flag: data.stu_Flag,
+            saleItem: data.SaleItem.map((item: any) => ({
+                invmI_Id: item.invmI_Id,
+                invtsL_BatchNo: item.invtsL_BatchNo || '',
+                INVMUOM_Id: Number(item.INVMUOM_Id || item.invmuoM_Id || 0),
+                invmuoM_Id: Number(item.invmuoM_Id || item.INVMUOM_Id || 0),
+                invtsL_SalesQty: item.invtsL_SalesQty,
+                invtsL_SalesPrice: item.invtsL_SalesPrice,
+                invtsL_DiscountAmt: item.invtsL_DiscountAmt || 0,
+                invtsL_TaxAmt: item.invtsL_TaxAmt || 0,
+                invtsL_Amount: item.invtsL_Amount,
+                saleItemTax: item.SalesItemTax || []
+            })),
+            studentlist:
+                data.invmsL_StuOtherFlg === 'Student'
+                    ? [
+                          {
+                              amsT_Id: data.amsT_Id || 0,
+                              asmcL_Id: data.asmcL_Id || 0,
+                              asmS_Id: data.asmS_Id || 0
+                          }
+                      ]
+                    : []
+        };
+
+        delete payload.SaleItem;
+        delete payload.stu_Flag;
+
+        saveMutation.mutate(payload, {
             onSuccess: (res) => {
                 if (res.success) {
                     reset();
@@ -401,37 +500,28 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 max-w-[1400px] mx-auto'>
+        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-[1400px] space-y-6'>
             {/* Header Details */}
-            <CollapsibleSection
-                title="Sales Header Information"
-
-                defaultOpen={true}
-                className="shadow-sm border-primary/10"
-            >
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-6 p-1'>
-                    <div className='bg-muted/30 p-4 rounded-lg space-y-4'>
-                        <label className="text-sm font-medium">Customer Type</label>
+            <CollapsibleSection title='Sales Header Information' defaultOpen={true} className='border-primary/10 shadow-sm'>
+                <div className='grid grid-cols-1 gap-6 p-1 md:grid-cols-2'>
+                    <div className='space-y-4 rounded-lg bg-muted/30 p-4'>
+                        <label className='font-medium text-sm'>Customer Type</label>
                         <Controller
-                            name="invmsL_StuOtherFlg"
+                            name='invmsL_StuOtherFlg'
                             control={control}
                             render={({ field }) => (
-                                <RadioGroup
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    className="flex flex-col space-y-1"
-                                >
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Student" id="r1" />
-                                        <Label htmlFor="r1">Student</Label>
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-col space-y-1'>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='Student' id='r1' />
+                                        <Label htmlFor='r1'>Student</Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Staff" id="r2" />
-                                        <Label htmlFor="r2">Staff</Label>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='Staff' id='r2' />
+                                        <Label htmlFor='r2'>Staff</Label>
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="Customer" id="r3" />
-                                        <Label htmlFor="r3">Customer</Label>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='Customer' id='r3' />
+                                        <Label htmlFor='r3'>Customer</Label>
                                     </div>
                                 </RadioGroup>
                             )}
@@ -440,7 +530,7 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
 
                     <div className='space-y-4'>
                         <div className='space-y-2'>
-                            <Label >Sale Date</Label>
+                            <Label>Sale Date</Label>
                             <Controller
                                 name='invmsL_SalesDate'
                                 control={control}
@@ -456,16 +546,20 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label >Store</Label>
+                            <Label>Store</Label>
                             <Controller
                                 name='invmsT_Id'
                                 control={control}
                                 render={({ field }) => (
                                     <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                        <SelectTrigger><SelectValue placeholder='Select Store' /></SelectTrigger>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Store' />
+                                        </SelectTrigger>
                                         <SelectContent>
                                             {storeList.map((s: any, index: number) => (
-                                                <SelectItem key={`store-${s.invmsT_Id}-${index}`} value={s.invmsT_Id.toString()}>{s.invmS_StoreName}</SelectItem>
+                                                <SelectItem key={`store-${s.invmsT_Id}-${index}`} value={s.invmsT_Id.toString()}>
+                                                    {s.invmS_StoreName}
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -476,15 +570,24 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                 </div>
 
                 {watchedType === 'Student' && (
-                    <div className='mt-4 p-4 border rounded-md bg-secondary/10'>
+                    <div className='mt-4 rounded-md border bg-secondary/10 p-4'>
                         <Controller
-                            name="stu_Flag"
+                            name='stu_Flag'
                             control={control}
                             render={({ field }) => (
-                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex space-x-4 mb-4">
-                                    <div className="flex items-center space-x-2"><RadioGroupItem value="I" id="s1" /><Label htmlFor="s1">Individual</Label></div>
-                                    <div className="flex items-center space-x-2"><RadioGroupItem value="C" id="s2" /><Label htmlFor="s2">Class</Label></div>
-                                    <div className="flex items-center space-x-2"><RadioGroupItem value="CS" id="s3" /><Label htmlFor="s3">Class & Section</Label></div>
+                                <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='mb-4 flex space-x-4'>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='I' id='s1' />
+                                        <Label htmlFor='s1'>Individual</Label>
+                                    </div>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='C' id='s2' />
+                                        <Label htmlFor='s2'>Class</Label>
+                                    </div>
+                                    <div className='flex items-center space-x-2'>
+                                        <RadioGroupItem value='CS' id='s3' />
+                                        <Label htmlFor='s3'>Class & Section</Label>
+                                    </div>
                                 </RadioGroup>
                             )}
                         />
@@ -492,26 +595,41 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                         {/* Individual Student Selection */}
                         {watchedStuFlag === 'I' && (
                             <div className='space-y-2'>
-                                <Label >Student Name</Label>
+                                <Label>Student Name</Label>
                                 {/* This should ideally be a combobox/autocomplete */}
                                 {/* Mocking generic select for now */}
                                 <Controller
                                     name='amsT_Id'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={(val) => {
-                                            field.onChange(Number(val));
-                                            const selectedStudent = studentClsSec.find((s: any) => (s.amsT_Id || s.AMST_Id) == val);
-                                            if (selectedStudent) {
-                                                setValue('asmcL_Id', selectedStudent.asmcL_Id || selectedStudent.ASMCL_Id);
-                                                setValue('asmS_Id', selectedStudent.asmS_Id || selectedStudent.ASMS_Id);
-                                            }
-                                        }} value={field.value?.toString()}>
-                                            <SelectTrigger><SelectValue placeholder='Select Student' /></SelectTrigger>
+                                        <Select
+                                            onValueChange={(val) => {
+                                                field.onChange(Number(val));
+                                                const selectedStudent = studentClsSec.find((s: any) => (s.amsT_Id || s.AMST_Id) == val);
+                                                if (selectedStudent) {
+                                                    setValue('asmcL_Id', selectedStudent.asmcL_Id || selectedStudent.ASMCL_Id);
+                                                    setValue('asmS_Id', selectedStudent.asmS_Id || selectedStudent.ASMS_Id);
+                                                }
+                                            }}
+                                            value={field.value?.toString()}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Student' />
+                                            </SelectTrigger>
                                             <SelectContent>
-                                                {studentClsSec.map((s: any, index: number) => (
-                                                    <SelectItem key={`stu-ind-${s.amsT_Id}-${index}`} value={s.amsT_Id.toString()}>{s.studentname}</SelectItem>
-                                                ))}
+                                                {Array.from(
+                                                    new Map(
+                                                        studentClsSec
+                                                            .filter((s: any) => s.amsT_Id || s.AMST_Id)
+                                                            .map((s: any) => [s.amsT_Id || s.AMST_Id, s])
+                                                    ).values()
+                                                ).map((s: any, index: number) => {
+                                                    const id = s.amsT_Id || s.AMST_Id;
+                                                    return (
+                                                        <SelectItem key={`stu-ind-${id}-${index}`} value={id.toString()}>
+                                                            {s.studentname}
+                                                        </SelectItem>
+                                                    );
+                                                })}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -524,20 +642,31 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                             <div className='space-y-4'>
                                 <div className='grid grid-cols-2 gap-4'>
                                     <div className='space-y-2'>
-                                        <Label >Class</Label>
+                                        <Label>Class</Label>
                                         <Controller
                                             name='asmcL_Id'
                                             control={control}
                                             render={({ field }) => (
-                                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                                    <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
+                                                <Select
+                                                    onValueChange={(val) => field.onChange(Number(val))}
+                                                    value={field.value?.toString()}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select Class' />
+                                                    </SelectTrigger>
                                                     <SelectContent>
-                                                        {studentClsSec.map((s: any, index: number) => {
+                                                        {Array.from(
+                                                            new Map(
+                                                                studentClsSec
+                                                                    .filter((s: any) => s.asmcL_Id || s.ASMCL_Id)
+                                                                    .map((s: any) => [s.asmcL_Id || s.ASMCL_Id, s])
+                                                            ).values()
+                                                        ).map((s: any, index: number) => {
                                                             const id = s.asmcL_Id || s.ASMCL_Id;
                                                             const name = s.asmcL_ClassName || s.ASMCL_ClassName;
-                                                            if (!id) return null;
                                                             return (
-                                                                <SelectItem key={`cls-${id}-${index}`} value={id.toString()}>{name}</SelectItem>
+                                                                <SelectItem key={`cls-${id}-${index}`} value={id.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
                                                             );
                                                         })}
                                                     </SelectContent>
@@ -547,16 +676,22 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                     </div>
                                     {watchedStuFlag === 'CS' && (
                                         <div className='space-y-2'>
-                                            <Label >Section</Label>
+                                            <Label>Section</Label>
                                             <Controller
                                                 name='asmS_Id'
                                                 control={control}
                                                 render={({ field }) => (
-                                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                                        <SelectTrigger><SelectValue placeholder='Select Section' /></SelectTrigger>
+                                                    <Select
+                                                        onValueChange={(val) => field.onChange(Number(val))}
+                                                        value={field.value?.toString()}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select Section' />
+                                                        </SelectTrigger>
                                                         <SelectContent>
                                                             {sectionList.map((s: any, index: number) => (
-                                                                <SelectItem key={`sec-${s.asmS_Id}-${index}`} value={s.asmS_Id.toString()}>{s.asmC_SectionName}</SelectItem>
+                                                                <SelectItem key={`sec-${s.asmS_Id}-${index}`} value={s.asmS_Id.toString()}>
+                                                                    {s.asmC_SectionName}
+                                                                </SelectItem>
                                                             ))}
                                                         </SelectContent>
                                                     </Select>
@@ -569,45 +704,56 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                         <Controller
                                             name='asmS_Id'
                                             control={control}
-                                            render={({ field }) => (
-                                                <input type="hidden" {...field} value={field.value || ''} />
-                                            )}
+                                            render={({ field }) => <input type='hidden' {...field} value={field.value || ''} />}
                                         />
                                     )}
                                 </div>
 
                                 {/* Student Dropdown for Class/Section selection */}
                                 {((watchedStuFlag === 'C' && watchedClassId) || (watchedStuFlag === 'CS' && watchedSectionId)) && (
-                                    <div className='space-y-2 animate-in fade-in slide-in-from-top-2 duration-300'>
+                                    <div className='fade-in slide-in-from-top-2 animate-in space-y-2 duration-300'>
                                         <Label>Student Name</Label>
                                         <Controller
                                             name='amsT_Id'
                                             control={control}
                                             render={({ field }) => (
-                                                <Select onValueChange={(val) => {
-                                                    field.onChange(Number(val));
-                                                    const selectedStudent = studentList.find((s: any) => (s.amst_id || s.amsT_Id || s.AMST_Id) == val);
-                                                    if (selectedStudent) {
-                                                        // For C/CS, class is already set. Section might not be if 'C'. 
-                                                        // If 'CS', both are set. 
-                                                        // But let's ensure we have valid values.
-                                                        // Assuming student object has class/sec info if needed.
-                                                        if (watchedStuFlag === 'C') {
-                                                            // If flag is C, we might not have section selected yet unless student brings it.
-                                                            const secId = selectedStudent.asmS_Id ?? selectedStudent.ASMS_Id ?? selectedStudent.asms_Id ?? selectedStudent.ASMCL_Id_Section ?? 0;
-                                                            setValue('asmS_Id', secId);
-                                                            // Also trigger section change logic if useful, but setting value is key.
+                                                <Select
+                                                    onValueChange={(val) => {
+                                                        field.onChange(Number(val));
+                                                        const selectedStudent = studentList.find(
+                                                            (s: any) => (s.amst_id || s.amsT_Id || s.AMST_Id) == val
+                                                        );
+                                                        if (selectedStudent) {
+                                                            // For C/CS, class is already set. Section might not be if 'C'.
+                                                            // If 'CS', both are set.
+                                                            // But let's ensure we have valid values.
+                                                            // Assuming student object has class/sec info if needed.
+                                                            if (watchedStuFlag === 'C') {
+                                                                // If flag is C, we might not have section selected yet unless student brings it.
+                                                                const secId =
+                                                                    selectedStudent.asmS_Id ??
+                                                                    selectedStudent.ASMS_Id ??
+                                                                    selectedStudent.asms_Id ??
+                                                                    selectedStudent.ASMCL_Id_Section ??
+                                                                    0;
+                                                                setValue('asmS_Id', secId);
+                                                                // Also trigger section change logic if useful, but setting value is key.
+                                                            }
                                                         }
-                                                    }
-                                                }} value={field.value?.toString()}>
-                                                    <SelectTrigger><SelectValue placeholder='Select Student' /></SelectTrigger>
+                                                    }}
+                                                    value={field.value?.toString()}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select Student' />
+                                                    </SelectTrigger>
                                                     <SelectContent>
                                                         {studentList.map((s: any, index: number) => {
                                                             const id = s.amst_id || s.amsT_Id || s.AMST_Id;
                                                             const name = s.studentname || s.studentName || s.ameS_StudentName;
                                                             if (!id) return null;
                                                             return (
-                                                                <SelectItem key={`stuname-${id}-${index}`} value={id.toString()}>{name}</SelectItem>
+                                                                <SelectItem key={`stuname-${id}-${index}`} value={id.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
                                                             );
                                                         })}
                                                     </SelectContent>
@@ -622,17 +768,21 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                 )}
 
                 {watchedType === 'Staff' && (
-                    <div className='mt-4 p-4 border rounded-md'>
-                        <Label >Staff</Label>
+                    <div className='mt-4 rounded-md border p-4'>
+                        <Label>Staff</Label>
                         <Controller
                             name='hrmE_Id'
                             control={control}
                             render={({ field }) => (
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select Staff' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Staff' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {employeeList.map((s: any, index: number) => (
-                                            <SelectItem key={`${s.hrmE_Id}-${index}`} value={s.hrmE_Id.toString()}>{s.employeename}</SelectItem>
+                                            <SelectItem key={`${s.hrmE_Id}-${index}`} value={s.hrmE_Id.toString()}>
+                                                {s.employeename}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -642,17 +792,21 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                 )}
 
                 {watchedType === 'Customer' && (
-                    <div className='mt-4 p-4 border rounded-md'>
-                        <Label >Customer</Label>
+                    <div className='mt-4 rounded-md border p-4'>
+                        <Label>Customer</Label>
                         <Controller
                             name='invmC_Id'
                             control={control}
                             render={({ field }) => (
                                 <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select Customer' /></SelectTrigger>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select Customer' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {customerList.map((s: any, index: number) => (
-                                            <SelectItem key={`${s.invmC_Id}-${index}`} value={s.invmC_Id?.toString() || ''}>{s.invmC_CustomerName}</SelectItem>
+                                            <SelectItem key={`${s.invmC_Id}-${index}`} value={s.invmC_Id?.toString() || ''}>
+                                                {s.invmC_CustomerName}
+                                            </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -664,83 +818,83 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
 
             {/* Tax Details Modal */}
             <Dialog open={isTaxModalOpen} onOpenChange={setIsTaxModalOpen}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className='sm:max-w-[425px]'>
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-2 text-primary">
-                            <ReceiptIndianRupee className="h-5 w-5" />
+                        <DialogTitle className='flex items-center gap-2 text-primary'>
+                            <ReceiptIndianRupee className='h-5 w-5' />
                             Tax Breakdown
                         </DialogTitle>
                     </DialogHeader>
-                    <div className="py-4">
-                        {selectedTaxRowIndex !== null && (() => {
-                            const currentTaxList = watch(`SaleItem.${selectedTaxRowIndex}.SalesItemTax`) || [];
-                            const totalRowTax = watch(`SaleItem.${selectedTaxRowIndex}.invtsL_TaxAmt`) || 0;
-                            return (
-                                <div className="space-y-4">
-                                    <div className="flex justify-between text-sm font-medium border-b pb-2">
-                                        <span>Tax Name</span>
-                                        <div className="flex gap-8">
-                                            <span>Rate (%)</span>
-                                            <span className="w-20 text-right">Amount</span>
+                    <div className='py-4'>
+                        {selectedTaxRowIndex !== null &&
+                            (() => {
+                                const currentTaxList = watch(`SaleItem.${selectedTaxRowIndex}.SalesItemTax`) || [];
+                                const totalRowTax = watch(`SaleItem.${selectedTaxRowIndex}.invtsL_TaxAmt`) || 0;
+                                return (
+                                    <div className='space-y-4'>
+                                        <div className='flex justify-between border-b pb-2 font-medium text-sm'>
+                                            <span>Tax Name</span>
+                                            <div className='flex gap-8'>
+                                                <span>Rate (%)</span>
+                                                <span className='w-20 text-right'>Amount</span>
+                                            </div>
+                                        </div>
+                                        <div className='space-y-2'>
+                                            {currentTaxList.length > 0 ? (
+                                                currentTaxList.map((tax: any, i: number) => {
+                                                    // We need to fetch tax name from loadData if possible, but tax list in loadData might not be available or comprehensive.
+                                                    // Actually get_itemDetail returns tax list with names usually.
+                                                    // But here we stored only IDs.
+                                                    // Ideally we should have stored tax Name too in `SalesItemTax`.
+                                                    // For now, we just display percentages.
+                                                    return (
+                                                        <div key={i} className='flex justify-between text-sm'>
+                                                            <span className='text-muted-foreground'>
+                                                                {tax.invmT_TaxName || tax.invmT_Id}
+                                                            </span>
+                                                            <div className='flex gap-8'>
+                                                                <span className='font-mono text-xs'>{tax.invtslT_TaxPer}%</span>
+                                                                <span className='w-20 text-right font-medium font-mono'>
+                                                                    ₹{tax.invtslT_TaxAmt?.toFixed(2)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })
+                                            ) : (
+                                                <div className='py-2 text-center text-muted-foreground text-sm'>
+                                                    No taxes active for this item
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className='mt-2 flex justify-between border-t pt-3 font-bold text-sm'>
+                                            <span>Total Tax</span>
+                                            <span className='font-mono text-green-600'>₹{totalRowTax.toFixed(2)}</span>
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        {currentTaxList.length > 0 ? (
-                                            currentTaxList.map((tax: any, i: number) => {
-                                                // We need to fetch tax name from loadData if possible, but tax list in loadData might not be available or comprehensive.
-                                                // Actually get_itemDetail returns tax list with names usually. 
-                                                // But here we stored only IDs. 
-                                                // Ideally we should have stored tax Name too in `SalesItemTax`.
-                                                // For now, we just display percentages.
-                                                return (
-                                                    <div key={i} className="flex justify-between text-sm">
-                                                        <span className="text-muted-foreground">{tax.invmT_TaxName || tax.invmT_Id}</span>
-                                                        <div className="flex gap-8">
-                                                            <span className="font-mono text-xs">{tax.invtslT_TaxPer}%</span>
-                                                            <span className="w-20 text-right font-mono font-medium">₹{tax.invtslT_TaxAmt?.toFixed(2)}</span>
-                                                        </div>
-                                                    </div>
-                                                )
-                                            })
-                                        ) : (
-                                            <div className="text-center text-muted-foreground text-sm py-2">No taxes active for this item</div>
-                                        )}
-                                    </div>
-                                    <div className="flex justify-between text-sm font-bold border-t pt-3 mt-2">
-                                        <span>Total Tax</span>
-                                        <span className="font-mono text-green-600">
-                                            ₹{totalRowTax.toFixed(2)}
-                                        </span>
-                                    </div>
-                                </div>
-                            )
-                        })()}
+                                );
+                            })()}
                     </div>
                 </DialogContent>
             </Dialog>
 
             {/* Items Collection */}
-            <CollapsibleSection
-                title="Sales Items"
-
-                defaultOpen={true}
-                className="shadow-sm border-primary/10"
-            >
-                <div className='overflow-x-auto -mx-1 p-1'>
-                    <table className='w-full border-collapse text-xs min-w-[1000px]'>
+            <CollapsibleSection title='Sales Items' defaultOpen={true} className='border-primary/10 shadow-sm'>
+                <div className='-mx-1 overflow-x-auto p-1'>
+                    <table className='w-full min-w-[1000px] border-collapse text-xs'>
                         <thead>
-                            <tr className='bg-muted/50 text-muted-foreground uppercase tracking-wider text-[10px]'>
-                                <th className='border p-3 w-[40px] text-center'>#</th>
-                                <th className='border p-3 min-w-[200px] text-left'>Item Name</th>
-                                <th className='border p-3 w-[100px] text-left'>Batch No</th>
-                                <th className='border p-3 w-[80px] text-right'>Qty</th>
-                                <th className='border p-3 w-[100px] text-right'>Rate</th>
-                                <th className='border p-3 w-[100px] text-right'>Discount</th>
-                                <th className='border p-3 w-[120px] text-right'>Amount</th>
-                                <th className='border p-3 w-[50px] text-center'>Tax</th>
+                            <tr className='bg-muted/50 text-[10px] text-muted-foreground uppercase tracking-wider'>
+                                <th className='w-[40px] border p-3 text-center'>#</th>
+                                <th className='min-w-[200px] border p-3 text-left'>Item Name</th>
+                                <th className='w-[100px] border p-3 text-left'>Batch No</th>
+                                <th className='w-[80px] border p-3 text-right'>Qty</th>
+                                <th className='w-[100px] border p-3 text-right'>Rate</th>
+                                <th className='w-[100px] border p-3 text-right'>Discount</th>
+                                <th className='w-[120px] border p-3 text-right'>Amount</th>
+                                <th className='w-[50px] border p-3 text-center'>Tax</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y">
+                        <tbody className='divide-y'>
                             {fields.map((field, index) => (
                                 <tr key={field.id} className='hover:bg-primary/5'>
                                     <td className='border p-2 text-center'>{index + 1}</td>
@@ -749,12 +903,16 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                             name={`SaleItem.${index}.invmI_Id`}
                                             control={control}
                                             render={({ field }) => (
-                                                <Select onValueChange={(val) => {
-                                                    const id = Number(val);
-                                                    field.onChange(id);
-                                                    handleItemChange(index, id);
-                                                }} value={field.value?.toString()}>
-                                                    <SelectTrigger><SelectValue placeholder='Select Item' /></SelectTrigger>
+                                                <Select
+                                                    onValueChange={(val) => {
+                                                        const id = Number(val);
+                                                        field.onChange(id);
+                                                        handleItemChange(index, id);
+                                                    }}
+                                                    value={field.value?.toString()}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select Item' />
+                                                    </SelectTrigger>
                                                     <SelectContent>
                                                         {itemsList.map((i: any, index: number) => (
                                                             <SelectItem key={`item-${i.invmI_Id}-${index}`} value={i.invmI_Id.toString()}>
@@ -770,27 +928,47 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                         <InputText {...register(`SaleItem.${index}.invtsL_BatchNo`)} className='h-8 text-xs' disabled />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`SaleItem.${index}.invtsL_SalesQty`, { valueAsNumber: true })} className='h-8 text-xs text-right' onBlur={() => calculateItemAmount(index)} />
+                                        <InputText
+                                            {...register(`SaleItem.${index}.invtsL_SalesQty`, { valueAsNumber: true })}
+                                            className='h-8 text-right text-xs'
+                                            onBlur={() => calculateItemAmount(index)}
+                                        />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`SaleItem.${index}.invtsL_SalesPrice`, { valueAsNumber: true })} className='h-8 text-xs text-right' disabled />
+                                        <InputText
+                                            {...register(`SaleItem.${index}.invtsL_SalesPrice`, { valueAsNumber: true })}
+                                            className='h-8 text-right text-xs'
+                                            disabled
+                                        />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`SaleItem.${index}.invtsL_DiscountAmt`, { valueAsNumber: true })} className='h-8 text-xs text-right' onBlur={() => calculateDiscount(index)} />
+                                        <InputText
+                                            {...register(`SaleItem.${index}.invtsL_DiscountAmt`, { valueAsNumber: true })}
+                                            className='h-8 text-right text-xs'
+                                            onBlur={() => calculateDiscount(index)}
+                                        />
                                     </td>
                                     <td className='border p-2'>
-                                        <InputText {...register(`SaleItem.${index}.invtsL_Amount`, { valueAsNumber: true })} className='h-8 text-xs text-right' onBlur={() => calculateDiscount(index)} />
+                                        <InputText
+                                            {...register(`SaleItem.${index}.invtsL_Amount`, { valueAsNumber: true })}
+                                            className='h-8 text-right text-xs'
+                                            onBlur={() => calculateDiscount(index)}
+                                        />
                                     </td>
                                     <td className='border p-2 text-center'>
                                         <div
-                                            className='flex items-center gap-1 justify-end font-mono text-green-700 text-xs font-semibold cursor-pointer hover:bg-green-100/50 p-1 rounded transition-colors'
+                                            className='flex cursor-pointer items-center justify-end gap-1 rounded p-1 font-mono font-semibold text-green-700 text-xs transition-colors hover:bg-green-100/50'
                                             onClick={() => {
                                                 setSelectedTaxRowIndex(index);
                                                 setIsTaxModalOpen(true);
                                             }}
-                                            title="Click to view Tax Details"
-                                        >
-                                            <span>{watch(`SaleItem.${index}.invtsL_TaxAmt`)?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
+                                            title='Click to view Tax Details'>
+                                            <span>
+                                                {watch(`SaleItem.${index}.invtsL_TaxAmt`)?.toLocaleString(undefined, {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2
+                                                }) || '0.00'}
+                                            </span>
                                             <Calculator className='h-3 w-3 text-green-600' />
                                         </div>
                                     </td>
@@ -801,8 +979,7 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                                             size='icon'
                                             className='h-7 w-7 text-destructive/60 hover:text-destructive'
                                             onClick={() => remove(index)}
-                                            disabled={fields.length === 1}
-                                        >
+                                            disabled={fields.length === 1}>
                                             <Minus className='h-3.5 w-3.5' />
                                         </Button>
                                     </td>
@@ -815,16 +992,19 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                             type='button'
                             variant='outline'
                             size='sm'
-                            onClick={() => append({
-                                invmI_Id: 0,
-                                invtsL_SalesQty: 0,
-                                invtsL_SalesPrice: 0,
-                                invtsL_DiscountAmt: 0,
-                                invtsL_TaxAmt: 0,
-                                invtsL_Amount: 0,
-                            })}
-                            className='h-8 text-[11px] font-bold'
-                        >
+                            onClick={() =>
+                                append({
+                                    invmI_Id: 0,
+                                    invmuoM_Id: 0,
+                                    INVMUOM_Id: 0,
+                                    invtsL_SalesQty: 0,
+                                    invtsL_SalesPrice: 0,
+                                    invtsL_DiscountAmt: 0,
+                                    invtsL_TaxAmt: 0,
+                                    invtsL_Amount: 0
+                                })
+                            }
+                            className='h-8 font-bold text-[11px]'>
                             <Plus className='mr-2 h-3 w-3' /> ADD ROW
                         </Button>
                     </div>
@@ -832,12 +1012,9 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
             </CollapsibleSection>
 
             {/* Footer and Totals */}
-            <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
+            <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                 <div className='lg:col-span-2'>
-                    <CollapsibleSection
-                        title="Remarks"
-                        defaultOpen={true}
-                    >
+                    <CollapsibleSection title='Remarks' defaultOpen={true}>
                         <InputTextarea
                             label='Remarks / Narration'
                             {...register('invmsL_Remarks')}
@@ -847,37 +1024,57 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                     </CollapsibleSection>
                 </div>
                 <div className='lg:col-span-1'>
-                    <Card className='p-6 shadow-md border-primary/20 bg-primary/5 space-y-4'>
+                    <Card className='space-y-4 border-primary/20 bg-primary/5 p-6 shadow-md'>
                         <div className='space-y-3 pt-2 font-medium'>
-                            <div className='flex justify-between items-center text-sm'>
+                            <div className='flex items-center justify-between text-sm'>
                                 <span className='text-muted-foreground'>Total Basic Amount:</span>
-                                <span className='font-mono'>₹{watch('invmsL_TotalAmount')?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                            </div>
-                            <div className='flex justify-between items-center text-sm text-destructive'>
-                                <span className='flex items-center gap-1.5'>
-                                    Total Discount:
+                                <span className='font-mono'>
+                                    ₹
+                                    {watch('invmsL_TotalAmount')?.toLocaleString(undefined, {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })}
                                 </span>
-                                <span className='font-mono'>- ₹{watch('invmsL_TotDiscount')?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
-                            <div className='flex justify-between items-center text-sm text-green-700'>
-                                <span className='flex items-center gap-1.5'>
-                                    Total Tax Amount:
+                            <div className='flex items-center justify-between text-destructive text-sm'>
+                                <span className='flex items-center gap-1.5'>Total Discount:</span>
+                                <span className='font-mono'>
+                                    - ₹
+                                    {watch('invmsL_TotDiscount')?.toLocaleString(undefined, {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })}
                                 </span>
-                                <span className='font-mono'>+ ₹{watch('invmsL_TotTaxAmt')?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+                            <div className='flex items-center justify-between text-green-700 text-sm'>
+                                <span className='flex items-center gap-1.5'>Total Tax Amount:</span>
+                                <span className='font-mono'>
+                                    + ₹
+                                    {watch('invmsL_TotTaxAmt')?.toLocaleString(undefined, {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    })}
+                                </span>
                             </div>
 
-                            <div className='pt-4 mt-2 border-t border-primary/20'>
-                                <div className='flex justify-between items-end'>
+                            <div className='mt-2 border-primary/20 border-t pt-4'>
+                                <div className='flex items-end justify-between'>
                                     <div className='flex flex-col'>
-                                        <span className='text-[10px] font-bold uppercase tracking-widest text-primary/70'>Net Sales Value</span>
-                                        <span className='font-extrabold text-3xl tracking-tighter text-primary'>
-                                            ₹{watch('invmsL_SalesValue')?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        <span className='font-bold text-[10px] text-primary/70 uppercase tracking-widest'>
+                                            Net Sales Value
+                                        </span>
+                                        <span className='font-extrabold text-3xl text-primary tracking-tighter'>
+                                            ₹
+                                            {watch('invmsL_SalesValue')?.toLocaleString(undefined, {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            })}
                                         </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div className='flex flex-col sm:flex-row gap-3 mt-6'>
+                        <div className='mt-6 flex flex-col gap-3 sm:flex-row'>
                             <Button type='submit' className='flex-1 py-6 shadow-lg' isLoading={saveMutation.isPending}>
                                 <Save className='mr-2 h-5 w-5' /> Save Sale
                             </Button>
@@ -888,7 +1085,6 @@ export default function AddSalesForm({ onSuccess }: AddSalesFormProps) {
                     </Card>
                 </div>
             </div>
-
         </form>
     );
 }

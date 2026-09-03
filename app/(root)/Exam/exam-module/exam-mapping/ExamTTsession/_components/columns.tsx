@@ -4,9 +4,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IExamTTSession } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye } from 'lucide-react';
 import { useCallback } from 'react';
-
 
 export const ExamTTSessionColumns: ColumnDef<IExamTTSession>[] = [
     {
@@ -56,9 +54,9 @@ function ActionButtonsCell({ rowData }: { rowData: IExamTTSession }) {
     return (
         <div className='flex justify-center gap-2'>
             {/*  View button */}
-            <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Mapping Details'>
+            {/* <button type='button' onClick={handleView} className='rounded-md p-2 transition hover:bg-muted' title='View Mapping Details'>
                 <Eye className='h-4 w-4 text-blue-600' />
-            </button>
+            </button> */}
 
             {/*  Edit,  Toggle,  Delete buttons */}
             <ActionButtons
@@ -67,7 +65,7 @@ function ActionButtonsCell({ rowData }: { rowData: IExamTTSession }) {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onToggle={handleToggle}
-                toggleConditionKey='ETTS_Activeflag'
+                toggleConditionKey='ettS_Activeflag'
             />
         </div>
     );

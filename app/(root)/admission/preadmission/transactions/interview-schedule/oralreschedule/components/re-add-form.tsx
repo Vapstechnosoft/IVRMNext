@@ -1,33 +1,32 @@
 'use client';
 import Swal from 'sweetalert2';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { oralReScheduleSchema, OralReScheduleFormValues } from '@/schemas/admission/preadmission/transactions/oral-test-schedule';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import {
     useOralReScheduleDetails,
     useReScheduleReportDetails,
-    useSaveOralReSchedule,
-    useReScheduleSelectedRow
+    useReScheduleSelectedRow,
+    useSaveOralReSchedule
 } from '@/hooks/admission/preadmission/transactions/use-oral-test-reschedule';
-import { IOralTestSchedule, IStudentDetails } from '@/types/admission/preadmission/transactions/oral-test-schedule';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DatePicker } from '@/components/ui/date-picker';
-import { TimePicker } from '@/components/ui/time-picker/time-picker';
-import { Textarea } from '@/components/ui/textarea';
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { type OralReScheduleFormValues, oralReScheduleSchema } from '@/schemas/admission/preadmission/transactions/oral-test-schedule';
+import type { IOralTestSchedule, IStudentDetails } from '@/types/admission/preadmission/transactions/oral-test-schedule';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { ColumnDef } from '@tanstack/react-table';
+import { differenceInMinutes, format } from 'date-fns';
+import { ChevronDown, ChevronUp, FileText, Loader2, RotateCcw, Save, Trash } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { format, differenceInMinutes } from 'date-fns';
-import { Loader2, Save, RotateCcw, Trash, ShoppingCart, ChevronUp, ChevronDown, FileText } from 'lucide-react';
 
 interface OralReScheduleFormProps {
     onSuccess: () => void;
@@ -68,7 +67,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
             principalflg: false,
             managerflg: false,
             anybodystart: false,
-            addParticipants: false,
+            addParticipants: false
         }
     });
 
@@ -77,7 +76,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
         if (initialData) {
             form.reset({
                 paotS_Id: initialData.paotS_Id,
-                previousScheduleId: String(initialData.paotS_Id), // Using its own ID if editing? 
+                previousScheduleId: String(initialData.paotS_Id), // Using its own ID if editing?
                 // Wait, if it's "re-schedule", previousScheduleId might be something else.
                 // But let's map what we have.
                 paotS_ScheduleName: initialData.paotS_ScheduleName || '',
@@ -91,7 +90,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                 paotS_TimePeriod: initialData.paotS_TimePeriod || 0,
                 paotS_Strength: initialData.paotS_Strength || 0,
                 meetingvc: initialData.vc || false,
-                autostudent: true,
+                autostudent: true
             });
             if (initialData.paotS_Id) {
                 setSelectedPrevId(String(initialData.paotS_Id));
@@ -124,13 +123,13 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                 gender: s.pasR_Sex || s.gender || '',
                 pasR_MobileNo: s.pasR_MobileNo || 0,
                 pasR_emailId: s.pasR_emailId || '',
-                vcmeeting: s.vcmeeting !== undefined ? !!s.vcmeeting : (!!s.paotS_ScheduleTimeTo && !!s.paotS_ScheduleTime), // Default logic if missing
+                vcmeeting: s.vcmeeting !== undefined ? !!s.vcmeeting : !!s.paotS_ScheduleTimeTo && !!s.paotS_ScheduleTime, // Default logic if missing
                 ScheduleDate: s.paotS_ScheduleDate || s.ScheduleDate || null,
                 ScheduleTime: s.paotS_ScheduleTime || s.ScheduleTime || '',
-                ScheduleTimeTo: s.paotS_ScheduleTimeTo || s.ScheduleTimeTo || '',
+                ScheduleTimeTo: s.paotS_ScheduleTimeTo || s.ScheduleTimeTo || ''
             }));
             setCartStudents(students);
-            
+
             // If paotS_Strength is missing from oralTestSchedule, use the count of students
             if (!form.getValues('paotS_Strength')) {
                 form.setValue('paotS_Strength', students.length);
@@ -140,8 +139,8 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
 
     // Handle initial available students
     useEffect(() => {
-        const rawData = Array.isArray(reportResponse) ? reportResponse : (reportResponse?.data || reportResponse?.allreports || []);
-        const normalizedData = (Array.isArray(rawData) ? rawData : (rawData?.$values || [])).map((s: any) => ({
+        const rawData = Array.isArray(reportResponse) ? reportResponse : reportResponse?.data || reportResponse?.allreports || [];
+        const normalizedData = (Array.isArray(rawData) ? rawData : rawData?.$values || []).map((s: any) => ({
             ...s,
             pasR_Id: s.pasR_Id || s.pasr_id || 0,
             name: s.name || s.pasR_FirstName || '',
@@ -151,7 +150,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
             pasR_emailId: s.pasR_emailId || s.emailId || '',
             ScheduleDate: s.scheduledate || s.ScheduleDate || null,
             ScheduleTime: s.scheduletime || s.ScheduleTime || '',
-            ScheduleTimeTo: s.scheduletimeto || s.ScheduleTimeTo || '',
+            ScheduleTimeTo: s.scheduletimeto || s.ScheduleTimeTo || ''
         }));
         setAvailableStudents(normalizedData);
     }, [reportResponse]);
@@ -181,8 +180,8 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                 confirmButtonColor: '#8cd4f5',
                 customClass: {
                     popup: 'rounded-lg border-none shadow-xl',
-                    confirmButton: 'px-8 py-2 font-bold uppercase rounded text-sm',
-                },
+                    confirmButton: 'px-8 py-2 font-bold uppercase rounded text-sm'
+                }
             });
         }
     }, [startTime, endTime]);
@@ -190,11 +189,11 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
     // Video conferencing auto-check logic
     useEffect(() => {
         if (isVCEnabled) {
-            setAvailableStudents(prev => prev.map(s => ({ ...s, vcmeeting: true })));
-            setCartStudents(prev => prev.map(s => ({ ...s, vcmeeting: true })));
+            setAvailableStudents((prev) => prev.map((s) => ({ ...s, vcmeeting: true })));
+            setCartStudents((prev) => prev.map((s) => ({ ...s, vcmeeting: true })));
         } else {
-            setAvailableStudents(prev => prev.map(s => ({ ...s, vcmeeting: false })));
-            setCartStudents(prev => prev.map(s => ({ ...s, vcmeeting: false })));
+            setAvailableStudents((prev) => prev.map((s) => ({ ...s, vcmeeting: false })));
+            setCartStudents((prev) => prev.map((s) => ({ ...s, vcmeeting: false })));
         }
     }, [isVCEnabled]);
 
@@ -205,7 +204,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                 header: 'Select',
                 cell: ({ row }) => (
                     <Checkbox
-                        checked={cartStudents.some(s => s.pasR_Id === row.original.pasR_Id)}
+                        checked={cartStudents.some((s) => s.pasR_Id === row.original.pasR_Id)}
                         onCheckedChange={(value: any) => {
                             if (value) {
                                 if (cartStudents.length < strength) {
@@ -214,16 +213,16 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                                     toast.error(`Cannot select more than ${strength} students`);
                                 }
                             } else {
-                                setCartStudents(cartStudents.filter(s => s.pasR_Id !== row.original.pasR_Id));
+                                setCartStudents(cartStudents.filter((s) => s.pasR_Id !== row.original.pasR_Id));
                             }
                         }}
                     />
-                ),
+                )
             },
             {
                 id: 'slno',
                 header: 'SL.NO',
-                cell: ({ row }) => row.index + 1,
+                cell: ({ row }) => row.index + 1
             },
             { accessorKey: 'regno', header: 'Reg. No' },
             { accessorKey: 'name', header: 'Student Name' },
@@ -231,7 +230,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
             {
                 accessorKey: 'ScheduleDate',
                 header: 'Previous Date',
-                cell: ({ row }) => row.original.ScheduleDate ? format(new Date(row.original.ScheduleDate), 'dd-MM-yyyy') : ''
+                cell: ({ row }) => (row.original.ScheduleDate ? format(new Date(row.original.ScheduleDate), 'dd-MM-yyyy') : '')
             },
             {
                 id: 'time',
@@ -252,13 +251,13 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                     <Checkbox
                         checked={row.original.vcmeeting}
                         onCheckedChange={(val) => {
-                            setAvailableStudents(prev => prev.map(s =>
-                                s.pasR_Id === row.original.pasR_Id ? { ...s, vcmeeting: !!val } : s
-                            ));
+                            setAvailableStudents((prev) =>
+                                prev.map((s) => (s.pasR_Id === row.original.pasR_Id ? { ...s, vcmeeting: !!val } : s))
+                            );
                             // Also update in cart if present
-                            setCartStudents(prev => prev.map(s =>
-                                s.pasR_Id === row.original.pasR_Id ? { ...s, vcmeeting: !!val } : s
-                            ));
+                            setCartStudents((prev) =>
+                                prev.map((s) => (s.pasR_Id === row.original.pasR_Id ? { ...s, vcmeeting: !!val } : s))
+                            );
                         }}
                     />
                 )
@@ -273,7 +272,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
             {
                 id: 'slno',
                 header: 'SL.NO',
-                cell: ({ row }) => row.index + 1,
+                cell: ({ row }) => row.index + 1
             },
             { accessorKey: 'regno', header: 'Reg. No' },
             { accessorKey: 'name', header: 'Student Name' },
@@ -281,7 +280,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
             {
                 accessorKey: 'ScheduleDate',
                 header: 'Previous Date',
-                cell: ({ row }) => row.original.ScheduleDate ? format(new Date(row.original.ScheduleDate), 'dd-MM-yyyy') : ''
+                cell: ({ row }) => (row.original.ScheduleDate ? format(new Date(row.original.ScheduleDate), 'dd-MM-yyyy') : '')
             },
             {
                 id: 'time',
@@ -298,9 +297,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
             cols.push({
                 id: 'vcmeeting',
                 header: 'VC Meeting',
-                cell: ({ row }) => (
-                    <span className="text-xs font-bold text-green-600">{row.original.vcmeeting ? "Yes" : "No"}</span>
-                )
+                cell: ({ row }) => <span className='font-bold text-green-600 text-xs'>{row.original.vcmeeting ? 'Yes' : 'No'}</span>
             });
         }
 
@@ -309,12 +306,11 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
             header: 'Action',
             cell: ({ row }) => (
                 <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-destructive"
-                    onClick={() => setCartStudents(cartStudents.filter(s => s.pasR_Id !== row.original.pasR_Id))}
-                >
-                    <Trash className="h-4 w-4" />
+                    variant='ghost'
+                    size='icon'
+                    className='text-destructive'
+                    onClick={() => setCartStudents(cartStudents.filter((s) => s.pasR_Id !== row.original.pasR_Id))}>
+                    <Trash className='h-4 w-4' />
                 </Button>
             )
         });
@@ -328,7 +324,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                 title: 'Schedule time and mapping time of student is not possible',
                 icon: 'warning',
                 confirmButtonText: 'OK',
-                confirmButtonColor: '#3085d6',
+                confirmButtonColor: '#3085d6'
             });
             return;
         }
@@ -339,9 +335,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
         const diff = differenceInMinutes(to, from);
 
         const interactionTime = Number(values.paotS_TimePeriod);
-        const totalNeeded = values.paotS_TPFlag
-            ? interactionTime * values.paotS_Strength
-            : (interactionTime * 60) * values.paotS_Strength;
+        const totalNeeded = values.paotS_TPFlag ? interactionTime * values.paotS_Strength : interactionTime * 60 * values.paotS_Strength;
 
         if (totalNeeded > diff) {
             toast.error(`Total interaction time (${totalNeeded} mins) exceeds schedule duration (${diff} mins)`);
@@ -361,31 +355,31 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
             PAOTS_ScheduleTimeTo: values.paotS_ScheduleTimeTo,
             PAOTS_TimePeriod: values.paotS_TimePeriod,
             PAOTS_TPFlag: values.paotS_TPFlag,
-            SelectedStudentData: cartStudents.map(s => ({
+            SelectedStudentData: cartStudents.map((s) => ({
                 PASR_Id: s.pasR_Id,
                 PASR_MobileNo: s.pasR_MobileNo,
                 PASR_emailId: s.pasR_emailId,
                 vcmeeting: !!s.vcmeeting
             })),
             SelectedStudentDataForEdit: [],
-            PAOTS_Superviser: values.paotS_Superviser || "",
-            PAOTS_Skills: values.paotS_Skills || ""
+            PAOTS_Superviser: values.paotS_Superviser || '',
+            PAOTS_Skills: values.paotS_Skills || ''
         };
 
         saveSchedule(payload, {
             onSuccess: (res: any) => {
-                if (res?.success || res?.message === "ReSchedule Saved Successfully") {
-                    Swal.fire({
-                        title: res?.message || 'ReSchedule Saved Successfully',
-                        icon: 'success',
-                        confirmButtonText: 'OK',
-                        confirmButtonColor: '#3085d6',
-                    }).then(() => {
-                        onSuccess();
-                    });
-                } else {
-                    toast.error(res?.message || 'Failed to save schedule');
+                if (res?.returnval === false) {
+                    // Handled by mutation hook's toast
+                    return;
                 }
+                Swal.fire({
+                    title: res?.message || 'ReSchedule Saved Successfully',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#3085d6'
+                }).then(() => {
+                    onSuccess();
+                });
             },
             onError: (error: any) => {
                 toast.error(error?.message || 'Failed to save schedule');
@@ -394,7 +388,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
     }
 
     const onInvalid = (errors: any) => {
-        console.error("Form Validation Errors:", errors);
+        console.error('Form Validation Errors:', errors);
         const firstError = Object.values(errors)[0] as any;
         if (firstError?.message) {
             toast.error(firstError.message);
@@ -414,41 +408,47 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
-                <div className="flex justify-between items-center bg-slate-50 p-3 rounded-t-lg border-b">
-                    <h3 className="font-semibold text-slate-700">Re-Schedule Details</h3>
-                    <Button type="button" variant="outline" size="sm" onClick={() => form.reset()} className="bg-blue-600 text-white hover:bg-blue-700 hover:text-white border-none">
-                        <RotateCcw className="mr-2 h-4 w-4" /> Reset
+            <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className='space-y-6'>
+                <div className='flex items-center justify-between rounded-t-lg border-b bg-slate-50 p-3'>
+                    <h3 className='font-semibold text-slate-700'>Re-Schedule Details</h3>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        size='sm'
+                        onClick={() => form.reset()}
+                        className='border-none bg-blue-600 text-white hover:bg-blue-700 hover:text-white'>
+                        <RotateCcw className='mr-2 h-4 w-4' /> Reset
                     </Button>
                 </div>
 
-                <div className="bg-white p-6 border rounded-b-lg shadow-sm space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div className='space-y-4 rounded-b-lg border bg-white p-6 shadow-sm'>
+                    <div className='grid grid-cols-1 gap-6 md:grid-cols-12'>
                         {/* Left Column: Schedule Basics */}
-                        <div className="md:col-span-7 space-y-4">
-                            <div className="grid grid-cols-12 items-center gap-2">
-                                <div className="col-span-4">
-                                    <FormLabel className="text-xs font-bold flex justify-end">Previous Schedule : <span className="text-destructive ml-1">*</span></FormLabel>
+                        <div className='space-y-4 md:col-span-7'>
+                            <div className='grid grid-cols-12 items-center gap-2'>
+                                <div className='col-span-4'>
+                                    <FormLabel className='flex justify-end font-bold text-xs'>
+                                        Previous Schedule : <span className='ml-1 text-destructive'>*</span>
+                                    </FormLabel>
                                 </div>
-                                <div className="col-span-5">
+                                <div className='col-span-5'>
                                     <FormField
                                         control={form.control}
-                                        name="previousScheduleId"
+                                        name='previousScheduleId'
                                         render={({ field }) => (
                                             <Select
                                                 onValueChange={(val: string) => {
                                                     field.onChange(val);
                                                     setSelectedPrevId(val);
                                                 }}
-                                                value={field.value}
-                                            >
+                                                value={field.value}>
                                                 <FormControl>
-                                                    <SelectTrigger className="h-8 text-xs">
-                                                        <SelectValue placeholder="Select" />
+                                                    <SelectTrigger className='h-8 text-xs'>
+                                                        <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {details?.oralTestSchedule?.map((sch: any) => (
+                                                    {(details?.oralTestSchedule || details?.data?.oralTestSchedule || [])?.map((sch: any) => (
                                                         <SelectItem key={sch.paotS_Id} value={String(sch.paotS_Id)}>
                                                             {sch.paotS_ScheduleName}
                                                         </SelectItem>
@@ -458,97 +458,120 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                                         )}
                                     />
                                 </div>
-                                <div className="col-span-3">
-                                    <RadioGroup defaultValue="12" className="flex items-center space-x-2">
-                                        <div className="flex items-center space-x-1">
-                                            <RadioGroupItem value="12" id="r1" className="h-3 w-3" />
-                                            <Label htmlFor="r1" className="text-[10px] font-bold">12 Hours</Label>
+                                <div className='col-span-3'>
+                                    <RadioGroup defaultValue='12' className='flex items-center space-x-2'>
+                                        <div className='flex items-center space-x-1'>
+                                            <RadioGroupItem value='12' id='r1' className='h-3 w-3' />
+                                            <Label htmlFor='r1' className='font-bold text-[10px]'>
+                                                12 Hours
+                                            </Label>
                                         </div>
-                                        <div className="flex items-center space-x-1">
-                                            <RadioGroupItem value="24" id="r2" className="h-3 w-3" />
-                                            <Label htmlFor="r2" className="text-[10px] font-bold">24 Hours</Label>
+                                        <div className='flex items-center space-x-1'>
+                                            <RadioGroupItem value='24' id='r2' className='h-3 w-3' />
+                                            <Label htmlFor='r2' className='font-bold text-[10px]'>
+                                                24 Hours
+                                            </Label>
                                         </div>
                                     </RadioGroup>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-12 items-center gap-2">
-                                <div className="col-span-4">
-                                    <FormLabel className="text-xs font-bold flex justify-end">Re-Schedule Name : <span className="text-destructive ml-1">*</span></FormLabel>
+                            <div className='grid grid-cols-12 items-center gap-2'>
+                                <div className='col-span-4'>
+                                    <FormLabel className='flex justify-end font-bold text-xs'>
+                                        Re-Schedule Name : <span className='ml-1 text-destructive'>*</span>
+                                    </FormLabel>
                                 </div>
-                                <div className="col-span-8">
+                                <div className='col-span-8'>
                                     <FormField
                                         control={form.control}
-                                        name="paotS_ScheduleName"
+                                        name='paotS_ScheduleName'
                                         render={({ field }) => (
                                             <FormControl>
-                                                <Input {...field} placeholder="Enter reschedule name" className="h-8 text-xs" />
+                                                <Input {...field} placeholder='Enter reschedule name' className='h-8 text-xs' />
                                             </FormControl>
                                         )}
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-12 items-center gap-2">
-                                <div className="col-span-4">
-                                    <FormLabel className="text-xs font-bold flex justify-end">Schedule Date : <span className="text-destructive ml-1">*</span></FormLabel>
+                            <div className='grid grid-cols-12 items-center gap-2'>
+                                <div className='col-span-4'>
+                                    <FormLabel className='flex justify-end font-bold text-xs'>
+                                        Schedule Date : <span className='ml-1 text-destructive'>*</span>
+                                    </FormLabel>
                                 </div>
-                                <div className="col-span-8">
+                                <div className='col-span-8'>
                                     <FormField
                                         control={form.control}
-                                        name="paotS_ScheduleDate"
+                                        name='paotS_ScheduleDate'
                                         render={({ field }) => (
-                                            <DatePicker date={field.value} setDate={field.onChange} className="h-8 text-xs w-full" />
+                                            <DatePicker date={field.value} setDate={field.onChange} className='h-8 w-full text-xs' />
                                         )}
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-12 items-start gap-2">
-                                <div className="col-span-4 pt-2">
-                                    <FormLabel className="text-xs font-bold flex justify-end">Remarks :</FormLabel>
+                            <div className='grid grid-cols-12 items-start gap-2'>
+                                <div className='col-span-4 pt-2'>
+                                    <FormLabel className='flex justify-end font-bold text-xs'>Remarks :</FormLabel>
                                 </div>
-                                <div className="col-span-8">
+                                <div className='col-span-8'>
                                     <FormField
                                         control={form.control}
-                                        name="paotS_Remarks"
+                                        name='paotS_Remarks'
                                         render={({ field }) => (
                                             <FormControl>
-                                                <Textarea {...field} value={field.value ?? ''} placeholder="Enter remarks" className="min-h-[60px] text-xs resize-none" />
+                                                <Textarea
+                                                    {...field}
+                                                    value={field.value ?? ''}
+                                                    placeholder='Enter remarks'
+                                                    className='min-h-[60px] resize-none text-xs'
+                                                />
                                             </FormControl>
                                         )}
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-12 items-center gap-2">
-                                <div className="col-span-4">
-                                    <FormLabel className="text-xs font-bold flex justify-end">Supervisor :</FormLabel>
+                            <div className='grid grid-cols-12 items-center gap-2'>
+                                <div className='col-span-4'>
+                                    <FormLabel className='flex justify-end font-bold text-xs'>Supervisor :</FormLabel>
                                 </div>
-                                <div className="col-span-8">
+                                <div className='col-span-8'>
                                     <FormField
                                         control={form.control}
-                                        name="paotS_Superviser"
+                                        name='paotS_Superviser'
                                         render={({ field }) => (
                                             <FormControl>
-                                                <Input {...field} value={field.value ?? ''} placeholder="Supervisor Name" className="h-8 text-xs" />
+                                                <Input
+                                                    {...field}
+                                                    value={field.value ?? ''}
+                                                    placeholder='Supervisor Name'
+                                                    className='h-8 text-xs'
+                                                />
                                             </FormControl>
                                         )}
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-12 items-center gap-2">
-                                <div className="col-span-4">
-                                    <FormLabel className="text-xs font-bold flex justify-end">Skill/Knowledge :</FormLabel>
+                            <div className='grid grid-cols-12 items-center gap-2'>
+                                <div className='col-span-4'>
+                                    <FormLabel className='flex justify-end font-bold text-xs'>Skill/Knowledge :</FormLabel>
                                 </div>
-                                <div className="col-span-8">
+                                <div className='col-span-8'>
                                     <FormField
                                         control={form.control}
-                                        name="paotS_Skills"
+                                        name='paotS_Skills'
                                         render={({ field }) => (
                                             <FormControl>
-                                                <Input {...field} value={field.value ?? ''} placeholder="Enter Skills/Knowledge" className="h-8 text-xs" />
+                                                <Input
+                                                    {...field}
+                                                    value={field.value ?? ''}
+                                                    placeholder='Enter Skills/Knowledge'
+                                                    className='h-8 text-xs'
+                                                />
                                             </FormControl>
                                         )}
                                     />
@@ -557,88 +580,87 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                         </div>
 
                         {/* Right Column: Time and Options */}
-                        <div className="md:col-span-5 space-y-6">
-                            <div className="space-y-4 pt-4">
+                        <div className='space-y-6 md:col-span-5'>
+                            <div className='space-y-4 pt-4'>
                                 <FormField
                                     control={form.control}
-                                    name="paotS_ScheduleTime"
+                                    name='paotS_ScheduleTime'
                                     render={({ field }) => (
-                                        <TimeSpinnerField
-                                            label="Schedule Time From : *"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                        />
+                                        <TimeSpinnerField label='Schedule Time From : *' value={field.value} onChange={field.onChange} />
                                     )}
                                 />
 
                                 <FormField
                                     control={form.control}
-                                    name="paotS_ScheduleTimeTo"
+                                    name='paotS_ScheduleTimeTo'
                                     render={({ field }) => (
-                                        <TimeSpinnerField
-                                            label="Schedule Time To : *"
-                                            value={field.value}
-                                            onChange={field.onChange}
-                                        />
+                                        <TimeSpinnerField label='Schedule Time To : *' value={field.value} onChange={field.onChange} />
                                     )}
                                 />
                             </div>
 
-                            <div className="space-y-3 bg-slate-50 p-3 rounded-lg border border-dashed border-slate-300">
-                                <div className="flex flex-wrap gap-4">
+                            <div className='space-y-3 rounded-lg border border-slate-300 border-dashed bg-slate-50 p-3'>
+                                <div className='flex flex-wrap gap-4'>
                                     <FormField
                                         control={form.control}
-                                        name="meetingvc"
+                                        name='meetingvc'
                                         render={({ field }) => (
-                                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                            <FormItem className='flex items-center space-x-2 space-y-0'>
                                                 <FormControl>
                                                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                 </FormControl>
-                                                <FormLabel className="flex items-center gap-1 text-[10px] font-bold uppercase">
-                                                    <FileText className="h-3 w-3" /> Video conferencing
+                                                <FormLabel className='flex items-center gap-1 font-bold text-[10px] uppercase'>
+                                                    <FileText className='h-3 w-3' /> Video conferencing
                                                 </FormLabel>
                                             </FormItem>
                                         )}
                                     />
                                     <FormField
                                         control={form.control}
-                                        name="autostudent"
+                                        name='autostudent'
                                         render={({ field }) => (
-                                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                            <FormItem className='flex items-center space-x-2 space-y-0'>
                                                 <FormControl>
                                                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                 </FormControl>
-                                                <FormLabel className="text-[10px] font-bold uppercase">Auto Select Students</FormLabel>
+                                                <FormLabel className='font-bold text-[10px] uppercase'>Auto Select Students</FormLabel>
                                             </FormItem>
                                         )}
                                     />
                                 </div>
 
-                                <div className="space-y-2 pt-2">
-                                    <div className="grid grid-cols-12 items-center gap-2">
-                                        <div className="col-span-8">
-                                            <FormLabel className="text-[10px] font-bold flex justify-end">Individual student interaction time : <span className="text-destructive ml-1">*</span></FormLabel>
+                                <div className='space-y-2 pt-2'>
+                                    <div className='grid grid-cols-12 items-center gap-2'>
+                                        <div className='col-span-8'>
+                                            <FormLabel className='flex justify-end font-bold text-[10px]'>
+                                                Individual student interaction time : <span className='ml-1 text-destructive'>*</span>
+                                            </FormLabel>
                                         </div>
-                                        <div className="col-span-4">
+                                        <div className='col-span-4'>
                                             <FormField
                                                 control={form.control}
-                                                name="paotS_TimePeriod"
-                                                render={({ field }) => (
-                                                    <Input type="number" {...field} className="h-7 text-xs" />
-                                                )}
+                                                name='paotS_TimePeriod'
+                                                render={({ field }) => <Input type='number' {...field} className='h-7 text-xs' />}
                                             />
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-12 items-center gap-2">
-                                        <div className="col-span-8">
-                                            <FormLabel className="text-[10px] font-bold flex justify-end">No. Of Students : <span className="text-destructive ml-1">*</span></FormLabel>
+                                    <div className='grid grid-cols-12 items-center gap-2'>
+                                        <div className='col-span-8'>
+                                            <FormLabel className='flex justify-end font-bold text-[10px]'>
+                                                No. Of Students : <span className='ml-1 text-destructive'>*</span>
+                                            </FormLabel>
                                         </div>
-                                        <div className="col-span-4">
+                                        <div className='col-span-4'>
                                             <FormField
                                                 control={form.control}
-                                                name="paotS_Strength"
+                                                name='paotS_Strength'
                                                 render={({ field }) => (
-                                                    <Input type="number" {...field} className="h-7 text-xs" onChange={(e) => field.onChange(Number(e.target.value))} />
+                                                    <Input
+                                                        type='number'
+                                                        {...field}
+                                                        className='h-7 text-xs'
+                                                        onChange={(e) => field.onChange(Number(e.target.value))}
+                                                    />
                                                 )}
                                             />
                                         </div>
@@ -649,14 +671,16 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                     </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className='space-y-6'>
                     {form.watch('previousScheduleId') && (
-                        <Card className="border-slate-200 shadow-sm">
-                            <CardHeader className="bg-[#0066cc] border-b py-2 px-4 rounded-t-sm">
-                                <CardTitle className="text-sm font-bold text-white uppercase tracking-wider">Scheduled Student List</CardTitle>
+                        <Card className='border-slate-200 shadow-sm'>
+                            <CardHeader className='rounded-t-sm border-b bg-[#0066cc] px-4 py-2'>
+                                <CardTitle className='font-bold text-sm text-white uppercase tracking-wider'>
+                                    Scheduled Student List
+                                </CardTitle>
                             </CardHeader>
-                            <CardContent className="p-0">
-                                <div className="[&_.bg-slate-50]:bg-[#0066cc] [&_.bg-slate-50_th]:text-white [&_.bg-slate-50_th]:font-bold [&_.bg-slate-50_th]:text-[11px] [&_.bg-slate-50_th]:border-r [&_.bg-slate-50_th]:border-blue-400">
+                            <CardContent className='p-0'>
+                                <div className='[&_.bg-slate-50]:bg-[#0066cc] [&_.bg-slate-50_th]:border-blue-400 [&_.bg-slate-50_th]:border-r [&_.bg-slate-50_th]:font-bold [&_.bg-slate-50_th]:text-[11px] [&_.bg-slate-50_th]:text-white'>
                                     <GenericDataTable
                                         data={availableStudents}
                                         columns={availableColumns}
@@ -669,42 +693,39 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                     )}
 
                     {Number(form.watch('paotS_Strength')) > 0 && (
-                        <Card className="border-slate-200 shadow-sm overflow-hidden">
-                            <CardHeader className="bg-[#0066cc] border-b py-2 px-4 flex flex-row items-center justify-between">
-                                <CardTitle className="text-sm font-bold text-white uppercase tracking-wider">
+                        <Card className='overflow-hidden border-slate-200 shadow-sm'>
+                            <CardHeader className='flex flex-row items-center justify-between border-b bg-[#0066cc] px-4 py-2'>
+                                <CardTitle className='font-bold text-sm text-white uppercase tracking-wider'>
                                     Selected Student To Cart
                                 </CardTitle>
-                                <div className="flex items-center gap-4">
+                                <div className='flex items-center gap-4'>
                                     <FormField
                                         control={form.control}
-                                        name="meetingvc"
+                                        name='meetingvc'
                                         render={({ field }) => (
-                                            <div className="flex items-center space-x-2 bg-white/10 px-2 py-1 rounded">
+                                            <div className='flex items-center space-x-2 rounded bg-white/10 px-2 py-1'>
                                                 <Checkbox
-                                                    id="vc-check"
+                                                    id='vc-check'
                                                     checked={field.value}
                                                     onCheckedChange={field.onChange}
-                                                    className="border-white data-[state=checked]:bg-white data-[state=checked]:text-blue-600"
+                                                    className='border-white data-[state=checked]:bg-white data-[state=checked]:text-blue-600'
                                                 />
-                                                <Label htmlFor="vc-check" className="text-white text-xs font-bold flex items-center gap-1 cursor-pointer">
-                                                    <FileText className="h-3 w-3" /> Video conferencing
+                                                <Label
+                                                    htmlFor='vc-check'
+                                                    className='flex cursor-pointer items-center gap-1 font-bold text-white text-xs'>
+                                                    <FileText className='h-3 w-3' /> Video conferencing
                                                 </Label>
                                             </div>
                                         )}
                                     />
-                                    <div className="text-[11px] font-bold text-white bg-white/20 px-2 py-1 rounded border border-white/30">
+                                    <div className='rounded border border-white/30 bg-white/20 px-2 py-1 font-bold text-[11px] text-white'>
                                         Count: {cartStudents.length} / {strength}
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-0">
-                                <div className="[&_.bg-slate-50]:bg-[#0066cc] [&_.bg-slate-50_th]:text-white [&_.bg-slate-50_th]:font-bold [&_.bg-slate-50_th]:text-[11px] [&_.bg-slate-50_th]:border-r [&_.bg-slate-50_th]:border-blue-400">
-                                    <GenericDataTable
-                                        data={cartStudents}
-                                        columns={cartColumns}
-                                        isLoading={false}
-                                        isSearchRequired={true}
-                                    />
+                            <CardContent className='p-0'>
+                                <div className='[&_.bg-slate-50]:bg-[#0066cc] [&_.bg-slate-50_th]:border-blue-400 [&_.bg-slate-50_th]:border-r [&_.bg-slate-50_th]:font-bold [&_.bg-slate-50_th]:text-[11px] [&_.bg-slate-50_th]:text-white'>
+                                    <GenericDataTable data={cartStudents} columns={cartColumns} isLoading={false} isSearchRequired={true} />
                                 </div>
                             </CardContent>
                         </Card>
@@ -712,22 +733,20 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                 </div>
 
                 {Number(form.watch('paotS_Strength')) > 0 && (
-                    <div className="flex justify-center items-center gap-4 pt-6">
+                    <div className='flex items-center justify-center gap-4 pt-6'>
                         <Button
-                            type="submit"
+                            type='submit'
                             disabled={isSaving}
-                            className="px-10 bg-[#0066cc] hover:bg-blue-700 text-white font-bold h-9 flex items-center gap-2"
-                        >
-                            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                            className='flex h-9 items-center gap-2 bg-[#0066cc] px-10 font-bold text-white hover:bg-blue-700'>
+                            {isSaving ? <Loader2 className='h-4 w-4 animate-spin' /> : <Save className='h-4 w-4' />}
                             SAVE
                         </Button>
                         <Button
-                            type="button"
-                            variant="destructive"
+                            type='button'
+                            variant='destructive'
                             onClick={handleCancel}
-                            className="px-10 h-9 font-bold flex items-center gap-2 bg-[#ff4d4d] hover:bg-red-600"
-                        >
-                            <RotateCcw className="h-4 w-4" />
+                            className='flex h-9 items-center gap-2 bg-[#ff4d4d] px-10 font-bold hover:bg-red-600'>
+                            <RotateCcw className='h-4 w-4' />
                             CANCEL
                         </Button>
                     </div>
@@ -802,23 +821,41 @@ function TimeSpinnerField({
 
     return (
         <div className='flex items-center gap-4'>
-            <Label className="w-40 text-right font-medium">{label}</Label>
+            <Label className='w-40 text-right font-medium'>{label}</Label>
             <div className='flex items-center gap-2'>
                 <div ref={hoursRef} className='flex flex-col items-center'>
-                    <button type='button' onClick={() => emit((h % 12) + 1 || 12, m, ampm)} className='p-0.5'><ChevronUp className='h-4 w-4' /></button>
-                    <div className='flex h-8 w-10 items-center justify-center rounded border border-blue-400 bg-white text-sm font-bold'>{String(h).padStart(2, '0')}</div>
-                    <button type='button' onClick={() => emit(((h - 2 + 12) % 12) + 1, m, ampm)} className='p-0.5'><ChevronDown className='h-4 w-4' /></button>
+                    <button type='button' onClick={() => emit((h % 12) + 1 || 12, m, ampm)} className='p-0.5'>
+                        <ChevronUp className='h-4 w-4' />
+                    </button>
+                    <div className='flex h-8 w-10 items-center justify-center rounded border border-blue-400 bg-white font-bold text-sm'>
+                        {String(h).padStart(2, '0')}
+                    </div>
+                    <button type='button' onClick={() => emit(((h - 2 + 12) % 12) + 1, m, ampm)} className='p-0.5'>
+                        <ChevronDown className='h-4 w-4' />
+                    </button>
                 </div>
                 <span className='font-bold'>:</span>
                 <div ref={minutesRef} className='flex flex-col items-center'>
-                    <button type='button' onClick={() => emit(h, (m + 1) % 60, ampm)} className='p-0.5'><ChevronUp className='h-4 w-4' /></button>
-                    <div className='flex h-8 w-10 items-center justify-center rounded border border-blue-400 bg-white text-sm font-bold'>{String(m).padStart(2, '0')}</div>
-                    <button type='button' onClick={() => emit(h, (m - 1 + 60) % 60, ampm)} className='p-0.5'><ChevronDown className='h-4 w-4' /></button>
+                    <button type='button' onClick={() => emit(h, (m + 1) % 60, ampm)} className='p-0.5'>
+                        <ChevronUp className='h-4 w-4' />
+                    </button>
+                    <div className='flex h-8 w-10 items-center justify-center rounded border border-blue-400 bg-white font-bold text-sm'>
+                        {String(m).padStart(2, '0')}
+                    </div>
+                    <button type='button' onClick={() => emit(h, (m - 1 + 60) % 60, ampm)} className='p-0.5'>
+                        <ChevronDown className='h-4 w-4' />
+                    </button>
                 </div>
-                <div ref={ampmRef} className='flex flex-col items-center ml-2'>
-                    <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='p-0.5'><ChevronUp className='h-4 w-4' /></button>
-                    <div className='flex h-8 w-10 items-center justify-center rounded border border-blue-400 bg-white text-sm font-bold text-blue-600'>{ampm}</div>
-                    <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='p-0.5'><ChevronDown className='h-4 w-4' /></button>
+                <div ref={ampmRef} className='ml-2 flex flex-col items-center'>
+                    <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='p-0.5'>
+                        <ChevronUp className='h-4 w-4' />
+                    </button>
+                    <div className='flex h-8 w-10 items-center justify-center rounded border border-blue-400 bg-white font-bold text-blue-600 text-sm'>
+                        {ampm}
+                    </div>
+                    <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='p-0.5'>
+                        <ChevronDown className='h-4 w-4' />
+                    </button>
                 </div>
             </div>
             {error && <p className='text-red-500 text-sm'>{error}</p>}

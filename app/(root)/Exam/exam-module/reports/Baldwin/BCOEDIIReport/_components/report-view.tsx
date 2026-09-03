@@ -44,28 +44,30 @@ export default function BCOEDIIReportView({
     const getSubjectRemark = (sub: any) => {
         if (sub.emgD_Remarks) return sub.emgD_Remarks;
         if (!gradeRemarks || !Array.isArray(gradeRemarks) || gradeRemarks.length === 0) return '';
-        const remarkObj = gradeRemarks.find(r =>
-            (Number(r.emgR_Id || r.EMGR_Id) === Number(sub.emgR_Id)) &&
-            (String(r.emgD_Name || r.EMGD_Name) === String(sub.estmpS_ObtainedGrade))
+        const remarkObj = gradeRemarks.find(
+            (r) =>
+                Number(r.emgR_Id || r.EMGR_Id) === Number(sub.emgR_Id) &&
+                String(r.emgD_Name || r.EMGD_Name) === String(sub.estmpS_ObtainedGrade)
         );
-        return remarkObj ? (remarkObj.emgD_Remarks || remarkObj.EMGD_Remarks) : '';
+        return remarkObj ? remarkObj.emgD_Remarks || remarkObj.EMGD_Remarks : '';
     };
 
     const getAttendance = (list: any[], studentId: any) => {
         if (!list || !Array.isArray(list)) return {};
-        return list.find(a => Number(a.studentId) === Number(studentId)) || {};
+        return list.find((a) => Number(a.studentId ?? a.amsT_Id ?? a.AMST_Id ?? a.amst_Id ?? a.AMST_ID) === Number(studentId)) || {};
     };
 
     const calculateGrandTotalMin = (subList: any[]) => {
         return subList
-            .filter(s => s.eyceS_AplResultFlg === true || s.eyceS_AplResultFlg === 'true' || s.eyceS_AplResultFlg === 1)
+            .filter((s) => s.eyceS_AplResultFlg === true || s.eyceS_AplResultFlg === 'true' || s.eyceS_AplResultFlg === 1)
             .reduce((acc, s) => acc + (Number(s.eyceS_MinMarks) || 0), 0);
     };
 
     return (
-        <div className="space-y-6">
-            <style dangerouslySetInnerHTML={{
-                __html: `
+        <div className='space-y-6'>
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
                 @media print {
                     body * {
                         visibility: hidden !important;
@@ -138,164 +140,203 @@ export default function BCOEDIIReportView({
                     font-size: 16px;
                     font-weight: bold;
                 }
-            `}} />
+            `
+                }}
+            />
 
-            <div className="no-print flex justify-end">
-                <Button onClick={handlePrint} className="flex items-center gap-2">
-                    <Printer className="h-4 w-4" />
+            <div className='no-print flex justify-end'>
+                <Button onClick={handlePrint} className='flex items-center gap-2'>
+                    <Printer className='h-4 w-4' />
                     Print All Reports
                 </Button>
             </div>
 
-            <div id="bcoedii-report-print-area" className="bcoedii-report-container">
+            <div id='bcoedii-report-print-area' className='bcoedii-report-container'>
                 {(reportData || []).map((report, index) => {
                     const workAt = getAttendance(attendanceWork, report.student_id);
                     const presentAt = getAttendance(attendancePresent, report.student_id);
                     console.log('workAt: ', workAt);
                     console.log('presentAt: ', presentAt);
-                    const resultSubjects = (report.sub_list || []).filter((s: any) => s.eyceS_AplResultFlg === true || s.eyceS_AplResultFlg === 'true' || s.eyceS_AplResultFlg === 1);
-                    const nonResultSubjects = (report.sub_list || []).filter((s: any) => s.eyceS_AplResultFlg === false || s.eyceS_AplResultFlg === 'false' || s.eyceS_AplResultFlg === 0);
+                    const resultSubjects = (report.sub_list || []).filter(
+                        (s: any) => s.eyceS_AplResultFlg === true || s.eyceS_AplResultFlg === 'true' || s.eyceS_AplResultFlg === 1
+                    );
+                    const nonResultSubjects = (report.sub_list || []).filter(
+                        (s: any) => s.eyceS_AplResultFlg === false || s.eyceS_AplResultFlg === 'false' || s.eyceS_AplResultFlg === 0
+                    );
 
                     return (
-                        <div key={report.student_id || index} className="report-card" style={{ pageBreakBefore: index > 0 ? 'always' : 'auto' }}>
+                        <div
+                            key={report.student_id || index}
+                            className='report-card'
+                            style={{ pageBreakBefore: index > 0 ? 'always' : 'auto' }}>
                             {showLogo && (
-                                <div className="text-center mb-4">
-                                    <img src="/images/logo.png" alt="Logo" style={{ width: '100%', height: '100px', objectFit: 'contain' }} />
+                                <div className='mb-4 text-center'>
+                                    <img
+                                        src='/images/logo.png'
+                                        alt='Logo'
+                                        style={{ width: '100%', height: '100px', objectFit: 'contain' }}
+                                    />
                                 </div>
                             )}
-                            {!showLogo && <div className="h-12" />}
+                            {!showLogo && <div className='h-12' />}
 
-                            <div className="header text-center margin-bottom-10">
-                                <h3 className="font-bold text-lg">
-                                    PROGRESS REPORT<br />
-                                    ACADEMIC YEAR {academicYear || ''}<br />
+                            <div className='header margin-bottom-10 text-center'>
+                                <h3 className='font-bold text-lg'>
+                                    PROGRESS REPORT
+                                    <br />
+                                    ACADEMIC YEAR {academicYear || ''}
+                                    <br />
                                     {examName || ''}
                                 </h3>
                             </div>
 
-                            <section className="content">
-                                <div className="student-info margin-bottom-10">
-                                    <div className="grid grid-cols-12 gap-4">
-                                        <div className="col-span-6 space-y-2">
-                                            <div className="flex">
-                                                <label className="w-1/3">NAME</label>
-                                                <span className="flex-1">: {report.amsT_FirstName || ''}</span>
+                            <section className='content'>
+                                <div className='student-info margin-bottom-10'>
+                                    <div className='grid grid-cols-12 gap-4'>
+                                        <div className='col-span-6 space-y-2'>
+                                            <div className='flex'>
+                                                <label className='w-1/3'>NAME</label>
+                                                <span className='flex-1'>: {report.amsT_FirstName || ''}</span>
                                             </div>
-                                            <div className="flex">
-                                                <label className="w-1/3 text-xs">CLASS TEACHER</label>
-                                                <span className="flex-1">: {classTeacher || ''}</span>
-                                            </div>
-                                        </div>
-                                        <div className="col-span-3 space-y-2">
-                                            <div className="flex">
-                                                <label className="w-1/2">CLASS</label>
-                                                <span className="flex-1">: {report.asmcL_ClassName || ''}</span>
-                                            </div>
-                                            <div className="flex">
-                                                <label className="w-1/2">ROLL NO</label>
-                                                <span className="flex-1">: {report.amaY_RollNo || ''}</span>
+                                            <div className='flex'>
+                                                <label className='w-1/3 text-xs'>CLASS TEACHER</label>
+                                                <span className='flex-1'>: {classTeacher || ''}</span>
                                             </div>
                                         </div>
-                                        <div className="col-span-3 space-y-2">
-                                            <div className="flex">
-                                                <label className="w-1/2">SECTION</label>
-                                                <span className="flex-1">: {report.asmC_SectionName || ''}</span>
+                                        <div className='col-span-3 space-y-2'>
+                                            <div className='flex'>
+                                                <label className='w-1/2'>CLASS</label>
+                                                <span className='flex-1'>: {report.asmcL_ClassName || ''}</span>
                                             </div>
-                                            <div className="flex">
-                                                <label className="w-1/2">ADM. NO</label>
-                                                <span className="flex-1">: {report.amsT_AdmNo || ''}</span>
+                                            <div className='flex'>
+                                                <label className='w-1/2'>ROLL NO</label>
+                                                <span className='flex-1'>: {report.amaY_RollNo || ''}</span>
+                                            </div>
+                                        </div>
+                                        <div className='col-span-3 space-y-2'>
+                                            <div className='flex'>
+                                                <label className='w-1/2'>SECTION</label>
+                                                <span className='flex-1'>: {report.asmC_SectionName || ''}</span>
+                                            </div>
+                                            <div className='flex'>
+                                                <label className='w-1/2'>ADM. NO</label>
+                                                <span className='flex-1'>: {report.amsT_AdmNo || ''}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="margin-top-20">
-                                    <table className="table-bordered">
+                                <div className='margin-top-20'>
+                                    <table className='table-bordered'>
                                         <thead>
                                             <tr>
-                                                <th className="text-center" rowSpan={2} style={{ width: '300px' }}><b>SUBJECTS</b></th>
-                                                <th className="text-center" rowSpan={2}><b>MAX MARKS</b></th>
-                                                <th className="text-center" rowSpan={2}><b>MIN MARKS</b></th>
-                                                <th className="text-center" colSpan={2}><b>OBTAINED</b></th>
-                                                <th className="text-center" rowSpan={2} style={{ width: '300px' }}><b>REMARKS</b></th>
+                                                <th className='text-center' rowSpan={2} style={{ width: '300px' }}>
+                                                    <b>SUBJECTS</b>
+                                                </th>
+                                                <th className='text-center' rowSpan={2}>
+                                                    <b>MAX MARKS</b>
+                                                </th>
+                                                <th className='text-center' rowSpan={2}>
+                                                    <b>MIN MARKS</b>
+                                                </th>
+                                                <th className='text-center' colSpan={2}>
+                                                    <b>OBTAINED</b>
+                                                </th>
+                                                <th className='text-center' rowSpan={2} style={{ width: '300px' }}>
+                                                    <b>REMARKS</b>
+                                                </th>
                                             </tr>
                                             <tr>
-                                                <th className="text-center"><b>MARKS</b></th>
-                                                <th className="text-center"><b>GRADE</b></th>
+                                                <th className='text-center'>
+                                                    <b>MARKS</b>
+                                                </th>
+                                                <th className='text-center'>
+                                                    <b>GRADE</b>
+                                                </th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {resultSubjects.map((subj: any) => (
                                                 <tr key={subj.ismS_Id}>
-                                                    <td className="text-left"><b>{subj.ismS_SubjectName}</b></td>
+                                                    <td className='text-left'>
+                                                        <b>{subj.ismS_SubjectName}</b>
+                                                    </td>
                                                     <td>{subj.eyceS_MaxMarks || ''}</td>
                                                     <td>{subj.eyceS_MinMarks || ''}</td>
                                                     <td>
-                                                        {subj.estmpS_PassFailFlg !== 'AB' ? (
-                                                            subj.EYCES_MarksDisplayFlg ? subj.estmpS_ObtainedMarks : ''
-                                                        ) : 'AB'}
+                                                        {subj.estmpS_PassFailFlg !== 'AB'
+                                                            ? subj.EYCES_MarksDisplayFlg
+                                                                ? subj.estmpS_ObtainedMarks
+                                                                : ''
+                                                            : 'AB'}
                                                     </td>
                                                     <td>
-                                                        {subj.estmpS_PassFailFlg !== 'AB' ? (
-                                                            subj.EYCES_GradeDisplayFlg ? subj.estmpS_ObtainedGrade : ''
-                                                        ) : ''}
+                                                        {subj.estmpS_PassFailFlg !== 'AB'
+                                                            ? subj.EYCES_GradeDisplayFlg
+                                                                ? subj.estmpS_ObtainedGrade
+                                                                : ''
+                                                            : ''}
                                                     </td>
-                                                    <td>
-                                                        {subj.estmpS_PassFailFlg !== 'AB' ? getSubjectRemark(subj) : ''}
-                                                    </td>
+                                                    <td>{subj.estmpS_PassFailFlg !== 'AB' ? getSubjectRemark(subj) : ''}</td>
                                                 </tr>
                                             ))}
                                             <tr>
-                                                <td className="text-left font-bold">GRAND TOTAL</td>
-                                                <td className="font-bold">{report.estmP_TotalMaxMarks || ''}</td>
-                                                <td className="font-bold">{calculateGrandTotalMin(report.sub_list || [])}</td>
-                                                <td className="font-bold">{report.estmP_TotalObtMarks || ''}</td>
+                                                <td className='text-left font-bold'>GRAND TOTAL</td>
+                                                <td className='font-bold'>{report.estmP_TotalMaxMarks || ''}</td>
+                                                <td className='font-bold'>{calculateGrandTotalMin(report.sub_list || [])}</td>
+                                                <td className='font-bold'>{report.estmP_TotalObtMarks || ''}</td>
                                                 <td></td>
                                                 <td></td>
                                             </tr>
                                             {!hidePercentage && (
                                                 <tr>
-                                                    <td className="text-left font-bold">TOTAL PERCENTAGE</td>
-                                                    <td colSpan={5} className="font-bold text-center">
+                                                    <td className='text-left font-bold'>TOTAL PERCENTAGE</td>
+                                                    <td colSpan={5} className='text-center font-bold'>
                                                         {report.estmP_Percentage || ''}
                                                     </td>
                                                 </tr>
                                             )}
                                             {showRank && (
                                                 <tr>
-                                                    <td className="text-left font-bold">RANK IN SECTION</td>
-                                                    <td colSpan={5} className="font-bold text-center">
-                                                        {report.estmP_SectionRank && report.estmP_SectionRank !== '0' ? report.estmP_SectionRank : ''}
+                                                    <td className='text-left font-bold'>RANK IN SECTION</td>
+                                                    <td colSpan={5} className='text-center font-bold'>
+                                                        {report.estmP_SectionRank && report.estmP_SectionRank !== '0'
+                                                            ? report.estmP_SectionRank
+                                                            : ''}
                                                     </td>
                                                 </tr>
                                             )}
                                             {nonResultSubjects.map((subj: any) => (
                                                 <tr key={subj.ismS_Id}>
-                                                    <td className="text-left"><b>{subj.ismS_SubjectName}</b></td>
+                                                    <td className='text-left'>
+                                                        <b>{subj.ismS_SubjectName}</b>
+                                                    </td>
                                                     <td></td>
                                                     <td></td>
                                                     <td></td>
                                                     <td>
-                                                        {subj.estmpS_PassFailFlg !== 'AB' ? (
-                                                            subj.EYCES_GradeDisplayFlg ? subj.estmpS_ObtainedGrade : ''
-                                                        ) : subj.estmpS_PassFailFlg}
+                                                        {subj.estmpS_PassFailFlg !== 'AB'
+                                                            ? subj.EYCES_GradeDisplayFlg
+                                                                ? subj.estmpS_ObtainedGrade
+                                                                : ''
+                                                            : subj.estmpS_PassFailFlg}
                                                     </td>
-                                                    <td>
-                                                        {subj.estmpS_PassFailFlg !== 'AB' ? getSubjectRemark(subj) : ''}
-                                                    </td>
+                                                    <td>{subj.estmpS_PassFailFlg !== 'AB' ? getSubjectRemark(subj) : ''}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
                                 </div>
 
-                                <div className="margin-top-10">
-                                    <table className="table-bordered">
+                                <div className='margin-top-10'>
+                                    <table className='table-bordered'>
                                         <thead>
                                             <tr>
-                                                <th colSpan={16} className="text-center font-bold">ATTENDANCE</th>
+                                                <th colSpan={16} className='text-center font-bold'>
+                                                    ATTENDANCE
+                                                </th>
                                             </tr>
-                                            <tr className="text-center font-bold">
+                                            <tr className='text-center font-bold'>
                                                 <td colSpan={2}>MONTH</td>
                                                 <td>JUN</td>
                                                 <td>JUL</td>
@@ -315,7 +356,9 @@ export default function BCOEDIIReportView({
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td colSpan={2} className="font-bold">WORKING DAYS</td>
+                                                <td colSpan={2} className='font-bold'>
+                                                    WORKING DAYS
+                                                </td>
                                                 <td>{workAt.june || ''}</td>
                                                 <td>{workAt.july || ''}</td>
                                                 <td>{workAt.august || ''}</td>
@@ -328,11 +371,13 @@ export default function BCOEDIIReportView({
                                                 <td>{workAt.march || ''}</td>
                                                 <td>{workAt.april || ''}</td>
                                                 <td>{workAt.may || ''}</td>
-                                                <td className="font-bold">{workAt.totalSchoolDays || ''}</td>
-                                                <td className="font-bold">{workAt.total_Percentage || ''}</td>
+                                                <td className='font-bold'>{workAt.totalSchoolDays || ''}</td>
+                                                <td className='font-bold'>{workAt.total_Percentage || ''}</td>
                                             </tr>
                                             <tr>
-                                                <td colSpan={2} className="font-bold">PRESENT DAYS</td>
+                                                <td colSpan={2} className='font-bold'>
+                                                    PRESENT DAYS
+                                                </td>
                                                 <td>{presentAt.june || ''}</td>
                                                 <td>{presentAt.july || ''}</td>
                                                 <td>{presentAt.august || ''}</td>
@@ -345,36 +390,34 @@ export default function BCOEDIIReportView({
                                                 <td>{presentAt.march || ''}</td>
                                                 <td>{presentAt.april || ''}</td>
                                                 <td>{presentAt.may || ''}</td>
-                                                <td className="font-bold">{presentAt.totalWorkingDays || ''}</td>
-                                                <td className="font-bold">{presentAt.total_Percentage || ''}</td>
+                                                <td className='font-bold'>{presentAt.totalWorkingDays || ''}</td>
+                                                <td className='font-bold'>{presentAt.total_Percentage || ''}</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
 
-                                <table className="table margin-top-20 w-full">
+                                <table className='margin-top-20 table w-full'>
                                     <tbody>
                                         <tr>
-                                            <td className="w-1/3 font-bold">CLASS TEACHER'S REMARKS</td>
-                                            <td className="text-center border-bottom">
-                                                {report.estmP_TotalGradeRemark || ''}
-                                            </td>
+                                            <td className='w-1/3 font-bold'>CLASS TEACHER'S REMARKS</td>
+                                            <td className='border-bottom text-center'>{report.estmP_TotalGradeRemark || ''}</td>
                                         </tr>
                                     </tbody>
                                 </table>
 
-                                <div className="margin-top-50">
-                                    <table className="table w-full">
+                                <div className='margin-top-50'>
+                                    <table className='table w-full'>
                                         <tbody>
                                             <tr>
-                                                <td className="text-left">
-                                                    <span className="border-top font-bold">PARENT'S SIGNATURE & Date</span>
+                                                <td className='text-left'>
+                                                    <span className='border-top font-bold'>PARENT'S SIGNATURE & Date</span>
                                                 </td>
-                                                <td className="text-center">
-                                                    <span className="border-top font-bold">CLASS TEACHER'S SIGNATURE & Date</span>
+                                                <td className='text-center'>
+                                                    <span className='border-top font-bold'>CLASS TEACHER'S SIGNATURE & Date</span>
                                                 </td>
-                                                <td className="text-right">
-                                                    <span className="border-top font-bold">PRINCIPAL'S SIGNATURE & Date</span>
+                                                <td className='text-right'>
+                                                    <span className='border-top font-bold'>PRINCIPAL'S SIGNATURE & Date</span>
                                                 </td>
                                             </tr>
                                         </tbody>

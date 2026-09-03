@@ -12,7 +12,7 @@ import StJamesXI_XIIReportList from './_components/report-list';
 export default function StJamesXI_XIIProgressCardPage() {
     const [reportData, setReportData] = useState<any>(null);
     const [isReportVisible, setIsReportVisible] = useState(false);
-    const [institution, setInstitution] = useState<IMasterInstitution | Institution | null>(null);
+    const [_institution, setInstitution] = useState<IMasterInstitution | Institution | null>(null);
     const [reportType, setReportType] = useState('indi');
     const [displayAttendance, setDisplayAttendance] = useState(true);
     const printRef = useRef<HTMLDivElement>(null);
@@ -27,7 +27,10 @@ export default function StJamesXI_XIIProgressCardPage() {
         try {
             const response = await getStJamesExamReport(payload);
             if (response?.data && response.success) {
-                setReportData(response.data);
+                setReportData({
+                    ...response.data,
+                    year: payload.asmaY_Year
+                });
                 setReportType(payload.reporttype);
                 setDisplayAttendance(payload.displayAttendance);
                 setIsReportVisible(true);
@@ -63,11 +66,7 @@ export default function StJamesXI_XIIProgressCardPage() {
             {isReportVisible && reportData && (
                 <CollapsibleSection title='Progress Cards Report' defaultOpen>
                     <div ref={printRef}>
-                        <StJamesXI_XIIReportList 
-                            data={reportData} 
-                            reporttype={reportType} 
-                            displayAttendance={displayAttendance} 
-                        />
+                        <StJamesXI_XIIReportList data={reportData} reporttype={reportType} displayAttendance={displayAttendance} />
                     </div>
                 </CollapsibleSection>
             )}

@@ -6,12 +6,12 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useGuestAllotments } from '@/hooks/hostel/hostel-management/useGuestAllotment';
 import { Plus, X } from 'lucide-react';
-import React, { use, useEffect } from 'react';
+import { useEffect } from 'react';
 
 import GuestAllotmentForm from './_components/add-form';
-import ToggleGuestAllotmentForm from './_components/toggle-form';
 import { guestAllotmentColumns } from './_components/columns';
 import type { GuestAllotmentColumn } from './_components/columns';
+import ToggleGuestAllotmentForm from './_components/toggle-form';
 
 export default function GuestAllotmentPage() {
     const { data: response, isLoading, error, refetchAll } = useGuestAllotments();
@@ -115,7 +115,12 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GuestAllotmentForm onSuccess={() => { closeAddForm(); onSuccess(); }} />
+                            <GuestAllotmentForm
+                                onSuccess={() => {
+                                    closeAddForm();
+                                    onSuccess();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -140,7 +145,13 @@ function FormSections({ onSuccess }: { onSuccess: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <GuestAllotmentForm initialData={selectedRow} onSuccess={() => { closeEditForm(); onSuccess(); }} />
+                            <GuestAllotmentForm
+                                initialData={selectedRow}
+                                onSuccess={() => {
+                                    closeEditForm();
+                                    onSuccess();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

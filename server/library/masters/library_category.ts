@@ -2,7 +2,6 @@
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
-import type { IMasterCategoryList } from '@/types/library/masters/masters';
 
 export async function getMasterCategoryList(searchParams?: ApiSearchparams) {
     try {

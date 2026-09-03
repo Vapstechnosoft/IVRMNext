@@ -105,7 +105,8 @@ function FeeGroupMappingContent({
                 {/* Add Button */}
                 <Button
                     onClick={openAddForm}
-                    className='mt-8 h-10 w-full rounded-lg bg-orange-500 px-4 font-medium text-white shadow-md transition-all duration-200 hover:bg-orange-600 hover:shadow-lg sm:w-auto'>
+                    type='button'
+                    className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                     <Plus className='mr-2 h-4 w-4' />
                     Add Yearly Group Mapping
                 </Button>
@@ -125,7 +126,6 @@ function FeeGroupMappingContent({
                         searchQuery={searchQuery}
                         loadingMessage='Loading fee group mappings...'
                         noDataTitle='No Records Found'
-                        manualPagination={true}
                         noDataDescription={
                             academicYearIdNew === 0
                                 ? 'Please select an Academic Year to view fee group mappings.'

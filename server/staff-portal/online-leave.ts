@@ -1,13 +1,8 @@
-
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
-import {
-    IOnlineLeaveInitialResponse,
-    IOnlineLeaveHistoryResponse,
-    ILeaveApplicationRequest
-} from '@/types/staff-portal/online-leave';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
+import { api } from '@/lib/apiService';
+import type { ILeaveApplicationRequest, IOnlineLeaveHistoryResponse, IOnlineLeaveInitialResponse } from '@/types/staff-portal/online-leave';
 
 const BASE_URL = 'OnlineLeaveApplication';
 
@@ -17,7 +12,7 @@ const BASE_URL = 'OnlineLeaveApplication';
  */
 export async function getInitialLeaveData() {
     try {
-        console.log("🔵 [SERVER] getInitialLeaveData");
+        console.log('🔵 [SERVER] getInitialLeaveData');
         const url = `/api/OnlineLeaveApplication/get_employee_leave_details?MI_Id=${HRMS_MI_ID}`;
 
         console.log(`🌐 [SERVER] Calling: GET ${url} on hmslms`);
@@ -44,7 +39,7 @@ export async function getInitialLeaveData() {
  */
 export async function getLeaveHistory() {
     try {
-        console.log("🔵 [SERVER] getLeaveHistory");
+        console.log('🔵 [SERVER] getLeaveHistory');
         const url = `/api/OnlineLeaveApplication/get_employee_leave_status_details?MI_Id=${HRMS_MI_ID}`;
 
         console.log(`🌐 [SERVER] Calling: GET ${url} on hmslms`);

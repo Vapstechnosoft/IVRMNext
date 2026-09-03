@@ -412,4 +412,3 @@ export interface LeaveBalanceHistoryItem {
     empBalanceLeaves: number;
     empUsedLeaves: number;
 }
-

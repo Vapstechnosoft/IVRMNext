@@ -22,12 +22,7 @@ interface UpdateMasterFuelTypeFormProps {
     selectedRow: IMasterFuelType;
 }
 
-export default function UpdateMasterFuelTypeForm({
-    onSuccess,
-    onClose,
-    className = '',
-    selectedRow: row
-}: UpdateMasterFuelTypeFormProps) {
+export default function UpdateMasterFuelTypeForm({ onSuccess, onClose, className = '', selectedRow: row }: UpdateMasterFuelTypeFormProps) {
     const { refetchAll } = useMasterFuelType();
 
     const {

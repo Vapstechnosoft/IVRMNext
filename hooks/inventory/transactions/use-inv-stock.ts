@@ -1,13 +1,13 @@
-
+import {
+    getInvMasterItemList,
+    getInvStockEditData,
+    getInvStockItems,
+    getInvStockLoadData,
+    getInvStockLoadStores,
+    saveInvStock
+} from '@/server/inventory/transactions/inv-stock';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-    getInvStockLoadData,
-    saveInvStock,
-    getInvStockEditData,
-    getInvStockLoadStores,
-    getInvStockItems
-} from '@/server/inventory/transactions/inv-stock';
 
 export const useInvStock = (searchParams?: any) => {
     const queryClient = useQueryClient();
@@ -15,7 +15,7 @@ export const useInvStock = (searchParams?: any) => {
     const query = useQuery({
         queryKey: ['inv-stock', searchParams],
         queryFn: () => getInvStockLoadData(searchParams),
-        staleTime: 5 * 60 * 1000,
+        staleTime: 5 * 60 * 1000
     });
 
     const saveMutation = useMutation({
@@ -34,17 +34,23 @@ export const useInvStock = (searchParams?: any) => {
     });
 
     const editMutation = useMutation({
-        mutationFn: (id: number) => getInvStockEditData(id),
+        mutationFn: (id: number) => getInvStockEditData(id)
     });
 
     const getStoresQuery = useQuery({
         queryKey: ['inv-stock-stores'],
         queryFn: () => getInvStockLoadStores(),
-        staleTime: Infinity,
+        staleTime: Number.POSITIVE_INFINITY
+    });
+
+    const getItemsQuery = useQuery({
+        queryKey: ['inv-stock-items'],
+        queryFn: () => getInvMasterItemList(),
+        staleTime: Number.POSITIVE_INFINITY
     });
 
     const getItemsMutation = useMutation({
-        mutationFn: (storeId: number) => getInvStockItems(storeId),
+        mutationFn: (storeId: number) => getInvStockItems(storeId)
     });
 
     return {
@@ -55,6 +61,7 @@ export const useInvStock = (searchParams?: any) => {
         saveMutation,
         editMutation,
         getStoresQuery,
+        getItemsQuery,
         getItemsMutation
     };
 };

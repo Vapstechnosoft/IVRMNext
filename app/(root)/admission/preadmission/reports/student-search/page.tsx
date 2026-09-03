@@ -8,15 +8,15 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStudentSearch } from '@/hooks/admission/preadmission/useReports';
 import { studentSearchSchema } from '@/schemas/admission/preadmission/reports';
+import { getStudentSearch } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FileSpreadsheet, Plus, Printer, RotateCcw, Search, Trash2 } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import type { z } from 'zod';
-import * as XLSX from 'xlsx';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
-import { getStudentSearch } from '@/server/admission/preadmission/reports/student_yearly_attendance';
+import * as XLSX from 'xlsx';
+import type { z } from 'zod';
 import { type StudentData, studentSearchColumns } from './_components/columns';
 import { StudentSearchPrint } from './_components/student-search-print';
 
@@ -101,6 +101,7 @@ export default function StudentSearchPage(props: {
     const {
         data: response,
         isLoading,
+        isFetching,
         error,
         refetch: refetchStudentSearch
     } = useStudentSearch(
@@ -111,6 +112,15 @@ export default function StudentSearchPage(props: {
         searchQuery?.condition || '',
         searchParams
     );
+
+    React.useEffect(() => {
+        if (!isFetching && showReport && response) {
+            const results = (response?.data as any)?.searchResult;
+            if (!results || results.length === 0) {
+                toast.error('Data Not Found');
+            }
+        }
+    }, [isFetching, showReport, response]);
 
     const tableProps = useDataTableProps({
         ...response,
@@ -137,12 +147,7 @@ export default function StudentSearchPage(props: {
     };
 
     const handleReset = () => {
-        reset({
-            status: 'all',
-            criteria: [{ field: '', operator: '', value: '', condition: '' }]
-        });
-        setShowReport(false);
-        setSearchQuery(null);
+        window.location.reload();
     };
 
     const printRef = useRef<HTMLDivElement>(null);
@@ -468,7 +473,7 @@ export default function StudentSearchPage(props: {
                 <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '297mm' }}>
                     <StudentSearchPrint
                         ref={printRef}
-                        data={allPrintData.length > 0 ? allPrintData : ((response?.data as any)?.searchResult || [])}
+                        data={allPrintData.length > 0 ? allPrintData : (response?.data as any)?.searchResult || []}
                     />
                 </div>
 

@@ -40,10 +40,10 @@ export default function UpdateMasterPublisherForm({ onSuccess, className = '', s
         if (row) {
             reset({
                 lmP_Id: row.lmP_Id,
-                lmP_PublisherName: row.lmP_PublisherName,
-                lmP_EMailId: row.lmP_EMailId,
-                lmP_MobileNo: row.lmP_MobileNo,
-                lmP_Address: row.lmP_Address
+                lmP_PublisherName: row.lmP_PublisherName || '',
+                lmP_EMailId: row.lmP_EMailId || '',
+                lmP_MobileNo: row.lmP_MobileNo || '',
+                lmP_Address: row.lmP_Address || ''
             });
         }
     }, [row, reset]);
@@ -84,7 +84,6 @@ export default function UpdateMasterPublisherForm({ onSuccess, className = '', s
                         />
                         <InputText
                             label='Email Id'
-                            required
                             placeholder='e.g. contact@publisher.com'
                             {...register('lmP_EMailId')}
                             error={errors.lmP_EMailId?.message}
@@ -97,8 +96,17 @@ export default function UpdateMasterPublisherForm({ onSuccess, className = '', s
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Mobile No'
-                            required
+                            id='lmP_MobileNo'
                             placeholder='10-digit mobile number'
+                            maxLength={10}
+                            onKeyDown={(e) => {
+                                if (e.key.length === 1 && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                                e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '').slice(0, 10);
+                            }}
                             {...register('lmP_MobileNo')}
                             error={errors.lmP_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -109,7 +117,6 @@ export default function UpdateMasterPublisherForm({ onSuccess, className = '', s
                 <div className='space-y-4'>
                     <InputTextarea
                         label='Address'
-                        required
                         placeholder='Enter the complete office address'
                         {...register('lmP_Address')}
                         error={errors.lmP_Address?.message}
@@ -118,8 +125,6 @@ export default function UpdateMasterPublisherForm({ onSuccess, className = '', s
                     {/* Root Error */}
                     {errors.root?.message && <FormError>{errors.root.message}</FormError>}
                 </div>
-
-
 
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>

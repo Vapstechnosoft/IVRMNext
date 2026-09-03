@@ -5,19 +5,11 @@ import { DataTable } from '@/components/ui/data-table/data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useLeaveYearDropdown, useMonthDropdown } from '@/hooks/hrms/useMasters';
-import {
-    useSalaryAdvanceGrid,
-    useSalaryAdvanceEmployeeDropdown
-} from '@/hooks/hrms/useTransactions';
+import { useSalaryAdvanceEmployeeDropdown, useSalaryAdvanceGrid } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import type {
-    SalaryAdvanceGridItem,
-    SalaryAdvanceEmployeeDropdownItem
-} from '@/types/hrms/salary-advance';
+import type { SalaryAdvanceEmployeeDropdownItem, SalaryAdvanceGridItem } from '@/types/hrms/salary-advance';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
 import { ActionsCell } from './_components/actions-cell';
 import FormSections from './_components/form-sections';
 
@@ -146,8 +138,8 @@ function SalaryAdvancePageContent({
                                 status === 'Approved'
                                     ? 'bg-green-100 text-green-800'
                                     : status === 'Rejected'
-                                        ? 'bg-red-100 text-red-800'
-                                        : 'bg-yellow-100 text-yellow-800'
+                                      ? 'bg-red-100 text-red-800'
+                                      : 'bg-yellow-100 text-yellow-800'
                             )}>
                             {status}
                         </span>
@@ -156,7 +148,7 @@ function SalaryAdvancePageContent({
                 enableSorting: true,
                 enableHiding: true
             },
-            
+
             {
                 id: 'actions',
                 header: 'Actions',
@@ -174,8 +166,6 @@ function SalaryAdvancePageContent({
                     data={advances}
                     totalItems={advances.length}
                     isLoading={isLoading}
-                    manualPagination={false}
-                    manualFiltering={false}
                     showSearchColumns={true}
                 />
             </div>
@@ -201,20 +191,12 @@ function SalaryAdvancePageContent({
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                     <div className='space-y-4'>
-                        <SalaryAdvanceTable
-                            advances={filteredAdvances}
-                            isLoading={isLoading}
-                            getEmployeeNameById={getEmployeeNameById}
-                        />
+                        <SalaryAdvanceTable advances={filteredAdvances} isLoading={isLoading} getEmployeeNameById={getEmployeeNameById} />
                     </div>
                 </CollapsibleSection>
                 {/* Forms Section - Moved after table */}
-                <FormSections
-                    employeeDropdown={employees}
-                    onSuccess={refetch}
-                />
+                <FormSections employeeDropdown={employees} onSuccess={refetch} />
             </div>
         </div>
     );
 }
-

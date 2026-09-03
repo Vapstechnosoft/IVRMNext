@@ -38,6 +38,7 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
     const [selectedSection, setSelectedSection] = useState<number | undefined>();
     const [selectedSubject, setSelectedSubject] = useState<number | undefined>();
     const [nop, setNop] = useState<string>('');
+    const [gridErrors, setGridErrors] = useState<any>({});
 
     const form = useForm<FixingDayStaffSchema>({
         resolver: zodResolver(fixingDayStaffSchema),
@@ -51,7 +52,14 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
         }
     });
 
-    const { setValue, watch, handleSubmit, formState: { isSubmitting }, control, reset } = form;
+    const {
+        setValue,
+        watch,
+        handleSubmit,
+        formState: { isSubmitting },
+        control,
+        reset
+    } = form;
     const asmaY_Id = watch('asmaY_Id');
     const ttfdS_SUbSelcFlag = watch('ttfdS_SUbSelcFlag');
 
@@ -128,22 +136,22 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         extractList(res, 'classlist').length > 0
                             ? extractList(res, 'classlist')
                             : extractList(res, 'clssbystaff').length > 0
-                                ? extractList(res, 'clssbystaff')
-                                : extractList(res, 'clsbystaff');
+                              ? extractList(res, 'clssbystaff')
+                              : extractList(res, 'clsbystaff');
 
                     const sections =
                         extractList(res, 'sectionlist').length > 0
                             ? extractList(res, 'sectionlist')
                             : extractList(res, 'secsbystaff').length > 0
-                                ? extractList(res, 'secsbystaff')
-                                : extractList(res, 'sectionlistbystaff');
+                              ? extractList(res, 'secsbystaff')
+                              : extractList(res, 'sectionlistbystaff');
 
                     const subjects =
                         extractList(res, 'subjectlist').length > 0
                             ? extractList(res, 'subjectlist')
                             : extractList(res, 'subsbystaff').length > 0
-                                ? extractList(res, 'subsbystaff')
-                                : extractList(res, 'subjectlistbystaff');
+                              ? extractList(res, 'subsbystaff')
+                              : extractList(res, 'subjectlistbystaff');
 
                     setMasterClasses(classes);
                     setMasterSections(sections);
@@ -167,10 +175,26 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
     };
 
     const addToGrid = () => {
-        if (!selectedClass || !selectedSection || !selectedSubject || !nop) {
-            toast.warning('Please select all fields');
+        console.log('Add button clicked. Current state:', { selectedClass, selectedSection, selectedSubject, nop });
+
+        const errs: any = {};
+        if (!selectedClass || selectedClass <= 0) errs.class = 'Class is required';
+        if (!selectedSection || selectedSection <= 0) errs.section = 'Section is required';
+        if (!selectedSubject || selectedSubject <= 0) errs.subject = 'Subject is required';
+        if (!nop || Number(nop) <= 0) errs.nop = 'Periods is required';
+
+        console.log('Validation errors evaluated as:', errs);
+
+        if (Object.keys(errs).length > 0) {
+            setGridErrors(errs);
+            toast.warning('Please select all required fields');
             return;
         }
+
+        setGridErrors({});
+        console.log('Validation passed, proceeding to add to grid.');
+
+        if (!selectedClass || !selectedSection || !selectedSubject || !nop) return;
 
         const clsObj = classList.find((c) => c.asmcL_Id === selectedClass);
         const secObj = sectionList.find((s) => s.asmS_Id === selectedSection);
@@ -220,7 +244,15 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                 data.tempararyArrayList = [];
             } else {
                 if (!data.tempararyArrayList || data.tempararyArrayList.length === 0) {
-                    toast.warning("Please add at least one Class Details");
+                    // Trigger validation errors for the grid inputs so they turn red
+                    const errs: any = {};
+                    if (!selectedClass || selectedClass <= 0) errs.class = 'Class is required';
+                    if (!selectedSection || selectedSection <= 0) errs.section = 'Section is required';
+                    if (!selectedSubject || selectedSubject <= 0) errs.subject = 'Subject is required';
+                    if (!nop || Number(nop) <= 0) errs.nop = 'Periods is required';
+
+                    setGridErrors(errs);
+                    toast.warning('Please add at least one Class Details');
                     return;
                 }
             }
@@ -252,12 +284,18 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Academic Year</FormLabel>
+                                <FormLabel>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
                                 <Select
                                     key={field.value?.toString() || 'empty'}
                                     onValueChange={(v) => handleAcademicYearChange(Number(v))}
                                     value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {academicList.map((item: any, idx: number) => (
                                             <SelectItem key={item.asmaY_Id || `acad-${idx}`} value={item.asmaY_Id?.toString()}>
@@ -276,9 +314,18 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         name='ttmD_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Day</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                <FormLabel>
+                                    Day <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => field.onChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
                                         {dayList.map((item: any, idx: number) => (
                                             <SelectItem key={item.ttmD_Id || `day-${idx}`} value={item.ttmD_Id?.toString()}>
@@ -297,15 +344,26 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         name='hrmE_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Staff</FormLabel>
-                                <Select key={field.value?.toString() || 'empty'} onValueChange={(v) => handleStaffChange(Number(v))} value={field.value?.toString()}>
-                                    <FormControl><SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger></FormControl>
+                                <FormLabel>
+                                    Staff <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={field.value?.toString() || 'empty'}
+                                    onValueChange={(v) => handleStaffChange(Number(v))}
+                                    value={field.value?.toString()}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select' />
+                                        </SelectTrigger>
+                                    </FormControl>
                                     <SelectContent>
-                                        {staffList.filter((item: any) => item.hrmE_Id).map((item: any, idx: number) => (
-                                            <SelectItem key={item.hrmE_Id || `staff-${idx}`} value={item.hrmE_Id?.toString()}>
-                                                {item.staffName?.trim()}
-                                            </SelectItem>
-                                        ))}
+                                        {staffList
+                                            .filter((item: any) => item.hrmE_Id)
+                                            .map((item: any, idx: number) => (
+                                                <SelectItem key={item.hrmE_Id || `staff-${idx}`} value={item.hrmE_Id?.toString()}>
+                                                    {item.staffName?.trim()}
+                                                </SelectItem>
+                                            ))}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -336,9 +394,16 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                         <h4 className='font-semibold'>Add Class Details</h4>
                         <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-5'>
                             <div className='space-y-2'>
-                                <FormLabel>Class</FormLabel>
-                                <Select key={selectedClass?.toString() || 'empty'} onValueChange={(v) => handleClassChange(Number(v))} value={selectedClass?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                <FormLabel>
+                                    Class <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={selectedClass?.toString() || 'empty'}
+                                    onValueChange={(v) => handleClassChange(Number(v))}
+                                    value={selectedClass?.toString()}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {isClassLoading ? (
                                             <SelectItem value='loading'>Loading...</SelectItem>
@@ -347,49 +412,86 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                                                 const id = item.asmcL_Id ?? item.asmcl_id ?? item.ASMCL_Id;
                                                 const name = item.asmcL_ClassName ?? item.className ?? '';
                                                 return (
-                                                    <SelectItem key={id || `cls-${idx}`} value={id?.toString()}>{name}</SelectItem>
+                                                    <SelectItem key={id || `cls-${idx}`} value={id?.toString()}>
+                                                        {name}
+                                                    </SelectItem>
                                                 );
                                             })
                                         )}
                                     </SelectContent>
                                 </Select>
+                                {gridErrors.class && <p className='mt-1 font-medium text-[0.8rem] text-destructive'>{gridErrors.class}</p>}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Section</FormLabel>
-                                <Select key={selectedSection?.toString() || 'empty'} onValueChange={(v) => handleSectionChange(Number(v))} value={selectedSection?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                <FormLabel>
+                                    Section <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={selectedSection?.toString() || 'empty'}
+                                    onValueChange={(v) => handleSectionChange(Number(v))}
+                                    value={selectedSection?.toString()}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {sectionList.map((item: any, idx: number) => {
                                             const id = item.asmS_Id ?? item.asms_id ?? item.ASMS_Id;
                                             const name = item.asmC_SectionName ?? item.asmS_SectionName ?? item.sectionName ?? '';
                                             return (
-                                                <SelectItem key={id || `sec-${idx}`} value={id?.toString()}>{name}</SelectItem>
+                                                <SelectItem key={id || `sec-${idx}`} value={id?.toString()}>
+                                                    {name}
+                                                </SelectItem>
                                             );
                                         })}
                                     </SelectContent>
                                 </Select>
+                                {gridErrors.section && (
+                                    <p className='mt-1 font-medium text-[0.8rem] text-destructive'>{gridErrors.section}</p>
+                                )}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Subject</FormLabel>
-                                <Select key={selectedSubject?.toString() || 'empty'} onValueChange={(v) => setSelectedSubject(Number(v))} value={selectedSubject?.toString()}>
-                                    <SelectTrigger><SelectValue placeholder='Select' /></SelectTrigger>
+                                <FormLabel>
+                                    Subject <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select
+                                    key={selectedSubject?.toString() || 'empty'}
+                                    onValueChange={(v) => setSelectedSubject(Number(v))}
+                                    value={selectedSubject?.toString()}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder='Select' />
+                                    </SelectTrigger>
                                     <SelectContent>
                                         {subSubjectList.map((item: any, idx: number) => {
                                             const id = item.ismS_Id ?? item.isms_id ?? item.ISMS_Id;
                                             const name = item.ismS_SubjectName ?? item.subjectName ?? '';
                                             return (
-                                                <SelectItem key={id || `sub-${idx}`} value={id?.toString()}>{name}</SelectItem>
+                                                <SelectItem key={id || `sub-${idx}`} value={id?.toString()}>
+                                                    {name}
+                                                </SelectItem>
                                             );
                                         })}
                                     </SelectContent>
                                 </Select>
+                                {gridErrors.subject && (
+                                    <p className='mt-1 font-medium text-[0.8rem] text-destructive'>{gridErrors.subject}</p>
+                                )}
                             </div>
                             <div className='space-y-2'>
-                                <FormLabel>Periods</FormLabel>
-                                <Input type='number' value={nop} onChange={(e) => setNop(e.target.value)} />
+                                <FormLabel>
+                                    Periods <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Input
+                                    type='number'
+                                    value={nop}
+                                    onChange={(e) => setNop(e.target.value)}
+                                    placeholder='Enter No Of Periods'
+                                />
+                                {gridErrors.nop && <p className='mt-1 font-medium text-[0.8rem] text-destructive'>{gridErrors.nop}</p>}
                             </div>
                         </div>
-                        <Button type='button' onClick={addToGrid}>Add</Button>
+                        <Button type='button' onClick={addToGrid}>
+                            Add
+                        </Button>
 
                         {fields.length > 0 && <DataTable data={fields} columns={subColumns} totalItems={fields.length} />}
                     </div>

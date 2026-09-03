@@ -6,8 +6,7 @@ import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterClassCategoryList } from '@/types/admission/preadmission/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
-import { useCallback, useState } from 'react';
-import ViewDetailModal from './section-columns';
+import { useCallback } from 'react';
 
 export const masterClassCategoryColumns: ColumnDef<IMasterClassCategoryList>[] = [
     {
@@ -53,8 +52,7 @@ export const masterClassCategoryColumns: ColumnDef<IMasterClassCategoryList>[] =
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterClassCategoryList }) {
-    const { openToggleForm, openEditForm } = useFormContext<IMasterClassCategoryList>();
-    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const { openToggleForm, openEditForm, openDetailsView } = useFormContext<IMasterClassCategoryList>();
 
     const handleToggle = useCallback(
         (data: IMasterClassCategoryList) => {
@@ -71,26 +69,23 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterClassCategoryList }) {
     );
 
     return (
-        <>
-            <div className='flex items-center gap-2'>
-                <Button
-                    type='button'
-                    variant='ghost'
-                    size='sm'
-                    onClick={() => setIsViewModalOpen(true)}
-                    title='View Details'
-                    className='flex justify-start'>
-                    <Eye className='h-4 w-4' />
-                </Button>
-                <ActionButtons
-                    rowData={rowData}
-                    buttons={{ edit: true, toggle: true, delete: false }}
-                    onToggle={handleToggle}
-                    onEdit={handleEdit}
-                    toggleConditionKey='is_Active'
-                />
-            </div>
-            {isViewModalOpen && <ViewDetailModal rowData={rowData} isOpen={isViewModalOpen} onClose={() => setIsViewModalOpen(false)} />}
-        </>
+        <div className='flex items-center gap-2'>
+            <Button
+                type='button'
+                variant='ghost'
+                size='sm'
+                onClick={() => openDetailsView(rowData)}
+                title='View Details'
+                className='flex justify-start'>
+                <Eye className='h-4 w-4' />
+            </Button>
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: true, toggle: true, delete: false }}
+                onToggle={handleToggle}
+                onEdit={handleEdit}
+                toggleConditionKey='is_Active'
+            />
+        </div>
     );
 }

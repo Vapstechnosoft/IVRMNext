@@ -64,6 +64,7 @@ import {
     getFeeProspectusTransactionList,
     getPreadmissionStudentDropdownData
 } from '@/server/fees/trasactions/feepreadmissiontrasaction';
+import { getStudentFeeEnablePartialPaymentDetails } from '@/server/fees/trasactions/student_fee_enable_partial_payment';
 import {
     getThirdPartyTrasaction,
     getThirdPartyTrasactionBankDropDown,
@@ -1215,15 +1216,14 @@ export const useFeeChequeBounceStudent = (data: any) => {
     };
 };
 
-export const useFeeChequeBounceInitialData = (pageId: number) => {
+export const useFeeChequeBounceInitialData = () => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_DROPDOWNS, pageId],
-            queryFn: async () => getFeeChequeBounceInitialData(pageId),
-            staleTime: 0,
-            enabled: !!pageId
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_DROPDOWNS],
+            queryFn: async () => getFeeChequeBounceInitialData(),
+            staleTime: 0
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
@@ -1422,6 +1422,24 @@ export const useeditThirdpartytrasaction_GM = (mi_id: number, asmaY_Id: number, 
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_THIRDPARTY_EDITDATA]
+            });
+        }
+    };
+};
+
+export const useStudentFeeEnablePartialPayment = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_ENABLE_PARTIAL_PAYMENT, searchParams ?? {}],
+            queryFn: async () => getStudentFeeEnablePartialPaymentDetails(searchParams),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.STUDENT_FEE_ENABLE_PARTIAL_PAYMENT]
             });
         }
     };

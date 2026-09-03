@@ -25,7 +25,6 @@ export default function AddInvMasterStoreForm({ onSuccess, onCancel, empname_lis
         control,
         handleSubmit,
         reset,
-        watch,
         setValue,
         formState: { isSubmitting, errors }
     } = useForm<TInvMasterStore>({
@@ -40,17 +39,6 @@ export default function AddInvMasterStoreForm({ onSuccess, onCancel, empname_lis
             invmS_ActiveFlg: true
         }
     });
-
-    const selectedEmpId = watch('hrmE_Id');
-
-    useEffect(() => {
-        if (selectedEmpId) {
-            const emp = empname_list.find((e) => e.hrmE_Id === Number(selectedEmpId));
-            if (emp) {
-                setValue('invmS_ContactNo', emp.hrmE_MobileNo);
-            }
-        }
-    }, [selectedEmpId, empname_list, setValue]);
 
     const onInvalid = (errors: any) => {
         console.error('AddInvMasterStoreForm: Validation errors:', errors);
@@ -131,13 +119,22 @@ export default function AddInvMasterStoreForm({ onSuccess, onCancel, empname_lis
                         name='hrmE_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                            <Select
+                                onValueChange={(val) => {
+                                    const id = Number(val);
+                                    field.onChange(id);
+                                    const emp = empname_list?.find((e) => e.hrmE_Id === id);
+                                    if (emp && emp.hrmE_MobileNo) {
+                                        setValue('invmS_ContactNo', String(emp.hrmE_MobileNo));
+                                    }
+                                }}
+                                value={field.value?.toString()}>
                                 <SelectTrigger className={errors.hrmE_Id ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='Select Incharge' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {empname_list.map((emp) => (
-                                        <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
+                                    {empname_list?.map((emp, index) => (
+                                        <SelectItem key={emp.hrmE_Id || `emp-${index}`} value={emp.hrmE_Id?.toString() || `emp-${index}`}>
                                             {emp.employeename}
                                         </SelectItem>
                                     ))}
@@ -169,8 +166,12 @@ export default function AddInvMasterStoreForm({ onSuccess, onCancel, empname_lis
                                 {...field}
                                 id='invmS_ContactNo'
                                 placeholder='Enter Contact Number'
-                                disabled
                                 className={errors.invmS_ContactNo ? 'border-red-500' : ''}
+                                maxLength={10}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                    field.onChange(val);
+                                }}
                             />
                         )}
                     />

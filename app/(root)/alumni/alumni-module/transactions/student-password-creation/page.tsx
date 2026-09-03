@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { exportToExcel } from '@/lib/export-to-file';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import {
     getInitialData,
     getReportDetails,
@@ -14,7 +16,7 @@ import {
 } from '@/server/alumni/student-password-creation';
 import type { IClass, ICredentialStudent, ISection, IYear } from '@/types/alumni/student-password-creation';
 import { FileSpreadsheet, Loader2, Printer } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { getStudentPasswordCreationColumns } from './_components/columns';
 import FilterForm from './_components/filter-form';
@@ -29,6 +31,34 @@ export default function StudentPasswordCreationPage() {
     const [students, setStudents] = useState<ICredentialStudent[]>([]);
     const [selectedStudents, setSelectedStudents] = useState<ICredentialStudent[]>([]);
     const [filterParams, setFilterParams] = useState<any>(null);
+    const [hasSearched, setHasSearched] = useState(false);
+
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withDefault(''));
+
+    const filteredStudents = useMemo(() => {
+        if (!searchQuery) return students;
+        const lowerQuery = searchQuery.toLowerCase();
+        return students.filter((s) => {
+            return (
+                (s.studentname && String(s.studentname).toLowerCase().includes(lowerQuery)) ||
+                (s.amsT_AdmNo && String(s.amsT_AdmNo).toLowerCase().includes(lowerQuery)) ||
+                (s.username && String(s.username).toLowerCase().includes(lowerQuery)) ||
+                (s.password && String(s.password).toLowerCase().includes(lowerQuery)) ||
+                (s.asmcL_ClassName && String(s.asmcL_ClassName).toLowerCase().includes(lowerQuery)) ||
+                (s.asmC_SectionName && String(s.asmC_SectionName).toLowerCase().includes(lowerQuery)) ||
+                (s.amsT_MobileNo && String(s.amsT_MobileNo).toLowerCase().includes(lowerQuery)) ||
+                (s.amsT_emailId && String(s.amsT_emailId).toLowerCase().includes(lowerQuery))
+            );
+        });
+    }, [students, searchQuery]);
+
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withDefault(10));
+
+    const paginatedStudents = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        return filteredStudents.slice(startIndex, startIndex + pageSize);
+    }, [filteredStudents, currentPage, pageSize]);
 
     useEffect(() => {
         const fetchInitial = async () => {
@@ -84,11 +114,14 @@ export default function StudentPasswordCreationPage() {
                 }
             } else {
                 toast.error((res as any).message || 'Failed to fetch details');
+                setStudents([]);
             }
         } catch (error) {
             console.error(error);
             toast.error('An error occurred while fetching details');
+            setStudents([]);
         }
+        setHasSearched(true);
         setTableLoading(false);
     };
 
@@ -158,7 +191,7 @@ export default function StudentPasswordCreationPage() {
         <div className='container space-y-8 p-6'>
             <div className='flex items-center justify-between border-b pb-4'>
                 <div>
-                    <h1 className='font-bold text-3xl tracking-tight'>Student Password Creation</h1>
+                    <h1 className='font-bold text-3xl tracking-tight'>Student Credential</h1>
                     <p className='text-muted-foreground text-sm'>Search and manage student credentials</p>
                 </div>
             </div>
@@ -177,75 +210,85 @@ export default function StudentPasswordCreationPage() {
                         onCancel={() => {
                             setStudents([]);
                             setSelectedStudents([]);
+                            setHasSearched(false);
                         }}
+                        isLoading={tableLoading}
                     />
                 )}
             </CollapsibleSection>
 
-            {students.length > 0 && (
+            {hasSearched && (
                 <CollapsibleSection title='Student Credentials List' defaultOpen={true}>
                     <div className='space-y-4'>
-                        <GenericDataTable<ICredentialStudent>
-                            data={students}
-                            columns={columns}
-                            isLoading={tableLoading}
-                            onRowSelectionChange={setSelectedStudents}
-                            totalItems={students.length}
-                            //manualPagination={false}
-                        />
+                        {students.length > 0 ? (
+                            <>
+                                <GenericDataTable<ICredentialStudent>
+                                    data={paginatedStudents}
+                                    columns={columns}
+                                    isLoading={tableLoading}
+                                    onRowSelectionChange={setSelectedStudents}
+                                    totalItems={filteredStudents.length}
+                                />
 
-                        <div className='flex flex-wrap items-center justify-center gap-4 border-t pt-6'>
-                            {/* <Button
-                                onClick={handleSendSMS}
-                                className="w-32 bg-blue-600 hover:bg-blue-700"
-                                disabled={selectedStudents.length === 0}
-                            >
-                                <Phone className="mr-2 h-4 w-4" /> SMS
-                            </Button>
-                            <Button
-                                onClick={handleSendEmail}
-                                className="w-32 bg-cyan-600 hover:bg-cyan-700"
-                                disabled={selectedStudents.length === 0}
-                            >
-                                <Mail className="mr-2 h-4 w-4" /> EMAIL
-                            </Button>
-                            <Button
-                                onClick={handleSendWhatsApp}
-                                className="w-32 bg-green-600 hover:bg-green-700"
-                                disabled={selectedStudents.length === 0}
-                            >
-                                <MessageSquare className="mr-2 h-4 w-4" /> WHATSAPP
-                            </Button> */}
-                            <Button
-                                variant='outline'
-                                className='w-32'
-                                onClick={() => window.print()}
-                                disabled={selectedStudents.length === 0}>
-                                <Printer className='mr-2 h-4 w-4' /> PRINT
-                            </Button>
-                            <Button
-                                variant='outline'
-                                className='w-32 border-green-600 text-green-600 hover:bg-green-50'
-                                onClick={() =>
-                                    exportToExcel(
-                                        'Student_Credentials',
-                                        JSON.stringify([
-                                            { label: 'Name', value: 'studentname' },
-                                            { label: 'Adm No', value: 'amsT_AdmNo' },
-                                            { label: 'User Name', value: 'username' },
-                                            { label: 'Password', value: 'password' },
-                                            { label: 'Class', value: 'asmcL_ClassName' },
-                                            { label: 'Section', value: 'asmC_SectionName' },
-                                            { label: 'Mobile', value: 'amsT_MobileNo' },
-                                            { label: 'Email', value: 'amsT_emailId' }
-                                        ]),
-                                        JSON.stringify(selectedStudents)
-                                    )
-                                }
-                                disabled={selectedStudents.length === 0}>
-                                <FileSpreadsheet className='mr-2 h-4 w-4' /> EXCEL
-                            </Button>
-                        </div>
+                                <div className='flex flex-wrap items-center justify-center gap-4 border-t pt-6'>
+                                    {/* <Button
+                                        onClick={handleSendSMS}
+                                        className="w-32 bg-blue-600 hover:bg-blue-700"
+                                        disabled={selectedStudents.length === 0}
+                                    >
+                                        <Phone className="mr-2 h-4 w-4" /> SMS
+                                    </Button>
+                                    <Button
+                                        onClick={handleSendEmail}
+                                        className="w-32 bg-cyan-600 hover:bg-cyan-700"
+                                        disabled={selectedStudents.length === 0}
+                                    >
+                                        <Mail className="mr-2 h-4 w-4" /> EMAIL
+                                    </Button>
+                                    <Button
+                                        onClick={handleSendWhatsApp}
+                                        className="w-32 bg-green-600 hover:bg-green-700"
+                                        disabled={selectedStudents.length === 0}
+                                    >
+                                        <MessageSquare className="mr-2 h-4 w-4" /> WHATSAPP
+                                    </Button> */}
+                                    <Button
+                                        variant='outline'
+                                        className='w-32'
+                                        onClick={() => window.print()}
+                                        disabled={selectedStudents.length === 0}>
+                                        <Printer className='mr-2 h-4 w-4' /> PRINT
+                                    </Button>
+                                    <Button
+                                        variant='outline'
+                                        className='w-32 border-green-600 text-green-600 hover:bg-green-50'
+                                        onClick={() =>
+                                            exportToExcel(
+                                                'Student_Credentials',
+                                                JSON.stringify([
+                                                    { label: 'Name', value: 'studentname' },
+                                                    { label: 'Adm No', value: 'amsT_AdmNo' },
+                                                    { label: 'User Name', value: 'username' },
+                                                    { label: 'Password', value: 'password' },
+                                                    { label: 'Class', value: 'asmcL_ClassName' },
+                                                    { label: 'Section', value: 'asmC_SectionName' },
+                                                    { label: 'Mobile', value: 'amsT_MobileNo' },
+                                                    { label: 'Email', value: 'amsT_emailId' }
+                                                ]),
+                                                JSON.stringify(selectedStudents)
+                                            )
+                                        }
+                                        disabled={selectedStudents.length === 0}>
+                                        <FileSpreadsheet className='mr-2 h-4 w-4' /> EXCEL
+                                    </Button>
+                                </div>
+                            </>
+                        ) : (
+                            <div className='flex h-32 flex-col items-center justify-center space-y-2 rounded-md border border-dashed text-center'>
+                                <p className='font-medium text-lg text-muted-foreground'>No records found</p>
+                                <p className='text-muted-foreground text-sm'>Try adjusting your search filters.</p>
+                            </div>
+                        )}
                     </div>
                 </CollapsibleSection>
             )}

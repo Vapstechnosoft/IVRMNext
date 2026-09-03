@@ -195,6 +195,7 @@ export const studentAdmissionFormSchema = {
 
         // Other Details
         amsT_AadharNo: z.string().optional().nullable(),
+        amsT_ApparNo: z.string().regex(/^\d*$/, 'APAAR ID must contain only numbers').optional().nullable(),
         amsT_LanguageSpoken: z.string().optional().nullable(),
 
         reference_ids: z.array(z.string()).optional(),
@@ -255,27 +256,27 @@ export const studentAdmissionFormSchema = {
         fatherAliveFlag: z.boolean().optional(),
         fatherName: z.string().optional().nullable(),
         fatherSurname: z.string().optional().nullable(),
-        fatherAadharNo: z.string().optional().nullable(),
+        fatherAadharNo: z
+            .string()
+            .optional()
+            .nullable()
+            .refine((val) => !val || /^\d{12}$/.test(val), { message: 'Aadhar number must be exactly 12 digits' }),
 
         FatherEducation: z.string().optional().nullable(),
         fatherPAN: z.string().optional().nullable(),
         fatherDesignation: z.string().optional().nullable(),
-        fatherMobileNumbers: z
-            .array(
-                z.object({
-                    mobileNo: z.string().optional().nullable()
-                })
-            )
-            .optional(),
+        fatherMobileNumbers: z.preprocess((val: any) => {
+            if (typeof val === 'string' && val.trim() !== '') return [{ mobileNo: val.trim() }];
+            if (Array.isArray(val)) return val;
+            return [];
+        }, z.array(z.object({ mobileNo: z.string().optional().nullable() })).optional()),
         fatherMaritalStatus: z.string().optional().nullable(),
 
-        fatherEmailIds: z
-            .array(
-                z.object({
-                    emailId: z.string().email().optional().nullable().or(z.literal(''))
-                })
-            )
-            .optional(),
+        fatherEmailIds: z.preprocess((val: any) => {
+            if (typeof val === 'string' && val.trim() !== '') return [{ emailId: val.trim() }];
+            if (Array.isArray(val)) return val;
+            return [];
+        }, z.array(z.object({ emailId: z.string().email().optional().nullable().or(z.literal('')) })).optional()),
         fatherHomePhone: z.string().optional().nullable(),
 
         fatherNationality: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().optional()),
@@ -336,29 +337,28 @@ export const studentAdmissionFormSchema = {
         fatherBankBranch: z.string().optional().nullable(),
         fatherOfficePhone: z.string().optional().nullable(),
 
-
         // Mother Details
         motherAliveFlag: z.boolean().optional(),
         MotherAliveFlag: z.boolean().optional(),
         motherName: z.string().optional().nullable(),
         motherSurname: z.string().optional().nullable(),
-        motherAadharNo: z.string().optional().nullable(),
+        motherAadharNo: z
+            .string()
+            .optional()
+            .nullable()
+            .refine((val) => !val || /^\d{12}$/.test(val), { message: 'Aadhar number must be exactly 12 digits' }),
         motherMaritalStatus: z.string().optional().nullable(),
 
-        motherMobileNumbers: z
-            .array(
-                z.object({
-                    mobileNo: z.string().optional().nullable()
-                })
-            )
-            .optional(),
-        motherEmailIds: z
-            .array(
-                z.object({
-                    emailId: z.string().email().optional().nullable().or(z.literal(''))
-                })
-            )
-            .optional(),
+        motherMobileNumbers: z.preprocess((val: any) => {
+            if (typeof val === 'string' && val.trim() !== '') return [{ mobileNo: val.trim() }];
+            if (Array.isArray(val)) return val;
+            return [];
+        }, z.array(z.object({ mobileNo: z.string().optional().nullable() })).optional()),
+        motherEmailIds: z.preprocess((val: any) => {
+            if (typeof val === 'string' && val.trim() !== '') return [{ emailId: val.trim() }];
+            if (Array.isArray(val)) return val;
+            return [];
+        }, z.array(z.object({ emailId: z.string().email().optional().nullable().or(z.literal('')) })).optional()),
         motherHomePhone: z.string().optional().nullable(),
         motherNationality: z.preprocess((val) => (val === '' || val === null ? 0 : Number(val)), z.number().optional()),
 
@@ -423,7 +423,6 @@ export const studentAdmissionFormSchema = {
         motherCasteCertificateNo: z.string().optional().nullable(),
         motherPAN: z.string().optional().nullable(),
         motherSelfEmployedFlg: z.boolean().optional(),
-
 
         //Step=4
 
@@ -558,7 +557,6 @@ export const studentAdmissionFormSchema = {
         electivelist_Groups: z.array(z.number()).optional(),
         amsT_Remarks: createOptionalStringSchema('Remarks', 0, 500).optional()
     }),
-
 
     delete: z.object({
         pasr_id: deleteIdSchema('pasr_id')

@@ -1,18 +1,13 @@
-export const printPFForm6A = (
-    reportData: any[],
-    fullReportData: any,
-    institution: any,
-    fromDateStr: string,
-    toDateStr: string
-) => {
+export const printPFForm6A = (reportData: any[] | null, fullReportData: any, institution: any, fromDateStr: string, toDateStr: string) => {
     const printWindow = window.open('', '', 'width=1200,height=800');
     if (!printWindow) {
         alert('Please allow popups to print the report');
         return;
     }
 
-    const tableRows = reportData.map((record: any, index: number) => {
-        return `
+    const tableRows = reportData
+        ?.map((record: any, index: number) => {
+            return `
             <tr>
                 <td class="text-center">${index + 1}</td>
                 <td>${record.hrmE_PFAccNo || ''}</td>
@@ -28,10 +23,17 @@ export const printPFForm6A = (
                 <td class="text-right">${Number(record.hreS_Ac5 || 0).toFixed(2)}</td>
             </tr>
         `;
-    }).join('');
+        })
+        .join('');
 
-    const statRateOfContribution = ((parseFloat(fullReportData?.payrollStandard?.[0]?.hrC_EPFPer || fullReportData?.payrollstandard?.[0]?.hrC_EPFPer || '0') + parseFloat(fullReportData?.payrollStandard?.[0]?.hrC_FPFPer || fullReportData?.payrollstandard?.[0]?.hrC_FPFPer || '0')) || 0).toFixed(2);
-    const codeNo = fullReportData?.payrollStandard?.[0]?.hrC_PFAccNoPrefix || fullReportData?.payrollstandard?.[0]?.hrC_PFAccNoPrefix || 'PF';
+    const statRateOfContribution = (
+        Number.parseFloat(fullReportData?.payrollStandard?.[0]?.hrC_EPFPer || fullReportData?.payrollstandard?.[0]?.hrC_EPFPer || '0') +
+            Number.parseFloat(
+                fullReportData?.payrollStandard?.[0]?.hrC_FPFPer || fullReportData?.payrollstandard?.[0]?.hrC_FPFPer || '0'
+            ) || 0
+    ).toFixed(2);
+    const codeNo =
+        fullReportData?.payrollStandard?.[0]?.hrC_PFAccNoPrefix || fullReportData?.payrollstandard?.[0]?.hrC_PFAccNoPrefix || 'PF';
     const address = `${fullReportData?.currentInstuteAddress || institution?.mI_Address1}, ${institution?.ivrmmcT_Name} - ${institution?.mI_Pincode}.`;
 
     printWindow.document.write(`
@@ -195,4 +197,4 @@ export const printPFForm6A = (
     setTimeout(() => {
         printWindow.print();
     }, 250);
-}
+};

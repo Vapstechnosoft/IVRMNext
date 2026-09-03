@@ -3,11 +3,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table/data-table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState, useEffect } from 'react';
-import { getStudentComplaintsReport, getStudentComplaintsLoadData } from './actions';
-import { columns } from './columns';
-import { AcademicYear, StudentComplaint } from '@/constants/types';
+import type { AcademicYear, StudentComplaint } from '@/constants/types';
 import { useAcademicStudentCompliants } from '@/hooks/student-portal/useCumulative';
+import { useEffect, useState } from 'react';
+import { getStudentComplaintsLoadData, getStudentComplaintsReport } from './actions';
+import { columns } from './columns';
 interface StudentComplaintsViewClientProps {
     initialYears: AcademicYear[];
     initialData: StudentComplaint[];
@@ -26,7 +26,7 @@ export default function StudentComplaintsViewClient() {
             try {
                 setIsLoading(true);
                 const loadData = await getStudentComplaintsLoadData();
-                console.log("DEBUG: Client received initial load data:", loadData);
+                console.log('DEBUG: Client received initial load data:', loadData);
 
                 if (loadData && loadData.studentdivlist && loadData.studentdivlist.length > 0) {
                     setData(loadData.studentdivlist);
@@ -46,14 +46,14 @@ export default function StudentComplaintsViewClient() {
         setSelectedYear(yearId);
         setIsLoading(true);
         try {
-            // Passing 0 for optional params as we don't have them in this context yet, 
+            // Passing 0 for optional params as we don't have them in this context yet,
             // relying on backend or default 0 logic as per user payload "studentview": [0]
             const response = await getStudentComplaintsReport({
                 ASMAY_Id: Number(yearId),
                 ASMCL_Id: 0,
                 ASMS_Id: 0
             });
-            console.log("DEBUG: Client received report response:", response);
+            console.log('DEBUG: Client received report response:', response);
             if (response && response.studentdivlist) {
                 setData(response.studentdivlist);
             } else {
@@ -82,26 +82,19 @@ export default function StudentComplaintsViewClient() {
                                 <span className='whitespace-nowrap font-semibold'>
                                     Year:<span className='text-red-500'>*</span>
                                 </span>
-                                <Select
-                                    value={selectedYear}
-                                    onValueChange={(value) => handleYearChange(value)}
-                                >
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="--Select--" />
+                                <Select value={selectedYear} onValueChange={(value) => handleYearChange(value)}>
+                                    <SelectTrigger className='w-full'>
+                                        <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
 
                                     <SelectContent>
                                         {academicYears?.data?.map((year: any) => (
-                                            <SelectItem
-                                                key={year.asmaY_Id}
-                                                value={year.asmaY_Id.toString()}
-                                            >
+                                            <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
                                                 {year.asmaY_Year}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-
                             </div>
                         </div>
                     </div>
@@ -121,14 +114,13 @@ export default function StudentComplaintsViewClient() {
                             isPaginationRequired={true}
                             isLoading={isLoading}
                             totalItems={data.length}
-                            manualPagination={false}
                         />
                     </CardContent>
                 </Card>
             )}
 
             {data.length === 0 && !isLoading && selectedYear && (
-                <div className="text-center p-4 text-muted-foreground">No Records Found</div>
+                <div className='p-4 text-center text-muted-foreground'>No Records Found</div>
             )}
         </div>
     );

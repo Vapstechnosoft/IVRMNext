@@ -3,13 +3,9 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    useMasterCasteCategoryDropdown,
-    useMasterReligionDropdown,
-    useReligionCategoryMapping
-} from '@/hooks/hrms/useMasters';
+import { useMasterCasteCategoryDropdown, useMasterReligionDropdown, useReligionCategoryMapping } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
-import type { ICasteCategoryDropdown, IReligionDropdown } from '@/types/hrms/hrms-config/employee';
+import type { IReligionDropdown } from '@/types/hrms/hrms-config/employee';
 import type { IMasterReligionCategoryMappingList } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -37,9 +33,7 @@ export default function UpdateReligionCategoryMappingForm({
     // Religion dropdown
     const { data: religionDropdownResponse } = useMasterReligionDropdown();
     const religionDropdown = useMemo(() => {
-        const data = Array.isArray(religionDropdownResponse)
-            ? religionDropdownResponse
-            : (religionDropdownResponse as any)?.data || [];
+        const data = Array.isArray(religionDropdownResponse) ? religionDropdownResponse : (religionDropdownResponse as any)?.data || [];
         return data.map((item: any) => ({
             key: item.ivrmmR_Id,
             value: item.ivrmmR_Name
@@ -241,10 +235,10 @@ export default function UpdateReligionCategoryMappingForm({
                         disabled={isSubmitting || !isDirty}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Mapping
+                            Update Mapping
                         </div>
                     </Button>
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}

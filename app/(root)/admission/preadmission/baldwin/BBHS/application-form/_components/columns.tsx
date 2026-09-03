@@ -64,14 +64,18 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         accessorKey: 'application_status',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Application Status' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Application Status' />
+        ),
         cell: ({ row }) => <div>{row.getValue('application_status')}</div>,
         enableSorting: false,
         enableHiding: true
     },
     {
         accessorKey: 'admission_status',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Admission Status' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Admission Status' />
+        ),
         cell: ({ row }) => <div>{row.getValue('admission_status')}</div>,
         enableSorting: false,
         enableHiding: true
@@ -85,7 +89,9 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
     },
     {
         accessorKey: 'application_form',
-        header: ({ column }) => <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Application Form' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader className='text-nowrap font-bold text-blue-600' column={column} title='Application Form' />
+        ),
         cell: ({ row }) => {
             const appId = row.original.pasr_id;
             const [showPdfModal, setShowPdfModal] = useState(false);
@@ -104,8 +110,8 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                                 typeof data?.data === 'string'
                                     ? data.data
                                     : Array.isArray(data?.data)
-                                        ? ((data.data[0] as unknown as string) ?? null)
-                                        : null;
+                                      ? ((data.data[0] as unknown as string) ?? null)
+                                      : null;
                             setPdfBase64(base64);
                         },
                         onError: (error) => {
@@ -146,9 +152,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                                     e.preventDefault();
                                 }}>
                                 <DialogHeader className='p-0'>
-                                    <DialogTitle className='pt-3 text-center font-bold text-lg'>
-                                        Pre Admission Application Form
-                                    </DialogTitle>
+                                    <DialogTitle className='pt-3 text-center font-bold text-lg'>Pre Admission Application Form</DialogTitle>
                                 </DialogHeader>
                                 <div className='relative min-h-0 flex-1 overflow-hidden'>
                                     {/* Spinner while loading PDF */}
@@ -211,7 +215,6 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
             const { data: applicationFormDetails, isLoading: applicationFormDetailsLoading } = useStudentApplicationForm(pasrId);
 
             // Removed infinite reload logic that triggered when session role was undefined
-
 
             // Trigger form open when applicationFormDetails is loaded
             useEffect(() => {

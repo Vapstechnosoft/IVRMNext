@@ -108,6 +108,7 @@ function PFChallanContent() {
 
     // Using general master for Years as reference Cumulative Report
     const { data: yearsData } = useLeaveYearDropdown();
+    console.log('yearsData', yearsData);
     const monthsData = { data: onloadData?.data?.monthdropdown || [] };
 
     const { mutate: generateReport, isPending } = usePFChallan();
@@ -249,6 +250,7 @@ function PFChallanContent() {
                                 control={control}
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} key={field.value}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Year' />
                                         </SelectTrigger>
@@ -273,6 +275,7 @@ function PFChallanContent() {
                                 control={control}
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} key={field.value}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Month' />
                                         </SelectTrigger>
@@ -321,6 +324,9 @@ function PFChallanContent() {
                     title='PF Challan'
                     variant='outline'
                     className='no-print shadow-sm'
+                    className='shadow-sm print:border-none print:shadow-none'
+                    headerClassName='print:hidden'
+                    contentClassName='print:p-0'
                     rightElement={
                         <div className='no-print flex justify-end gap-2'>
                             <Button variant='outline' size='sm' onClick={handleExport} className='w-fit gap-2 rounded-xl'>
@@ -334,6 +340,7 @@ function PFChallanContent() {
                         </div>
                     }>
                     <div className='space-y-4'>
+                    <div className='printable-content space-y-4 print:space-y-0'>
                         <div className='print-full-width mx-auto rounded-none bg-white p-6 text-black shadow-md'>
                             <div className='space-y-6 border border-black p-4'>
                                 {/* Header Section */}

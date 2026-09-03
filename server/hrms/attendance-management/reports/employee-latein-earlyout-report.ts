@@ -30,10 +30,10 @@ export async function getEmployeeLateInEarlyOutReport(filters?: EmployeeLateInEa
             ? filters.mode === 'Late By'
                 ? !!(r.lateBy || r.late_by)
                 : filters.mode === 'Early Out'
-                    ? !!(r.earlyOut || r.early_out)
-                    : filters.mode === 'Late In Early Out'
-                        ? !!(r.lateBy || r.late_by) && !!(r.earlyOut || r.early_out)
-                        : true
+                  ? !!(r.earlyOut || r.early_out)
+                  : filters.mode === 'Late In Early Out'
+                    ? !!(r.lateBy || r.late_by) && !!(r.earlyOut || r.early_out)
+                    : true
             : true;
         return okType && okDept && okDesg && okDateFrom && okDateTo && okQuery && okMode;
     });

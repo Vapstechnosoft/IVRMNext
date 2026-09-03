@@ -361,7 +361,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 ISMS_Id: ISMS_Id
             });
             const data = Array.isArray(response.data) ? response.data[0] : response.data;
-
+            console.log('Marks entry api search result', data);
             if (data === null) {
                 toast.error('This Subject Is Not Mapped With Students');
                 setIsStudentsGridOpen(false);

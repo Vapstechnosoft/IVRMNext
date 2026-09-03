@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import {
     getClassDropDownByAcademicYearlist,
-    getSectionsDropDownByAcademicYearandClasslist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
+    getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { useEffect, useState } from 'react';
@@ -105,7 +105,11 @@ export default function ProgressCardReportForm({
         (async () => {
             try {
                 setLoadingExams(true);
-                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(Number(selectedYear), Number(selectedClass), Number(selectedSection));
+                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(
+                    Number(selectedYear),
+                    Number(selectedClass),
+                    Number(selectedSection)
+                );
                 setExams(data || []);
                 setValue('emE_Id', '');
             } catch {
@@ -121,7 +125,11 @@ export default function ProgressCardReportForm({
         (async () => {
             try {
                 setLoadingStudents(true);
-                const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(Number(selectedYear), Number(selectedClass), Number(selectedSection));
+                const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                    Number(selectedYear),
+                    Number(selectedClass),
+                    Number(selectedSection)
+                );
                 const mapped = (data || []).map((s: any) => ({
                     amsT_Id: s.amsT_Id,
                     studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_AdmNo || ''}`.trim()
@@ -142,15 +150,16 @@ export default function ProgressCardReportForm({
             return;
         }
 
-        const selectedYearObj = academicYears.find(y => String(y.asmaY_Id) === String(data.asmaY_Id));
-        const selectedExamObj = exams.find(e => String(e.emE_Id) === String(data.emE_Id));
+        const selectedYearObj = academicYears.find((y) => String(y.asmaY_Id) === String(data.asmaY_Id));
+        const selectedExamObj = exams.find((e) => String(e.emE_Id) === String(data.emE_Id));
+        const studentIdsArray = data.studentList.map((s: any) => Number(s.amsT_Id));
 
         const payload: any = {
-            asmaY_Id: Number(data.asmaY_Id),
-            asmcL_Id: Number(data.asmcL_Id),
-            asmS_Id: Number(data.asmS_Id),
-            emE_Id: Number(data.emE_Id),
-            amsT_Ids: data.studentList.map((s: any) => s.amsT_Id).join(','),
+            ASMAY_Id: Number(data.asmaY_Id),
+            ASMCL_Id: Number(data.asmcL_Id),
+            ASMS_Id: Number(data.asmS_Id),
+            EME_Id: Number(data.emE_Id),
+            AMST_Ids: studentIdsArray.join(','),
             yearName: selectedYearObj?.asmaY_Year || '',
             examName: selectedExamObj?.emE_ExamName || '',
             examCode: selectedExamObj?.emE_ExamCode || '',
@@ -204,9 +213,13 @@ export default function ProgressCardReportForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {academicYearLoading ? (
-                                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
+                                                            </SelectItem>
                                                         ) : academicYears.length === 0 ? (
-                                                            <SelectItem value='none' disabled>No Academic Year found</SelectItem>
+                                                            <SelectItem value='none' disabled>
+                                                                No Academic Year found
+                                                            </SelectItem>
                                                         ) : (
                                                             academicYears.map((y) => (
                                                                 <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
@@ -240,9 +253,13 @@ export default function ProgressCardReportForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingClasses ? (
-                                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
+                                                            </SelectItem>
                                                         ) : classes.length === 0 ? (
-                                                            <SelectItem value='none' disabled>No Classes found</SelectItem>
+                                                            <SelectItem value='none' disabled>
+                                                                No Classes found
+                                                            </SelectItem>
                                                         ) : (
                                                             classes.map((c: any) => (
                                                                 <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
@@ -276,9 +293,13 @@ export default function ProgressCardReportForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingSections ? (
-                                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
+                                                            </SelectItem>
                                                         ) : sections.length === 0 ? (
-                                                            <SelectItem value='none' disabled>No Sections found</SelectItem>
+                                                            <SelectItem value='none' disabled>
+                                                                No Sections found
+                                                            </SelectItem>
                                                         ) : (
                                                             sections.map((s: any) => (
                                                                 <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
@@ -312,9 +333,13 @@ export default function ProgressCardReportForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingExams ? (
-                                                            <SelectItem value='loading' disabled>Loading...</SelectItem>
+                                                            <SelectItem value='loading' disabled>
+                                                                Loading...
+                                                            </SelectItem>
                                                         ) : exams.length === 0 ? (
-                                                            <SelectItem value='none' disabled>No Exams found</SelectItem>
+                                                            <SelectItem value='none' disabled>
+                                                                No Exams found
+                                                            </SelectItem>
                                                         ) : (
                                                             exams.map((e: any) => (
                                                                 <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
@@ -365,11 +390,7 @@ export default function ProgressCardReportForm({
                         <hr className='my-6 border-gray-300' />
 
                         <div className='flex justify-center gap-3'>
-                            <Button
-                                type='submit'
-                                isLoading={isSubmitting}
-                                disabled={isSubmitting}
-                                className='min-w-[140px]'>
+                            <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting} className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
                             <Button

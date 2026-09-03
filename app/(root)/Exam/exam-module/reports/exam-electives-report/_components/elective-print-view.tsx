@@ -114,6 +114,7 @@ export default function ElectiveReportPrintView({
                                 <th rowSpan={2} style={{ width: '180px' }}>
                                     Student Name
                                 </th>
+                                <th rowSpan={2}>Admission No</th>
                                 {showMobile && <th rowSpan={2}>Mobile No</th>}
                                 {showEmail && <th rowSpan={2}>Email ID</th>}
                                 <th rowSpan={2}>Class</th>
@@ -127,7 +128,7 @@ export default function ElectiveReportPrintView({
                             {students.length === 0 ? (
                                 <tr>
                                     <td
-                                        colSpan={6 + (showMobile ? 1 : 0) + (showEmail ? 1 : 0) + groupList.length}
+                                        colSpan={7 + (showMobile ? 1 : 0) + (showEmail ? 1 : 0) + groupList.length}
                                         className='py-16 text-center text-gray-500 text-lg'>
                                         No students found
                                     </td>
@@ -139,6 +140,7 @@ export default function ElectiveReportPrintView({
                                         <td className='text-left font-medium' style={{ paddingLeft: '10px' }}>
                                             {student.amsT_FirstName}
                                         </td>
+                                        <td>{student.amsT_AdmNo || '-'}</td>
                                         {showMobile && <td>{student.amsT_MobileNo || '-'}</td>}
                                         {showEmail && <td style={{ fontSize: '10px' }}>{student.amsT_emailId || '-'}</td>}
                                         <td>{student.asmcL_ClassName}</td>

@@ -342,6 +342,9 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showConfirmPopup, setShowConfirmPopup] = useState(false);
     const [showInfoDialog, setShowInfoDialog] = useState(false);
+    const [tempSubSubjsExams, setTempSubSubjsExams] = useState<any[]>([]);
+    const [subjectSubsubjectsDetails, setSubjectSubsubjectsDetails] = useState<any[]>([]);
+    const [subjectSubexamsDetails, setSubjectSubexamsDetails] = useState<any[]>([]);
 
     // Ref for input navigation
     const inputRefs = useRef<(HTMLInputElement | null)[][]>([]);
@@ -361,7 +364,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 ISMS_Id: ISMS_Id
             });
             const data = Array.isArray(response.data) ? response.data[0] : response.data;
-
+            console.log('Api data for Marks Entry Search ', data);
             if (data === null) {
                 toast.error('This Subject Is Not Mapped With Students');
                 setIsStudentsGridOpen(false);
@@ -369,24 +372,10 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 return;
             }
 
-            if (data.eyceS_SubSubjectFlg && data.subject_subsubjects.length === 0) {
+            if (data.eyceS_SubSubjectFlg && (!data.subject_subsubjects || data.subject_subsubjects.length === 0)) {
                 setShowInfoDialog(true);
                 return;
             }
-            // Check for date restrictions
-            // if (!data.lastDateExamFlag) {
-            //     setIsStudentsGridOpen(false);
-            //     toast.error(`From ${new Date(data.marksEntryStateDate || '').toLocaleDateString()} You Can Start Enter The Marks`);
-            //     setIsLoading(false);
-            //     return;
-            // }
-
-            // if (!data.lastDateEntryFlag) {
-            //     toast.error('Marks Entry Last Date Completed You Can Not Enter Marks');
-            //     setIsStudentsGridOpen(false);
-            //     setIsLoading(false);
-            //     return;
-            // }
 
             if (!data.studentList || data.studentList.length === 0) {
                 toast.error('This Subject Is Not Mapped With Students');
@@ -461,65 +450,99 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 saved_sub_subjectOrExam_list:
                     data.saved_sub_subjectOrExam_list?.map((s: any) => ({
                         estmsS_Id: s.estmsS_Id,
-
-                        AMST_Id: s.estM_Id, // Exam/Test Master Id
-                        ISMS_Id: s.emsS_Id, // Sub-subject / subject mapping
+                        AMST_Id: s.estM_Id,
+                        ISMS_Id: s.emsS_Id,
                         EMSS_Id: s.emsS_Id ?? undefined,
                         EMSE_Id: s.emsE_Id ?? undefined,
                         ESTM_ID: s.estM_Id,
                         ESTM_MarksGradeFlg: s.estmsS_MarksGradeFlg,
-
                         ESTM_Marks: s.estmsS_Marks ?? undefined,
                         ESTM_Grade: s.estmsS_Grade || null,
                         ESTM_Flg: s.estmsS_Flg || null,
-
                         ESTMSS_Marks: s.estmsS_Marks ?? undefined,
                         ESTMSS_Grade: s.estmsS_Grade || null,
                         ESTMSS_Flg: s.estmsS_Flg || null,
-
                         estmsS_ActiveFlg: s.estmsS_ActiveFlg ?? true
                     })) || [],
-                saved_sub_subject_list: data.saved_sub_subject_list?.map((s: any) => ({
-                    estmsS_Id: s.estmsS_Id,
-
-                    AMST_Id: s.estM_Id, // Exam/Test Master Id
-                    ISMS_Id: s.emsS_Id, // Sub-subject / subject mapping
-                    EMSS_Id: s.emsS_Id ?? undefined,
-                    EMSE_Id: s.emsE_Id ?? undefined,
-                    ESTM_ID: s.estM_Id,
-                    ESTM_MarksGradeFlg: s.estmsS_MarksGradeFlg,
-
-                    ESTM_Marks: s.estmsS_Marks ?? undefined,
-                    ESTM_Grade: s.estmsS_Grade || null,
-                    ESTM_Flg: s.estmsS_Flg || null,
-
-                    ESTMSS_Marks: s.estmsS_Marks ?? undefined,
-                    ESTMSS_Grade: s.estmsS_Grade || null,
-                    ESTMSS_Flg: s.estmsS_Flg || null,
-
-                    estmsS_ActiveFlg: s.estmsS_ActiveFlg ?? true
-                }))
+                saved_sub_subject_list:
+                    data.saved_sub_subject_list?.map((s: any) => ({
+                        estmsS_Id: s.estmsS_Id,
+                        AMST_Id: s.estM_Id,
+                        ISMS_Id: s.emsS_Id,
+                        EMSS_Id: s.emsS_Id ?? undefined,
+                        EMSE_Id: s.emsE_Id ?? undefined,
+                        ESTM_ID: s.estM_Id,
+                        ESTM_MarksGradeFlg: s.estmsS_MarksGradeFlg,
+                        ESTM_Marks: s.estmsS_Marks ?? undefined,
+                        ESTM_Grade: s.estmsS_Grade || null,
+                        ESTM_Flg: s.estmsS_Flg || null,
+                        ESTMSS_Marks: s.estmsS_Marks ?? undefined,
+                        ESTMSS_Grade: s.estmsS_Grade || null,
+                        ESTMSS_Flg: s.estmsS_Flg || null,
+                        estmsS_ActiveFlg: s.estmsS_ActiveFlg ?? true
+                    })) || []
             };
 
             setSubjectMeta(newSubjectMeta);
+
+            // Process both sub-subject and sub-exam maps exactly like AngularJS
+            const tempSubSubjsExamsList: any[] = [];
+            let subjectSubsubjectsDetailsList: any[] = [];
+            let subjectSubexamsDetailsList: any[] = [];
+
+            if (data.eyceS_SubSubjectFlg && data.eyceS_SubExamFlg) {
+                if (data.subsubjectlist && data.subject_subsubjects) {
+                    data.subsubjectlist.forEach((ddd: any) => {
+                        const temp: any[] = [];
+                        data.subject_subsubjects.forEach((dd: any) => {
+                            if (ddd.emsS_Id === dd.emsS_Id) {
+                                temp.push(dd);
+                                tempSubSubjsExamsList.push(dd);
+                            }
+                        });
+                        subjectSubsubjectsDetailsList.push({ subsubject: ddd, subexamlist: temp });
+                    });
+                }
+            } else if (data.eyceS_SubSubjectFlg) {
+                subjectSubsubjectsDetailsList = data.subject_subsubjects || [];
+            } else if (data.eyceS_SubExamFlg) {
+                subjectSubexamsDetailsList = data.subject_subexams || [];
+            }
+
+            setTempSubSubjsExams(tempSubSubjsExamsList);
+            setSubjectSubsubjectsDetails(subjectSubsubjectsDetailsList);
+            setSubjectSubexamsDetails(subjectSubexamsDetailsList);
 
             // Clear existing temp marks list
             setTempSubsMarksList([]);
 
             // Map saved marks if available
-            if (data.saved_studentList && data.saved_studentList.length > 0) {
+            const savedListForLookup =
+                data.saved_studentList && data.saved_studentList.length > 0 ? data.saved_studentList : processedStudents;
+
+            const hasSavedMarks = savedListForLookup.some((s: any) => s.estM_Id && s.estM_Id > 0);
+
+            if (hasSavedMarks) {
                 if (!newSubjectMeta.subsubFlag && !newSubjectMeta.subexamFlag) {
                     // Simple subject case
-                    processedStudents = mapMarksSimple(processedStudents, data.saved_studentList, data.answer_sheet, newSubjectMeta);
+                    processedStudents = mapMarksSimple(processedStudents, savedListForLookup, data.answer_sheet, newSubjectMeta);
                 } else if (newSubjectMeta.subsubFlag && !newSubjectMeta.subexamFlag) {
                     // Sub-subject case
-                    if (data.saved_ss_list && data.saved_ss_list.length > 0) {
-                        processedStudents = mapMarksSS(processedStudents, data.saved_ss_list, newSubjectMeta);
+                    const ssList = data.saved_sub_subject_list || data.saved_ss_list || [];
+                    if (ssList.length > 0) {
+                        processedStudents = mapMarksSS(processedStudents, ssList, savedListForLookup, newSubjectMeta);
                     }
                 } else if (newSubjectMeta.subexamFlag && !newSubjectMeta.subsubFlag) {
                     // Sub-exam case
-                    if (data.saved_se_list && data.saved_se_list.length > 0) {
-                        processedStudents = mapMarksSE(processedStudents, data.saved_se_list, newSubjectMeta);
+                    const seList = data.saved_sub_subject_exam_list || data.saved_sub_subjectOrExam_list || data.saved_se_list || [];
+                    if (seList.length > 0) {
+                        processedStudents = mapMarksSE(processedStudents, seList, savedListForLookup, newSubjectMeta);
+                    }
+                } else if (newSubjectMeta.subsubFlag && newSubjectMeta.subexamFlag) {
+                    // Sub-subject and sub-exam both case
+                    const ssseList = data.saved_sub_subject_exam_list || data.saved_ssse_list || [];
+                    if (ssseList.length > 0) {
+                        processedStudents = mapMarksSSSE(processedStudents, ssseList, savedListForLookup, newSubjectMeta);
                     }
                 }
             }
@@ -624,51 +647,60 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
         });
     };
 
-    const mapMarksSS = (students: StudentMarksEntry[], savedSSList: any[], subjectMeta: SubjectMeta): StudentMarksEntry[] => {
+    const mapMarksSS = (
+        students: StudentMarksEntry[],
+        savedSSList: any[],
+        savedStudentList: any[],
+        subjectMeta: SubjectMeta
+    ): StudentMarksEntry[] => {
         const updatedStudents = [...students];
         const updatedTempMarks: SavedMarksEntry[] = [];
 
         students.forEach((student, studentIndex) => {
-            const studentSSMarks = savedSSList.filter((ss) => ss.AMST_Id === student.amsT_Id);
+            const savedStudent = savedStudentList.find((s) => s.amsT_Id === student.amsT_Id);
+            if (!savedStudent) return;
+
+            const studentSSMarks = savedSSList.filter((ss) => ss.estM_Id === savedStudent.estM_Id);
 
             if (studentSSMarks.length > 0) {
                 updatedStudents[studentIndex] = {
                     ...student,
                     selected: true,
-                    ESTMSS_Marks: {}
+                    ESTMSS_Marks: {},
+                    estM_Id: savedStudent.estM_Id
                 };
 
-                // Initialize ESTMSS_Marks object
                 const estmssMarks: { [key: number]: string } = {};
 
                 studentSSMarks.forEach((ssMark) => {
                     let markValue = '';
                     if (subjectMeta.marksGradeEntryFlg === 'M') {
-                        if (ssMark.ESTMSS_Flg && ssMark.ESTMSS_Flg.trim() !== '') {
-                            markValue = ssMark.ESTMSS_Flg;
-                        } else if (ssMark.ESTMSS_Marks !== undefined && ssMark.ESTMSS_Marks !== null) {
-                            markValue = String(ssMark.ESTMSS_Marks);
+                        if (ssMark.estmsS_Flg && ssMark.estmsS_Flg.trim() !== '') {
+                            markValue = ssMark.estmsS_Flg;
+                        } else if (ssMark.estmsS_Marks !== undefined && ssMark.estmsS_Marks !== null) {
+                            markValue = String(ssMark.estmsS_Marks);
                         }
                     } else if (subjectMeta.marksGradeEntryFlg === 'G') {
-                        if (ssMark.ESTMSS_Flg && ssMark.ESTMSS_Flg.trim() !== '') {
-                            markValue = ssMark.ESTMSS_Flg;
-                        } else if (ssMark.ESTMSS_Grade) {
-                            markValue = ssMark.ESTMSS_Grade;
+                        if (ssMark.estmsS_Flg && ssMark.estmsS_Flg.trim() !== '') {
+                            markValue = ssMark.estmsS_Flg;
+                        } else if (ssMark.estmsS_Grade) {
+                            markValue = ssMark.estmsS_Grade;
                         }
                     }
 
-                    estmssMarks[ssMark.EMSS_Id] = markValue;
+                    estmssMarks[ssMark.emsS_Id] = markValue;
 
                     // Add to temp marks list
                     updatedTempMarks.push({
+                        estmsS_Id: ssMark.estmsS_Id || 0,
                         AMST_Id: student.amsT_Id,
                         ISMS_Id: student.ismS_Id,
-                        EMSS_Id: ssMark.EMSS_Id,
-                        ESTM_ID: student.estM_Id ?? 0,
+                        EMSS_Id: ssMark.emsS_Id,
+                        ESTM_ID: savedStudent.estM_Id,
                         ESTM_MarksGradeFlg: subjectMeta.marksGradeEntryFlg,
-                        ESTMSS_Marks: ssMark.ESTMSS_Marks || 0,
-                        ESTMSS_Grade: ssMark.ESTMSS_Grade || '',
-                        ESTMSS_Flg: ssMark.ESTMSS_Flg || ''
+                        ESTMSS_Marks: ssMark.estmsS_Marks || 0,
+                        ESTMSS_Grade: ssMark.estmsS_Grade || '',
+                        ESTMSS_Flg: ssMark.estmsS_Flg || ''
                     });
                 });
 
@@ -682,56 +714,65 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
         });
 
         // Update temp marks list
-        setTempSubsMarksList(updatedTempMarks);
+        setTempSubsMarksList((prev) => [...prev, ...updatedTempMarks]);
 
         return updatedStudents;
     };
 
-    const mapMarksSE = (students: StudentMarksEntry[], savedSEList: any[], subjectMeta: SubjectMeta): StudentMarksEntry[] => {
+    const mapMarksSE = (
+        students: StudentMarksEntry[],
+        savedSEList: any[],
+        savedStudentList: any[],
+        subjectMeta: SubjectMeta
+    ): StudentMarksEntry[] => {
         const updatedStudents = [...students];
         const updatedTempMarks: SavedMarksEntry[] = [];
 
         students.forEach((student, studentIndex) => {
-            const studentSEMarks = savedSEList.filter((se) => se.AMST_Id === student.amsT_Id);
+            const savedStudent = savedStudentList.find((s) => s.amsT_Id === student.amsT_Id);
+            if (!savedStudent) return;
+
+            const studentSEMarks = savedSEList.filter((se) => se.estM_Id === savedStudent.estM_Id);
 
             if (studentSEMarks.length > 0) {
                 updatedStudents[studentIndex] = {
                     ...student,
                     selected: true,
-                    ESTMSS_Marks: {}
+                    ESTMSS_Marks: {},
+                    estM_Id: savedStudent.estM_Id
                 };
 
-                // Initialize ESTMSS_Marks object
                 const estmssMarks: { [key: number]: string } = {};
 
                 studentSEMarks.forEach((seMark) => {
                     let markValue = '';
                     if (subjectMeta.marksGradeEntryFlg === 'M') {
-                        if (seMark.ESTMSS_Flg && seMark.ESTMSS_Flg.trim() !== '') {
-                            markValue = seMark.ESTMSS_Flg;
-                        } else if (seMark.ESTMSS_Marks !== undefined && seMark.ESTMSS_Marks !== null) {
-                            markValue = String(seMark.ESTMSS_Marks);
+                        if (seMark.estmsS_Flg && seMark.estmsS_Flg.trim() !== '') {
+                            markValue = seMark.estmsS_Flg;
+                        } else if (seMark.estmsS_Marks !== undefined && seMark.estmsS_Marks !== null) {
+                            markValue = String(seMark.estmsS_Marks);
                         }
                     } else if (subjectMeta.marksGradeEntryFlg === 'G') {
-                        if (seMark.ESTMSS_Flg && seMark.ESTMSS_Flg.trim() !== '') {
-                            markValue = seMark.ESTMSS_Flg;
-                        } else if (seMark.ESTMSS_Grade) {
-                            markValue = seMark.ESTMSS_Grade;
+                        if (seMark.estmsS_Flg && seMark.estmsS_Flg.trim() !== '') {
+                            markValue = seMark.estmsS_Flg;
+                        } else if (seMark.estmsS_Grade) {
+                            markValue = seMark.estmsS_Grade;
                         }
                     }
 
-                    estmssMarks[seMark.EMSE_Id] = markValue;
+                    estmssMarks[seMark.emsE_Id] = markValue;
 
                     // Add to temp marks list
                     updatedTempMarks.push({
+                        estmsS_Id: seMark.estmsS_Id || 0,
                         AMST_Id: student.amsT_Id,
                         ISMS_Id: student.ismS_Id,
-                        EMSE_Id: seMark.EMSE_Id,
-                        ESTM_ID: student.estM_Id ?? 0,
+                        EMSE_Id: seMark.emsE_Id,
+                        ESTM_ID: savedStudent.estM_Id,
                         ESTM_MarksGradeFlg: subjectMeta.marksGradeEntryFlg,
-                        ESTMSS_Marks: seMark.ESTMSS_Marks || 0,
-                        ESTMSS_Grade: seMark.ESTMSS_Grade || '',
-                        ESTMSS_Flg: seMark.ESTMSS_Flg || ''
+                        ESTMSS_Marks: seMark.estmsS_Marks || 0,
+                        ESTMSS_Grade: seMark.estmsS_Grade || '',
+                        ESTMSS_Flg: seMark.estmsS_Flg || ''
                     });
                 });
 
@@ -745,7 +786,81 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
         });
 
         // Update temp marks list
-        setTempSubsMarksList(updatedTempMarks);
+        setTempSubsMarksList((prev) => [...prev, ...updatedTempMarks]);
+
+        return updatedStudents;
+    };
+
+    const mapMarksSSSE = (
+        students: StudentMarksEntry[],
+        savedSSSEList: any[],
+        savedStudentList: any[],
+        subjectMeta: SubjectMeta
+    ): StudentMarksEntry[] => {
+        const updatedStudents = [...students];
+        const updatedTempMarks: SavedMarksEntry[] = [];
+
+        students.forEach((student, studentIndex) => {
+            const savedStudent = savedStudentList.find((s) => s.amsT_Id === student.amsT_Id);
+            if (!savedStudent) return;
+
+            const studentSSSEMarks = savedSSSEList.filter((ssse) => ssse.estM_Id === savedStudent.estM_Id);
+
+            if (studentSSSEMarks.length > 0) {
+                updatedStudents[studentIndex] = {
+                    ...student,
+                    selected: true,
+                    ESTMSS_Marks: {},
+                    estM_Id: savedStudent.estM_Id
+                };
+
+                const estmssMarks: { [key: string]: string } = {};
+
+                studentSSSEMarks.forEach((ssseMark) => {
+                    let markValue = '';
+                    if (subjectMeta.marksGradeEntryFlg === 'M') {
+                        if (ssseMark.estmsS_Flg && ssseMark.estmsS_Flg.trim() !== '') {
+                            markValue = ssseMark.estmsS_Flg;
+                        } else if (ssseMark.estmsS_Marks !== undefined && ssseMark.estmsS_Marks !== null) {
+                            markValue = String(ssseMark.estmsS_Marks);
+                        }
+                    } else if (subjectMeta.marksGradeEntryFlg === 'G') {
+                        if (ssseMark.estmsS_Flg && ssseMark.estmsS_Flg.trim() !== '') {
+                            markValue = ssseMark.estmsS_Flg;
+                        } else if (ssseMark.estmsS_Grade) {
+                            markValue = ssseMark.estmsS_Grade;
+                        }
+                    }
+
+                    const key = `${ssseMark.emsS_Id}_${ssseMark.emsE_Id}`;
+                    estmssMarks[key] = markValue;
+
+                    // Add to temp marks list
+                    updatedTempMarks.push({
+                        estmsS_Id: ssseMark.estmsS_Id || 0,
+                        AMST_Id: student.amsT_Id,
+                        ISMS_Id: student.ismS_Id,
+                        EMSS_Id: ssseMark.emsS_Id,
+                        EMSE_Id: ssseMark.emsE_Id,
+                        ESTM_ID: savedStudent.estM_Id,
+                        ESTM_MarksGradeFlg: subjectMeta.marksGradeEntryFlg,
+                        ESTMSS_Marks: ssseMark.estmsS_Marks || 0,
+                        ESTMSS_Grade: ssseMark.estmsS_Grade || '',
+                        ESTMSS_Flg: ssseMark.estmsS_Flg || ''
+                    });
+                });
+
+                updatedStudents[studentIndex].ESTMSS_Marks = estmssMarks;
+
+                // Calculate total marks
+                const totalMarks = calculateTotalMarksForStudent(updatedStudents[studentIndex], subjectMeta);
+                updatedStudents[studentIndex].ESTM_Marks = totalMarks.toString();
+                updatedStudents[studentIndex].estM_Marks_new = totalMarks;
+            }
+        });
+
+        // Update temp marks list
+        setTempSubsMarksList((prev) => [...prev, ...updatedTempMarks]);
 
         return updatedStudents;
     };
@@ -758,18 +873,28 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
 
         let total = 0;
 
-        if (subjectMeta.subsubFlag && student.ESTMSS_Marks && typeof student.ESTMSS_Marks === 'object') {
-            // Calculate sum of sub-subject marks
-            Object.values(student.ESTMSS_Marks).forEach((markValue) => {
-                if (typeof markValue === 'string' && !Number.isNaN(Number.parseFloat(markValue))) {
-                    total += Number.parseFloat(markValue);
+        if (subjectMeta.subsubFlag && subjectMeta.subexamFlag && student.ESTMSS_Marks && typeof student.ESTMSS_Marks === 'object') {
+            Object.entries(student.ESTMSS_Marks).forEach(([key, markValue]) => {
+                if (key.includes('_')) {
+                    if (typeof markValue === 'string' && !Number.isNaN(Number.parseFloat(markValue))) {
+                        total += Number.parseFloat(markValue);
+                    }
+                }
+            });
+        } else if (subjectMeta.subsubFlag && student.ESTMSS_Marks && typeof student.ESTMSS_Marks === 'object') {
+            Object.entries(student.ESTMSS_Marks).forEach(([key, markValue]) => {
+                if (!key.includes('_')) {
+                    if (typeof markValue === 'string' && !Number.isNaN(Number.parseFloat(markValue))) {
+                        total += Number.parseFloat(markValue);
+                    }
                 }
             });
         } else if (subjectMeta.subexamFlag && student.ESTMSS_Marks && typeof student.ESTMSS_Marks === 'object') {
-            // Calculate sum of sub-exam marks
-            Object.values(student.ESTMSS_Marks).forEach((markValue) => {
-                if (typeof markValue === 'string' && !Number.isNaN(Number.parseFloat(markValue))) {
-                    total += Number.parseFloat(markValue);
+            Object.entries(student.ESTMSS_Marks).forEach(([key, markValue]) => {
+                if (!key.includes('_')) {
+                    if (typeof markValue === 'string' && !Number.isNaN(Number.parseFloat(markValue))) {
+                        total += Number.parseFloat(markValue);
+                    }
                 }
             });
         }
@@ -855,6 +980,39 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
 
         // Update temp marks list
         updateTempMarksListSubExam(studentId, subExamId, newMark);
+    };
+
+    const updateSubSubjectSubExamMark = (studentId: number, subSubjectId: number, subExamId: number, newMark: number | '' | string) => {
+        setStudents((prev) =>
+            prev.map((student) => {
+                if (student.amsT_Id === studentId) {
+                    const updatedMarks = { ...((student.ESTMSS_Marks as { [key: string]: string }) || {}) };
+                    const key = `${subSubjectId}_${subExamId}`;
+                    updatedMarks[key] = newMark.toString();
+
+                    // Calculate new total
+                    let total = 0;
+                    Object.entries(updatedMarks).forEach(([k, markValue]) => {
+                        if (k.includes('_')) {
+                            if (typeof markValue === 'string' && !Number.isNaN(Number.parseFloat(markValue))) {
+                                total += Number.parseFloat(markValue);
+                            }
+                        }
+                    });
+
+                    return {
+                        ...student,
+                        ESTMSS_Marks: updatedMarks,
+                        ESTM_Marks: total.toString(),
+                        estM_Marks_new: total
+                    };
+                }
+                return student;
+            })
+        );
+
+        // Update temp marks list
+        updateTempMarksListSubSubjectSubExam(studentId, subSubjectId, subExamId, newMark);
     };
 
     const updateTempMarksListSimple = (studentId: number, value: number | '' | string) => {
@@ -1018,6 +1176,70 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
         });
     };
 
+    const updateTempMarksListSubSubjectSubExam = (
+        studentId: number,
+        subSubjectId: number,
+        subExamId: number,
+        value: number | '' | string
+    ) => {
+        const student = students.find((s) => s.amsT_Id === studentId);
+        if (!student || !subjectMeta) return;
+
+        if (value === '') {
+            // Remove from temp list
+            setTempSubsMarksList((prev) =>
+                prev.filter((item) => !(item.AMST_Id === studentId && item.EMSS_Id === subSubjectId && item.EMSE_Id === subExamId))
+            );
+            return;
+        }
+
+        const newEntry: SavedMarksEntry = {
+            AMST_Id: studentId,
+            ISMS_Id: student.ismS_Id,
+            EMSS_Id: subSubjectId,
+            EMSE_Id: subExamId,
+            ESTM_ID: student.estM_Id ?? 0,
+            ESTM_MarksGradeFlg: subjectMeta.marksGradeEntryFlg,
+            ESTMSS_Marks: 0,
+            ESTMSS_Grade: '',
+            ESTMSS_Flg: ''
+        };
+
+        if (subjectMeta.marksGradeEntryFlg === 'M') {
+            if (typeof value === 'string' && ['AB', 'L', 'M', 'OD'].includes(value.toUpperCase())) {
+                newEntry.ESTMSS_Flg = value.toUpperCase();
+                newEntry.ESTMSS_Marks = 0;
+            } else {
+                const numValue = Number.parseFloat(value as string);
+                if (!Number.isNaN(numValue)) {
+                    newEntry.ESTMSS_Marks = numValue;
+                    newEntry.ESTMSS_Flg = '';
+                }
+            }
+        } else {
+            if (typeof value === 'string' && ['AB', 'L', 'M', 'OD'].includes(value.toUpperCase())) {
+                newEntry.ESTMSS_Flg = value.toUpperCase();
+                newEntry.ESTMSS_Grade = '';
+            } else {
+                newEntry.ESTMSS_Grade = value.toString();
+                newEntry.ESTMSS_Flg = '';
+            }
+        }
+
+        setTempSubsMarksList((prev) => {
+            const existingIndex = prev.findIndex(
+                (item) => item.AMST_Id === studentId && item.EMSS_Id === subSubjectId && item.EMSE_Id === subExamId
+            );
+
+            if (existingIndex >= 0) {
+                const updated = [...prev];
+                updated[existingIndex] = newEntry;
+                return updated;
+            }
+            return [...prev, newEntry];
+        });
+    };
+
     /* ============================================
        Arrow Navigation Functions
        ============================================ */
@@ -1041,8 +1263,8 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
     const getMaxColumnIndex = () => {
         if (!subjectMeta) return 0;
 
-        if (!subjectMeta.subsubFlag && !subjectMeta.subexamFlag) {
-            return 0; // Simple marks column
+        if (subjectMeta.subsubFlag && subjectMeta.subexamFlag) {
+            return tempSubSubjsExams.length - 1;
         }
         if (subjectMeta.subsubFlag) {
             return subjectMeta.subsubData.length - 1;
@@ -1224,24 +1446,40 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
 
             return {
                 amsT_Id: student.amsT_Id,
+                AMST_Id: student.amsT_Id,
                 amsT_FirstName: student.amsT_FirstName,
+                AMST_FirstName: student.amsT_FirstName,
                 amsT_AdmNo: student.amsT_AdmNo,
+                AMST_AdmNo: student.amsT_AdmNo,
                 amsT_RegistrationNo: student.amsT_RegistrationNo || '',
+                AMST_RegistrationNo: student.amsT_RegistrationNo || '',
                 amaY_RollNo: student.amaY_RollNo,
+                AMAY_RollNo: student.amaY_RollNo,
                 ismS_Id: student.ismS_Id,
+                ISMS_Id: student.ismS_Id,
                 ismS_SubjectName: student.ismS_SubjectName,
+                ISMS_SubjectName: student.ismS_SubjectName,
                 eyceS_MaxMarks: student.eyceS_MaxMarks,
+                EYCES_MaxMarks: student.eyceS_MaxMarks,
                 eyceS_MinMarks: student.eyceS_MinMarks,
+                EYCES_MinMarks: student.eyceS_MinMarks,
                 eyceS_MarksEntryMax: student.eyceS_MarksEntryMax,
+                EYCES_MarksEntryMax: student.eyceS_MarksEntryMax,
                 estM_Marks: totalMarks,
+                ESTM_Marks: totalMarks,
                 estM_Grade: mainGrade || '',
+                ESTM_Grade: mainGrade || '',
                 estM_Flg: mainFlag || '',
+                ESTM_Flg: mainFlag || '',
                 estM_Id: student.estM_Id || 0,
+                ESTM_Id: student.estM_Id || 0,
                 param: '',
                 amsT_Sex: '',
                 estmanssH_Id: 0,
                 estmanssH_AnswerSheet: student.estmanssH_AnswerSheet || '',
-                estmanssH_FileLocation: student.estmanssH_FileLocation || ''
+                ESTMANSSH_AnswerSheet: student.estmanssH_AnswerSheet || '',
+                estmanssH_FileLocation: student.estmanssH_FileLocation || '',
+                ESTMANSSH_FileLocation: student.estmanssH_FileLocation || ''
             };
         });
 
@@ -1257,15 +1495,25 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
 
             tempSubsMarksListFormatted = selectedSubMarks.map((mark) => ({
                 estmsS_Id: mark.estmsS_Id || 0,
+                ESTMSS_Id: mark.estmsS_Id || 0,
                 amsT_Id: mark.AMST_Id,
+                AMST_Id: mark.AMST_Id,
                 emsS_Id: mark.EMSS_Id || 0,
+                EMSS_Id: mark.EMSS_Id || 0,
                 ismS_Id: mark.ISMS_Id,
+                ISMS_Id: mark.ISMS_Id,
                 emsE_Id: mark.EMSE_Id || 0,
+                EMSE_Id: mark.EMSE_Id || 0,
                 estmsS_Marks: mark.ESTMSS_Marks || 0,
+                ESTMSS_Marks: mark.ESTMSS_Marks || 0,
                 estmsS_MarksGradeFlg: subjectMeta.marksGradeEntryFlg,
+                ESTMSS_MarksGradeFlg: subjectMeta.marksGradeEntryFlg,
                 estmsS_Grade: mark.ESTMSS_Grade || '',
+                ESTMSS_Grade: mark.ESTMSS_Grade || '',
                 estmsS_Flg: mark.ESTMSS_Flg || '',
+                ESTMSS_Flg: mark.ESTMSS_Flg || '',
                 estmsS_ActiveFlg: true,
+                ESTMSS_ActiveFlg: true,
                 iP4: ''
             }));
         }
@@ -1302,7 +1550,9 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 }
             ],
             eyceS_MarksGradeEntryFlg: subjectMeta.marksGradeEntryFlg,
+            EYCES_MarksGradeEntryFlg: subjectMeta.marksGradeEntryFlg,
             eyceS_SubSubjectFlg: subjectMeta.subsubFlag,
+            EYCES_SubSubjectFlg: subjectMeta.subsubFlag,
             subject_subsubjects: subjectMeta.subsubFlag
                 ? subjectMeta.subsubData.map((ss) => ({
                       eycessS_Id: 0,
@@ -1321,6 +1571,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                   }))
                 : [],
             eyceS_SubExamFlg: subjectMeta.subexamFlag,
+            EYCES_SubExamFlg: subjectMeta.subexamFlag,
             subject_subexams: subjectMeta.subexamFlag
                 ? subjectMeta.subexamData.map((se) => ({
                       eycessE_Id: 0,
@@ -1347,7 +1598,9 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
             subsubject_gradedetails: subSubjectGradeDetails,
             subexam_gradedetails: subExamGradeDetails,
             main_save_list: mainSaveList,
+            Main_save_list: mainSaveList,
             temp_subs_marks_list: tempSubsMarksListFormatted,
+            Temp_subs_marks_list: tempSubsMarksListFormatted,
             saved_studentList: [],
             marksdeleteflag: marksDeleteFlag,
             saved_sub_subject_exam_list: [],
@@ -1375,7 +1628,9 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
             lastDateExamFlag: lastDateExamFlag,
             marksEntryStateDate: currentTimestamp,
             pagename: 'School',
+            Pagename: 'School',
             ivrmmaP_AddFlg: true,
+            IVRMMAP_AddFlg: true,
             ivrmmaP_UpdateFlg: true,
             get_papertype_grade_details: paperTypeGradeDetails,
             answer_sheet: []
@@ -1384,6 +1639,8 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
         // Add orderflag for verification if provided
         if (verifyflg) {
             saveData.orderflag = verifyflg;
+            saveData.Orderflag = verifyflg;
+            saveData.orderFlag = verifyflg;
         }
 
         try {
@@ -1457,13 +1714,17 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 .map(() => []);
         }
 
-        const baseColumnsCount = 6; // Select, SL NO, Name, RegNo, AdmNo, RollNo
-        let totalColumns = baseColumnsCount;
+        let totalColumns = 3; // Checkbox, SL NO, Student Name
+        if (!config || config.exmConfig_RegnoColumnDisplay) totalColumns++;
+        if (!config || config.exmConfig_AdmnoColumnDisplay) totalColumns++;
+        if (!config || config.exmConfig_RollnoColumnDisplay) totalColumns++;
 
-        if (subjectMeta.subsubFlag) {
-            totalColumns += subjectMeta.subsubData.length + 1; // Sub subjects + TOTAL
+        if (subjectMeta.subsubFlag && subjectMeta.subexamFlag) {
+            totalColumns += tempSubSubjsExams.length;
+        } else if (subjectMeta.subsubFlag) {
+            totalColumns += subjectMeta.subsubData.length;
         } else if (subjectMeta.subexamFlag) {
-            totalColumns += subjectMeta.subexamData.length + 1; // Sub exams + TOTAL
+            totalColumns += subjectMeta.subexamData.length;
         } else {
             totalColumns += 1; // Simple marks
         }
@@ -1473,7 +1734,14 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                 <table className='min-w-full table-fixed border-collapse border border-gray-300 [&_td]:border [&_td]:border-gray-300 [&_th]:border'>
                     <thead>
                         <tr>
-                            <TableHeaderCell rowSpan={subjectMeta.subsubFlag || subjectMeta.subexamFlag ? 3 : 2}>
+                            <TableHeaderCell
+                                rowSpan={
+                                    subjectMeta.subsubFlag && subjectMeta.subexamFlag
+                                        ? 3
+                                        : subjectMeta.subsubFlag || subjectMeta.subexamFlag
+                                          ? 2
+                                          : 2
+                                }>
                                 <div className='flex items-center justify-center'>
                                     <Checkbox
                                         checked={allSelected}
@@ -1482,41 +1750,84 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                     />
                                 </div>
                             </TableHeaderCell>
-                            <TableHeaderCell rowSpan={subjectMeta.subsubFlag || subjectMeta.subexamFlag ? 3 : 2}>SL NO</TableHeaderCell>
-                            <TableHeaderCell rowSpan={subjectMeta.subsubFlag || subjectMeta.subexamFlag ? 3 : 2} className='text-left'>
+                            <TableHeaderCell
+                                rowSpan={
+                                    subjectMeta.subsubFlag && subjectMeta.subexamFlag
+                                        ? 3
+                                        : subjectMeta.subsubFlag || subjectMeta.subexamFlag
+                                          ? 2
+                                          : 2
+                                }>
+                                SL NO
+                            </TableHeaderCell>
+                            <TableHeaderCell
+                                rowSpan={
+                                    subjectMeta.subsubFlag && subjectMeta.subexamFlag
+                                        ? 3
+                                        : subjectMeta.subsubFlag || subjectMeta.subexamFlag
+                                          ? 2
+                                          : 2
+                                }
+                                className='text-left'>
                                 Student Name
                             </TableHeaderCell>
 
                             {(!config || config.exmConfig_RegnoColumnDisplay) && (
-                                <TableHeaderCell rowSpan={subjectMeta.subsubFlag || subjectMeta.subexamFlag ? 3 : 2}>
+                                <TableHeaderCell
+                                    rowSpan={
+                                        subjectMeta.subsubFlag && subjectMeta.subexamFlag
+                                            ? 3
+                                            : subjectMeta.subsubFlag || subjectMeta.subexamFlag
+                                              ? 2
+                                              : 2
+                                    }>
                                     Reg No
                                 </TableHeaderCell>
                             )}
 
                             {(!config || config.exmConfig_AdmnoColumnDisplay) && (
-                                <TableHeaderCell rowSpan={subjectMeta.subsubFlag || subjectMeta.subexamFlag ? 3 : 2}>
+                                <TableHeaderCell
+                                    rowSpan={
+                                        subjectMeta.subsubFlag && subjectMeta.subexamFlag
+                                            ? 3
+                                            : subjectMeta.subsubFlag || subjectMeta.subexamFlag
+                                              ? 2
+                                              : 2
+                                    }>
                                     Admission No
                                 </TableHeaderCell>
                             )}
 
                             {(!config || config.exmConfig_RollnoColumnDisplay) && (
-                                <TableHeaderCell rowSpan={subjectMeta.subsubFlag || subjectMeta.subexamFlag ? 3 : 2}>
+                                <TableHeaderCell
+                                    rowSpan={
+                                        subjectMeta.subsubFlag && subjectMeta.subexamFlag
+                                            ? 3
+                                            : subjectMeta.subsubFlag || subjectMeta.subexamFlag
+                                              ? 2
+                                              : 2
+                                    }>
                                     Roll No
                                 </TableHeaderCell>
                             )}
 
-                            {subjectMeta.subsubFlag ? (
-                                <TableHeaderCell colSpan={subjectMeta.subsubData.length + 1}>
+                            {subjectMeta.subsubFlag && subjectMeta.subexamFlag ? (
+                                <TableHeaderCell colSpan={tempSubSubjsExams.length}>
+                                    <div className='font-semibold'>{`${subjectMeta.subjectName} (M-${subjectMeta.maxMarks})`}</div>
+                                    <div className='text-[12px]'>{`(ME-${subjectMeta.minMarks})`}</div>
+                                </TableHeaderCell>
+                            ) : subjectMeta.subsubFlag ? (
+                                <TableHeaderCell colSpan={subjectMeta.subsubData.length}>
                                     <div className='font-semibold'>{`${subjectMeta.subjectName} (M-${subjectMeta.maxMarks})`}</div>
                                     <div className='text-[12px]'>{`(ME-${subjectMeta.minMarks})`}</div>
                                 </TableHeaderCell>
                             ) : subjectMeta.subexamFlag ? (
-                                <TableHeaderCell colSpan={subjectMeta.subexamData.length + 1}>
+                                <TableHeaderCell colSpan={subjectMeta.subexamData.length}>
                                     <div className='font-semibold'>{`${subjectMeta.subjectName} (M-${subjectMeta.maxMarks})`}</div>
                                     <div className='text-[12px]'>{`(ME-${subjectMeta.minMarks})`}</div>
                                 </TableHeaderCell>
                             ) : (
-                                <TableHeaderCell>
+                                <TableHeaderCell rowSpan={2}>
                                     <div className='font-semibold'>{`${subjectMeta.subjectName} (M-${subjectMeta.maxMarks})`}</div>
                                     <div className='text-[12px]'>{`(ME-${subjectMeta.minMarks})`}</div>
                                 </TableHeaderCell>
@@ -1525,33 +1836,38 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
 
                         {(subjectMeta.subsubFlag || subjectMeta.subexamFlag) && (
                             <tr>
-                                {subjectMeta.subsubFlag ? (
-                                    <>
-                                        {subjectMeta.subsubData.map((ss) => (
+                                {subjectMeta.subsubFlag && subjectMeta.subexamFlag
+                                    ? subjectSubsubjectsDetails.map((ss: any, idx: number) => (
+                                          <TableHeaderCell key={idx} colSpan={ss.subexamlist?.length || 1}>
+                                              <div className='font-semibold text-sm'>{ss.subsubject?.emsS_SubSubjectName}</div>
+                                          </TableHeaderCell>
+                                      ))
+                                    : subjectMeta.subsubFlag
+                                      ? subjectMeta.subsubData.map((ss) => (
                                             <TableHeaderCell key={ss.subsubId}>
                                                 <div className='font-semibold text-sm'>{ss.subsubName}</div>
-                                                <div className='text-[11px]'>{`(M-${ss.maxMarks}) (ME-${ss.minMarks || 0})`}</div>
+                                                <div className='text-[11px]'>{`(M-${ss.maxMarks}) (ME-${ss.marksEntryMax})`}</div>
                                             </TableHeaderCell>
-                                        ))}
-                                        {/* <TableHeaderCell>
-                                            <div className='font-semibold text-sm'>TOTAL</div>
-                                            <div className='text-[11px]'>{`(M-${subjectMeta.maxMarks})`}</div>
-                                        </TableHeaderCell> */}
-                                    </>
-                                ) : subjectMeta.subexamFlag ? (
-                                    <>
-                                        {subjectMeta.subexamData.map((se) => (
-                                            <TableHeaderCell key={se.subexamId}>
-                                                <div className='font-semibold text-sm'>{se.subexamName}</div>
-                                                <div className='text-[11px]'>{`(M-${se.maxMarks}) (ME-${se.minMarks || 0})`}</div>
-                                            </TableHeaderCell>
-                                        ))}
-                                        {/* <TableHeaderCell>
-                                            <div className='font-semibold text-sm'>EXAM TOTAL</div>
-                                            <div className='text-[11px]'>{`(M-${subjectMeta.maxMarks})`}</div>
-                                        </TableHeaderCell> */}
-                                    </>
-                                ) : null}
+                                        ))
+                                      : subjectMeta.subexamFlag
+                                        ? subjectMeta.subexamData.map((se) => (
+                                              <TableHeaderCell key={se.subexamId}>
+                                                  <div className='font-semibold text-sm'>{se.subexamName}</div>
+                                                  <div className='text-[11px]'>{`(M-${se.maxMarks}) (ME-${se.marksEntryMax})`}</div>
+                                              </TableHeaderCell>
+                                          ))
+                                        : null}
+                            </tr>
+                        )}
+
+                        {subjectMeta.subsubFlag && subjectMeta.subexamFlag && (
+                            <tr>
+                                {tempSubSubjsExams.map((se: any, idx: number) => (
+                                    <TableHeaderCell key={idx}>
+                                        <div className='font-semibold text-xs'>{se.emsE_SubExamName}</div>
+                                        <div className='text-[10px]'>{`(M-${se.eycessE_MaxMarks}) (ME-${se.eycessE_MarksEntryMax})`}</div>
+                                    </TableHeaderCell>
+                                ))}
                             </tr>
                         )}
                     </thead>
@@ -1565,47 +1881,6 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                             </tr>
                         ) : (
                             students.map((student, rowIndex) => {
-                                // Calculate totals
-                                let subsum = 0;
-                                let examsum = 0;
-                                let _subOver = false;
-                                let _examOver = false;
-
-                                if (subjectMeta.subsubFlag && student.ESTMSS_Marks && typeof student.ESTMSS_Marks === 'object') {
-                                    // Calculate sub-subject total
-                                    Object.values(student.ESTMSS_Marks).forEach((markValue) => {
-                                        if (typeof markValue === 'string' && !Number.isNaN(Number.parseFloat(markValue))) {
-                                            subsum += Number.parseFloat(markValue);
-                                        }
-                                    });
-                                    _subOver = subsum > subjectMeta.maxMarks;
-                                } else if (subjectMeta.subexamFlag && student.ESTMSS_Marks && typeof student.ESTMSS_Marks === 'object') {
-                                    // Calculate sub-exam total
-                                    Object.values(student.ESTMSS_Marks).forEach((markValue) => {
-                                        if (typeof markValue === 'string' && !Number.isNaN(Number.parseFloat(markValue))) {
-                                            examsum += Number.parseFloat(markValue);
-                                        }
-                                    });
-                                    if (examsum === 0) {
-                                        subjectMeta.saved_sub_subjectOrExam_list.forEach((ss) => {
-                                            if (student.estM_Id === ss.ESTM_ID && ss.ESTMSS_Marks !== undefined) {
-                                                examsum += Number.parseFloat(ss.ESTMSS_Marks.toString());
-                                            }
-                                        });
-                                    }
-                                    _examOver = examsum > subjectMeta.maxMarks;
-                                } else {
-                                    // Simple marks
-                                    if (
-                                        student.ESTM_Marks &&
-                                        typeof student.ESTM_Marks === 'string' &&
-                                        !Number.isNaN(Number.parseFloat(student.ESTM_Marks))
-                                    ) {
-                                        subsum = Number.parseFloat(student.ESTM_Marks);
-                                        _subOver = subsum > subjectMeta.maxMarks;
-                                    }
-                                }
-
                                 return (
                                     <tr key={student.amsT_Id} className={rowIndex % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                                         <TableCell className='pr-2 text-center'>
@@ -1630,23 +1905,51 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                             <TableCell className='text-center'>{student.amaY_RollNo}</TableCell>
                                         )}
 
-                                        {subjectMeta.subsubFlag ? (
+                                        {subjectMeta.subsubFlag && subjectMeta.subexamFlag ? (
+                                            tempSubSubjsExams.map((se: any, colIndex: number) => {
+                                                const key = `${se.emsS_Id}_${se.emsE_Id}`;
+                                                const val = (student.ESTMSS_Marks as { [key: string]: string })?.[key] ?? '';
+                                                return (
+                                                    <TableCell key={colIndex} className='text-center'>
+                                                        <div className='flex justify-center'>
+                                                            <MarksInputCell
+                                                                value={val}
+                                                                max={se.eycessE_MaxMarks}
+                                                                min={se.eycessE_MinMarks}
+                                                                onChange={(v) =>
+                                                                    updateSubSubjectSubExamMark(student.amsT_Id, se.emsS_Id, se.emsE_Id, v)
+                                                                }
+                                                                placeholder={
+                                                                    subjectMeta.marksGradeEntryFlg === 'M'
+                                                                        ? 'Enter Marks...'
+                                                                        : 'Enter Grade...'
+                                                                }
+                                                                marksGradeEntryFlg={subjectMeta.marksGradeEntryFlg}
+                                                                gradeDetails={subExamGradeDetails.map((g) => g.emgD_Name)}
+                                                                papertypeid={student.papertypeid}
+                                                                papertypeGradeDetails={paperTypeGradeDetails}
+                                                                onArrow={(dir) => handleArrowNavigation(rowIndex, colIndex, dir)}
+                                                                ref={(el) => {
+                                                                    if (!inputRefs.current[rowIndex]) {
+                                                                        inputRefs.current[rowIndex] = [];
+                                                                    }
+                                                                    inputRefs.current[rowIndex][colIndex] = el;
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </TableCell>
+                                                );
+                                            })
+                                        ) : subjectMeta.subsubFlag ? (
                                             <>
                                                 {subjectMeta.subsubData.map((subsub, colIndex) => {
-                                                    const subSubjObj = subjectMeta.saved_sub_subject_list.find(
-                                                        (s) => s.EMSS_Id === subsub.subsubId && s.ESTM_ID === student.estM_Id
-                                                    );
+                                                    const val =
+                                                        (student.ESTMSS_Marks as { [key: number]: string })?.[subsub.subsubId] ?? '';
                                                     return (
                                                         <TableCell key={subsub.subsubId} className='text-center'>
                                                             <div className='flex justify-center'>
                                                                 <MarksInputCell
-                                                                    value={
-                                                                        subSubjObj?.ESTM_Flg && subSubjObj.ESTM_Flg !== ''
-                                                                            ? subSubjObj.ESTM_Flg
-                                                                            : subjectMeta.marksGradeEntryFlg === 'M'
-                                                                              ? (subSubjObj?.ESTMSS_Marks ?? '')
-                                                                              : (subSubjObj?.ESTMSS_Grade ?? '')
-                                                                    }
+                                                                    value={val}
                                                                     max={subsub.maxMarks}
                                                                     min={subsub.minMarks}
                                                                     onChange={(v) =>
@@ -1673,33 +1976,17 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                         </TableCell>
                                                     );
                                                 })}
-                                                {/* <TableCell className='align-top'>
-                                                    <div className='flex flex-col items-start'>
-                                                        <div className={`px-3 py-1 text-sm ${subOver ? 'font-semibold text-red-600' : ''}`}>
-                                                            {subsum}
-                                                        </div>
-                                                        {subOver && <div className='text-[11px] text-red-600'>Sum exceeds subject max</div>}
-                                                    </div>
-                                                </TableCell> */}
                                             </>
                                         ) : subjectMeta.subexamFlag ? (
                                             <>
                                                 {subjectMeta.subexamData.map((subexam, colIndex) => {
-                                                    const subExamObj = subjectMeta.saved_sub_subjectOrExam_list.find(
-                                                        (s) => s.EMSE_Id === subexam.subexamId && s.ESTM_ID === student.estM_Id
-                                                    );
-
+                                                    const val =
+                                                        (student.ESTMSS_Marks as { [key: number]: string })?.[subexam.subexamId] ?? '';
                                                     return (
                                                         <TableCell key={subexam.subexamId} className='text-center'>
                                                             <div className='flex justify-center'>
                                                                 <MarksInputCell
-                                                                    value={
-                                                                        subExamObj?.ESTM_Flg && subExamObj.ESTM_Flg !== ''
-                                                                            ? subExamObj.ESTM_Flg
-                                                                            : subjectMeta.marksGradeEntryFlg === 'M'
-                                                                              ? (subExamObj?.ESTMSS_Marks ?? '')
-                                                                              : (subExamObj?.ESTMSS_Grade ?? '')
-                                                                    }
+                                                                    value={val}
                                                                     max={subexam.maxMarks}
                                                                     min={subexam.minMarks}
                                                                     onChange={(v) =>
@@ -1726,31 +2013,13 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                         </TableCell>
                                                     );
                                                 })}
-                                                {/* <TableCell className='align-top'>
-                                                    <div className='flex flex-col items-start'>
-                                                        <div className={`px-3 py-1 text-sm ${examOver ? 'font-semibold text-red-600' : ''}`}>
-                                                            {examsum}
-                                                        </div>
-                                                        {examOver && (
-                                                            <div className='text-[11px] text-red-600'>Sum exceeds subject max</div>
-                                                        )}
-                                                    </div>
-                                                </TableCell> */}
                                             </>
                                         ) : (
                                             <TableCell className='text-center'>
                                                 <div className='flex justify-center'>
                                                     <MarksInputCell
-                                                        value={
-                                                            student.estM_Flg != null && student.estM_Flg !== ''
-                                                                ? student.estM_Flg
-                                                                : subjectMeta.marksGradeEntryFlg === 'G' && student.estM_Grade
-                                                                  ? student.estM_Grade
-                                                                  : subjectMeta.marksGradeEntryFlg === 'M' && student.estM_Marks
-                                                                    ? (student.estM_Marks ?? '')
-                                                                    : ''
-                                                        }
-                                                        max={subjectMeta.maxMarks}
+                                                        value={student.ESTM_Marks ?? ''}
+                                                        max={subjectMeta.marksEntryMax || subjectMeta.maxMarks}
                                                         min={subjectMeta.minMarks}
                                                         onChange={(v) => updateSimpleMark(student.amsT_Id, v)}
                                                         placeholder={

@@ -11,9 +11,9 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import 'react-phone-input-2/lib/style.css';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 import {
     useActivePreadmissionDetails,
@@ -163,7 +163,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             Object.entries(rowData).forEach(([key, value]) => {
                 // Skip arrays - handle them separately or via useFieldArray
                 if (
-                    ['siblingsDetails', 'previousSchoolDetails', 'guardianDetails', 'selectedSourceDetails', 'selectedRefrenceDetails', 'selectedDocuments'].includes(key)
+                    [
+                        'siblingsDetails',
+                        'previousSchoolDetails',
+                        'guardianDetails',
+                        'selectedSourceDetails',
+                        'selectedRefrenceDetails',
+                        'selectedDocuments'
+                    ].includes(key)
                 ) {
                     return;
                 }
@@ -179,10 +186,13 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                     normalized === '' ||
                     normalized === null ||
                     normalized === 'null' ||
-                    (normalized === 0 && !['pasR_TransportReqdFlag', 'pasA_WillingToContributeFlg', 'pasR_UndertakingFlag', 'PASR_BloodGroup'].includes(key))
+                    (normalized === 0 &&
+                        !['pasR_TransportReqdFlag', 'pasA_WillingToContributeFlg', 'pasR_UndertakingFlag', 'PASR_BloodGroup'].includes(key))
                 ) {
                     // Only set to undefined for null-ish values, preserving valid 0s for specified flags
-                    if (!['pasR_TransportReqdFlag', 'pasA_WillingToContributeFlg', 'pasR_UndertakingFlag', 'PASR_BloodGroup'].includes(key)) {
+                    if (
+                        !['pasR_TransportReqdFlag', 'pasA_WillingToContributeFlg', 'pasR_UndertakingFlag', 'PASR_BloodGroup'].includes(key)
+                    ) {
                         normalized = undefined;
                     }
                 }
@@ -239,8 +249,11 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 }
             });
 
-            setValue('pasA_WillingToContributeFlg', (rowData.pasA_WillingToContributeFlg || rowData.pasa_willingtocontributeflg) ? 1 : 0);
-            setValue('pasA_WillingToContributeRemarks', (rowData.pasA_WillingToContributeRemarks || rowData.pasa_willingtocontributeremarks) ?? undefined);
+            setValue('pasA_WillingToContributeFlg', rowData.pasA_WillingToContributeFlg || rowData.pasa_willingtocontributeflg ? 1 : 0);
+            setValue(
+                'pasA_WillingToContributeRemarks',
+                (rowData.pasA_WillingToContributeRemarks || rowData.pasa_willingtocontributeremarks) ?? undefined
+            );
 
             // Handle arrays and complex structures
             const siblings = rowData.siblingsDetails || rowData.siblingsdetails || rowData.student_siblings;
@@ -719,9 +732,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     };
 
     const onSubmit: SubmitHandler<FormFields> = async (formData) => {
-
         try {
-
             const studentId = Number(formData.pasR_Id || rowData?.pasR_Id || rowData?.pasr_id || rowData?.PASR_Id || 0);
             const asmayId = Number(rowData?.asmay_id || rowData?.ASMAY_Id || activePreadmission?.data?.asmaY_Id || 0);
 
@@ -751,7 +762,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 PASR_Mobile_No: Number(formData.pasR_MobileNo) || 0,
                 student_name: `${formData.pasR_FirstName || ''} ${formData.pasR_MiddleName || ''} ${formData.pasR_LastName || ''}`.trim(),
                 Student_Name: `${formData.pasR_FirstName || ''} ${formData.pasR_MiddleName || ''} ${formData.pasR_LastName || ''}`.trim(),
-                PASR_StudentName: `${formData.pasR_FirstName || ''} ${formData.pasR_MiddleName || ''} ${formData.pasR_LastName || ''}`.trim(),
+                PASR_StudentName:
+                    `${formData.pasR_FirstName || ''} ${formData.pasR_MiddleName || ''} ${formData.pasR_LastName || ''}`.trim(),
                 pasr_RegistrationNo: formData.pasR_RegistrationNo || rowData?.pasR_RegistrationNo || '',
                 PASR_RegistrationNo: formData.pasR_RegistrationNo || rowData?.pasR_RegistrationNo || '',
                 Pasr_Id: studentId,
@@ -911,8 +923,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         }
         refetchDropdowns();
     };
-
-
 
     const handleSourceSelection = (selectedValues: string[]) => {
         const selectedSources = selectedValues.map((value) => {
@@ -1461,8 +1471,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-400'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1511,8 +1521,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-500'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -1712,9 +1722,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     type='button'
                                                                     variant='outline'
                                                                     size='sm'
-                                                                    onClick={() =>
-                                                                        handleImagePreview(studentPhoto.pasR_Student_Pic_Path)
-                                                                    }>
+                                                                    onClick={() => handleImagePreview(studentPhoto.pasR_Student_Pic_Path)}>
                                                                     <Eye className='h-4 w-4' />
                                                                 </Button>
                                                                 <Button
@@ -1863,8 +1871,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             />
                                                             {phoneExpectedInfo.pasR_MobileNo?.expected && (
                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
-                                                                        }`}
+                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${
+                                                                        phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
+                                                                    }`}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1954,7 +1963,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 {errors.caste_Id && <FormError>{errors.caste_Id.message}</FormError>}
                                             </div>
 
-
                                             <div className='flex flex-col gap-1.5'>
                                                 <Controller
                                                     name='SubCaste_Id'
@@ -1972,10 +1980,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 />
                                                 {errors.SubCaste_Id && <FormError>{errors.SubCaste_Id.message}</FormError>}
                                             </div>
-
-
-
-
 
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='pasR_Sex'>
@@ -2245,7 +2249,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 )}
                                             </div>
 
-
                                             <div className='flex flex-col gap-1.5'>
                                                 <Label htmlFor='PASR_BloodGroup'>
                                                     Blood Group <span className='ml-1 text-red-500'>*</span>
@@ -2274,13 +2277,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         </Select>
                                                     )}
                                                 />
-                                                {errors.PASR_BloodGroup && (
-                                                    <FormError>{errors.PASR_BloodGroup.message}</FormError>
-                                                )}
+                                                {errors.PASR_BloodGroup && <FormError>{errors.PASR_BloodGroup.message}</FormError>}
                                             </div>
-
-
-
                                         </div>
                                     </div>
                                 )}
@@ -2400,15 +2398,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             rules={
                                                                 conZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2579,15 +2577,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             rules={
                                                                 perZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2849,13 +2847,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             }
                                                                         }}
                                                                         value={
-                                                                            ['Government Employee', 'Private Employee', 'Self Employee'].includes(
-                                                                                field.value ?? ''
-                                                                            )
+                                                                            [
+                                                                                'Government Employee',
+                                                                                'Private Employee',
+                                                                                'Self Employee'
+                                                                            ].includes(field.value ?? '')
                                                                                 ? field.value
                                                                                 : field.value === undefined
-                                                                                    ? undefined
-                                                                                    : 'Others'
+                                                                                  ? undefined
+                                                                                  : 'Others'
                                                                         }
                                                                         className='flex flex-wrap gap-6'>
                                                                         <div className='flex items-center space-x-2'>
@@ -2885,9 +2885,11 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     </RadioGroup>
 
                                                                     {field.value !== undefined &&
-                                                                        !['Government Employee', 'Private Employee', 'Self Employee'].includes(
-                                                                            field.value
-                                                                        ) && (
+                                                                        ![
+                                                                            'Government Employee',
+                                                                            'Private Employee',
+                                                                            'Self Employee'
+                                                                        ].includes(field.value) && (
                                                                             <InputText
                                                                                 label='Specify Occupation'
                                                                                 placeholder='Enter occupation'
@@ -2899,14 +2901,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             )}
                                                         />
                                                     </div>
-
-
-
-
-
-
-
-
 
                                                     <InputText
                                                         label='Pan No'
@@ -2971,7 +2965,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <MobileNumberInput
-
                                                                     id='PASR_FatherAadharNo'
                                                                     value={field.value}
                                                                     onChange={(value) => field.onChange(value)}
@@ -2980,7 +2973,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 />
                                                             )}
                                                         />
-                                                        {errors.PASR_FatherAadharNo && <FormError>{errors.PASR_FatherAadharNo.message}</FormError>}
+                                                        {errors.PASR_FatherAadharNo && (
+                                                            <FormError>{errors.PASR_FatherAadharNo.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='PASR_FatherReligion'>
@@ -3008,7 +3003,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             </SelectItem>
                                                                         ) : (
                                                                             religion?.data?.map((item) => (
-                                                                                <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
+                                                                                <SelectItem
+                                                                                    key={item.ivrmmR_Id}
+                                                                                    value={item.ivrmmR_Id.toString()}>
                                                                                     {item.ivrmmR_Name}
                                                                                 </SelectItem>
                                                                             ))
@@ -3017,7 +3014,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.PASR_FatherReligion && <FormError>{errors.PASR_FatherReligion.message}</FormError>}
+                                                        {errors.PASR_FatherReligion && (
+                                                            <FormError>{errors.PASR_FatherReligion.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='PASR_FatherCaste'>
@@ -3046,7 +3045,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             </SelectItem>
                                                                         ) : (
                                                                             caste?.data?.map((item) => (
-                                                                                <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
+                                                                                <SelectItem
+                                                                                    key={item.imC_Id}
+                                                                                    value={item.imC_Id.toString()}>
                                                                                     {item.imC_CasteName}
                                                                                 </SelectItem>
                                                                             ))
@@ -3055,7 +3056,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.PASR_FatherCaste && <FormError>{errors.PASR_FatherCaste.message}</FormError>}
+                                                        {errors.PASR_FatherCaste && (
+                                                            <FormError>{errors.PASR_FatherCaste.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Controller
@@ -3072,7 +3075,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 />
                                                             )}
                                                         />
-                                                        {errors.fatherSubCaste_Id && <FormError>{errors.fatherSubCaste_Id.message}</FormError>}
+                                                        {errors.fatherSubCaste_Id && (
+                                                            <FormError>{errors.fatherSubCaste_Id.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <InputText
                                                         label='Phone Office'
@@ -3098,7 +3103,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         error={errors.PASR_FatheremailId?.message}
                                                     />
 
-
                                                     <InputText
                                                         label='Office Address'
                                                         id='pasR_FatherOfficeAddr'
@@ -3106,7 +3110,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         {...register('pasR_FatherOfficeAddr')}
                                                         error={errors.pasR_FatherOfficeAddr?.message}
                                                     />
-
 
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label>Transferable job (Central/State Government employee only)</Label>
@@ -3171,9 +3174,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_FatherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_FatherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3431,13 +3435,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             }
                                                                         }}
                                                                         value={
-                                                                            ['Government Employee', 'Private Employee', 'Self Employee'].includes(
-                                                                                field.value ?? ''
-                                                                            )
+                                                                            [
+                                                                                'Government Employee',
+                                                                                'Private Employee',
+                                                                                'Self Employee'
+                                                                            ].includes(field.value ?? '')
                                                                                 ? field.value
                                                                                 : field.value === undefined
-                                                                                    ? undefined
-                                                                                    : 'Others'
+                                                                                  ? undefined
+                                                                                  : 'Others'
                                                                         }
                                                                         className='flex flex-wrap gap-6'>
                                                                         <div className='flex items-center space-x-2'>
@@ -3467,9 +3473,11 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     </RadioGroup>
 
                                                                     {field.value !== undefined &&
-                                                                        !['Government Employee', 'Private Employee', 'Self Employee'].includes(
-                                                                            field.value
-                                                                        ) && (
+                                                                        ![
+                                                                            'Government Employee',
+                                                                            'Private Employee',
+                                                                            'Self Employee'
+                                                                        ].includes(field.value) && (
                                                                             <InputText
                                                                                 label='Specify Occupation'
                                                                                 placeholder='Enter occupation'
@@ -3481,7 +3489,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             )}
                                                         />
                                                     </div>
-
 
                                                     <InputText
                                                         label='Pan No'
@@ -3546,7 +3553,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <MobileNumberInput
-
                                                                     id='PASR_MotherAadharNo'
                                                                     value={field.value}
                                                                     onChange={(value) => field.onChange(value)}
@@ -3555,7 +3561,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 />
                                                             )}
                                                         />
-                                                        {errors.PASR_MotherAadharNo && <FormError>{errors.PASR_MotherAadharNo.message}</FormError>}
+                                                        {errors.PASR_MotherAadharNo && (
+                                                            <FormError>{errors.PASR_MotherAadharNo.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='PASR_MotherReligion'>
@@ -3583,7 +3591,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             </SelectItem>
                                                                         ) : (
                                                                             religion?.data?.map((item) => (
-                                                                                <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
+                                                                                <SelectItem
+                                                                                    key={item.ivrmmR_Id}
+                                                                                    value={item.ivrmmR_Id.toString()}>
                                                                                     {item.ivrmmR_Name}
                                                                                 </SelectItem>
                                                                             ))
@@ -3592,7 +3602,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.PASR_MotherReligion && <FormError>{errors.PASR_MotherReligion.message}</FormError>}
+                                                        {errors.PASR_MotherReligion && (
+                                                            <FormError>{errors.PASR_MotherReligion.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='PASR_MotherCaste'>
@@ -3621,7 +3633,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             </SelectItem>
                                                                         ) : (
                                                                             caste?.data?.map((item) => (
-                                                                                <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
+                                                                                <SelectItem
+                                                                                    key={item.imC_Id}
+                                                                                    value={item.imC_Id.toString()}>
                                                                                     {item.imC_CasteName}
                                                                                 </SelectItem>
                                                                             ))
@@ -3630,7 +3644,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.PASR_MotherCaste && <FormError>{errors.PASR_MotherCaste.message}</FormError>}
+                                                        {errors.PASR_MotherCaste && (
+                                                            <FormError>{errors.PASR_MotherCaste.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Controller
@@ -3647,7 +3663,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 />
                                                             )}
                                                         />
-                                                        {errors.motherSubCaste_Id && <FormError>{errors.motherSubCaste_Id.message}</FormError>}
+                                                        {errors.motherSubCaste_Id && (
+                                                            <FormError>{errors.motherSubCaste_Id.message}</FormError>
+                                                        )}
                                                     </div>
                                                     <InputText
                                                         label='Phone Office'
@@ -3728,9 +3746,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_MotherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3835,9 +3854,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                     />
                                                                     {phoneExpectedInfo.pasR_AltContactNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${phoneExpectedInfo.pasR_AltContactNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_AltContactNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3855,11 +3875,11 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         error={errors.pasR_AltContactEmail?.message}
                                                     />
 
-
                                                     <div className='space-y-4'>
-                                                        <h3 className='font-bold text-gray-800 text-lg'>Year of Passing of Mother/Father if they are Old Baldwinians</h3>
+                                                        <h3 className='font-bold text-gray-800 text-lg'>
+                                                            Year of Passing of Mother/Father if they are Old Baldwinians
+                                                        </h3>
                                                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-
                                                             <InputText
                                                                 label='Father'
                                                                 id='PASR_FatherPassingYear'
@@ -4098,9 +4118,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                                     className='w-fit'
                                                                                     onClick={() => {
                                                                                         const path = uploadedDoc.document_Path;
-                                                                                        if (
-                                                                                            path.match(/\.(jpg|jpeg|png|gif|webp)$/i)
-                                                                                        ) {
+                                                                                        if (path.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
                                                                                             handleImagePreview(path);
                                                                                         } else {
                                                                                             window.open(path, '_blank');
@@ -4310,7 +4328,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             )}
                                         </div>
 
-
                                         <div className='space-y-4'>
                                             <h3 className='font-bold text-gray-800 text-lg'>Guardian Details</h3>
                                             <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
@@ -4379,7 +4396,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         />
                                                     )}
                                                 />
-
                                             </div>
                                         </div>
                                         {/* Previous School Details Section */}
@@ -4686,13 +4702,41 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                 toast.error('Please check the form for errors.');
 
                                                 // Log specifically which tabs have errors
-                                                const studentFields = ['pasR_FirstName', 'pasR_MiddleName', 'pasR_LastName', 'pasR_DOB', 'pasR_MobileNo', 'religion_Id', 'caste_Id', 'pasR_Sex', 'asmcL_Id', 'pasR_emailId', 'pasR_Nationality'];
-                                                const addressFields = ['pasR_ConStreet', 'pasR_ConArea', 'pasR_ConCity', 'pasR_ConState', 'pasR_ConCountry', 'pasR_ConPincode'];
-                                                const parentFields = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
+                                                const studentFields = [
+                                                    'pasR_FirstName',
+                                                    'pasR_MiddleName',
+                                                    'pasR_LastName',
+                                                    'pasR_DOB',
+                                                    'pasR_MobileNo',
+                                                    'religion_Id',
+                                                    'caste_Id',
+                                                    'pasR_Sex',
+                                                    'asmcL_Id',
+                                                    'pasR_emailId',
+                                                    'pasR_Nationality'
+                                                ];
+                                                const addressFields = [
+                                                    'pasR_ConStreet',
+                                                    'pasR_ConArea',
+                                                    'pasR_ConCity',
+                                                    'pasR_ConState',
+                                                    'pasR_ConCountry',
+                                                    'pasR_ConPincode'
+                                                ];
+                                                const parentFields = [
+                                                    'pasR_FatherName',
+                                                    'pasR_FatherNationality',
+                                                    'pasR_MotherName',
+                                                    'pasR_MotherNationality'
+                                                ];
 
-                                                const hasStudentErrors = studentFields.some(field => errors[field as keyof typeof errors]);
-                                                const hasAddressErrors = addressFields.some(field => errors[field as keyof typeof errors]);
-                                                const hasParentErrors = parentFields.some(field => errors[field as keyof typeof errors]);
+                                                const hasStudentErrors = studentFields.some(
+                                                    (field) => errors[field as keyof typeof errors]
+                                                );
+                                                const hasAddressErrors = addressFields.some(
+                                                    (field) => errors[field as keyof typeof errors]
+                                                );
+                                                const hasParentErrors = parentFields.some((field) => errors[field as keyof typeof errors]);
 
                                                 if (hasStudentErrors) toast.info('Check Student Information tab');
                                                 if (hasAddressErrors) toast.info('Check Address Information tab');
@@ -4719,8 +4763,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                             classes={ineligibleClasses}
                             cutOffDate={
                                 masterConfig?.data &&
-                                    masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                    masterConfig.data.asmaY_Cut_Of_Date
+                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                masterConfig.data.asmaY_Cut_Of_Date
                                     ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
                                     : new Date()
                             }
@@ -4734,18 +4778,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                         <DialogTitle>Image Preview</DialogTitle>
                     </DialogHeader>
                     <div className='flex items-center justify-center p-4'>
-                        {previewImage && (
-                            <img
-                                src={previewImage}
-                                alt='Preview'
-                                className='max-h-[70vh] w-auto rounded-lg shadow-lg'
-                            />
-                        )}
+                        {previewImage && <img src={previewImage} alt='Preview' className='max-h-[70vh] w-auto rounded-lg shadow-lg' />}
                     </div>
                 </DialogContent>
             </Dialog>
         </>
     );
 }
-
-

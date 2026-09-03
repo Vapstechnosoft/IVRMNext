@@ -1,20 +1,21 @@
 'use client';
 
-import { useForm, Controller, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { InputText } from '@/components/ui/extension/input-text';
 import { Button } from '@/components/ui/button';
+import { InputText } from '@/components/ui/extension/input-text';
 import { useInvMasterTax } from '@/hooks/inventory/masters/use-inv-master-tax';
 import { invMasterTaxSchema } from '@/schemas/inventory/masters/inv-master-tax';
 import { saveInvMasterTax } from '@/server/inventory/masters/inv-master-tax';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 interface AddInvMasterTaxFormProps {
     onSuccess: () => void;
+    onCancel?: () => void;
 }
 type FormFields = z.infer<typeof invMasterTaxSchema.addOrUpdate>;
-export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormProps) {
+export default function AddInvMasterTaxForm({ onSuccess, onCancel }: AddInvMasterTaxFormProps) {
     const { refetchAll } = useInvMasterTax();
     const {
         control,
@@ -31,12 +32,8 @@ export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormPr
         }
     });
 
-
-
-
-
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        console.log("AddInvMasterTaxForm: Submitting data", data); // DEBUG LOG
+        console.log('AddInvMasterTaxForm: Submitting data', data); // DEBUG LOG
         try {
             // Using PascalCase for payload as requested
             const payload = {
@@ -45,7 +42,7 @@ export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormPr
                 INVMT_TaxAliasName: data.INVMT_TaxAliasName,
                 INVMT_ActiveFlg: true
             };
-            console.log("AddInvMasterTaxForm: Payload", payload); // DEBUG LOG
+            console.log('AddInvMasterTaxForm: Payload', payload); // DEBUG LOG
 
             const result = await saveInvMasterTax(payload);
 
@@ -86,6 +83,16 @@ export default function AddInvMasterTaxForm({ onSuccess }: AddInvMasterTaxFormPr
             </div>
 
             <div className='flex justify-end gap-2 pt-4'>
+                <Button
+                    type='button'
+                    variant='outline'
+                    onClick={() => {
+                        reset();
+                        onCancel?.();
+                    }}
+                    disabled={isSubmitting}>
+                    Cancel
+                </Button>
                 <Button type='submit' disabled={isSubmitting}>
                     {isSubmitting ? 'Saving...' : 'Save'}
                 </Button>

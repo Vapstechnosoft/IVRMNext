@@ -9,8 +9,8 @@ import type { IMasterHouse } from '@/types/sports/masters/house';
 import { Plus, X } from 'lucide-react';
 import AddMasterHouseForm from './_components/add-form';
 import { MasterHouseColumns } from './_components/columns';
-import UpdateMasterHouseForm from './_components/update-form';
 import ToggleMasterHouseForm from './_components/toggle-form';
+import UpdateMasterHouseForm from './_components/update-form';
 
 import { use } from 'react';
 
@@ -22,11 +22,11 @@ export default function MasterHousePage(props: { searchParams: SearchParams }) {
 
     return (
         <FormProvider<IMasterHouse>>
-            <MasterHousePageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <MasterHousePageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -83,9 +83,6 @@ function MasterHousePageContent({
                         columns={MasterHouseColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading Houses...'
@@ -161,11 +158,7 @@ function MasterHousePageContent({
 
                 {/* Toggle Form */}
                 {isToggleFormOpen && selectedRow && (
-                    <ToggleMasterHouseForm
-                        rowData={selectedRow}
-                        onClose={closeToggleForm}
-                        onSuccess={refetchAll}
-                    />
+                    <ToggleMasterHouseForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />
                 )}
             </div>
         </div>

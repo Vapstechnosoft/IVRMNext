@@ -3,7 +3,7 @@
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { type ColumnDef, createColumnHelper } from '@tanstack/react-table';
 import { Check, X } from 'lucide-react';
 
 export interface IMasterRoomCategory {
@@ -47,12 +47,20 @@ export const masterRoomCategoryColumns: ColumnDef<IMasterRoomCategory, any>[] = 
     {
         accessorKey: 'hlmrcA_ACFlg',
         header: ({ column }) => <ColumnHeader column={column} title='AC' />,
-        cell: ({ row }) => <div>{row.getValue('hlmrcA_ACFlg') ? <Check className="text-green-500 h-4 w-4" /> : <X className="text-red-500 h-4 w-4" />}</div>
+        cell: ({ row }) => (
+            <div>
+                {row.getValue('hlmrcA_ACFlg') ? <Check className='h-4 w-4 text-green-500' /> : <X className='h-4 w-4 text-red-500' />}
+            </div>
+        )
     },
     {
         accessorKey: 'hlmrcA_SharingFlg',
         header: ({ column }) => <ColumnHeader column={column} title='Sharing' />,
-        cell: ({ row }) => <div>{row.getValue('hlmrcA_SharingFlg') ? <Check className="text-green-500 h-4 w-4" /> : <X className="text-red-500 h-4 w-4" />}</div>
+        cell: ({ row }) => (
+            <div>
+                {row.getValue('hlmrcA_SharingFlg') ? <Check className='h-4 w-4 text-green-500' /> : <X className='h-4 w-4 text-red-500' />}
+            </div>
+        )
     },
     {
         id: 'actions',

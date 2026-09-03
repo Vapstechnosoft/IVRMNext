@@ -1,10 +1,10 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader as ColumnHeader } from '@/components/ui/data-table-column-header';
-import { Button } from '@/components/ui/button';
-import { Eye } from 'lucide-react';
 import type { ColumnDef } from '@tanstack/react-table';
+import { Eye } from 'lucide-react';
 
 interface GetColumnsProps {
     onViewProfile: (id: number, name: string) => void;
@@ -87,31 +87,31 @@ export const getColumns = ({ onViewProfile }: GetColumnsProps): ColumnDef<any>[]
 
             if (acceptFlag === 'ACCEPT') {
                 return (
-                    <span className='font-medium italic text-green-600' title='Accepted'>
+                    <span className='font-medium text-green-600 italic' title='Accepted'>
                         Accepted
                     </span>
                 );
             }
             if (acceptFlag === 'REJECT') {
                 return (
-                    <span className='font-medium italic text-red-600' title='Rejected'>
+                    <span className='font-medium text-red-600 italic' title='Rejected'>
                         Rejected
                     </span>
                 );
             }
             if (requestDate) {
                 return (
-                    <span className='font-medium italic text-pink-600' title='Requesting...'>
+                    <span className='font-medium text-pink-600 italic' title='Requesting...'>
                         Requesting...
                     </span>
                 );
             }
-            return <span className='text-xs italic text-muted-foreground'>-</span>;
+            return <span className='text-muted-foreground text-xs italic'>-</span>;
         }
     },
     {
         id: 'actions',
-        header: ({ column }) => <ColumnHeader column={column} title='View' className='font-bold text-center text-black' />,
+        header: ({ column }) => <ColumnHeader column={column} title='View' className='text-center font-bold text-black' />,
         cell: ({ row }) => {
             const acceptFlag = row.original.ALSFRND_AcceptFlag;
             const isAccepted = acceptFlag === 'ACCEPT';

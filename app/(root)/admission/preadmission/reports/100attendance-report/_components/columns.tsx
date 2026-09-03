@@ -1,7 +1,7 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
+import type { ColumnDef } from '@tanstack/react-table';
 
 export const attendance100Columns: ColumnDef<any>[] = [
     {
@@ -14,11 +14,7 @@ export const attendance100Columns: ColumnDef<any>[] = [
             />
         ),
         cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label='Select row'
-            />
+            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
         ),
         enableSorting: false,
         enableHiding: false
@@ -30,34 +26,34 @@ export const attendance100Columns: ColumnDef<any>[] = [
     },
     {
         accessorKey: 'namme',
-        header: 'Student Name',
+        header: 'Student Name'
     },
     {
         accessorKey: 'AMST_AdmNo',
-        header: 'Admission No.',
+        header: 'Admission No.'
     },
     {
         accessorKey: 'AMST_RegistrationNo',
-        header: 'Registration No.',
+        header: 'Registration No.'
     },
     {
         accessorKey: 'ASMCL_ClassName',
-        header: 'Class Name',
+        header: 'Class Name'
     },
     {
         accessorKey: 'ASMC_SectionName',
-        header: 'Section Name',
+        header: 'Section Name'
     },
     {
         accessorKey: 'classes',
-        header: 'No. of Working days',
+        header: 'No. of Working days'
     },
     {
         accessorKey: 'attendance',
-        header: 'No. of Present days',
+        header: 'No. of Present days'
     },
     {
         accessorKey: 'per',
-        header: 'Present %',
+        header: 'Present %'
     }
 ];

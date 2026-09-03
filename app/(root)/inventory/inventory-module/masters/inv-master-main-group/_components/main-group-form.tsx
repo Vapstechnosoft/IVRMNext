@@ -3,16 +3,15 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { INVENTORY_QUERY_KEYS } from '@/constants/query-keys';
 import { useInvMasterGroup } from '@/hooks/inventory/masters/use-inv-master-group';
 import { invMasterMainGroupSchema } from '@/schemas/inventory/masters/inv-master-group';
 import { deactivateInvMasterGroup, saveInvMasterMainGroup } from '@/server/inventory/masters/inv-master-group';
 import type { IInvMasterMainGroup } from '@/types/inventory/masters/inv-master-group';
-import { INVENTORY_QUERY_KEYS } from '@/constants/query-keys';
-import { useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -107,8 +106,6 @@ export default function MainGroupForm({ onSuccess, className = '', selectedRow }
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-
-
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                         <div className='flex flex-col gap-2'>
                             <Label htmlFor='invmG_GroupName'>
@@ -243,13 +240,14 @@ export function ToggleMainGroupForm({ rowData, onClose }: ToggleMainGroupFormPro
                 </AdaptiveBody>
 
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={onClose} type='button' disabled={isSubmitting}>
+                    <Button variant='outline' onClick={onClose} type='button' disabled={isSubmitting}>
                         Cancel
                     </Button>
                     <Button
                         type='submit'
                         isLoading={isSubmitting}
-                        variant={isActive ? 'destructive' : 'default'}
+                        variant={isActive ? 'warning' : 'default'}
+                        className={isActive ? 'bg-orange-500 text-white hover:bg-orange-600' : ''}
                         loadingText={isActive ? 'Deactivating...' : 'Activating...'}>
                         {isActive ? 'Deactivate' : 'Activate'}
                     </Button>

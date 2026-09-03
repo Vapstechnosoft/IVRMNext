@@ -4,23 +4,32 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { useQueryState } from 'nuqs';
 import React, { useEffect, useState } from 'react';
 import AddStudentAdmissionForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
 import ApplicationFormSuccessDialog from './_components/success-dialog';
-
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = (React as any).use(props.searchParams);
+
+    // Only pass asmay_id to the API so client-side changes don't trigger refetches or backend errors
+    const apiSearchParams = React.useMemo(() => {
+        return {
+            asmay_id: searchParams?.asmay_id
+        };
+    }, [searchParams?.asmay_id]);
+
     const { data: activePreadmission } = useGetAllAdmissionLists();
-    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(searchParams);
+    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(apiSearchParams);
     const { data: masterConfig } = useAcademicYearMasterConfiguration(0);
 
     return (
@@ -31,6 +40,7 @@ export default function StudentApplicationPage(props: {
                 error={error}
                 refetch={refetch}
                 masterConfig={masterConfig}
+                searchParams={searchParams}
             />
         </FormProvider>
     );
@@ -40,21 +50,53 @@ function StudentApplicationPageContent({
     response,
     isLoading,
     error,
-    refetch
+    refetch,
+    masterConfig,
+    searchParams
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     refetch: () => void;
     masterConfig: any;
+    searchParams: any;
 }) {
     const { openAddForm } = useFormContext();
-    const tableProps = useDataTableProps(response);
+
+    const searchQuery = (searchParams?.search_query as string) || '';
+    const page = Number.parseInt(searchParams?.page as string) || 1;
+    const pageSize = Number.parseInt(searchParams?.page_size as string) || 10;
+
+    const filteredData = React.useMemo(() => {
+        let result = response?.data?.studentList || [];
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter((row: any) =>
+                String(row.studentName || '').toLowerCase().includes(query) ||
+                String(row.className || '').toLowerCase().includes(query) ||
+                String(row.sectionName || '').toLowerCase().includes(query) ||
+                String(row.admissionNo || '').toLowerCase().includes(query) ||
+                String(row.emailId || '').toLowerCase().includes(query) ||
+                String(row.mobileNo || '').toLowerCase().includes(query)
+            );
+        }
+        return result;
+    }, [response, searchQuery]);
+
+    const paginatedData = React.useMemo(() => {
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+        return filteredData.slice(start, end);
+    }, [filteredData, page, pageSize]);
+
+    const tableProps = useDataTableProps(
+        response?.data && response.data.studentList
+            ? { ...response, data: paginatedData, total: filteredData.length }
+            : response
+    );
     const [isSuccessOpen, setSuccessOpen] = useState(false);
     const [successType, setSuccessType] = useState<'create' | 'update'>('create');
     const session = useSession();
-
-
 
     useEffect(() => {
         // Don't force a full page reload when session role is temporarily undefined.
@@ -74,17 +116,33 @@ function StudentApplicationPageContent({
         refetch();
     };
 
+    const [selectedYear, setSelectedYear] = useQueryState('asmay_id', { defaultValue: '' });
+
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex justify-end'>
+                <div className='flex items-center justify-between'>
+                    <div className='w-64'>
+                        <Select value={selectedYear} onValueChange={setSelectedYear}>
+                            <SelectTrigger className='w-full bg-background'>
+                                <SelectValue placeholder='Select Academic Year' />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {response?.data?.academicyear?.map((year: any) => (
+                                    <SelectItem key={year.yearid} value={year.yearid.toString()}>
+                                        {year.year}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <Button
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Admission Application
+                        Add AdmissionForm
                     </Button>
                 </div>
                 {isSuccessOpen && (

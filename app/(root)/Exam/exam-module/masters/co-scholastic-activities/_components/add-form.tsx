@@ -68,6 +68,7 @@ export default function AddCoScholasticActivityForm({ onSuccess, className = '' 
                         <InputText
                             label='Co-Scholastic Activity Name'
                             required
+                            placeholder='Enter Co-Scholastic Activity Name'
                             {...register('ecacT_SkillName')}
                             error={errors.ecacT_SkillName?.message}
                             onInput={(e) => {
@@ -79,6 +80,7 @@ export default function AddCoScholasticActivityForm({ onSuccess, className = '' 
                         <InputText
                             label='Co-Scholastic Activity Code'
                             required
+                            placeholder='Enter Co-Scholastic Activity Code'
                             {...register('ecacT_SkillCode')}
                             error={errors.ecacT_SkillCode?.message}
                             onInput={(e) => {

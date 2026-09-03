@@ -16,15 +16,9 @@ export const routeLocationMappingSchema = {
 export const vehicleDriverMappingSchema = {
     addOrUpdate: z.object({
         trvD_Id: z.number().optional(),
-        trmV_Id: z.coerce
-            .number({ required_error: 'Please select Vehicle' })
-            .min(1, 'Please select Vehicle'),
-        trmD_Id: z.coerce
-            .number({ required_error: 'Please select Driver' })
-            .min(1, 'Please select Driver'),
-        trmS_Id: z.coerce
-            .number({ required_error: 'Please select Session' })
-            .min(1, 'Please select Session'),
+        trmV_Id: z.coerce.number({ required_error: 'Please select Vehicle' }).min(1, 'Please select Vehicle'),
+        trmD_Id: z.coerce.number({ required_error: 'Please select Driver' }).min(1, 'Please select Driver'),
+        trmS_Id: z.coerce.number({ required_error: 'Please select Session' }).min(1, 'Please select Session'),
         trvD_Date: z.string().min(1, 'Please select Date'),
         trmS_Flag: z.string().optional(),
         trmV_VehicleNo: z.string().optional(),

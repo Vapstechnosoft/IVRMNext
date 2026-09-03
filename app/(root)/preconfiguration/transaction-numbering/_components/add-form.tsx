@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -8,11 +9,10 @@ import { useRegNumbering } from '@/hooks/admission/preadmission/useConfiguration
 import { transactionnumberingSchema } from '@/schemas/admission/preadmission/academic-year';
 import { addOrUpdateTransactionNumbering } from '@/server/preconfiguration/transaction-numbering';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, Plus, Trash2 } from 'lucide-react';
-import { Controller, useForm, useFieldArray } from 'react-hook-form';
+import { Plus, Save, Trash2 } from 'lucide-react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { Checkbox } from '@/components/ui/checkbox';
 
 type FormFields = z.infer<typeof transactionnumberingSchema>;
 
@@ -49,13 +49,15 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
             restart_cal_year: false,
             voucher_name: '',
             voucher_type: '',
-            rollNumberingconfig: [
-                { ivrmarnC_Field: 'AMST_FirstName', ivrmarnC_AscDscOrder: 'ASC', ivrmarnC_Order: 1, ivrmarnC_Id: 0 }
-            ]
+            rollNumberingconfig: [{ ivrmarnC_Field: 'AMST_FirstName', ivrmarnC_AscDscOrder: 'ASC', ivrmarnC_Order: 1, ivrmarnC_Id: 0 }]
         }
     });
 
-    const { fields: rollConfigFields, append, remove } = useFieldArray({
+    const {
+        fields: rollConfigFields,
+        append,
+        remove
+    } = useFieldArray({
         control,
         name: 'rollNumberingconfig'
     });
@@ -69,14 +71,14 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
             // Default Master Payload
             let payload: any = {
                 imN_Id: 0,
-                imN_AutoManualFlag: data.auto_manual_flag === 'Manual' ? 'M' : 'A',
-                imN_DuplicatesFlag: data.auto_manual_flag === 'Manual' ? (data.duplicates_flag === 'Yes' ? 'Y' : 'N') : 'N',
+                imN_AutoManualFlag: data.auto_manual_flag === 'Manual' ? 'Manual' : 'Auto',
+                imN_DuplicatesFlag: data.auto_manual_flag === 'Manual' ? (data.duplicates_flag === 'Yes' ? 'Yes' : 'No') : 'No',
                 imN_StartingNo: data.suffix_starting_from?.toString() || '1',
                 imN_WidthNumeric: data.prefix_numeric_width?.toString() || '1',
-                imN_ZeroPrefixFlag: data.prefix_with_zero === 'yes' ? 'Y' : 'N',
+                imN_ZeroPrefixFlag: data.prefix_with_zero === 'yes' ? 'Yes' : 'No',
                 imN_PrefixParticular: data.prefix_type === 'particulars' ? data.prefix_particulars || '' : '',
                 imN_SuffixParticular: data.suffix_type === 'particulars' ? data.suffix_particulars || '' : '',
-                imN_RestartNumFlag: data.restart_frequency === 'yearly' ? 'Y' : (data.restart_frequency === 'monthly' ? 'M' : 'N'),
+                imN_RestartNumFlag: data.restart_frequency === 'yearly' ? 'Y' : data.restart_frequency === 'monthly' ? 'M' : 'N',
                 imN_Flag: numberingType,
 
                 // Defaults for Master
@@ -112,7 +114,7 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                     rollNumberingconfig: data.rollNumberingconfig?.map((item, index) => ({
                         ivrmarnC_Field: item.ivrmarnC_Field,
                         ivrmarnC_AscDscOrder: item.ivrmarnC_AscDscOrder,
-                        ivrmarnC_Order: item.ivrmarnC_Order || (index + 1),
+                        ivrmarnC_Order: item.ivrmarnC_Order || index + 1,
                         ivrmarnC_Id: item.ivrmarnC_Id || 0
                     }))
                 };
@@ -138,7 +140,6 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-
                     {/* conditional fields for Receipt */}
                     {numberingType === 'Receipt' && (
                         <div className='rounded-md border bg-muted/20 p-4'>
@@ -181,7 +182,9 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
 
                     {/* === AUTO / MANUAL SELECTION === */}
                     <div className='flex items-start gap-8 rounded-md border bg-muted/20 p-4'>
-                        <Label className='font-medium text-primary mt-1'>Please Select Radio Button <span className="text-red-500">*</span></Label>
+                        <Label className='mt-1 font-medium text-primary'>
+                            Please Select Radio Button <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             name='auto_manual_flag'
                             control={control}
@@ -207,12 +210,14 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                     {/* === MANUAL SETTINGS === */}
                     {autoManualFlag === 'Manual' && (
                         <div className='flex items-start gap-8 rounded-md border bg-muted/20 p-4'>
-                            <Label className='font-medium text-primary mt-1'>Prevent Duplicate: <span className="text-red-500">*</span></Label>
+                            <Label className='mt-1 font-medium text-primary'>
+                                Prevent Duplicate: <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 name='duplicates_flag'
                                 control={control}
                                 render={({ field }) => (
-                                    <div className="flex flex-col gap-1">
+                                    <div className='flex flex-col gap-1'>
                                         <RadioGroup onValueChange={field.onChange} value={field.value ?? ''} className='flex gap-6'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='Yes' id={`dup_yes_${numberingType}`} />
@@ -237,7 +242,6 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                     {/* === AUTO SETTINGS === */}
                     {autoManualFlag === 'Auto' && (
                         <>
-
                             {/* === PREFIX SECTION === */}
                             <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                 <div className='rounded-md border bg-muted/20 p-4'>
@@ -247,16 +251,23 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                                         name='prefix_type'
                                         control={control}
                                         render={({ field }) => (
-                                            <RadioGroup onValueChange={field.onChange} value={field.value ?? ''} className='flex items-center gap-6'>
+                                            <RadioGroup
+                                                onValueChange={field.onChange}
+                                                value={field.value ?? ''}
+                                                className='flex items-center gap-6'>
                                                 <div className='flex items-center space-x-2'>
                                                     <RadioGroupItem value='academic' id={`prefix_academic_${numberingType}`} />
-                                                    <Label htmlFor={`prefix_academic_${numberingType}`} className='cursor-pointer font-normal'>
+                                                    <Label
+                                                        htmlFor={`prefix_academic_${numberingType}`}
+                                                        className='cursor-pointer font-normal'>
                                                         {numberingType === 'Voucher' ? 'Financial Year Code' : 'Academic Year Code'}
                                                     </Label>
                                                 </div>
                                                 <div className='flex items-center space-x-2'>
                                                     <RadioGroupItem value='particulars' id={`prefix_particulars_${numberingType}`} />
-                                                    <Label htmlFor={`prefix_particulars_${numberingType}`} className='cursor-pointer font-normal'>
+                                                    <Label
+                                                        htmlFor={`prefix_particulars_${numberingType}`}
+                                                        className='cursor-pointer font-normal'>
                                                         Particulars
                                                     </Label>
                                                 </div>
@@ -313,16 +324,23 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                                         name='suffix_type'
                                         control={control}
                                         render={({ field }) => (
-                                            <RadioGroup onValueChange={field.onChange} value={field.value ?? ''} className='flex items-center gap-6'>
+                                            <RadioGroup
+                                                onValueChange={field.onChange}
+                                                value={field.value ?? ''}
+                                                className='flex items-center gap-6'>
                                                 <div className='flex items-center space-x-2'>
                                                     <RadioGroupItem value='academic' id={`suffix_academic_${numberingType}`} />
-                                                    <Label htmlFor={`suffix_academic_${numberingType}`} className='cursor-pointer font-normal'>
+                                                    <Label
+                                                        htmlFor={`suffix_academic_${numberingType}`}
+                                                        className='cursor-pointer font-normal'>
                                                         {numberingType === 'Voucher' ? 'Financial Year Code' : 'Academic Year Code'}
                                                     </Label>
                                                 </div>
                                                 <div className='flex items-center space-x-2'>
                                                     <RadioGroupItem value='particulars' id={`suffix_particulars_${numberingType}`} />
-                                                    <Label htmlFor={`suffix_particulars_${numberingType}`} className='cursor-pointer font-normal'>
+                                                    <Label
+                                                        htmlFor={`suffix_particulars_${numberingType}`}
+                                                        className='cursor-pointer font-normal'>
                                                         Particulars
                                                     </Label>
                                                 </div>
@@ -436,7 +454,11 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                                                 control={control}
                                                 render={({ field }) => (
                                                     <div className='flex items-center space-x-2'>
-                                                        <Checkbox id='restart_acad_year' checked={!!field.value} onCheckedChange={field.onChange} />
+                                                        <Checkbox
+                                                            id='restart_acad_year'
+                                                            checked={!!field.value}
+                                                            onCheckedChange={field.onChange}
+                                                        />
                                                         <Label htmlFor='restart_acad_year'>Academic Year</Label>
                                                     </div>
                                                 )}
@@ -446,7 +468,11 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                                                 control={control}
                                                 render={({ field }) => (
                                                     <div className='flex items-center space-x-2'>
-                                                        <Checkbox id='restart_fin_year' checked={!!field.value} onCheckedChange={field.onChange} />
+                                                        <Checkbox
+                                                            id='restart_fin_year'
+                                                            checked={!!field.value}
+                                                            onCheckedChange={field.onChange}
+                                                        />
                                                         <Label htmlFor='restart_fin_year'>Financial Year</Label>
                                                     </div>
                                                 )}
@@ -456,7 +482,11 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                                                 control={control}
                                                 render={({ field }) => (
                                                     <div className='flex items-center space-x-2'>
-                                                        <Checkbox id='restart_cal_year' checked={!!field.value} onCheckedChange={field.onChange} />
+                                                        <Checkbox
+                                                            id='restart_cal_year'
+                                                            checked={!!field.value}
+                                                            onCheckedChange={field.onChange}
+                                                        />
                                                         <Label htmlFor='restart_cal_year'>Calendar Year</Label>
                                                     </div>
                                                 )}
@@ -471,18 +501,29 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                     {/* === ROLL NUMBERING CONFIG === */}
                     {numberingType === 'RollNumber' && (
                         <div className='rounded-md border bg-muted/20 p-4'>
-                            <div className='flex justify-between items-center mb-3'>
+                            <div className='mb-3 flex items-center justify-between'>
                                 <h3 className='font-medium text-primary'>Roll Numbering Configuration</h3>
-                                <Button type="button" size="sm" variant="outline" onClick={() => append({ ivrmarnC_Field: 'AMST_FirstName', ivrmarnC_AscDscOrder: 'ASC', ivrmarnC_Order: rollConfigFields.length + 1, ivrmarnC_Id: 0 })}>
-                                    <Plus className="w-4 h-4 mr-1" /> Add Rule
+                                <Button
+                                    type='button'
+                                    size='sm'
+                                    variant='outline'
+                                    onClick={() =>
+                                        append({
+                                            ivrmarnC_Field: 'AMST_FirstName',
+                                            ivrmarnC_AscDscOrder: 'ASC',
+                                            ivrmarnC_Order: rollConfigFields.length + 1,
+                                            ivrmarnC_Id: 0
+                                        })
+                                    }>
+                                    <Plus className='mr-1 h-4 w-4' /> Add Rule
                                 </Button>
                             </div>
 
                             <div className='space-y-3'>
                                 {rollConfigFields.map((field, index) => (
-                                    <div key={field.id} className='flex items-center gap-4 bg-white p-2 border rounded-md shadow-sm'>
+                                    <div key={field.id} className='flex items-center gap-4 rounded-md border bg-white p-2 shadow-sm'>
                                         <div className='flex-1'>
-                                            <Label className='text-xs text-muted-foreground'>Field to sort</Label>
+                                            <Label className='text-muted-foreground text-xs'>Field to sort</Label>
                                             <Controller
                                                 name={`rollNumberingconfig.${index}.ivrmarnC_Field`}
                                                 control={control}
@@ -490,18 +531,17 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                                                     <select
                                                         {...inputField}
                                                         value={inputField.value ?? ''}
-                                                        className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
-                                                    >
-                                                        <option value="AMST_FirstName">First Name</option>
-                                                        <option value="AMST_AdmNo">Admission Number</option>
-                                                        <option value="AMST_RegistrationNo">Registration Number</option>
-                                                        <option value="AMST_Date">Date</option>
+                                                        className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'>
+                                                        <option value='AMST_FirstName'>First Name</option>
+                                                        <option value='AMST_AdmNo'>Admission Number</option>
+                                                        <option value='AMST_RegistrationNo'>Registration Number</option>
+                                                        <option value='AMST_Date'>Date</option>
                                                     </select>
                                                 )}
                                             />
                                         </div>
                                         <div className='flex-1'>
-                                            <Label className='text-xs text-muted-foreground'>Order</Label>
+                                            <Label className='text-muted-foreground text-xs'>Order</Label>
                                             <Controller
                                                 name={`rollNumberingconfig.${index}.ivrmarnC_AscDscOrder`}
                                                 control={control}
@@ -509,17 +549,21 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                                                     <select
                                                         {...inputField}
                                                         value={inputField.value ?? ''}
-                                                        className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
-                                                    >
-                                                        <option value="ASC">Ascending (ASC)</option>
-                                                        <option value="DESC">Descending (DESC)</option>
+                                                        className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'>
+                                                        <option value='ASC'>Ascending (ASC)</option>
+                                                        <option value='DESC'>Descending (DESC)</option>
                                                     </select>
                                                 )}
                                             />
                                         </div>
                                         <div className='flex items-end'>
-                                            <Button type="button" variant="ghost" size="icon" className='text-destructive mb-0.5' onClick={() => remove(index)}>
-                                                <Trash2 className="w-4 h-4" />
+                                            <Button
+                                                type='button'
+                                                variant='ghost'
+                                                size='icon'
+                                                className='mb-0.5 text-destructive'
+                                                onClick={() => remove(index)}>
+                                                <Trash2 className='h-4 w-4' />
                                             </Button>
                                         </div>
                                     </div>

@@ -4,9 +4,9 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
-import { TTGenerationGridData } from '@/types/timetable/Transaction/timetablegeneration';
+import type { TTGenerationGridData } from '@/types/timetable/Transaction/timetablegeneration';
 // import { GenerationMasters } from '@/types/timetable/Transaction/time-table-generation';
-import { ColumnDef } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { ChevronLeft } from 'lucide-react';
 import { useCallback } from 'react';
 
@@ -60,7 +60,6 @@ function ActionButtonsCell({ rowData }: { rowData: TTGenerationGridData }) {
         />
     );
 }
-
 
 export default function TimeTableGenerationGrid({ data }: TimeTableGenerationGridProps) {
     return (
@@ -122,10 +121,7 @@ export default function TimeTableGenerationGrid({ data }: TimeTableGenerationGri
                 </div>
 
                 <div className='flex items-center justify-between border-purple-100 border-t bg-purple-50 px-6 py-3'>
-                    <Button
-                        variant='outline'
-                        size='icon'
-                        className='h-8 w-8 border-purple-200 text-purple-700 hover:bg-purple-100'>
+                    <Button variant='outline' size='icon' className='h-8 w-8 border-purple-200 text-purple-700 hover:bg-purple-100'>
                         <ChevronLeft className='h-4 w-4' />
                     </Button>
 

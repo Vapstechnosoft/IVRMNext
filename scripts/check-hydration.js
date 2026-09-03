@@ -48,7 +48,7 @@ const PROBLEMATIC_PATTERNS = [
 function findFiles(dir, fileList = []) {
     const files = fs.readdirSync(dir);
 
-    files.forEach(file => {
+    files.forEach((file) => {
         const filePath = path.join(dir, file);
         const stat = fs.statSync(filePath);
 
@@ -70,8 +70,8 @@ function checkFile(filePath) {
         const matches = content.match(pattern);
         if (matches) {
             const lines = content.split('\n');
-            matches.forEach(match => {
-                const lineNumber = lines.findIndex(line => line.includes(match)) + 1;
+            matches.forEach((match) => {
+                const lineNumber = lines.findIndex((line) => line.includes(match)) + 1;
                 issues.push({
                     file: path.relative(process.cwd(), filePath),
                     line: lineNumber,
@@ -97,19 +97,19 @@ function main() {
     const files = findFiles(HRMS_PATH);
     const allIssues = [];
 
-    files.forEach(file => {
+    files.forEach((file) => {
         const issues = checkFile(file);
         allIssues.push(...issues);
     });
 
     // Group by severity
-    const errors = allIssues.filter(i => i.severity === 'error');
-    const warnings = allIssues.filter(i => i.severity === 'warning');
+    const errors = allIssues.filter((i) => i.severity === 'error');
+    const warnings = allIssues.filter((i) => i.severity === 'warning');
 
     // Print results
     if (errors.length > 0) {
         console.log('❌ ERRORS (must fix):\n');
-        errors.forEach(issue => {
+        errors.forEach((issue) => {
             console.log(`  ${issue.file}:${issue.line}`);
             console.log(`    ${issue.message}`);
             console.log(`    Found: ${issue.match}\n`);
@@ -118,7 +118,7 @@ function main() {
 
     if (warnings.length > 0) {
         console.log('⚠️  WARNINGS (should review):\n');
-        warnings.forEach(issue => {
+        warnings.forEach((issue) => {
             console.log(`  ${issue.file}:${issue.line}`);
             console.log(`    ${issue.message}`);
             console.log(`    Found: ${issue.match}\n`);
@@ -135,4 +135,3 @@ function main() {
 }
 
 main();
-

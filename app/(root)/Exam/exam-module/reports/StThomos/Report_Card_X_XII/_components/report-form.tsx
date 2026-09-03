@@ -183,6 +183,7 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         };
         try {
             const [result, institutionRes] = await Promise.all([getReportDetails(payload), getMasterInstitution()]);
+            console.log('StThomos Report Card X_XII API Response:', result);
             const enrichedParams = {
                 ...data,
                 ASMAY_Year: academicYears.find((y: any) => String(y.asmaY_Id) === data.ASMAY_Id)?.asmaY_Year,

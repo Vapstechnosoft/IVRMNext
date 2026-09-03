@@ -1,8 +1,8 @@
 'use client';
 
-import { CollapsibleSection } from "@/components/ui/form/collapsible-section";
-import { GenericDataTable, useDataTableProps } from "@/components/ui/view-data-table/view-generic-data-table";
-import { columns } from "./columns";
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/view-data-table/view-generic-data-table';
+import { columns } from './columns';
 
 interface LeaveDetailsGridProps {
     response: any;
@@ -29,9 +29,6 @@ export function LeaveDetailsGrid({ response, isLoading, currentApiParams, onSear
                 showSearch={true}
                 showPagination={true}
                 showSorting={true}
-                manualPagination={true}
-                manualSorting={true}
-                manualFiltering={true}
                 columnPinning={{ right: ['actions'] }}
                 currentApiParams={currentApiParams}
                 onSearchQueryChange={onSearchQueryChange}

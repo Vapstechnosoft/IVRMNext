@@ -10,8 +10,8 @@ import { Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddMasterEventForm from './_components/add-form';
 import { MasterEventColumns } from './_components/columns';
-import UpdateMasterEventForm from './_components/update-form';
 import ToggleMasterEventForm from './_components/toggle-form';
+import UpdateMasterEventForm from './_components/update-form';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -21,11 +21,11 @@ export default function MasterEventPage(props: { searchParams: SearchParams }) {
 
     return (
         <FormProvider<IMasterEvent>>
-            <MasterEventPageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <MasterEventPageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -82,9 +82,6 @@ function MasterEventPageContent({
                         columns={MasterEventColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master events...'
@@ -155,16 +152,11 @@ function MasterEventPageContent({
                     </div>
                 )}
 
-
                 {/* Toggle Form */}
                 {isToggleFormOpen && selectedRow && (
-                    <ToggleMasterEventForm
-                        rowData={selectedRow}
-                        onClose={closeToggleForm}
-                        onSuccess={refetchAll}
-                    />
+                    <ToggleMasterEventForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={refetchAll} />
                 )}
             </div>
-        </div >
+        </div>
     );
 }

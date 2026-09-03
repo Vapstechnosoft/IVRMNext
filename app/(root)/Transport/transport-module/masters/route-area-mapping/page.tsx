@@ -22,12 +22,7 @@ export default function RouteAreaMappingPage(props: { searchParams: SearchParams
         <FormProvider<IRouteAreaMapping>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <RouteAreaMappingContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <RouteAreaMappingContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>
@@ -87,14 +82,7 @@ function RouteAreaMappingContent({
 }
 
 function FormSections() {
-    const {
-        isAddFormOpen,
-        isToggleFormOpen,
-        selectedRow,
-        closeAddForm,
-        closeToggleForm,
-        addFormRef
-    } = useFormContext<IRouteAreaMapping>();
+    const { isAddFormOpen, isToggleFormOpen, selectedRow, closeAddForm, closeToggleForm, addFormRef } = useFormContext<IRouteAreaMapping>();
 
     return (
         <>

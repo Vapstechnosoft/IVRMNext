@@ -1,5 +1,4 @@
 'use client';
-import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import type { EmployeeDropdown } from '@/types/hrms/reports/employee-profile-report';
@@ -37,21 +36,21 @@ export function getSalaryCalculationColumns({
             id: 'select',
             size: 40,
             header: () => (
-                 <div className="flex justify-center">
-                <Checkbox
-                    checked={employees.length > 0 && selectedEmployees.length === employees.length}
-                    onCheckedChange={(value) => onSelectAll(!!value)}
-                    aria-label='Select all'
-                />
+                <div className='flex justify-center'>
+                    <Checkbox
+                        checked={employees.length > 0 && selectedEmployees.length === employees.length}
+                        onCheckedChange={(value) => onSelectAll(!!value)}
+                        aria-label='Select all'
+                    />
                 </div>
             ),
             cell: ({ row }) => (
-                <div className="flex justify-center">
-                <Checkbox
-                    checked={selectedEmployees.includes(row.original.HRME_Id)}
-                    onCheckedChange={(value) => onEmployeeSelect(row.original.HRME_Id, !!value)}
-                    aria-label='Select row'
-                />
+                <div className='flex justify-center'>
+                    <Checkbox
+                        checked={selectedEmployees.includes(row.original.HRME_Id)}
+                        onCheckedChange={(value) => onEmployeeSelect(row.original.HRME_Id, !!value)}
+                        aria-label='Select row'
+                    />
                 </div>
             ),
             enableSorting: false,
@@ -63,15 +62,15 @@ export function getSalaryCalculationColumns({
             header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
             cell: ({ row, table }) => {
                 const index = table.getSortedRowModel().rows.findIndex((r) => r.id === row.id);
-                return <div >{index + 1}</div>;
+                return <div>{index + 1}</div>;
             }
         },
         {
             accessorKey: 'HRME_EmployeeCode',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
             cell: ({ row }) => <div>{row.getValue('HRME_EmployeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         },
         {
             accessorKey: 'HRME_EmployeeFirstName',
@@ -82,8 +81,8 @@ export function getSalaryCalculationColumns({
                     `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
                 return <div>{fullName}</div>;
             },
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         }
     ];
 }

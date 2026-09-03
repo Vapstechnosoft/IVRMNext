@@ -1,33 +1,20 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import { format } from 'date-fns';
+import { AlertCircle, Cake, Calendar, ChevronDown, ChevronUp, FileSpreadsheet, Loader2, Printer, RotateCcw, Search } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
-import { format } from 'date-fns';
-import {
-    Cake,
-    Calendar,
-    FileSpreadsheet,
-    Printer,
-    Search,
-    RotateCcw,
-    ChevronDown,
-    ChevronUp,
-    CheckCircle2,
-    Users,
-    MapPin,
-    AlertCircle,
-    Loader2
-} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { getStudentBirthdayReportDetails } from '@/server/admission/student-birthday-action';
 
 const MONTHS = [
@@ -181,30 +168,36 @@ export default function StudentBirthdayReportPage() {
 
     const handleToggleRow = (checked: boolean, student: any) => {
         if (checked) {
-            setSelectedRows(prev => [...prev, student]);
+            setSelectedRows((prev) => [...prev, student]);
         } else {
-            setSelectedRows(prev => prev.filter(item => 
-                !(item.AMST_Id === student.AMST_Id && 
-                  item.HRME_Id === student.HRME_Id && 
-                  item.classname === student.classname && 
-                  item.sectionname === student.sectionname)
-            ));
+            setSelectedRows((prev) =>
+                prev.filter(
+                    (item) =>
+                        !(
+                            item.AMST_Id === student.AMST_Id &&
+                            item.HRME_Id === student.HRME_Id &&
+                            item.classname === student.classname &&
+                            item.sectionname === student.sectionname
+                        )
+                )
+            );
         }
     };
 
     const isRowSelected = (student: any) => {
-        return selectedRows.some(item => 
-            item.AMST_Id === student.AMST_Id && 
-            item.HRME_Id === student.HRME_Id && 
-            item.classname === student.classname && 
-            item.sectionname === student.sectionname
+        return selectedRows.some(
+            (item) =>
+                item.AMST_Id === student.AMST_Id &&
+                item.HRME_Id === student.HRME_Id &&
+                item.classname === student.classname &&
+                item.sectionname === student.sectionname
         );
     };
 
     // Table sorting helper
     const handleSort = (key: string) => {
         if (sortKey === key) {
-            setSortDirection(prev => (prev === 'asc' ? 'desc' : 'asc'));
+            setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
         } else {
             setSortKey(key);
             setSortDirection('asc');
@@ -218,7 +211,7 @@ export default function StudentBirthdayReportPage() {
         // Search Filter
         if (searchValue.trim() !== '') {
             const query = searchValue.toLowerCase();
-            result = result.filter(item => {
+            result = result.filter((item) => {
                 return (
                     (item.studentname && item.studentname.toLowerCase().includes(query)) ||
                     (item.admno && item.admno.toLowerCase().includes(query)) ||
@@ -275,7 +268,7 @@ export default function StudentBirthdayReportPage() {
             }
             item['Class'] = row.classname || '';
             item['Section'] = row.sectionname || '';
-            item['Date of Birth'] = row.amst_dob ? format(new Date(row.amst_dob), 'dd/MMM/yyyy') : '';
+            item['Date of Birth'] = row.amst_dob ? format(new Date(row.amst_dob), 'dd-MM-yyyy') : '';
             item['Address'] = row.stdaddress || '';
             return item;
         });
@@ -300,14 +293,14 @@ export default function StudentBirthdayReportPage() {
     const formatDateOfBirth = (dateString: string) => {
         if (!dateString) return '';
         try {
-            return format(new Date(dateString), 'dd/MMM/yyyy');
+            return format(new Date(dateString), 'dd-MM-yyyy');
         } catch (e) {
             return dateString;
         }
     };
 
     return (
-        <div className='container mx-auto space-y-8 p-4 md:p-6 min-h-screen'>
+        <div className='container mx-auto min-h-screen space-y-8 p-4 md:p-6'>
             {/* Embedded Print Styling */}
             <style jsx global>{`
                 @media print {
@@ -363,22 +356,22 @@ export default function StudentBirthdayReportPage() {
             `}</style>
 
             {/* Header section with gradient design */}
-            <div className='flex flex-col gap-2 md:flex-row md:items-center md:justify-between border-b pb-4 no-print'>
+            <div className='no-print flex flex-col gap-2 border-b pb-4 md:flex-row md:items-center md:justify-between'>
                 <div>
-                    <h1 className='text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-violet-600 bg-clip-text text-transparent flex items-center gap-3'>
-                        <Cake className='h-8 w-8 text-primary animate-bounce' />
+                    <h1 className='flex items-center gap-3 bg-gradient-to-r from-primary to-violet-600 bg-clip-text font-extrabold text-3xl text-transparent tracking-tight'>
+                        <Cake className='h-8 w-8 animate-bounce text-primary' />
                         Student Birthday Report
                     </h1>
-                    <p className='text-muted-foreground text-sm mt-1'>
+                    <p className='mt-1 text-muted-foreground text-sm'>
                         Modern dashboard to generate, analyze, print, and export birthday reports for students and staff.
                     </p>
                 </div>
             </div>
 
             {/* Search Criteria Form */}
-            <Card className='shadow-xl border-t-4 border-t-primary/80 transition-shadow duration-300 hover:shadow-2xl no-print'>
+            <Card className='no-print border-t-4 border-t-primary/80 shadow-xl transition-shadow duration-300 hover:shadow-2xl'>
                 <CardHeader>
-                    <CardTitle className='text-lg font-bold flex items-center gap-2'>
+                    <CardTitle className='flex items-center gap-2 font-bold text-lg'>
                         <Calendar className='h-5 w-5 text-primary' />
                         Report Configuration Criteria
                     </CardTitle>
@@ -389,19 +382,19 @@ export default function StudentBirthdayReportPage() {
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             {/* Between Days or Month Wise Selection */}
                             <div className='space-y-3 rounded-xl border bg-accent/5 p-5 shadow-inner transition-colors duration-200 hover:bg-accent/10'>
-                                <Label className='text-sm font-semibold tracking-wide uppercase text-muted-foreground'>
+                                <Label className='font-semibold text-muted-foreground text-sm uppercase tracking-wide'>
                                     Report Selection Filter
                                 </Label>
                                 <RadioGroup value={all1} onValueChange={setAll1} className='flex flex-col gap-3 pt-2'>
                                     <div className='flex items-center space-x-3'>
                                         <RadioGroupItem value='1' id='r1' className='h-5 w-5 text-primary' />
-                                        <Label htmlFor='r1' className='font-medium cursor-pointer text-sm md:text-base'>
+                                        <Label htmlFor='r1' className='cursor-pointer font-medium text-sm md:text-base'>
                                             Between Days
                                         </Label>
                                     </div>
                                     <div className='flex items-center space-x-3'>
                                         <RadioGroupItem value='0' id='r0' className='h-5 w-5 text-primary' />
-                                        <Label htmlFor='r0' className='font-medium cursor-pointer text-sm md:text-base'>
+                                        <Label htmlFor='r0' className='cursor-pointer font-medium text-sm md:text-base'>
                                             Month Wise
                                         </Label>
                                     </div>
@@ -410,19 +403,19 @@ export default function StudentBirthdayReportPage() {
 
                             {/* Participant Status Flag (Studying / Left) */}
                             <div className='space-y-3 rounded-xl border bg-accent/5 p-5 shadow-inner transition-colors duration-200 hover:bg-accent/10'>
-                                <Label className='text-sm font-semibold tracking-wide uppercase text-muted-foreground'>
+                                <Label className='font-semibold text-muted-foreground text-sm uppercase tracking-wide'>
                                     Student Current Status
                                 </Label>
                                 <RadioGroup value={flag} onValueChange={setFlag} className='flex flex-col gap-3 pt-2'>
                                     <div className='flex items-center space-x-3'>
                                         <RadioGroupItem value='S' id='sS' className='h-5 w-5 text-primary' />
-                                        <Label htmlFor='sS' className='font-medium cursor-pointer text-sm md:text-base'>
+                                        <Label htmlFor='sS' className='cursor-pointer font-medium text-sm md:text-base'>
                                             Studying
                                         </Label>
                                     </div>
                                     <div className='flex items-center space-x-3'>
                                         <RadioGroupItem value='L' id='sL' className='h-5 w-5 text-primary' />
-                                        <Label htmlFor='sL' className='font-medium cursor-pointer text-sm md:text-base'>
+                                        <Label htmlFor='sL' className='cursor-pointer font-medium text-sm md:text-base'>
                                             Left
                                         </Label>
                                     </div>
@@ -431,9 +424,9 @@ export default function StudentBirthdayReportPage() {
                         </div>
 
                         {/* Date selection or Month selection container */}
-                        <div className='grid grid-cols-1 gap-6 sm:grid-cols-2 items-end pt-2'>
+                        <div className='grid grid-cols-1 items-end gap-6 pt-2 sm:grid-cols-2'>
                             {all1 === '0' && (
-                                <div className='space-y-2 col-span-1'>
+                                <div className='col-span-1 space-y-2'>
                                     <Label className='flex items-center gap-1 font-semibold text-sm'>
                                         Select Month <span className='text-destructive'>*</span>
                                     </Label>
@@ -442,7 +435,7 @@ export default function StudentBirthdayReportPage() {
                                             <SelectValue placeholder='--Select Month--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {MONTHS.map(item => (
+                                            {MONTHS.map((item) => (
                                                 <SelectItem key={item.value} value={item.value}>
                                                     {item.label}
                                                 </SelectItem>
@@ -450,7 +443,7 @@ export default function StudentBirthdayReportPage() {
                                         </SelectContent>
                                     </Select>
                                     {submitted && !month && (
-                                        <p className='text-xs text-destructive flex items-center gap-1 mt-1 animate-pulse'>
+                                        <p className='mt-1 flex animate-pulse items-center gap-1 text-destructive text-xs'>
                                             <AlertCircle className='h-3. w-3' /> Select Month Name
                                         </p>
                                     )}
@@ -460,29 +453,33 @@ export default function StudentBirthdayReportPage() {
                             {all1 === '1' && (
                                 <>
                                     <div className='space-y-2'>
-                                        <Label className='font-semibold text-sm'>From Date <span className='text-destructive'>*</span></Label>
+                                        <Label className='font-semibold text-sm'>
+                                            From Date <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Input
                                             type='date'
                                             value={fromdate}
-                                            onChange={e => setFromdate(e.target.value)}
+                                            onChange={(e) => setFromdate(e.target.value)}
                                             className='shadow-sm focus:ring-2 focus:ring-primary'
                                         />
                                         {submitted && !fromdate && (
-                                            <p className='text-xs text-destructive flex items-center gap-1 mt-1 animate-pulse'>
+                                            <p className='mt-1 flex animate-pulse items-center gap-1 text-destructive text-xs'>
                                                 <AlertCircle className='h-3 w-3' /> Select From Date
                                             </p>
                                         )}
                                     </div>
                                     <div className='space-y-2'>
-                                        <Label className='font-semibold text-sm'>To Date <span className='text-destructive'>*</span></Label>
+                                        <Label className='font-semibold text-sm'>
+                                            To Date <span className='text-destructive'>*</span>
+                                        </Label>
                                         <Input
                                             type='date'
                                             value={todate}
-                                            onChange={e => setTodate(e.target.value)}
+                                            onChange={(e) => setTodate(e.target.value)}
                                             className='shadow-sm focus:ring-2 focus:ring-primary'
                                         />
                                         {submitted && !todate && (
-                                            <p className='text-xs text-destructive flex items-center gap-1 mt-1 animate-pulse'>
+                                            <p className='mt-1 flex animate-pulse items-center gap-1 text-destructive text-xs'>
                                                 <AlertCircle className='h-3 w-3' /> Select To Date
                                             </p>
                                         )}
@@ -497,15 +494,13 @@ export default function StudentBirthdayReportPage() {
                                 type='button'
                                 variant='outline'
                                 onClick={handleReset}
-                                className='px-6 transition-all duration-200 hover:bg-muted/80'
-                            >
+                                className='px-6 transition-all duration-200 hover:bg-muted/80'>
                                 <RotateCcw className='mr-2 h-4 w-4' /> Cancel
                             </Button>
                             <Button
                                 type='submit'
                                 disabled={loading}
-                                className='px-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/95 hover:to-violet-650 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5'
-                            >
+                                className='hover:-translate-y-0.5 transform bg-gradient-to-r from-primary to-violet-600 px-8 shadow-md transition-all duration-300 hover:from-primary/95 hover:to-violet-650 hover:shadow-lg'>
                                 {loading ? (
                                     <>
                                         <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Generating...
@@ -521,35 +516,40 @@ export default function StudentBirthdayReportPage() {
 
             {/* Results Section */}
             {hasSearched && students.length > 0 && (
-                <CollapsibleSection title='STUDENT BIRTHDAY REPORT DETAILS' defaultOpen={true} className='no-print shadow-xl rounded-xl border border-border/80'>
+                <CollapsibleSection
+                    title='STUDENT BIRTHDAY REPORT DETAILS'
+                    defaultOpen={true}
+                    className='no-print rounded-xl border border-border/80 shadow-xl'>
                     <div className='space-y-6 p-1'>
                         {/* Summary Metrics & Dynamic Search / Options */}
-                        <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4'>
+                        <div className='flex flex-col gap-4 border-b pb-4 sm:flex-row sm:items-center sm:justify-between'>
                             <div className='flex flex-wrap gap-4'>
-                                <div className='rounded-full border bg-background px-4 py-1.5 shadow-sm text-xs md:text-sm font-semibold flex items-center gap-2'>
-                                    Total Grid Records: <span className='rounded-full bg-primary/10 text-primary px-2.5 py-0.5'>{students.length}</span>
+                                <div className='flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 font-semibold text-xs shadow-sm md:text-sm'>
+                                    Total Grid Records:{' '}
+                                    <span className='rounded-full bg-primary/10 px-2.5 py-0.5 text-primary'>{students.length}</span>
                                 </div>
                                 {searchValue.trim() !== '' && (
-                                    <div className='rounded-full border bg-background px-4 py-1.5 shadow-sm text-xs md:text-sm font-semibold flex items-center gap-2'>
-                                        Total Records Searched: <span className='rounded-full bg-violet-600/10 text-violet-600 px-2.5 py-0.5'>{filteredAndSortedStudents.length}</span>
+                                    <div className='flex items-center gap-2 rounded-full border bg-background px-4 py-1.5 font-semibold text-xs shadow-sm md:text-sm'>
+                                        Total Records Searched:{' '}
+                                        <span className='rounded-full bg-violet-600/10 px-2.5 py-0.5 text-violet-600'>
+                                            {filteredAndSortedStudents.length}
+                                        </span>
                                     </div>
                                 )}
                             </div>
 
                             {/* Export and Print Buttons */}
-                            <div className='flex gap-3 flex-wrap'>
+                            <div className='flex flex-wrap gap-3'>
                                 <Button
                                     onClick={handleExportToExcel}
                                     variant='outline'
-                                    className='border-emerald-200 text-emerald-600 bg-emerald-50/50 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/20'
-                                >
+                                    className='border-emerald-200 bg-emerald-50/50 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950/20'>
                                     <FileSpreadsheet className='mr-2 h-4 w-4' /> Export to Excel
                                 </Button>
                                 <Button
                                     onClick={handlePrint}
                                     variant='outline'
-                                    className='border-violet-200 text-violet-600 bg-violet-50/50 hover:bg-violet-50 hover:text-violet-750 dark:hover:bg-violet-950/20'
-                                >
+                                    className='border-violet-200 bg-violet-50/50 text-violet-600 hover:bg-violet-50 hover:text-violet-750 dark:hover:bg-violet-950/20'>
                                     <Printer className='mr-2 h-4 w-4' /> Print Report
                                 </Button>
                             </div>
@@ -558,11 +558,11 @@ export default function StudentBirthdayReportPage() {
                         {/* Search and Table filter input */}
                         <div className='flex max-w-sm items-center gap-2'>
                             <div className='relative w-full'>
-                                <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground' />
+                                <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground' />
                                 <Input
                                     placeholder='Search grid rows...'
                                     value={searchValue}
-                                    onChange={e => {
+                                    onChange={(e) => {
                                         setSearchValue(e.target.value);
                                         setCurrentPage(1);
                                     }}
@@ -572,54 +572,99 @@ export default function StudentBirthdayReportPage() {
                         </div>
 
                         {/* Responsive Data Grid */}
-                        <div className='overflow-x-auto rounded-xl border border-muted-foreground/20 shadow-inner bg-card'>
-                            <table className='w-full border-collapse text-left text-sm text-foreground'>
+                        <div className='overflow-x-auto rounded-xl border border-muted-foreground/20 bg-card shadow-inner'>
+                            <table className='w-full border-collapse text-left text-foreground text-sm'>
                                 <thead>
                                     <tr className='border-b bg-accent/15 font-semibold text-muted-foreground shadow-sm transition-colors'>
-                                        <th className='p-4 text-center w-12'>
+                                        <th className='w-12 p-4 text-center'>
                                             <Checkbox
-                                                checked={filteredAndSortedStudents.length > 0 && selectedRows.length === filteredAndSortedStudents.length}
+                                                checked={
+                                                    filteredAndSortedStudents.length > 0 &&
+                                                    selectedRows.length === filteredAndSortedStudents.length
+                                                }
                                                 onCheckedChange={handleToggleAll}
                                             />
                                         </th>
-                                        <th className='p-4 text-center w-16'>SL.No</th>
-                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-48' onClick={() => handleSort('studentname')}>
+                                        <th className='w-16 p-4 text-center'>SL.No</th>
+                                        <th
+                                            className='w-48 cursor-pointer p-4 transition-colors hover:bg-accent/20'
+                                            onClick={() => handleSort('studentname')}>
                                             <div className='flex items-center gap-1.5'>
                                                 {staffBirthday ? 'Employee Name' : 'Student Name'}
-                                                {sortKey === 'studentname' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                                {sortKey === 'studentname' &&
+                                                    (sortDirection === 'asc' ? (
+                                                        <ChevronUp className='h-4 w-4' />
+                                                    ) : (
+                                                        <ChevronDown className='h-4 w-4' />
+                                                    ))}
                                             </div>
                                         </th>
                                         {!staffBirthday && (
-                                            <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-32' onClick={() => handleSort('admno')}>
+                                            <th
+                                                className='w-32 cursor-pointer p-4 transition-colors hover:bg-accent/20'
+                                                onClick={() => handleSort('admno')}>
                                                 <div className='flex items-center gap-1.5'>
                                                     Adm.No.
-                                                    {sortKey === 'admno' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                                    {sortKey === 'admno' &&
+                                                        (sortDirection === 'asc' ? (
+                                                            <ChevronUp className='h-4 w-4' />
+                                                        ) : (
+                                                            <ChevronDown className='h-4 w-4' />
+                                                        ))}
                                                 </div>
                                             </th>
                                         )}
-                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-28' onClick={() => handleSort('classname')}>
+                                        <th
+                                            className='w-28 cursor-pointer p-4 transition-colors hover:bg-accent/20'
+                                            onClick={() => handleSort('classname')}>
                                             <div className='flex items-center gap-1.5'>
                                                 Class
-                                                {sortKey === 'classname' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                                {sortKey === 'classname' &&
+                                                    (sortDirection === 'asc' ? (
+                                                        <ChevronUp className='h-4 w-4' />
+                                                    ) : (
+                                                        <ChevronDown className='h-4 w-4' />
+                                                    ))}
                                             </div>
                                         </th>
-                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-28' onClick={() => handleSort('sectionname')}>
+                                        <th
+                                            className='w-28 cursor-pointer p-4 transition-colors hover:bg-accent/20'
+                                            onClick={() => handleSort('sectionname')}>
                                             <div className='flex items-center gap-1.5'>
                                                 Section
-                                                {sortKey === 'sectionname' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                                {sortKey === 'sectionname' &&
+                                                    (sortDirection === 'asc' ? (
+                                                        <ChevronUp className='h-4 w-4' />
+                                                    ) : (
+                                                        <ChevronDown className='h-4 w-4' />
+                                                    ))}
                                             </div>
                                         </th>
-                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-40' onClick={() => handleSort('amst_dob')}>
+                                        <th
+                                            className='w-40 cursor-pointer p-4 transition-colors hover:bg-accent/20'
+                                            onClick={() => handleSort('amst_dob')}>
                                             <div className='flex items-center gap-1.5'>
                                                 Date of Birth
-                                                {sortKey === 'amst_dob' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                                {sortKey === 'amst_dob' &&
+                                                    (sortDirection === 'asc' ? (
+                                                        <ChevronUp className='h-4 w-4' />
+                                                    ) : (
+                                                        <ChevronDown className='h-4 w-4' />
+                                                    ))}
                                             </div>
                                         </th>
-                                        <th className='p-4 text-center w-36'>Student Photo</th>
-                                        <th className='p-4 cursor-pointer hover:bg-accent/20 transition-colors w-64' onClick={() => handleSort('stdaddress')}>
+                                        <th className='w-36 p-4 text-center'>Student Photo</th>
+                                        <th
+                                            className='w-64 cursor-pointer p-4 transition-colors hover:bg-accent/20'
+                                            onClick={() => handleSort('stdaddress')}>
                                             <div className='flex items-center gap-1.5'>
                                                 Address
-                                                {sortKey === 'stdaddress' && (sortDirection === 'asc' ? <ChevronUp className='h-4 w-4' /> : <ChevronDown className='h-4 w-4' />)}
+                                                {sortKey === 'stdaddress' &&
+                                                    (sortDirection === 'asc' ? (
+                                                        <ChevronUp className='h-4 w-4' />
+                                                    ) : (
+                                                        <ChevronDown className='h-4 w-4' />
+                                                    ))}
                                             </div>
                                         </th>
                                     </tr>
@@ -627,7 +672,9 @@ export default function StudentBirthdayReportPage() {
                                 <tbody>
                                     {paginatedStudents.length === 0 ? (
                                         <tr>
-                                            <td colSpan={staffBirthday ? 8 : 9} className='p-8 text-center text-muted-foreground font-medium'>
+                                            <td
+                                                colSpan={staffBirthday ? 8 : 9}
+                                                className='p-8 text-center font-medium text-muted-foreground'>
                                                 No records match the search filter.
                                             </td>
                                         </tr>
@@ -637,12 +684,11 @@ export default function StudentBirthdayReportPage() {
                                             return (
                                                 <tr
                                                     key={`${row.AMST_Id || row.HRME_Id || ''}_${row.classname || ''}_${row.sectionname || ''}_${slNo}`}
-                                                    className='border-b hover:bg-accent/5 transition-colors duration-150'
-                                                >
+                                                    className='border-b transition-colors duration-150 hover:bg-accent/5'>
                                                     <td className='p-4 text-center'>
                                                         <Checkbox
                                                             checked={isRowSelected(row)}
-                                                            onCheckedChange={checked => handleToggleRow(!!checked, row)}
+                                                            onCheckedChange={(checked) => handleToggleRow(!!checked, row)}
                                                         />
                                                     </td>
                                                     <td className='p-4 text-center font-medium'>{slNo}</td>
@@ -657,20 +703,22 @@ export default function StudentBirthdayReportPage() {
                                                                 <img
                                                                     src={row.amst_photo}
                                                                     alt='Birthday student photo'
-                                                                    className='h-16 w-16 rounded-xl object-cover border-2 border-primary/20 shadow-sm transition-transform duration-200 hover:scale-110'
-                                                                    onError={e => {
+                                                                    className='h-16 w-16 rounded-xl border-2 border-primary/20 object-cover shadow-sm transition-transform duration-200 hover:scale-110'
+                                                                    onError={(e) => {
                                                                         (e.target as HTMLImageElement).src = '';
                                                                         (e.target as HTMLImageElement).alt = 'Photo Not Available';
                                                                     }}
                                                                 />
                                                             ) : (
-                                                                <div className='flex h-16 w-16 items-center justify-center rounded-xl bg-muted text-[10px] text-muted-foreground font-bold text-center leading-3 border border-dashed border-muted-foreground/30 px-1'>
+                                                                <div className='flex h-16 w-16 items-center justify-center rounded-xl border border-muted-foreground/30 border-dashed bg-muted px-1 text-center font-bold text-[10px] text-muted-foreground leading-3'>
                                                                     Photo Not Available
                                                                 </div>
                                                             )}
                                                         </div>
                                                     </td>
-                                                    <td className='p-4 text-xs leading-relaxed max-w-xs text-muted-foreground'>{row.stdaddress}</td>
+                                                    <td className='max-w-xs p-4 text-muted-foreground text-xs leading-relaxed'>
+                                                        {row.stdaddress}
+                                                    </td>
                                                 </tr>
                                             );
                                         })
@@ -681,8 +729,8 @@ export default function StudentBirthdayReportPage() {
 
                         {/* Interactive Pagination controls */}
                         {totalPages > 1 && (
-                            <div className='flex justify-between items-center bg-accent/5 p-4 rounded-xl border border-muted-foreground/10'>
-                                <span className='text-xs text-muted-foreground font-semibold'>
+                            <div className='flex items-center justify-between rounded-xl border border-muted-foreground/10 bg-accent/5 p-4'>
+                                <span className='font-semibold text-muted-foreground text-xs'>
                                     Showing page {currentPage} of {totalPages}
                                 </span>
                                 <div className='flex gap-2'>
@@ -690,18 +738,16 @@ export default function StudentBirthdayReportPage() {
                                         variant='outline'
                                         size='sm'
                                         disabled={currentPage === 1}
-                                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                        className='text-xs'
-                                    >
+                                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                        className='text-xs'>
                                         Previous
                                     </Button>
                                     <Button
                                         variant='outline'
                                         size='sm'
                                         disabled={currentPage === totalPages}
-                                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                        className='text-xs'
-                                    >
+                                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                                        className='text-xs'>
                                         Next
                                     </Button>
                                 </div>
@@ -715,57 +761,54 @@ export default function StudentBirthdayReportPage() {
             <div id='printSectionId' className='hidden'>
                 {/* Header section with Logo */}
                 {logoPath ? (
-                    <div className='text-center mb-6'>
-                        <img src={logoPath} className='mx-auto max-h-24 object-contain mb-3' alt='Institution Logo' />
+                    <div className='mb-6 text-center'>
+                        <img src={logoPath} className='mx-auto mb-3 max-h-24 object-contain' alt='Institution Logo' />
                     </div>
                 ) : (
-                    <div className='text-center mb-6 font-bold text-xl uppercase tracking-wider'>
-                        BALDWIN INSTITUTIONS
-                    </div>
+                    <div className='mb-6 text-center font-bold text-xl uppercase tracking-wider'>BALDWIN INSTITUTIONS</div>
                 )}
 
-                <div className='text-center mb-6'>
-                    <h2 className='text-2xl font-bold uppercase underline tracking-wide'>Student Birthday Report</h2>
-                    <p className='text-xs italic text-gray-700 mt-1'>
-                        Report Filter: {all1 === '1' ? 'Between Days' : 'Month Wise'} Wise | Status:{' '}
-                        {flag === 'S' ? 'Studying' : 'Left'}
+                <div className='mb-6 text-center'>
+                    <h2 className='font-bold text-2xl uppercase tracking-wide underline'>Student Birthday Report</h2>
+                    <p className='mt-1 text-gray-700 text-xs italic'>
+                        Report Filter: {all1 === '1' ? 'Between Days' : 'Month Wise'} Wise | Status: {flag === 'S' ? 'Studying' : 'Left'}
                     </p>
                     {all1 === '1' && fromdate && todate && (
-                        <p className='text-xs text-gray-800 font-semibold mt-1'>
+                        <p className='mt-1 font-semibold text-gray-800 text-xs'>
                             Period: {format(new Date(fromdate), 'dd/MM/yyyy')} to {format(new Date(todate), 'dd/MM/yyyy')}
                         </p>
                     )}
                     {all1 === '0' && month && (
-                        <p className='text-xs text-gray-800 font-semibold mt-1'>
-                            Month: {MONTHS.find(m => m.value === month)?.label}
-                        </p>
+                        <p className='mt-1 font-semibold text-gray-800 text-xs'>Month: {MONTHS.find((m) => m.value === month)?.label}</p>
                     )}
                 </div>
 
                 {/* Solid printable table borders */}
-                <table className='w-full border-collapse border border-black text-xs text-center mt-6'>
+                <table className='mt-6 w-full border-collapse border border-black text-center text-xs'>
                     <thead>
-                        <tr className='bg-gray-100 font-bold border-b border-black'>
-                            <th className='border border-black p-2 w-12'>SL.No</th>
+                        <tr className='border-black border-b bg-gray-100 font-bold'>
+                            <th className='w-12 border border-black p-2'>SL.No</th>
                             <th className='border border-black p-2 text-left'>{staffBirthday ? 'Employee Name' : 'Student Name'}</th>
                             {!staffBirthday && <th className='border border-black p-2'>Adm. No.</th>}
                             <th className='border border-black p-2'>Class</th>
                             <th className='border border-black p-2'>Section</th>
-                            <th className='border border-black p-2 w-28'>Date of Birth</th>
-                            <th className='border border-black p-2 w-24'>Photo</th>
-                            <th className='border border-black p-2 text-left w-56'>Address</th>
+                            <th className='w-28 border border-black p-2'>Date of Birth</th>
+                            <th className='w-24 border border-black p-2'>Photo</th>
+                            <th className='w-56 border border-black p-2 text-left'>Address</th>
                         </tr>
                     </thead>
                     <tbody>
                         {selectedRows.length === 0 ? (
                             <tr>
-                                <td colSpan={staffBirthday ? 7 : 8} className='border border-black p-4 italic text-gray-500'>
+                                <td colSpan={staffBirthday ? 7 : 8} className='border border-black p-4 text-gray-500 italic'>
                                     No records selected for printing.
                                 </td>
                             </tr>
                         ) : (
                             selectedRows.map((row, index) => (
-                                <tr key={`${row.AMST_Id || row.HRME_Id || ''}_${row.classname || ''}_${row.sectionname || ''}_${index}`} className='border-b border-black'>
+                                <tr
+                                    key={`${row.AMST_Id || row.HRME_Id || ''}_${row.classname || ''}_${row.sectionname || ''}_${index}`}
+                                    className='border-black border-b'>
                                     <td className='border border-black p-2 font-medium'>{index + 1}</td>
                                     <td className='border border-black p-2 text-left font-bold'>{row.studentname}</td>
                                     {!staffBirthday && <td className='border border-black p-2'>{row.admno}</td>}
@@ -778,14 +821,14 @@ export default function StudentBirthdayReportPage() {
                                                 <img
                                                     src={row.amst_photo}
                                                     alt='Printed photo'
-                                                    className='h-14 w-14 object-cover border border-black'
+                                                    className='h-14 w-14 border border-black object-cover'
                                                 />
                                             ) : (
-                                                <span className='text-[10px] text-gray-500 font-semibold'>No Photo</span>
+                                                <span className='font-semibold text-[10px] text-gray-500'>No Photo</span>
                                             )}
                                         </div>
                                     </td>
-                                    <td className='border border-black p-2 text-left leading-tight text-[11px]'>{row.stdaddress}</td>
+                                    <td className='border border-black p-2 text-left text-[11px] leading-tight'>{row.stdaddress}</td>
                                 </tr>
                             ))
                         )}
@@ -793,7 +836,7 @@ export default function StudentBirthdayReportPage() {
                 </table>
 
                 {/* Legacy Print Footer details */}
-                <div className='mt-8 pt-4 border-t border-dashed border-gray-400 flex flex-row justify-between items-center text-[10px] text-gray-600'>
+                <div className='mt-8 flex flex-row items-center justify-between border-gray-400 border-t border-dashed pt-4 text-[10px] text-gray-600'>
                     <div>Date: {format(new Date(), 'dd/MM/yyyy')}</div>
                     {userName && <div>UserName: {userName}</div>}
                     {copyright && <div>{copyright}</div>}

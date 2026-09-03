@@ -1,18 +1,17 @@
 'use client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-    getOralReScheduleDetails, 
-    getReScheduleReportDetails, 
-    getReScheduleStudentDetails, 
-    deleteReScheduleStudent, 
-    deleteOralReSchedule, 
-    getReScheduleSelectedRowDetails, 
-    saveOralReSchedule 
-} from '@/server/admission/preadmission/transactions/oral_test_reschedule';
 import { PREADMISSION_QUERY_KEYS } from '@/constants/query-keys';
+import {
+    deleteOralReSchedule,
+    deleteReScheduleStudent,
+    getOralReScheduleDetails,
+    getReScheduleReportDetails,
+    getReScheduleSelectedRowDetails,
+    saveOralReSchedule
+} from '@/server/admission/preadmission/transactions/oral_test_reschedule';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-export function useOralReScheduleDetails(classId: number = 0) {
+export function useOralReScheduleDetails(classId = 0) {
     return useQuery({
         queryKey: [PREADMISSION_QUERY_KEYS.ORAL_TEST_RESCHEDULE_DETAILS, classId],
         queryFn: () => getOralReScheduleDetails(classId)
@@ -32,8 +31,8 @@ export function useSaveOralReSchedule() {
     return useMutation({
         mutationFn: (data: any) => saveOralReSchedule(data),
         onSuccess: (res: any) => {
-            if (res.returnval === false) {
-                toast.error(res.message || 'Record Already Exist With Same Schedule Name/Date');
+            if (res?.returnval === false) {
+                toast.error(res?.message || 'Record Already Exist With Same Schedule Name/Date');
             } else {
                 toast.success('Interview Re-Scheduled Successfully');
                 queryClient.invalidateQueries({ queryKey: [PREADMISSION_QUERY_KEYS.ORAL_TEST_RESCHEDULE_DETAILS] });
@@ -48,7 +47,7 @@ export function useSaveOralReSchedule() {
 export function useDeleteReScheduleStudent() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: ({ paotsId, pasrId }: { paotsId: number, pasrId: number }) => deleteReScheduleStudent(paotsId, pasrId),
+        mutationFn: ({ paotsId, pasrId }: { paotsId: number; pasrId: number }) => deleteReScheduleStudent(paotsId, pasrId),
         onSuccess: () => {
             toast.success('Student removed from schedule');
             queryClient.invalidateQueries({ queryKey: [PREADMISSION_QUERY_KEYS.ORAL_TEST_RESCHEDULE_DETAILS] });

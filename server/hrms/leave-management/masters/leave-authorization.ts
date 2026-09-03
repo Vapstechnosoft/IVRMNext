@@ -4,11 +4,10 @@ import { HRMS_MI_ID } from '@/constants/hrms-config';
 import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 import type {
-    LeaveAuthorizationGetResponseData,
-    LeaveAuthorizationSaveRequest,
     LeaveAuthorizationDeleteRequest,
+    LeaveAuthorizationGetResponseData,
+    LeaveAuthorizationSaveRequest
 } from '@/types/hrms/leave-management/leave-authorization';
-
 
 /**
  * Get institutions based on login
@@ -19,7 +18,6 @@ export async function getInstitutionsByLoginBased(): Promise<ApiResponse<any[]>>
     console.log('🔵 [SERVER] GET Request URL:', url);
     try {
         const response = await api.get<any>('hmslms', url);
-
 
         const res = response as any;
         const isSuccess = res.success === true || String(res.success) === 'true';
@@ -49,7 +47,8 @@ export async function getLeaveAuthorization(
     // Build URL with pagination parameters
     // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
     const baseUrl = `/api/LeaveAuthorization/get_authorization_grid_by_miid`;
-    const searchableColumns = 'hrmG_GradeName,hrmgT_EmployeeGroupType,hrmD_DepartmentName,hrmdeS_DesignationName,hrmL_LeaveName,hrmE_EmployeeFirstName';
+    const searchableColumns =
+        'hrmG_GradeName,hrmgT_EmployeeGroupType,hrmD_DepartmentName,hrmdeS_DesignationName,hrmL_LeaveName,hrmE_EmployeeFirstName';
     const columnsToSearch = (searchParams as any)?.search_column || (searchParams as any)?.search_columns || searchableColumns;
     const queryParams = getSearchParamsUrl(searchParams, columnsToSearch);
     let url = queryParams ? `${baseUrl}?${queryParams}` : baseUrl;
@@ -93,10 +92,7 @@ export async function getLeaveAuthorization(
  * @returns Save/Update response
  */
 // function restored and updated
-export async function saveLeaveAuthorization(
-    data: LeaveAuthorizationSaveRequest
-): Promise<ApiResponse<LeaveAuthorizationGetResponseData>> {
-
+export async function saveLeaveAuthorization(data: LeaveAuthorizationSaveRequest): Promise<ApiResponse<LeaveAuthorizationGetResponseData>> {
     const url = '/api/LeaveAuthorization/add_or_update_leave_authorisation';
 
     const isEdit = !!(data.hrla_Id && Number(data.hrla_Id) > 0);
@@ -120,9 +116,8 @@ export async function saveLeaveAuthorization(
             approval_HRME_Id: Number(item.approval_HRME_Id || 0),
             approvalLevelNo: Number(item.approvalLevelNo || 0),
             approvalFinalFlag: !!item.approvalFinalFlag
-        })),
+        }))
     };
-
 
     console.log('🔵 [SERVER] Final Request Body to API:', JSON.stringify(requestBody, null, 2));
 
@@ -135,34 +130,23 @@ export async function saveLeaveAuthorization(
             res = JSON.parse(res);
         }
 
-        const isSuccess =
-            res.success === true ||
-            String(res.success) === 'true' ||
-            res.returnval === true;
+        const isSuccess = res.success === true || String(res.success) === 'true' || res.returnval === true;
 
         if (isSuccess) {
             return {
                 success: true,
-                message:
-                    res.message ||
-                    (isEdit ? 'Updated successfully' : 'Saved successfully'),
-                data: res.data || null,
+                message: res.message || (isEdit ? 'Updated successfully' : 'Saved successfully'),
+                data: res.data || null
             };
         }
 
         return {
             success: false,
-            message:
-                res.message ||
-                (isEdit ? 'Failed to update' : 'Failed to save'),
-            data: null,
+            message: res.message || (isEdit ? 'Failed to update' : 'Failed to save'),
+            data: null
         };
-
     } catch (error: any) {
-        const errorMessage =
-            error?.response?.data?.message ||
-            error?.message ||
-            'Failed to save leave authorization';
+        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save leave authorization';
 
         throw new Error(errorMessage);
     }
@@ -253,7 +237,6 @@ export async function getLeaveAuthorizationDropdowns(request: { MI_Id?: number; 
     try {
         const response = await api.get<any>('hmslms', url);
 
-
         const res = response as any;
         const isSuccess = res.success === true || String(res.success) === 'true';
 
@@ -290,7 +273,13 @@ export async function getLeaveAuthorizationDropdowns(request: { MI_Id?: number; 
         const groupTypes = (data.groupType || [])
             .map((item: any) => ({
                 value: String(item.hrmgT_Id || item.HRMGT_Id || ''),
-                label: String(item.hrmgT_EmployeeGroupType || item.HRMGT_EmployeeGroupType || item.hrmgT_GroupTypeName || item.HRMGT_GroupTypeName || '')
+                label: String(
+                    item.hrmgT_EmployeeGroupType ||
+                        item.HRMGT_EmployeeGroupType ||
+                        item.hrmgT_GroupTypeName ||
+                        item.HRMGT_GroupTypeName ||
+                        ''
+                )
             }))
             .filter((item: { value: string; label: string }) => item.value && item.label);
 

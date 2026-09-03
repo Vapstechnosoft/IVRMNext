@@ -55,7 +55,9 @@ function PromotionalSettingPageContent({
     const [orderData, setOrderData] = useState<(IPromotionalSubjectDetails & { id: number })[]>([]);
     const [isOrderSaving, setIsOrderSaving] = useState(false);
     const [isOrderLoading, setIsOrderLoading] = useState(true);
-
+    useEffect(() => {
+        console.log('prom setting grid resposne', response);
+    }, [response]);
     // Fetch order details list when Set Order modal opens
     useEffect(() => {
         (async () => {

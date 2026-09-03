@@ -23,12 +23,7 @@ export default function VehicleDriverMappingPage(props: { searchParams: SearchPa
         <FormProvider<IVehicleDriverMapping>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <VehicleDriverMappingContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <VehicleDriverMappingContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>
@@ -80,8 +75,8 @@ function VehicleDriverMappingContent({
                     noDataTitle='No Mappings Found'
                     noDataDescription='Get started by mapping drivers to vehicles'
                     errorTitle='Error Loading Mappings'
-                // For debugging if needed
-                // meta={{ refetch: refetchAll }}
+                    // For debugging if needed
+                    // meta={{ refetch: refetchAll }}
                 />
             </CollapsibleSection>
 
@@ -122,9 +117,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddForm
-                                onClose={closeAddForm}
-                            />
+                            <AddForm onClose={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -147,10 +140,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateForm
-                                selectedRow={selectedRow}
-                                onClose={closeEditForm}
-                            />
+                            <UpdateForm selectedRow={selectedRow} onClose={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

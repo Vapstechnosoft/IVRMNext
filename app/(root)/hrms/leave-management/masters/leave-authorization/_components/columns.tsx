@@ -88,11 +88,11 @@ export const getLeaveAuthorizationColumns = ({ onEdit, onDelete }: LeaveAuthoriz
         cell: ({ row }) => (
             <div className='flex items-center justify-center'>
                 {row.original.finalFlag ? (
-                    <div className='flex h-6 w-6 items-center justify-center rounded-full bg-green-100 shadow-sm border border-green-200'>
+                    <div className='flex h-6 w-6 items-center justify-center rounded-full border border-green-200 bg-green-100 shadow-sm'>
                         <Check className='h-3.5 w-3.5 font-bold text-green-700' strokeWidth={3} />
                     </div>
                 ) : (
-                    <div className='flex h-6 w-6 items-center justify-center rounded-full bg-red-100 shadow-sm border border-red-200'>
+                    <div className='flex h-6 w-6 items-center justify-center rounded-full border border-red-200 bg-red-100 shadow-sm'>
                         <X className='h-3.5 w-3.5 font-bold text-red-700' strokeWidth={3} />
                     </div>
                 )}

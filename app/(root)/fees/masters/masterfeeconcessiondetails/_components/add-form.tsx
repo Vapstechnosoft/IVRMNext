@@ -9,6 +9,7 @@ import { masterConcessionDetailsSchema } from '@/schemas/fees/masters';
 import { addOrUpdateMasterConcessionDetails } from '@/server/fees/masters/masterconcessiondetails';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
+import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -41,11 +42,11 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
         resolver: zodResolver(masterConcessionDetailsSchema.addOrUpdate),
         mode: 'onChange',
         defaultValues: {
-            fmccD_PerOrAmt: undefined,
+            fmcC_Id: 0,
+            fmccD_PerOrAmtFlag: '',
             fmccD_FromNoSibblings: undefined,
             fmccD_ToNoSibblings: undefined,
-            fmccD_PerOrAmtFlag: '',
-            fmcC_Id: undefined
+            fmccD_PerOrAmt: undefined
         }
     });
 
@@ -54,7 +55,11 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
         refetchAll();
         refetchcategory();
     }
+    const selectedCategory = watch('fmcC_Id');
 
+    useEffect(() => {
+        console.log('Category:', selectedCategory);
+    }, [selectedCategory]);
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         try {
             const { fmcC_Id, fmccD_PerOrAmtFlag, fmccD_FromNoSibblings, fmccD_ToNoSibblings, fmccD_PerOrAmt } = data;
@@ -83,7 +88,13 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            fmcC_Id: undefined,
+            fmccD_PerOrAmtFlag: undefined,
+            fmccD_FromNoSibblings: undefined,
+            fmccD_ToNoSibblings: undefined,
+            fmccD_PerOrAmt: undefined
+        });
     };
 
     return (
@@ -268,27 +279,19 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
                                     control={control}
                                     render={({ field }) => (
                                         <Select
-                                            onValueChange={(value) => field.onChange(Number(value))}
-                                            value={field.value?.toString() || ''}>
+                                            key={field.value ?? 'empty'}
+                                            value={field.value !== undefined ? String(field.value) : ''}
+                                            onValueChange={(value) => field.onChange(Number(value))}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Category' />
                                             </SelectTrigger>
+
                                             <SelectContent>
-                                                {categoryLoading ? (
-                                                    <SelectItem value='loading' disabled>
-                                                        Loading Terms...
+                                                {category?.data?.map((item) => (
+                                                    <SelectItem key={item.fmcC_Id} value={String(item.fmcC_Id)}>
+                                                        {item.fmcC_ConcessionName}
                                                     </SelectItem>
-                                                ) : categoryError ? (
-                                                    <SelectItem value='error' disabled>
-                                                        Error loading Terms
-                                                    </SelectItem>
-                                                ) : (
-                                                    category?.data?.map((item) => (
-                                                        <SelectItem key={item.fmcC_Id} value={item.fmcC_Id.toString()}>
-                                                            {item.fmcC_ConcessionName}
-                                                        </SelectItem>
-                                                    ))
-                                                )}
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -307,9 +310,14 @@ export default function AddMasterConcessionDetailsForm({ onSuccess, termname = '
                                 <Controller
                                     name='fmccD_PerOrAmtFlag'
                                     control={control}
-                                    rules={{ required: 'Please select a type' }}
+                                    // rules={{ required: 'Please select a type' }}
                                     render={({ field }) => (
-                                        <Select onValueChange={(value) => field.onChange(value)} value={field.value || ''}>
+                                        <Select
+                                            // onValueChange={(value) => field.onChange(value)}
+                                            // value={field.value || ''}
+                                            key={field.value ?? 'empty'}
+                                            value={field.value !== undefined ? String(field.value) : ''}
+                                            onValueChange={(value) => field.onChange(String(value))}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Type' />
                                             </SelectTrigger>

@@ -4,8 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, FileText, Printer, RotateCcw, Search, Square, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useReactToPrint } from 'react-to-print';
 import { Controller, useForm } from 'react-hook-form';
+import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -32,15 +32,15 @@ import { ClasswiseStudentDetails } from '@/hooks/admission/preadmission/useRepor
 import { classwiseStudentDetailsSchema } from '@/schemas/admission/preadmission/reports';
 
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { exportToPdf } from '@/lib/export-to-file';
 import { cn } from '@/lib/utils';
-import * as XLSX from 'xlsx';
 import { getclasswiseStudentDetails } from '@/server/admission/preadmission/reports/report';
+import * as XLSX from 'xlsx';
+import { ClasswisePrint } from './_components/classwise-print';
 /* ---------------- Columns ---------------- */
 import { getMasterAdmissionReportColumns } from './_components/columns';
 import { ColumnValue } from './_components/columnvalue';
 import { KendoFormat } from './_components/kendo-format';
-import { exportToPdf } from '@/lib/export-to-file';
-import { ClasswisePrint } from './_components/classwise-print';
 
 /* -------------------------------------------------------------------------- */
 /* Types */
@@ -277,20 +277,11 @@ export default function AdmissionReportPage(props: {
     };
 
     const handleReset = () => {
-        reset();
-        setShowReport(false);
-        setRequestPayload(null);
-        setSelectedClassItems([]);
-        setSelectedSectionItems([]);
-        tableRef.current?.resetSelection();
-        router.push(window.location.pathname, { scroll: false });
-        toast.success('Filters reset successfully');
+        window.location.reload();
     };
 
     const handleCancel = () => {
-        setShowReport(false);
-        tableRef.current?.resetSelection();
-        toast.info('Report cancelled');
+        window.location.reload();
     };
 
     const downloadExcel = async () => {
@@ -324,16 +315,16 @@ export default function AdmissionReportPage(props: {
             const reportHeaders = [
                 ['CLASS WISE STUDENT DETAILS'],
                 [`Academic Year: ${yearObj?.asmaY_Year || 'N/A'}`],
-                [`Classes: ${selectedClassItems.map(c => c.asmcL_ClassName).join(', ')}`],
-                [`Sections: ${selectedSectionItems.map(s => s.asmcL_SectionName).join(', ')}`],
+                [`Classes: ${selectedClassItems.map((c) => c.asmcL_ClassName).join(', ')}`],
+                [`Sections: ${selectedSectionItems.map((s) => s.asmcL_SectionName).join(', ')}`],
                 [] // Empty row
             ];
 
             // Prepare table data
-            const tableHeaders = ['Sl.No', ...activeFields.map(f => f.columnName)];
+            const tableHeaders = ['Sl.No', ...activeFields.map((f) => f.columnName)];
             const tableData = allData.map((row: any, index: number) => {
                 const rowData = [index + 1];
-                activeFields.forEach(field => {
+                activeFields.forEach((field) => {
                     rowData.push(row[field.columnID] || '-');
                 });
                 return rowData;
@@ -368,9 +359,7 @@ export default function AdmissionReportPage(props: {
 
             const activeFields = ColumnValue.filter((f) => selectedFields.includes(f.columnID));
             const pdfColumns = activeFields.map((f) => f.columnName);
-            const pdfData = (transformedResponse.data as any[]).map((row) =>
-                activeFields.map((f) => String(row[f.columnID] || ''))
-            );
+            const pdfData = (transformedResponse.data as any[]).map((row) => activeFields.map((f) => String(row[f.columnID] || '')));
 
             exportToPdf('Class Wise Student Report', pdfColumns, pdfData);
 
@@ -434,7 +423,9 @@ export default function AdmissionReportPage(props: {
                 <div className='grid grid-cols-1 gap-4 p-4 md:grid-cols-2'>
                     {/* Academic Year */}
                     <div>
-                        <Label>Academic Year <span className='text-red-600'>*</span></Label>
+                        <Label>
+                            Academic Year <span className='text-red-600'>*</span>
+                        </Label>
                         <Controller
                             name='asmaY_Id'
                             control={control}
@@ -458,7 +449,9 @@ export default function AdmissionReportPage(props: {
 
                     {/* Class */}
                     <div>
-                        <Label>Class <span className='text-red-600'>*</span></Label>
+                        <Label>
+                            Class <span className='text-red-600'>*</span>
+                        </Label>
                         <Controller
                             name='classes'
                             control={control}
@@ -487,7 +480,9 @@ export default function AdmissionReportPage(props: {
 
                     {/* Section */}
                     <div>
-                        <Label>Section <span className='text-red-600'>*</span></Label>
+                        <Label>
+                            Section <span className='text-red-600'>*</span>
+                        </Label>
                         <Controller
                             name='class_section'
                             control={control}

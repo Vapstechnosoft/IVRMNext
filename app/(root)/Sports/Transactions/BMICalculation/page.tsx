@@ -20,11 +20,11 @@ export default function BMICalculationPage(props: { searchParams: SearchParams }
 
     return (
         <FormProvider<IBMICalculation>>
-            <BMICalculationPageContent 
-                response={loadData.data} 
-                isLoading={loadData.isPending || loadData.isFetching} 
-                error={loadData.error} 
-                refetchAll={refetchAll} 
+            <BMICalculationPageContent
+                response={loadData.data}
+                isLoading={loadData.isPending || loadData.isFetching}
+                error={loadData.error}
+                refetchAll={refetchAll}
             />
         </FormProvider>
     );
@@ -99,9 +99,6 @@ function BMICalculationPageContent({
                         columns={bmiCalculationColumns}
                         isLoading={isLoading}
                         error={error}
-                        manualPagination={true}
-                        manualSorting={true}
-                        manualFiltering={true}
                         showSearchColumns={true}
                         showViewOptions={true}
                         columnPinning={{ right: ['actions'] }}

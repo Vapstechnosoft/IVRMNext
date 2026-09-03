@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import Groq from 'groq-sdk';
 import { getUserAccessibleModules } from '@/server/common';
+import Groq from 'groq-sdk';
+import { type NextRequest, NextResponse } from 'next/server';
 
 // Initialize Groq clients for different portals
 const adminGroq = new Groq({
@@ -15,20 +15,18 @@ const studentGroq = new Groq({
     apiKey: process.env.student_chat_Groq_api_key || process.env.chat_Groq_api_key || process.env.GROQ_API_KEY || ''
 });
 
-
-
 // Helper to flatten modules into a searchable text format
 async function getNavigationContext() {
     try {
         const modulesResponse = await getUserAccessibleModules();
-        console.log("modulesResponse", modulesResponse);
+        console.log('modulesResponse', modulesResponse);
         if (!modulesResponse.success || !modulesResponse.data) return '';
 
-        let contextText = "AVAILABLE PAGES AND NAVIGATION PATHS:\n";
+        let contextText = 'AVAILABLE PAGES AND NAVIGATION PATHS:\n';
 
         // Helper recursive function to traverse the menu structure
         const traverse = (items: any[], path: string[]) => {
-            items.forEach(item => {
+            items.forEach((item) => {
                 const currentPath = [...path, item.name];
 
                 // If it's a page with a URL
@@ -44,19 +42,18 @@ async function getNavigationContext() {
         };
 
         traverse(modulesResponse.data, []);
-        
+
         // Truncate to avoid exceeding LLM token limits (Groq has ~8k token limit for this model, so max ~20000 chars)
         if (contextText.length > 20000) {
-            contextText = contextText.substring(0, 20000) + "\n...[List truncated for size]";
+            contextText = contextText.substring(0, 20000) + '\n...[List truncated for size]';
         }
-        
+
         return contextText;
     } catch (error) {
-        console.error("Error generating navigation context:", error);
-        return "";
+        console.error('Error generating navigation context:', error);
+        return '';
     }
 }
-
 
 // Knowledge Base from user's Python code
 const KNOWLEDGE_BASE = {
@@ -777,7 +774,17 @@ Go to **Std Fee Details** page
     },
     // --- DETAILED PROCEDURES ---
     howToFillForm: {
-        keywords: ['fill form', 'fill application', 'how to apply', 'application steps', 'admission form steps', 'fill', 'application', 'aplication', 'form'],
+        keywords: [
+            'fill form',
+            'fill application',
+            'how to apply',
+            'application steps',
+            'admission form steps',
+            'fill',
+            'application',
+            'aplication',
+            'form'
+        ],
         response: `To fill the **Preadmission Form**:
 1. Go to **Admission > Preadmission > Transactions > Preadmission Form**.
 2. **Student Details**: Enter Name, DOB, Gender, Class.
@@ -851,7 +858,16 @@ const STUDENT_KNOWLEDGE_BASE = {
 
     // --- FEES ---
     payFees: {
-        keywords: ['pay fees', 'pay online', 'fee payment', 'due fees', 'outstanding fees', 'check my fees', 'where to check my fees', 'my fees'],
+        keywords: [
+            'pay fees',
+            'pay online',
+            'fee payment',
+            'due fees',
+            'outstanding fees',
+            'check my fees',
+            'where to check my fees',
+            'my fees'
+        ],
         response: `You can securely pay fees in **Masters > Fee Online Payment**. Select the fee group and proceed to payment via Card/UPI.`
     },
     feeReceipt: {
@@ -895,7 +911,7 @@ export async function POST(req: NextRequest) {
         const { messages, context } = await req.json();
 
         // Select the appropriate Groq client based on context
-        const groq = context === 'StudentPortal' ? studentGroq : (context === 'Staff Support' ? staffGroq : adminGroq);
+        const groq = context === 'StudentPortal' ? studentGroq : context === 'Staff Support' ? staffGroq : adminGroq;
 
         // Select appropriate knowledge base
         const currentKnowledgeBase = context === 'StudentPortal' ? STUDENT_KNOWLEDGE_BASE : KNOWLEDGE_BASE;
@@ -929,7 +945,7 @@ export async function POST(req: NextRequest) {
                         },
                         ...messages
                     ],
-                    model: 'llama-3.3-70b-versatile',
+                    model: 'openai/gpt-oss-120b',
                     temperature: 0.2, // Even lower for absolute precision
                     max_tokens: 100 // Further reduced
                 });
@@ -949,8 +965,9 @@ export async function POST(req: NextRequest) {
                     role: 'system',
                     content: `You are the **${context === 'StudentPortal' ? 'School Assistant' : 'AI VRM Help Desk'}**.
                     
-                    ${context === 'StudentPortal' ?
-                            `**AVAILABLE STUDENT PAGES:**
+                    ${
+                        context === 'StudentPortal'
+                            ? `**AVAILABLE STUDENT PAGES:**
                     - Exam Report (/StudentPortal/student-dashboard/Exam/ExamReport)
                     - Online Leave Application (/StudentPortal/student-dashboard/Admission/OnlineLeaveApp)
                     - Attendance Details (/StudentPortal/masters/attendance-details)
@@ -959,7 +976,9 @@ export async function POST(req: NextRequest) {
                     - Portal Fee Receipt (/StudentPortal/student-dashboard/Fees/Reports/PortalFeeReceipt)
                     - Calendar of Events (/StudentPortal/coe/coe)
                     - Student Complaints (/StudentPortal/student-dashboard/Feedback/Transaction/StudentCompliantsView)
-                    ` : navigationContext}
+                    `
+                            : navigationContext
+                    }
 
                     **CORE RULES:**
                     1. **JSON OUTPUT MANDATORY**: Your response must be a valid JSON object with keys "text" and "link".
@@ -968,17 +987,19 @@ export async function POST(req: NextRequest) {
                     3. **LINK**: The exact URL from the context if found, otherwise null.
                     4. **INTELLIGENCE**: Infer the user's intent.
                     5. **STRICT SCOPE**: If asked about outside topics (e.g., coding, general knowledge, jokes, weather), respectfully decline. 
-                    ${context === 'StudentPortal' ?
-                            'Say exactly: "As I am an AI VRM help bot, I can help you with anything within ERP."' :
-                            'Say: "I can only assist with AI VRM software queries."'} and return link: null.
+                    ${
+                        context === 'StudentPortal'
+                            ? 'Say exactly: "As I am an AI VRM help bot, I can help you with anything within ERP."'
+                            : 'Say: "I can only assist with AI VRM software queries."'
+                    } and return link: null.
                     6. **NOT FOUND**: If the information is not in the context, say politely: "I couldn't find specific details in my valid list. Please contact the school office." (Max 20 words). link: null.`
                 },
                 ...messages
             ],
-            model: 'llama-3.3-70b-versatile',
+            model: 'openai/gpt-oss-120b',
             temperature: 0.2, // Slightly increased for better phrasing
             max_tokens: 250, // Increased for detailed steps
-            response_format: { type: "json_object" }
+            response_format: { type: 'json_object' }
         });
 
         const content = response.choices[0]?.message?.content;
@@ -986,7 +1007,7 @@ export async function POST(req: NextRequest) {
             const jsonResponse = JSON.parse(content || '{}');
             return NextResponse.json(jsonResponse);
         } catch (e) {
-            console.error("Failed to parse JSON response:", content);
+            console.error('Failed to parse JSON response:', content);
             return NextResponse.json({ text: "I'm sorry, I couldn't process that request." });
         }
     } catch (error: any) {

@@ -1,7 +1,6 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { IMasterMenuPageMapping } from '@/types/super-admin/super-admin-module/general-setting/master-menu-page-mapping';
 
 const FACADE_URL = '/MasterMenuPageMappingFacade';
 
@@ -15,16 +14,23 @@ export async function getOnLoadData(searchParams: any) {
         const response = await api.get<any>('sadmin', url);
 
         if (response.success && response.data) {
-            const records = response.data.records || [];
+            const rawData = response.data;
+            const records = Array.isArray(rawData) ? rawData : rawData.records || rawData.GridDetails || rawData.grid1 || [];
+
+            const mappedRecords = records.map((item: any) => ({
+                ...item,
+                ivrmmmpM_Id: item.ivrmmmpM_Id ?? item.IVRMMMPM_Id ?? item.ivrmMMPM_Id ?? item.id ?? 0,
+                submenuname:
+                    item.submenuname ?? item.IVRMMM_MenuName ?? item.ivrmmM_MenuName ?? item.subMenuName ?? item.IVRMMS_SubMenuName ?? '',
+                modulename: item.modulename ?? item.IVRMM_ModuleName ?? item.ivrmM_ModuleName ?? item.moduleName ?? '',
+                pagename: item.pagename ?? item.IVRMP_PageName ?? item.ivrmP_PageName ?? item.pageName ?? item.ivrmmP_PageName ?? ''
+            }));
+
             return {
                 success: true,
                 message: response.message,
-                data: {
-                    GridDetails: records,
-                    modulename: [],
-                    pages: []
-                },
-                total: response.total || records.length,
+                data: mappedRecords,
+                total: response.total ?? response.data?.total ?? records.length,
                 page: response.page || page,
                 pageSize: response.page_size || pageSize
             };
@@ -32,16 +38,16 @@ export async function getOnLoadData(searchParams: any) {
 
         return {
             success: false,
-            message: response.message || "Failed to fetch data",
-            data: { GridDetails: [], modulename: [], pages: [] },
+            message: response.message || 'Failed to fetch data',
+            data: [],
             total: 0
         };
     } catch (error) {
-        console.error("Error fetching Master Menu Page Mapping data:", error);
+        console.error('Error fetching Master Menu Page Mapping data:', error);
         return {
             success: false,
-            message: "Failed to fetch data",
-            data: { GridDetails: [], modulename: [], pages: [] },
+            message: 'Failed to fetch data',
+            data: [],
             total: 0
         };
     }
@@ -64,7 +70,7 @@ export async function deleteMasterMenuPageMapping(id: number) {
     } catch (error) {
         return {
             success: false,
-            message: 'Failed to delete data',
+            message: 'Failed to delete data'
         };
     }
 }
@@ -77,7 +83,7 @@ export async function saveMasterMenuPageMapping(data: any) {
     } catch (error) {
         return {
             success: false,
-            message: 'Failed to save data',
+            message: 'Failed to save data'
         };
     }
 }
@@ -98,8 +104,8 @@ export async function getMainMenuDropdown(moduleId: number) {
     } catch (error) {
         return {
             success: false,
-            message: "Failed to fetch main menu dropdown",
-            data: [],
+            message: 'Failed to fetch main menu dropdown',
+            data: []
         };
     }
 }
@@ -111,13 +117,15 @@ export async function getSubMenuDropdown(moduleId: number) {
         if (response.success && Array.isArray(response.data)) {
             const allMenus = response.data;
             // Filter by Module ID to get all submenus for the module
-            const filteredMenus = allMenus.filter((item: any) => item.ivrmM_Id === moduleId);
+            const filteredMenus = allMenus.filter((item: any) => 
+                Number(item.ivrmM_Id ?? item.IVRMM_Id) === Number(moduleId)
+            );
 
             // Map to ISubMenuDropdownItem format required by frontend
             const mappedMenus = filteredMenus.map((item: any) => ({
-                ivrmmS_Id: item.ivrmmM_Id,
-                ivrmmS_SubMenuName: item.ivrmmM_MenuName,
-                ivrmmM_Id: item.ivrmmM_ParentId
+                ivrmmS_Id: item.ivrmmS_Id ?? item.IVRMMS_Id ?? item.ivrmmM_Id ?? item.IVRMMM_Id ?? 0,
+                ivrmmS_SubMenuName: item.ivrmmS_SubMenuName ?? item.IVRMMS_SubMenuName ?? item.ivrmmM_MenuName ?? item.IVRMMM_MenuName ?? item.submenuname ?? '',
+                ivrmmM_Id: item.ivrmmM_ParentId ?? item.IVRMMM_ParentId ?? item.ivrmmM_Id ?? item.IVRMMM_Id ?? 0
             }));
 
             return {
@@ -129,8 +137,8 @@ export async function getSubMenuDropdown(moduleId: number) {
     } catch (error) {
         return {
             success: false,
-            message: "Failed to fetch sub menu dropdown",
-            data: [],
+            message: 'Failed to fetch sub menu dropdown',
+            data: []
         };
     }
 }
@@ -149,14 +157,14 @@ export async function getModuleDropdown() {
         }
         return {
             success: false,
-            message: response.message || "Failed to fetch module dropdown",
+            message: response.message || 'Failed to fetch module dropdown',
             data: []
         };
     } catch (error) {
         return {
             success: false,
-            message: "Failed to fetch module dropdown",
-            data: [],
+            message: 'Failed to fetch module dropdown',
+            data: []
         };
     }
 }
@@ -165,24 +173,29 @@ export async function getMasterPagesOnChangeSubMenu(subMenuId: number) {
     const url = `${FACADE_URL}/get_masterpage_onchange_submenu/${subMenuId}`;
     try {
         const response = await api.get<any>('sadmin', url);
-        if (response.success && response.data && Array.isArray(response.data.records)) {
+        if (response.success && response.data) {
+            const records = Array.isArray(response.data) ? response.data : (response.data.records || response.data.grid1 || []);
+            const mappedPages = records.map((item: any) => ({
+                ivrmP_Id: item.ivrmP_Id ?? item.IVRMP_Id ?? item.id ?? 0,
+                pagename: item.pagename ?? item.IVRMP_PageName ?? item.ivrmP_PageName ?? item.pageName ?? item.ivrmmP_PageName ?? ''
+            }));
             return {
                 success: true,
                 message: response.message,
-                data: response.data.records,
-                total: response.total
+                data: mappedPages,
+                total: response.total ?? mappedPages.length
             };
         }
         return {
             success: false,
-            message: response.message || "Failed to fetch master pages",
+            message: response.message || 'Failed to fetch master pages',
             data: [],
             total: 0
         };
     } catch (error) {
         return {
             success: false,
-            message: "Failed to fetch master pages",
+            message: 'Failed to fetch master pages',
             data: [],
             total: 0
         };
@@ -197,19 +210,19 @@ export async function getSavedMasterMenuOnChangeSubMenu(moduleId: number, subMen
             return {
                 success: true,
                 message: response.message,
-                data: response.data.records,
+                data: response.data.records
             };
         }
         return {
             success: false,
-            message: response.message || "Failed to fetch saved master menus",
-            data: [],
+            message: response.message || 'Failed to fetch saved master menus',
+            data: []
         };
     } catch (error) {
         return {
             success: false,
-            message: "Failed to fetch saved master menus",
-            data: [],
+            message: 'Failed to fetch saved master menus',
+            data: []
         };
     }
 }

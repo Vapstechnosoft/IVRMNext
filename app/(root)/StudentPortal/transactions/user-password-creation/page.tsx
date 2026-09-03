@@ -21,6 +21,7 @@ export default function UserPasswordCreationPage() {
     const [isCreating, setIsCreating] = useState(false);
     const [selectedStudents, setSelectedStudents] = useState<IStudent[]>([]);
     const [filterData, setFilterData] = useState<string>('');
+    const [hasSearched, setHasSearched] = useState(false);
 
     const fetchInitialData = useCallback(async () => {
         setIsLoading(true);
@@ -45,12 +46,14 @@ export default function UserPasswordCreationPage() {
     const handleFilterSuccess = (studentList: IStudent[], filterdata: string) => {
         setStudents(studentList);
         setFilterData(filterdata);
+        setHasSearched(true);
     };
 
     const handleReset = () => {
         setStudents([]);
         setSelectedStudents([]);
         setFilterData('');
+        setHasSearched(false);
     };
 
     const handleCreateUsername = async () => {
@@ -100,35 +103,43 @@ export default function UserPasswordCreationPage() {
                 )}
             </CollapsibleSection>
 
-            {students.length > 0 && (
+            {hasSearched && (
                 <CollapsibleSection title='Student List' defaultOpen={true}>
                     <div className='space-y-4'>
-                        <GenericDataTable<IStudent>
-                            data={students}
-                            columns={userPasswordCreationColumns}
-                            isLoading={isTableLoading}
-                            showExportOptions={true}
-                            onRowSelectionChange={setSelectedStudents}
-                            totalItems={students.length}
-                            //manualPagination={false}
-                        />
+                        {students.length > 0 ? (
+                            <>
+                                <GenericDataTable<IStudent>
+                                    data={students}
+                                    columns={userPasswordCreationColumns}
+                                    isLoading={isTableLoading}
+                                    showExportOptions={true}
+                                    onRowSelectionChange={setSelectedStudents}
+                                    totalItems={students.length}
+                                />
 
-                        {selectedStudents.length > 0 && (
-                            <div className='flex justify-center'>
-                                <Button
-                                    onClick={handleCreateUsername}
-                                    disabled={isCreating}
-                                    className='w-48 shadow-lg transition-all hover:scale-105'>
-                                    {isCreating ? (
-                                        <>
-                                            <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Creating...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <KeyRound className='mr-2 h-4 w-4' /> Create Usernames
-                                        </>
-                                    )}
-                                </Button>
+                                {selectedStudents.length > 0 && (
+                                    <div className='flex justify-center'>
+                                        <Button
+                                            onClick={handleCreateUsername}
+                                            disabled={isCreating}
+                                            className='w-48 shadow-lg transition-all hover:scale-105'>
+                                            {isCreating ? (
+                                                <>
+                                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Creating...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <KeyRound className='mr-2 h-4 w-4' /> Create Usernames
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        ) : (
+                            <div className='flex h-32 flex-col items-center justify-center space-y-2 rounded-md border border-dashed text-center'>
+                                <p className='font-medium text-lg text-muted-foreground'>No records found</p>
+                                <p className='text-muted-foreground text-sm'>Try adjusting your search filters.</p>
                             </div>
                         )}
                     </div>

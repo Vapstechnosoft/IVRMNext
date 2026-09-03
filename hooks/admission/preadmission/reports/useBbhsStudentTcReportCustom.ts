@@ -1,10 +1,10 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { 
-    getBbhsStudentTcInitialData, 
-    getBbhsStudentTcStudentList, 
+import {
+    getBbhsStudentTcACS,
     getBbhsStudentTcDetails,
-    getBbhsStudentTcACS
+    getBbhsStudentTcInitialData,
+    getBbhsStudentTcStudentList
 } from '@/server/admission/preadmission/reports/bbhs_student_tc_report_custom';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useBbhsStudentTcInitialData = () => {
     return useQuery({

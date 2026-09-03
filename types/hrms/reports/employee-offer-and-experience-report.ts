@@ -48,4 +48,3 @@ export interface EmployeeOfferAndExperienceReportSearchResponse {
     roleId: number;
     employeedropdown: EmployeeDropdown[] | null;
 }
-

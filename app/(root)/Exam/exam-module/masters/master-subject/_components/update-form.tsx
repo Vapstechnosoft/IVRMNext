@@ -131,15 +131,33 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 {/* Text Fields */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
-                    <InputText label='Subject Name' required {...register('ismS_SubjectName')} error={errors.ismS_SubjectName?.message} />
+                    <InputText
+                        label='Subject Name'
+                        required
+                        placeholder='Enter Subject Name'
+                        {...register('ismS_SubjectName')}
+                        error={errors.ismS_SubjectName?.message}
+                    />
                     <InputText
                         label='IVRS Name'
                         required
+                        placeholder='Enter IVRS Name'
                         {...register('ismS_IVRSSubjectName')}
                         error={errors.ismS_IVRSSubjectName?.message}
                     />
-                    <InputText label='Subject Code' required {...register('ismS_SubjectCode')} error={errors.ismS_SubjectCode?.message} />
-                    <InputText label='New Subject Name' {...register('ismS_SubjectNameNew')} error={errors.ismS_SubjectNameNew?.message} />
+                    <InputText
+                        label='Subject Code'
+                        required
+                        placeholder='Enter Subject Code'
+                        {...register('ismS_SubjectCode')}
+                        error={errors.ismS_SubjectCode?.message}
+                    />
+                    <InputText
+                        label='New Subject Name'
+                        placeholder='Enter New Subject Name'
+                        {...register('ismS_SubjectNameNew')}
+                        error={errors.ismS_SubjectNameNew?.message}
+                    />
                 </div>
                 {/* Flags */}
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>

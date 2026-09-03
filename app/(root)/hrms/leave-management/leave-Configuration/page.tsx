@@ -43,8 +43,7 @@ export default function LeaveConfigurationPage() {
         <div className='min-h-screen bg-gradient-to-br from-background to-muted/20'>
             <div className='container mx-auto space-y-6 p-6'>
                 <div className='flex items-center justify-between'>
-                    <div>
-                    </div>
+                    <div></div>
                 </div>
 
                 <Card className='shadow-lg'>
@@ -53,7 +52,12 @@ export default function LeaveConfigurationPage() {
                         <CardDescription>Manage late-in, early-out, and cumulative time settings</CardDescription>
                     </CardHeader>
                     <CardContent className='pt-6'>
-                        <LeaveConfigurationForm initialData={configData?.data || null} onSubmit={handleSubmit} onCancel={handleCancel} isPending={isPending} />
+                        <LeaveConfigurationForm
+                            initialData={configData?.data || null}
+                            onSubmit={handleSubmit}
+                            onCancel={handleCancel}
+                            isPending={isPending}
+                        />
                     </CardContent>
                 </Card>
             </div>

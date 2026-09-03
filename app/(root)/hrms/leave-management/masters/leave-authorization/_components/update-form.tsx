@@ -32,7 +32,7 @@ export default function UpdateLeaveAuthorizationForm({
     const { mutate: updateLeaveAuthorization, isPending } = useUpdateLeaveAuthorization();
     const { data: dropdownData, isLoading: isLoadingDropdowns } = useLeaveAuthorizationDropdowns();
     const { data: institutionsData, isLoading: isLoadingInstitutions } = useInstitutionsByLoginBased();
-
+    console.log('edit row', row);
     // Extract institution options from API
     const institutionOptions = useMemo(() => {
         if (!institutionsData?.data || !Array.isArray(institutionsData.data)) {
@@ -114,8 +114,13 @@ export default function UpdateLeaveAuthorizationForm({
         const dataToUse = editData.data;
         console.log('🔄 [UpdateForm] API Data received:', dataToUse);
 
-        const instId = (dataToUse as any).mI_Id || (dataToUse as any).MI_Id || (dataToUse as any).miId || (dataToUse as any).mi_id || (dataToUse as any).MI_id;
-        const fallbackInst = institutionOptions.find(opt => opt.label === 'Vidya Vikasa Vidya Samsthe (R)')?.value || '';
+        const instId =
+            (dataToUse as any).mI_Id ||
+            (dataToUse as any).MI_Id ||
+            (dataToUse as any).miId ||
+            (dataToUse as any).mi_id ||
+            (dataToUse as any).MI_id;
+        const fallbackInst = institutionOptions.find((opt) => opt.label === 'Vidya Vikasa Vidya Samsthe (R)')?.value || '';
 
         // Map values to strings for form state
         const formValues = {
@@ -124,19 +129,26 @@ export default function UpdateLeaveAuthorizationForm({
             institution: String(instId || fallbackInst),
             // Normalize all ID fields to strings
             hrmG_GradeName: String((dataToUse as any).hrmG_Id || (dataToUse as any).gradeId || (dataToUse as any).HRMG_Id || ''),
-            hrmgT_EmployeeGroupType: String((dataToUse as any).hrmgT_Id || (dataToUse as any).groupTypeId || (dataToUse as any).HRMGT_Id || ''),
+            hrmgT_EmployeeGroupType: String(
+                (dataToUse as any).hrmgT_Id || (dataToUse as any).groupTypeId || (dataToUse as any).HRMGT_Id || ''
+            ),
             hrmD_DepartmentName: String((dataToUse as any).hrmD_Id || (dataToUse as any).departmentId || (dataToUse as any).HRMD_Id || ''),
-            hrmdeS_DesignationName: String((dataToUse as any).hrmdeS_Id || (dataToUse as any).designationId || (dataToUse as any).HRMDES_Id || ''),
+            hrmdeS_DesignationName: String(
+                (dataToUse as any).hrmdeS_Id || (dataToUse as any).designationId || (dataToUse as any).HRMDES_Id || ''
+            ),
             hrmL_LeaveName: String((dataToUse as any).hrmL_Id || (dataToUse as any).leaveTypeId || (dataToUse as any).HRML_Id || ''),
-            hrlaoN_SanctionLevelNo: String(dataToUse.hrlaoN_SanctionLevelNo || (dataToUse as any).orderOfApproval || (dataToUse as any).HRLAON_SanctionLevelNo || ''),
-            hrmE_EmployeeFirstName: String((dataToUse as any).approvalPersonId || (dataToUse as any).hrmE_Id || (dataToUse as any).HRME_Id || ''),
-            finalFlag: !!dataToUse.finalFlag
+            hrlaoN_SanctionLevelNo: String(
+                dataToUse.hrlaoN_SanctionLevelNo || (dataToUse as any).orderOfApproval || (dataToUse as any).HRLAON_SanctionLevelNo || ''
+            ),
+            hrmE_EmployeeFirstName: String(
+                (dataToUse as any).approvalPersonId || (dataToUse as any).hrmE_Id || (dataToUse as any).HRME_Id || ''
+            ),
+            finalFlag: dataToUse.hrlaoN_FinalFlg
         };
-
-        console.log('🚀 [UpdateForm] Resetting form with:', formValues);
         reset(formValues);
     }, [editData, reset, institutionOptions]);
     const onSubmit: SubmitHandler<LeaveAuthorization> = async (data) => {
+        console.log('update', data);
         updateLeaveAuthorization(
             {
                 ...data,
@@ -161,7 +173,7 @@ export default function UpdateLeaveAuthorizationForm({
             <div className={`${className} flex items-center justify-center p-8`}>
                 <div className='flex flex-col items-center gap-2'>
                     <Loader2 className='h-8 w-8 animate-spin text-primary' />
-                    <p className='text-muted-foreground animate-pulse font-medium'>Fetching data...</p>
+                    <p className='animate-pulse font-medium text-muted-foreground'>Fetching data...</p>
                 </div>
             </div>
         );
@@ -184,7 +196,7 @@ export default function UpdateLeaveAuthorizationForm({
     }
     return (
         <div className={`${className}`}>
-            <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 animate-in fade-in slide-in-from-top-4 duration-500'>
+            <form onSubmit={handleSubmit(onSubmit)} className='fade-in slide-in-from-top-4 animate-in space-y-6 duration-500'>
                 {/* Institution Field */}
                 <div className='mb-4'>
                     <Controller
@@ -202,9 +214,7 @@ export default function UpdateLeaveAuthorizationForm({
                                         field.onChange(value || '');
                                     }}
                                     value={field.value?.toString() || undefined}>
-                                    <SelectTrigger
-                                        id='update-institution-select'
-                                        className={errors.institution ? 'border-red-500' : ''}>
+                                    <SelectTrigger id='update-institution-select' className={errors.institution ? 'border-red-500' : ''}>
                                         <SelectValue placeholder='--Select Institution--' />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -245,9 +255,7 @@ export default function UpdateLeaveAuthorizationForm({
                                             field.onChange(value || '');
                                         }}
                                         value={field.value?.toString() || undefined}>
-                                        <SelectTrigger
-                                            id='update-grade-select'
-                                            className={errors.hrmG_GradeName ? 'border-red-500' : ''}>
+                                        <SelectTrigger id='update-grade-select' className={errors.hrmG_GradeName ? 'border-red-500' : ''}>
                                             <SelectValue placeholder={isLoadingDropdowns ? 'Loading...' : '--Select--'} />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -440,9 +448,7 @@ export default function UpdateLeaveAuthorizationForm({
                             rules={LEAVE_AUTHORIZATION_VALIDATION.hrmE_EmployeeFirstName}
                             render={({ field }) => (
                                 <div>
-                                    <label
-                                        htmlFor='update-approval-person-select'
-                                        className='mb-2 block font-medium text-gray-700 text-sm'>
+                                    <label htmlFor='update-approval-person-select' className='mb-2 block font-medium text-gray-700 text-sm'>
                                         Approval Person <span className='text-red-500'>*</span>
                                     </label>
                                     <Select

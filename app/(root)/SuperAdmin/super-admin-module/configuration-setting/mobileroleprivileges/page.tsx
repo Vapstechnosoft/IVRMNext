@@ -11,6 +11,8 @@ import {
     AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/ui/layout/page-header';
+import { SectionCard } from '@/components/ui/layout/section-card';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import {
     deletePrivilege,
@@ -35,8 +37,6 @@ import { MasterPagesGlobalGrid } from './_components/master-pages-global-grid';
 import { MasterPagesGrid } from './_components/master-pages-grid';
 import { MobileRolePrivilegeListGrid } from './_components/mobile-role-privilege-list-grid';
 import { PrivilegesGrid } from './_components/privileges-grid';
-import { PageHeader } from '@/components/ui/layout/page-header';
-import { SectionCard } from '@/components/ui/layout/section-card';
 import { MobileRolePrivilegesSelectionForm } from './_components/selection-form';
 
 export default function MobileRolePrivilegesPage() {
@@ -294,9 +294,9 @@ export default function MobileRolePrivilegesPage() {
     return (
         <div className='container mx-auto space-y-10 p-6'>
             <PageHeader
-                title="Mobile Role Privileges"
-                highlightWord="Privileges"
-                description="Securely map institution roles to mobile application pages and define granular access levels."
+                title='Mobile Role Privileges'
+                highlightWord='Privileges'
+                description='Securely map institution roles to mobile application pages and define granular access levels.'
             />
 
             <div className='w-full'>
@@ -326,7 +326,7 @@ export default function MobileRolePrivilegesPage() {
             )}
 
             {cartPrivileges.length > 0 && (
-                <SectionCard className="space-y-6">
+                <SectionCard className='space-y-6'>
                     <PrivilegesGrid
                         title='Selected Master Pages'
                         data={cartPrivileges}
@@ -367,7 +367,7 @@ export default function MobileRolePrivilegesPage() {
                 </SectionCard>
             )}
 
-            <SectionCard delay={1000} className="pt-10">
+            <SectionCard delay={1000} className='pt-10'>
                 <MobileRolePrivilegeListGrid
                     data={gridRecords}
                     totalCount={totalRecords}

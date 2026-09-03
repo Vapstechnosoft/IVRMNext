@@ -8,14 +8,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCLGTransactionCountReportInitialData } from '@/hooks/library/reports/useCLGTransactionCountReport';
 import type { ICLGTransactionCountReportRequest } from '@/types/library/reports/clg-transaction-count-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search, X, Printer, FileSpreadsheet } from 'lucide-react';
-import { Controller, useForm } from 'react-hook-form';
 import { format } from 'date-fns';
+import { FileSpreadsheet, Loader2, Printer, Search, X } from 'lucide-react';
+import { Controller, useForm } from 'react-hook-form';
 import * as z from 'zod';
 
 const formSchema = z.object({
-    lmaL_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Library Name is required')),
-    asmaY_Id: z.preprocess((val) => Number(val), z.number().min(1, 'Academic Year is required')),
+    lmaL_Id: z.coerce
+        .number({
+            required_error: 'Select Library',
+            invalid_type_error: 'Select Library'
+        })
+        .min(1, 'Select Library'),
+    asmaY_Id: z.coerce
+        .number({
+            required_error: 'Select Academic Year',
+            invalid_type_error: 'Select Academic Year'
+        })
+        .min(1, 'Select Academic Year'),
     statuscount: z.boolean().default(false),
     issue_Date: z.date({ required_error: 'From Date is required' }),
     issueToDate: z.date({ required_error: 'To Date is required' }),
@@ -56,12 +66,12 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-5xl space-y-6 p-8 bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400'>
-            
+        <form
+            onSubmit={handleSubmit(onSubmit)}
+            className='mx-auto max-w-5xl space-y-6 rounded-lg border border-t-4 border-t-orange-400 bg-white p-8 shadow-sm'>
             {/* Main Selection Row */}
             <div className='flex justify-center'>
                 <div className='w-full max-w-2xl space-y-4'>
-                    
                     {/* Library Name */}
                     <div className='flex items-center gap-4'>
                         <Label className='min-w-[150px] text-right font-medium text-sm'>
@@ -87,7 +97,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
                                     </Select>
                                 )}
                             />
-                            {errors.lmaL_Id && <p className='text-xs text-destructive mt-1'>{errors.lmaL_Id.message}</p>}
+                            {errors.lmaL_Id && <p className='mt-1 text-destructive text-xs'>{errors.lmaL_Id.message}</p>}
                         </div>
                     </div>
 
@@ -116,26 +126,22 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
                                     </Select>
                                 )}
                             />
-                            {errors.asmaY_Id && <p className='text-xs text-destructive mt-1'>{errors.asmaY_Id.message}</p>}
+                            {errors.asmaY_Id && <p className='mt-1 text-destructive text-xs'>{errors.asmaY_Id.message}</p>}
                         </div>
                     </div>
 
                     {/* Status Count Checkbox */}
                     <div className='flex items-center gap-4'>
                         <div className='min-w-[150px]'></div>
-                        <div className='flex-1 flex items-center space-x-2 pt-1'>
+                        <div className='flex flex-1 items-center space-x-2 pt-1'>
                             <Controller
                                 control={control}
                                 name='statuscount'
                                 render={({ field }) => (
-                                    <Checkbox 
-                                        checked={field.value} 
-                                        onCheckedChange={field.onChange}
-                                        id='status-count-checkbox'
-                                    />
+                                    <Checkbox checked={field.value} onCheckedChange={field.onChange} id='status-count-checkbox' />
                                 )}
                             />
-                            <Label htmlFor='status-count-checkbox' className='font-normal cursor-pointer'>
+                            <Label htmlFor='status-count-checkbox' className='cursor-pointer font-normal'>
                                 Status Count
                             </Label>
                         </div>
@@ -144,12 +150,12 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
             </div>
 
             {/* Date Selection Section */}
-            <div className='w-full max-w-4xl mx-auto mt-8'>
-                <Label className='font-semibold text-[#4251b1] block mb-4 uppercase text-xs tracking-wider'>Issue Date Between :-</Label>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
+            <div className='mx-auto mt-8 w-full max-w-4xl'>
+                <Label className='mb-4 block font-semibold text-[#4251b1] text-xs uppercase tracking-wider'>Issue Date Between :-</Label>
+                <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                     {/* From Date */}
                     <div className='flex items-center gap-4'>
-                        <Label className='min-w-[100px] text-right text-sm font-medium'>
+                        <Label className='min-w-[100px] text-right font-medium text-sm'>
                             From Date <span className='text-red-500'>*</span>
                         </Label>
                         <div className='flex-1'>
@@ -165,13 +171,13 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
                                     />
                                 )}
                             />
-                            {errors.issue_Date && <p className='text-xs text-destructive mt-1'>{errors.issue_Date.message}</p>}
+                            {errors.issue_Date && <p className='mt-1 text-destructive text-xs'>{errors.issue_Date.message}</p>}
                         </div>
                     </div>
 
                     {/* To Date */}
                     <div className='flex items-center gap-4'>
-                        <Label className='min-w-[100px] text-right text-sm font-medium'>
+                        <Label className='min-w-[100px] text-right font-medium text-sm'>
                             To Date <span className='text-red-500'>*</span>
                         </Label>
                         <div className='flex-1'>
@@ -187,7 +193,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
                                     />
                                 )}
                             />
-                            {errors.issueToDate && <p className='text-xs text-destructive mt-1'>{errors.issueToDate.message}</p>}
+                            {errors.issueToDate && <p className='mt-1 text-destructive text-xs'>{errors.issueToDate.message}</p>}
                         </div>
                     </div>
                 </div>
@@ -199,40 +205,36 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
             <div className='flex items-center justify-center gap-4'>
                 <Button
                     type='submit'
-                    className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'
-                    disabled={isLoading}
-                >
+                    className='h-8 w-auto min-w-[120px] rounded-sm bg-[#4251b1] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#35418e]'
+                    disabled={isLoading}>
                     {isLoading ? <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <Search className='mr-1.5 h-3.5 w-3.5' />}
                     REPORT
                 </Button>
                 <Button
                     type='button'
-                    className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#ff5a30] hover:bg-[#e64d26] text-white shadow-sm rounded-sm'
+                    className='h-8 w-auto min-w-[120px] rounded-sm bg-[#ff5a30] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#e64d26]'
                     onClick={() => {
                         reset();
                         onCancel?.();
                     }}
-                    disabled={isLoading}
-                >
+                    disabled={isLoading}>
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>
 
                 {hasData && (
                     <>
-                        <Button 
-                            type='button' 
+                        <Button
+                            type='button'
                             onClick={onPrint}
-                            className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'
-                        >
+                            className='h-8 w-auto min-w-[120px] rounded-sm bg-[#4251b1] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#35418e]'>
                             <Printer className='mr-1.5 h-3.5 w-3.5' />
                             PRINT
                         </Button>
-                        <Button 
-                            type='button' 
+                        <Button
+                            type='button'
                             onClick={onExport}
-                            className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'
-                        >
+                            className='h-8 w-auto min-w-[120px] rounded-sm bg-[#4251b1] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#35418e]'>
                             <FileSpreadsheet className='mr-1.5 h-3.5 w-3.5' />
                             EXCEL
                         </Button>

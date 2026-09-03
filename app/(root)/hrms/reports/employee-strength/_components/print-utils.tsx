@@ -8,13 +8,7 @@ export const printEmployeeStrengthReport = (data: any, departmentwise: boolean, 
     const printContainer = document.createElement('div');
     const root = createRoot(printContainer);
 
-    root.render(
-        <EmployeeStrengthReportTemplate 
-            data={ data } 
-            departmentwise = { departmentwise } 
-            leftEmployee = { leftEmployee }
-        />
-    );
+    root.render(<EmployeeStrengthReportTemplate data={data} departmentwise={departmentwise} leftEmployee={leftEmployee} />);
 
     // Wait for render to complete (React 18 root.render is async in a sense, but simple components usually render immediately)
     // Using a small timeout to ensure styles and content are ready

@@ -1,7 +1,6 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { auth } from '@/lib/auth';
 
 const baseUrl = 'lessonplanner';
 

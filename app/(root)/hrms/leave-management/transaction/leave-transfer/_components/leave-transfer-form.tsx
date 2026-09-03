@@ -4,11 +4,16 @@ import { FormError } from '@/components/ui/extension/field';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLeaveCreditAndBalanceGrid, useLeaveAdditionStatusTab, useLeaveCarryForwardStatusTab, useUpdateLeaveStatusTab } from '@/hooks/hrms/leave-management/useTransactions';
+import {
+    useLeaveAdditionStatusTab,
+    useLeaveCarryForwardStatusTab,
+    useLeaveCreditAndBalanceGrid,
+    useUpdateLeaveStatusTab
+} from '@/hooks/hrms/leave-management/useTransactions';
 import { Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { toast } from 'sonner';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 export interface LeaveTransferFormData {
     type: string[];
     department: string[];
@@ -112,7 +117,7 @@ export function LeaveTransferForm({
     const filteredGridData = useMemo(() => {
         if (!employees || !Array.isArray(employees)) return [];
 
-        let data = employees.map(emp => {
+        let data = employees.map((emp) => {
             const hrmE_Id = emp.HRME_Id || emp.hrmE_Id || emp.id || emp.key;
             const firstName = emp.HRME_EmployeeFirstName || emp.hrmE_EmployeeFirstName || '';
             const middleName = emp.HRME_EmployeeMiddleName || emp.hrmE_EmployeeMiddleName || '';
@@ -121,9 +126,8 @@ export function LeaveTransferForm({
 
             // Find balance for this employee in the balance grid
             // We also need to match the selected leave name if possible
-            const balanceRecord = gridResponse?.data?.find(b =>
-                b.hrmE_Id === hrmE_Id &&
-                (!selectedLeaveName || String(b.hrmL_Id) === selectedLeaveName)
+            const balanceRecord = gridResponse?.data?.find(
+                (b) => b.hrmE_Id === hrmE_Id && (!selectedLeaveName || String(b.hrmL_Id) === selectedLeaveName)
             );
 
             return {
@@ -140,9 +144,7 @@ export function LeaveTransferForm({
         // Name Search Filter
         if (searchTerm.trim()) {
             const lowerSearch = searchTerm.toLowerCase();
-            data = data.filter(item =>
-                item.hrmE_EmployeeName?.toLowerCase().includes(lowerSearch)
-            );
+            data = data.filter((item) => item.hrmE_EmployeeName?.toLowerCase().includes(lowerSearch));
         }
 
         return data;
@@ -168,15 +170,15 @@ export function LeaveTransferForm({
 
     const handleSelectAll = (checked: boolean) => {
         if (checked) {
-            setSelectedRows(new Set(filteredGridData.map(item => item.hrmE_Id)));
+            setSelectedRows(new Set(filteredGridData.map((item) => item.hrmE_Id)));
         } else {
             setSelectedRows(new Set());
         }
     };
 
     const handleCreditChange = (id: number, val: string) => {
-        const num = parseFloat(val);
-        setNewCredits(prev => ({
+        const num = Number.parseFloat(val);
+        setNewCredits((prev) => ({
             ...prev,
             [id]: isNaN(num) ? 0 : num
         }));
@@ -184,7 +186,7 @@ export function LeaveTransferForm({
 
     const onSubmitForm: SubmitHandler<LeaveTransferFormData> = (data) => {
         // Collect selected employees
-        const employeesToProcess = filteredGridData.filter(item => selectedRows.has(item.hrmE_Id));
+        const employeesToProcess = filteredGridData.filter((item) => selectedRows.has(item.hrmE_Id));
 
         if (employeesToProcess.length === 0) {
             toast.error('Please select at least one employee');
@@ -193,12 +195,12 @@ export function LeaveTransferForm({
 
         if (activeTab === 'Leave Updation') {
             const payload = {
-                HRME_SubstituteFlag: "",
+                HRME_SubstituteFlag: '',
                 HRELAP_Id: 0,
                 HRML_Id: Number(data.leaveName),
                 HRMLY_Id: Number(data.leaveYear),
                 monthid: 0,
-                emplist: employeesToProcess.map(emp => ({
+                emplist: employeesToProcess.map((emp) => ({
                     HRME_Id: emp.hrmE_Id,
                     HRELS_CreditedLeaves: newCredits[emp.hrmE_Id] ?? 0 // Default or existing?
                 }))
@@ -212,7 +214,7 @@ export function LeaveTransferForm({
             const payload = {
                 HRML_Id: Number(data.leaveName),
                 HRMLY_Id: Number(data.leaveYear),
-                employees: employeesToProcess.map(emp => ({
+                employees: employeesToProcess.map((emp) => ({
                     HRME_Id: emp.hrmE_Id,
                     HRELS_CreditedLeaves: newCredits[emp.hrmE_Id] ?? 0
                 }))
@@ -224,7 +226,7 @@ export function LeaveTransferForm({
             });
         } else if (activeTab === 'Leave CarryForward') {
             const payload = {
-                employees: employeesToProcess.map(emp => ({
+                employees: employeesToProcess.map((emp) => ({
                     hrmE_Id: emp.hrmE_Id,
                     hrelS_CreditedLeaves: newCredits[emp.hrmE_Id] ?? 0
                 }))
@@ -252,7 +254,7 @@ export function LeaveTransferForm({
                                 onValueChange={(values) => {
                                     field.onChange(values);
                                     // Convert to numbers for the filter callback
-                                    const numValues = values.map(v => Number(v));
+                                    const numValues = values.map((v) => Number(v));
                                     onFilterChange('types', numValues);
                                     // Clear dependents
                                     setValue('department', []);
@@ -278,7 +280,7 @@ export function LeaveTransferForm({
                                 options={departments.map((d) => ({ label: d.name, value: String(d.id) }))}
                                 onValueChange={(values) => {
                                     field.onChange(values);
-                                    const numValues = values.map(v => Number(v));
+                                    const numValues = values.map((v) => Number(v));
                                     onFilterChange('departments', numValues);
                                     setValue('designation', []);
                                 }}
@@ -302,7 +304,7 @@ export function LeaveTransferForm({
                                 options={designations.map((d) => ({ label: d.name, value: String(d.id) }))}
                                 onValueChange={(values) => {
                                     field.onChange(values);
-                                    const numValues = values.map(v => Number(v));
+                                    const numValues = values.map((v) => Number(v));
                                     onFilterChange('designations', numValues);
                                 }}
                                 defaultValue={field.value || []}
@@ -315,7 +317,6 @@ export function LeaveTransferForm({
                     />
                 </div>
             </div>
-
 
             {/* Leave Year and Leave Name */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
@@ -372,11 +373,11 @@ export function LeaveTransferForm({
             </div>
 
             {/* Employee Grid - Visible only after filters are selected */}
-            {(selectedTypes.length > 0 && selectedDepartments.length > 0 && selectedDesignations.length > 0) ? (
-                <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500 max-w-4xl mx-auto">
-                    <div className="flex items-center justify-between px-1">
-                        <h3 className="text-sm font-bold text-primary uppercase tracking-wider">Employee List</h3>
-                        <div className="relative w-full max-w-xs">
+            {selectedTypes.length > 0 && selectedDepartments.length > 0 && selectedDesignations.length > 0 ? (
+                <div className='fade-in slide-in-from-top-4 mx-auto max-w-4xl animate-in space-y-4 duration-500'>
+                    <div className='flex items-center justify-between px-1'>
+                        <h3 className='font-bold text-primary text-sm uppercase tracking-wider'>Employee List</h3>
+                        <div className='relative w-full max-w-xs'>
                             <input
                                 type='text'
                                 placeholder='🔍 Search by name...'
@@ -390,61 +391,63 @@ export function LeaveTransferForm({
                         </div>
                     </div>
 
-                    <div className="overflow-hidden rounded-xl border border-gray-200 shadow-sm transition-shadow hover:shadow-md">
-                        <table className="w-full text-sm">
+                    <div className='overflow-hidden rounded-xl border border-gray-200 shadow-sm transition-shadow hover:shadow-md'>
+                        <table className='w-full text-sm'>
                             <thead>
-                                <tr className="bg-gradient-to-r from-purple-600 to-indigo-700 text-white">
-                                    <th className="p-3 text-left w-12">
-                                        <div className="flex items-center justify-center">
+                                <tr className='bg-gradient-to-r from-purple-600 to-indigo-700 text-white'>
+                                    <th className='w-12 p-3 text-left'>
+                                        <div className='flex items-center justify-center'>
                                             <input
-                                                type="checkbox"
-                                                className="h-4 w-4 rounded border-white/30 bg-transparent text-white focus:ring-offset-0 focus:ring-0 checked:bg-white checked:text-blue-600 cursor-pointer"
+                                                type='checkbox'
+                                                className='h-4 w-4 cursor-pointer rounded border-white/30 bg-transparent text-white checked:bg-white checked:text-blue-600 focus:ring-0 focus:ring-offset-0'
                                                 onChange={(e) => handleSelectAll(e.target.checked)}
                                                 checked={filteredGridData.length > 0 && selectedRows.size === filteredGridData.length}
                                             />
                                         </div>
                                     </th>
-                                    <th className="p-3 text-left font-semibold uppercase tracking-tight text-[11px]">Employee Name</th>
-                                    <th className="p-3 text-right font-semibold uppercase tracking-tight text-[11px] w-32">New Credit</th>
+                                    <th className='p-3 text-left font-semibold text-[11px] uppercase tracking-tight'>Employee Name</th>
+                                    <th className='w-32 p-3 text-right font-semibold text-[11px] uppercase tracking-tight'>New Credit</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 bg-white">
+                            <tbody className='divide-y divide-gray-100 bg-white'>
                                 {isLoadingGrid ? (
                                     <tr>
-                                        <td colSpan={3} className="p-8 text-center">
-                                            <div className="flex flex-col items-center gap-2">
-                                                <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                                                <span className="text-muted-foreground text-xs font-medium">Loading participants...</span>
+                                        <td colSpan={3} className='p-8 text-center'>
+                                            <div className='flex flex-col items-center gap-2'>
+                                                <div className='h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent' />
+                                                <span className='font-medium text-muted-foreground text-xs'>Loading participants...</span>
                                             </div>
                                         </td>
                                     </tr>
                                 ) : paginatedData.length === 0 ? (
                                     <tr>
-                                        <td colSpan={3} className="p-8 text-center text-muted-foreground italic text-xs">
+                                        <td colSpan={3} className='p-8 text-center text-muted-foreground text-xs italic'>
                                             No employees found for the current selection
                                         </td>
                                     </tr>
                                 ) : (
                                     paginatedData.map((item, idx) => (
-                                        <tr key={item.hrmE_Id} className={`transition-colors hover:bg-purple-50/30 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                                            <td className="p-3 text-center">
+                                        <tr
+                                            key={item.hrmE_Id}
+                                            className={`transition-colors hover:bg-purple-50/30 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
+                                            <td className='p-3 text-center'>
                                                 <input
-                                                    type="checkbox"
-                                                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary/20 cursor-pointer transition-all"
+                                                    type='checkbox'
+                                                    className='h-4 w-4 cursor-pointer rounded border-gray-300 text-primary transition-all focus:ring-primary/20'
                                                     checked={selectedRows.has(item.hrmE_Id)}
                                                     onChange={() => handleToggleRow(item.hrmE_Id)}
                                                 />
                                             </td>
-                                            <td className="p-3 font-medium text-gray-700">{item.hrmE_EmployeeName}</td>
+                                            <td className='p-3 font-medium text-gray-700'>{item.hrmE_EmployeeName}</td>
 
-                                            <td className="p-3 text-right">
-                                                <div className="flex justify-end">
+                                            <td className='p-3 text-right'>
+                                                <div className='flex justify-end'>
                                                     <input
-                                                        type="number"
-                                                        className="w-20 rounded-lg border border-gray-200 bg-gray-50/50 px-2 py-1.5 text-right font-bold transition-all focus:border-primary/50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/5 shadow-inner"
+                                                        type='number'
+                                                        className='w-20 rounded-lg border border-gray-200 bg-gray-50/50 px-2 py-1.5 text-right font-bold shadow-inner transition-all focus:border-primary/50 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/5'
                                                         value={newCredits[item.hrmE_Id] ?? ''}
                                                         onChange={(e) => handleCreditChange(item.hrmE_Id, e.target.value)}
-                                                        placeholder="0"
+                                                        placeholder='0'
                                                     />
                                                 </div>
                                             </td>
@@ -457,31 +460,30 @@ export function LeaveTransferForm({
 
                     {/* Pagination Controls */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-between rounded-xl bg-gray-50/50 p-2 border border-gray-100">
-                            <div className="text-[11px] font-semibold text-gray-500 px-2 uppercase tracking-wide">
-                                Page <span className="text-gray-900">{currentPage}</span> of <span className="text-gray-900">{totalPages}</span>
-                                <span className="mx-2 text-gray-300">|</span>
-                                Showing <span className="text-gray-900">{filteredGridData.length}</span> Total
+                        <div className='flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50/50 p-2'>
+                            <div className='px-2 font-semibold text-[11px] text-gray-500 uppercase tracking-wide'>
+                                Page <span className='text-gray-900'>{currentPage}</span> of{' '}
+                                <span className='text-gray-900'>{totalPages}</span>
+                                <span className='mx-2 text-gray-300'>|</span>
+                                Showing <span className='text-gray-900'>{filteredGridData.length}</span> Total
                             </div>
-                            <div className="flex gap-1.5">
+                            <div className='flex gap-1.5'>
                                 <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 rounded-lg border bg-white hover:bg-gray-100 transition-all font-bold text-xs"
-                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                    disabled={currentPage === 1}
-                                >
+                                    type='button'
+                                    variant='ghost'
+                                    size='sm'
+                                    className='h-8 rounded-lg border bg-white font-bold text-xs transition-all hover:bg-gray-100'
+                                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}>
                                     PREV
                                 </Button>
                                 <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 rounded-lg border bg-white hover:bg-gray-100 transition-all font-bold text-xs"
-                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                    disabled={currentPage === totalPages}
-                                >
+                                    type='button'
+                                    variant='ghost'
+                                    size='sm'
+                                    className='h-8 rounded-lg border bg-white font-bold text-xs transition-all hover:bg-gray-100'
+                                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage === totalPages}>
                                     NEXT
                                 </Button>
                             </div>
@@ -489,16 +491,20 @@ export function LeaveTransferForm({
                     )}
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-100 p-12 text-center bg-gray-50/50">
-                    <div className="mb-3 rounded-full bg-purple-50 p-3 text-purple-500">
-                        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                <div className='flex flex-col items-center justify-center rounded-2xl border-2 border-gray-100 border-dashed bg-gray-50/50 p-12 text-center'>
+                    <div className='mb-3 rounded-full bg-purple-50 p-3 text-purple-500'>
+                        <svg className='h-6 w-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                            <path
+                                strokeLinecap='round'
+                                strokeLinejoin='round'
+                                strokeWidth='2'
+                                d='M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z'
+                            />
                         </svg>
                     </div>
-                    <p className="text-sm font-semibold text-gray-400">Please select Type, Department, and Designation to load employees</p>
+                    <p className='font-semibold text-gray-400 text-sm'>Please select Type, Department, and Designation to load employees</p>
                 </div>
             )}
-
 
             {/* Action Buttons */}
             <div className='flex justify-center gap-2 pt-4'>
@@ -514,4 +520,3 @@ export function LeaveTransferForm({
         </form>
     );
 }
-

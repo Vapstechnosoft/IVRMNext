@@ -1,5 +1,5 @@
 'use client';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { FormError } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
@@ -33,8 +33,6 @@ function EmployeeSalaryDetailsContent() {
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
 
-
-
     const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useMasterYears();
 
     const {
@@ -53,20 +51,17 @@ function EmployeeSalaryDetailsContent() {
 
     // API Hooks
     const { data: yearSalaryResponse, isLoading: isYearLoading } = useYearWiseSalaryDetails(selectedYear);
-    const { data: monthSalaryResponse, isLoading: isMonthLoading } = useMonthWiseSalaryDetails(
-        selectedYear,
-        selectedMonth?.month || ''
-    );
+    const { data: monthSalaryResponse, isLoading: isMonthLoading } = useMonthWiseSalaryDetails(selectedYear, selectedMonth?.month || '');
 
     const reportData: MonthlySalaryDetail[] = useMemo(() => {
         return yearSalaryResponse?.success && yearSalaryResponse.data
             ? yearSalaryResponse.data.map((item: any, index: number) => ({
-                id: index + 1,
-                month: item.month,
-                year: selectedYear,
-                netSalary: item.netamount,
-                createdAt: new Date()
-            }))
+                  id: index + 1,
+                  month: item.month,
+                  year: selectedYear,
+                  netSalary: item.netamount,
+                  createdAt: new Date()
+              }))
             : [];
     }, [yearSalaryResponse, selectedYear]);
 
@@ -127,9 +122,9 @@ function EmployeeSalaryDetailsContent() {
                                     name='year'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value} disabled={masterYearsLoading}>
                                             <SelectTrigger className='w-full'>
-                                                <SelectValue placeholder='Select Financial Year' />
+                                                <SelectValue placeholder={masterYearsLoading ? 'Loading...' : 'Select Financial Year'} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {masterYearsLoading ? (
@@ -171,9 +166,6 @@ function EmployeeSalaryDetailsContent() {
                                 isLoading={isYearLoading}
                                 showViewOptions={true}
                                 isSearchRequired={true}
-                                manualPagination={false}
-                                manualSorting={false}
-                                manualFiltering={false}
                                 columnPinning={{ right: ['viewDetails'] }}
                                 loadingMessage='Loading salary details...'
                                 noDataTitle='No Salary Data Found'
@@ -220,4 +212,3 @@ function EmployeeSalaryDetailsContent() {
         </div>
     );
 }
-

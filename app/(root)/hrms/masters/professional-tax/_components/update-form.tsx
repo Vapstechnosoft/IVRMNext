@@ -72,7 +72,7 @@ export default function UpdateProfessionalTaxForm({ onSuccess, className = '', s
 
     const handleReset = () => {
         reset();
-        setResetKey(prev => prev + 1);
+        setResetKey((prev) => prev + 1);
     };
 
     return (
@@ -146,9 +146,7 @@ export default function UpdateProfessionalTaxForm({ onSuccess, className = '', s
                             )}
                         />
                     </div>
-                    {errors.root && (
-                        <FormError>{errors.root.message}</FormError>
-                    )}
+                    {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
 
                 {/* Action Buttons */}
@@ -178,10 +176,10 @@ export default function UpdateProfessionalTaxForm({ onSuccess, className = '', s
                         }}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
-                        loadingText='Saving...'>
+                        loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Professional Tax
+                            Update Professional Tax
                         </div>
                     </Button>
                     {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}

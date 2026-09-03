@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useMasterReligionCasteCategory, useMasterCasteCategoryDropdown } from '@/hooks/admission/preadmission/useMasters';
+import { useMasterCasteCategoryDropdown, useMasterReligionCasteCategory } from '@/hooks/admission/preadmission/useMasters';
 import { useReligionDropdown } from '@/hooks/admission/preadmission/useTransactions';
 import { masterReligionCasteCategorySchema } from '@/schemas/admission/preadmission/masters';
 import { addMasterReligionCasteCategory } from '@/server/admission/preadmission/masters/religion_caste_category';
@@ -153,7 +153,7 @@ export default function AddMasterReligionCasteCategoryForm({ onSuccess, classNam
                                         }}
                                         defaultValue={selectedCasteCategoryItems.map((data) => data.imcC_Id)}
                                         value={selectedCasteCategoryItems.map((data) => data.imcC_Id)}
-                                        placeholder='Select Classes'
+                                        placeholder='Select Caste Category'
                                         variant='inverted'
                                         disabled={unmappedCasteCategoryLoading}
                                     />

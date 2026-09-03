@@ -11,6 +11,8 @@ import { FileText, Loader2, RotateCcw, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { EmployeeSalarySlipDisplay } from './columns';
 import { getSalarySlipColumns } from './columns';
+import { CustomPaginationTable, type CustomTableColumn } from '@/components/ui/view-data-table/custom-pagination-table';
+import { FileText, Loader2, RotateCcw } from 'lucide-react';
 
 export interface SalarySlipFilters {
     groupType: number[];
@@ -53,6 +55,7 @@ interface SalarySlipFiltersProps {
     isLoadingDepartments: boolean;
     isLoadingDesignations: boolean;
     isLoadingYears: boolean;
+    tableResponse?: any;
 }
 
 export function SalarySlipFilters({
@@ -64,6 +67,7 @@ export function SalarySlipFilters({
     years,
     employees: _employees,
     filteredEmployees,
+    tableResponse,
     searchTerm,
     selectedCount,
     isFiltering,
@@ -94,6 +98,23 @@ export function SalarySlipFilters({
         filteredEmployees.length > 0 && !isAllSelected && filteredEmployees.some((emp) => selectedEmployeeIds.has(emp.id));
 
     const columns = getSalarySlipColumns({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected });
+    const handleSelectAllWrapper = (checked: boolean, ids: number[]) => {
+        (onSelectAll as any)(checked, ids);
+    };
+    const columns: CustomTableColumn<EmployeeSalarySlipDisplay>[] = [
+        {
+            header: <div className='text-center font-medium'>SL. No</div>,
+            cell: (_, index, currentPage, itemsPerPage) => (
+                <div className='text-center'>{(currentPage - 1) * itemsPerPage + index + 1}</div>
+            ),
+            className: 'w-20'
+        },
+            header: 'Employee Code',
+            cell: (emp) => <div className='font-medium'>{emp.employeeCode}</div>
+            header: 'Employee Name',
+            cell: (emp) => <div>{emp.employeeName}</div>
+        }
+    ];
 
     return (
         <CollapsibleSection
@@ -180,6 +201,7 @@ export function SalarySlipFilters({
                             </Label>
                             <Select value={filters.month} onValueChange={(value) => onFilterChange({ ...filters, month: value })}>
                                 <SelectTrigger id='month-select'>
+                                <SelectTrigger id='month-select' disabled={isLoadingYears || !years?.length}>
                                     <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select month'} />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -349,6 +371,13 @@ export function SalarySlipFilters({
                             scrollable={true}
                             maxHeight='250px'
                             columnPinning={{ left: ['select', 'id'] }}
+                        <CustomPaginationTable
+                            searchKeys={['employeeName', 'employeeCode']}
+                            idKey='id'
+                            selectedIds={selectedEmployeeIds}
+                            onSelect={onSelectEmployee}
+                            onSelectAll={handleSelectAllWrapper}
+                            searchPlaceholder='Search Name or Code...'
                         />
                     </div>
                 </div>

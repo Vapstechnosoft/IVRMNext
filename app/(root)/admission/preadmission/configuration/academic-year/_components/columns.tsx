@@ -2,8 +2,10 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { getPreAdmissionYearEditData } from '@/server/admission/preadmission/configuration/academic_year_master';
 import type { IMasterAcademicYearMasterList } from '@/types/admission/preadmission/configaration';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 const formatDate = (date: unknown): string => {
     if (typeof date !== 'string') return 'N/A';
@@ -30,7 +32,12 @@ export const masterAcademicYearColumns: ColumnDef<IMasterAcademicYearMasterList>
     {
         accessorKey: 'mI_Name',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Institute Name' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('mI_Name') ?? '-'}</div>,
+        cell: ({ row }) => {
+            const original = row.original as any;
+            return (
+                <div>{row.getValue('mI_Name') || original?.institution_name || original?.Institution_name || original?.mI_Name || '-'}</div>
+            );
+        },
         enableSorting: true,
         enableHiding: true
     },
@@ -80,7 +87,9 @@ export const masterAcademicYearColumns: ColumnDef<IMasterAcademicYearMasterList>
     },
     {
         accessorKey: 'asmaY_Pre_ActiveFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Pre-Admission Flag' className='text-nowrap font-bold text-black' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Pre-Admission Flag' className='text-nowrap font-bold text-black' />
+        ),
         cell: ({ row }) => (
             <div className='text-center'>{getStatusBadge((row.getValue('asmaY_Pre_ActiveFlag') as number) === 1 ? 'yes' : 'no')}</div>
         ),
@@ -104,8 +113,19 @@ function ActionButtonsCell({
     const { openEditForm, openToggleForm } = useFormContext<IMasterAcademicYearMasterList>();
 
     const handleEdit = useCallback(
-        (data: IMasterAcademicYearMasterList) => {
-            openEditForm(data);
+        async (data: IMasterAcademicYearMasterList) => {
+            try {
+                const response = (await getPreAdmissionYearEditData(data.asmaY_Id)) as any;
+                if (response.success && response.data?.geteditdetails?.length > 0) {
+                    openEditForm(response.data.geteditdetails[0]);
+                } else if (response.success === false && response.message) {
+                    toast.error(response.message);
+                } else {
+                    openEditForm(data);
+                }
+            } catch (error: any) {
+                toast.error(typeof error === 'string' ? error : error?.message || 'Failed to fetch details');
+            }
         },
         [openEditForm]
     );

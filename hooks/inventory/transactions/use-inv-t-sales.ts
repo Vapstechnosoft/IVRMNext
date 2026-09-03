@@ -1,22 +1,21 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-    getInvTSalesLoadData,
-    saveInvTSalesDetails,
     deleteInvTSales,
-    toggleInvTSalesActive,
+    getInvTSalesCustomers,
+    getInvTSalesEmployees,
+    getInvTSalesLoadData,
+    getInvTSalesStores,
+    getItemDetail,
+    getItemOnStoreChange,
+    getSaleItemDetails,
+    getSaletypes,
+    getSectionList,
     getStudentClsSec,
     getStudentList,
-    getSectionList,
-    getItemOnStoreChange,
-    getItemDetail,
-    getInvTSalesEmployees,
-    getInvTSalesCustomers,
-    getInvTSalesStores,
-    getInvTSalesItemDetails,
-    getSaleItemDetails,
-    getSaletypes
+    saveInvTSalesDetails,
+    toggleInvTSalesActive
 } from '@/server/inventory/transactions/inv-t-sales';
 import type { ApiSearchparams } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 export const INV_T_SALES_QUERY_KEY = 'INV_T_SALES';
@@ -26,13 +25,13 @@ export function useInvTSales(searchParams?: ApiSearchparams) {
 
     const query = useQuery({
         queryKey: [INV_T_SALES_QUERY_KEY, searchParams],
-        queryFn: () => getInvTSalesLoadData(searchParams),
+        queryFn: () => getInvTSalesLoadData(searchParams)
     });
 
     const saveMutation = useMutation({
         mutationFn: saveInvTSalesDetails,
         onSuccess: (response) => {
-            if (response.success) {
+            if (response.success || response.returnval || (response.message && response.message.toLowerCase().includes('success'))) {
                 toast.success(response.message || 'Record saved successfully');
                 queryClient.invalidateQueries({ queryKey: [INV_T_SALES_QUERY_KEY] });
             } else {
@@ -41,7 +40,7 @@ export function useInvTSales(searchParams?: ApiSearchparams) {
         },
         onError: () => {
             toast.error('An error occurred while saving');
-        },
+        }
     });
 
     const deleteMutation = useMutation({
@@ -53,7 +52,7 @@ export function useInvTSales(searchParams?: ApiSearchparams) {
             } else {
                 toast.error(response.message || 'Failed to delete record');
             }
-        },
+        }
     });
 
     const toggleActiveMutation = useMutation({
@@ -65,7 +64,7 @@ export function useInvTSales(searchParams?: ApiSearchparams) {
             } else {
                 toast.error(response.message || 'Failed to update status');
             }
-        },
+        }
     });
 
     const studentClsSecMutation = useMutation({
@@ -105,7 +104,7 @@ export function useInvTSales(searchParams?: ApiSearchparams) {
     });
 
     const getSaletypesMutation = useMutation({
-        mutationFn: ({ invmsL_Id, saletype }: { invmsL_Id: number, saletype: string }) => getSaletypes(invmsL_Id, saletype)
+        mutationFn: ({ invmsL_Id, saletype }: { invmsL_Id: number; saletype: string }) => getSaletypes(invmsL_Id, saletype)
     });
 
     return {

@@ -41,7 +41,6 @@ export async function getBbkvCustomReportTempPerChange(data: {
     return await api.post<any>('admission', url);
 }
 
-
 export async function getBbkvCustomReportTcDetails(data: {
     ASMAY_Id: number;
     AMST_Id: number;
@@ -50,4 +49,3 @@ export async function getBbkvCustomReportTcDetails(data: {
     const url = `/BBKVCustomReport/getTcdetails?tctemporper=${data.tctemporper}&ASMAY_Id=${data.ASMAY_Id}&AMST_Id=${data.AMST_Id}`;
     return await api.post<any>('admission', url);
 }
-

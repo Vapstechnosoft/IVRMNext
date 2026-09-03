@@ -19,12 +19,18 @@ interface SalarySlipColumnsProps {
     isAllSelected: boolean;
     isSomeSelected: boolean;
 }
-export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee, selectedEmployeeIds, isAllSelected, isSomeSelected }: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
+export const getSalarySlipColumns = ({
+    onSelectAll,
+    onSelectEmployee,
+    selectedEmployeeIds,
+    isAllSelected,
+    isSomeSelected
+}: SalarySlipColumnsProps): ColumnDef<EmployeeSalarySlipDisplay>[] => [
     {
         id: 'select',
         header: ({ table }) => (
             <Checkbox
-                checked={isAllSelected ? true : (isSomeSelected ? 'indeterminate' : false)}
+                checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
                 onCheckedChange={(value) => {
                     onSelectAll(!!value);
                 }}
@@ -65,10 +71,9 @@ export const getSalarySlipColumns = ({ onSelectAll, onSelectEmployee, selectedEm
     },
     {
         accessorKey: 'employeeName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name'  />,
-        cell: ({ row }) => <div >{row.getValue('employeeName')}</div>,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
+        cell: ({ row }) => <div>{row.getValue('employeeName')}</div>,
         enableSorting: true,
-        enableHiding: true,
-        
+        enableHiding: true
     }
 ];

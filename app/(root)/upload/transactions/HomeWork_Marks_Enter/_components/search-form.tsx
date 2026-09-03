@@ -6,13 +6,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { homeWorkMarksSearchSchema, type IHomeWorkMarksSearch } from '@/schemas/upload/transactions/ivrm-homework.schema';
-import { 
-    fetchInitialData, 
-    fetchClasses, 
-    fetchSections, 
-    fetchHomeworkSubjectList, 
-    fetchHomeWorkMarksList 
+import { type IHomeWorkMarksSearch, homeWorkMarksSearchSchema } from '@/schemas/upload/transactions/ivrm-homework.schema';
+import {
+    fetchClasses,
+    fetchHomeWorkMarksList,
+    fetchHomeworkSubjectList,
+    fetchInitialData,
+    fetchSections
 } from '@/server/upload/transactions/ivrm-homework/server-action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -41,7 +41,7 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
             asmaY_Id: 0,
             asmcL_Id: 0,
             asmS_Id: 0,
-            ismS_Id: 0,
+            ismS_Id: 0
         }
     });
 
@@ -78,7 +78,7 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
     // Load Classes when Year changes
     useEffect(() => {
         if (asmaY_Id > 0) {
-            fetchClasses(asmaY_Id, hrme_Id).then(res => {
+            fetchClasses(asmaY_Id, hrme_Id).then((res) => {
                 if (res.success) setClasses(res.data.classlist || []);
             });
             form.setValue('asmcL_Id', 0);
@@ -92,7 +92,7 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
     // Load Sections when Class changes
     useEffect(() => {
         if (asmaY_Id > 0 && asmcL_Id > 0) {
-            fetchSections(asmcL_Id, asmaY_Id).then(res => {
+            fetchSections(asmcL_Id, asmaY_Id).then((res) => {
                 if (res.success) setSections(res.data.sectionlist || []);
             });
             form.setValue('asmS_Id', 0);
@@ -105,7 +105,7 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
     // Load Subjects when Section changes
     useEffect(() => {
         if (asmaY_Id > 0 && asmcL_Id > 0 && asmS_Id > 0) {
-            fetchHomeworkSubjectList(asmaY_Id, asmcL_Id, asmS_Id).then(res => {
+            fetchHomeworkSubjectList(asmaY_Id, asmcL_Id, asmS_Id).then((res) => {
                 if (res.success) setSubjects(res.data.getsubject_list || []);
             });
         } else {
@@ -136,16 +136,18 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+                <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
                     <FormField
                         control={form.control}
                         name='asmaY_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className='text-xs font-black uppercase text-slate-700'>Academic Year <span className='text-red-500'>*</span></FormLabel>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || ""}>
+                                <FormLabel className='font-black text-slate-700 text-xs uppercase'>
+                                    Academic Year <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || ''}>
                                     <FormControl>
-                                        <SelectTrigger className='bg-white font-bold h-9'>
+                                        <SelectTrigger className='h-9 bg-white font-bold'>
                                             <SelectValue placeholder='--Select Year--' />
                                         </SelectTrigger>
                                     </FormControl>
@@ -157,7 +159,7 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage className='text-[10px] font-bold uppercase' />
+                                <FormMessage className='font-bold text-[10px] uppercase' />
                             </FormItem>
                         )}
                     />
@@ -167,10 +169,12 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
                         name='asmcL_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className='text-xs font-black uppercase text-slate-700'>Class <span className='text-red-500'>*</span></FormLabel>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || ""}>
+                                <FormLabel className='font-black text-slate-700 text-xs uppercase'>
+                                    Class <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || ''}>
                                     <FormControl>
-                                        <SelectTrigger className='bg-white font-bold h-9'>
+                                        <SelectTrigger className='h-9 bg-white font-bold'>
                                             <SelectValue placeholder='--Select Class--' />
                                         </SelectTrigger>
                                     </FormControl>
@@ -182,7 +186,7 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage className='text-[10px] font-bold uppercase' />
+                                <FormMessage className='font-bold text-[10px] uppercase' />
                             </FormItem>
                         )}
                     />
@@ -192,10 +196,12 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
                         name='asmS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className='text-xs font-black uppercase text-slate-700'>Section <span className='text-red-500'>*</span></FormLabel>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || ""}>
+                                <FormLabel className='font-black text-slate-700 text-xs uppercase'>
+                                    Section <span className='text-red-500'>*</span>
+                                </FormLabel>
+                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || ''}>
                                     <FormControl>
-                                        <SelectTrigger className='bg-white font-bold h-9'>
+                                        <SelectTrigger className='h-9 bg-white font-bold'>
                                             <SelectValue placeholder='--Select Section--' />
                                         </SelectTrigger>
                                     </FormControl>
@@ -207,7 +213,7 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage className='text-[10px] font-bold uppercase' />
+                                <FormMessage className='font-bold text-[10px] uppercase' />
                             </FormItem>
                         )}
                     />
@@ -217,15 +223,17 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
                         name='ismS_Id'
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className='text-xs font-black uppercase text-slate-700'>Subject</FormLabel>
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || ""}>
+                                <FormLabel className='font-black text-slate-700 text-xs uppercase'>Subject</FormLabel>
+                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString() || ''}>
                                     <FormControl>
-                                        <SelectTrigger className='bg-white font-bold h-9'>
+                                        <SelectTrigger className='h-9 bg-white font-bold'>
                                             <SelectValue placeholder='--Select Subject--' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value='0' className='font-bold italic'>All Subjects</SelectItem>
+                                        <SelectItem value='0' className='font-bold italic'>
+                                            All Subjects
+                                        </SelectItem>
                                         {subjects.map((s) => (
                                             <SelectItem key={s.ismS_Id} value={s.ismS_Id.toString()} className='font-bold'>
                                                 {s.ismS_SubjectName}
@@ -233,19 +241,19 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage className='text-[10px] font-bold uppercase' />
+                                <FormMessage className='font-bold text-[10px] uppercase' />
                             </FormItem>
                         )}
                     />
                 </div>
 
-                <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end'>
+                <div className='grid grid-cols-1 items-end gap-4 md:grid-cols-2 lg:grid-cols-4'>
                     <FormField
                         control={form.control}
                         name='from_date'
                         render={({ field }) => (
                             <FormItem className='flex flex-col'>
-                                <FormLabel className='text-xs font-black uppercase text-slate-700'>From Date</FormLabel>
+                                <FormLabel className='font-black text-slate-700 text-xs uppercase'>From Date</FormLabel>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <FormControl>
@@ -258,15 +266,10 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
                                         </FormControl>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar 
-                                            mode='single' 
-                                            selected={field.value} 
-                                            onSelect={field.onChange} 
-                                            initialFocus 
-                                        />
+                                        <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
                                     </PopoverContent>
                                 </Popover>
-                                <FormMessage className='text-[10px] font-bold uppercase' />
+                                <FormMessage className='font-bold text-[10px] uppercase' />
                             </FormItem>
                         )}
                     />
@@ -276,7 +279,7 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
                         name='to_date'
                         render={({ field }) => (
                             <FormItem className='flex flex-col'>
-                                <FormLabel className='text-xs font-black uppercase text-slate-700'>To Date</FormLabel>
+                                <FormLabel className='font-black text-slate-700 text-xs uppercase'>To Date</FormLabel>
                                 <Popover>
                                     <PopoverTrigger asChild>
                                         <FormControl>
@@ -289,16 +292,16 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
                                         </FormControl>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar 
-                                            mode='single' 
-                                            selected={field.value} 
-                                            onSelect={field.onChange} 
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={field.onChange}
                                             disabled={(date) => date < (form.getValues('from_date') || new Date('1900-01-01'))}
-                                            initialFocus 
+                                            initialFocus
                                         />
                                     </PopoverContent>
                                 </Popover>
-                                <FormMessage className='text-[10px] font-bold uppercase' />
+                                <FormMessage className='font-bold text-[10px] uppercase' />
                             </FormItem>
                         )}
                     />
@@ -307,11 +310,11 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
                         <Button
                             type='submit'
                             disabled={isLoading}
-                            className='bg-blue-600 hover:bg-blue-700 font-black uppercase text-xs h-9 flex-1 shadow-md hover:shadow-lg transition-all'>
+                            className='h-9 flex-1 bg-blue-600 font-black text-xs uppercase shadow-md transition-all hover:bg-blue-700 hover:shadow-lg'>
                             {isLoading ? <RefreshCw className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Get List
                         </Button>
-                        
+
                         <Button
                             type='button'
                             variant='outline'
@@ -319,7 +322,7 @@ export default function SearchForm({ onSearchResults, onVerifiedList, onTopicsLo
                                 form.reset();
                                 onSearchResults([], []);
                             }}
-                            className='font-black uppercase text-xs h-9 flex-1 border-blue-200 text-blue-600 hover:bg-blue-50'>
+                            className='h-9 flex-1 border-blue-200 font-black text-blue-600 text-xs uppercase hover:bg-blue-50'>
                             Cancel
                         </Button>
                     </div>

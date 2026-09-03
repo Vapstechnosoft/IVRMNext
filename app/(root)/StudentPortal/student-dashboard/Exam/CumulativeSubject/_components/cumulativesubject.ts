@@ -2,22 +2,21 @@
 
 import { api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
-import { CumulativeSubjectLoadData, SubjectListResponse, ExamDetailsResponse } from '../types';
+import type { CumulativeSubjectLoadData, ExamDetailsResponse, SubjectListResponse } from '../types';
 
 // Mock data as fallback
 const mockLoadData: CumulativeSubjectLoadData = {
-    stuyearlist: [],
+    stuyearlist: []
 };
 
 const mockSubjectData: SubjectListResponse = {
     subjectlist: [],
-    stuyearlist: [],
+    stuyearlist: []
 };
 
 const mockExamDetails: ExamDetailsResponse = {
-    examgradelist: [],
+    examgradelist: []
 };
-
 
 export async function getCumulativeSubjectLoadData() {
     const url = `/fee_class_category/academicyearlist`;
@@ -26,7 +25,8 @@ export async function getCumulativeSubjectLoadData() {
 
         if (response && response.data) {
             const responseData = response.data;
-            const yearList = responseData?.data?.studentYearList ||
+            const yearList =
+                responseData?.data?.studentYearList ||
                 responseData?.studentYearList ||
                 responseData?.data ||
                 (Array.isArray(responseData) ? responseData : []) ||
@@ -38,28 +38,18 @@ export async function getCumulativeSubjectLoadData() {
         }
         return { stuyearlist: [] };
     } catch (e) {
-        console.warn("API Failed, using mock data for getCumulativeSubjectLoadData", e);
+        console.warn('API Failed, using mock data for getCumulativeSubjectLoadData', e);
         return mockLoadData;
     }
 }
-
-
-
-
-
-
-
-
-
-
 
 export async function getSubjectDataforCumulatiSubject(asmay_Id: number) {
     const session = await auth();
     const amst_Id = (session as any)?.user?.amst_id || (session as any)?.amst_id || 17064;
     const url = `/CumulativeSubject/getSubjectsdata`;
     const payload = {
-        "ASMAY_Id": asmay_Id,
-        "AMST_Id": amst_Id
+        ASMAY_Id: asmay_Id,
+        AMST_Id: amst_Id
     };
 
     try {
@@ -76,7 +66,8 @@ export async function getSubjectDataforCumulatiSubject(asmay_Id: number) {
                 subjects = response.data.subjectlist;
             } else if (response.data.data) {
                 subjects = response.data.data;
-            } else if (Array.isArray(response.data.value)) { // Sometimes APIs return $values or value
+            } else if (Array.isArray(response.data.value)) {
+                // Sometimes APIs return $values or value
                 subjects = response.data.value;
             }
 
@@ -94,9 +85,8 @@ export async function getSubjectDataforCumulatiSubject(asmay_Id: number) {
             subjectlist: [],
             stuyearlist: []
         };
-
     } catch (error) {
-        console.error("Error in getSubjectDataforCumulatiSubject:", error);
+        console.error('Error in getSubjectDataforCumulatiSubject:', error);
         return {
             subjectlist: [],
             stuyearlist: []
@@ -104,33 +94,21 @@ export async function getSubjectDataforCumulatiSubject(asmay_Id: number) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
 export async function getExamDetails(asmaY_Id: number, ismS_Id: number) {
     const session = await auth();
     const amst_Id = (session as any)?.user?.amst_id || (session as any)?.amst_id || 17064;
     const url = `/CumulativeSubject/get_exam_details`;
     const payload = {
-        "ASMAY_Id": asmaY_Id,
-        "ISMS_Id": ismS_Id,
-        "AMST_Id": amst_Id
+        ASMAY_Id: asmaY_Id,
+        ISMS_Id: ismS_Id,
+        AMST_Id: amst_Id
     };
 
-    console.log("getExamDetails payload:", payload);
+    console.log('getExamDetails payload:', payload);
 
     try {
         const response = await api.post<any>('portal', url, payload);
-        console.log("getExamDetails API Response:", JSON.stringify(response, null, 2));
+        console.log('getExamDetails API Response:', JSON.stringify(response, null, 2));
 
         if (response) {
             let exams: any[] = [];
@@ -155,7 +133,7 @@ export async function getExamDetails(asmaY_Id: number, ismS_Id: number) {
                 exams = response;
             }
 
-            console.log("Extracted exams count:", exams.length);
+            console.log('Extracted exams count:', exams.length);
 
             return {
                 examgradelist: exams
@@ -163,7 +141,7 @@ export async function getExamDetails(asmaY_Id: number, ismS_Id: number) {
         }
         return { examgradelist: [] };
     } catch (e) {
-        console.warn("API Failed, using mock data for getExamDetails", e);
+        console.warn('API Failed, using mock data for getExamDetails', e);
         return { examgradelist: [] };
     }
 }

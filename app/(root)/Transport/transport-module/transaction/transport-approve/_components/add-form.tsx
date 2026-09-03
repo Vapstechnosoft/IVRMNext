@@ -188,11 +188,7 @@ export default function AddForm({ onSearch }: AddFormProps) {
                         <Search className='mr-2 h-4 w-4' />
                         Search
                     </Button>
-                    <Button
-                        type='button'
-                        variant='outline'
-                        onClick={() => window.location.reload()}
-                        disabled={isLoading}>
+                    <Button type='button' variant='outline' onClick={() => window.location.reload()} disabled={isLoading}>
                         <RotateCcw className='mr-2 h-4 w-4' />
                         Cancel
                     </Button>

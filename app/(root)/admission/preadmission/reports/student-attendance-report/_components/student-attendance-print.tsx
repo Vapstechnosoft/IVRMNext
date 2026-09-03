@@ -152,6 +152,20 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                                                 <td>{student.AMST_AdmNo}</td>
                                                 <td>{student.AMAY_RollNo}</td>
                                                 {monthDateWise && days.map((d: any) => <td key={d}>{student[`_${d}`] || ''}</td>)}
+                                                {monthDateWise && days.map((d: any) => {
+                                                    const val = student[`_${d}`] || student[d] || 'NE';
+                                                    let color = '#6b7280';
+                                                    let fontWeight = '500';
+                                                    if (val === 'P') { color = '#16a34a'; fontWeight = 'bold'; }
+                                                    else if (val === 'A') { color = '#dc2626'; fontWeight = 'bold'; }
+                                                    else if (val === 'L') { color = '#2563eb'; fontWeight = 'bold'; }
+                                                    else if (val === 'HO') { color = '#d97706'; fontWeight = 'bold'; }
+                                                    return (
+                                                        <td key={d} style={{ color, fontWeight }}>
+                                                            {val}
+                                                        </td>
+                                                    );
+                                                })}
                                                 <td>{student.ASA_ClassHeld}</td>
                                                 <td>{student.ASA_Class_Attended}</td>
                                                 <td>{Number(student.Percentage).toFixed(2)}</td>
@@ -184,6 +198,7 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                                                         <span style={{ color: '#dc2626' }}>A: Absent</span>
                                                         <span style={{ color: '#2563eb' }}>L: Leave</span>
                                                         <span style={{ color: '#d97706' }}>HO: Holiday</span>
+                                                        <span style={{ color: '#6b7280' }}>NE: Not Entered</span>
                                                     </div>
                                                 </td>
                                             </tr>

@@ -7,6 +7,7 @@ import { useMasterLeaveYear } from '@/hooks/hrms/useMasters';
 import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import { addOrUpdateMasterLeaveYear } from '@/server/hrms/hrmsConfig/master/leave-year';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
@@ -46,6 +47,24 @@ export default function AddLeaveYearForm({ onSuccess, className = '' }: AddLeave
         name: 'hrmlY_ToDate'
     });
 
+    const leaveYear = useWatch({
+        control,
+        name: 'hrmlY_LeaveYear'
+    });
+
+    useEffect(() => {
+        if (leaveYear && leaveYear.length === 4 && !isNaN(Number(leaveYear))) {
+            const year = Number.parseInt(leaveYear, 10);
+            const fromD = new Date(year, 0, 1);
+            fromD.setHours(12, 0, 0, 0); // avoid timezone shifts
+            const toD = new Date(year, 11, 31);
+            toD.setHours(12, 0, 0, 0);
+
+            setValue('hrmlY_FromDate', fromD.toISOString(), { shouldValidate: true });
+            setValue('hrmlY_ToDate', toD.toISOString(), { shouldValidate: true });
+        }
+    }, [leaveYear, setValue]);
+
     useEffect(() => {
         if (fromDate) {
             trigger('hrmlY_ToDate');
@@ -63,8 +82,8 @@ export default function AddLeaveYearForm({ onSuccess, className = '' }: AddLeave
             const payload = {
                 hrmlY_Id: 0,
                 hrmlY_LeaveYear: data.hrmlY_LeaveYear?.trim() || '',
-                hrmlY_FromDate: data.hrmlY_FromDate,
-                hrmlY_ToDate: data.hrmlY_ToDate,
+                hrmlY_FromDate: data.hrmlY_FromDate ? format(new Date(data.hrmlY_FromDate), 'yyyy-MM-dd') : null,
+                hrmlY_ToDate: data.hrmlY_ToDate ? format(new Date(data.hrmlY_ToDate), 'yyyy-MM-dd') : null,
                 hrmlY_ActiveFlag: true
             };
             const response = await addOrUpdateMasterLeaveYear(payload);
@@ -86,6 +105,10 @@ export default function AddLeaveYearForm({ onSuccess, className = '' }: AddLeave
         reset();
     };
 
+    const yearLimit = leaveYear && leaveYear.length === 4 && !isNaN(Number(leaveYear)) ? Number.parseInt(leaveYear, 10) : undefined;
+    const minYearDate = yearLimit ? new Date(yearLimit, 0, 1) : undefined;
+    const maxYearDate = yearLimit ? new Date(yearLimit, 11, 31) : undefined;
+
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -105,9 +128,25 @@ export default function AddLeaveYearForm({ onSuccess, className = '' }: AddLeave
                         <Controller
                             name='hrmlY_FromDate'
                             control={control}
-                            render={({ field, fieldState }) => (
-                                <DateField field={field} fieldState={fieldState} label='From Date' placeholder='Pick from date' />
-                            )}
+                            render={({ field, fieldState }) => {
+                                const toDateObj = toDate ? new Date(toDate) : undefined;
+                                const maxAllowedDate = toDateObj || maxYearDate;
+                                const restrictedToName = toDateObj ? 'To Date' : 'Leave Year End Date';
+
+                                return (
+                                    <DateField
+                                        field={field}
+                                        fieldState={fieldState}
+                                        label='From Date'
+                                        placeholder='Pick from date'
+                                        required
+                                        fromDate={minYearDate}
+                                        restricted_fromfieldName='Leave Year Start Date'
+                                        toDate={maxAllowedDate}
+                                        restricted_tofieldName={restrictedToName}
+                                    />
+                                );
+                            }}
                         />
 
                         <Controller
@@ -115,13 +154,20 @@ export default function AddLeaveYearForm({ onSuccess, className = '' }: AddLeave
                             control={control}
                             render={({ field, fieldState }) => {
                                 const fromDateObj = fromDate ? new Date(fromDate) : undefined;
+                                const minAllowedDate = fromDateObj || minYearDate;
+                                const restrictedFromName = fromDateObj ? 'From Date' : 'Leave Year Start Date';
+
                                 return (
                                     <DateField
                                         field={field}
                                         fieldState={fieldState}
                                         label='To Date'
                                         placeholder='Pick to date'
-                                        fromDate={fromDateObj}
+                                        required
+                                        fromDate={minAllowedDate}
+                                        restricted_fromfieldName={restrictedFromName}
+                                        toDate={maxYearDate}
+                                        restricted_tofieldName='Leave Year End Date'
                                     />
                                 );
                             }}

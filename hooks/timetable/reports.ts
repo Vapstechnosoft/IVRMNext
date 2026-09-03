@@ -6,8 +6,8 @@ import {
     getstaffwiseWorkingHoursReport,
     getstaffwiseWorkingHoursStaffDD
 } from '@/server/timetable/reports/stafWiseWrokingHours';
-import { getstaffdropdowndatattstaffreport } from '@/server/timetable/reports/staffwisett';
 import { getStaffReplacementClassSectionReport } from '@/server/timetable/reports/staff-replacement-class-section';
+import { getstaffdropdowndatattstaffreport } from '@/server/timetable/reports/staffwisett';
 import { getuseTimeTableClassDropdownData, getuseTimeTableSectionDropdownData } from '@/server/timetable/reports/subjectwisett';
 
 import type { ApiSearchparams } from '@/types';
@@ -130,7 +130,6 @@ export const staffwiseWorkingHoursStaffData = () => {
     };
 };
 
-
 export const useTimeTableCategoryDropDownClassWise = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -148,7 +147,6 @@ export const useTimeTableCategoryDropDownClassWise = (searchParams?: ApiSearchpa
         }
     };
 };
-
 
 export const useTimeTableClassDropdown = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
@@ -168,7 +166,6 @@ export const useTimeTableClassDropdown = (searchParams?: ApiSearchparams) => {
     };
 };
 
-
 export const useTimeTableSectionDropdown = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
@@ -186,7 +183,6 @@ export const useTimeTableSectionDropdown = (searchParams?: ApiSearchparams) => {
         }
     };
 };
-
 
 // export const staffwiseWorkingHoursStaffData = (searchParams?: ApiSearchparams) => {
 //     const queryClient = useQueryClient();
@@ -248,7 +244,6 @@ export const staffwiseWorkingHoursReportDetails = () => {
 //         mutationFn: (data: any) => getStaffReplacementClassSectionReport(data)
 //     });
 // };
-
 
 // export const useStaffReplacementClassSectionReportDetails = () => {
 //     const queryClient = useQueryClient();

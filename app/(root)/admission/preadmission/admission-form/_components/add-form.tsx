@@ -5,7 +5,8 @@ import { CalendarYear } from '@/components/ui/calendar_year';
 import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { MobileNumberInput } from '@/components/ui/extension/input-mobile-number';
-// import 'react-phone-input-2/lib/style.css';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
@@ -14,25 +15,15 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import {
-    useAcademicYearDropdown,
     useConcessionDropdown,
+    useMasterDocument,
     useMasterSectionHeld,
     useStudentCategoryByClass
 } from '@/hooks/admission/preadmission/useMasters';
-import {
-    useActivePreadmissionDetails,
-    useAdmissionClassDropdown,
-    useCasteDropdown,
-    useCountryDropdown,
-    useDistrictDropdown,
-    useReferenceDropdown,
-    useReligionDropdown,
-    useSourceDropdown,
-    useStateDropdown
-} from '@/hooks/admission/preadmission/useTransactions';
-import { getIconByName } from '@/lib/lucide-icon-registry';
-import { calculateAge, dateToWords } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+
+import { useAdmissionFormDetails, useGetCasteByCasteCategory, useOnChangeStream } from '@/hooks/admission/admissionForm';
+import { useDistrictDropdown } from '@/hooks/admission/preadmission/useTransactions';
+import { calculateAge, cn, dateToWords } from '@/lib/utils';
 import { studentAdmissionFormSchema } from '@/schemas/admission/admission-form';
 import {
     getAllAdmissionLists,
@@ -48,10 +39,11 @@ import {
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
+import { CalendarIcon, Camera, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from 'lucide-react';
+
+import { getIconByName } from '@/lib/lucide-icon-registry';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
-import PhoneInput from 'react-phone-input-2';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -129,7 +121,42 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             amC_Id: 0,
             studentCategoryId: 0,
             hostelRequired: false,
-            transportRequired: false
+            transportRequired: false,
+            amsT_PENNo: '',
+            amsT_Tribe: '',
+            amsT_GovtAdmno: '',
+            amsT_Income: '',
+            amsT_ration: '',
+            amsT_StudentPANNo: '',
+            asmsT_Id: 0,
+            ASMCE_Id: 0,
+            electivelist_Groups: [],
+            amsT_Remarks: '',
+            fatherBankName: '',
+            fatherBankAccountNo: '',
+            fatherBankIFSCCode: '',
+            fatherBankBranch: '',
+            amsT_MiddleName: '',
+            amsT_LastName: '',
+            amsT_BloodGroup: '',
+            amsT_MotherTongue: '',
+            amsT_AadharNo: '',
+            amsT_ApparNo: '',
+            amsT_BirthCertNO: '',
+            amsT_BirthPlace: '',
+            amsT_Nationality: 0,
+            amsT_CasteCertiNo: '',
+            amsT_SubCasteIMC_Id: '',
+            imCC_Id: 0,
+            asmcC_Id: 0,
+            amsT_ReligionId: 0,
+            imC_Id: 0,
+            amsL_Id: 0,
+            asmS_Id: 0,
+            amsT_Village: '',
+            amsT_Town: '',
+            amsT_Taluk: '',
+            amsT_Distirct: ''
         } as any
     });
 
@@ -235,49 +262,272 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const [_documentErrors, setDocumentErrors] = useState<Record<number, string>>({});
     const [_handledStep3, setHandledStep3] = useState(false);
 
-    const { data: activePreadmission } = useActivePreadmissionDetails();
+    // Watch stream to reach data via useOnChangeStream
+    const watchedStreamId = watch('asmsT_Id');
+    const { data: streamChangeData, isLoading: streamLoading } = useOnChangeStream(Number(watchedStreamId));
 
-    // Ensure the academic year from active preadmission is present in react-hook-form state
     useEffect(() => {
-        const year = activePreadmission?.data?.asmaY_Year ?? '';
-        const id = Number(activePreadmission?.data?.asmaY_Id ?? 0) || 0;
-        setValue('asmaY_Year' as any, year);
-        setValue('asmaY_Id' as any, id);
-    }, [activePreadmission, setValue]);
+        if (streamChangeData?.data) {
+            // These would normally be updated in the state if we were using local state
+            // But since we use admissionDetails from useAdmissionFormDetails, we might need to
+            // handle the merging or just use the local streamChangeData if available.
+        }
+    }, [streamChangeData]);
 
-    const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
-    // Student category is now fetched class-wise via useStudentCategoryByClass below
+    // Ensure the academic year from Getdetails is present in react-hook-form state
+    const {
+        data: admissionDetails,
+        refetch: refetchAdmissionDetails,
+        isLoading: detailsLoading,
+        error: detailsError
+    } = useAdmissionFormDetails();
 
     // Watch class and academic year for the class-based student category API
     const classIdForCategory = watch('asmcL_Id');
     const asmaYId = watch('asmaY_Id' as any);
-    const { data: categoryByClass, isLoading: categoryByClassLoading } = useStudentCategoryByClass(
-        Number(classIdForCategory) || 0,
-        Number(asmaYId) || 0
+    const { data: categoryByClass } = useStudentCategoryByClass(Number(classIdForCategory) || 0, Number(asmaYId) || 0, 'adm');
+
+    useEffect(() => {
+        const activeYear =
+            (admissionDetails as any)?.allAcademicYear?.[0] ||
+            (admissionDetails as any)?.academicYearOnLoad?.find((y: any) => y.asmaY_ActiveFlag === 1);
+        if (activeYear) {
+            setValue('asmaY_Year' as any, activeYear.asmaY_Year);
+            setValue('asmaY_Id' as any, activeYear.asmaY_Id);
+        }
+    }, [admissionDetails, setValue]);
+
+    const religion = useMemo(
+        () => ({
+            data:
+                (admissionDetails as any)?.religions ||
+                (admissionDetails as any)?.allReligion ||
+                (admissionDetails as any)?.allReligionList ||
+                (admissionDetails as any)?.AllReligion ||
+                []
+        }),
+        [admissionDetails]
     );
+    const country = useMemo(
+        () => ({
+            data:
+                (admissionDetails as any)?.allCountry ||
+                (admissionDetails as any)?.allCountryList ||
+                (admissionDetails as any)?.AllCountry ||
+                []
+        }),
+        [admissionDetails]
+    );
+    const casteCategoryData = useMemo(
+        () => ({
+            data:
+                (categoryByClass as any)?.data?.casteCategoryes ||
+                (admissionDetails as any)?.casteCategoryes ||
+                (admissionDetails as any)?.allCasteCategory ||
+                (admissionDetails as any)?.vpre_allCasteCategory ||
+                (admissionDetails as any)?.allCasteCategoryList ||
+                (admissionDetails as any)?.AllCasteCategory ||
+                []
+        }),
+        [admissionDetails, (categoryByClass as any)?.data?.casteCategoryes]
+    );
+    const admissionClass = useMemo(
+        () => ({
+            data:
+                (admissionDetails as any)?.allClass || (admissionDetails as any)?.allClassList || (admissionDetails as any)?.AllClass || []
+        }),
+        [admissionDetails]
+    );
+    const source = useMemo(() => ({ data: (admissionDetails as any)?.allSources || [] }), [admissionDetails]);
+    const reference = useMemo(() => ({ data: (admissionDetails as any)?.allReference || [] }), [admissionDetails]);
+    const academicYears = useMemo(() => ({ data: (admissionDetails as any)?.allAcademicYear || [] }), [admissionDetails]);
+
+    const genderOptions = (admissionDetails as any)?.allGender?.map((g: any) => ({
+        id: g.ivrmmG_GenderName,
+        name: g.ivrmmG_GenderName
+    })) || [
+            { id: 'Male', name: 'Male' },
+            { id: 'Female', name: 'Female' },
+            { id: 'Other', name: 'Other' }
+        ];
+
+    const allCaste =
+        (admissionDetails as any)?.castes ||
+        (admissionDetails as any)?.allCaste ||
+        (admissionDetails as any)?.allCasteList ||
+        (admissionDetails as any)?.AllCaste ||
+        [];
+    const allState =
+        (admissionDetails as any)?.allState ||
+        (admissionDetails as any)?.allStateList ||
+        (admissionDetails as any)?.AllState ||
+        (admissionDetails as any)?.states ||
+        [];
+    const { data: concessionDropdown } = useConcessionDropdown();
+    const concession = useMemo(
+        () => ({ data: concessionDropdown?.data || (admissionDetails as any)?.admissionConfiguration?.allConcession || [] }),
+        [concessionDropdown, admissionDetails]
+    );
+
+    const { data: masterDocsData } = useMasterDocument();
+    const masterDocuments = (masterDocsData?.data || []).filter((doc: any) => doc.amsmD_ActiveFlag);
+
+    // Caste Filtering by Caste Category
+    const currentCategoryId = watch('imCC_Id');
+    const { data: casteByCategory, isLoading: casteByCategoryLoading } = useGetCasteByCasteCategory(Number(currentCategoryId));
+
+    // Compatibility aliases for refetching
+    const refetchReference = refetchAdmissionDetails;
+
+    const conCountryId = watch('amsT_ConCountry');
+    const perCountryId = watch('amsT_PerCountry');
+    const fatherPresentCountryId = watch('fatherNationality');
+    const motherPresentCountryId = watch('motherNationality');
+    const studentNationalityId = watch('amsT_Nationality');
+
+    // Dynamic State Fetching Hooks
+    // Rely exclusively on allState mapping instead of redundant state fetching
+    const resStatesLoading = false;
+    const perStatesLoading = false;
+    const nationalityStatesLoading = false;
+    const fatherStatesLoading = false;
+    const motherStatesLoading = false;
+
+    // Compatibility aliases for loading states
+    const referenceLoading = detailsLoading;
+    const admissionClassLoading = detailsLoading;
+    const casteLoading = detailsLoading || casteByCategoryLoading;
+    const sectionLoading = detailsLoading;
+    const countryLoading = detailsLoading;
+    const fatherPresentStateLoading = detailsLoading || fatherStatesLoading;
+    const religionLoading = detailsLoading;
+    const fatherCasteLoading = detailsLoading || casteByCategoryLoading;
+    const motherPresentStateLoading = detailsLoading || motherStatesLoading;
+    const motherCasteLoading = detailsLoading || casteByCategoryLoading;
+    const sourceLoading = detailsLoading;
+    const academicLoading = detailsLoading;
+    const birthStateLoading = detailsLoading || nationalityStatesLoading;
+    const resStateLoading = detailsLoading || resStatesLoading;
+    const perStateLoading = detailsLoading || perStatesLoading;
+
+    // Compatibility aliases for error states
+    const countryError = detailsError;
+    const fatherPresentStateError = detailsError;
+    const religionError = detailsError;
+    const fatherCasteError = detailsError;
+    const motherPresentStateError = detailsError;
+    const motherCasteError = detailsError;
+    const admissionClassError = detailsError;
+    const birthStateError = detailsError;
+
+    const caste = useMemo(() => {
+        if (currentCategoryId) {
+            // Priority 1: Specific data from the category filter API
+            if (casteByCategory && casteByCategory.length > 0) {
+                return { data: casteByCategory };
+            }
+            // Priority 2: Global castes list from Getdetails filtered by imcC_Id
+            if (allCaste && allCaste.length > 0) {
+                const filtered = allCaste.filter((c: any) => Number(c.imcC_Id) === Number(currentCategoryId));
+                return { data: filtered };
+            }
+        }
+        return { data: [] };
+    }, [allCaste, casteByCategory, currentCategoryId]);
+
+    const fatherCaste = useMemo(() => {
+        if (currentCategoryId) {
+            if (casteByCategory && casteByCategory.length > 0) {
+                return { data: casteByCategory };
+            }
+            if (allCaste && allCaste.length > 0) {
+                const filtered = allCaste.filter((c: any) => Number(c.imcC_Id) === Number(currentCategoryId));
+                return { data: filtered };
+            }
+        }
+        return { data: [] };
+    }, [allCaste, casteByCategory, currentCategoryId]);
+
+    const motherCaste = useMemo(() => {
+        if (currentCategoryId) {
+            if (casteByCategory && casteByCategory.length > 0) {
+                return { data: casteByCategory };
+            }
+            if (allCaste && allCaste.length > 0) {
+                const filtered = allCaste.filter((c: any) => Number(c.imcC_Id) === Number(currentCategoryId));
+                return { data: filtered };
+            }
+        }
+        return { data: [] };
+    }, [allCaste, casteByCategory, currentCategoryId]);
+
+    const conState = useMemo(() => {
+        if (!conCountryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(conCountryId)) };
+    }, [allState, conCountryId]);
+
+    const perState = useMemo(() => {
+        if (!perCountryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(perCountryId)) };
+    }, [allState, perCountryId]);
+
+    const studentState = useMemo(() => {
+        if (!studentNationalityId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(studentNationalityId)) };
+    }, [allState, studentNationalityId]);
+
+    const fatherPresentState = useMemo(() => {
+        if (!fatherPresentCountryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(fatherPresentCountryId)) };
+    }, [allState, fatherPresentCountryId]);
+
+    const motherPresentState = useMemo(() => {
+        if (!motherPresentCountryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(motherPresentCountryId)) };
+    }, [allState, motherPresentCountryId]);
+
+    const birthState = useMemo(() => {
+        const countryId = watch('amsT_PlaceOfBirthCountry');
+        if (!countryId) return { data: [] };
+        return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
+    }, [allState, watch('amsT_PlaceOfBirthCountry')]);
+
+    const _refetchDropdowns = () => {
+        refetchAdmissionDetails();
+    };
 
     // Auto-set student category when class changes (picks first item from array)
     useEffect(() => {
-        const items: any[] = (categoryByClass as any)?.data;
+        const items: any[] = (categoryByClass as any)?.data?.studentCategory;
         if (Array.isArray(items) && items.length > 0 && items[0]?.asmcC_Id) {
-            setValue('asmcC_Id' as any, items[0].asmcC_Id);
-            setValue('studentCategoryId' as any, items[0].asmcC_Id);
+            const catId = Number(items[0].asmcC_Id || items[0].imcC_Id || items[0].imCC_Id);
+            setValue('asmcC_Id' as any, catId);
+            setValue('studentCategoryId' as any, catId);
+            setValue('imCC_Id' as any, catId);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [(categoryByClass as any)?.data]);
 
-    // Watch all country fields
-    const conCountryId = watch('amsT_ConCountry');
-    const perCountryId = watch('amsT_PerCountry');
+    // Reset caste selections when category changes if they are invalid
+    useEffect(() => {
+        if (currentCategoryId) {
+            const currentCasteId = watch('imC_Id');
+            const currentFatherCasteId = watch('fatherCasteId');
+            const currentMotherCasteId = watch('motherCasteId');
 
-    const conStateId = watch('amsT_ConState');
-    const { data: conDistrict, isLoading: conDistrictLoading, error: conDistrictError } = useDistrictDropdown(Number(conStateId));
+            const validCastes = casteByCategory || [];
 
-    const perStateId = watch('amsT_PerState');
-    const { data: perDistrict, isLoading: perDistrictLoading, error: perDistrictError } = useDistrictDropdown(Number(perStateId));
-
-    // Watch guardian fields to conditionally show uploads when guardian name is present
-    const watchedGuardians = watch('guardian');
+            if (currentCasteId && !validCastes.some((c: any) => Number(c.imC_Id) === Number(currentCasteId))) {
+                setValue('imC_Id' as any, 0);
+            }
+            if (currentFatherCasteId && !validCastes.some((c: any) => Number(c.imC_Id) === Number(currentFatherCasteId))) {
+                setValue('fatherCasteId' as any, 0);
+            }
+            if (currentMotherCasteId && !validCastes.some((c: any) => Number(c.imC_Id) === Number(currentMotherCasteId))) {
+                setValue('motherCasteId' as any, 0);
+            }
+        }
+    }, [currentCategoryId, casteByCategory, setValue, watch]);
 
     // helper: check if any of the common guardian fields has content
     const guardianHasContent = (g: any) => {
@@ -296,6 +546,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             String(a.guardianAddress ?? '') === String(b.guardianAddress ?? '')
         );
     };
+
+    // Watch guardian fields to conditionally show uploads when guardian name is present
+    const watchedGuardians = watch('guardian');
 
     // Invalidate saved snapshots if user edits guardian fields after save
     useEffect(() => {
@@ -340,196 +593,125 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         return false;
     }, [watchedGuardians, savedGuardianSaved, currentStep]);
 
-    // Use the nationality fields used in the Step 3 UI so state dropdowns refetch correctly
-    const fatherPresentCountryId = watch('fatherNationality');
-    const _fatherPermanentCountryId = watch('fatherNationality');
-    const motherPresentCountryId = watch('motherNationality');
-    const _motherPermanentCountryId = watch('motherNationality');
-    const birthCountryId = watch('amsT_PlaceOfBirthCountry');
-
     const fatherAlive = watch('fatherAliveFlag');
     // Support multiple possible keys for mother-alive checkbox coming from different places
     const motherAlive = watch('motherAliveFlag') || watch('MotherAliveFlag') || false;
-    const {
-        data: caste,
-        isLoading: casteLoading,
-        error: casteError,
-        refetchAll: refetchCaste
-    } = useCasteDropdown(watch('amsT_ReligionId') ?? 0);
 
-    // Caste dropdowns for father and mother should depend on their selected religion
-    const {
-        data: fatherCaste,
-        isLoading: fatherCasteLoading,
-        error: fatherCasteError,
-        refetchAll: refetchFatherCaste
-    } = useCasteDropdown(watch('fatherReligionId') ?? 0);
-
-    const {
-        data: motherCaste,
-        isLoading: motherCasteLoading,
-        error: motherCasteError,
-        refetchAll: refetchMotherCaste
-    } = useCasteDropdown(watch('motherReligionId') ?? 0);
-    const genderOptions = [
-        { id: 'Male', name: 'Male' },
-        { id: 'Female', name: 'Female' },
-        { id: 'Other', name: 'Other' }
-    ];
-    const { data: admissionClass, isLoading: admissionClassLoading, isError: admissionClassError } = useAdmissionClassDropdown();
     const classId = watch('asmcL_Id');
-    const { data: sectionData, isLoading: sectionLoading, isError: sectionError } = useMasterSectionHeld(Number(classId));
-    const { data: country, isLoading: countryLoading, error: countryError, refetchAll: refetchCountry } = useCountryDropdown();
+    const { data: sectionData } = useMasterSectionHeld(Number(classId));
 
-    // Student address states
-    const {
-        data: conState,
-        isLoading: conStateLoading,
-        error: conStateError,
-        refetchAll: refetchConState
-    } = useStateDropdown(Number(conCountryId));
-    const {
-        data: perState,
-        isLoading: perStateLoading,
-        error: perStateError,
-        refetchAll: refetchPerState
-    } = useStateDropdown(Number(perCountryId));
+    const conStateId = watch('amsT_ConState');
+    const { data: conDistrict } = useDistrictDropdown(Number(conStateId));
 
-    // Student country -> states (Step 1 student country/state)
-    const studentCountryId = watch('amsT_Nationality');
-    const { data: studentState, isLoading: studentStateLoading, error: studentStateError } = useStateDropdown(Number(studentCountryId));
+    const perStateId = watch('amsT_PerState');
+    const { data: perDistrict } = useDistrictDropdown(Number(perStateId));
+    const streamList = (admissionDetails as any)?.allStreams || [];
 
-    // Father address states
-    const {
-        data: fatherPresentState,
-        isLoading: fatherPresentStateLoading,
-        error: fatherPresentStateError,
-        refetchAll: refetchFatherPresentState
-    } = useStateDropdown(Number(fatherPresentCountryId));
+    // Dynamic lists based on stream/class changes
+    const examList = useMemo(() => {
+        const dynamic = (streamChangeData as any)?.data?.exam_list;
+        return dynamic && dynamic.length > 0 ? dynamic : (admissionDetails as any)?.allExam || [];
+    }, [streamChangeData, admissionDetails]);
 
-    // Mother address states
-    const {
-        data: motherPresentState,
-        isLoading: motherPresentStateLoading,
-        error: motherPresentStateError,
-        refetchAll: refetchMotherPresentState
-    } = useStateDropdown(Number(motherPresentCountryId));
+    const electiveList = useMemo(() => {
+        const dynamic = (streamChangeData as any)?.data?.electivelist;
+        if (dynamic && dynamic.length > 0) return dynamic;
 
-    // Birth place state
-    const {
-        data: birthState,
-        isLoading: birthStateLoading,
-        error: birthStateError,
-        refetchAll: refetchBirthState
-    } = useStateDropdown(Number(birthCountryId));
+        // Use data from categoryByClass if stream data is missing
+        const groups = (categoryByClass as any)?.data?.studentList || [];
+        const subjectsFlat = (categoryByClass as any)?.data?.studentList1 || [];
 
-    const { data: source, isLoading: sourceLoading, refetchAll: refetchSource } = useSourceDropdown();
-    const { data: reference, isLoading: referenceLoading, refetchAll: refetchReference } = useReferenceDropdown();
-    // Preadmission documents API removed - using local uploads instead
-    const { data: concession, isLoading: concessionLoading, refetchAll: refetchConcession } = useConcessionDropdown();
-    const { data: academicYears, isLoading: academicLoading, refetchAll: refetchAcademic } = useAcademicYearDropdown();
+        if (groups.length > 0) {
+            return groups.map((g: any) => ({
+                asmgC_Id: g.EMG_Id,
+                asmgC_GroupName: g.EMG_GroupName,
+                asmgC_ActiveFlag: true,
+                subjects: subjectsFlat
+                    .filter((s: any) => s.EMG_Id === g.EMG_Id)
+                    .map((s: any) => ({
+                        ismS_Id: s.ISMS_Id,
+                        ismS_SubjectName: s.ISMS_SubjectName
+                    }))
+            }));
+        }
 
-    const _refetchDropdowns = () => {
-        refetchReligion();
-        refetchCaste();
-        refetchFatherCaste();
-        refetchMotherCaste();
-        refetchCountry();
-        refetchSource();
-        refetchReference();
-        refetchConcession();
-        refetchAcademic();
-        refetchConState();
-        refetchPerState();
-        refetchFatherPresentState();
-        refetchMotherPresentState();
-        refetchBirthState();
-    };
+        return (admissionDetails as any)?.allSubjectGroup || [];
+    }, [streamChangeData, admissionDetails, categoryByClass]);
 
-    // Component for a single previous-school row's country/state selects.
-    const PreviousSchoolRow = ({ idx }: { idx: number }) => {
-        const countryId = watch(`previousSchools.${idx}.countryId` as const) as any;
-        const { data: prevStates, isLoading: prevStatesLoading } = useStateDropdown(Number(countryId));
+    const electiveOptions = useMemo(() => {
+        return electiveList.map((e: any) => ({
+            label: e.asmgC_GroupName,
+            value: e.asmgC_Id.toString()
+        }));
+    }, [electiveList]);
 
-        return (
-            <>
-                <div className='flex flex-col gap-1.5'>
-                    <Label>Country</Label>
+    const formValues = watch();
+    const isCurrentStepValid = useMemo(() => {
+        const v = formValues;
+        const checkFilled = (val: any) => {
+            if (val === undefined || val === null) return false;
+            if (typeof val === 'number') return val > 0;
+            if (typeof val === 'string') return val.trim().length > 0;
+            return !!val;
+        };
 
-                    <Controller
-                        name={`previousSchools.${idx}.countryId` as const}
-                        control={control}
-                        render={({ field }) => (
-                            <Select
-                                value={field.value?.toString() || ''}
-                                onValueChange={(val) => {
-                                    const num = Number(val);
-                                    field.onChange(num);
-                                    const sel = country?.data?.find((c: any) => Number(c.ivrmmC_Id) === num);
-                                    (setValue as any)(`previousSchools.${idx}.country`, sel?.ivrmmC_CountryName ?? '');
-                                }}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Country' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {countryLoading ? (
-                                        <SelectItem value='loading' disabled>
-                                            Loading...
-                                        </SelectItem>
-                                    ) : (
-                                        country?.data?.map((item) => (
-                                            <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
-                                                {item.ivrmmC_CountryName}
-                                            </SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
+        if (currentStep === 1) {
+            const basicValid = [
+                v.amsT_FirstName,
+                v.amsT_RegistrationNo,
+                v.amsT_AdmissionNo,
+                v.asmcL_Id,
+                v.asmS_Id,
+                v.amsT_Nationality,
+                v.amsT_Date,
+                v.amsT_DOB,
+                v.amsT_ReligionId,
+                v.amsT_Sex,
+                v.imCC_Id,
+                v.imC_Id,
+                v.feeConcessionType
+            ].every(checkFilled);
 
-                    {errors.previousSchools?.[idx]?.countryId && <FormError>{errors.previousSchools[idx].countryId.message}</FormError>}
-                </div>
+            // Check mobile and email - allowing either root field or first array item
+            const mobile = v.amsT_MobileNo || v.mobileNos?.[0]?.amsT_MobileNo;
+            const email = v.amsT_emailId || v.adm_M_Student_EmailIdDTO?.[0]?.amsT_emailId;
+            const contactValid = checkFilled(mobile) && checkFilled(email);
 
-                <div className='flex flex-col gap-1.5'>
-                    <Label>State</Label>
-                    <Controller
-                        name={`previousSchools.${idx}.stateId` as const}
-                        control={control}
-                        render={({ field }) => (
-                            <Select
-                                value={field.value?.toString() || ''}
-                                onValueChange={(val) => {
-                                    const num = Number(val);
-                                    field.onChange(num);
-                                    const sel = prevStates?.data?.find((s: any) => Number(s.ivrmmS_Id) === num);
-                                    (setValue as any)(`previousSchools.${idx}.state`, sel?.ivrmmS_Name ?? '');
-                                }}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select State' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {prevStatesLoading ? (
-                                        <SelectItem value='loading' disabled>
-                                            Loading...
-                                        </SelectItem>
-                                    ) : (
-                                        prevStates?.data?.map((item) => (
-                                            <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
-                                                {item.ivrmmS_Name}
-                                            </SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
+            const photoValid = !!studentPhoto?.amsT_Photoname;
 
-                    {errors.previousSchools?.[idx]?.stateId && <FormError>{errors.previousSchools[idx].stateId.message}</FormError>}
-                </div>
-            </>
-        );
-    };
+            let conditionalValid = true;
+            if (Number(v.isEmisBpl || 0) === 1 && !checkFilled(v.amsT_BPLCardNo)) conditionalValid = false;
+            if (
+                Number(v.amsT_ECSFlag || 0) === 1 &&
+                (!checkFilled(v.asecS_AccountNo) || !checkFilled(v.asecS_AccountHolderName) || !checkFilled(v.asecS_BankName))
+            )
+                conditionalValid = false;
+
+            return basicValid && photoValid && conditionalValid && contactValid;
+        }
+
+        if (currentStep === 2) {
+            const resValid = checkFilled(v.amsT_ConCountry);
+            if (sameAsResidential) return resValid;
+            const perValid = checkFilled(v.amsT_PerCountry);
+            return resValid && perValid;
+        }
+
+        if (currentStep === 3) {
+            let fatherValid = true;
+            if (v.fatherAliveFlag) {
+                fatherValid = checkFilled(v.fatherName) && checkFilled(v.fatherNationality);
+            }
+            let motherValid = true;
+            if (v.motherAliveFlag || v.MotherAliveFlag) {
+                motherValid = checkFilled(v.motherName) && checkFilled(v.motherNationality);
+            }
+            return fatherValid && motherValid;
+        }
+
+        return true;
+    }, [formValues, currentStep, studentPhoto, sameAsResidential]);
+
     const handleCheckDuplicateRegNo = async (regNo: string): Promise<boolean> => {
         if (!regNo || regNo.trim() === '') return false;
 
@@ -638,7 +820,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             const requiredFields = ['amsT_FirstName', 'asmcL_Id', 'amsT_Date', 'amsT_DOB'];
 
             // If any required field is missing in formData, abort
-            const missingRequired = requiredFields.filter((k) => {
+            const missingRequired = requiredFields.filter((k: any) => {
                 const v = formData?.[k];
                 return v === undefined || v === null || (typeof v === 'string' && v.trim() === '');
             });
@@ -712,28 +894,44 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 ivrmmR_Id: Number(formData.ivrmmR_Id ?? formData.amsT_ReligionId ?? 0),
                 iC_Id: Number(formData.imC_Id ?? 0),
                 asmcC_Id: Number(formData.asmcC_Id ?? formData.studentCategoryId ?? 0),
+                imCC_Id: Number(formData.imCC_Id ?? 0),
                 amsT_SubCasteIMC_Id: (formData.amsT_SubCasteIMC_Id ?? '')?.toString() ?? '',
                 amsT_CasteCertiNo: formData.amsT_CasteCertiNo ?? '',
                 studentPhotoUrl: '',
                 amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
                 amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
                 amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
+                amsT_ApparNo: formData.amsT_ApparNo ?? '',
                 amsT_BiometricId: formData.amsT_BiometricId ?? '',
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
                 isEmisBpl: !!formData.isEmisBpl,
                 amsT_BPLCardNo: formData.amsT_BPLCardNo ?? '',
+                mobileNos: formData.mobileNos && formData.mobileNos.length > 0 ? formData.mobileNos : (getValues('mobileNos') || []),
+                adm_M_Student_EmailIdDTO: formData.adm_M_Student_EmailIdDTO && formData.adm_M_Student_EmailIdDTO.length > 0 ? formData.adm_M_Student_EmailIdDTO : (getValues('adm_M_Student_EmailIdDTO') || []),
                 mobileCountryCode: (() => {
-                    const mobileNos = getValues('mobileNos') as any[];
+                    const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
                     return Array.isArray(mobileNos) && mobileNos.length > 0 ? String(mobileNos[0]?.amstsmS_CountryCode ?? '') : '';
                 })(),
                 mobileNumber: (() => {
-                    const mobileNos = getValues('mobileNos') as any[];
+                    const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
                     return Array.isArray(mobileNos) && mobileNos.length > 0
                         ? String(mobileNos[0]?.amsT_MobileNo ?? '')
                         : String(formData.amsT_MobileNo ?? '');
                 })(),
                 emailId: (() => {
-                    const emails = formData.adm_M_Student_EmailIdDTO;
+                    const emails = (formData.adm_M_Student_EmailIdDTO ?? getValues('adm_M_Student_EmailIdDTO')) as any[];
+                    return Array.isArray(emails) && emails.length > 0
+                        ? String(emails[0]?.amsT_emailId ?? '')
+                        : String(formData.amsT_emailId ?? '');
+                })(),
+                amsT_MobileNo: (() => {
+                    const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
+                    return Array.isArray(mobileNos) && mobileNos.length > 0
+                        ? String(mobileNos[0]?.amsT_MobileNo ?? '')
+                        : String(formData.amsT_MobileNo ?? '');
+                })(),
+                amsT_emailId: (() => {
+                    const emails = (formData.adm_M_Student_EmailIdDTO ?? getValues('adm_M_Student_EmailIdDTO')) as any[];
                     return Array.isArray(emails) && emails.length > 0
                         ? String(emails[0]?.amsT_emailId ?? '')
                         : String(formData.amsT_emailId ?? '');
@@ -769,6 +967,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
                 amsT_Nationality: Number(formData.amsT_Nationality ?? 0),
                 amsT_State: Number(formData.amsT_State ?? 0),
+                amsT_PENNo: formData.amsT_PENNo || '',
+                amsT_Tribe: formData.amsT_Tribe || '',
+                amsT_GovtAdmno: formData.amsT_GovtAdmno || '',
+                amsT_Income: formData.amsT_Income || '',
+                amsT_ration: formData.amsT_ration || '',
+                amsT_StudentPANNo: formData.amsT_StudentPANNo || '',
+                asmsT_Id: Number(formData.asmsT_Id ?? 0),
+                ASMCE_Id: Number(formData.ASMCE_Id ?? 0),
+                electivelist_Groups:
+                    formData.electivelist_Groups && formData.electivelist_Groups.length > 0
+                        ? formData.electivelist_Groups.map((id: string | number) => ({ asmgC_Id: Number(id) }))
+                        : [],
+                amsT_Remarks: formData.amsT_Remarks || '',
                 userId: Number(formData.userId ?? 0) || 21602,
                 editFlag: (savedAmsTId ?? 0) > 0,
                 returnVal: true
@@ -875,6 +1086,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 fatherCasteCertificateNo: formData.fatherCasteCertificateNo || '',
                 fatherPAN: formData.fatherPAN || '',
                 fatherSelfEmployedFlg: !!formData.fatherSelfEmployedFlg,
+                fatherBankName: formData.fatherBankName || '',
+                fatherBankAccountNo: formData.fatherBankAccountNo || '',
+                fatherBankIFSCCode: formData.fatherBankIFSCCode || '',
+                fatherBankBranch: formData.fatherBankBranch || '',
 
                 // Mother
                 motherAliveFlag: !!(formData.motherAliveFlag ?? false),
@@ -952,10 +1167,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const nextStep = async () => {
         // Prevent multiple simultaneous calls
         if (isSavingStep) return;
-
-        // Block progression if there are unsaved guardian edits on Step 4
+        setIsSavingStep(true);
         try {
-            // Immediate check using current form values to avoid stale memo
+            // Block progression if there are unsaved guardian edits on Step 4
             if (currentStep === 4) {
                 const currentGuardians = (getValues('guardian') || []) as any[];
                 for (let i = 0; i < currentGuardians.length; i++) {
@@ -999,11 +1213,22 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     'amsT_ReligionId',
                     'amsT_Sex',
                     'amsT_MobileNo',
+                    'amsT_emailId',
                     'asmcC_Id',
-                    'studentCategoryId',
+                    'imCC_Id',
                     'feeConcessionType',
                     'imC_Id'
                 ];
+
+                const emailArray = getValues('adm_M_Student_EmailIdDTO');
+                if (Array.isArray(emailArray) && emailArray.length > 0) {
+                    const firstEmail = emailArray[0]?.amsT_emailId;
+                    if (firstEmail) {
+                        setValue('amsT_emailId', firstEmail);
+                    } else {
+                        setValue('amsT_emailId', ''); // clear it if empty so validation catches it
+                    }
+                }
                 // If EMIS checkbox is set, ensure the EMIS field is validated
                 if (Number(getValues('isEmisBpl') ?? 0) === 1) {
                     fieldsToValidate.push('amsT_BPLCardNo');
@@ -1044,7 +1269,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     'amsT_ConStreet',
                     'amsT_ConArea',
                     'amsT_ConCountry',
-                    'amsT_ConState',
                     'amsT_ConCity',
                     // include pincode fields so their validation runs when moving to next step
                     'amsT_ConPincode',
@@ -1114,12 +1338,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 const regNo = getValues('amsT_RegistrationNo');
                 const isRegDuplicate = await handleCheckDuplicateRegNo(String(regNo ?? ''));
                 if (isRegDuplicate) {
+                    setIsSavingStep(false);
                     return;
                 }
 
                 const admissionNo = getValues('amsT_AdmissionNo');
                 const isAdmDuplicate = await handleCheckDuplicateAdmissionNo(String(admissionNo ?? ''));
                 if (isAdmDuplicate) {
+                    setIsSavingStep(false);
                     return;
                 }
             }
@@ -1127,7 +1353,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             // Check if there are any validation errors on the current form state
             if (!isValid) {
                 console.debug('[Admission] Validation errors detected, aborting API call', { isValid, errors: Object.keys(errors) });
-                toast.error('Please fix all errors before proceeding');
+                const firstKey = Object.keys(errors)[0];
+                const firstMsg = firstKey
+                    ? ((errors as any)[firstKey]?.message ?? 'Please fix all errors before proceeding')
+                    : 'Please fix all errors before proceeding';
+                toast.error(firstMsg);
                 return;
             }
 
@@ -1143,7 +1373,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 setShowStep3Errors(false);
                 // Get selected religion details
                 const selectedReligionId = watch('motherReligionId');
-                const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
+                const selectedReligion = religion?.data?.find((r: any) => r.ivrmmR_Id === selectedReligionId);
                 const _isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
             }
 
@@ -1383,7 +1613,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const formData = getValues();
                     const res = await saveFirstTab({
                         ...formData,
-                        amsT_Photoname: studentPhoto?.amsT_Photoname
+                        amsT_Photoname: studentPhoto?.amsT_Photoname,
+                        mobileNos: (formData.mobileNos || []).map((m: any) => ({
+                            mobileCountryCode: m.amstsmS_CountryCode?.replace('+', '') || '91',
+                            mobileNumber: m.amsT_MobileNo || m.amstsmS_MobileNo || m.mobileNumber
+                        })),
+                        adm_M_Student_EmailIdDTO: (formData.adm_M_Student_EmailIdDTO || []).map((e: any) => ({
+                            emailId: e.amsT_emailId || e.amstE_EmailId || e.emailId
+                        }))
                     });
                     console.debug('[Admission] saveFirstTab response (auto):', res);
                     if (!res?.success) {
@@ -1653,10 +1890,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                         };
 
                         const payload: any = {
-                            userid: 21602,
-                            amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 15353,
-                            mI_Id: 30,
-
+                            amsT_Id: Number(getValues('amsT_Id' as any) ?? 0),
                             // Permanent address
                             amsT_PerStreet: pick(['amsT_PerStreet']) || '',
                             amsT_PerArea: pick(['amsT_PerArea']) || '',
@@ -1794,8 +2028,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
                         const payload: any = {
                             amsT_Id: Number(getValues('amsT_Id' as any) ?? 0) || 0,
-                            mI_Id: 0,
-                            userId: 0,
                             activities: activities,
                             achievements: formData.achievements || '',
                             amsT_OtherInformations: formData.amsT_OtherInformations || '',
@@ -1885,105 +2117,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     };
 
     const handleReset = () => {
-        // Preserve academic year values
-        const currentAsmaYId = getValues('asmaY_Id' as any) ?? getValues('asmaY_Year' as any) ?? undefined;
-        const currentAsmaYYear = getValues('asmaY_Year' as any) ?? '';
-
-        // Build a reset object that clears all known form keys except academic year
-        const currentValues = getValues();
-        const resetObj: Record<string, any> = {};
-        const cv: any = currentValues as any;
-        Object.keys(currentValues).forEach((k) => {
-            if (k === 'asmaY_Id' || k === 'asmaY_Year') {
-                // preserve
-                return;
-            }
-            const val = cv[k];
-            if (val instanceof Date) {
-                resetObj[k] = undefined;
-            } else if (Array.isArray(val)) {
-                resetObj[k] = [];
-            } else if (val === null || val === undefined) {
-                resetObj[k] = val;
-            } else if (typeof val === 'boolean') {
-                resetObj[k] = false;
-            } else if (typeof val === 'number') {
-                resetObj[k] = 0;
-            } else if (typeof val === 'object') {
-                resetObj[k] = {};
-            } else {
-                resetObj[k] = '';
-            }
-        });
-
-        // Ensure specific list/object fields are set to sensible empty values
-        resetObj.asmaY_Id = currentAsmaYId;
-        resetObj.asmaY_Year = currentAsmaYYear;
-        resetObj.previousSchools = [];
-        resetObj.siblings = [];
-        resetObj.guardian = [];
-        resetObj.amsT_ECSFlag = 0;
-        resetObj.isEmisBpl = 0;
-        resetObj.feeConcessionType = 0;
-        resetObj.hostelRequired = false;
-        resetObj.transportRequired = false;
-        resetObj.amsT_MobileNo = '';
-        resetObj.mobileNos = [];
-        resetObj.adm_M_Student_EmailIdDTO = [{ amsT_emailId: '' }];
-        resetObj.amsT_ConDistrict = 0;
-        resetObj.amsT_PerDistrict = 0;
-
-        // Apply reset to react-hook-form
-        reset(resetObj as any);
-
-        // Reset UI step and popovers
-        setCurrentStep(1);
-        setOpenPopover(null);
-
-        // Clear selection state
-        setSelectedSourceItems([]);
-        setSelectedReferenceItems([]);
-        setSelectedActivityItems([]);
-        setSameAsResidential(false);
-
-        // Clear phone helper state
-        setPhoneExpectedInfo({});
-        setPhoneValues({});
-
-        // Clear uploaded files / documents / photos / signatures
-        setUploadedDocuments([]);
-        setStudentPhoto(null);
-        setStudentPhotoFile(null);
-        setStudentPhotoError(null);
-
-        setFatherPhoto(null);
-        setFatherPhotoFile(null);
-        setFatherPhotoError(null);
-
-        setMotherPhoto(null);
-        setMotherPhotoFile(null);
-        setMotherPhotoError(null);
-
-        setFatherSignature(null);
-        setFatherSignatureFile(null);
-        setFatherSignatureError(null);
-
-        setMotherSignature(null);
-        setMotherSignatureFile(null);
-        setMotherSignatureError(null);
-
-        setGuardianPhotos({});
-        setGuardianSignatures({});
-
-        // Reset guardian saved-state tracking
-        setSavedGuardianSnapshot({});
-        setSavedGuardianSaved({});
-
-        // Misc UI flags/errors
-        setDocumentErrors({});
-        setShowStep3Errors(false);
-        setHandledStep3(false);
-        setSubmittingFinal(false);
+        window.location.reload();
     };
 
     const handleSourceSelection = (selectedValues: string[]) => {
@@ -2157,6 +2291,81 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             tcNumber: '',
             tcDate: new Date()
         } as any);
+    };
+
+    const PreviousSchoolRow = ({ idx }: { idx: number }) => {
+        const countryId = watch(`previousSchools.${idx}.countryId` as const) as any;
+        const prevStates = useMemo(() => {
+            if (!countryId) return { data: [] };
+            return { data: allState.filter((s: any) => Number(s.ivrmmC_Id) === Number(countryId)) };
+        }, [countryId]);
+
+        return (
+            <>
+                <div className='flex flex-col gap-1.5'>
+                    <Label>Country</Label>
+
+                    <Controller
+                        name={`previousSchools.${idx}.countryId` as const}
+                        control={control}
+                        render={({ field }) => (
+                            <Select
+                                value={field.value?.toString() || ''}
+                                onValueChange={(val) => {
+                                    const num = Number(val);
+                                    field.onChange(num);
+                                    const sel = country?.data?.find((c: any) => Number(c.ivrmmC_Id) === num);
+                                    (setValue as any)(`previousSchools.${idx}.country`, sel?.ivrmmC_CountryName ?? '');
+                                }}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Country' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {country?.data?.map((item: any) => (
+                                        <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
+                                            {item.ivrmmC_CountryName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+
+                    {errors.previousSchools?.[idx]?.countryId && <FormError>{errors.previousSchools[idx].countryId.message}</FormError>}
+                </div>
+
+                <div className='flex flex-col gap-1.5'>
+                    <Label>State</Label>
+                    <Controller
+                        name={`previousSchools.${idx}.stateId` as const}
+                        control={control}
+                        render={({ field }) => (
+                            <Select
+                                value={field.value?.toString() || ''}
+                                onValueChange={(val) => {
+                                    const num = Number(val);
+                                    field.onChange(num);
+                                    const sel = prevStates?.data?.find((s: any) => Number(s.ivrmmS_Id) === num);
+                                    (setValue as any)(`previousSchools.${idx}.state`, sel?.ivrmmS_Name ?? '');
+                                }}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select State' />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {prevStates?.data?.map((item: any) => (
+                                        <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
+                                            {item.ivrmmS_Name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+
+                    {errors.previousSchools?.[idx]?.stateId && <FormError>{errors.previousSchools[idx].stateId.message}</FormError>}
+                </div>
+            </>
+        );
     };
     // Guardian FieldArray
     const {
@@ -2993,658 +3202,682 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                             {/* biome-ignore lint: template literal needed for bracket syntax in Tailwind */}
                             <div className={`max-h-[calc(100vh-2rem)] overflow-y-auto p-6 md:p-8`}>
                                 {currentStep === 1 && (
-                                    <div className='space-y-6'>
-                                        <div>
-                                            <h2 className='font-bold text-2xl text-gray-900'>Student Information</h2>
-                                            <p className='mt-1 text-gray-500 text-sm'>
-                                                Please provide the student&apos;s basic information
-                                            </p>
-                                        </div>
-                                        <div className='flex justify-between'>
-                                            <InputText
-                                                label='Academic Year'
-                                                required
-                                                id='academic_year'
-                                                placeholder='Academic Year'
-                                                defaultValue={activePreadmission?.data?.asmaY_Year}
-                                                className='w-fit font-semibold'
-                                                disabled
-                                            />
-                                            {/* Student Photo Upload - Mandatory */}
-                                            <div className='col-span-full w-fit'>
-                                                <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
-                                                    <div className='mb-1'>
-                                                        <Label htmlFor='student_photo'>
-                                                            Student Photo <span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
-                                                    </div>
-
-                                                    {!studentPhoto?.amsT_Photoname ? (
-                                                        <label
-                                                            htmlFor='student_photo'
-                                                            className={cn(
-                                                                'flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed px-2 py-3 text-center transition-all hover:border-primary hover:bg-white',
-                                                                studentPhoto?.isUploading
-                                                                    ? 'border-blue-400 bg-blue-100'
-                                                                    : 'border-gray-300 bg-white'
-                                                            )}>
-                                                            {studentPhoto?.isUploading ? (
-                                                                <div className='flex flex-col items-center gap-2'>
-                                                                    <svg
-                                                                        className='h-8 w-8 animate-spin text-primary'
-                                                                        fill='none'
-                                                                        stroke='currentColor'
-                                                                        viewBox='0 0 24 24'>
-                                                                        <circle
-                                                                            className='opacity-25'
-                                                                            cx='12'
-                                                                            cy='12'
-                                                                            r='10'
-                                                                            strokeWidth='4'
-                                                                            stroke='currentColor'
-                                                                        />
-                                                                        <path
-                                                                            className='opacity-75'
-                                                                            fill='currentColor'
-                                                                            d='M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z'
-                                                                        />
-                                                                    </svg>
-                                                                    <span className='font-medium text-primary text-sm'>
-                                                                        Uploading photo...
-                                                                    </span>
-                                                                </div>
-                                                            ) : (
-                                                                <>
-                                                                    <svg
-                                                                        className='h-12 w-12 text-primary'
-                                                                        fill='none'
-                                                                        stroke='currentColor'
-                                                                        viewBox='0 0 24 24'>
-                                                                        <path
-                                                                            strokeLinecap='round'
-                                                                            strokeLinejoin='round'
-                                                                            strokeWidth={2}
-                                                                            d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-                                                                        />
-                                                                    </svg>
-                                                                    <span className='font-medium text-gray-700 text-sm'>
-                                                                        Click to upload
-                                                                    </span>
-                                                                    <span className='mt-1 max-w-[250px] text-gray-600 text-sm'>
-                                                                        Upload recent passport-size photo (Max size: 5MB, Format: JPG, PNG)
-                                                                    </span>
-                                                                </>
-                                                            )}
-                                                            <input
-                                                                id='student_photo'
-                                                                type='file'
-                                                                className='hidden'
-                                                                accept='image/jpeg,image/jpg,image/png'
-                                                                disabled={studentPhoto?.isUploading || isSubmitting}
-                                                                onChange={(e) => {
-                                                                    const file = e.target.files?.[0];
-                                                                    if (file) {
-                                                                        if (file.size > 5 * 1024 * 1024) {
-                                                                            toast.error('File size must be less than 5MB');
-                                                                            e.target.value = '';
-                                                                            return;
-                                                                        }
-                                                                        handleStudentPhotoUpload(file);
-                                                                        e.target.value = '';
-                                                                    }
-                                                                }}
-                                                            />
-                                                        </label>
-                                                    ) : (
-                                                        <div className='flex w-fit flex-col items-start justify-between gap-2 rounded-lg border border-green-200 bg-green-50 p-4'>
-                                                            <div className='flex items-center gap-4'>
-                                                                <img
-                                                                    src={studentPhoto.amsT_Photoname}
-                                                                    alt='Student'
-                                                                    className='h-20 w-20 rounded-lg border-2 border-green-300 object-cover'
-                                                                />
-                                                                <div>
-                                                                    <div className='flex items-center gap-2 font-medium text-green-700'>
-                                                                        <Check className='h-5 w-5' />
-                                                                        Uploaded Successfully
-                                                                    </div>
-                                                                    <p className='mt-1 text-green-600 text-sm'>Student photo is ready</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className='flex gap-2'>
-                                                                <Button
-                                                                    type='button'
-                                                                    variant='outline'
-                                                                    size='sm'
-                                                                    onClick={() => window.open(studentPhoto.amsT_Photoname, '_blank')}>
-                                                                    <Eye className='h-4 w-4' />
-                                                                </Button>
-                                                                <Button
-                                                                    type='button'
-                                                                    variant='destructive'
-                                                                    size='sm'
-                                                                    disabled={isSubmitting}
-                                                                    onClick={handleStudentPhotoDelete}>
-                                                                    <Trash className='h-4 w-4' />
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    )}
-
-                                                    {studentPhotoError && (
-                                                        <div className='mt-3 rounded-md border border-red-200 bg-red-50 p-3'>
-                                                            <p className='flex items-start gap-2 font-medium text-red-700 text-sm'>
-                                                                <span className='mt-0.5 text-red-500'>⚠</span>
-                                                                <span>{studentPhotoError}</span>
-                                                            </p>
-                                                        </div>
-                                                    )}
+                                    <div className='card-box'>
+                                        <div className='grid grid-cols-1 gap-8 lg:grid-cols-12'>
+                                            {/* Left Column - Form Fields */}
+                                            <div className='col-span-12 space-y-4 lg:col-span-7'>
+                                                <div className='mb-4'>
+                                                    <h2 className='font-bold text-2xl text-gray-900'>Student Information</h2>
+                                                    <p className='mt-1 text-gray-500 text-sm'>
+                                                        Please provide the student&apos;s basic information
+                                                    </p>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-                                            <InputText
-                                                label='First Name'
-                                                required
-                                                id='amsT_FirstName'
-                                                placeholder='Enter first name'
-                                                {...register('amsT_FirstName')}
-                                                error={errors.amsT_FirstName?.message}
-                                            />
-                                            <InputText
-                                                label='Middle Name'
-                                                id='amsT_MiddleName'
-                                                placeholder='Enter middle name'
-                                                {...register('amsT_MiddleName')}
-                                                error={errors.amsT_MiddleName?.message}
-                                            />
-                                            <InputText
-                                                label='Last Name'
-                                                id='amsT_LastName'
-                                                placeholder='Enter last name'
-                                                {...register('amsT_LastName')}
-                                                error={errors.amsT_LastName?.message}
-                                            />
-                                            <InputText
-                                                label='Registration No'
-                                                required
-                                                id='amsT_RegistrationNo'
-                                                placeholder='Enter registration number'
-                                                {...register('amsT_RegistrationNo')}
-                                                onBlur={(e) => {
-                                                    register('amsT_RegistrationNo').onBlur(e);
-                                                    handleCheckDuplicateRegNo(e.target.value);
-                                                }}
-                                                error={errors.amsT_RegistrationNo?.message}
-                                            />
-                                            <InputText
-                                                label='Admission No'
-                                                required
-                                                id='amsT_AdmissionNo'
-                                                placeholder='Enter admission number'
-                                                {...register('amsT_AdmissionNo')}
-                                                onBlur={(e) => {
-                                                    register('amsT_AdmissionNo').onBlur(e);
-                                                    handleCheckDuplicateAdmissionNo(e.target.value);
-                                                }}
-                                                error={errors.amsT_AdmissionNo?.message}
-                                            />
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='asmcL_Id'>
-                                                    Class <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='asmcL_Id'
-                                                    control={control}
-                                                    render={({ field, fieldState: { error } }) => (
-                                                        <div className='flex flex-col space-y-2'>
-                                                            <Select
-                                                                key={field.value || 'empty'}
-                                                                value={field.value?.toString() || ''}
-                                                                onValueChange={(value) => field.onChange(Number(value))}>
-                                                                <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
-                                                                    <SelectValue
-                                                                        placeholder={
-                                                                            admissionClassLoading ? 'Loading classes...' : 'Select a class'
-                                                                        }
-                                                                    />
-                                                                </SelectTrigger>
+                                                {/* Row 1: Student Name */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                    <InputText
+                                                        label='First Name'
+                                                        required
+                                                        id='amsT_FirstName'
+                                                        placeholder='Enter first name'
+                                                        {...register('amsT_FirstName')}
+                                                        error={errors.amsT_FirstName?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Middle Name'
+                                                        id='amsT_MiddleName'
+                                                        placeholder='Enter middle name'
+                                                        {...register('amsT_MiddleName')}
+                                                        error={errors.amsT_MiddleName?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Last Name'
+                                                        id='amsT_LastName'
+                                                        placeholder='Enter last name'
+                                                        {...register('amsT_LastName')}
+                                                        error={errors.amsT_LastName?.message}
+                                                    />
+                                                </div>
 
-                                                                <SelectContent>
-                                                                    {admissionClassLoading ? (
-                                                                        <SelectItem value='loading' disabled>
-                                                                            Loading...
-                                                                        </SelectItem>
-                                                                    ) : admissionClassError ? (
-                                                                        <SelectItem value='error' disabled>
-                                                                            Error loading classes
-                                                                        </SelectItem>
-                                                                    ) : admissionClass?.data && admissionClass.data.length > 0 ? (
-                                                                        admissionClass.data.map((classItem: any) => (
+                                                {/* Row 2: PEN No, Academic Year & Registration No */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                    <InputText
+                                                        label='PEN No.'
+                                                        id='amsT_PENNo'
+                                                        placeholder='Enter PEN No.'
+                                                        {...register('amsT_PENNo')}
+                                                        error={errors.amsT_PENNo?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Academic Year'
+                                                        required
+                                                        id='academic_year'
+                                                        placeholder='Academic Year'
+                                                        value={
+                                                            (admissionDetails as any)?.allAcademicYear?.[0]?.asmaY_Year ||
+                                                            (admissionDetails as any)?.academicYearOnLoad?.[0]?.asmaY_Year ||
+                                                            ''
+                                                        }
+                                                        className='font-semibold'
+                                                        disabled
+                                                    />
+                                                    <InputText
+                                                        label='Registration No'
+                                                        required
+                                                        id='amsT_RegistrationNo'
+                                                        placeholder='Enter registration number'
+                                                        {...register('amsT_RegistrationNo')}
+                                                        onBlur={(e) => {
+                                                            register('amsT_RegistrationNo').onBlur(e);
+                                                            handleCheckDuplicateRegNo(e.target.value);
+                                                        }}
+                                                        error={errors.amsT_RegistrationNo?.message}
+                                                    />
+                                                </div>
+
+                                                {/* Row 3: Admission No & Class */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Admission No'
+                                                        required
+                                                        id='amsT_AdmissionNo'
+                                                        placeholder='Enter admission number'
+                                                        {...register('amsT_AdmissionNo')}
+                                                        onBlur={(e) => {
+                                                            register('amsT_AdmissionNo').onBlur(e);
+                                                            handleCheckDuplicateAdmissionNo(e.target.value);
+                                                        }}
+                                                        error={errors.amsT_AdmissionNo?.message}
+                                                    />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='asmcL_Id'>
+                                                            Class <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='asmcL_Id'
+                                                            control={control}
+                                                            render={({ field, fieldState: { error } }) => (
+                                                                <Select
+                                                                    value={field.value?.toString() || ''}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}>
+                                                                    <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
+                                                                        <SelectValue
+                                                                            placeholder={
+                                                                                admissionClassLoading ? 'Loading...' : 'Select a class'
+                                                                            }
+                                                                        />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {admissionClass?.data?.map((classItem: any) => (
                                                                             <SelectItem
                                                                                 key={classItem.asmcL_Id}
                                                                                 value={classItem.asmcL_Id.toString()}>
                                                                                 {classItem.asmcL_ClassName}
                                                                             </SelectItem>
-                                                                        ))
-                                                                    ) : (
-                                                                        <SelectItem value='0' disabled>
-                                                                            No classes available
-                                                                        </SelectItem>
-                                                                    )}
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </div>
-                                                    )}
-                                                />
-
-                                                {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='asmS_Id'>
-                                                    Section <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='asmS_Id'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            value={field.value?.toString() || ''}
-                                                            onValueChange={(value) => field.onChange(Number(value))} // <-- SEND NUMBER
-                                                            disabled={!classId || classId === 0 || sectionLoading}>
-                                                            <SelectTrigger>
-                                                                <SelectValue
-                                                                    placeholder={sectionLoading ? 'Loading sections...' : 'Select section'}
-                                                                />
-                                                            </SelectTrigger>
-
-                                                            <SelectContent>
-                                                                {sectionLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : sectionError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading sections
-                                                                    </SelectItem>
-                                                                ) : sectionData?.data && sectionData.data.length > 0 ? (
-                                                                    sectionData.data.map((section: any) => (
-                                                                        <SelectItem
-                                                                            key={section.asmS_Id}
-                                                                            value={section.asmS_Id.toString()}>
-                                                                            {section.asmC_SectionName}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                ) : (
-                                                                    <SelectItem value='0' disabled>
-                                                                        No sections available
-                                                                    </SelectItem>
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-
-                                                {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
-                                            </div>
-
-                                            <Controller
-                                                name='amsT_Date'
-                                                control={control}
-                                                render={({ field, fieldState: { error } }) => (
-                                                    <div className='flex flex-col space-y-2'>
-                                                        <Label htmlFor='amsT_Date'>
-                                                            Date of Admission <span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
-
-                                                        <Popover
-                                                            open={openPopover === 'amsT_Date'}
-                                                            onOpenChange={(open) => setOpenPopover(open ? 'amsT_Date' : null)}>
-                                                            <PopoverTrigger asChild>
-                                                                <Button
-                                                                    variant={'outline'}
-                                                                    className={cn(
-                                                                        'w-full justify-start text-left font-normal',
-                                                                        !field.value && 'text-muted-foreground',
-                                                                        error && 'border-red-500'
-                                                                    )}>
-                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                    {field.value ? (
-                                                                        format(field.value, 'dd/MM/yyyy')
-                                                                    ) : (
-                                                                        <span>Pick a date</span>
-                                                                    )}
-                                                                </Button>
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                                <CalendarYear
-                                                                    mode='single'
-                                                                    selected={field.value}
-                                                                    onSelect={(date: Date | undefined) => {
-                                                                        if (date) {
-                                                                            field.onChange(date);
-                                                                            setOpenPopover(null);
-                                                                        }
-                                                                    }}
-                                                                    disabled={(date: Date) =>
-                                                                        date > new Date() || date < new Date('1900-01-01')
-                                                                    }
-                                                                    initialFocus
-                                                                />
-                                                            </PopoverContent>
-                                                        </Popover>
-                                                        {error && <span className='text-red-500 text-sm'>{error.message}</span>}
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
                                                     </div>
-                                                )}
-                                            />
+                                                </div>
 
-                                            <Controller
-                                                name='amsT_DOB'
-                                                control={control}
-                                                render={({ field, fieldState: { error } }) => (
-                                                    <div className='flex flex-col space-y-2'>
-                                                        <Label htmlFor='amsT_DOB'>
-                                                            Date of Birth <span className='ml-1 text-red-500'>*</span>
+                                                {/* Row 4: Date of Admission & Date of Birth */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <Controller
+                                                        name='amsT_Date'
+                                                        control={control}
+                                                        render={({ field, fieldState: { error } }) => (
+                                                            <div className='flex flex-col space-y-2'>
+                                                                <Label htmlFor='amsT_Date'>
+                                                                    Date of Admission <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+                                                                <Popover
+                                                                    open={openPopover === 'amsT_Date'}
+                                                                    onOpenChange={(open) => setOpenPopover(open ? 'amsT_Date' : null)}>
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button
+                                                                            variant={'outline'}
+                                                                            className={cn(
+                                                                                'w-full justify-start text-left font-normal',
+                                                                                !field.value && 'text-muted-foreground',
+                                                                                error && 'border-red-500'
+                                                                            )}>
+                                                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                            {field.value ? (
+                                                                                format(field.value, 'dd/MM/yyyy')
+                                                                            ) : (
+                                                                                <span>Pick a date</span>
+                                                                            )}
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className='w-auto p-0' align='start'>
+                                                                        <CalendarYear
+                                                                            mode='single'
+                                                                            selected={field.value}
+                                                                            onSelect={(date: Date | undefined) => {
+                                                                                if (date) {
+                                                                                    field.onChange(date);
+                                                                                    setOpenPopover(null);
+                                                                                }
+                                                                            }}
+                                                                            disabled={(date: Date) => date > new Date()}
+                                                                            initialFocus
+                                                                        />
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                                {error && <span className='text-red-500 text-sm'>{error.message}</span>}
+                                                            </div>
+                                                        )}
+                                                    />
+
+                                                    <Controller
+                                                        name='amsT_DOB'
+                                                        control={control}
+                                                        render={({ field, fieldState: { error } }) => (
+                                                            <div className='flex flex-col space-y-2'>
+                                                                <Label htmlFor='amsT_DOB'>
+                                                                    Date of Birth <span className='ml-1 text-red-500'>*</span>
+                                                                </Label>
+                                                                <Popover
+                                                                    open={openPopover === 'amsT_DOB'}
+                                                                    onOpenChange={(open) => setOpenPopover(open ? 'amsT_DOB' : null)}>
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button
+                                                                            variant={'outline'}
+                                                                            className={cn(
+                                                                                'w-full justify-start text-left font-normal',
+                                                                                !field.value && 'text-muted-foreground',
+                                                                                error && 'border-red-500'
+                                                                            )}>
+                                                                            <CalendarIcon className='mr-2 h-4 w-4' />
+                                                                            {field.value ? (
+                                                                                format(field.value, 'dd/MM/yyyy')
+                                                                            ) : (
+                                                                                <span>Pick a date</span>
+                                                                            )}
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className='w-auto p-0' align='start'>
+                                                                        <CalendarYear
+                                                                            mode='single'
+                                                                            selected={field.value}
+                                                                            onSelect={(date: Date | undefined) => {
+                                                                                if (date) {
+                                                                                    field.onChange(date);
+                                                                                    handleDOBChange(date);
+                                                                                    setOpenPopover(null);
+                                                                                }
+                                                                            }}
+                                                                            disabled={(date: Date) => date > new Date()}
+                                                                            initialFocus
+                                                                        />
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                                {error && <span className='text-red-500 text-sm'>{error.message}</span>}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                </div>
+
+                                                {/* Row 5: DOB in Words */}
+                                                <InputText
+                                                    label='Date of Birth in Words'
+                                                    id='amsT_DOB_Words'
+                                                    placeholder='Auto-filled from DOB'
+                                                    {...register('amsT_DOB_Words')}
+                                                    error={errors.amsT_DOB_Words?.message}
+                                                    disabled
+                                                />
+
+                                                {/* Row 6: Caste Category & Caste */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    {/* Caste Category - Using existing Caste/CasteCategory logic */}
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='imC_Id'>
+                                                            Caste Category <span className='ml-1 text-red-500'>*</span>
                                                         </Label>
-                                                        <Popover
-                                                            open={openPopover === 'amsT_DOB'}
-                                                            onOpenChange={(open) => setOpenPopover(open ? 'amsT_DOB' : null)}>
-                                                            <PopoverTrigger asChild>
-                                                                <Button
-                                                                    variant={'outline'}
-                                                                    className={cn(
-                                                                        'w-full justify-start text-left font-normal',
-                                                                        !field.value && 'text-muted-foreground',
-                                                                        error && 'border-red-500'
-                                                                    )}>
-                                                                    <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                    {field.value ? (
-                                                                        format(field.value, 'dd/MM/yyyy')
-                                                                    ) : (
-                                                                        <span>Pick a date</span>
-                                                                    )}
-                                                                </Button>
-                                                            </PopoverTrigger>
-                                                            <PopoverContent className='w-auto p-0' align='start'>
-                                                                <CalendarYear
-                                                                    mode='single'
-                                                                    selected={field.value}
-                                                                    onSelect={(date: Date | undefined) => {
-                                                                        if (date) {
-                                                                            field.onChange(date);
-                                                                            handleDOBChange(date);
-                                                                            setOpenPopover(null);
-                                                                        }
-                                                                    }}
-                                                                    disabled={(date: Date) =>
-                                                                        date > new Date() || date < new Date('1900-01-01')
-                                                                    }
-                                                                    initialFocus
-                                                                />
-                                                            </PopoverContent>
-                                                        </Popover>
-                                                        {error && <span className='text-red-500 text-sm'>{error.message}</span>}
+                                                        <Controller
+                                                            name='imCC_Id'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    key={String(field.value || 'empty-cc')}
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select caste category' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {(casteCategoryData as any)?.data?.map((item: any) => (
+                                                                            <SelectItem
+                                                                                key={item.imcC_Id || item.imCC_Id}
+                                                                                value={(item.imcC_Id || item.imCC_Id).toString()}>
+                                                                                {item.imcC_CategoryName || item.imCC_CategoryName}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.imCC_Id && <FormError>{errors.imCC_Id.message}</FormError>}
                                                     </div>
-                                                )}
-                                            />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='imC_Id'>
+                                                            Caste <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='imC_Id'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    onValueChange={(value: any) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select caste' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {casteLoading ? (
+                                                                            <SelectItem value='loading' disabled>
+                                                                                Loading...
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            (caste as any)?.data?.map((item: any) => (
+                                                                                <SelectItem
+                                                                                    key={item.imC_Id}
+                                                                                    value={item.imC_Id.toString()}>
+                                                                                    {item.imC_CasteName}
+                                                                                </SelectItem>
+                                                                            ))
+                                                                        )}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.imC_Id && <FormError>{errors.imC_Id.message}</FormError>}
+                                                    </div>
+                                                </div>
 
-                                            {/* Date of Birth in Words - Auto-filled */}
-                                            <InputText
-                                                label='Date of Birth in Words'
-                                                id='amsT_DOB_Words'
-                                                placeholder='Date of birth in words'
-                                                {...register('amsT_DOB_Words')}
-                                                error={errors.amsT_DOB_Words?.message}
-                                                disabled
-                                            />
+                                                {/* Row 7: Sub Caste & Tribe */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Sub Caste'
+                                                        id='amsT_SubCasteIMC_Id'
+                                                        placeholder='Enter sub caste'
+                                                        {...register('amsT_SubCasteIMC_Id')}
+                                                        error={errors.amsT_SubCasteIMC_Id?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Tribe'
+                                                        id='amsT_Tribe'
+                                                        placeholder='Enter Tribe'
+                                                        {...register('amsT_Tribe')}
+                                                        error={errors.amsT_Tribe?.message}
+                                                    />
+                                                </div>
 
-                                            {/* Age - Auto-calculated */}
-                                            <InputText
-                                                label='Age'
-                                                id='pasR_Age'
-                                                placeholder='Age'
-                                                type='number'
-                                                {...register('pasR_Age', { valueAsNumber: true })}
-                                                error={errors.pasR_Age?.message}
-                                                disabled
-                                            />
+                                                {/* Row 8: Student Birth Place */}
+                                                <InputText
+                                                    label='Student Birth Place'
+                                                    id='amsT_BirthPlace'
+                                                    placeholder='Enter birth place'
+                                                    {...register('amsT_BirthPlace')}
+                                                    error={errors.amsT_BirthPlace?.message}
+                                                />
 
-                                            <InputText
-                                                label='Birth Place'
-                                                id='amsT_BirthPlace'
-                                                placeholder='Enter birth place'
-                                                {...register('amsT_BirthPlace')}
-                                                error={errors.amsT_BirthPlace?.message}
-                                            />
+                                                {/* Row 9: Birth Certificate No & Caste Certificate No */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Birth Certificate No'
+                                                        id='amsT_BirthCertNO'
+                                                        placeholder='Enter number'
+                                                        {...register('amsT_BirthCertNO')}
+                                                        error={errors.amsT_BirthCertNO?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Caste Certificate No'
+                                                        id='amsT_CasteCertiNo'
+                                                        placeholder='Enter number'
+                                                        {...register('amsT_CasteCertiNo')}
+                                                        error={errors.amsT_CasteCertiNo?.message}
+                                                    />
+                                                </div>
 
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_ReligionId'>
-                                                    Religion <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='amsT_ReligionId'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select religion' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {religionLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : religionError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
+                                                {/* Row 10: Govt. Admno & Income Certificate No */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Govt. Admission No.'
+                                                        id='amsT_GovtAdmno'
+                                                        placeholder='Enter number'
+                                                        {...register('amsT_GovtAdmno')}
+                                                        error={errors.amsT_GovtAdmno?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Income Certificate No.'
+                                                        id='amsT_Income'
+                                                        placeholder='Enter number'
+                                                        {...register('amsT_Income')}
+                                                        error={errors.amsT_Income?.message}
+                                                    />
+                                                </div>
+
+                                                {/* Row 11: Ration Card No & Student PAN Card No */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Ration Card No.'
+                                                        id='amsT_ration'
+                                                        placeholder='Enter number'
+                                                        {...register('amsT_ration')}
+                                                        error={errors.amsT_ration?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Student PAN Card No.'
+                                                        id='amsT_StudentPANNo'
+                                                        placeholder='Enter number'
+                                                        {...register('amsT_StudentPANNo')}
+                                                        error={errors.amsT_StudentPANNo?.message}
+                                                    />
+                                                </div>
+
+                                                {/* Row 12: Stream & Biometric Id */}
+                                                {/* <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_Stream'>Stream</Label>
+                                                        <Controller
+                                                            name='amsT_Stream'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    onValueChange={(value: any) => field.onChange(value)}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select stream' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {streamList?.map((item: any) => (
+                                                                            <SelectItem key={item.asmS_Id} value={item.asmS_StreamName}>
+                                                                                {item.asmS_StreamName}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+
+                                                            )}
+                                                        />
+                                                    </div>
+                                                    <InputText
+                                                        label='Biometric Id'
+                                                        id='amsT_BiometricId'
+                                                        placeholder='Enter number'
+                                                        {...register('amsT_BiometricId')}
+                                                        error={errors.amsT_BiometricId?.message}
+                                                    />
+                                                </div> */}
+
+                                                {/* Row 13: RF Card No & Section */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='RF Card No'
+                                                        id='amsT_RFCardNo'
+                                                        placeholder='Enter number'
+                                                        {...register('amsT_RFCardNo')}
+                                                        error={errors.amsT_RFCardNo?.message}
+                                                    />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='asmS_Id'>
+                                                            Section <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='asmS_Id'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    value={field.value?.toString() || ''}
+                                                                    onValueChange={(value: any) => field.onChange(Number(value))}
+                                                                    disabled={sectionLoading}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue
+                                                                            placeholder={sectionLoading ? 'Loading...' : 'Select section'}
+                                                                        />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {sectionData?.data?.map((section: any) => (
+                                                                            <SelectItem
+                                                                                key={section.asmS_Id}
+                                                                                value={section.asmS_Id.toString()}>
+                                                                                {section.asmC_SectionName}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Right Column - Photo & Other Fields */}
+                                            <div className='col-span-12 space-y-4 lg:col-span-5'>
+                                                {/* Student Photo Section */}
+                                                <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-4'>
+                                                    <div className='mb-2'>
+                                                        <Label className='font-semibold text-gray-700' htmlFor='student_photo'>
+                                                            STUDENT PHOTO <span className='text-red-500'>*</span>
+                                                        </Label>
+                                                    </div>
+
+                                                    <div className='flex flex-col items-center gap-4'>
+                                                        {!studentPhoto?.amsT_Photoname ? (
+                                                            <label
+                                                                htmlFor='student_photo'
+                                                                className={cn(
+                                                                    'flex h-48 w-40 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed transition-all hover:border-primary hover:bg-white',
+                                                                    studentPhoto?.isUploading
+                                                                        ? 'border-blue-400 bg-blue-100'
+                                                                        : 'border-gray-300 bg-white'
+                                                                )}>
+                                                                {studentPhoto?.isUploading ? (
+                                                                    <div className='flex animate-pulse flex-col items-center'>
+                                                                        <div className='h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent' />
+                                                                        <span className='mt-2 font-medium text-primary text-xs'>
+                                                                            UPLOADING...
+                                                                        </span>
+                                                                    </div>
                                                                 ) : (
-                                                                    religion?.data?.map((item) => (
-                                                                        <SelectItem key={item.ivrmmR_Id} value={item.ivrmmR_Id.toString()}>
-                                                                            {item.ivrmmR_Name}
-                                                                        </SelectItem>
-                                                                    ))
+                                                                    <>
+                                                                        <div className='flex flex-col items-center text-gray-400'>
+                                                                            <Camera className='mb-2 h-12 w-12' />
+                                                                            <span className='font-bold text-xs uppercase'>
+                                                                                Click to Upload
+                                                                            </span>
+                                                                        </div>
+                                                                    </>
                                                                 )}
-                                                            </SelectContent>
-                                                        </Select>
+                                                                <input
+                                                                    id='student_photo'
+                                                                    type='file'
+                                                                    className='hidden'
+                                                                    accept='image/*'
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (file) handleStudentPhotoUpload(file);
+                                                                    }}
+                                                                />
+                                                            </label>
+                                                        ) : (
+                                                            <div className='group relative'>
+                                                                <img
+                                                                    src={studentPhoto.amsT_Photoname}
+                                                                    alt='Student'
+                                                                    className='h-48 w-40 rounded-lg border-2 border-blue-200 object-cover shadow-md'
+                                                                />
+                                                                <div className='absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-black/40 opacity-0 transition-opacity group-hover:opacity-100'>
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='icon'
+                                                                        variant='secondary'
+                                                                        className='h-8 w-8'
+                                                                        onClick={() => window.open(studentPhoto.amsT_Photoname, '_blank')}>
+                                                                        <Eye className='h-4 w-4' />
+                                                                    </Button>
+                                                                    <Button
+                                                                        type='button'
+                                                                        size='icon'
+                                                                        variant='destructive'
+                                                                        className='h-8 w-8'
+                                                                        onClick={handleStudentPhotoDelete}>
+                                                                        <Trash className='h-4 w-4' />
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* <WebcamCapture
+                                                            onCapture={async (base64) => {
+                                                                const res = await fetch(base64);
+                                                                const blob = await res.blob();
+                                                                const file = new File([blob], 'photo.jpg', { type: 'image/jpeg' });
+                                                                handleStudentPhotoUpload(file);
+                                                            }}
+                                                        /> */}
+                                                    </div>
+                                                    {studentPhotoError && (
+                                                        <p className='mt-2 text-center font-medium text-red-500 text-xs'>
+                                                            {studentPhotoError}
+                                                        </p>
                                                     )}
-                                                />
-                                                {errors.amsT_ReligionId && <FormError>{errors.amsT_ReligionId.message}</FormError>}
-                                            </div>
+                                                </div>{' '}
+                                                {/* Right Column Fields */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    {/* Row 1: Age & Gender */}
+                                                    <InputText
+                                                        label='Age'
+                                                        id='pasR_Age'
+                                                        placeholder='Auto-filled'
+                                                        type='number'
+                                                        {...register('pasR_Age', { valueAsNumber: true })}
+                                                        error={errors.pasR_Age?.message}
+                                                        disabled
+                                                    />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_Sex'>
+                                                            Gender <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='amsT_Sex'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    onValueChange={(value: any) => field.onChange(value)}
+                                                                    value={field.value || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select gender' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {genderOptions.map((item: any) => (
+                                                                            <SelectItem key={item.id} value={item.id}>
+                                                                                {item.name}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.amsT_Sex && <FormError>{errors.amsT_Sex.message}</FormError>}
+                                                    </div>
 
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='imC_Id'>
-                                                    Caste <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='imC_Id'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select caste' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {casteLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : casteError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    caste?.data?.map((item) => (
-                                                                        <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
-                                                                            {item.imC_CasteName}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {errors.imC_Id && <FormError>{errors.imC_Id.message}</FormError>}
-                                            </div>
-                                            {/* <InputText
-                                                label='Caste '
-                                                required
-                                                id='imC_Id'
-                                                placeholder='Enter caste category'
-                                                {...register('imC_Id')}
-                                                error={errors.imC_Id?.message}
-                                            /> */}
-                                            <InputText
-                                                label='Sub Caste'
-                                                id='amsT_SubCasteIMC_Id'
-                                                placeholder='Enter sub caste'
-                                                {...register('amsT_SubCasteIMC_Id')}
-                                                error={errors.amsT_SubCasteIMC_Id?.message}
-                                            />
+                                                    {/* Row 2: Mother Tongue & Languages Spoken */}
+                                                    <InputText
+                                                        label='Mother Tongue'
+                                                        id='amsT_MotherTongue'
+                                                        placeholder='Enter mother tongue'
+                                                        {...register('amsT_MotherTongue')}
+                                                        error={errors.amsT_MotherTongue?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Languages Spoken'
+                                                        id='amsT_LanguageSpoken'
+                                                        placeholder='Enter languages'
+                                                        {...register('amsT_LanguageSpoken')}
+                                                        error={errors.amsT_LanguageSpoken?.message}
+                                                    />
 
-                                            <InputText
-                                                label='Birth Certificate No'
-                                                id='amsT_BirthCertNO'
-                                                placeholder='Enter Birth Certificate number'
-                                                {...register('amsT_BirthCertNO')}
-                                                error={errors.amsT_BirthCertNO?.message}
-                                            />
-                                            <InputText
-                                                label='Caste Certificate No'
-                                                id='amsT_CasteCertiNo'
-                                                placeholder='Enter caste certificate number'
-                                                {...register('amsT_CasteCertiNo')}
-                                                error={errors.amsT_CasteCertiNo?.message}
-                                            />
-                                            <InputText
-                                                label='Biometric Id'
-                                                id='amsT_BiometricId'
-                                                placeholder='Enter biometric ID'
-                                                {...register('amsT_BiometricId')}
-                                                error={errors.amsT_BiometricId?.message}
-                                            />
-                                            <InputText
-                                                label='RF Card No'
-                                                id='amsT_RFCardNo'
-                                                placeholder='Enter RF card number'
-                                                {...register('amsT_RFCardNo')}
-                                                error={errors.amsT_RFCardNo?.message}
-                                            />
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_Sex'>
-                                                    Gender <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='amsT_Sex'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select gender' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {genderOptions.map((item) => (
-                                                                    <SelectItem key={item.id} value={item.id}>
-                                                                        {item.name}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {errors.amsT_Sex && <FormError>{errors.amsT_Sex.message}</FormError>}
-                                            </div>
-
-                                            <InputText
-                                                label='Mother Tongue'
-                                                id='amsT_MotherTongue'
-                                                placeholder='Enter mother tongue'
-                                                {...register('amsT_MotherTongue')}
-                                                error={errors.amsT_MotherTongue?.message}
-                                            />
-                                            <InputText
-                                                label='Languages Spoken'
-                                                id='amsT_LanguageSpoken'
-                                                placeholder='Enter languages'
-                                                {...register('amsT_LanguageSpoken')}
-                                                error={errors.amsT_LanguageSpoken?.message}
-                                            />
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_Nationality'>
-                                                    Country <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-
-                                                <Controller
-                                                    name='amsT_Nationality'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select country' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {countryLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : countryError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    country?.data?.map((item) => (
-                                                                        <SelectItem key={item.ivrmmC_Id} value={item.ivrmmC_Id.toString()}>
-                                                                            {item.ivrmmC_CountryName}
-                                                                        </SelectItem>
-                                                                    ))
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-                                                {errors.amsT_Nationality && <FormError>{errors.amsT_Nationality.message}</FormError>}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_State'>State</Label>
-                                                <Controller
-                                                    name='amsT_State'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select state' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {studentStateLoading ? (
-                                                                    <SelectItem value='loading' disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : studentStateError ? (
-                                                                    <SelectItem value='error' disabled>
-                                                                        Error loading
-                                                                    </SelectItem>
-                                                                ) : (
-                                                                    studentState?.data?.map((item) => (
+                                                    {/* Row 3: Religion & Country */}
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_ReligionId'>
+                                                            Religion <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='amsT_ReligionId'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    onValueChange={(value: any) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select religion' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {religion?.data?.map((item: any) => (
+                                                                            <SelectItem
+                                                                                key={item.ivrmmR_Id}
+                                                                                value={item.ivrmmR_Id.toString()}>
+                                                                                {item.ivrmmR_ReligionName || item.ivrmmR_Name}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.amsT_ReligionId && <FormError>{errors.amsT_ReligionId.message}</FormError>}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_Nationality'>
+                                                            Country <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <Controller
+                                                            name='amsT_Nationality'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    onValueChange={(value) => field.onChange(Number(value))}
+                                                                    value={field.value?.toString() || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select country' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {country?.data?.map((item: any) => (
+                                                                            <SelectItem
+                                                                                key={item.ivrmmC_Id}
+                                                                                value={item.ivrmmC_Id.toString()}>
+                                                                                {item.ivrmmC_CountryName}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                        {errors.amsT_Nationality && (
+                                                            <FormError>{errors.amsT_Nationality.message}</FormError>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {/* Row 4: Student State */}
+                                                <div className='flex flex-col gap-1.5'>
+                                                    <Label htmlFor='amsT_State'>State</Label>
+                                                    <Controller
+                                                        name='amsT_State'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <Select
+                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                value={field.value?.toString() || ''}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder='Select state' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {studentState?.data?.map((item: any) => (
                                                                         <SelectItem key={item.ivrmmS_Id} value={item.ivrmmS_Id.toString()}>
                                                                             {item.ivrmmS_Name}
                                                                         </SelectItem>
@@ -3705,36 +3938,217 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         phoneExpectedInfo.amsT_MobileNo.name ?? 'selected country'
                                                                     }`}
                                                                 </span>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                    />
+                                                </div>
+                                                {/* Row 5: Aadhaar, APAAR ID & Blood Group */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                                                    <InputText
+                                                        label='Aadhaar No.'
+                                                        id='amsT_AadharNo'
+                                                        placeholder='Enter 12 digit number'
+                                                        {...register('amsT_AadharNo')}
+                                                        error={errors.amsT_AadharNo?.message}
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Controller
+                                                            name='amsT_ApparNo'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <MobileNumberInput
+                                                                    label='APAAR ID'
+                                                                    placeholder='Enter APAAR ID'
+                                                                    id='amsT_ApparNo'
+                                                                    value={field.value ?? ''}
+                                                                    onChange={(value) => field.onChange(value)}
+                                                                    type='number'
+                                                                    showSpinner={false}
+                                                                />
                                                             )}
-                                                        </div>
-                                                    )}
-                                                />
-                                                {errors.amsT_MobileNo && <FormError>{errors.amsT_MobileNo.message}</FormError>}
-                                            </div>
+                                                        />
+                                                        {errors.amsT_ApparNo && (
+                                                            <FormError>{errors.amsT_ApparNo.message as string}</FormError>
+                                                        )}
+                                                    </div>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_BloodGroup'>Blood Group</Label>
+                                                        <Controller
+                                                            name='amsT_BloodGroup'
+                                                            control={control}
+                                                            render={({ field }) => (
+                                                                <Select
+                                                                    onValueChange={(value) => field.onChange(value)}
+                                                                    value={field.value || ''}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder='Select' />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((bg) => (
+                                                                            <SelectItem key={bg} value={bg}>
+                                                                                {bg}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                        <SelectItem value='Not Available'>Not Available</SelectItem>
+                                                                    </SelectContent>
+                                                                </Select>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                {/* Row 6: Student Category */}
+                                                <div className='flex flex-col gap-1.5'>
+                                                    <Label htmlFor='asmcC_Id'>Student Category</Label>
+                                                    <Controller
+                                                        name='asmcC_Id'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <Select
+                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                value={field.value?.toString() || ''}
+                                                                disabled>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder='Select category' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {(
+                                                                        (admissionDetails as any)?.adm_m_stud_cat ||
+                                                                        (categoryByClass as any)?.data?.studentCategory ||
+                                                                        []
+                                                                    )?.map((item: any) => (
+                                                                        <SelectItem key={item.asmcC_Id} value={item.asmcC_Id.toString()}>
+                                                                            {item.className || item.amC_Name || item.asmcC_CategoryName}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                    {(
+                                                                        (admissionDetails as any)?.adm_m_stud_cat ||
+                                                                        (categoryByClass as any)?.data?.studentCategory ||
+                                                                        []
+                                                                    ).length === 0 && (
+                                                                            <SelectItem value='none' disabled>
+                                                                                No categories available
+                                                                            </SelectItem>
+                                                                        )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                    />
+                                                </div>
+                                                {/* Row 7: Mobile & Email */}
+                                                {/* <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_MobileNo'>
+                                                            Mobile No. <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <InputText
+                                                            label=''
+                                                            required
+                                                            id='amsT_MobileNo'
+                                                            placeholder='Enter number'
+                                                            {...register('amsT_MobileNo')}
+                                                            error={errors.amsT_MobileNo?.message}
+                                                        />
+                                                    </div>
 
-                                            {/* Hidden legacy primary email (kept in sync with first email field) */}
-                                            <input type='hidden' {...register('amsT_emailId')} />
+                                                    <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_emailId'>
+                                                            Email Id <span className='ml-1 text-red-500'>*</span>
+                                                        </Label>
+                                                        <InputText
+                                                            label=''
+                                                            required
+                                                            id='amsT_emailId'
+                                                            placeholder='Enter email'
+                                                            {...register('amsT_emailId')}
+                                                            error={errors.amsT_emailId?.message}
+                                                        />
+                                                    </div>
+                                                </div> */}
+                                                <div className='flex flex-col gap-1.5 '>
+                                                    <Controller
+                                                        name='amsT_MobileNo'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <div>
+                                                                <Label htmlFor='amsT_MobileNo'>
+                                                                    Mobile No. <span className='text-red-500'>*</span>
+                                                                </Label>
+                                                                <PhoneInput
+                                                                    country='in'
+                                                                    value={
+                                                                        phoneValues.amsT_MobileNo ??
+                                                                        (field.value != null ? String(field.value) : null)
+                                                                    }
+                                                                    onChange={(phone: any, countryData: any) =>
+                                                                        handlePhoneChange(phone, countryData, 'amsT_MobileNo')
+                                                                    }
+                                                                    onBlur={() => trigger('amsT_MobileNo')}
+                                                                    inputProps={{
+                                                                        id: 'amsT_MobileNo',
+                                                                        name: 'amsT_MobileNo',
+                                                                        maxLength: 15,
+                                                                        required: false,
+                                                                        style: {
+                                                                            width: '87%',
+                                                                            height: '36px',
+                                                                            marginLeft: '40px',
+                                                                            boxSizing: 'border-box',
+                                                                            borderRadius: '4px',
+                                                                            padding: '16.5px 14px',
+                                                                            fontSize: '16px'
+                                                                        }
+                                                                    }}
+                                                                    containerClass='w-full'
+                                                                    inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
+                                                                    enableSearch
+                                                                    disableCountryCode={false}
+                                                                    enableLongNumbers={false}
+                                                                    isValid={true}
+                                                                    preserveOrder={['country', 'nationalNumber']}
+                                                                />
+                                                                {phoneExpectedInfo.amsT_MobileNo?.expected && (
+                                                                    <span className='mt-1 text-muted-foreground text-xs'>
+                                                                        {`Mobile number must be exactly ${phoneExpectedInfo.amsT_MobileNo.expected} digits for ${phoneExpectedInfo.amsT_MobileNo.name ?? 'selected country'
+                                                                            }`}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    />
+                                                    {errors.amsT_MobileNo && <FormError>{errors.amsT_MobileNo.message}</FormError>}
+                                                </div>
+                                                {/* Hidden legacy primary email (kept in sync with first email field) */}
+                                                <input type='hidden' {...register('amsT_emailId')} />
+                                                <div className='flex flex-col gap-1.5'>
+                                                    {emailFields.map((field, idx) => {
+                                                        const itemError = (errors as any)?.adm_M_Student_EmailIdDTO?.[idx]?.amsT_emailId
+                                                            ?.message;
+                                                        const fieldName = `adm_M_Student_EmailIdDTO.${idx}.amsT_emailId` as const;
+                                                        return (
+                                                            <div key={field.id} className='flex w-full flex-col gap-1'>
+                                                                <div className='flex items-center gap-2'>
+                                                                    <div className='flex-1'>
+                                                                        {idx === 0 && (
+                                                                            <Label htmlFor={String(field.id)}>
+                                                                                Email <span className='text-red-500'>*</span>
+                                                                            </Label>
+                                                                        )}
+                                                                        <InputText
+                                                                            {...register(fieldName)}
+                                                                            id={String(field.id)}
+                                                                            placeholder='Enter email'
+                                                                            error={
+                                                                                itemError ||
+                                                                                (idx === 0
+                                                                                    ? (errors.amsT_emailId?.message as string)
+                                                                                    : undefined)
+                                                                            }
+                                                                            required
+                                                                        />
+                                                                    </div>
 
-                                            <div className='flex flex-col gap-1.5'>
-                                                {emailFields.map((field, idx) => {
-                                                    const itemError = (errors as any)?.adm_M_Student_EmailIdDTO?.[idx]?.amsT_emailId
-                                                        ?.message;
-                                                    const fieldName = `adm_M_Student_EmailIdDTO.${idx}.amsT_emailId` as const;
-                                                    return (
-                                                        <div key={field.id} className='flex w-full flex-col gap-1'>
-                                                            <div className='flex items-center gap-2'>
-                                                                <div className='flex-1'>
-                                                                    {idx === 0 && <Label htmlFor={String(field.id)}>Email</Label>}
-                                                                    <InputText
-                                                                        {...register(fieldName)}
-                                                                        id={String(field.id)}
-                                                                        placeholder='Enter email'
-                                                                        error={itemError}
-                                                                        required
-                                                                    />
-                                                                </div>
-
-                                                                {/* <div className='mt-1 flex items-center gap-1'>
+                                                                    {/* <div className='mt-1 flex items-center gap-1'>
                                                                     {emailFields.length < 5 && (
                                                                         <Button
                                                                             variant='ghost'
@@ -3763,366 +4177,162 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         </Button>
                                                                     )}
                                                                 </div> */}
+                                                                </div>
+
+                                                                {/* InputText already renders the error; avoid duplicate FormError here */}
                                                             </div>
-
-                                                            {/* InputText already renders the error; avoid duplicate FormError here */}
-                                                        </div>
-                                                    );
-                                                })}
-
-                                                {/* show legacy primary email error only when no email array items are present */}
-                                                {(!Array.isArray(watchedEmails) || watchedEmails.length === 0) && errors.amsT_emailId && (
-                                                    <FormError>{errors.amsT_emailId.message}</FormError>
-                                                )}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Controller
-                                                    name='amsT_AadharNo'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <MobileNumberInput
-                                                            label='Aadhaar No.'
-                                                            placeholder='Enter Aadhaar No'
-                                                            id='amsT_AadharNo'
-                                                            value={field.value ?? ''}
-                                                            onChange={(value) => field.onChange(value)}
-                                                            type='number'
-                                                            showSpinner={false}
-                                                            maxLength={12}
-                                                            minLength={12}
-                                                        />
-                                                    )}
-                                                />
-                                                {errors.amsT_AadharNo && <FormError>{errors.amsT_AadharNo.message}</FormError>}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='amsT_BloodGroup'>Blood Group</Label>
-
-                                                <Controller
-                                                    name='amsT_BloodGroup'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(value)}
-                                                            value={field.value || ''}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select Blood Group' />
-                                                            </SelectTrigger>
-
-                                                            <SelectContent>
-                                                                <SelectItem value='A+'>A+</SelectItem>
-                                                                <SelectItem value='A-'>A-</SelectItem>
-                                                                <SelectItem value='B+'>B+</SelectItem>
-                                                                <SelectItem value='B-'>B-</SelectItem>
-                                                                <SelectItem value='AB+'>AB+</SelectItem>
-                                                                <SelectItem value='AB-'>AB-</SelectItem>
-                                                                <SelectItem value='O+'>O+</SelectItem>
-                                                                <SelectItem value='O-'>O-</SelectItem>
-                                                                <SelectItem value='A1+ve'>A1+ve</SelectItem>
-                                                                <SelectItem value='A1-ve'>A1-ve</SelectItem>
-                                                                <SelectItem value='B1+ve'>B1+ve</SelectItem>
-                                                                <SelectItem value='B1-ve'>B1-ve</SelectItem>
-                                                                <SelectItem value='A2+ve'>A2+ve</SelectItem>
-                                                                <SelectItem value='A2-ve'>A2-ve</SelectItem>
-                                                                <SelectItem value='A1B+ve'>A1B+ve</SelectItem>
-                                                                <SelectItem value='A2B+ve'>A2B+ve</SelectItem>
-                                                                <SelectItem value='A1B2'>A1B2</SelectItem>
-                                                                <SelectItem value='A1B-ve'>A1B-ve</SelectItem>
-                                                                <SelectItem value='A2B-ve'>A2B-ve</SelectItem>
-                                                                <SelectItem value='Not Available'>Not Available</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
-                                                />
-
-                                                {errors.amsT_BloodGroup && <FormError>{errors.amsT_BloodGroup.message}</FormError>}
-                                            </div>
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='asmcC_Id'>Student Category</Label>
-                                                <Controller
-                                                    name='asmcC_Id'
-                                                    control={control}
-                                                    render={({ field }) => {
-                                                        // Student category from class-based API only
-                                                        const rawData = (categoryByClass as any)?.data;
-                                                        const items: any[] = Array.isArray(rawData) ? rawData : rawData ? [rawData] : [];
-                                                        return (
-                                                            <Select
-                                                                key={`cat-${classIdForCategory || 'none'}`}
-                                                                onValueChange={(value) => {
-                                                                    const val = Number(value);
-                                                                    field.onChange(val);
-                                                                    setValue('asmcC_Id', val);
-                                                                    setValue('studentCategoryId', val);
-                                                                }}
-                                                                value={field.value?.toString() || ''}>
-                                                                <SelectTrigger>
-                                                                    <SelectValue
-                                                                        placeholder={
-                                                                            categoryByClassLoading ? 'Loading...' : 'Select option'
-                                                                        }
-                                                                    />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {categoryByClassLoading ? (
-                                                                        <SelectItem value='loading' disabled>
-                                                                            Loading...
-                                                                        </SelectItem>
-                                                                    ) : items.length > 0 ? (
-                                                                        items.map((item: any) => (
-                                                                            <SelectItem
-                                                                                key={item.asmcC_Id}
-                                                                                value={item.asmcC_Id?.toString()}>
-                                                                                {item.amC_Name || 'No Name'}
-                                                                            </SelectItem>
-                                                                        ))
-                                                                    ) : (
-                                                                        <SelectItem value='none' disabled>
-                                                                            {classIdForCategory
-                                                                                ? 'No category for this class'
-                                                                                : 'Select a class first'}
-                                                                        </SelectItem>
-                                                                    )}
-                                                                </SelectContent>
-                                                            </Select>
                                                         );
-                                                    }}
-                                                />
-                                                {errors.asmcC_Id && <FormError>{(errors.asmcC_Id as any).message}</FormError>}
-                                            </div>
+                                                    })}
 
-                                            <div className='col-span-full'>
-                                                <div className='flex items-center gap-6'>
+                                                    {/* show legacy primary email error only when no email array items are present */}
+                                                    {(!Array.isArray(watchedEmails) || watchedEmails.length === 0) &&
+                                                        errors.amsT_emailId && <FormError>{errors.amsT_emailId.message}</FormError>}
+                                                </div>
+                                                {/* Row 8: ECS & EMIS Checkboxes */}
+                                                <div className='flex items-center gap-6 py-2'>
                                                     <div className='flex items-center space-x-2'>
                                                         <Checkbox
                                                             id='amsT_ECSFlag'
                                                             checked={Number(watch('amsT_ECSFlag')) === 1}
-                                                            onCheckedChange={(checked) => {
-                                                                const val = checked ? 1 : 0;
-                                                                setValue('amsT_ECSFlag', val);
-                                                            }}
+                                                            onCheckedChange={(checked) => setValue('amsT_ECSFlag', checked ? 1 : 0)}
                                                         />
-                                                        <Label htmlFor='amsT_ECSFlag' className='cursor-pointer'>
+                                                        <Label htmlFor='amsT_ECSFlag' className='cursor-pointer font-medium text-sm'>
                                                             ECS
                                                         </Label>
                                                     </div>
-
                                                     <div className='flex items-center space-x-2'>
                                                         <Checkbox
                                                             id='isEmisBpl'
                                                             checked={Number(watch('isEmisBpl')) === 1}
-                                                            onCheckedChange={(checked) => {
-                                                                const val = checked ? 1 : 0;
-                                                                setValue('isEmisBpl', val);
-                                                            }}
+                                                            onCheckedChange={(checked) => setValue('isEmisBpl', checked ? 1 : 0)}
                                                         />
-                                                        <Label htmlFor='isEmisBpl' className='cursor-pointer'>
+                                                        <Label htmlFor='isEmisBpl' className='cursor-pointer font-medium text-sm'>
                                                             EMIS/BPL Card/STS No.
                                                         </Label>
                                                     </div>
                                                 </div>
-
-                                                {/* EMIS input when checked */}
+                                                {/* Row 9: EMIS No (Conditional) */}
                                                 {Number(watch('isEmisBpl')) === 1 && (
-                                                    <div className='mt-3 w-1/2'>
+                                                    <div className='rounded-md border border-amber-200 bg-amber-50 p-3'>
                                                         <InputText
                                                             label='EMIS / BPL / STS No.'
-                                                            required
                                                             id='amsT_BPLCardNo'
-                                                            placeholder='Enter card or STS no.'
+                                                            placeholder='Enter number'
                                                             {...register('amsT_BPLCardNo')}
                                                             error={errors.amsT_BPLCardNo?.message}
                                                         />
                                                     </div>
                                                 )}
-
-                                                {/* ECS details panel */}
-                                                {Number(watch('amsT_ECSFlag')) === 1 && (
-                                                    <div className='mt-4 rounded border border-gray-200 bg-white p-4 shadow-sm'>
-                                                        <div className='flex items-center justify-between'>
-                                                            <h4 className='font-semibold'>ECS STUDENT DETAILS</h4>
-                                                            <Button
-                                                                size='sm'
-                                                                className='w-fit'
-                                                                variant='ghost'
-                                                                onClick={() => setValue('amsT_ECSFlag', 0)}>
-                                                                Close
-                                                            </Button>
-                                                        </div>
-
-                                                        <div className='mt-3 grid grid-cols-1 gap-4 md:grid-cols-2'>
-                                                            <InputText
-                                                                label='Account No.'
-                                                                required
-                                                                id='asecS_AccountNo'
-                                                                placeholder='Account number'
-                                                                {...register('asecS_AccountNo')}
-                                                                error={errors.asecS_AccountNo?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='Account Holder Name'
-                                                                required
-                                                                id='asecS_AccountHolderName'
-                                                                placeholder='Account holder name'
-                                                                {...register('asecS_AccountHolderName')}
-                                                                error={errors.asecS_AccountHolderName?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='Bank Name'
-                                                                required
-                                                                id='asecS_BankName'
-                                                                placeholder='Bank name'
-                                                                {...register('asecS_BankName')}
-                                                                error={errors.asecS_BankName?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='Account Type'
-                                                                required
-                                                                id='asecS_AccountType'
-                                                                placeholder='Savings / Current'
-                                                                {...register('asecS_AccountType')}
-                                                                error={errors.asecS_AccountType?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='MICR Code'
-                                                                required
-                                                                id='asecS_MICRNo'
-                                                                placeholder='MICR'
-                                                                {...register('asecS_MICRNo')}
-                                                                error={errors.asecS_MICRNo?.message}
-                                                            />
-
-                                                            <InputText
-                                                                label='Branch Name'
-                                                                required
-                                                                id='asecS_Branch'
-                                                                placeholder='Branch name'
-                                                                {...register('asecS_Branch')}
-                                                                error={errors.asecS_Branch?.message}
-                                                            />
-                                                        </div>
-
-                                                        <div className='mt-4 flex justify-end'>
-                                                            <Button
-                                                                onClick={() => setValue('amsT_ECSFlag', 0)}
-                                                                size='sm'
-                                                                className='ml-2 w-fit'>
-                                                                ADD & CLOSE
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            <InputText
-                                                label='Bank Name'
-                                                id='amsT_BankName'
-                                                placeholder='Bank name'
-                                                {...register('amsT_BankName')}
-                                                error={errors.amsT_BankName?.message}
-                                            />
-                                            <InputText
-                                                label='Branch Name'
-                                                id='amsT_BankBranch'
-                                                placeholder='Branch name'
-                                                {...register('amsT_BankBranch')}
-                                                error={errors.amsT_BankBranch?.message}
-                                            />
-                                            <InputText
-                                                label='Bank Account No.'
-                                                id='amsT_BankAccountNo'
-                                                placeholder='Bank Account Number'
-                                                {...register('amsT_BankAccountNo')}
-                                                error={errors.amsT_BankAccountNo?.message}
-                                            />
-                                            <InputText
-                                                label='Bank IFSC Code.'
-                                                id='amsT_BankIFSCCode'
-                                                placeholder='Bank IFSC Code'
-                                                {...register('amsT_BankIFSCCode')}
-                                                error={errors.amsT_BankIFSCCode?.message}
-                                            />
-
-                                            <div className='flex flex-col gap-1.5'>
-                                                <Label htmlFor='feeConcessionType'>
-                                                    Fee Concession Type <span className='ml-1 text-red-500'>*</span>
-                                                </Label>
-                                                <Controller
-                                                    name='feeConcessionType'
-                                                    control={control}
-                                                    render={({ field }) => (
-                                                        <Select
-                                                            key={field.value || 'empty'}
-                                                            onValueChange={(value) => field.onChange(value)}
-                                                            required
-                                                            value={field.value?.toString() || ''}>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder='Select fee concession type' />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {concessionLoading ? (
-                                                                    <SelectItem value={'loading'} disabled>
-                                                                        Loading...
-                                                                    </SelectItem>
-                                                                ) : concession?.data && concession.data.length > 0 ? (
-                                                                    concession.data.map((item: any) => (
-                                                                        <SelectItem key={String(item.fmcC_Id)} value={String(item.fmcC_Id)}>
+                                                {/* Row 10: Bank Name & Branch Name */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Bank Name'
+                                                        id='amsT_BankName'
+                                                        placeholder='Enter bank name'
+                                                        {...register('amsT_BankName')}
+                                                        error={errors.amsT_BankName?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Branch Name'
+                                                        id='amsT_BankBranch'
+                                                        placeholder='Enter branch name'
+                                                        {...register('amsT_BankBranch')}
+                                                        error={errors.amsT_BankBranch?.message}
+                                                    />
+                                                </div>
+                                                {/* Row 11: Bank Account No & IFSC Code */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Bank Account No.'
+                                                        id='amsT_BankAccountNo'
+                                                        placeholder='Enter account number'
+                                                        {...register('amsT_BankAccountNo')}
+                                                        error={errors.amsT_BankAccountNo?.message}
+                                                    />
+                                                    <InputText
+                                                        label='Bank IFSC Code'
+                                                        id='amsT_BankIFSCCode'
+                                                        placeholder='Enter IFSC code'
+                                                        {...register('amsT_BankIFSCCode')}
+                                                        error={errors.amsT_BankIFSCCode?.message}
+                                                    />
+                                                </div>
+                                                {/* Row 12: Fee Concession Type */}
+                                                <div className='flex flex-col gap-1.5'>
+                                                    <Label htmlFor='feeConcessionType'>
+                                                        Fee Concession Type <span className='text-red-500'>*</span>
+                                                    </Label>
+                                                    <Controller
+                                                        name='feeConcessionType'
+                                                        control={control}
+                                                        render={({ field }) => (
+                                                            <Select
+                                                                onValueChange={(value) => field.onChange(value)}
+                                                                value={field.value?.toString() || ''}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder='Select type' />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {concession?.data?.map((item: any) => (
+                                                                        <SelectItem key={item.fmcC_Id} value={item.fmcC_Id.toString()}>
                                                                             {item.fmcC_ConcessionName}
                                                                         </SelectItem>
-                                                                    ))
-                                                                ) : (
-                                                                    <SelectItem value={'none'} disabled>
-                                                                        No concession types
-                                                                    </SelectItem>
-                                                                )}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    )}
+                                                                    )) || (
+                                                                            <SelectItem value='none' disabled>
+                                                                                No items available
+                                                                            </SelectItem>
+                                                                        )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        )}
+                                                    />
+                                                    {errors.feeConcessionType && <FormError>{errors.feeConcessionType.message}</FormError>}
+                                                </div>
+                                                {/* Row 13: TPIN & GPS */}
+                                                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                                                    <InputText
+                                                        label='Student TPIN'
+                                                        id='amsT_Tpin'
+                                                        placeholder='Enter TPIN'
+                                                        {...register('amsT_Tpin')}
+                                                        error={errors.amsT_Tpin?.message}
+                                                    />
+                                                    <InputText
+                                                        label='GPS Tracing Id'
+                                                        id='amsT_GPSTrackingId'
+                                                        placeholder='Enter GPS ID'
+                                                        {...register('amsT_GPSTrackingId')}
+                                                        error={errors.amsT_GPSTrackingId?.message}
+                                                    />
+                                                </div>
+                                                {/* Row 14: Medium of Instruction */}
+                                                <InputText
+                                                    label='Medium Of Instruction'
+                                                    id='amsT_MediumOfInstruction'
+                                                    placeholder='Enter medium'
+                                                    {...register('amsT_MediumOfInstruction')}
+                                                    error={errors.amsT_MediumOfInstruction?.message}
                                                 />
-                                                {errors.feeConcessionType && <FormError>{errors.feeConcessionType.message}</FormError>}
+                                                {/* Row 15: Remarks */}
+                                                <div className='flex flex-col gap-1.5'>
+                                                    <Label htmlFor='amsT_Remarks'>Remarks</Label>
+                                                    <InputTextarea
+                                                        id='amsT_Remarks'
+                                                        placeholder='Enter remarks'
+                                                        {...register('amsT_Remarks')}
+                                                        error={errors.amsT_Remarks?.message}
+                                                        className='min-h-[80px]'
+                                                    />
+                                                </div>
                                             </div>
-
-                                            {/* Student TPIN */}
-                                            <InputText
-                                                label='Student TPIN'
-                                                id='amsT_Tpin'
-                                                placeholder='Enter student TPIN'
-                                                {...register('amsT_Tpin')}
-                                                error={errors.amsT_Tpin?.message}
-                                            />
-
-                                            {/* GPS Tracing Id */}
-                                            <InputText
-                                                label='GPS Tracing Id'
-                                                id='amsT_GPSTrackingId'
-                                                placeholder='Enter GPS tracing ID'
-                                                {...register('amsT_GPSTrackingId')}
-                                                error={errors.amsT_GPSTrackingId?.message}
-                                            />
-
-                                            {/* Medium Of Instruction */}
-                                            <InputText
-                                                label='Medium Of Instruction'
-                                                id='amsT_MediumOfInstruction'
-                                                placeholder='Enter medium of instruction'
-                                                {...register('amsT_MediumOfInstruction')}
-                                                error={errors.amsT_MediumOfInstruction?.message}
-                                            />
                                         </div>
                                     </div>
                                 )}
+
                                 {/* Step 2: Address Information */}
                                 {currentStep === 2 && (
                                     <div className='space-y-6'>
-                                        <div>
+                                        <div className='mb-6 border-b pb-4'>
                                             <h2 className='font-bold text-2xl text-gray-900'>Address Information</h2>
                                             <p className='mt-1 text-gray-500 text-sm'>
                                                 Please provide residential and permanent address details
@@ -4130,138 +4340,81 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                         </div>
 
                                         <div className='space-y-8'>
-                                            <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Residential Address</h3>
-                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                            {/* Residential Address Section */}
+                                            <div className='card-box'>
+                                                <h3 className='mb-4 border-b pb-2 font-semibold text-gray-800 text-lg'>
+                                                    Residential Address
+                                                </h3>
+                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                                     <InputText
                                                         label='Street'
                                                         id='amsT_ConStreet'
-                                                        placeholder='Enter street'
+                                                        placeholder='Enter street name/no'
                                                         {...register('amsT_ConStreet')}
                                                         error={errors.amsT_ConStreet?.message}
                                                     />
                                                     <InputText
                                                         label='Area'
                                                         id='amsT_ConArea'
-                                                        placeholder='Enter area'
+                                                        placeholder='Enter area name'
                                                         {...register('amsT_ConArea')}
                                                         error={errors.amsT_ConArea?.message}
                                                     />
+
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_ConCountry'>
-                                                            Country<span className='ml-1 text-red-500'>*</span>
+                                                            Country <span className='ml-1 text-red-500'>*</span>
                                                         </Label>
                                                         <Controller
                                                             name='amsT_ConCountry'
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
                                                                     value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select country' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {countryLoading ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
+                                                                        {country?.data?.map((item: any) => (
+                                                                            <SelectItem
+                                                                                key={item.ivrmmC_Id}
+                                                                                value={item.ivrmmC_Id.toString()}>
+                                                                                {item.ivrmmC_CountryName}
                                                                             </SelectItem>
-                                                                        ) : countryError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            country?.data?.map((item) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmC_Id}
-                                                                                    value={item.ivrmmC_Id.toString()}>
-                                                                                    {item.ivrmmC_CountryName}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        )}
+                                                                        ))}
                                                                     </SelectContent>
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.amsT_ConCountry && <FormError>{errors.amsT_ConCountry.message}</FormError>}
                                                     </div>
+
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='pasR_ConState'>
-                                                            State<span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
+                                                        <Label htmlFor='amsT_ConState'>State <span className='ml-1 text-red-500'>*</span></Label>
                                                         <Controller
                                                             name='amsT_ConState'
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
                                                                     value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select state' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {conStateLoading ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
+                                                                        {conState?.data?.map((item: any) => (
+                                                                            <SelectItem
+                                                                                key={item.ivrmmS_Id}
+                                                                                value={item.ivrmmS_Id.toString()}>
+                                                                                {item.ivrmmS_Name}
                                                                             </SelectItem>
-                                                                        ) : conStateError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            conState?.data?.map((item) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmS_Id}
-                                                                                    value={item.ivrmmS_Id.toString()}>
-                                                                                    {item.ivrmmS_Name}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        )}
+                                                                        ))}
                                                                     </SelectContent>
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.amsT_ConState && <FormError>{errors.amsT_ConState.message}</FormError>}
                                                     </div>
-                                                    {/* <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_ConDistrict'>District</Label>
-                                                        <Controller
-                                                            name='amsT_ConDistrict'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <Select
-                                                                    key={field.value || 'empty'}
-                                                                    onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || ''}>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder='Select District' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {conDistrictLoading ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
-                                                                            </SelectItem>
-                                                                        ) : conDistrictError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            conDistrict?.data?.map((item) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmD_Id}
-                                                                                    value={item.ivrmmD_Id.toString()}>
-                                                                                    {item.ivrmmD_Name}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        )}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                        {errors.amsT_ConDistrict && <FormError>{errors.amsT_ConDistrict.message}</FormError>}
-                                                    </div> */}
+
                                                     <InputText
                                                         label='City'
                                                         id='amsT_ConCity'
@@ -4269,7 +4422,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         {...register('amsT_ConCity')}
                                                         error={errors.amsT_ConCity?.message}
                                                     />
+
                                                     <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_ConPincode'>Pin Code/Zip Code</Label>
                                                         <Controller
                                                             name='amsT_ConPincode'
                                                             control={control}
@@ -4288,72 +4443,47 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
-                                                                <>
-                                                                    <MobileNumberInput
-                                                                        label='Pin Code/Zip Code'
-                                                                        id='amsT_ConPincode'
-                                                                        value={field.value}
-                                                                        onChange={(valueOrEvent: any) => {
-                                                                            // MobileNumberInput forwards the input event; accept either event or string
-                                                                            const raw = valueOrEvent?.target?.value ?? valueOrEvent;
-                                                                            const str = raw == null ? '' : String(raw).replace(/\D/g, '');
-                                                                            const truncated = conZipLength
-                                                                                ? str.slice(0, conZipLength)
-                                                                                : str;
-                                                                            field.onChange(truncated);
-                                                                            // Set/clear a manual validation error so message appears immediately
-                                                                            if (
-                                                                                conZipLength &&
-                                                                                truncated !== '' &&
-                                                                                String(truncated).length !== conZipLength
-                                                                            ) {
-                                                                                setError('amsT_ConPincode', {
-                                                                                    type: 'manual',
-                                                                                    message: `Pin code must be ${conZipLength} digits`
-                                                                                });
-                                                                            } else {
-                                                                                clearErrors('amsT_ConPincode');
-                                                                            }
-                                                                            // Also trigger the resolver-based validation
-                                                                            trigger('amsT_ConPincode');
-                                                                        }}
-                                                                        minLength={conZipLength}
-                                                                        maxLength={conZipLength}
-                                                                        type='number'
-                                                                        showSpinner={false}
-                                                                    />
-                                                                    {conCountryObj && conZipLength && (
-                                                                        <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Pin code must be ${conZipLength} digits for ${conCountryObj.ivrmmC_CountryName}`}
-                                                                        </span>
-                                                                    )}
-                                                                </>
+                                                                <InputText
+                                                                    id='amsT_ConPincode'
+                                                                    placeholder='Enter pin code'
+                                                                    {...field}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value.replace(/\D/g, '');
+                                                                        field.onChange(val);
+                                                                    }}
+                                                                    error={errors.amsT_ConPincode?.message}
+                                                                />
                                                             )}
                                                         />
-                                                        {errors.amsT_ConPincode && <FormError>{errors.amsT_ConPincode.message}</FormError>}
                                                     </div>
                                                 </div>
                                             </div>
-                                            {/* Same as Residential Address Checkbox */}
-                                            <div className='flex items-center space-x-2 rounded-lg border border-blue-200 bg-blue-50 p-4'>
+
+                                            {/* Same as Residential Checkbox */}
+                                            <div className='flex items-center space-x-3 rounded-lg border-2 border-blue-100 bg-blue-50/50 p-4 transition-all hover:bg-blue-50'>
                                                 <Checkbox
                                                     id='sameAsResidential'
                                                     checked={sameAsResidential}
                                                     onCheckedChange={handleSameAsResidential}
+                                                    className='h-5 w-5'
                                                 />
                                                 <Label
                                                     htmlFor='sameAsResidential'
-                                                    className='cursor-pointer font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
-                                                    Same as Residential Address
+                                                    className='cursor-pointer font-semibold text-base text-blue-900'>
+                                                    Permanent Address is same as Residential Address
                                                 </Label>
                                             </div>
-                                            <div className='space-y-4'>
-                                                <h3 className='font-semibold text-gray-800 text-lg'>Permanent Address</h3>
-                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+
+                                            {/* Permanent Address Section */}
+                                            <div className='card-box'>
+                                                <h3 className='mb-4 border-b pb-2 font-semibold text-gray-800 text-lg'>
+                                                    Permanent Address
+                                                </h3>
+                                                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                                                     <InputText
                                                         label='Street'
                                                         id='amsT_PerStreet'
-                                                        placeholder='Enter street'
+                                                        placeholder='Enter street name/no'
                                                         {...register('amsT_PerStreet')}
                                                         error={errors.amsT_PerStreet?.message}
                                                         disabled={sameAsResidential}
@@ -4361,11 +4491,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     <InputText
                                                         label='Area'
                                                         id='amsT_PerArea'
-                                                        placeholder='Enter area'
+                                                        placeholder='Enter area name'
                                                         {...register('amsT_PerArea')}
                                                         error={errors.amsT_PerArea?.message}
                                                         disabled={sameAsResidential}
                                                     />
+
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Label htmlFor='amsT_PerCountry'>
                                                             Country <span className='ml-1 text-red-500'>*</span>
@@ -4375,7 +4506,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
                                                                     value={field.value?.toString() || ''}
                                                                     disabled={sameAsResidential}>
@@ -4383,39 +4513,26 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         <SelectValue placeholder='Select country' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {countryLoading ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
+                                                                        {country?.data?.map((item: any) => (
+                                                                            <SelectItem
+                                                                                key={item.ivrmmC_Id}
+                                                                                value={item.ivrmmC_Id.toString()}>
+                                                                                {item.ivrmmC_CountryName}
                                                                             </SelectItem>
-                                                                        ) : countryError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            country?.data?.map((item) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmC_Id}
-                                                                                    value={item.ivrmmC_Id.toString()}>
-                                                                                    {item.ivrmmC_CountryName}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        )}
+                                                                        ))}
                                                                     </SelectContent>
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.amsT_PerCountry && <FormError>{errors.amsT_PerCountry.message}</FormError>}
                                                     </div>
+
                                                     <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerState'>
-                                                            State <span className='ml-1 text-red-500'>*</span>
-                                                        </Label>
+                                                        <Label htmlFor='amsT_PerState'>State <span className='ml-1 text-red-500'>*</span></Label>
                                                         <Controller
                                                             name='amsT_PerState'
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
                                                                     value={field.value?.toString() || ''}
                                                                     disabled={sameAsResidential}>
@@ -4423,67 +4540,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         <SelectValue placeholder='Select state' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {perStateLoading ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
+                                                                        {perState?.data?.map((item: any) => (
+                                                                            <SelectItem
+                                                                                key={item.ivrmmS_Id}
+                                                                                value={item.ivrmmS_Id.toString()}>
+                                                                                {item.ivrmmS_Name}
                                                                             </SelectItem>
-                                                                        ) : perStateError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            perState?.data?.map((item) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmS_Id}
-                                                                                    value={item.ivrmmS_Id.toString()}>
-                                                                                    {item.ivrmmS_Name}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        )}
+                                                                        ))}
                                                                     </SelectContent>
                                                                 </Select>
                                                             )}
                                                         />
-                                                        {errors.amsT_PerState && <FormError>{errors.amsT_PerState.message}</FormError>}
                                                     </div>
-                                                    {/* <div className='flex flex-col gap-1.5'>
-                                                        <Label htmlFor='amsT_PerDistrict'>District</Label>
-                                                        <Controller
-                                                            name='amsT_PerDistrict'
-                                                            control={control}
-                                                            render={({ field }) => (
-                                                                <Select
-                                                                    key={field.value || 'empty'}
-                                                                    onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || ''}
-                                                                    disabled={sameAsResidential}>
-                                                                    <SelectTrigger>
-                                                                        <SelectValue placeholder='Select District' />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {perDistrictLoading ? (
-                                                                            <SelectItem value='loading' disabled>
-                                                                                Loading...
-                                                                            </SelectItem>
-                                                                        ) : perDistrictError ? (
-                                                                            <SelectItem value='error' disabled>
-                                                                                Error loading
-                                                                            </SelectItem>
-                                                                        ) : (
-                                                                            perDistrict?.data?.map((item) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmD_Id}
-                                                                                    value={item.ivrmmD_Id.toString()}>
-                                                                                    {item.ivrmmD_Name}
-                                                                                </SelectItem>
-                                                                            ))
-                                                                        )}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                            )}
-                                                        />
-                                                        {errors.amsT_PerDistrict && <FormError>{errors.amsT_PerDistrict.message}</FormError>}
-                                                    </div> */}
+
                                                     <InputText
                                                         label='City'
                                                         id='amsT_PerCity'
@@ -4492,7 +4561,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         error={errors.amsT_PerCity?.message}
                                                         disabled={sameAsResidential}
                                                     />
+
                                                     <div className='flex flex-col gap-1.5'>
+                                                        <Label htmlFor='amsT_PerPincode'>Pin Code/Zip Code</Label>
                                                         <Controller
                                                             name='amsT_PerPincode'
                                                             control={control}
@@ -4511,49 +4582,19 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
-                                                                <>
-                                                                    <MobileNumberInput
-                                                                        label='Pin Code/Zip Code'
-                                                                        id='amsT_PerPincode'
-                                                                        value={field.value}
-                                                                        onChange={(valueOrEvent: any) => {
-                                                                            const raw = valueOrEvent?.target?.value ?? valueOrEvent;
-                                                                            const str = raw == null ? '' : String(raw).replace(/\D/g, '');
-                                                                            const truncated = perZipLength
-                                                                                ? str.slice(0, perZipLength)
-                                                                                : str;
-                                                                            field.onChange(truncated);
-                                                                            // Set/clear a manual validation error so message appears immediately
-                                                                            if (
-                                                                                perZipLength &&
-                                                                                truncated !== '' &&
-                                                                                String(truncated).length !== perZipLength
-                                                                            ) {
-                                                                                setError('amsT_PerPincode', {
-                                                                                    type: 'manual',
-                                                                                    message: `Pin code must be ${perZipLength} digits`
-                                                                                });
-                                                                            } else {
-                                                                                clearErrors('amsT_PerPincode');
-                                                                            }
-                                                                            // Also trigger the resolver-based validation
-                                                                            trigger('amsT_PerPincode');
-                                                                        }}
-                                                                        minLength={perZipLength}
-                                                                        maxLength={perZipLength}
-                                                                        type='number'
-                                                                        showSpinner={false}
-                                                                        disabled={sameAsResidential}
-                                                                    />
-                                                                    {perCountryObj && perZipLength && (
-                                                                        <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Pin code must be ${perZipLength} digits for ${perCountryObj.ivrmmC_CountryName}`}
-                                                                        </span>
-                                                                    )}
-                                                                </>
+                                                                <InputText
+                                                                    id='amsT_PerPincode'
+                                                                    placeholder='Enter pin code'
+                                                                    {...field}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value.replace(/\D/g, '');
+                                                                        field.onChange(val);
+                                                                    }}
+                                                                    error={errors.amsT_PerPincode?.message}
+                                                                    disabled={sameAsResidential}
+                                                                />
                                                             )}
                                                         />
-                                                        {errors.amsT_PerPincode && <FormError>{errors.amsT_PerPincode.message}</FormError>}
                                                     </div>
                                                 </div>
                                             </div>
@@ -4640,6 +4681,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         id='fatherAadharNo'
                                                         placeholder='Enter Aadhaar No.'
                                                         {...register('fatherAadharNo')}
+                                                        maxLength={12}
+                                                        onInput={(e) => {
+                                                            e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '');
+                                                        }}
                                                         error={errors.fatherAadharNo?.message}
                                                     />
                                                     <div className='flex flex-col gap-1.5'>
@@ -4696,7 +4741,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         inputProps={{
                                                                             id: 'fatherMobileNumbers',
                                                                             name: 'fatherMobileNumbers',
-                                                                            maxLength: 25,
+                                                                            maxLength: 15,
                                                                             required: false,
                                                                             style: {
                                                                                 width: '87%',
@@ -4712,7 +4757,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
@@ -4784,7 +4829,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 Error loading
                                                                             </SelectItem>
                                                                         ) : (
-                                                                            country?.data?.map((item) => (
+                                                                            country?.data?.map((item: any) => (
                                                                                 <SelectItem
                                                                                     key={item.ivrmmC_Id}
                                                                                     value={item.ivrmmC_Id.toString()}>
@@ -4857,7 +4902,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    country?.data?.map((item) => (
+                                                                                    country?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmC_CountryName}
                                                                                             value={item.ivrmmC_CountryName.toString()}>
@@ -4900,7 +4945,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    fatherPresentState?.data?.map((item) => (
+                                                                                    fatherPresentState?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmS_Id}
                                                                                             value={item.ivrmmS_Id.toString()}>
@@ -5046,7 +5091,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    country?.data?.map((item) => (
+                                                                                    country?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmC_CountryName}
                                                                                             value={item.ivrmmC_CountryName.toString()}>
@@ -5090,7 +5135,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    fatherPresentState?.data?.map((item) => (
+                                                                                    fatherPresentState?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmS_Id}
                                                                                             value={item.ivrmmS_Id.toString()}>
@@ -5245,7 +5290,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 inputProps={{
                                                                                     id: 'fatherOfficePhone',
                                                                                     name: 'fatherOfficePhone',
-                                                                                    maxLength: 25,
+                                                                                    maxLength: 15,
                                                                                     required: false,
                                                                                     style: {
                                                                                         width: '87%',
@@ -5261,7 +5306,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                                 enableSearch
                                                                                 disableCountryCode={false}
-                                                                                enableLongNumbers={true}
+                                                                                enableLongNumbers={false}
                                                                                 isValid={true}
                                                                                 preserveOrder={['country', 'nationalNumber']}
                                                                             />
@@ -5326,7 +5371,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    religion?.data?.map((item) => (
+                                                                                    religion?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmR_Id}
                                                                                             value={item.ivrmmR_Id.toString()}>
@@ -5344,7 +5389,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             </div>
 
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='fatherCasteId'>Caste Category</Label>
+                                                                <Label htmlFor='fatherCasteId'>Caste</Label>
                                                                 <Controller
                                                                     name='fatherCasteId'
                                                                     control={control}
@@ -5366,7 +5411,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    fatherCaste?.data?.map((item) => (
+                                                                                    fatherCaste?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.imC_Id}
                                                                                             value={item.imC_Id.toString()}>
@@ -5438,6 +5483,40 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 <Label htmlFor='fatherSelfEmployedFlg' className='cursor-pointer'>
                                                                     Self Employed Flg
                                                                 </Label>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className='col-span-full space-y-4 md:col-span-2 lg:col-span-3'>
+                                                            <h3 className='font-semibold text-gray-800 text-lg'>Father Bank Details</h3>
+                                                            <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
+                                                                <InputText
+                                                                    label='Bank Name'
+                                                                    id='fatherBankName'
+                                                                    placeholder='Enter bank name'
+                                                                    {...register('fatherBankName')}
+                                                                    error={errors.fatherBankName?.message}
+                                                                />
+                                                                <InputText
+                                                                    label='Account No.'
+                                                                    id='fatherBankAccountNo'
+                                                                    placeholder='Enter account number'
+                                                                    {...register('fatherBankAccountNo')}
+                                                                    error={errors.fatherBankAccountNo?.message}
+                                                                />
+                                                                <InputText
+                                                                    label='IFSC Code'
+                                                                    id='fatherBankIFSCCode'
+                                                                    placeholder='Enter IFSC code'
+                                                                    {...register('fatherBankIFSCCode')}
+                                                                    error={errors.fatherBankIFSCCode?.message}
+                                                                />
+                                                                <InputText
+                                                                    label='Bank Branch'
+                                                                    id='fatherBankBranch'
+                                                                    placeholder='Enter bank branch'
+                                                                    {...register('fatherBankBranch')}
+                                                                    error={errors.fatherBankBranch?.message}
+                                                                />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -5514,6 +5593,10 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         id='motherAadharNo'
                                                         placeholder='Enter Aadhaar No'
                                                         {...register('motherAadharNo')}
+                                                        maxLength={12}
+                                                        onInput={(e) => {
+                                                            e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '');
+                                                        }}
                                                         error={errors.motherAadharNo?.message}
                                                     />
 
@@ -5570,7 +5653,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         inputProps={{
                                                                             id: 'motherMobileNumbers',
                                                                             name: 'motherMobileNumbers',
-                                                                            maxLength: 25,
+                                                                            maxLength: 15,
                                                                             required: false,
                                                                             style: {
                                                                                 width: '87%',
@@ -5586,7 +5669,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
@@ -5650,7 +5733,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 Error loading
                                                                             </SelectItem>
                                                                         ) : (
-                                                                            country?.data?.map((item) => (
+                                                                            country?.data?.map((item: any) => (
                                                                                 <SelectItem
                                                                                     key={item.ivrmmC_Id}
                                                                                     value={item.ivrmmC_Id.toString()}>
@@ -5733,7 +5816,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    country?.data?.map((item) => (
+                                                                                    country?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmC_CountryName}
                                                                                             value={item.ivrmmC_CountryName.toString()}>
@@ -5773,7 +5856,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 ) : motherPresentStateError ? (
                                                                                     <SelectItem value='error'>Error loading</SelectItem>
                                                                                 ) : (
-                                                                                    motherPresentState?.data?.map((item) => (
+                                                                                    motherPresentState?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmS_Id}
                                                                                             value={item.ivrmmS_Id.toString()}>
@@ -5930,7 +6013,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    country?.data?.map((item) => (
+                                                                                    country?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmC_CountryName}
                                                                                             value={item.ivrmmC_CountryName.toString()}>
@@ -5974,7 +6057,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    motherPresentState?.data?.map((item) => (
+                                                                                    motherPresentState?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmS_Id}
                                                                                             value={item.ivrmmS_Id.toString()}>
@@ -6128,7 +6211,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 inputProps={{
                                                                                     id: 'motherOfficePhone',
                                                                                     name: 'motherOfficePhone',
-                                                                                    maxLength: 25,
+                                                                                    maxLength: 15,
                                                                                     required: false,
                                                                                     style: {
                                                                                         width: '87%',
@@ -6144,7 +6227,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                 inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                                 enableSearch
                                                                                 disableCountryCode={false}
-                                                                                enableLongNumbers={true}
+                                                                                enableLongNumbers={false}
                                                                                 isValid={true}
                                                                                 preserveOrder={['country', 'nationalNumber']}
                                                                             />
@@ -6209,7 +6292,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    religion?.data?.map((item) => (
+                                                                                    religion?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.ivrmmR_Id}
                                                                                             value={item.ivrmmR_Id.toString()}>
@@ -6227,7 +6310,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             </div>
 
                                                             <div className='flex flex-col gap-1.5'>
-                                                                <Label htmlFor='motherCasteId'>Caste Category</Label>
+                                                                <Label htmlFor='motherCasteId'>Caste</Label>
                                                                 <Controller
                                                                     name='motherCasteId'
                                                                     control={control}
@@ -6249,7 +6332,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                         Error loading
                                                                                     </SelectItem>
                                                                                 ) : (
-                                                                                    motherCaste?.data?.map((item) => (
+                                                                                    motherCaste?.data?.map((item: any) => (
                                                                                         <SelectItem
                                                                                             key={item.imC_Id}
                                                                                             value={item.imC_Id.toString()}>
@@ -6372,7 +6455,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                     render={({ field }) => (
                                                         <MultiSelect
                                                             options={
-                                                                source?.data?.map((data) => ({
+                                                                source?.data?.map((data: any) => ({
                                                                     label: data.pamS_SourceName,
                                                                     value: data.pamS_Id.toString()
                                                                 })) || []
@@ -6381,8 +6464,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 field.onChange(selectedValues);
                                                                 handleSourceSelection(selectedValues);
                                                             }}
-                                                            defaultValue={selectedSourceItems.map((data) => data.pamS_Id)}
-                                                            value={selectedSourceItems.map((data) => data.pamS_Id)}
+                                                            defaultValue={selectedSourceItems.map((data: any) => data.pamS_Id.toString())}
+                                                            value={selectedSourceItems.map((data: any) => data.pamS_Id.toString())}
                                                             placeholder='Select sources'
                                                             variant='inverted'
                                                             disabled={sourceLoading}
@@ -6505,7 +6588,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                             Error loading classes
                                                                                         </SelectItem>
                                                                                     ) : (
-                                                                                        admissionClass?.data?.map((item) => (
+                                                                                        admissionClass?.data?.map((item: any) => (
                                                                                             <SelectItem
                                                                                                 key={item.asmcL_Id}
                                                                                                 value={item.asmcL_Id.toString()}>
@@ -6750,7 +6833,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                     inputProps={{
                                                                                         id: `guardianPhone_${idx}`,
                                                                                         name: `guardian.${idx}.guardianPhone`,
-                                                                                        maxLength: 25,
+                                                                                        maxLength: 15,
                                                                                         required: false,
                                                                                         style: {
                                                                                             width: '87%',
@@ -6766,7 +6849,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                     inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                                     enableSearch
                                                                                     disableCountryCode={false}
-                                                                                    enableLongNumbers={true}
+                                                                                    enableLongNumbers={false}
                                                                                     isValid={true}
                                                                                     preserveOrder={['country', 'nationalNumber']}
                                                                                 />
@@ -6778,6 +6861,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                                                 .expected
                                                                                         } digits for ${
                                                                                             phoneExpectedInfo[`guardian_${idx}_phone`]
+                                                                                        {`Mobile number must be exactly ${phoneExpectedInfo[`guardian_${idx}_phone`]
+                                                                                            .expected
+                                                                                            } digits for ${phoneExpectedInfo[`guardian_${idx}_phone`]
                                                                                                 .name ?? 'selected country'
                                                                                         }`}
                                                                                     </span>
@@ -7260,7 +7346,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                             Error loading
                                                                         </SelectItem>
                                                                     ) : (
-                                                                        country?.data?.map((item) => (
+                                                                        country?.data?.map((item: any) => (
                                                                             <SelectItem
                                                                                 key={item.ivrmmC_Id}
                                                                                 value={item.ivrmmC_Id.toString()}>
@@ -7298,7 +7384,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                             Error loading
                                                                         </SelectItem>
                                                                     ) : (
-                                                                        birthState?.data?.map((item) => (
+                                                                        birthState?.data?.map((item: any) => (
                                                                             <SelectItem
                                                                                 key={item.ivrmmS_Id}
                                                                                 value={item.ivrmmS_Id.toString()}>
@@ -7645,83 +7731,142 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             </p>
                                         </div>
 
-                                        {/* Document uploads: users can add files which will be submitted with final form */}
-                                        <div>
-                                            <div className='mb-2 text-gray-600 text-sm'>
-                                                Add documents required by you. Files are stored locally and sent on final submit.
-                                            </div>
-                                            {/* <label className='inline-flex cursor-pointer items-center gap-2 rounded-md border-2 border-dashed px-4 py-2 text-sm hover:border-primary'>
-                                                <svg className='h-4 w-4 text-primary' viewBox='0 0 24 24' fill='none' stroke='currentColor'>
-                                                    <path
-                                                        strokeLinecap='round'
-                                                        strokeLinejoin='round'
-                                                        strokeWidth={2}
-                                                        d='M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9'
-                                                    />
-                                                </svg>
-                                                <span>Select documents</span>
-                                                <input
-                                                    type='file'
-                                                    accept='.pdf,.jpg,.jpeg,.png'
-                                                    className='hidden'
-                                                    multiple
-                                                    disabled={isSubmitting}
-                                                    onChange={(e) => {
-                                                        const files = Array.from(e.target.files || []);
-                                                        files.forEach((file) => {
-                                                            // Use a generated id for ad-hoc documents
-                                                            const generatedId = Number(
-                                                                String(Date.now()) + Math.floor(Math.random() * 1000)
-                                                            );
-                                                            handleDocumentUpload(generatedId, file, file.name);
-                                                        });
-                                                        e.target.value = '';
-                                                    }}
-                                                />
-                                            </label> */}
-
-                                            {uploadedDocuments.length > 0 && (
-                                                <div className='mt-4 space-y-2'>
-                                                    {uploadedDocuments.map((d) => (
-                                                        <div
-                                                            key={d.amsmD_Id}
-                                                            className='flex items-center justify-between rounded-lg border p-3'>
-                                                            <div>
-                                                                <div className='font-medium text-sm'>{d.documentName}</div>
-                                                                <div className='text-gray-500 text-xs'>
-                                                                    {d.file ? `${(d.file.size / 1024 / 1024).toFixed(2)} MB` : ''}
-                                                                </div>
-                                                            </div>
-                                                            <div className='flex gap-2'>
-                                                                {d.document_Path && (
-                                                                    <Button
-                                                                        type='button'
-                                                                        size='sm'
-                                                                        variant='ghost'
-                                                                        onClick={() => window.open(d.document_Path, '_blank')}
-                                                                        aria-label={`View ${d.documentName}`}>
-                                                                        <Eye className='h-4 w-4' />
-                                                                    </Button>
-                                                                )}
-                                                                <Button
-                                                                    type='button'
-                                                                    size='sm'
-                                                                    variant='destructive'
-                                                                    onClick={() =>
-                                                                        handleDocumentDelete(
-                                                                            d.amsmD_Id,
-                                                                            d.document_Path,
-                                                                            d.documentName || 'Document'
-                                                                        )
-                                                                    }
-                                                                    aria-label={`Delete ${d.documentName}`}>
-                                                                    <Trash className='h-4 w-4' />
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
+                                        {/* Dynamic Master Documents Table */}
+                                        <div className='overflow-hidden rounded-lg border'>
+                                            <table className='w-full table-fixed'>
+                                                <thead>
+                                                    <tr className='bg-gray-50'>
+                                                        <th className='w-1/3 px-4 py-3 text-left text-gray-600 text-sm'>Document Name</th>
+                                                        <th className='w-1/4 px-4 py-3 text-left text-gray-600 text-sm'>Status</th>
+                                                        <th className='w-1/4 px-4 py-3 text-left text-gray-600 text-sm'>Upload</th>
+                                                        <th className='w-auto px-4 py-3 text-left text-gray-600 text-sm'>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {masterDocuments.map((masterDoc: any) => {
+                                                        const doc = uploadedDocuments.find((d) => d.amsmD_Id === masterDoc.amsmD_Id);
+                                                        const isMandatory = masterDoc.amsmD_FLAG;
+                                                        return (
+                                                            <tr
+                                                                key={masterDoc.amsmD_Id}
+                                                                className={`border-t ${doc?.document_Path ? 'bg-green-50' : 'bg-amber-50'}`}>
+                                                                <td className='px-4 py-4'>
+                                                                    <div className='flex flex-col'>
+                                                                        <span className='font-medium'>
+                                                                            {masterDoc.amsmD_DocumentName}
+                                                                            {isMandatory && <span className='ml-1 text-red-500'>*</span>}
+                                                                        </span>
+                                                                        {masterDoc.amsmD_Description && (
+                                                                            <span className='text-gray-500 text-xs'>
+                                                                                {masterDoc.amsmD_Description}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                                <td className='px-4 py-4'>
+                                                                    {doc?.isUploading ? (
+                                                                        <span className='flex items-center gap-2 text-gray-600 text-sm'>
+                                                                            <Spinner size='sm' />
+                                                                            Uploading...
+                                                                        </span>
+                                                                    ) : doc?.document_Path ? (
+                                                                        <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
+                                                                            <svg
+                                                                                className='h-4 w-4 text-green-700'
+                                                                                viewBox='0 0 24 24'
+                                                                                fill='none'
+                                                                                stroke='currentColor'>
+                                                                                <path
+                                                                                    d='M20 6L9 17l-5-5'
+                                                                                    strokeWidth='2'
+                                                                                    strokeLinecap='round'
+                                                                                    strokeLinejoin='round'
+                                                                                />
+                                                                            </svg>
+                                                                            Uploaded
+                                                                        </span>
+                                                                    ) : (
+                                                                        <span className='text-gray-500 text-sm'>Not Uploaded</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className='px-4 py-4'>
+                                                                    {!doc || doc.isUploading ? (
+                                                                        <label className='flex h-12 w-32 cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary'>
+                                                                            <div className='flex flex-col items-center justify-center'>
+                                                                                <span className='text-gray-600 text-xs'>
+                                                                                    Click to upload
+                                                                                </span>
+                                                                            </div>
+                                                                            <input
+                                                                                id={`doc_${masterDoc.amsmD_Id}`}
+                                                                                type='file'
+                                                                                className='hidden'
+                                                                                accept='.pdf,.jpg,.jpeg,.png'
+                                                                                disabled={doc?.isUploading || isSubmitting}
+                                                                                onChange={(e) => {
+                                                                                    const file = e.target.files?.[0];
+                                                                                    if (file) {
+                                                                                        if (file.size > 5 * 1024 * 1024) {
+                                                                                            toast.error('File size must be less than 5MB');
+                                                                                            e.target.value = '';
+                                                                                            return;
+                                                                                        }
+                                                                                        _handleDocumentUpload(
+                                                                                            masterDoc.amsmD_Id,
+                                                                                            file,
+                                                                                            masterDoc.amsmD_DocumentName
+                                                                                        );
+                                                                                        e.target.value = '';
+                                                                                    }
+                                                                                }}
+                                                                            />
+                                                                        </label>
+                                                                    ) : (
+                                                                        <span className='text-gray-500 text-sm'>File selected</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className='px-4 py-4'>
+                                                                    <div className='flex gap-2'>
+                                                                        {doc?.document_Path && (
+                                                                            <Button
+                                                                                type='button'
+                                                                                size='sm'
+                                                                                variant='ghost'
+                                                                                onClick={() => window.open(doc.document_Path, '_blank')}
+                                                                                aria-label={`View ${masterDoc.amsmD_DocumentName}`}>
+                                                                                <Eye className='h-4 w-4' />
+                                                                            </Button>
+                                                                        )}
+                                                                        {doc?.document_Path && (
+                                                                            <Button
+                                                                                type='button'
+                                                                                size='sm'
+                                                                                variant='destructive'
+                                                                                onClick={() =>
+                                                                                    handleDocumentDelete(
+                                                                                        masterDoc.amsmD_Id,
+                                                                                        doc.document_Path,
+                                                                                        masterDoc.amsmD_DocumentName
+                                                                                    )
+                                                                                }
+                                                                                aria-label={`Delete ${masterDoc.amsmD_DocumentName}`}>
+                                                                                <Trash className='h-4 w-4' />
+                                                                            </Button>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                    {masterDocuments.length === 0 && (
+                                                        <tr>
+                                                            <td colSpan={4} className='px-4 py-8 text-center text-gray-500'>
+                                                                No documents required.
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
                                         </div>
 
                                         {/* Parent photos & signatures (Step 6) - table style upload rows */}
@@ -8304,15 +8449,22 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                     {currentStep < steps.length ? (
                                         <Button
                                             type='button'
-                                            onClick={() => {
-                                                if (hasUnsavedGuardian) {
-                                                    toast.error('Please save guardian details before proceeding.');
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                if (!isCurrentStepValid) {
+                                                    toast.error('Please fill all mandatory fields before proceeding');
                                                     return;
                                                 }
                                                 nextStep();
                                             }}
-                                            disabled={isSavingStep || isSubmitting}
-                                            className={hasUnsavedGuardian ? 'opacity-60' : ''}>
+                                            disabled={!isCurrentStepValid || isSavingStep || isSubmitting}
+                                            className={cn(
+                                                'min-w-[120px] transition-all duration-200',
+                                                !isCurrentStepValid
+                                                    ? 'cursor-not-allowed opacity-50 grayscale'
+                                                    : 'shadow-md hover:scale-105 hover:shadow-lg',
+                                                hasUnsavedGuardian ? 'opacity-60' : ''
+                                            )}>
                                             {isSavingStep ? (
                                                 <>
                                                     <Spinner className='mr-2 h-4 w-4' size='sm' />
@@ -8349,4 +8501,64 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             </div>
         </>
     );
+}
+
+const styles = `
+    .img-zoom-in-out .modal {
+        text-align: center;
+    }
+    .img-zoom-in-out .modal .modal-dialog {
+        display: inline-block;
+        width: auto;
+    }
+    .img-zoom-in-out .modal .modal-dialog .img-responsive {
+        max-height: calc(100vh - 225px);
+    }
+    .lblcolor {
+        color: rgb(53, 54, 56);
+        font-weight: 600;
+    }
+    .student-photoadm .file-blue:before {
+        content: 'Upload Student Photo';
+        font-size: 12px;
+    }
+    .card-box {
+        background-color: #fff;
+        background-clip: border-box;
+        border: 1px solid #e7eaed;
+        padding: 1.5rem;
+        margin-bottom: 24px;
+        border-radius: .25rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .text-muted {
+        color: #6c757d !important;
+    }
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+    .premium-input {
+        border-radius: 6px;
+        border: 1px solid #d1d5db;
+        padding: 0.5rem 0.75rem;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .premium-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+    .section-header {
+        border-bottom: 2px solid #3b82f6;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1.5rem;
+        color: #1e3a8a;
+        font-weight: 700;
+    }
+`;
+
+if (typeof document !== 'undefined') {
+    const styleSheet = document.createElement('style');
+    styleSheet.innerText = styles;
+    document.head.appendChild(styleSheet);
 }

@@ -2,6 +2,7 @@
 export interface ISubject {
     ismS_Id: number;
     ismS_SubjectName: string;
+    ismS_SubjectCode?: string;
     eyceS_AplResultFlg: boolean;
     type: 'Marks' | 'Grade';
     eyceS_MarksDisplayFlg?: boolean;
@@ -59,6 +60,8 @@ export interface IAcademicYearandClassandsection {
     emE_ExamName: string;
     amsT_Id: number;
     amsT_FirstName: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
     studentName?: string;
     amsT_AdmNo?: string;
     emcA_Id: number;
@@ -80,6 +83,7 @@ export interface IExamReportCard {
         estmpS_PassFailFlg?: string | null;
         estmpS_MaxMarks?: number | null;
         estmpS_MinMarks?: number | null;
+        eyceS_MinMarks?: number | null;
     }>;
     estmP_TotalMaxMarks?: number | null;
     estmP_TotalObtMarks?: number | null;
@@ -143,6 +147,8 @@ export interface StudentRow {
     asmcL_ClassName: string;
     asmC_SectionName: string;
     sub_list: StudentSubject[];
+    asmcL_Order?: number | null;
+    asmS_Order?: number | null;
 }
 
 // Add these interfaces at the top of your types file
@@ -272,4 +278,3 @@ export interface InstitutionResponse {
     page: number | null;
     page_size: number | null;
 }
-

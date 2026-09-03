@@ -67,6 +67,7 @@ function InvMasterStorePageContent({
                         {...tableProps}
                         data={response?.data?.get_store || []}
                         columns={invMasterStoreColumns}
+                        getRowId={(row) => String(row.invmsT_Id)}
                         isLoading={isLoading}
                         error={error}
                         columnPinning={{ right: ['actions'] }}
@@ -77,7 +78,13 @@ function InvMasterStorePageContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections empname_list={response?.data?.empname_list || []} />
+                <FormSections
+                    empname_list={
+                        Array.isArray(response?.data?.empname_list)
+                            ? response?.data?.empname_list
+                            : response?.data?.empname_list?.$values || []
+                    }
+                />
             </div>
         </div>
     );

@@ -26,6 +26,7 @@ export default function StJamesProgressCardPage() {
     const handleReportSuccess = async (payload: any) => {
         try {
             const response = await getStJamesExamReport(payload);
+            console.log('response', response);
             if (response?.data && response.success) {
                 setReportData(response.data);
                 setReportType(payload.reporttype);
@@ -63,11 +64,7 @@ export default function StJamesProgressCardPage() {
             {isReportVisible && reportData && (
                 <CollapsibleSection title='Progress Cards Report' defaultOpen>
                     <div ref={printRef}>
-                        <StJamesReportList
-                            data={reportData}
-                            reporttype={reportType}
-                            displayAttendance={displayAttendance}
-                        />
+                        <StJamesReportList data={reportData} reporttype={reportType} displayAttendance={displayAttendance} />
                     </div>
                 </CollapsibleSection>
             )}

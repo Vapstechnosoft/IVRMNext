@@ -1,15 +1,16 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
 import { ADMISSION_QUERY_KEYS } from '@/constants/query-keys';
 import {
-    getDanvantariTCLoadData,
-    changeYearDanvantariTC,
-    changeCourseDanvantariTC,
     changeBranchDanvantariTC,
+    changeCourseDanvantariTC,
     changeSemesterDanvantariTC,
-    getDanvantariTCDetails, getDanvantariStudentName
+    changeYearDanvantariTC,
+    getDanvantariStudentName,
+    getDanvantariTCDetails,
+    getDanvantariTCLoadData
 } from '@/server/admission/preadmission/reports/danvantari_transfer_certificate';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useDanvantariTCLoadData = () => {
     return useQuery({
@@ -38,13 +39,15 @@ export const useChangeBranchDanvantariTC = () => {
 
 export const useChangeSemesterDanvantariTC = () => {
     return useMutation({
-        mutationFn: (data: { ASMAY_Id: number; AMCO_Id: number; AMB_Id: number; AMSE_Id: number; tctemporper: string }) => changeSemesterDanvantariTC(data)
+        mutationFn: (data: { ASMAY_Id: number; AMCO_Id: number; AMB_Id: number; AMSE_Id: number; tctemporper: string }) =>
+            changeSemesterDanvantariTC(data)
     });
 };
 
 export const useDanvantariStudentName = () => {
     return useMutation({
-        mutationFn: (data: { AMCO_Id: number; ASMAY_Id: number; AMB_Id: number; searchfilter: string; AMCST_SOL: string }) => getDanvantariStudentName(data)
+        mutationFn: (data: { AMCO_Id: number; ASMAY_Id: number; AMB_Id: number; searchfilter: string; AMCST_SOL: string }) =>
+            getDanvantariStudentName(data)
     });
 };
 

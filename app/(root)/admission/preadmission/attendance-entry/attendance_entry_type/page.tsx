@@ -139,9 +139,9 @@ function EntryForm({
     const classListRaw = classDropdownResponse?.data || classDropdownResponse;
     const classOptions = Array.isArray(classListRaw)
         ? classListRaw.map((item: any) => ({
-            label: item.asmcL_ClassName,
-            value: String(item.asmcL_Id)
-        }))
+              label: item.asmcL_ClassName,
+              value: String(item.asmcL_Id)
+          }))
         : [];
 
     // Save mutation (Create)
@@ -355,8 +355,8 @@ function EntryForm({
                                 ? 'UPDATING...'
                                 : 'SAVING...'
                             : editingRecord
-                                ? 'UPDATE'
-                                : 'SAVE'}
+                              ? 'UPDATE'
+                              : 'SAVE'}
                     </Button>
                     <Button
                         variant='destructive'

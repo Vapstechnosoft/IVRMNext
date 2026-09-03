@@ -75,7 +75,6 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                         />
                         <InputText
                             label='Email Id'
-                            required
                             id='lmP_EMailId'
                             placeholder='e.g. contact@publisher.com'
                             {...register('lmP_EMailId')}
@@ -89,9 +88,17 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
                             label='Mobile No'
-                            required
                             id='lmP_MobileNo'
                             placeholder='10-digit mobile number'
+                            maxLength={10}
+                            onKeyDown={(e) => {
+                                if (e.key.length === 1 && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                                e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '').slice(0, 10);
+                            }}
                             {...register('lmP_MobileNo')}
                             error={errors.lmP_MobileNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -102,7 +109,6 @@ export default function AddMasterPublisherForm({ onSuccess, className = '' }: Ad
                 <div className='space-y-4'>
                     <InputTextarea
                         label='Address'
-                        required
                         id='lmP_Address'
                         placeholder='Enter the complete office address'
                         {...register('lmP_Address')}

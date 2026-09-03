@@ -24,7 +24,11 @@ export function DataTableColumnHeader<TData, TValue>({ column, title, className 
     // Initialize sorting from URL parameters on mount
     useEffect(() => {
         if (sortBy === column.id) {
-            column.toggleSorting(order === 'desc');
+            const currentIsDesc = column.getIsSorted() === 'desc';
+            const expectedIsDesc = order === 'desc';
+            if (column.getIsSorted() === false || currentIsDesc !== expectedIsDesc) {
+                column.toggleSorting(expectedIsDesc);
+            }
         }
     }, [column, sortBy, order]);
 

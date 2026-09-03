@@ -93,7 +93,9 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
     },
     {
         accessorKey: 'asmcL_PreadmFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Pre-Admission Flag' className='text-nowrap font-bold text-black' />,
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='Pre-Admission Flag' className='text-nowrap font-bold text-black' />
+        ),
         cell: ({ row }) => <div>{getStatusBadge((row.getValue('asmcL_PreadmFlag') as number) === 1 ? 'yes' : 'no')}</div>,
         enableSorting: false,
         enableHiding: true
@@ -110,9 +112,13 @@ export const masterClassColumns: ColumnDef<IMasterClassList>[] = [
 function ActionButtonsCell({ rowData }: { rowData: IMasterClassList }) {
     const { openEditForm, openToggleForm } = useFormContext<IMasterClassList>();
 
-    const handleEdit = useCallback((data: IMasterClassList) => {
-        window.location.href = `/admission/preadmission/masters/class?asmcl_id=${data.asmcL_Id}`;
-    }, []);
+    const handleEdit = useCallback(
+        (data: IMasterClassList) => {
+            openEditForm(data);
+            window.history.pushState(null, '', `?asmcl_id=${data.asmcL_Id}`);
+        },
+        [openEditForm]
+    );
 
     const handleToggle = useCallback(
         (data: IMasterClassList) => {

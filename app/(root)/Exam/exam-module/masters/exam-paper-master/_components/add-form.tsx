@@ -72,6 +72,7 @@ export default function AddMasterExamPaperForm({ onSuccess, className = '' }: Ad
                     <InputText
                         label='Paper Type Name'
                         required
+                        placeholder='Enter Paper Type Name'
                         id='empatY_PaperTypeName'
                         {...register('empatY_PaperTypeName')}
                         error={errors.empatY_PaperTypeName?.message}
@@ -80,6 +81,7 @@ export default function AddMasterExamPaperForm({ onSuccess, className = '' }: Ad
                     <InputText
                         label='Color'
                         required
+                        placeholder='Enter Color'
                         id='empatY_Color'
                         {...register('empatY_Color')}
                         error={errors.empatY_Color?.message}
@@ -90,6 +92,7 @@ export default function AddMasterExamPaperForm({ onSuccess, className = '' }: Ad
                     <InputText
                         label='Paper Type Description'
                         required
+                        placeholder='Enter Paper Type Description'
                         id='empatY_PaperTypeDescription'
                         {...register('empatY_PaperTypeDescription')}
                         error={errors.empatY_PaperTypeDescription?.message}
@@ -118,7 +121,7 @@ export default function AddMasterExamPaperForm({ onSuccess, className = '' }: Ad
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Paper Type
+                            Save
                         </div>
                     </Button>
                 </div>

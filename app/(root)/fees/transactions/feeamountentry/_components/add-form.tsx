@@ -59,6 +59,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | null>(null);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
     const [feeGridData, setFeeGridData] = useState<any[]>([]);
+    const [resetKey, setResetKey] = useState(0);
 
     const [isFineSlabModalOpen, setIsFineSlabModalOpen] = useState(false);
     const [currentHeadId, setCurrentHeadId] = useState<number | null>(null);
@@ -129,7 +130,11 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
 
                     if (response?.data) {
                         const details = Array.isArray(response.data) ? response.data : [response.data];
-                        setFeeGridData(details);
+                        const normalizedDetails = details.map((item: any) => ({
+                            ...item,
+                            fmA_Amount: item.fmA_Amount === 0 || item.fmA_Amount === '0' ? '' : (item.fmA_Amount ?? '')
+                        }));
+                        setFeeGridData(normalizedDetails);
 
                         toast.success('Fee amount details loaded successfully', {
                             id: loadingToast
@@ -248,7 +253,9 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
     };
     // 🔹 Submit Handler
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
-        const invalidRows = feeGridData.filter((item) => !item.fmA_Amount || Number(item.fmA_Amount) <= 0);
+        const invalidRows = feeGridData.filter(
+            (item) => item.fmA_Amount === undefined || item.fmA_Amount === null || item.fmA_Amount === '' || isNaN(Number(item.fmA_Amount)) || Number(item.fmA_Amount) < 0
+        );
 
         if (invalidRows.length > 0) {
             toast.error('Amount Is Required');
@@ -311,6 +318,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
         setSelectedFeeGroup(null);
         setSelectedCategoryId(null);
         setFeeGridData([]);
+        setResetKey((prev) => prev + 1);
     };
 
     return (
@@ -327,7 +335,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                             control={control}
                             render={({ field }) => (
                                 <Select
-                                    key={field.value || 'empty'}
+                                    key={resetKey}
                                     onValueChange={(val) => {
                                         const id = Number(val);
                                         field.onChange(id);
@@ -375,6 +383,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                             control={control}
                             render={({ field }) => (
                                 <Select
+                                    key={resetKey}
                                     onValueChange={(val) => {
                                         const id = Number(val);
                                         field.onChange(id);
@@ -417,6 +426,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                             control={control}
                             render={({ field }) => (
                                 <Select
+                                    key={resetKey}
                                     onValueChange={(val) => {
                                         const id = Number(val);
                                         field.onChange(id);
@@ -483,7 +493,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                             <InputText
                                                 type='text'
                                                 inputMode='numeric' // brings up number keyboard on mobile
-                                                value={row.fmA_Amount && Number(row.fmA_Amount) !== 0 ? row.fmA_Amount : ''} // 👈 Convert 0 → ''
+                                                value={row.fmA_Amount !== undefined && row.fmA_Amount !== null ? String(row.fmA_Amount) : ''}
                                                 onChange={(e) => {
                                                     const value = e.target.value.trim();
 
@@ -495,14 +505,8 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
 
                                                     // ✅ Accept only digits (no letters, symbols, or negatives)
                                                     if (/^\d+$/.test(value)) {
-                                                        // ❌ If value is "0" or starts with "0" (like "01"), clear it
-                                                        if (Number(value) === 0) {
-                                                            handleGridChange(index, 'fmA_Amount', '');
-                                                        } else {
-                                                            handleGridChange(index, 'fmA_Amount', value);
-                                                        }
+                                                        handleGridChange(index, 'fmA_Amount', value);
                                                     }
-                                                    // ❌ Ignore anything else
                                                 }}
                                             />
                                         </td>

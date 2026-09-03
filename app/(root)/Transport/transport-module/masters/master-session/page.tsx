@@ -23,12 +23,7 @@ export default function MasterSessionPage(props: { searchParams: SearchParams })
         <FormProvider<IMasterSession>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <MasterSessionPageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <MasterSessionPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>

@@ -158,7 +158,7 @@ export default function StudentPasswordCreationPage() {
         <div className='container space-y-8 p-6'>
             <div className='flex items-center justify-between border-b pb-4'>
                 <div>
-                    <h1 className='font-bold text-3xl tracking-tight'>Student Password Creation</h1>
+                    <h1 className='font-bold text-3xl tracking-tight'>Student Credential</h1>
                     <p className='text-muted-foreground text-sm'>Search and manage student credentials</p>
                 </div>
             </div>

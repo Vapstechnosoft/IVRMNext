@@ -26,6 +26,7 @@ export interface IInvTSalesItem {
     invmI_Id: number;
     invmI_ItemName?: string;
     invmuoM_Id: number;
+    INVMUOM_Id?: number;
     invmuoM_UOMName?: string;
     invtsL_BatchNo: string;
     invtsL_SalesQty: number;

@@ -7,7 +7,6 @@ import type { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -34,13 +33,7 @@ interface ReportFormProps {
     onClear: () => void;
 }
 
-export default function ReportForm({
-    academicYears,
-    months,
-    loadingDetails,
-    onSubmit,
-    onClear
-}: ReportFormProps) {
+export default function ReportForm({ academicYears, months, loadingDetails, onSubmit, onClear }: ReportFormProps) {
     const {
         control,
         handleSubmit,
@@ -81,6 +74,7 @@ export default function ReportForm({
                                 control={control}
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value ?? 'empty-year'}
                                         onValueChange={(val) => field.onChange(val ? Number(val) : undefined)}
                                         value={field.value ? String(field.value) : ''}>
                                         <SelectTrigger id='asmaY_Id' className='w-full'>
@@ -109,6 +103,7 @@ export default function ReportForm({
                                 control={control}
                                 render={({ field }) => (
                                     <Select
+                                        key={field.value ?? 'empty-month'}
                                         onValueChange={(val) => field.onChange(val ? Number(val) : undefined)}
                                         value={field.value ? String(field.value) : ''}>
                                         <SelectTrigger id='month' className='w-full'>
@@ -128,12 +123,12 @@ export default function ReportForm({
                         </div>
 
                         {/* IE Name Input */}
-                        <div className='flex max-w-md flex-col gap-2 md:col-span-2'>
+                        {/* <div className='flex max-w-md flex-col gap-2 md:col-span-2'>
                             <Label htmlFor='name' className='font-semibold text-sm'>
                                 IE Name:
                             </Label>
                             <InputText id='name' placeholder='Enter Implementation Engineer Name' {...register('name')} />
-                        </div>
+                        </div> */}
                     </div>
 
                     {/* Action Buttons */}

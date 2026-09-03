@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { useBreakTimeSettingDetails } from '@/hooks/timetable/useMasters';
-import { deactivateBreakTimeSettings, getBreakTimeSettingsToggle } from '@/server/timetable/masters/breaktimesettings';
+import { getBreakTimeSettingsToggle } from '@/server/timetable/masters/breaktimesettings';
 import type { IBreakTimeSettingsList } from '@/types/timetable/masters/masters';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';

@@ -20,8 +20,13 @@ function formatDate(dateInput: any): string {
 export async function getStudentBirthdayReportDetails(data: any) {
     const fromDate = data.Fromdate || data.fromdate || '';
     const toDate = data.Todate || data.todate || '';
-    const months = data.months !== undefined && data.months !== '' ? (Number(data.months) || data.months) : (data.Months !== undefined && data.Months !== '' ? (Number(data.Months) || data.Months) : 1);
-    const all1 = data.all1 !== undefined ? data.all1 : (data.All1 !== undefined ? data.All1 : 0);
+    const months =
+        data.months !== undefined && data.months !== ''
+            ? Number(data.months) || data.months
+            : data.Months !== undefined && data.Months !== ''
+              ? Number(data.Months) || data.Months
+              : 1;
+    const all1 = data.all1 !== undefined ? data.all1 : data.All1 !== undefined ? data.All1 : 0;
     const flag = data.flag || data.Flag || 'S';
 
     const params = new URLSearchParams();
@@ -57,7 +62,7 @@ export async function getStudentBirthdayReportDetails(data: any) {
         const amst_photo = student.amst_photo || student.amst_Photo || student.AMST_Photo || '';
         const amst_dob = student.amst_dob || student.amst_DOB || student.AMST_DOB || student.dob || student.DOB || '';
         const amst_id = student.amst_id || student.AMST_Id || student.AMST_ID || 0;
-        
+
         return {
             ...student,
             amst_id,
@@ -79,6 +84,3 @@ export async function getStudentBirthdayReportDetails(data: any) {
         studentDetails: mappedStudentList
     };
 }
-
-
-

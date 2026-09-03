@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IPeriodAllocationMasterDay } from '@/types/timetable/masters/masters';
 
 export async function getAllPeriodDetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmP_PeriodName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'ttmP_PeriodName,asmaY_Year,asmcL_ClassName');
     const url = `/PeriodAllocationFacade/GetMasterDayClassWiseGridData?${urlParams}`;
     return await api.get<IPeriodAllocationMasterDay[]>('timetable', url);
 }

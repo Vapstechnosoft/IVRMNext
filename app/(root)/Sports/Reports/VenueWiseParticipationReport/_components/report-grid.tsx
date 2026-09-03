@@ -1,11 +1,11 @@
 'use client';
 
-import { Button } from "@/components/ui/button";
-import { Printer, FileSpreadsheet } from 'lucide-react';
-import * as XLSX from 'xlsx';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import type { ColumnDef } from '@tanstack/react-table';
+import { FileSpreadsheet, Printer } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 interface ReportGridProps {
     response: any;
@@ -15,14 +15,30 @@ interface ReportGridProps {
 
 // Column header labels for print & excel
 const printHeaders = [
-    'SL. No.', 'House Name', 'Venue', 'Student Name', 'Adm. No.',
-    'Class', 'Section', 'Event', 'Sports Name', 'Event Date',
+    'SL. No.',
+    'House Name',
+    'Venue',
+    'Student Name',
+    'Adm. No.',
+    'Class',
+    'Section',
+    'Event',
+    'Sports Name',
+    'Event Date'
 ];
 
 // Accessor keys matching columns order
 const printAccessors = [
-    'slNo', 'spccmH_HouseName', 'spccmeV_EventVenue', 'amsT_Name', 'amsT_AdmNo',
-    'asmcL_ClassName', 'asmC_SectionName', 'spccmE_EventName', 'spccmscC_SportsCCName', 'spccE_StartDate',
+    'slNo',
+    'spccmH_HouseName',
+    'spccmeV_EventVenue',
+    'amsT_Name',
+    'amsT_AdmNo',
+    'asmcL_ClassName',
+    'asmC_SectionName',
+    'spccmE_EventName',
+    'spccmscC_SportsCCName',
+    'spccE_StartDate'
 ];
 
 function formatDate(dateStr: string | null | undefined): string {
@@ -42,17 +58,21 @@ function getCellValue(row: any, key: string, index: number): string {
 }
 
 function buildPrintHtml(data: any[]): string {
-    const rows = data.map((row, idx) => {
-        const cells = printAccessors.map((key) => {
-            const val = getCellValue(row, key, idx);
-            return `<td style="border:1px solid #000;padding:6px 10px;text-align:center;">${val}</td>`;
-        }).join('');
-        return `<tr>${cells}</tr>`;
-    }).join('');
+    const rows = data
+        .map((row, idx) => {
+            const cells = printAccessors
+                .map((key) => {
+                    const val = getCellValue(row, key, idx);
+                    return `<td style="border:1px solid #000;padding:6px 10px;text-align:center;">${val}</td>`;
+                })
+                .join('');
+            return `<tr>${cells}</tr>`;
+        })
+        .join('');
 
-    const headerCells = printHeaders.map(h =>
-        `<th style="border:1px solid #000;padding:6px 10px;background:#f3f4f6;text-align:center;font-weight:bold;">${h}</th>`
-    ).join('');
+    const headerCells = printHeaders
+        .map((h) => `<th style="border:1px solid #000;padding:6px 10px;background:#f3f4f6;text-align:center;font-weight:bold;">${h}</th>`)
+        .join('');
 
     return `
         <!DOCTYPE html>
@@ -134,9 +154,7 @@ export const VenueWiseReportColumns: ColumnDef<any>[] = [
     }
 ];
 
-
 export const ReportGrid = ({ response, isLoading, error }: ReportGridProps) => {
-
     const tableProps = useDataTableProps(response);
 
     const handlePrint = () => {
@@ -163,54 +181,62 @@ export const ReportGrid = ({ response, isLoading, error }: ReportGridProps) => {
         const excelData = dataToExport.map((row: any, index: number) => ({
             'SL. No.': index + 1,
             'House Name': row.spccmH_HouseName || '-',
-            'Venue': row.spccmeV_EventVenue || '-',
+            Venue: row.spccmeV_EventVenue || '-',
             'Student Name': row.amsT_Name || '-',
             'Adm. No.': row.amsT_AdmNo || '-',
-            'Class': row.asmcL_ClassName || '-',
-            'Section': row.asmC_SectionName || '-',
-            'Event': row.spccmE_EventName || '-',
+            Class: row.asmcL_ClassName || '-',
+            Section: row.asmC_SectionName || '-',
+            Event: row.spccmE_EventName || '-',
             'Sports Name': row.spccmscC_SportsCCName || '-',
-            'Event Date': formatDate(row.spccE_StartDate),
+            'Event Date': formatDate(row.spccE_StartDate)
         }));
         const worksheet = XLSX.utils.json_to_sheet(excelData);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Venue Wise Report");
-        XLSX.writeFile(workbook, "VenueWiseParticipationReport.xlsx");
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Venue Wise Report');
+        XLSX.writeFile(workbook, 'VenueWiseParticipationReport.xlsx');
     };
 
     if (!response || !response.data || response.data.length === 0) {
         if (!isLoading) {
-             return null;
+            return null;
         }
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border">
-                <div className="flex items-center gap-4">
-                    <div className="text-sm font-medium">
-                        Total Records: <span className="rounded bg-primary/10 px-3 py-1 font-bold text-primary">{response?.total || 0}</span>
+        <div className='space-y-4'>
+            <div className='flex items-center justify-between rounded-lg border bg-white p-4 shadow-sm'>
+                <div className='flex items-center gap-4'>
+                    <div className='font-medium text-sm'>
+                        Total Records:{' '}
+                        <span className='rounded bg-primary/10 px-3 py-1 font-bold text-primary'>{response?.total || 0}</span>
                     </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={handlePrint} className="border-2 hover:bg-primary/5" disabled={isLoading || !response?.data?.length}>
-                            <Printer className="h-4 w-4 mr-2 text-primary" /> Print
+                    <div className='flex gap-2'>
+                        <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={handlePrint}
+                            className='border-2 hover:bg-primary/5'
+                            disabled={isLoading || !response?.data?.length}>
+                            <Printer className='mr-2 h-4 w-4 text-primary' /> Print
                         </Button>
-                        <Button variant="outline" size="sm" onClick={exportToExcel} className="border-2 hover:bg-primary/5" disabled={isLoading || !response?.data?.length}>
-                            <FileSpreadsheet className="h-4 w-4 mr-2 text-green-600" /> Excel
+                        <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={exportToExcel}
+                            className='border-2 hover:bg-primary/5'
+                            disabled={isLoading || !response?.data?.length}>
+                            <FileSpreadsheet className='mr-2 h-4 w-4 text-green-600' /> Excel
                         </Button>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white rounded-lg border shadow-sm">
-                 <GenericDataTable<any>
+            <div className='rounded-lg border bg-white shadow-sm'>
+                <GenericDataTable<any>
                     {...tableProps}
                     columns={VenueWiseReportColumns}
                     isLoading={isLoading || false}
                     error={error}
-                    manualPagination={true}
-                    manualSorting={true}
-                    manualFiltering={true}
                     showSearchColumns={true}
                     loadingMessage='Loading report...'
                     noDataTitle='No Records Found'

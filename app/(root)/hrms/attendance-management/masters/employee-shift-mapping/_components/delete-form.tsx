@@ -41,12 +41,12 @@ export default function DeleteEmployeeShiftMappingForm({ rowData, onClose }: Del
     }
 
     const onSubmit: SubmitHandler<FormFields | any> = async () => {
-        console.log("foest_Id", rowData.foesT_Id);
+        console.log('foest_Id', rowData.foesT_Id);
         try {
             const payload = {
                 foesT_Id: Number(rowData.foesT_Id),
-                foesT_BlockAttendance: "true",
-                FOEST_BlockAttendance: "true"
+                foesT_BlockAttendance: 'true',
+                FOEST_BlockAttendance: 'true'
             };
             const response = await deleteEmployeeShiftMapping(Number(rowData.foesT_Id));
 

@@ -7,7 +7,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useLostBookList } from '@/hooks/library/useTransactions';
 import type { ILostBookList } from '@/types/library/transactions/transactions';
-import { Plus, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { use, useEffect } from 'react';
 import AddLostBookForm from './_components/add-form';
 import { lostBookColumns } from './_components/columns';
@@ -77,7 +77,7 @@ function LostBookPageContent({
                         defaultOpen
                         variant='outline'
                         size='md'
-                        className='shadow-lg duration-300 bg-card'>
+                        className='bg-card shadow-lg duration-300'>
                         <AddLostBookForm
                             onSuccess={() => {
                                 refetch();
@@ -97,11 +97,15 @@ import DeleteLostBookForm from './_components/delete-form';
 import ToggleLostBookForm from './_components/toggle-form';
 
 function FormSections({ refetch }: { refetch: () => void }) {
-    const { 
-        isEditFormOpen, isToggleFormOpen, isDeleteFormOpen,
-        selectedRow, 
-        closeEditForm, closeToggleForm, closeDeleteForm,
-        editFormRef 
+    const {
+        isEditFormOpen,
+        isToggleFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeEditForm,
+        closeToggleForm,
+        closeDeleteForm,
+        editFormRef
     } = useFormContext<ILostBookList>();
 
     useEffect(() => {
@@ -121,7 +125,7 @@ function FormSections({ refetch }: { refetch: () => void }) {
                         defaultOpen={true}
                         variant='outline'
                         size='md'
-                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300 fixed inset-x-4 top-20 z-50 max-w-4xl mx-auto bg-background'>
+                        className='slide-in-from-top-4 fixed inset-x-4 top-20 z-50 mx-auto max-w-4xl animate-in border-primary/20 bg-background shadow-lg duration-300'>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -131,16 +135,16 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateLostBookForm 
-                                selectedRow={selectedRow} 
+                            <UpdateLostBookForm
+                                selectedRow={selectedRow}
                                 onSuccess={() => {
                                     refetch();
                                     closeEditForm();
-                                }} 
+                                }}
                             />
                         </div>
                     </CollapsibleSection>
-                    <div className='fixed inset-0 bg-black/20 z-40' onClick={closeEditForm} />
+                    <div className='fixed inset-0 z-40 bg-black/20' onClick={closeEditForm} />
                 </div>
             )}
 

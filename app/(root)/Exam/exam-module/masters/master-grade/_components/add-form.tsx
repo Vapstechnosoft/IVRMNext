@@ -16,7 +16,11 @@ import type { z } from 'zod';
 
 type FormFields = z.infer<typeof masterGradeSchema.addOrUpdate>;
 
-export default function AddMasterGradeForm({ onSuccess, refetchGrid, className = '' }: { onSuccess?: () => void; refetchGrid: () => void; className?: string }) {
+export default function AddMasterGradeForm({
+    onSuccess,
+    refetchGrid,
+    className = ''
+}: { onSuccess?: () => void; refetchGrid: () => void; className?: string }) {
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
     const {
@@ -39,9 +43,9 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
                     emgD_Id: 0,
                     emgR_Id: 0,
                     emgD_Name: '',
-                    emgD_From: null,
-                    emgD_To: null,
-                    emgD_GradePoints: null,
+                    emgD_From: '' as any,
+                    emgD_To: '' as any,
+                    emgD_GradePoints: '' as any,
                     emgD_Remarks: '',
                     emgD_ActiveFlag: true
                 }
@@ -72,6 +76,10 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
 
         for (const row of data.grade_list) {
             // Check duplicate Name
+            if (!row.emgD_Name || row.emgD_Name.trim() === '') {
+                toast.error('Please enter a Grade Name');
+                return;
+            }
             const normalizedName = row.emgD_Name.trim().toLowerCase();
             if (names.has(normalizedName)) {
                 toast.error(`Duplicate grade name found: ${row.emgD_Name}`);
@@ -80,6 +88,21 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
             names.add(normalizedName);
 
             // Validate Range
+            if (row.emgD_From === null || row.emgD_From === undefined || (row.emgD_From as any) === '') {
+                toast.error(`Please enter the 'From' range field for grade: ${row.emgD_Name}`);
+                return;
+            }
+
+            if (row.emgD_To === null || row.emgD_To === undefined || (row.emgD_To as any) === '') {
+                toast.error(`Please enter the 'To' range field for grade: ${row.emgD_Name}`);
+                return;
+            }
+
+            if (row.emgD_GradePoints === null || row.emgD_GradePoints === undefined || (row.emgD_GradePoints as any) === '') {
+                toast.error(`Please enter Grade Points for grade: ${row.emgD_Name}`);
+                return;
+            }
+
             const from = Number(row.emgD_From);
             const to = Number(row.emgD_To);
 
@@ -152,7 +175,13 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
             {/* Grade Name + Type */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <InputText label='Grade Name' required {...register('emgR_GradeName')} error={errors.emgR_GradeName?.message} />
+                <InputText
+                    label='Grade Name'
+                    required
+                    placeholder='Enter Grade Name'
+                    {...register('emgR_GradeName')}
+                    error={errors.emgR_GradeName?.message}
+                />
                 <div>
                     <Label>
                         Marks/Percentage <span className='text-red-500'>*</span>
@@ -202,7 +231,7 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
                                         <td className='border'>
                                             <InputText
                                                 {...register(`grade_list.${index}.emgD_Name` as const)}
-                                                placeholder='Enter grade name'
+                                                placeholder='Enter Grade Name'
                                                 error={errors.grade_list?.[index]?.emgD_Name?.message}
                                             />
                                         </td>
@@ -210,16 +239,8 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
                                         {/* From Marks */}
                                         <td className='border'>
                                             <InputText
-                                                type='number'
-                                                step='any'
-                                                min='0'
-                                                max={marksPerFlag === 'P' ? '100' : undefined}
+                                                type='text'
                                                 {...register(`grade_list.${index}.emgD_From`, {
-                                                    setValueAs: (v) => {
-                                                        if (v === '' || v === null) return null;
-                                                        const num = Number(v);
-                                                        return Number.isNaN(num) ? null : num;
-                                                    },
                                                     onChange: (e) => {
                                                         // Allow only numbers and decimal point
                                                         const value = e.target.value;
@@ -228,7 +249,7 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
                                                         }
                                                     }
                                                 })}
-                                                placeholder={marksPerFlag === 'P' ? '0-100' : 'Enter Marks'}
+                                                placeholder='Enter From'
                                                 error={errors.grade_list?.[index]?.emgD_From?.message}
                                                 onKeyPress={(e) => {
                                                     // Prevent non-numeric characters except decimal point
@@ -250,16 +271,8 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
                                         {/* To Marks */}
                                         <td className='border'>
                                             <InputText
-                                                type='number'
-                                                step='any'
-                                                min='0'
-                                                max={marksPerFlag === 'P' ? '100' : undefined}
+                                                type='text'
                                                 {...register(`grade_list.${index}.emgD_To`, {
-                                                    setValueAs: (v) => {
-                                                        if (v === '' || v === null) return null;
-                                                        const num = Number(v);
-                                                        return Number.isNaN(num) ? null : num;
-                                                    },
                                                     onChange: (e) => {
                                                         // Allow only numbers and decimal point
                                                         const value = e.target.value;
@@ -268,7 +281,7 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
                                                         }
                                                     }
                                                 })}
-                                                placeholder={marksPerFlag === 'P' ? '0-100' : 'Enter Marks'}
+                                                placeholder='Enter To'
                                                 error={errors.grade_list?.[index]?.emgD_To?.message}
                                                 onKeyPress={(e) => {
                                                     // Prevent non-numeric characters except decimal point
@@ -290,16 +303,8 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
                                         {/* Grade Points */}
                                         <td className='border'>
                                             <InputText
-                                                type='number'
-                                                step='any'
-                                                min='0'
-                                                max='10'
+                                                type='text'
                                                 {...register(`grade_list.${index}.emgD_GradePoints`, {
-                                                    setValueAs: (v) => {
-                                                        if (v === '' || v === null) return null;
-                                                        const num = Number(v);
-                                                        return Number.isNaN(num) ? null : num;
-                                                    },
                                                     onChange: (e) => {
                                                         // Allow only numbers and decimal point
                                                         const value = e.target.value;
@@ -308,7 +313,7 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
                                                         }
                                                     }
                                                 })}
-                                                placeholder='0-10'
+                                                placeholder='Enter Grade Points'
                                                 error={errors.grade_list?.[index]?.emgD_GradePoints?.message}
                                                 onKeyPress={(e) => {
                                                     // Prevent non-numeric characters except decimal point
@@ -331,7 +336,7 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
                                         <td className='border'>
                                             <InputText
                                                 {...register(`grade_list.${index}.emgD_Remarks` as const)}
-                                                placeholder='Remarks'
+                                                placeholder='Enter Remarks'
                                                 error={errors.grade_list?.[index]?.emgD_Remarks?.message}
                                             />
                                         </td>
@@ -356,9 +361,9 @@ export default function AddMasterGradeForm({ onSuccess, refetchGrid, className =
                                                         emgD_Id: 0,
                                                         emgR_Id: 0,
                                                         emgD_Name: '',
-                                                        emgD_From: null,
-                                                        emgD_To: null,
-                                                        emgD_GradePoints: null,
+                                                        emgD_From: '' as any,
+                                                        emgD_To: '' as any,
+                                                        emgD_GradePoints: '' as any,
                                                         emgD_Remarks: '',
                                                         emgD_ActiveFlag: true
                                                     });

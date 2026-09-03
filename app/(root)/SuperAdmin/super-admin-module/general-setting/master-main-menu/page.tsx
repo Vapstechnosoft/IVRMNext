@@ -1,16 +1,5 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { getMasterMainMenuData, deleteMasterMainMenu } from '@/server/super-admin/super-admin-module/general-setting/master-main-menu';
-import type { IMasterMainMenu } from '@/types/super-admin/super-admin-module/general-setting/master-main-menu';
-import { Plus, X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import AddMasterMainMenuForm from './_components/add-form';
-import { columns } from './_components/columns';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -19,9 +8,20 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Spinner } from '@/components/ui/spinner';
+import { deleteMasterMainMenu, getMasterMainMenuData } from '@/server/super-admin/super-admin-module/general-setting/master-main-menu';
+import type { IMasterMainMenu } from '@/types/super-admin/super-admin-module/general-setting/master-main-menu';
+import { Plus, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import AddMasterMainMenuForm from './_components/add-form';
+import { columns } from './_components/columns';
 
 import { useSearchParams } from 'next/navigation';
 
@@ -40,28 +40,30 @@ function MasterMainMenuPageContent() {
     const [isLoading, setIsLoading] = useState(true);
 
     const searchParams = useSearchParams();
-    const page = parseInt(searchParams.get('page') || '1');
-    const pageSize = parseInt(searchParams.get('page_size') || '10');
+    const page = Number.parseInt(searchParams.get('page') || '1');
+    const pageSize = Number.parseInt(searchParams.get('page_size') || '10');
 
     // Fetch data when page/pageSize changes
     const fetchData = () => {
         setIsLoading(true);
-        getMasterMainMenuData(page, pageSize).then((res: any) => {
-            if (res.success) {
-                setData(res.data || []);
-                setTotalRecords(res.total || 0);
+        getMasterMainMenuData(page, pageSize)
+            .then((res: any) => {
+                if (res.success) {
+                    setData(res.data || []);
+                    setTotalRecords(res.total || 0);
 
-                // Debug log
-                console.log(`Fetched Page ${page}, Size ${pageSize}, Total ${res.total}, Records ${res.data?.length}`);
-            } else {
-                toast.error(res.message || 'Failed to load grid data');
-            }
-            setIsLoading(false);
-        }).catch(err => {
-            console.error("Fetch error:", err);
-            toast.error('An error occurred while loading data');
-            setIsLoading(false);
-        });
+                    // Debug log
+                    console.log(`Fetched Page ${page}, Size ${pageSize}, Total ${res.total}, Records ${res.data?.length}`);
+                } else {
+                    toast.error(res.message || 'Failed to load grid data');
+                }
+                setIsLoading(false);
+            })
+            .catch((err) => {
+                console.error('Fetch error:', err);
+                toast.error('An error occurred while loading data');
+                setIsLoading(false);
+            });
     };
 
     useEffect(() => {
@@ -80,25 +82,14 @@ function MasterMainMenuPageContent() {
                     type='button'
                     onClick={openAddForm}
                     className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                    <Plus className='h-4 w-4 mr-2' />
+                    <Plus className='mr-2 h-4 w-4' />
                     Add Master Main Menu
                 </Button>
             </div>
 
-            <CollapsibleSection
-                title='Master Main Menu'
-                defaultOpen={true}
-                variant='default'
-                size='lg'
-                className='shadow-lg'
-            >
+            <CollapsibleSection title='Master Main Menu' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <div className='p-4'>
-                    <GenericDataTable
-                        data={data}
-                        columns={columns}
-                        isLoading={isLoading}
-                        totalItems={totalRecords}
-                    />
+                    <GenericDataTable data={data} columns={columns} isLoading={isLoading} totalItems={totalRecords} />
                 </div>
             </CollapsibleSection>
 
@@ -161,8 +152,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                         defaultOpen={true}
                         variant='outline'
                         size='lg'
-                        className='shadow-lg animate-in slide-in-from-top-2'
-                    >
+                        className='slide-in-from-top-2 animate-in shadow-lg'>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -185,8 +175,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                         defaultOpen={true}
                         variant='outline'
                         size='lg'
-                        className='shadow-lg animate-in slide-in-from-top-2'
-                    >
+                        className='slide-in-from-top-2 animate-in shadow-lg'>
                         <div className='relative'>
                             <Button
                                 type='button'
@@ -213,8 +202,14 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={(e) => { e.preventDefault(); handleDelete(); }} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
-                            {isDeleting ? <Spinner className="mr-2 h-4 w-4" /> : <X className="mr-2 h-4 w-4" />}
+                        <AlertDialogAction
+                            onClick={(e) => {
+                                e.preventDefault();
+                                handleDelete();
+                            }}
+                            disabled={isDeleting}
+                            className='bg-destructive hover:bg-destructive/90'>
+                            {isDeleting ? <Spinner className='mr-2 h-4 w-4' /> : <X className='mr-2 h-4 w-4' />}
                             Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>

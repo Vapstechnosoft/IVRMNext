@@ -35,7 +35,11 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
     const [isLoading, setIsLoading] = useState(true);
 
     // Fetch group-specific subjects
-    const { data: groupSubjectsResponse, isLoading: loadingGroupSubjects } = useMasterSubjectGroupDetails(initialData.emG_Id);
+    const {
+        data: groupSubjectsResponse,
+        isLoading: loadingGroupSubjects,
+        refetchAll: refetchDetails
+    } = useMasterSubjectGroupDetails(initialData.emG_Id);
 
     // Fetch all available subjects
     const { data: allSubjectsResponse, isLoading: loadingAllSubjects } = useMasterGetAllSubjectGroupDetails();
@@ -116,6 +120,7 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
                 toast.success(res.message || 'Saved successfully.');
                 reset();
                 refetchAll();
+                refetchDetails();
                 onSuccess?.();
             } else {
                 toast.error(res.message || 'Failed to save.');
@@ -136,11 +141,18 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
             {/* Group Info */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <InputText label='Group Name' required {...register('emG_GroupName')} error={errors.emG_GroupName?.message} />
+                <InputText
+                    label='Group Name'
+                    required
+                    placeholder='Enter Group Name'
+                    {...register('emG_GroupName')}
+                    error={errors.emG_GroupName?.message}
+                />
                 <InputText
                     label='Total Subjects'
                     type='number'
                     required
+                    placeholder='Enter Total Subjects'
                     {...register('emG_TotSubjects', { valueAsNumber: true })}
                     error={errors.emG_TotSubjects?.message}
                 />
@@ -148,6 +160,7 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
                     label='Max Applicable Subjects'
                     type='number'
                     required
+                    placeholder='Enter Max Applicable Subjects'
                     {...register('emG_MaxAplSubjects', { valueAsNumber: true })}
                     error={errors.emG_MaxAplSubjects?.message}
                 />
@@ -155,6 +168,7 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
                     label='Min Applicable Subjects'
                     type='number'
                     required
+                    placeholder='Enter Min Applicable Subjects'
                     {...register('emG_MinAplSubjects', { valueAsNumber: true })}
                     error={errors.emG_MinAplSubjects?.message}
                 />
@@ -162,6 +176,7 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
                     label='Best Off Subjects'
                     type='number'
                     required
+                    placeholder='Enter Best Off Subjects'
                     {...register('emG_BestOff', { valueAsNumber: true })}
                     error={errors.emG_BestOff?.message}
                 />

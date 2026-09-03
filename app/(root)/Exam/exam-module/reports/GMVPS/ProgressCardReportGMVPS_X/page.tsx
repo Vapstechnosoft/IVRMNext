@@ -45,11 +45,13 @@ export default function ProgressCardReportGMVPS_X_Page() {
     const handleReportSuccess = async (payload: any) => {
         try {
             setIsLoading(true);
+            console.log('GMVPS X Request Payload:', payload);
             const res = await getExamReportCard(payload);
-            console.log("response", res);
+            console.log('GMVPS X API Response:', res);
 
             const apiData = res?.data;
             const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
+            console.log('GMVPS X Flat Rows Count:', flatRows.length);
 
             if (!Array.isArray(flatRows) || flatRows.length === 0) {
                 toast.error('No record found');
@@ -59,12 +61,14 @@ export default function ProgressCardReportGMVPS_X_Page() {
 
             const studentMap = new Map<number, any>();
             flatRows.forEach((row: any) => {
-                if (!studentMap.has(row.amsT_Id)) {
-                    studentMap.set(row.amsT_Id, { ...row });
+                const sId = row.amsT_Id ?? row.AMST_Id ?? row.AMST_ID ?? row.amst_Id ?? row.studentId ?? row.StudentId;
+                if (sId && !studentMap.has(sId)) {
+                    studentMap.set(sId, { ...row, amsT_Id: sId });
                 }
             });
 
             const report_list = Array.from(studentMap.values());
+            console.log('GMVPS X Unique Students Count:', report_list.length);
             const savelist = flatRows;
 
             const activity_main_list_area = apiData?.activity_main_list_area || (res as any).activity_main_list_area || [];
@@ -75,11 +79,16 @@ export default function ProgressCardReportGMVPS_X_Page() {
                 const activityname_temp: any[] = [];
 
                 getstudentwiseactiviteslist.forEach((act: any) => {
-                    if (act.AMST_Id === studentId || act.amsT_Id === studentId) {
+                    const actStudentId = act.AMST_Id ?? act.amsT_Id ?? act.studentId ?? act.StudentId;
+                    if (actStudentId === studentId) {
                         if (activityname_temp.length === 0) {
                             activityname_temp.push(act);
                         } else {
-                            const count1 = activityname_temp.filter(dd => dd.ECACT_SkillName === act.ECACT_SkillName).length;
+                            const count1 = activityname_temp.filter(
+                                (dd) =>
+                                    (dd.ECACT_SkillName || dd.ecacT_SkillName || dd.activityName) ===
+                                    (act.ECACT_SkillName || act.ecacT_SkillName || act.activityName)
+                            ).length;
                             if (count1 === 0) {
                                 activityname_temp.push(act);
                             }
@@ -93,9 +102,18 @@ export default function ProgressCardReportGMVPS_X_Page() {
             setSaveList(savelist);
             setExtraData({
                 getstudentwiseactiviteslist: getstudentwiseactiviteslist,
-                work_attendence: apiData?.work_attendence || apiData?.stud_work_attendence || res.work_attendence || res.stud_work_attendence,
-                present_attendence: apiData?.present_attendence || apiData?.stud_present_attendence || res.present_attendence || res.stud_present_attendence,
-                exammastername: apiData?.exammastername || apiData?.strudentwisedentalandvision || res.exammastername || res.strudentwisedentalandvision,
+                work_attendence:
+                    apiData?.work_attendence || apiData?.stud_work_attendence || res.work_attendence || res.stud_work_attendence,
+                present_attendence:
+                    apiData?.present_attendence ||
+                    apiData?.stud_present_attendence ||
+                    res.present_attendence ||
+                    res.stud_present_attendence,
+                exammastername:
+                    apiData?.exammastername ||
+                    apiData?.strudentwisedentalandvision ||
+                    res.exammastername ||
+                    res.strudentwisedentalandvision,
                 studentdetailsgraph: apiData?.studentdetailsgraph || res.studentdetailsgraph
             });
 
@@ -127,8 +145,8 @@ export default function ProgressCardReportGMVPS_X_Page() {
             </CollapsibleSection>
 
             {isLoading && (
-                <div className="flex justify-center p-12">
-                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <div className='flex justify-center p-12'>
+                    <Loader2 className='h-12 w-12 animate-spin text-primary' />
                 </div>
             )}
 

@@ -1,34 +1,37 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-    useReportDepartments,
-    useReportDesignations,
-    useReportGroupTypes,
-    useBankCashReport
-} from '@/hooks/hrms/useReports';
 import { useLeaveYearDropdown } from '@/hooks/hrms/useMasters';
+import { useBankCashReport, useReportDepartments, useReportDesignations, useReportGroupTypes } from '@/hooks/hrms/useReports';
+import { exportToExcel } from '@/lib/export-to-file';
+import { getMasterInstitution } from '@/server/hrms/master-dropdown';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Download, Loader2, Printer, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { getMasterInstitution } from '@/server/hrms/master-dropdown';
 import { printBankCashReport } from './_components/print-bank-cash-report';
-import { exportToExcel } from '@/lib/export-to-file';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 
 const MONTH_LIST = [
-    { id: 1, name: 'January' }, { id: 2, name: 'February' }, { id: 3, name: 'March' },
-    { id: 4, name: 'April' }, { id: 5, name: 'May' }, { id: 6, name: 'June' },
-    { id: 7, name: 'July' }, { id: 8, name: 'August' }, { id: 9, name: 'September' },
-    { id: 10, name: 'October' }, { id: 11, name: 'November' }, { id: 12, name: 'December' }
+    { id: 1, name: 'January' },
+    { id: 2, name: 'February' },
+    { id: 3, name: 'March' },
+    { id: 4, name: 'April' },
+    { id: 5, name: 'May' },
+    { id: 6, name: 'June' },
+    { id: 7, name: 'July' },
+    { id: 8, name: 'August' },
+    { id: 9, name: 'September' },
+    { id: 10, name: 'October' },
+    { id: 11, name: 'November' },
+    { id: 12, name: 'December' }
 ];
 
 const BankCashReportSchema = z.object({
@@ -46,7 +49,7 @@ export default function BankCashReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
     const [institution, setInstitution] = useState<any>(null);
     const [selectedPaymentType, setSelectedPaymentType] = useState<string>('Bank');
-
+    const [resetKey, setResetKey] = useState(0);
     const {
         control,
         handleSubmit,
@@ -83,42 +86,51 @@ export default function BankCashReportPage() {
     }, []);
 
     const { data: groupTypesData, isLoading: groupTypesLoading } = useReportGroupTypes();
-    const { data: departmentsData, isLoading: departmentsLoading } = useReportDepartments((Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(','));
-    const { data: designationsData, isLoading: designationsLoading } = useReportDesignations((Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(','), (Array.isArray(watchedDepartments) ? watchedDepartments : []).join(','));
+    const { data: departmentsData, isLoading: departmentsLoading } = useReportDepartments(
+        (Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(',')
+    );
+    const { data: designationsData, isLoading: designationsLoading } = useReportDesignations(
+        (Array.isArray(watchedGroupTypes) ? watchedGroupTypes : []).join(','),
+        (Array.isArray(watchedDepartments) ? watchedDepartments : []).join(',')
+    );
     const { data: yearsData, isLoading: yearsLoading } = useLeaveYearDropdown();
 
     const { mutate: generateReport, isPending: isSearching } = useBankCashReport();
 
     const onSearch = (data: FormFields) => {
         const selectedYearObj = (yearsData?.data || []).find((y: any) => y && String(y.hrmlY_Id ?? '') === String(data.year ?? ''));
-        const yearInt = parseInt(selectedYearObj?.hrmlY_LeaveYear?.split('-')[0] || String(data.year ?? '0'));
-        const monthName = MONTH_LIST.find(m => m && String(m.id ?? '') === String(data.month ?? ''))?.name || '';
+        const yearInt = Number.parseInt(selectedYearObj?.hrmlY_LeaveYear?.split('-')[0] || String(data.year ?? '0'));
+        const monthName = MONTH_LIST.find((m) => m && String(m.id ?? '') === String(data.month ?? ''))?.name || '';
 
         setSelectedPaymentType(data.bankCash);
 
-        generateReport({
-            hreS_Year: yearInt,
-            hreS_Month: monthName,
-            bankCash: data.bankCash,
-            hrmd_ids: (data.department || []).map(Number),
-            hrmgt_ids: (data.groupType || []).map(Number),
-            hrmdes_ids: (data.designation || []).map(Number)
-        }, {
-            onSuccess: (res) => {
-                if (res.success && res.data) {
-                    setReportData(res.data);
-                    toast.success('Report generated successfully');
-                } else {
-                    toast.error(res.message || 'No data found');
-                    setReportData([]);
+        generateReport(
+            {
+                hreS_Year: yearInt,
+                hreS_Month: monthName,
+                bankCash: data.bankCash,
+                hrmd_ids: (data.department || []).map(Number),
+                hrmgt_ids: (data.groupType || []).map(Number),
+                hrmdes_ids: (data.designation || []).map(Number)
+            },
+            {
+                onSuccess: (res) => {
+                    if (res.success && res.data) {
+                        setReportData(res.data);
+                        toast.success('Report generated successfully');
+                    } else {
+                        toast.error(res.message || 'No data found');
+                        setReportData([]);
+                    }
                 }
             }
-        });
+        );
     };
 
     const handleReset = () => {
         reset();
         setReportData([]);
+        setResetKey((prev) => prev + 1);
     };
 
     const handlePrint = () => {
@@ -126,7 +138,7 @@ export default function BankCashReportPage() {
             toast.error('No data to print');
             return;
         }
-        const monthName = MONTH_LIST.find(m => m && String(m.id ?? '') === String(watch('month') ?? ''))?.name || '';
+        const monthName = MONTH_LIST.find((m) => m && String(m.id ?? '') === String(watch('month') ?? ''))?.name || '';
         const selectedYearObj = (yearsData?.data || []).find((y: any) => y && String(y.hrmlY_Id ?? '') === String(watch('year') ?? ''));
         const yearStr = selectedYearObj?.hrmlY_LeaveYear || '';
 
@@ -142,12 +154,14 @@ export default function BankCashReportPage() {
         const exportColumns = [
             { label: 'Sl.No', value: 'slNo' },
             { label: 'Employee Name', value: 'employeeName' },
-            ...(selectedPaymentType === 'Bank' ? [
-                { label: 'Bank A/C Number', value: 'bankAcNumber' },
-                { label: 'IFSC Code', value: 'hrmbD_IFSCCode' },
-                { label: 'Bank Name', value: 'hrmbD_BankName' },
-                { label: 'Branch Name', value: 'hrmbD_BranchName' }
-            ] : []),
+            ...(selectedPaymentType === 'Bank'
+                ? [
+                      { label: 'Bank A/C Number', value: 'bankAcNumber' },
+                      { label: 'IFSC Code', value: 'hrmbD_IFSCCode' },
+                      { label: 'Bank Name', value: 'hrmbD_BankName' },
+                      { label: 'Branch Name', value: 'hrmbD_BranchName' }
+                  ]
+                : []),
             { label: 'Net Salary', value: 'netSalary' }
         ];
 
@@ -174,28 +188,31 @@ export default function BankCashReportPage() {
             accessorKey: 'employeeName',
             header: 'Employee Name'
         },
-        ...(selectedPaymentType === 'Bank' ? [
-            {
-                accessorKey: 'bankAcNumber',
-                header: 'Bank A/C Number'
-            },
-            {
-                accessorKey: 'hrmbD_IFSCCode',
-                header: 'IFSC Code'
-            },
-            {
-                accessorKey: 'hrmbD_BankName',
-                header: 'Bank Name'
-            },
-            {
-                accessorKey: 'hrmbD_BranchName',
-                header: 'Branch Name'
-            }
-        ] : []),
+        ...(selectedPaymentType === 'Bank'
+            ? [
+                  {
+                      accessorKey: 'bankAcNumber',
+                      header: 'Bank A/C Number'
+                  },
+                  {
+                      accessorKey: 'hrmbD_IFSCCode',
+                      header: 'IFSC Code'
+                  },
+                  {
+                      accessorKey: 'hrmbD_BankName',
+                      header: 'Bank Name'
+                  },
+                  {
+                      accessorKey: 'hrmbD_BranchName',
+                      header: 'Branch Name'
+                  }
+              ]
+            : []),
         {
             accessorKey: 'netSalary',
             header: 'Net Salary',
-            cell: ({ row }: any) => `₹${(row.original.netSalary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+            cell: ({ row }: any) =>
+                `₹${(row.original.netSalary || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
         }
     ];
 
@@ -203,23 +220,25 @@ export default function BankCashReportPage() {
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
-            <div className='flex items-center justify-between'>
+            {/* <div className='flex items-center justify-between'>
                 <h2 className='font-bold text-2xl tracking-tight'>Bank / Cash Report</h2>
-            </div>
+            </div> */}
 
             <CollapsibleSection title='Report Criteria' defaultOpen={true} variant='outline' className='shadow-sm'>
                 <form onSubmit={handleSubmit(onSearch)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
                         <div className='space-y-2'>
-                            <Label>Group Type <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Group Type <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='groupType'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={(groupTypesData?.data || []).filter(Boolean).map((gt: any) => ({ 
-                                            label: String(gt.value || ''), 
-                                            value: String(gt.key ?? '') 
+                                        options={(groupTypesData?.data || []).filter(Boolean).map((gt: any) => ({
+                                            label: String(gt.value || ''),
+                                            value: String(gt.key ?? '')
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
@@ -232,15 +251,17 @@ export default function BankCashReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Department <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Department <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='department'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={(departmentsData?.data || []).filter(Boolean).map((d: any) => ({ 
-                                            label: String(d.hrmD_DepartmentName || d.value || ''), 
-                                            value: String(d.hrmD_Id ?? d.key ?? '') 
+                                        options={(departmentsData?.data || []).filter(Boolean).map((d: any) => ({
+                                            label: String(d.hrmD_DepartmentName || d.value || ''),
+                                            value: String(d.hrmD_Id ?? d.key ?? '')
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
@@ -253,15 +274,17 @@ export default function BankCashReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Designation <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Designation <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='designation'
                                 control={control}
                                 render={({ field }) => (
                                     <MultiSelect
-                                        options={(designationsData?.data || []).filter(Boolean).map((d: any) => ({ 
-                                            label: String(d.hrmdeS_DesignationName || d.value || ''), 
-                                            value: String(d.hrmdeS_Id ?? d.key ?? '') 
+                                        options={(designationsData?.data || []).filter(Boolean).map((d: any) => ({
+                                            label: String(d.hrmdeS_DesignationName || d.value || ''),
+                                            value: String(d.hrmdeS_Id ?? d.key ?? '')
                                         }))}
                                         defaultValue={field.value}
                                         onValueChange={field.onChange}
@@ -274,8 +297,11 @@ export default function BankCashReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Year <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Year <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
+                                key={resetKey}
                                 name='year'
                                 control={control}
                                 render={({ field }) => (
@@ -297,8 +323,11 @@ export default function BankCashReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Month <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Month <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
+                                key={resetKey}
                                 name='month'
                                 control={control}
                                 render={({ field }) => (
@@ -320,7 +349,9 @@ export default function BankCashReportPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Bank / Cash <span className='text-destructive'>*</span></Label>
+                            <Label>
+                                Bank / Cash <span className='text-destructive'>*</span>
+                            </Label>
                             <Controller
                                 name='bankCash'
                                 control={control}
@@ -328,11 +359,15 @@ export default function BankCashReportPage() {
                                     <RadioGroup onValueChange={field.onChange} value={field.value} className='flex gap-4 pt-2'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='Bank' id='bank' />
-                                            <Label htmlFor='bank' className='cursor-pointer'>Bank</Label>
+                                            <Label htmlFor='bank' className='cursor-pointer'>
+                                                Bank
+                                            </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='Cash' id='cash' />
-                                            <Label htmlFor='cash' className='cursor-pointer'>Cash</Label>
+                                            <Label htmlFor='cash' className='cursor-pointer'>
+                                                Cash
+                                            </Label>
                                         </div>
                                     </RadioGroup>
                                 )}
@@ -368,17 +403,18 @@ export default function BankCashReportPage() {
                                 Print
                             </Button>
                         </div>
-                    }
-                >
+                    }>
                     <div className='space-y-4'>
                         {/* Institution Details Section */}
-                        <div className='text-center space-y-1 mb-6'>
+                        <div className='mb-6 space-y-1 text-center'>
                             <h3 className='font-bold text-xl uppercase'>{institution?.mI_Name}</h3>
                             <p className='text-muted-foreground'>
                                 {institution?.mI_Address1}, {institution?.ivrmmcT_Name} - {institution?.mI_Pincode}
                             </p>
                             <p className='font-semibold'>
-                                BANK / CASH REPORT FOR {(MONTH_LIST.find(m => String(m.id ?? '') === watch('month'))?.name || '').toUpperCase()} {yearsData?.data?.find((y: any) => String(y.hrmlY_Id ?? '') === watch('year'))?.hrmlY_LeaveYear}
+                                BANK / CASH REPORT FOR{' '}
+                                {(MONTH_LIST.find((m) => String(m.id ?? '') === watch('month'))?.name || '').toUpperCase()}{' '}
+                                {yearsData?.data?.find((y: any) => String(y.hrmlY_Id ?? '') === watch('year'))?.hrmlY_LeaveYear}
                             </p>
                         </div>
 
@@ -392,8 +428,9 @@ export default function BankCashReportPage() {
                         />
 
                         <div className='flex justify-end pr-8'>
-                            <div className='text-lg font-bold'>
-                                Total Net Salary: ₹{totalNetSalary.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <div className='font-bold text-lg'>
+                                Total Net Salary: ₹
+                                {totalNetSalary.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </div>
                         </div>
                     </div>

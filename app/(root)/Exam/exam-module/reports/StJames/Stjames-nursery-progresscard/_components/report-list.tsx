@@ -1,7 +1,6 @@
 'use client';
 
 import { Printer } from 'lucide-react';
-import React from 'react';
 
 interface StJamesNurseryReportListProps {
     data: any;
@@ -15,22 +14,16 @@ export default function StJamesNurseryReportList({ data, institution }: StJamesN
 
     if (!data) return null;
 
-    const {
-        getstudentdetails = [],
-        year = '',
-        exam = '',
-        displayattendance = false,
-        readmit = false
-    } = data;
+    const { getstudentdetails = [], year = '', exam = '', displayattendance = false, readmit = false } = data;
 
     const students = getstudentdetails;
 
     return (
         <div className='mt-8 space-y-8'>
-            <div className='flex justify-end gap-2 px-4 no-print'>
+            <div className='no-print flex justify-end gap-2 px-4'>
                 <button
                     onClick={handlePrint}
-                    className='flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 shadow-md transition-all'>
+                    className='flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-white shadow-md transition-all hover:bg-blue-700'>
                     <Printer className='h-4 w-4' /> Print
                 </button>
             </div>
@@ -63,26 +56,42 @@ export default function StJamesNurseryReportList({ data, institution }: StJamesN
 
             <div id='print-area' className='bg-white'>
                 {students.map((report: any, index: number) => (
-                    <div key={index} className={`stjames-report ${index > 0 ? 'page-break' : ''} max-w-[1000px] mx-auto p-10 border border-gray-200 shadow-lg mb-10`}>
-                        <div className='text-center mb-8'>
-                            <h2 className='text-2xl font-bold uppercase underline underline-offset-8'>
+                    <div
+                        key={index}
+                        className={`stjames-report ${index > 0 ? 'page-break' : ''} mx-auto mb-10 max-w-[1000px] border border-gray-200 p-10 shadow-lg`}>
+                        <div className='mb-8 text-center'>
+                            <h2 className='font-bold text-2xl uppercase underline underline-offset-8'>
                                 {exam || 'FINAL'} EXAMINATION REPORT CARD {year || '2023-24'}
                             </h2>
                         </div>
 
-                        <div className='grid grid-cols-3 gap-8 mb-8 text-sm'>
+                        <div className='mb-8 grid grid-cols-3 gap-8 text-sm'>
                             <div className='space-y-4 font-bold'>
-                                <div>NAME : <span className='uppercase'>{report.studentname}</span></div>
-                                <div>DOB : <span>{report.dob}</span></div>
-                                <div>CLASS TEACHER : <span className='link'>{data.clastechname || 'Class Teacher'}</span></div>
+                                <div>
+                                    NAME : <span className='uppercase'>{report.studentname}</span>
+                                </div>
+                                <div>
+                                    DOB : <span>{report.dob}</span>
+                                </div>
+                                <div>
+                                    CLASS TEACHER : <span className='link'>{data.clastechname || 'Class Teacher'}</span>
+                                </div>
                             </div>
                             <div className='space-y-4 font-bold'>
-                                <div>CLASS : <span>{report.asmcL_ClassName}</span></div>
-                                <div>ROLL NO. : <span>{report.amaY_RollNo}</span></div>
+                                <div>
+                                    CLASS : <span>{report.asmcL_ClassName}</span>
+                                </div>
+                                <div>
+                                    ROLL NO. : <span>{report.amaY_RollNo}</span>
+                                </div>
                             </div>
                             <div className='space-y-4 font-bold'>
-                                <div>SECTION : <span>{report.asmC_SectionName}</span></div>
-                                <div>ADM.NO. : <span>{report.amsT_AdmNo}</span></div>
+                                <div>
+                                    SECTION : <span>{report.asmC_SectionName}</span>
+                                </div>
+                                <div>
+                                    ADM.NO. : <span>{report.amsT_AdmNo}</span>
+                                </div>
                             </div>
                         </div>
 
@@ -98,26 +107,29 @@ export default function StJamesNurseryReportList({ data, institution }: StJamesN
                                 {report.subjectlist?.map((subj: any, sIdx: number) => (
                                     <tbody key={sIdx}>
                                         <tr className='bg-gray-100'>
-                                            <td className='text-left font-bold pl-4' colSpan={3}>
+                                            <td className='pl-4 text-left font-bold' colSpan={3}>
                                                 {subj.ISMS_SubjectName}
                                             </td>
                                         </tr>
                                         {subj.subsubjectlist?.map((subjd: any, dIdx: number) => (
                                             <tr key={dIdx}>
-                                                <td className='text-left pl-8 font-semibold italic'>{subjd.EMSS_SubSubjectName}</td>
+                                                <td className='pl-8 text-left font-semibold italic'>{subjd.EMSS_SubSubjectName}</td>
                                                 <td className='text-center font-bold'>
-                                                    {subjd.studentmarks?.[0]?.PassFailFlg === 'AB' ? 'AB' : subjd.studentmarks?.[0]?.ObtainedGrade}
+                                                    {subjd.studentmarks?.[0]?.PassFailFlg === 'AB'
+                                                        ? 'AB'
+                                                        : subjd.studentmarks?.[0]?.ObtainedGrade}
                                                 </td>
-                                                <td className='text-left pl-4'>{subjd.studentmarks?.[0]?.GRADEREMAKS}</td>
+                                                <td className='pl-4 text-left'>{subjd.studentmarks?.[0]?.GRADEREMAKS}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                 ))}
                                 {displayattendance && (
                                     <tfoot>
-                                        <tr className='font-bold bg-gray-50'>
-                                            <td colSpan={3} className='text-center p-4'>
-                                                NO.OF WORKING DAYS : {report.TOTALWORKINGDAYS} &nbsp;&nbsp;&nbsp;&nbsp; NO.OF DAYS PRESENT : {report.PRESENTDAYS}
+                                        <tr className='bg-gray-50 font-bold'>
+                                            <td colSpan={3} className='p-4 text-center'>
+                                                NO.OF WORKING DAYS : {report.TOTALWORKINGDAYS} &nbsp;&nbsp;&nbsp;&nbsp; NO.OF DAYS PRESENT :{' '}
+                                                {report.PRESENTDAYS}
                                             </td>
                                         </tr>
                                     </tfoot>
@@ -125,17 +137,17 @@ export default function StJamesNurseryReportList({ data, institution }: StJamesN
                             </table>
                         </div>
 
-                        <div className='grid grid-cols-1 md:grid-cols-12 gap-8 mb-16'>
+                        <div className='mb-16 grid grid-cols-1 gap-8 md:grid-cols-12'>
                             <div className={`${readmit ? 'md:col-span-8' : 'md:col-span-12'} space-y-8 font-bold text-sm`}>
                                 <div className='flex items-end gap-2'>
                                     <span>NEXT TERM BEGINS ON :</span>
-                                    <div className='border-b border-black flex-1 min-w-[150px]'>&nbsp;</div>
+                                    <div className='min-w-[150px] flex-1 border-black border-b'>&nbsp;</div>
                                     <span>AT</span>
-                                    <div className='border-b border-black w-24'>&nbsp;</div>
+                                    <div className='w-24 border-black border-b'>&nbsp;</div>
                                 </div>
                                 <div className='flex items-start gap-2'>
                                     <span className='whitespace-nowrap'>CLASS TEACHER'S REMARKS:</span>
-                                    <div className='border-b border-black flex-1 italic font-normal min-h-[20px]'>
+                                    <div className='min-h-[20px] flex-1 border-black border-b font-normal italic'>
                                         {report.remaks || <>&nbsp;</>}
                                     </div>
                                 </div>
@@ -151,23 +163,23 @@ export default function StJamesNurseryReportList({ data, institution }: StJamesN
                         </div>
 
                         <div className='mt-20'>
-                            <div className='grid grid-cols-4 gap-4 text-center text-[10px] font-bold uppercase'>
+                            <div className='grid grid-cols-4 gap-4 text-center font-bold text-[10px] uppercase'>
                                 <div className='space-y-4'>
                                     {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
                                     <div className='h-8'></div>
-                                    <div className='border-t border-black pt-1'>Parent's Signature</div>
+                                    <div className='border-black border-t pt-1'>Parent's Signature</div>
                                 </div>
                                 <div className='space-y-4'>
-                                    <div className='h-8 link text-sm capitalize'>{data.clastechname || 'Class Teacher'}</div>
-                                    <div className='border-t border-black pt-1'>Class Teacher's Signature</div>
+                                    <div className='link h-8 text-sm capitalize'>{data.clastechname || 'Class Teacher'}</div>
+                                    <div className='border-black border-t pt-1'>Class Teacher's Signature</div>
                                 </div>
                                 <div className='space-y-4'>
                                     <div className='h-8'>Mrs. B. Mathew</div>
-                                    <div className='border-t border-black pt-1'>Junior Head's Signature</div>
+                                    <div className='border-black border-t pt-1'>Junior Head's Signature</div>
                                 </div>
                                 <div className='space-y-4'>
                                     <div className='h-8'>Dr.T.H.Ireland</div>
-                                    <div className='border-t border-black pt-1'>Principal's Signature</div>
+                                    <div className='border-black border-t pt-1'>Principal's Signature</div>
                                 </div>
                             </div>
                         </div>

@@ -66,4 +66,3 @@ export const holidayReportColumns: ColumnDef<HolidayReportRow>[] = [
         enableHiding: true
     }
 ];
-

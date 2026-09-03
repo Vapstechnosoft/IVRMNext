@@ -5,10 +5,10 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useAddVisitor } from '@/hooks/visitors-management/transactions/useAddVisitor';
+import type { VisitorTransactionData } from '@/types/visitors-management/transactions';
 import { Plus, X } from 'lucide-react';
 import { visitorColumns } from './_components/columns';
 import VisitorForm from './_components/visitor-form';
-import { VisitorTransactionData } from '@/types/visitors-management/transactions';
 
 // Type for the list data
 
@@ -18,12 +18,7 @@ export default function AddVisitorPage() {
 
     return (
         <FormProvider<VisitorTransactionData>>
-            <AddVisitorPageContent
-                listData={listData}
-                isLoading={isLoading}
-                error={error}
-                refetch={refetch}
-            />
+            <AddVisitorPageContent listData={listData} isLoading={isLoading} error={error} refetch={refetch} />
         </FormProvider>
     );
 }
@@ -51,7 +46,7 @@ function AddVisitorPageContent({
                         type='button'
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
-                        <Plus className='h-4 w-4 mr-2' />
+                        <Plus className='mr-2 h-4 w-4' />
                         Add New Visitor
                     </Button>
                 </div>
@@ -94,10 +89,12 @@ function AddVisitorPageContent({
                                     className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                     <X className='h-4 w-4 text-destructive' /> Close
                                 </Button>
-                                <VisitorForm onSuccess={() => {
-                                    closeAddForm();
-                                    refetch();
-                                }} />
+                                <VisitorForm
+                                    onSuccess={() => {
+                                        closeAddForm();
+                                        refetch();
+                                    }}
+                                />
                             </div>
                         </CollapsibleSection>
                     </div>

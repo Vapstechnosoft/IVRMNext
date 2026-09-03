@@ -47,6 +47,8 @@ export default function ExamMarksCalculationForm() {
     const [academicYears, setAcademicYears] = useState<any[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
     const [sections, setSections] = useState<any[]>([]);
+    const [isLoadingClasses, setIsLoadingClasses] = useState(false);
+    const [isLoadingSections, setIsLoadingSections] = useState(false);
 
     const { data: academicData } = useAcademicYearDropdown();
 
@@ -66,12 +68,15 @@ export default function ExamMarksCalculationForm() {
             return;
         }
         (async () => {
+            setIsLoadingClasses(true);
             try {
                 const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
                 setClasses(Array.isArray(data) ? data : []);
             } catch {
                 toast.error('Failed to load classes');
                 setClasses([]);
+            } finally {
+                setIsLoadingClasses(false);
             }
         })();
     }, [selectedYear, setValue]);
@@ -84,12 +89,15 @@ export default function ExamMarksCalculationForm() {
             return;
         }
         (async () => {
+            setIsLoadingSections(true);
             try {
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
                 setSections(Array.isArray(data) ? data : []);
             } catch {
                 toast.error('Failed to load sections');
                 setSections([]);
+            } finally {
+                setIsLoadingSections(false);
             }
         })();
     }, [selectedYear, selectedClass, setValue]);
@@ -182,11 +190,21 @@ export default function ExamMarksCalculationForm() {
                                                             <SelectValue placeholder='Select Class' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {classes.map((c) => (
-                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                                    {c.asmcL_ClassName}
+                                                            {isLoadingClasses ? (
+                                                                <SelectItem value='loading' disabled>
+                                                                    Loading classes...
                                                                 </SelectItem>
-                                                            ))}
+                                                            ) : classes.length === 0 ? (
+                                                                <SelectItem value='none' disabled>
+                                                                    No classes found
+                                                                </SelectItem>
+                                                            ) : (
+                                                                classes.map((c) => (
+                                                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                        {c.asmcL_ClassName}
+                                                                    </SelectItem>
+                                                                ))
+                                                            )}
                                                         </SelectContent>
                                                     </Select>
                                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -213,11 +231,21 @@ export default function ExamMarksCalculationForm() {
                                                             <SelectValue placeholder='Select Section' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {sections.map((s) => (
-                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
-                                                                    {s.asmC_SectionName}
+                                                            {isLoadingSections ? (
+                                                                <SelectItem value='loading' disabled>
+                                                                    Loading sections...
                                                                 </SelectItem>
-                                                            ))}
+                                                            ) : sections.length === 0 ? (
+                                                                <SelectItem value='none' disabled>
+                                                                    No sections found
+                                                                </SelectItem>
+                                                            ) : (
+                                                                sections.map((s) => (
+                                                                    <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                        {s.asmC_SectionName}
+                                                                    </SelectItem>
+                                                                ))
+                                                            )}
                                                         </SelectContent>
                                                     </Select>
                                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

@@ -59,10 +59,7 @@ export const masterVendorSchema = {
             .min(5, 'Email must be at least 5 characters')
             .email('Invalid email address'),
 
-        lmV_PhoneNo: z
-            .string({ required_error: 'Phone Number is required' })
-            .trim()
-            .regex(/^\d{10}$/, 'Phone Number must be exactly 10 digits')
+        lmV_PhoneNo: z.string().trim().optional().nullable().or(z.literal(''))
     }),
 
     delete: z.object({
@@ -93,28 +90,33 @@ export const masterPublisherSchema = {
             .regex(/^[A-Za-z\s]+$/, 'Only letters and spaces allowed'),
 
         lmP_MobileNo: z
-            .string({ required_error: 'Mobile Number is required' })
-            .trim()
-            .regex(/^\d{10}$/, 'Mobile Number must be exactly 10 digits'),
-
-        lmP_Address: z
-            .string({ required_error: 'Address is required' })
-            .trim()
-            .min(3, 'Address must be at least 3 characters')
-            .max(200, 'Address cannot exceed 200 characters')
-            .regex(/^[A-Za-z0-9\s,.-]+$/, 'Only letters, numbers, spaces, and basic punctuation allowed'),
-
-        lmP_EMailId: z
-            .string({ required_error: 'Email is required' })
-            .trim()
-            .min(5, 'Email must be at least 5 characters')
-            .email('Invalid email address'),
-
-        lmP_PhoneNo: z
             .string()
             .trim()
             .optional()
+            .nullable()
             .or(z.literal(''))
+            .refine((val) => !val || /^\d{10}$/.test(val), 'Mobile Number must be exactly 10 digits'),
+
+        lmP_Address: z
+            .string()
+            .trim()
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine(
+                (val) => !val || (val.length >= 3 && val.length <= 200 && /^[A-Za-z0-9\s,.-]+$/.test(val)),
+                'Address must be at least 3 characters, max 200 characters, and can only contain letters, numbers, spaces, and basic punctuation'
+            ),
+
+        lmP_EMailId: z
+            .string()
+            .trim()
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine((val) => !val || z.string().email().safeParse(val).success, 'Invalid email address'),
+
+        lmP_PhoneNo: z.string().trim().optional().or(z.literal(''))
     }),
     delete: z.object({
         lmP_Id: deleteIdSchema('lmP_Id')
@@ -125,33 +127,43 @@ export const masterAuthorSchema = {
     addOrUpdate: z.object({
         lmaU_Id: z.number().nonnegative().optional(),
 
-        lmaU_AuthorFirstName: z.string({ message: 'Author Name is required' }).min(2).max(100),
+        lmaU_AuthorFirstName: z
+            .string({ required_error: 'Author Name is required' })
+            .trim()
+            .min(2, 'Author Name must be at least 2 characters')
+            .max(100),
 
-        lmaU_AuthorMiddleName: z.string().optional(),
-        lmaU_AuthorLastName: z.string().optional(),
+        lmaU_AuthorMiddleName: z.string().trim().optional().nullable().or(z.literal('')),
+        lmaU_AuthorLastName: z.string().trim().optional().nullable().or(z.literal('')),
 
         lmaU_MobileNo: z
             .string()
             .trim()
-            .refine((val) => val === '' || /^[6-9]\d{9}$/.test(val), 'Invalid Indian mobile number'),
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine((val) => !val || /^\d{10}$/.test(val), 'Mobile Number must be exactly 10 digits'),
 
         lmaU_Address: z
             .string()
             .trim()
+            .optional()
+            .nullable()
+            .or(z.literal(''))
             .refine(
-                (val) => val === '' || (val.length >= 5 && val.length <= 200 && /^[A-Za-z0-9\s#]+$/.test(val)),
-                'Address must be 5–200 characters and can contain letters, numbers, spaces and # only'
+                (val) => !val || (val.length >= 3 && val.length <= 200 && /^[A-Za-z0-9\s,.-]+$/.test(val)),
+                'Address must be 3–200 characters and can contain letters, numbers, spaces, and basic punctuation'
             ),
 
         lmaU_EmailId: z
             .string()
             .trim()
-            .refine((val) => val === '' || z.string().email().safeParse(val).success, 'Invalid email address'),
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine((val) => !val || z.string().email().safeParse(val).success, 'Invalid email address'),
 
-        lmaU_PhoneNo: z
-            .string()
-            .trim()
-            .refine((val) => val === '' || /^\d{10,15}$/.test(val), 'Phone Number must contain 10–15 digits'),
+        lmaU_PhoneNo: z.string().trim().optional().nullable().or(z.literal('')),
 
         lmaU_ActiveFlg: z.boolean().optional()
     }),
@@ -164,7 +176,12 @@ export const masterAuthorSchema = {
 export const masterLanguageSchema = {
     addOrUpdate: z.object({
         lmL_Id: z.number().nonnegative().optional(), // optional when creating new record
-        lmL_LanguageName: z.string({ message: 'Language Name is required' }).min(2).max(100)
+        lmL_LanguageName: z
+            .string({ required_error: 'Language Name is required' })
+            .trim()
+            .min(2, 'Language Name must be at least 2 characters')
+            .max(100, 'Language Name cannot exceed 100 characters')
+            .regex(/^[a-zA-Z0-9\s]+$/, 'Special characters are not allowed')
     }),
     delete: z.object({
         lmL_Id: deleteIdSchema('lmL_Id')
@@ -260,7 +277,12 @@ export const masterClassCategorySchema = {
 export const masterSubjectSchema = {
     addOrUpdate: z.object({
         lmS_SubjectName: z.string().optional(),
-        lmS_ParentId: z.coerce.number().min(1, 'Please Select Parent Subject'),
+        lmS_ParentId: z.preprocess(
+            (val) => (val === undefined || val === '' ? undefined : Number(val)),
+            z
+                .number({ required_error: 'Please Select Parent Subject', invalid_type_error: 'Please Select Parent Subject' })
+                .min(1, 'Please Select Parent Subject')
+        ),
         lmS_Level: z
             .string()
             .regex(/^\d{0,25}$/, 'Enter only numeric value')

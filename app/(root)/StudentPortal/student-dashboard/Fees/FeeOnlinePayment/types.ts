@@ -1,4 +1,3 @@
-
 export interface AcademicYear {
     asmaY_Id: number;
     asmaY_Year: string;
@@ -74,7 +73,7 @@ export interface FeeOnlinePaymentProps {
         feeconfiglist: any[];
         specialheadlist: any[];
         specialheaddetails: any[];
-    }
+    };
 }
 
 export interface GroupTermMapping {

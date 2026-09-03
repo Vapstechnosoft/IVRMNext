@@ -26,32 +26,25 @@ export default function UpdateInvMasterStoreForm({ onSuccess, onCancel, empname_
         control,
         handleSubmit,
         reset,
-        watch,
         setValue,
         formState: { isSubmitting, errors }
     } = useForm<TInvMasterStore>({
         resolver: zodResolver(invMasterStoreSchema),
         defaultValues: {
-            invmsT_Id: selectedRow.invmsT_Id,
-            invmS_StoreName: selectedRow.invmS_StoreName,
-            invmS_StoreLocation: selectedRow.invmS_StoreLocation,
+            invmsT_Id: Number(selectedRow.invmsT_Id) || 0,
+            invmS_StoreName: selectedRow.invmS_StoreName || '',
+            invmS_StoreLocation: selectedRow.invmS_StoreLocation || '',
             invmS_ContactPerson: selectedRow.invmS_ContactPerson || '',
-            invmS_ContactNo: selectedRow.invmS_ContactNo,
-            hrmE_Id: selectedRow.hrmE_Id,
-            invmS_ActiveFlg: selectedRow.invmS_ActiveFlg
+            invmS_ContactNo:
+                selectedRow.invmS_ContactNo != null
+                    ? String(selectedRow.invmS_ContactNo)
+                    : (selectedRow as any).invmsT_ContactNo != null
+                      ? String((selectedRow as any).invmsT_ContactNo)
+                      : '',
+            hrmE_Id: Number(selectedRow.hrmE_Id) || 0,
+            invmS_ActiveFlg: selectedRow.invmS_ActiveFlg !== undefined ? Boolean(selectedRow.invmS_ActiveFlg) : true
         }
     });
-
-    const selectedEmpId = watch('hrmE_Id');
-
-    useEffect(() => {
-        if (selectedEmpId) {
-            const emp = empname_list.find((e) => e.hrmE_Id === Number(selectedEmpId));
-            if (emp) {
-                setValue('invmS_ContactNo', emp.hrmE_MobileNo);
-            }
-        }
-    }, [selectedEmpId, empname_list, setValue]);
 
     const onInvalid = (errors: any) => {
         console.error('UpdateInvMasterStoreForm: Validation errors:', errors);
@@ -133,13 +126,22 @@ export default function UpdateInvMasterStoreForm({ onSuccess, onCancel, empname_
                         name='hrmE_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                            <Select
+                                onValueChange={(val) => {
+                                    const id = Number(val);
+                                    field.onChange(id);
+                                    const emp = empname_list?.find((e) => e.hrmE_Id === id);
+                                    if (emp && emp.hrmE_MobileNo) {
+                                        setValue('invmS_ContactNo', String(emp.hrmE_MobileNo));
+                                    }
+                                }}
+                                value={field.value?.toString()}>
                                 <SelectTrigger className={errors.hrmE_Id ? 'border-red-500' : ''}>
                                     <SelectValue placeholder='Select Incharge' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {empname_list.map((emp) => (
-                                        <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
+                                    {empname_list?.map((emp, index) => (
+                                        <SelectItem key={emp.hrmE_Id || `emp-${index}`} value={emp.hrmE_Id?.toString() || `emp-${index}`}>
                                             {emp.employeename}
                                         </SelectItem>
                                     ))}
@@ -171,8 +173,12 @@ export default function UpdateInvMasterStoreForm({ onSuccess, onCancel, empname_
                                 {...field}
                                 id='invmS_ContactNo'
                                 placeholder='Enter Contact Number'
-                                disabled
                                 className={errors.invmS_ContactNo ? 'border-red-500' : ''}
+                                maxLength={10}
+                                onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                    field.onChange(val);
+                                }}
                             />
                         )}
                     />

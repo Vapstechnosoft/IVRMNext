@@ -21,6 +21,8 @@ import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { type Employee, getSalaryCalculationColumns } from './_components/columns';
+import { useQueryState, parseAsString } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 interface SearchForm {
     groupType: string[];
     department: string[];
@@ -81,6 +83,9 @@ export default function SalaryCalculationPage() {
     const deptIds = watchedDepartment?.join(',') || '';
     console.log('departmentsData', departmentsData);
     const { data: designationsData, isPending: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
+    const { data: groupTypesData, isLoading: isLoadingGroupTypes } = useReportGroupTypes();
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIds);
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
 
     useEffect(() => {
         setHasSearched(false);
@@ -245,6 +250,9 @@ export default function SalaryCalculationPage() {
                                 <Label className='font-semibold'>
                                     Group Type
                                     <span className='ml-1 text-medium text-red-500'>*</span>
+                            <div className='space-y-2'>
+                                <Label htmlFor='groupType' className='font-medium text-foreground text-sm'>
+                                    Group Type: <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     name='groupType'
@@ -259,6 +267,7 @@ export default function SalaryCalculationPage() {
                                             className='w-full'
                                             maxHeight={240}
                                             disabled={isLoadingGroupTypes}
+                                            disabled={isLoadingGroupTypes || !groupTypeOptions?.length}
                                         />
                                     )}
                                 />
@@ -268,6 +277,9 @@ export default function SalaryCalculationPage() {
                                 <Label className='font-semibold'>
                                     Department
                                     <span className='ml-1 text-medium text-red-500'>*</span>
+                            <div className='space-y-2'>
+                                <Label htmlFor='department' className='font-medium text-foreground text-sm'>
+                                    Department: <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     name='department'
@@ -286,6 +298,8 @@ export default function SalaryCalculationPage() {
                                             className='w-full'
                                             maxHeight={240}
                                             disabled={isLoadingDepartments && departmentOptions?.length === 0}
+                                            placeholder={isLoadingDepartments ? 'Loading...' : 'Select Departments'}
+                                            disabled={isLoadingDepartments || !departmentOptions?.length}
                                         />
                                     )}
                                 />
@@ -295,6 +309,9 @@ export default function SalaryCalculationPage() {
                                 <Label className='font-semibold'>
                                     Designation
                                     <span className='ml-1 text-medium text-red-500'>*</span>
+                            <div className='space-y-2'>
+                                <Label htmlFor='designation' className='font-medium text-foreground text-sm'>
+                                    Designation: <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     name='designation'
@@ -313,6 +330,8 @@ export default function SalaryCalculationPage() {
                                             className='w-full'
                                             maxHeight={240}
                                             disabled={isLoadingDesignations && designationOptions?.length === 0}
+                                            placeholder={isLoadingDesignations ? 'Loading...' : 'Select Designations'}
+                                            disabled={isLoadingDesignations || !designationOptions?.length}
                                         />
                                     )}
                                 />
@@ -322,6 +341,9 @@ export default function SalaryCalculationPage() {
                                 <Label className='font-semibold'>
                                     Month
                                     <span className='ml-1 text-medium text-red-500'>*</span>
+                            <div className='space-y-2'>
+                                <Label htmlFor='salaryMonth' className='font-medium text-foreground text-sm'>
+                                    Month: <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     name='salaryMonth'
@@ -348,6 +370,9 @@ export default function SalaryCalculationPage() {
                                 <Label className='font-semibold'>
                                     Year
                                     <span className='ml-1 text-medium text-red-500'>*</span>
+                            <div className='space-y-2'>
+                                <Label htmlFor='salaryYear' className='font-medium text-foreground text-sm'>
+                                    Year: <span className='text-red-500'>*</span>
                                 </Label>
                                 <Controller
                                     key={resetkey} // Reset select when resetKey changes
@@ -456,6 +481,10 @@ function SalaryCalculationTable({
     handleReset
 }: SalaryCalculationTableProps) {
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
 
     // Local filtering logic for search
     const filteredBySearch = useMemo(() => {
@@ -544,6 +573,7 @@ function SalaryCalculationTable({
                     showViewOptions={false}
                     isSearchRequired={true}
                     isPaginationRequired={true}
+                    isPaginationRequired={false}
                     columnPinning={{ left: ['select'] }}
                 />
             </div>

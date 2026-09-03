@@ -1,35 +1,33 @@
 'use client';
 
-import { useForm, Controller, SubmitHandler } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { oralTestScheduleSchema, OralTestScheduleFormValues } from '@/schemas/admission/preadmission/transactions/oral-test-schedule';
-import { 
-    useClasswiseStudents, 
-    useOralTestScheduleDetails, 
-    useSaveOralTestSchedule,
-    useOralTestScheduleSelectedRow 
-} from '@/hooks/admission/preadmission/transactions/use-oral-test-schedule';
-import { IOralTestSchedule, IStudentDetails, IOralTestScheduleDetails, IStaffDetails } from '@/types/admission/preadmission/transactions/oral-test-schedule';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { DatePicker } from '@/components/ui/date-picker';
-import { TimePicker } from '@/components/ui/time-picker/time-picker';
-import { Textarea } from '@/components/ui/textarea';
-import { MultiSelect } from '@/components/ui/multi-select';
-import { useEffect, useState, useMemo, useRef } from 'react';
-import { toast } from 'sonner';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import { Card, CardContent } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { format, differenceInMinutes, parse, startOfDay } from 'date-fns';
-import { Loader2, Save, RotateCcw, ChevronUp, ChevronDown, Search } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    useClasswiseStudents,
+    useOralTestScheduleDetails,
+    useOralTestScheduleSelectedRow,
+    useSaveOralTestSchedule
+} from '@/hooks/admission/preadmission/transactions/use-oral-test-schedule';
+import { type OralTestScheduleFormValues, oralTestScheduleSchema } from '@/schemas/admission/preadmission/transactions/oral-test-schedule';
+import type { IOralTestSchedule, IStaffDetails, IStudentDetails } from '@/types/admission/preadmission/transactions/oral-test-schedule';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { ColumnDef } from '@tanstack/react-table';
+import { differenceInMinutes, format } from 'date-fns';
+import { ChevronDown, ChevronUp, Loader2, RotateCcw, Save, Search } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import Swal from 'sweetalert2';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
 interface OralTestScheduleFormProps {
     onSuccess: () => void;
@@ -71,7 +69,7 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
             principalflg: false,
             managerflg: false,
             anybodystart: false,
-            addParticipants: false,
+            addParticipants: false
         }
     });
 
@@ -80,7 +78,7 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
         if (editData?.oralTestScheduleDetails?.[0]) {
             const data = editData.oralTestScheduleDetails[0];
             const child = editData.childarray?.[0];
-            
+
             form.reset({
                 paotS_Id: data.paotS_Id,
                 paotS_ScheduleName: data.paotS_ScheduleName || '',
@@ -102,7 +100,7 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
                 principalflg: data.paotS_PrincipalMapping || false,
                 managerflg: data.paotS_ManagerMapping || false,
                 anybodystart: data.paotS_AnybodyCanStart || false,
-                addParticipants: data.paotS_StaffMapping || data.paotS_PrincipalMapping || data.paotS_ManagerMapping || false,
+                addParticipants: data.paotS_StaffMapping || data.paotS_PrincipalMapping || data.paotS_ManagerMapping || false
             });
 
             if (child?.asmcL_Id) {
@@ -132,7 +130,7 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
         const strengthNum = Number(strength);
         if (autostudent && strengthNum > 0 && allStudents.length > 0) {
             const isVC = form.getValues('meetingvc');
-            const toSelect = allStudents.slice(0, strengthNum).map(s => ({
+            const toSelect = allStudents.slice(0, strengthNum).map((s) => ({
                 ...s,
                 vcmeeting: isVC
             }));
@@ -153,7 +151,7 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
             Swal.fire({
                 icon: 'warning',
                 title: 'Warning',
-                text: 'Schedule time and mapping time of student is not possible',
+                text: 'Schedule time and mapping time of student is not possible'
             });
         }
     }, [watchFromTime, watchToTime]);
@@ -162,53 +160,56 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
         const cols: ColumnDef<IStudentDetails>[] = [
             {
                 id: 'slno',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="SL.NO" />,
-                cell: ({ row }) => row.index + 1,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
+                cell: ({ row }) => row.index + 1
             },
             {
                 accessorKey: 'pasR_FirstName',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Student Name" />,
-                cell: ({ row }) => `${row.original.pasR_FirstName} ${row.original.pasR_MiddleName || ''} ${row.original.pasR_LastName || ''}`,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+                cell: ({ row }) =>
+                    `${row.original.pasR_FirstName} ${row.original.pasR_MiddleName || ''} ${row.original.pasR_LastName || ''}`
             },
             {
                 accessorKey: 'pasR_RegistrationNo',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Registration No" />,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Registration No' />
             },
             {
                 accessorKey: 'classname',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Class" />,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />
             },
             {
                 accessorKey: 'pasR_Sex',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Gender" />,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Gender' />
             },
             {
                 accessorKey: 'pasR_MobileNo',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Mobile Number" />,
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Mobile Number' />
             },
             {
                 accessorKey: 'pasR_EmailId',
-                header: ({ column }) => <DataTableColumnHeader column={column} title="Email No" />,
-            },
+                header: ({ column }) => <DataTableColumnHeader column={column} title='Email No' />
+            }
         ];
 
         if (form.watch('meetingvc')) {
             cols.push({
                 id: 'vcmeeting',
-                header: () => <div className="text-center">VC Meeting</div>,
+                header: () => <div className='text-center'>VC Meeting</div>,
                 cell: ({ row }) => {
-                    const student = selectedStudents.find(s => s.pasR_Id === row.original.pasR_Id);
+                    const student = selectedStudents.find((s) => s.pasR_Id === row.original.pasR_Id);
                     const isSelected = !!student;
                     return (
-                        <div className="flex justify-center">
+                        <div className='flex justify-center'>
                             <Checkbox
                                 checked={student?.vcmeeting || false}
                                 disabled={!isSelected}
                                 onCheckedChange={(value: any) => {
                                     if (isSelected) {
-                                        setSelectedStudents(selectedStudents.map(s => 
-                                            s.pasR_Id === row.original.pasR_Id ? { ...s, vcmeeting: !!value } : s
-                                        ));
+                                        setSelectedStudents(
+                                            selectedStudents.map((s) =>
+                                                s.pasR_Id === row.original.pasR_Id ? { ...s, vcmeeting: !!value } : s
+                                            )
+                                        );
                                     }
                                 }}
                             />
@@ -221,14 +222,14 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
         cols.push({
             id: 'select',
             header: ({ table, column }) => (
-                <div className="flex flex-col items-center gap-1">
-                    <DataTableColumnHeader column={column} title="Action" className="text-white" />
+                <div className='flex flex-col items-center gap-1'>
+                    <DataTableColumnHeader column={column} title='Action' className='text-white' />
                     <Checkbox
                         checked={table.getIsAllPageRowsSelected()}
                         onCheckedChange={(value: any) => {
                             table.toggleAllPageRowsSelected(!!value);
                             if (value) {
-                                setSelectedStudents(allStudents.map(s => ({ ...s, vcmeeting: form.watch('meetingvc') })));
+                                setSelectedStudents(allStudents.map((s) => ({ ...s, vcmeeting: form.watch('meetingvc') })));
                             } else {
                                 setSelectedStudents([]);
                             }
@@ -237,22 +238,22 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
                 </div>
             ),
             cell: ({ row }) => (
-                <div className="flex justify-center">
+                <div className='flex justify-center'>
                     <Checkbox
-                        checked={selectedStudents.some(s => s.pasR_Id === row.original.pasR_Id)}
+                        checked={selectedStudents.some((s) => s.pasR_Id === row.original.pasR_Id)}
                         onCheckedChange={(value: any) => {
                             if (value) {
-                                setSelectedStudents(prev => {
-                                    if (prev.some(s => s.pasR_Id === row.original.pasR_Id)) return prev;
+                                setSelectedStudents((prev) => {
+                                    if (prev.some((s) => s.pasR_Id === row.original.pasR_Id)) return prev;
                                     return [...prev, { ...row.original, vcmeeting: form.watch('meetingvc') }];
                                 });
                             } else {
-                                setSelectedStudents(prev => prev.filter(s => s.pasR_Id !== row.original.pasR_Id));
+                                setSelectedStudents((prev) => prev.filter((s) => s.pasR_Id !== row.original.pasR_Id));
                             }
                         }}
                     />
                 </div>
-            ),
+            )
         });
 
         return cols;
@@ -292,9 +293,7 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
         }
 
         const interactionTime = Number(values.paotS_TimePeriod);
-        const totalNeeded = values.paotS_TPFlag 
-            ? interactionTime * values.paotS_Strength 
-            : (interactionTime * 60) * values.paotS_Strength;
+        const totalNeeded = values.paotS_TPFlag ? interactionTime * values.paotS_Strength : interactionTime * 60 * values.paotS_Strength;
 
         if (totalNeeded > diff) {
             toast.error(`Total interaction time (${totalNeeded} mins) exceeds schedule duration (${diff} mins)`);
@@ -310,7 +309,7 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
             Swal.fire({
                 icon: 'warning',
                 title: 'Warning',
-                text: 'Schedule time and mapping time of student is not possible',
+                text: 'Schedule time and mapping time of student is not possible'
             });
             return;
         }
@@ -322,76 +321,80 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
             PAOTS_ScheduleDate: format(values.paotS_ScheduleDate, 'yyyy-MM-dd'),
             PAOTS_ScheduleTime: values.paotS_ScheduleTime,
             PAOTS_ScheduleTimeTo: values.paotS_ScheduleTimeTo,
-            PAOTS_Remarks: values.paotS_Remarks || "",
+            PAOTS_Remarks: values.paotS_Remarks || '',
             PAOTS_TimePeriod: Number(values.paotS_TimePeriod),
             PAOTS_TPFlag: values.paotS_TPFlag,
             autoschedule: values.autoschedule,
-            PAOTS_Superviser: values.paotS_Superviser || "",
-            PAOTS_Skills: values.paotS_Skills || "",
-            SelectedStudentData: selectedStudents.map(s => ({
+            PAOTS_Superviser: values.paotS_Superviser || '',
+            PAOTS_Skills: values.paotS_Skills || '',
+            SelectedStudentData: selectedStudents.map((s) => ({
                 PASR_Id: Number(s.pasR_Id),
-                PASR_emailId: s.pasR_emailId || "",
+                PASR_emailId: s.pasR_emailId || '',
                 PASR_MobileNo: Number(s.pasR_MobileNo) || 0,
                 MI_Id: Number(s.mI_Id || (details as any)?.mI_Id || 0),
                 vcmeeting: !!(s as any).vcmeeting
             })),
             anybodystart: values.anybodystart,
             pavidc: values.pavidc,
-            stfids: (details as any)?.stafflist
-                ?.filter((staff: any) => selectedStaffIds.includes(staff.userid))
-                ?.map((staff: any) => ({
-                    UserId: Number(staff.userid),
-                    HRME_Id: Number(staff.hrmE_Id)
-                })) || [],
+            stfids:
+                (details as any)?.stafflist
+                    ?.filter((staff: any) => selectedStaffIds.includes(staff.userid))
+                    ?.map((staff: any) => ({
+                        UserId: Number(staff.userid),
+                        HRME_Id: Number(staff.hrmE_Id)
+                    })) || []
         };
 
         saveSchedule(payload, {
             onSuccess: () => onSuccess()
         });
-    }
+    };
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+                <div className='grid grid-cols-1 gap-8 lg:grid-cols-2'>
                     {/* Left Section */}
-                    <div className="space-y-4">
+                    <div className='space-y-4'>
                         <FormField
                             control={form.control as any}
-                            name="paotS_ScheduleName"
+                            name='paotS_ScheduleName'
                             render={({ field }: any) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
-                                    <FormLabel className="text-right">Schedule Name: <span className="text-red-500">*</span></FormLabel>
-                                    <FormControl className="col-span-3">
-                                        <Input placeholder="Enter schedule name" {...field} />
+                                <FormItem className='grid grid-cols-4 items-center gap-4 space-y-0'>
+                                    <FormLabel className='text-right'>
+                                        Schedule Name: <span className='text-red-500'>*</span>
+                                    </FormLabel>
+                                    <FormControl className='col-span-3'>
+                                        <Input placeholder='Enter schedule name' {...field} />
                                     </FormControl>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    <FormMessage className='col-span-3 col-start-2' />
                                 </FormItem>
                             )}
                         />
 
                         <FormField
                             control={form.control as any}
-                            name="asmcL_Id"
+                            name='asmcL_Id'
                             render={({ field }: any) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
-                                    <FormLabel className="text-right">Class: <span className="text-red-500">*</span></FormLabel>
-                                    <Select 
+                                <FormItem className='grid grid-cols-4 items-center gap-4 space-y-0'>
+                                    <FormLabel className='text-right'>
+                                        Class: <span className='text-red-500'>*</span>
+                                    </FormLabel>
+                                    <Select
                                         onValueChange={(val: any) => {
                                             field.onChange(val);
                                             setSelectedClassId(Number(val));
-                                        }} 
-                                        value={field.value}
-                                    >
-                                        <FormControl className="col-span-3">
+                                        }}
+                                        value={field.value}>
+                                        <FormControl className='col-span-3'>
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select Class" />
+                                                <SelectValue placeholder='Select Class' />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="0">All</SelectItem>
+                                            <SelectItem value='0'>All</SelectItem>
                                             {details?.classlist
-                                                ?.filter((cls: any) => cls.asmcL_PreadmFlag === 1)
+                                                ?.filter((cls: any) => cls.asmcL_ActiveFlag === true)
                                                 ?.map((cls: any) => (
                                                     <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
                                                         {cls.asmcL_ClassName}
@@ -399,90 +402,97 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
                                                 ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    <FormMessage className='col-span-3 col-start-2' />
                                 </FormItem>
                             )}
                         />
 
                         <FormField
                             control={form.control as any}
-                            name="paotS_ScheduleDate"
+                            name='paotS_ScheduleDate'
                             render={({ field }: any) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
-                                    <FormLabel className="text-right">Schedule Date: <span className="text-red-500">*</span></FormLabel>
-                                    <div className="col-span-3">
-                                        <DatePicker 
-                                            date={field.value} 
-                                            setDate={field.onChange} 
-                                            placeholder="Schedule Date"
-                                        />
+                                <FormItem className='grid grid-cols-4 items-center gap-4 space-y-0'>
+                                    <FormLabel className='text-right'>
+                                        Schedule Date: <span className='text-red-500'>*</span>
+                                    </FormLabel>
+                                    <div className='col-span-3'>
+                                        <DatePicker date={field.value} setDate={field.onChange} placeholder='Schedule Date' />
                                     </div>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    <FormMessage className='col-span-3 col-start-2' />
                                 </FormItem>
                             )}
                         />
 
                         <FormField
                             control={form.control as any}
-                            name="paotS_Remarks"
+                            name='paotS_Remarks'
                             render={({ field }: any) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
-                                    <FormLabel className="text-right">Remarks:</FormLabel>
-                                    <FormControl className="col-span-3">
+                                <FormItem className='grid grid-cols-4 items-center gap-4 space-y-0'>
+                                    <FormLabel className='text-right'>Remarks:</FormLabel>
+                                    <FormControl className='col-span-3'>
                                         <Input {...field} value={field.value || ''} />
                                     </FormControl>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    <FormMessage className='col-span-3 col-start-2' />
                                 </FormItem>
                             )}
                         />
 
                         <FormField
                             control={form.control as any}
-                            name="paotS_Superviser"
+                            name='paotS_Superviser'
                             render={({ field }: any) => (
-                                <FormItem className="grid grid-cols-4 items-center gap-4 space-y-0">
-                                    <FormLabel className="text-right">Supervisor:</FormLabel>
-                                    <FormControl className="col-span-3">
+                                <FormItem className='grid grid-cols-4 items-center gap-4 space-y-0'>
+                                    <FormLabel className='text-right'>Supervisor:</FormLabel>
+                                    <FormControl className='col-span-3'>
                                         <Input {...field} value={field.value || ''} />
                                     </FormControl>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    <FormMessage className='col-span-3 col-start-2' />
                                 </FormItem>
                             )}
                         />
 
                         <FormField
                             control={form.control as any}
-                            name="paotS_Skills"
+                            name='paotS_Skills'
                             render={({ field }: any) => (
-                                <FormItem className="grid grid-cols-4 items-start gap-4 space-y-0">
-                                    <FormLabel className="text-right mt-2">Skill/Knowledge:</FormLabel>
-                                    <FormControl className="col-span-3">
-                                        <Textarea placeholder="Enter Skills/Knowledge" {...field} value={field.value || ''} className="min-h-[80px]" />
+                                <FormItem className='grid grid-cols-4 items-start gap-4 space-y-0'>
+                                    <FormLabel className='mt-2 text-right'>Skill/Knowledge:</FormLabel>
+                                    <FormControl className='col-span-3'>
+                                        <Textarea
+                                            placeholder='Enter Skills/Knowledge'
+                                            {...field}
+                                            value={field.value || ''}
+                                            className='min-h-[80px]'
+                                        />
                                     </FormControl>
-                                    <FormMessage className="col-start-2 col-span-3" />
+                                    <FormMessage className='col-span-3 col-start-2' />
                                 </FormItem>
                             )}
                         />
                     </div>
 
                     {/* Right Section */}
-                    <div className="space-y-6">
-                        <div className="flex items-center space-x-6 justify-center bg-slate-50 p-2 rounded-md border">
-                            <RadioGroup defaultValue="12" className="flex space-x-4">
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="12" id="r12" />
-                                    <Label htmlFor="r12" className="cursor-pointer">12 Hours</Label>
+                    <div className='space-y-6'>
+                        <div className='flex items-center justify-center space-x-6 rounded-md border bg-slate-50 p-2'>
+                            <RadioGroup defaultValue='12' className='flex space-x-4'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='12' id='r12' />
+                                    <Label htmlFor='r12' className='cursor-pointer'>
+                                        12 Hours
+                                    </Label>
                                 </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="24" id="r24" />
-                                    <Label htmlFor="r24" className="cursor-pointer">24 Hours</Label>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='24' id='r24' />
+                                    <Label htmlFor='r24' className='cursor-pointer'>
+                                        24 Hours
+                                    </Label>
                                 </div>
                             </RadioGroup>
                         </div>
 
-                        <div className='grid grid-cols-1 gap-6 md:grid-cols-2 items-start'>
+                        <div className='grid grid-cols-1 items-start gap-6 md:grid-cols-2'>
                             {/* Time Selectors Column */}
-                            <div className="space-y-6">
+                            <div className='space-y-6'>
                                 <Controller
                                     name='paotS_ScheduleTime'
                                     control={form.control as any}
@@ -510,29 +520,29 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
                             </div>
 
                             {/* Checkboxes Column */}
-                            <div className="space-y-3 pt-2">
+                            <div className='space-y-3 pt-2'>
                                 <FormField
                                     control={form.control as any}
-                                    name="meetingvc"
+                                    name='meetingvc'
                                     render={({ field }: any) => (
-                                        <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                        <FormItem className='flex flex-row items-center space-x-3 space-y-0'>
                                             <FormControl>
-                                                <Checkbox 
-                                                    checked={field.value} 
+                                                <Checkbox
+                                                    checked={field.value}
                                                     onCheckedChange={(val) => {
                                                         field.onChange(val);
                                                         if (val) {
                                                             form.setValue('addParticipants', true);
                                                             form.setValue('autostudent', true);
-                                                            setSelectedStudents(prev => prev.map(s => ({ ...s, vcmeeting: true })));
+                                                            setSelectedStudents((prev) => prev.map((s) => ({ ...s, vcmeeting: true })));
                                                         } else {
                                                             form.setValue('addParticipants', false);
                                                         }
-                                                    }} 
+                                                    }}
                                                 />
                                             </FormControl>
-                                            <FormLabel className="font-normal flex items-center cursor-pointer">
-                                                <span className="mr-2 text-blue-600">🎥</span> Video conferencing
+                                            <FormLabel className='flex cursor-pointer items-center font-normal'>
+                                                <span className='mr-2 text-blue-600'>🎥</span> Video conferencing
                                             </FormLabel>
                                         </FormItem>
                                     )}
@@ -540,14 +550,14 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
                                 {form.watch('meetingvc') && (
                                     <FormField
                                         control={form.control as any}
-                                        name="addParticipants"
+                                        name='addParticipants'
                                         render={({ field }: any) => (
-                                            <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                            <FormItem className='flex flex-row items-center space-x-3 space-y-0'>
                                                 <FormControl>
                                                     <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                                 </FormControl>
-                                                <FormLabel className="font-normal flex items-center cursor-pointer">
-                                                    <span className="mr-2 text-blue-600">👤+</span> Add Participants
+                                                <FormLabel className='flex cursor-pointer items-center font-normal'>
+                                                    <span className='mr-2 text-blue-600'>👤+</span> Add Participants
                                                 </FormLabel>
                                             </FormItem>
                                         )}
@@ -555,41 +565,43 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
                                 )}
                                 <FormField
                                     control={form.control as any}
-                                    name="autostudent"
+                                    name='autostudent'
                                     render={({ field }: any) => (
-                                        <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                        <FormItem className='flex flex-row items-center space-x-3 space-y-0'>
                                             <FormControl>
                                                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                             </FormControl>
-                                            <FormLabel className="font-normal cursor-pointer">✅ Auto Select Students</FormLabel>
+                                            <FormLabel className='cursor-pointer font-normal'>✅ Auto Select Students</FormLabel>
                                         </FormItem>
                                     )}
                                 />
                                 <FormField
                                     control={form.control as any}
-                                    name="pavidc"
+                                    name='pavidc'
                                     render={({ field }: any) => (
-                                        <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+                                        <FormItem className='flex flex-row items-center space-x-3 space-y-0'>
                                             <FormControl>
                                                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                             </FormControl>
-                                            <FormLabel className="font-normal cursor-pointer">Common ScheduleTime Slot</FormLabel>
+                                            <FormLabel className='cursor-pointer font-normal'>Common ScheduleTime Slot</FormLabel>
                                         </FormItem>
                                     )}
                                 />
 
-                                <div className="pt-4 space-y-4">
+                                <div className='space-y-4 pt-4'>
                                     <FormField
                                         control={form.control as any}
-                                        name="paotS_TimePeriod"
+                                        name='paotS_TimePeriod'
                                         render={({ field }: any) => (
-                                            <FormItem className="flex flex-col space-y-1">
-                                                <FormLabel className="text-xs">Individual student interaction time: <span className="text-red-500">*</span></FormLabel>
-                                                <div className="flex items-center space-x-2">
+                                            <FormItem className='flex flex-col space-y-1'>
+                                                <FormLabel className='text-xs'>
+                                                    Individual student interaction time: <span className='text-red-500'>*</span>
+                                                </FormLabel>
+                                                <div className='flex items-center space-x-2'>
                                                     <FormControl>
-                                                        <Input type="number" {...field} className="h-8 w-24" />
+                                                        <Input type='number' {...field} className='h-8 w-24' />
                                                     </FormControl>
-                                                    <span className="text-xs border px-2 py-1 rounded bg-slate-50">Minutes</span>
+                                                    <span className='rounded border bg-slate-50 px-2 py-1 text-xs'>Minutes</span>
                                                 </div>
                                                 <FormMessage />
                                             </FormItem>
@@ -598,15 +610,17 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
 
                                     <FormField
                                         control={form.control as any}
-                                        name="paotS_Strength"
+                                        name='paotS_Strength'
                                         render={({ field }: any) => (
-                                            <FormItem className="flex flex-col space-y-1">
-                                                <FormLabel className="text-xs font-bold">No. Of Students: <span className="text-red-500">*</span></FormLabel>
+                                            <FormItem className='flex flex-col space-y-1'>
+                                                <FormLabel className='font-bold text-xs'>
+                                                    No. Of Students: <span className='text-red-500'>*</span>
+                                                </FormLabel>
                                                 <FormControl>
-                                                    <Input 
-                                                        type="number" 
-                                                        {...field} 
-                                                        className="h-8 w-24 bg-slate-100" 
+                                                    <Input
+                                                        type='number'
+                                                        {...field}
+                                                        className='h-8 w-24 bg-slate-100'
                                                         onChange={(e) => field.onChange(Number(e.target.value))}
                                                     />
                                                 </FormControl>
@@ -622,114 +636,120 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
 
                 {/* Participants Selection Table */}
                 {form.watch('addParticipants') && (
-                    <div className="space-y-4">
-                        <div className="flex items-center space-x-8 bg-slate-50 p-4 border rounded-md justify-center">
+                    <div className='space-y-4'>
+                        <div className='flex items-center justify-center space-x-8 rounded-md border bg-slate-50 p-4'>
                             <FormField
                                 control={form.control as any}
-                                name="principalflg"
+                                name='principalflg'
                                 render={({ field }: any) => (
-                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                    <FormItem className='flex flex-row items-center space-x-2 space-y-0'>
                                         <FormControl>
                                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                         </FormControl>
-                                        <FormLabel className="font-medium cursor-pointer">Principal</FormLabel>
+                                        <FormLabel className='cursor-pointer font-medium'>Principal</FormLabel>
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control as any}
-                                name="managerflg"
+                                name='managerflg'
                                 render={({ field }: any) => (
-                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                    <FormItem className='flex flex-row items-center space-x-2 space-y-0'>
                                         <FormControl>
                                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                         </FormControl>
-                                        <FormLabel className="font-medium cursor-pointer">Manager</FormLabel>
+                                        <FormLabel className='cursor-pointer font-medium'>Manager</FormLabel>
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control as any}
-                                name="stafflag"
+                                name='stafflag'
                                 render={({ field }: any) => (
-                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                    <FormItem className='flex flex-row items-center space-x-2 space-y-0'>
                                         <FormControl>
-                                            <Checkbox 
-                                                checked={field.value} 
+                                            <Checkbox
+                                                checked={field.value}
                                                 onCheckedChange={(val) => {
                                                     field.onChange(val);
                                                     if (!val) {
                                                         setSelectedStaffIds([]);
                                                     }
-                                                }} 
+                                                }}
                                             />
                                         </FormControl>
-                                        <FormLabel className="font-medium cursor-pointer">STAFF</FormLabel>
+                                        <FormLabel className='cursor-pointer font-medium'>STAFF</FormLabel>
                                     </FormItem>
                                 )}
                             />
                             <FormField
                                 control={form.control as any}
-                                name="anybodystart"
+                                name='anybodystart'
                                 render={({ field }: any) => (
-                                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                                    <FormItem className='flex flex-row items-center space-x-2 space-y-0'>
                                         <FormControl>
                                             <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                                         </FormControl>
-                                        <FormLabel className="font-medium cursor-pointer">Can anybody Start/End Meeting</FormLabel>
+                                        <FormLabel className='cursor-pointer font-medium'>Can anybody Start/End Meeting</FormLabel>
                                     </FormItem>
                                 )}
                             />
                         </div>
 
                         {form.watch('stafflag') && (
-                            <Card className="border-blue-100 overflow-hidden">
-                                <div className="bg-blue-800 px-4 py-2 flex items-center justify-between">
-                                    <h3 className="text-white font-bold text-sm uppercase">Participants/Interviewer List</h3>
-                                    <div className="relative w-64">
-                                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-blue-200" />
-                                        <Input 
-                                            placeholder="Search staff..." 
-                                            className="h-7 pl-8 text-xs bg-blue-700/50 border-blue-600 text-white placeholder:text-blue-300"
+                            <Card className='overflow-hidden border-blue-100'>
+                                <div className='flex items-center justify-between bg-blue-800 px-4 py-2'>
+                                    <h3 className='font-bold text-sm text-white uppercase'>Participants/Interviewer List</h3>
+                                    <div className='relative w-64'>
+                                        <Search className='-translate-y-1/2 absolute top-1/2 left-2 h-3.5 w-3.5 text-blue-200' />
+                                        <Input
+                                            placeholder='Search staff...'
+                                            className='h-7 border-blue-600 bg-blue-700/50 pl-8 text-white text-xs placeholder:text-blue-300'
                                             value={staffSearch}
                                             onChange={(e) => setStaffSearch(e.target.value)}
                                         />
                                     </div>
                                 </div>
-                                <div className="[&_thead_tr_th]:text-black [&_thead_tr_th]:font-bold [&_thead_tr_th]:py-2 [&_thead_tr_th]:text-[10px] [&_thead_tr_th_button]:hover:bg-transparent [&_thead_tr_th_button]:hover:text-black [&_tbody_tr:nth-child(even)]:bg-slate-50">
+                                <div className='[&_tbody_tr:nth-child(even)]:bg-slate-50 [&_thead_tr_th]:py-2 [&_thead_tr_th]:font-bold [&_thead_tr_th]:text-[10px] [&_thead_tr_th]:text-black [&_thead_tr_th_button]:hover:bg-transparent [&_thead_tr_th_button]:hover:text-black'>
                                     <GenericDataTable<IStaffDetails>
-                                        data={details?.stafflist?.filter((s: any) => 
-                                            `${s.hrmE_EmployeeFirstName} ${s.hrmE_EmployeeMiddleName || ''} ${s.hrmE_EmployeeLastName || ''}`
-                                            .toLowerCase().includes(staffSearch.toLowerCase())
-                                        ) || []}
+                                        data={
+                                            details?.stafflist?.filter((s: any) =>
+                                                `${s.hrmE_EmployeeFirstName} ${s.hrmE_EmployeeMiddleName || ''} ${s.hrmE_EmployeeLastName || ''}`
+                                                    .toLowerCase()
+                                                    .includes(staffSearch.toLowerCase())
+                                            ) || []
+                                        }
                                         columns={[
                                             {
                                                 id: 'slno',
-                                                header: ({ column }) => <DataTableColumnHeader column={column} title="SL.NO" />,
+                                                header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
                                                 cell: ({ row }) => row.index + 1,
-                                                size: 50,
+                                                size: 50
                                             },
                                             {
                                                 accessorKey: 'hrmE_EmployeeFirstName',
-                                                header: ({ column }) => <DataTableColumnHeader column={column} title="Staff Name" />,
-                                                cell: ({ row }) => `${row.original.hrmE_EmployeeFirstName} ${row.original.hrmE_EmployeeMiddleName || ''} ${row.original.hrmE_EmployeeLastName || ''}`,
+                                                header: ({ column }) => <DataTableColumnHeader column={column} title='Staff Name' />,
+                                                cell: ({ row }) =>
+                                                    `${row.original.hrmE_EmployeeFirstName} ${row.original.hrmE_EmployeeMiddleName || ''} ${row.original.hrmE_EmployeeLastName || ''}`
                                             },
                                             {
                                                 id: 'select',
-                                                header: ({ column }) => <DataTableColumnHeader column={column} title="Action" />,
+                                                header: ({ column }) => <DataTableColumnHeader column={column} title='Action' />,
                                                 cell: ({ row }) => (
-                                                    <Checkbox 
+                                                    <Checkbox
                                                         checked={selectedStaffIds.includes(row.original.userid)}
                                                         onCheckedChange={(checked) => {
                                                             if (checked) {
-                                                                setSelectedStaffIds(prev => [...new Set([...prev, row.original.userid])]);
+                                                                setSelectedStaffIds((prev) => [...new Set([...prev, row.original.userid])]);
                                                             } else {
-                                                                setSelectedStaffIds(prev => prev.filter(id => id !== row.original.userid));
+                                                                setSelectedStaffIds((prev) =>
+                                                                    prev.filter((id) => id !== row.original.userid)
+                                                                );
                                                             }
                                                         }}
                                                     />
                                                 ),
-                                                size: 80,
+                                                size: 80
                                             }
                                         ]}
                                         isLoading={false}
@@ -741,38 +761,41 @@ export default function OralTestScheduleForm({ onSuccess, initialData }: OralTes
                     </div>
                 )}
 
-                <Card className="overflow-hidden">
-                    <div className="bg-blue-800 px-4 py-2 flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <h3 className="text-white font-bold text-sm uppercase">Student Selection</h3>
-                            <div className="px-2 py-0.5 rounded bg-blue-700 text-[10px] text-white font-bold flex items-center gap-2">
-                                Total Grid Records : <span className="bg-white text-blue-800 px-1 rounded">{allStudents.length}</span>
+                <Card className='overflow-hidden'>
+                    <div className='flex items-center justify-between bg-blue-800 px-4 py-2'>
+                        <div className='flex items-center gap-4'>
+                            <h3 className='font-bold text-sm text-white uppercase'>Student Selection</h3>
+                            <div className='flex items-center gap-2 rounded bg-blue-700 px-2 py-0.5 font-bold text-[10px] text-white'>
+                                Total Grid Records : <span className='rounded bg-white px-1 text-blue-800'>{allStudents.length}</span>
                             </div>
                         </div>
-                        <div className="text-[10px] text-blue-100 font-bold uppercase flex items-center gap-2">
-                            Selected: <span className="px-2 py-0.5 rounded bg-blue-700 text-white">{selectedStudents.length} / {allStudents.length}</span>
+                        <div className='flex items-center gap-2 font-bold text-[10px] text-blue-100 uppercase'>
+                            Selected:{' '}
+                            <span className='rounded bg-blue-700 px-2 py-0.5 text-white'>
+                                {selectedStudents.length} / {allStudents.length}
+                            </span>
                         </div>
                     </div>
-                    <CardContent className="p-0">
-                        <div className="[&_thead_tr_th]:text-black [&_thead_tr_th]:font-bold [&_thead_tr_th]:py-3 [&_thead_tr_th]:text-[11px] [&_thead_tr_th_button]:hover:bg-transparent [&_thead_tr_th_button]:hover:text-black [&_tbody_tr:nth-child(even)]:bg-slate-50">
+                    <CardContent className='p-0'>
+                        <div className='[&_tbody_tr:nth-child(even)]:bg-slate-50 [&_thead_tr_th]:py-3 [&_thead_tr_th]:font-bold [&_thead_tr_th]:text-[11px] [&_thead_tr_th]:text-black [&_thead_tr_th_button]:hover:bg-transparent [&_thead_tr_th_button]:hover:text-black'>
                             <GenericDataTable
                                 data={allStudents}
                                 columns={studentColumns}
                                 isLoading={isStudentsLoading}
                                 isSearchRequired={false}
-                                loadingMessage="Fetching students..."
+                                loadingMessage='Fetching students...'
                             />
                         </div>
                     </CardContent>
                 </Card>
 
-                <div className="flex justify-end gap-4">
-                    <Button type="button" variant="outline" onClick={() => form.reset()} disabled={isSaving}>
-                        <RotateCcw className="mr-2 h-4 w-4" /> Reset
+                <div className='flex justify-end gap-4'>
+                    <Button type='button' variant='outline' onClick={() => form.reset()} disabled={isSaving}>
+                        <RotateCcw className='mr-2 h-4 w-4' /> Reset
                     </Button>
-                    <Button type="submit" disabled={isSaving}>
-                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                        {initialData ? "Update Schedule" : "Save Schedule"}
+                    <Button type='submit' disabled={isSaving}>
+                        {isSaving ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Save className='mr-2 h-4 w-4' />}
+                        {initialData ? 'Update Schedule' : 'Save Schedule'}
                     </Button>
                 </div>
             </form>
@@ -862,24 +885,44 @@ function TimeSpinnerField({
                     <button type='button' onClick={() => emit((h % 12) + 1 || 12, m, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
-                    <div className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium'>
-                        {String(h).padStart(2, '0')}
-                    </div>
+                    <input
+                        className='flex h-9 w-12 rounded-md border border-input bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                        value={String(h).padStart(2, '0')}
+                        onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, '');
+                            if (val.length > 2) val = val.slice(-2);
+                            let num = Number.parseInt(val, 10);
+                            if (isNaN(num)) num = 12;
+                            if (num > 12) num = 12;
+                            if (num < 0) num = 12;
+                            emit(num, m, ampm);
+                        }}
+                    />
                     <button type='button' onClick={() => emit(((h - 2 + 12) % 12) + 1, m, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
                 </div>
 
-                <span className='text-lg font-bold leading-none'>:</span>
+                <span className='font-bold text-lg leading-none'>:</span>
 
                 {/* Minutes */}
                 <div ref={minutesRef} className='flex flex-col items-center'>
                     <button type='button' onClick={() => emit(h, (m + 1) % 60, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
-                    <div className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium'>
-                        {String(m).padStart(2, '0')}
-                    </div>
+                    <input
+                        className='flex h-9 w-12 rounded-md border border-input bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                        value={String(m).padStart(2, '0')}
+                        onChange={(e) => {
+                            let val = e.target.value.replace(/\D/g, '');
+                            if (val.length > 2) val = val.slice(-2);
+                            let num = Number.parseInt(val, 10);
+                            if (isNaN(num)) num = 0;
+                            if (num > 59) num = 59;
+                            if (num < 0) num = 0;
+                            emit(h, num, ampm);
+                        }}
+                    />
                     <button type='button' onClick={() => emit(h, (m - 1 + 60) % 60, ampm)} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
@@ -890,7 +933,9 @@ function TimeSpinnerField({
                     <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
-                    <div className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-sm font-medium'>
+                    <div
+                        className='flex h-9 w-12 cursor-pointer select-none items-center justify-center rounded-md border border-input bg-transparent font-medium text-sm'
+                        onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')}>
                         {ampm}
                     </div>
                     <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>

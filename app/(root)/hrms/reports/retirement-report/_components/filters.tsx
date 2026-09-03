@@ -220,6 +220,11 @@ export function RetirementReportFilters({
                                         mode='single'
                                         selected={filters.toDate}
                                         onDayClick={(day) => onDateChange('toDate', day)}
+                                        disabled={
+                                            filters.fromDate
+                                                ? { before: new Date(new Date(filters.fromDate).setHours(0, 0, 0, 0)) }
+                                                : undefined
+                                        }
                                         initialFocus
                                     />
                                 </PopoverContent>

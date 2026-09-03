@@ -92,6 +92,7 @@ export default function UpdateMasterModeOfPaymentForm({
 
                     <InputText
                         label='Mode Of Payment'
+                        placeholder='Mode Of Payment'
                         required
                         id='ivrmmoD_ModeOfPayment'
                         {...register('ivrmmoD_ModeOfPayment', {
@@ -130,6 +131,7 @@ export default function UpdateMasterModeOfPaymentForm({
 
                         <InputText
                             label='Mode Of Payment Code'
+                            placeholder='Mode Of Payment Code'
                             required
                             id='ivrmmoD_ModeOfPayment_Code'
                             maxLength={1}

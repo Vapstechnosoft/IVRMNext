@@ -1,12 +1,12 @@
-import { PETTYCASH_QUERY_KEYS } from "@/constants/pettycashandassettracking-query-keys";
-import { getIndentGrid, getOrganizationDropdown } from "@/server/pettycash/transaction/pcIndent";
-import { IIndentFilters } from "@/types/pettycash/transaction/pcIndent";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { PETTYCASH_QUERY_KEYS } from '@/constants/pettycashandassettracking-query-keys';
+import { getIndentGrid, getOrganizationDropdown } from '@/server/pettycash/transaction/pcIndent';
+import type { IIndentFilters } from '@/types/pettycash/transaction/pcIndent';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 /**
  * Hook to fetch the Petty Cash Indent grid based on filters.
  */
-export const usePcIndent = (filters: IIndentFilters, enabled: boolean = false) => {
+export const usePcIndent = (filters: IIndentFilters, enabled = false) => {
     const queryClient = useQueryClient();
 
     return {

@@ -8,6 +8,7 @@ import { useInvMasterItem } from '@/hooks/inventory/masters/use-inv-master-item'
 import type { IInvMasterItem } from '@/types/inventory/masters/inv-master-item';
 import { Box, Pencil, Plus, PlusCircle, X } from 'lucide-react';
 import { use, useEffect, useState } from 'react';
+import { use, useEffect, useMemo, useState } from 'react';
 import AddInvMasterItemForm from './_components/add-form';
 import { invMasterItemColumns } from './_components/columns';
 import ItemTaxDialog from './_components/item-tax-dialog';
@@ -41,8 +42,35 @@ function InvMasterItemPageContent({
     const { openAddForm } = useFormContext<IInvMasterItem>();
     const [taxModalItem, setTaxModalItem] = useState<IInvMasterItem | null>(null);
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_item',
+    const enrichedData = useMemo(() => {
+        if (!response) return undefined;
+
+        let items = [];
+        const payload = response?.data || response;
+
+        // Extract array from various possible API response structures
+        if (Array.isArray(response)) {
+            items = response;
+        } else if (Array.isArray(response?.data)) {
+            items = response.data;
+        } else if (Array.isArray(response?.get_item)) {
+            items = response.get_item;
+        } else if (response?.data?.$values) {
+            items = response.data.$values;
+        } else if (response?.get_item?.$values) {
+            items = response.get_item.$values;
+        } else if (payload?.$values) {
+            items = payload.$values;
+        }
+
+        return {
+            ...response,
+            data: items
+        };
+    }, [response]);
+
+    const tableProps = useDataTableProps(enrichedData, {
+        dataKey: 'data',
         totalKey: 'total'
     });
 
@@ -78,7 +106,7 @@ function InvMasterItemPageContent({
                     icon={<Box className='h-5 w-5' />}>
                     <GenericDataTable<IInvMasterItem>
                         {...tableProps}
-                        data={response?.data?.get_item || []}
+                        data={enrichedData?.data || []}
                         columns={invMasterItemColumns}
                         isLoading={isLoading}
                         error={error}
@@ -90,7 +118,7 @@ function InvMasterItemPageContent({
                     />
                 </CollapsibleSection>
 
-                <FormSections dropdowns={response?.data || {}} />
+                <FormSections dropdowns={response || {}} />
 
                 {taxModalItem && <ItemTaxDialog item={taxModalItem} onClose={() => setTaxModalItem(null)} />}
             </div>
@@ -110,6 +138,16 @@ function FormSections({ dropdowns }: { dropdowns: any }) {
         addFormRef,
         editFormRef
     } = useFormContext<IInvMasterItem>();
+
+    const safeDropdowns = {
+        ...dropdowns,
+        get_tax: dropdowns?.get_tax?.$values || (Array.isArray(dropdowns?.get_tax) ? dropdowns?.get_tax : []),
+        get_itemgroup: dropdowns?.get_itemgroup?.$values || (Array.isArray(dropdowns?.get_itemgroup) ? dropdowns?.get_itemgroup : []),
+        companynames: dropdowns?.companynames?.$values || (Array.isArray(dropdowns?.companynames) ? dropdowns?.companynames : []),
+        ledgernames: dropdowns?.ledgernames?.$values || (Array.isArray(dropdowns?.ledgernames) ? dropdowns?.ledgernames : []),
+        get_UOM: dropdowns?.get_UOM?.$values || (Array.isArray(dropdowns?.get_UOM) ? dropdowns?.get_UOM : []),
+        get_maingroup: dropdowns?.get_maingroup?.$values || (Array.isArray(dropdowns?.get_maingroup) ? dropdowns?.get_maingroup : [])
+    };
 
     return (
         <>
@@ -132,7 +170,7 @@ function FormSections({ dropdowns }: { dropdowns: any }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddInvMasterItemForm dropdowns={dropdowns} onSuccess={closeAddForm} />
+                            <AddInvMasterItemForm dropdowns={safeDropdowns} onSuccess={closeAddForm} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -156,7 +194,7 @@ function FormSections({ dropdowns }: { dropdowns: any }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateInvMasterItemForm dropdowns={dropdowns} selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateInvMasterItemForm dropdowns={safeDropdowns} selectedRow={selectedRow} onSuccess={closeEditForm} />
                         </div>
                     </CollapsibleSection>
                 </div>

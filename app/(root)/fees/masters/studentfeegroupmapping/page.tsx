@@ -123,8 +123,17 @@ function MasterStudentFeeGroupMapping({
 }
 
 function FormSections() {
-    const { isAddFormOpen, isEditFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeEditForm, closeDeleteForm, addFormRef, editFormRef } =
-        useFormContext<IMasterStudentFeeGroupMappingList>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeDeleteForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterStudentFeeGroupMappingList>();
     return (
         <>
             {/* Add Form */}

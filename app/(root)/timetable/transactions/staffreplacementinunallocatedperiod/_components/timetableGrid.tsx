@@ -1,13 +1,16 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { useTTStaffReplacementInUnallocatedPeriodReport, useSaveStaffReplacementInUnallocatedPeriod } from '@/hooks/timetable/useTransactions';
-import { ArrowRightLeft, X, Loader2, RefreshCw, CheckCircle2 } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
-import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import {
+    useSaveStaffReplacementInUnallocatedPeriod,
+    useTTStaffReplacementInUnallocatedPeriodReport
+} from '@/hooks/timetable/useTransactions';
+import { cn } from '@/lib/utils';
+import { ArrowRightLeft, CheckCircle2, Loader2, RefreshCw, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 interface TimeTableGridProps {
     params: {
@@ -28,8 +31,12 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
 
     const hrmE_Id = params?.hrmE_Id ? Number(params.hrmE_Id) : 0;
 
-    const { data: reportData, isLoading: isReportLoading, isError: isReportError, refetch } =
-        useTTStaffReplacementInUnallocatedPeriodReport(hrmE_Id);
+    const {
+        data: reportData,
+        isLoading: isReportLoading,
+        isError: isReportError,
+        refetch
+    } = useTTStaffReplacementInUnallocatedPeriodReport(hrmE_Id);
 
     const { mutate: doReplace, isPending: isReplacing } = useSaveStaffReplacementInUnallocatedPeriod();
 
@@ -136,25 +143,30 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
             ttmP_ID_from: selection1.pedid,
             ttmD_ID_to: selection2.dayid,
             ttmP_ID_to: selection2.pedid,
-            staffSDK: staffSDK ? "1" : "0",
-            subSDK: subSDK ? "1" : "0",
-            conSDK: conSDK ? "1" : "0"
+            staffSDK: staffSDK ? '1' : '0',
+            subSDK: subSDK ? '1' : '0',
+            conSDK: conSDK ? '1' : '0'
         };
 
-         console.log("Replacement Payload:", payload);
+        console.log('Replacement Payload:', payload);
 
         doReplace(payload, {
-            
             onSuccess: (response: any) => {
                 if (response.data?.returnval_cls_notfree) {
-                    console.log("Class not free response", response.data);
-                } else if (response.data?.returnval) {
+                    toast.error('Replacement Failed: Class is not free.');
+                    console.log('Class not free response', response.data);
+                } else if (response.data?.returnval === true) {
+                    toast.success('Staff replacement saved successfully!');
                     handleClear();
                     refetch();
-                    console.log("Class not free response", response.data);
                 } else {
-                    console.log("Class not free response", response.data);
+                    toast.error('Failed to save staff replacement.');
+                    console.log('Replacement error response', response.data);
                 }
+            },
+            onError: (error: any) => {
+                toast.error('An error occurred while saving the replacement.');
+                console.error('Replacement error', error);
             }
         });
     };
@@ -180,29 +192,33 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
         <div className='mx-auto max-w-7xl overflow-hidden rounded-xl border border-purple-100 bg-white shadow-md'>
             {/* HEADER */}
             <div className='bg-gradient-to-r from-purple-700 via-purple-600 to-purple-800 px-6 py-4'>
-                <h2 className='flex items-center gap-2 font-extrabold text-sm text-white uppercase tracking-widest'>
-                    Report Grid View
-                </h2>
+                <h2 className='flex items-center gap-2 font-extrabold text-sm text-white uppercase tracking-widest'>Report Grid View</h2>
             </div>
 
             <div className='space-y-6 p-6'>
                 {/* Distribution Options */}
                 <div className='flex flex-wrap items-center gap-8 rounded-lg border border-purple-100 bg-purple-50/50 p-4'>
                     <div className='flex items-center space-x-2'>
-                        <Checkbox id="staffSDK" checked={staffSDK} onCheckedChange={(val) => setStaffSDK(!!val)} />
-                        <Label htmlFor="staffSDK" className="text-xs font-semibold text-purple-900 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        <Checkbox id='staffSDK' checked={staffSDK} onCheckedChange={(val) => setStaffSDK(!!val)} />
+                        <Label
+                            htmlFor='staffSDK'
+                            className='font-semibold text-purple-900 text-xs leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                             Staff Wise Uniform Distribution
                         </Label>
                     </div>
                     <div className='flex items-center space-x-2'>
-                        <Checkbox id="subSDK" checked={subSDK} onCheckedChange={(val) => setSubSDK(!!val)} />
-                        <Label htmlFor="subSDK" className="text-xs font-semibold text-purple-900 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        <Checkbox id='subSDK' checked={subSDK} onCheckedChange={(val) => setSubSDK(!!val)} />
+                        <Label
+                            htmlFor='subSDK'
+                            className='font-semibold text-purple-900 text-xs leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                             Subject Wise Uniform Distribution
                         </Label>
                     </div>
                     <div className='flex items-center space-x-2'>
-                        <Checkbox id="conSDK" checked={conSDK} onCheckedChange={(val) => setConSDK(!!val)} />
-                        <Label htmlFor="conSDK" className="text-xs font-semibold text-purple-900 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        <Checkbox id='conSDK' checked={conSDK} onCheckedChange={(val) => setConSDK(!!val)} />
+                        <Label
+                            htmlFor='conSDK'
+                            className='font-semibold text-purple-900 text-xs leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                             Staff Wise Rest and Continue
                         </Label>
                     </div>
@@ -234,12 +250,12 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
                                         hoveredRow === rIdx ? 'bg-blue-50/50' : 'bg-white'
                                     )}
                                     onMouseEnter={() => setHoveredRow(rIdx)}
-                                    onMouseLeave={() => setHoveredRow(null)}
-                                >
-                                    <td className={cn(
-                                        'sticky left-0 z-10 border-purple-100 border-r px-4 py-4 font-bold transition-colors',
-                                        hoveredRow === rIdx ? 'bg-blue-100 text-blue-900' : 'bg-white text-purple-900'
-                                    )}>
+                                    onMouseLeave={() => setHoveredRow(null)}>
+                                    <td
+                                        className={cn(
+                                            'sticky left-0 z-10 border-purple-100 border-r px-4 py-4 font-bold transition-colors',
+                                            hoveredRow === rIdx ? 'bg-blue-100 text-blue-900' : 'bg-white text-purple-900'
+                                        )}>
                                         {row[0]?.dayname}
                                     </td>
                                     {row.map((cell: any, cIdx: number) => {
@@ -255,18 +271,25 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
                                                 key={cIdx}
                                                 onClick={() => toggleSelection(cell)}
                                                 className={cn(
-                                                    'cursor-pointer border-purple-50 border-r px-2 py-4 text-center transition-all duration-300 relative',
+                                                    'relative cursor-pointer border-purple-50 border-r px-2 py-4 text-center transition-all duration-300',
                                                     'hover:bg-blue-50',
-                                                    isSel1 ? 'bg-blue-600 text-white shadow-lg z-10 font-bold ring-2 ring-blue-300 ring-inset' : '',
-                                                    isSel2 ? 'bg-orange-500 text-white shadow-lg z-10 font-bold ring-2 ring-orange-300 ring-inset' : '',
-                                                    isHighlightGreen && !isSel1 && !isSel2 ? 'bg-green-100 text-green-700 border-green-200' : ''
+                                                    isSel1
+                                                        ? 'z-10 bg-blue-600 font-bold text-white shadow-lg ring-2 ring-blue-300 ring-inset'
+                                                        : '',
+                                                    isSel2
+                                                        ? 'z-10 bg-orange-500 font-bold text-white shadow-lg ring-2 ring-orange-300 ring-inset'
+                                                        : '',
+                                                    isHighlightGreen && !isSel1 && !isSel2
+                                                        ? 'border-green-200 bg-green-100 text-green-700'
+                                                        : ''
                                                 )}>
-                                                <div className='min-h-[24px] flex items-center justify-center font-medium'>
+                                                <div className='flex min-h-[24px] items-center justify-center font-medium'>
                                                     {cell.isEmpty ? (
-                                                        <span className={cn(
-                                                            'transition-opacity duration-200',
-                                                            (hoveredRow === rIdx || isSel1 || isSel2) ? 'opacity-100' : 'opacity-0'
-                                                        )}>
+                                                        <span
+                                                            className={cn(
+                                                                'transition-opacity duration-200',
+                                                                hoveredRow === rIdx || isSel1 || isSel2 ? 'opacity-100' : 'opacity-0'
+                                                            )}>
                                                             {cell.value}
                                                         </span>
                                                     ) : (
@@ -294,7 +317,7 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
                                         className={cn(
                                             'flex h-10 items-center rounded-md border px-4 font-semibold text-xs shadow-sm transition-all',
                                             selection1
-                                                ? 'border-blue-400 bg-blue-50 text-blue-900 font-bold'
+                                                ? 'border-blue-400 bg-blue-50 font-bold text-blue-900'
                                                 : 'border-gray-300 border-dashed bg-gray-100 text-gray-400'
                                         )}>
                                         {selection1 ? (
@@ -310,7 +333,10 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
                                 </div>
 
                                 <div className='pt-5 text-gray-400'>
-                                    <ArrowRightLeft size={20} className={cn(selection1 && selection2 ? "text-blue-500 animate-pulse" : "")} />
+                                    <ArrowRightLeft
+                                        size={20}
+                                        className={cn(selection1 && selection2 ? 'animate-pulse text-blue-500' : '')}
+                                    />
                                 </div>
 
                                 {/* SLOT 2 (Target) */}
@@ -320,7 +346,7 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
                                         className={cn(
                                             'flex h-10 items-center rounded-md border px-4 font-semibold text-xs shadow-sm transition-all',
                                             selection2
-                                                ? 'border-orange-400 bg-orange-50 text-orange-900 font-bold'
+                                                ? 'border-orange-400 bg-orange-50 font-bold text-orange-900'
                                                 : 'border-gray-300 border-dashed bg-gray-100 text-gray-400'
                                         )}>
                                         {selection2 ? (
@@ -345,7 +371,11 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
                                     onClick={handleReplace}
                                     disabled={!selection1 || !selection2 || isReplacing}
                                     className='h-10 bg-orange-500 px-8 font-bold text-white shadow-md hover:bg-orange-600'>
-                                    {isReplacing ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                                    {isReplacing ? (
+                                        <RefreshCw className='mr-2 h-4 w-4 animate-spin' />
+                                    ) : (
+                                        <CheckCircle2 className='mr-2 h-4 w-4' />
+                                    )}
                                     Replace
                                 </Button>
                             </div>
@@ -353,7 +383,6 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
                     </div>
                 )}
             </div>
-        </div >
+        </div>
     );
 }
-

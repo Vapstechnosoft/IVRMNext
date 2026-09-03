@@ -56,7 +56,7 @@ export interface LeaveAuthorizationSaveRequest {
     hrmL_Id: number;
     userId: number;
     approvalUser: ApprovalUserItem[];
-    // Keeping MI_Id optional as it might be needed for other purposes or legacy checks, 
+    // Keeping MI_Id optional as it might be needed for other purposes or legacy checks,
     // but the target payload doesn't strictly show it. Current server implementation ignores it for the body.
     MI_Id?: number;
 }
@@ -108,4 +108,3 @@ export interface LeaveAuthorizationDeleteResponse {
     message: string;
     data: any;
 }
-

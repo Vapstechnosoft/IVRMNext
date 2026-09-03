@@ -1,8 +1,7 @@
 'use client';
 
-import React, { forwardRef } from 'react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { forwardRef } from 'react';
 
 interface NdaTcPrintProps {
     data: any;
@@ -32,9 +31,10 @@ export const NdaTcPrint = forwardRef<HTMLDivElement, NdaTcPrintProps>(({ data, i
     };
 
     return (
-        <div ref={ref} className="nda-tc-container text-black">
-            <style dangerouslySetInnerHTML={{
-                __html: `
+        <div ref={ref} className='nda-tc-container text-black'>
+            <style
+                dangerouslySetInnerHTML={{
+                    __html: `
                 @media print {
                     @page {
                         size: A4 portrait;
@@ -77,11 +77,11 @@ export const NdaTcPrint = forwardRef<HTMLDivElement, NdaTcPrintProps>(({ data, i
                 .nda-tc-container .field-colon { width: 20px; text-align: center; font-size: 11pt; }
                 .nda-tc-container .field-value { flex: 1; border-bottom: none; font-weight: normal; font-size: 11pt; padding-left: 5px; }
                 .nda-tc-container .text-black { color: #000; }
-            `}} />
+            `
+                }}
+            />
 
-            <div className="mt-8 max-w-[95%] mx-auto font-serif text-black">
-
-
+            <div className='mx-auto mt-8 max-w-[95%] font-serif text-black'>
                 {/* {data?.institutionname && (
                     <div className="flex flex-col items-center mb-8 border-b-2 border-black pb-4">
                         {data?.logo && (
@@ -93,74 +93,86 @@ export const NdaTcPrint = forwardRef<HTMLDivElement, NdaTcPrintProps>(({ data, i
                         )}
                     </div>
                 )} */}
-                <h1 className="text-center text-lg font-bold underline decoration-1 underline-offset-[4px] uppercase mb-8">
+                <h1 className='mb-8 text-center font-bold text-lg uppercase underline decoration-1 underline-offset-[4px]'>
                     TRANSFER CERTIFICATE
                 </h1>
 
-                <div className="flex justify-between items-end px-1 pb-1 border-b border-gray-400 mb-6 text-[11pt] font-bold text-black uppercase">
+                <div className='mb-6 flex items-end justify-between border-gray-400 border-b px-1 pb-1 font-bold text-[11pt] text-black uppercase'>
                     <div>Admission Number: {data?.admno || ''}</div>
                     <div>Sl.No: {data?.tcno || ''}</div>
                 </div>
 
-                <div className="space-y-1 pl-4">
+                <div className='space-y-1 pl-4'>
                     {[
                         { num: '1.', label: 'Name of Pupil', value: capitalizeEachWord(data?.lblstdname) },
                         { num: '2.', label: "Father's Name", value: capitalizeEachWord(data?.lblfathername) },
                         { num: '3.', label: "Mother's Name", value: capitalizeEachWord(data?.lblmothername) },
-                        { num: '4.', label: 'Religion/Caste', value: (data?.lblreligioncaste ? capitalizeEachWord(data?.lblreligioncaste) + ' / ' + (capitalizeEachWord(data?.studcaste) || '') : '') },
+                        {
+                            num: '4.',
+                            label: 'Religion/Caste',
+                            value: data?.lblreligioncaste
+                                ? capitalizeEachWord(data?.lblreligioncaste) + ' / ' + (capitalizeEachWord(data?.studcaste) || '')
+                                : ''
+                        },
                         { num: '5.', label: 'Nationality', value: data?.lblnationality },
                         { num: '6.', label: 'Date of Birth', value: formatDate(data?.lbldob) },
                         { num: '7.', label: 'School Last Attended', value: data?.lbllastschool },
                         { num: '8.', label: 'Date Of Admission', value: formatDate(data?.lbldoa) },
                         { num: '9.', label: 'Conduct', value: data?.lblconduct },
                         { num: '10.', label: 'Date Of Leaving', value: formatDate(data?.last_date_attended) },
-                        { num: '11.', label: 'Studying In', value: (data?.Last_Class_Studied ? 'Class ' + data?.Last_Class_Studied : '') + (data?.asmC_SectionName ? ' ' + data?.asmC_SectionName : '') },
-                        { num: '12.', label: 'Remarks', value: data?.ASTC_Remarks },
+                        {
+                            num: '11.',
+                            label: 'Studying In',
+                            value:
+                                (data?.Last_Class_Studied ? 'Class ' + data?.Last_Class_Studied : '') +
+                                (data?.asmC_SectionName ? ' ' + data?.asmC_SectionName : '')
+                        },
+                        { num: '12.', label: 'Remarks', value: data?.ASTC_Remarks }
                     ].map((item, idx) => (
-                        <div key={idx} className="field-row">
-                            <span className="field-num">{item.num}</span>
-                            <span className="field-label">{item.label}</span>
-                            <span className="field-colon">:</span>
-                            <div className="field-value">{item.value}</div>
+                        <div key={idx} className='field-row'>
+                            <span className='field-num'>{item.num}</span>
+                            <span className='field-label'>{item.label}</span>
+                            <span className='field-colon'>:</span>
+                            <div className='field-value'>{item.value}</div>
                         </div>
                     ))}
                 </div>
 
-                <div className="mt-1 border-b border-gray-400 mb-2 w-full" />
+                <div className='mt-1 mb-2 w-full border-gray-400 border-b' />
 
-                <div className="px-1 space-y-2 text-[11pt] text-black">
-                    <div className="flex justify-between">
-                        <div className="flex items-center gap-2">
+                <div className='space-y-2 px-1 text-[11pt] text-black'>
+                    <div className='flex justify-between'>
+                        <div className='flex items-center gap-2'>
                             <span>PEN No. :</span>
                             <span>{data?.AMST_PENNo}</span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className='flex items-center gap-2'>
                             <span>SATS No. :</span>
                             <span>{data?.govtno}</span>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className='mb-2 flex items-center gap-2'>
                         <span>APAAR No. :</span>
                         <span>{data?.AMST_APAAANO}</span>
                     </div>
 
-                    <p className="mt-4 text-[11pt] leading-relaxed">
+                    <p className='mt-4 text-[11pt] leading-relaxed'>
                         Certified that the above-mentioned information is in accordance with the school register.
                     </p>
 
-                    <div className="mt-6 flex justify-between items-center text-[11pt]">
-                        <div className="flex items-center gap-2">
+                    <div className='mt-6 flex items-center justify-between text-[11pt]'>
+                        <div className='flex items-center gap-2'>
                             <span>Date:</span>
                             <span>{formatDate(issuedDate)}</span>
                         </div>
-                        <div className="text-right">
-                            <span className="font-bold">PRINCIPAL</span>
+                        <div className='text-right'>
+                            <span className='font-bold'>PRINCIPAL</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <div className="no-print h-10" />
+            <div className='no-print h-10' />
         </div>
     );
 });

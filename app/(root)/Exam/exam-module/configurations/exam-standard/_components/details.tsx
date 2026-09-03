@@ -4,7 +4,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Save } from 'lucide-react';
 import { Controller } from 'react-hook-form';
 
-export default function ExamStandardForm({ control, watch, handleSubmit, onSubmit, formState: { errors, isSubmitting } }: any) {
+export default function ExamStandardForm({ control, watch, handleSubmit, onSubmit, reset, formState: { errors, isSubmitting } }: any) {
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
             <div className='grid grid-cols-3 gap-10'>
@@ -264,6 +264,14 @@ export default function ExamStandardForm({ control, watch, handleSubmit, onSubmi
                         <Save className='mr-2 h-4 w-4' />
                         Save Exam Standard
                     </div>
+                </Button>
+                <Button
+                    type='button'
+                    variant='outline'
+                    className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'
+                    onClick={() => reset()}
+                    disabled={isSubmitting}>
+                    Reset
                 </Button>
             </div>
         </form>

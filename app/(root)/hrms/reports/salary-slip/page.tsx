@@ -20,6 +20,13 @@ import { SalarySlipTemplate } from './_components/salary-slip-template';
 
 const MONTH_LIST = [
     { id: 1, name: 'Januar' },
+    useSalarySlipOnload,
+    useSendSalarySlipEmailSMS
+import { Loader2, Printer, X } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { FaWhatsapp } from 'react-icons/fa';
+import { generateSalarySlipHtml, printSalarySlips } from './_components/print-utils';
+    { id: 1, name: 'January' },
     { id: 2, name: 'February' },
     { id: 3, name: 'March' },
     { id: 4, name: 'April' },
@@ -34,6 +41,8 @@ const MONTH_LIST = [
 ];
 
 export default function SalarySlipPage() {
+    const searchParams = useSearchParams();
+
     const [filters, setFilters] = useState<SalarySlipFiltersType>({
         groupType: [],
         department: [],
@@ -50,6 +59,7 @@ export default function SalarySlipPage() {
     });
 
     const [employees, setEmployees] = useState<EmployeeSalarySlipDisplay[]>([]);
+    const [tableResponse, setTableResponse] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<Set<number>>(new Set());
     const [reportData, setReportData] = useState<any>(null);
@@ -75,6 +85,7 @@ export default function SalarySlipPage() {
     const { data: onloadData, isLoading: isOnloadLoading } = useSalarySlipOnload(30, 0);
     const { mutate: filterEmployees, isPending: isFiltering } = useFilterEmployeesByYearMonth();
     const { mutate: generateSlip, isPending: isGenerating } = useGenerateSalarySlip();
+    const { mutate: sendSalarySlipEmailSMSWhatsApp, isPending: isSending } = useSendSalarySlipEmailSMS();
 
     useEffect(() => {
         if (onloadData?.data?.institutionDetails?.[0]) {
@@ -96,15 +107,13 @@ export default function SalarySlipPage() {
         }
     }, [showReport]);
 
-    const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
-        setFilters(newFilters);
-
+    useEffect(() => {
         if (
-            newFilters.groupType.length > 0 &&
-            newFilters.department.length > 0 &&
-            newFilters.designation.length > 0 &&
-            newFilters.year &&
-            newFilters.month
+            filters.groupType.length > 0 &&
+            filters.department.length > 0 &&
+            filters.designation.length > 0 &&
+            filters.year &&
+            filters.month
         ) {
             filterEmployees(
                 {
@@ -115,10 +124,16 @@ export default function SalarySlipPage() {
                     hrmgt_ids: newFilters.groupType.join(','),
                     hrmd_ids: newFilters.department.join(','),
                     hrmdes_ids: newFilters.designation.join(',')
+                    hreS_Year: filters.year,
+                    hreS_Month: filters.month,
+                    hrmgt_ids: filters.groupType.join(','),
+                    hrmd_ids: filters.department.join(','),
+                    hrmdes_ids: filters.designation.join(',')
                 },
                 {
                     onSuccess: (res) => {
                         if (res.success && res.data) {
+                            console.log('response', res);
                             const empList = Array.isArray(res.data) ? res.data : (res.data as any).data || [];
                             const mapped = empList.map((emp: any, index: number) => ({
                                 id: index + 1,
@@ -134,13 +149,23 @@ export default function SalarySlipPage() {
                             setEmployees(mapped);
                         } else {
                             setEmployees([]);
+                                isSelected: false,
+                                total_count: emp.total
+                            setTableResponse(res);
+                            setTableResponse(null);
                         }
                     }
                 }
             );
         } else {
             setEmployees([]);
+            setTableResponse(null);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters.groupType, filters.department, filters.designation, filters.year, filters.month]);
+
+    const handleFilterChange = (newFilters: SalarySlipFiltersType) => {
+        setFilters(newFilters);
     };
 
     const filteredEmployeesList = useMemo(() => {
@@ -162,10 +187,13 @@ export default function SalarySlipPage() {
         setSelectedEmployeeIds((prev) => {
             const next = new Set(prev);
             filteredEmployeesList.forEach((emp) => {
+    const handleSelectAll = (checked: boolean, ids?: number[]) => {
+            const targetIds = ids || filteredEmployeesList.map((emp) => emp.id);
+            targetIds.forEach((id) => {
                 if (checked) {
-                    next.add(emp.id);
+                    next.add(id);
                 } else {
-                    next.delete(emp.id);
+                    next.delete(id);
                 }
             });
             return next;
@@ -314,6 +342,62 @@ export default function SalarySlipPage() {
         );
     };
 
+    const handleWhatsApp = () => {
+        if (!reportData) return;
+        const slips = Array.isArray(reportData) ? reportData : [reportData];
+        const monthName = MONTH_LIST.find((m) => m.id.toString() === filters.month.toString())?.name || filters.month;
+
+        const tmplt: any[] = [];
+        const emp_ids: number[] = [];
+
+        slips.forEach((slip) => {
+            // Find original employee to get their HRME_Id
+            const matchedEmp = employees.find((e) => e.employeeCode === slip.employeeCode);
+            if (matchedEmp) {
+                emp_ids.push(matchedEmp.HRME_Id);
+                const htmlTemplate = generateSalarySlipHtml(
+                    slip,
+                    institutionDetails,
+                    monthName,
+                    filters.year,
+                    filters.options.lopDays,
+                    filters.options.leaveDetails,
+                    filters.options.panCardNo,
+                    filters.options.bankDetails
+                );
+                tmplt.push({
+                    hrmE_EmployeeCode: matchedEmp.employeeCode,
+                    TemplateString: htmlTemplate
+                });
+                console.log('templates', tmplt);
+            }
+        });
+
+        if (emp_ids.length === 0) {
+            toast.error('Could not find matching employees to send WhatsApp.');
+            return;
+        }
+
+        const data = {
+            EmailSMS: 'WhatsApp',
+            empid: emp_ids,
+            Template: tmplt,
+            HRES_Month: filters.month
+        };
+
+        console.log('data:', data);
+
+        sendSalarySlipEmailSMSWhatsApp(data, {
+            onSuccess: (res) => {
+                if (res.success) {
+                    toast.success('Successfully sent WhatsApp messages');
+                } else {
+                    toast.error(res.message || 'Failed to send WhatsApp messages');
+                }
+            }
+        });
+    };
+
     // if (isOnloadLoading) {
     //     return (
     //         <div className="flex h-screen items-center justify-center">
@@ -359,6 +443,7 @@ export default function SalarySlipPage() {
                 years={yearsData?.data || []}
                 employees={employees}
                 filteredEmployees={filteredEmployeesList}
+                tableResponse={tableResponse}
                 searchTerm={searchTerm}
                 selectedCount={selectedCount}
                 selectedEmployeeIds={selectedEmployeeIds}
@@ -391,6 +476,14 @@ export default function SalarySlipPage() {
                                 CANCEL
                             </Button>
 
+                            <Button
+                                variant='outline'
+                                className='border-green-200 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800'
+                                onClick={handleWhatsApp}
+                                disabled={isSending}>
+                                {isSending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FaWhatsapp className='mr-2 h-4 w-4' />}
+                                WHATSAPP
+                            </Button>
                             <Button variant='default' onClick={handlePrint}>
                                 <Printer className='mr-2 h-4 w-4' />
                                 PRINT ALL

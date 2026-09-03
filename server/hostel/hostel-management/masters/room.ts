@@ -1,7 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { ApiSearchparams } from '@/types';
+import type { ApiSearchparams } from '@/types';
 
 // --- Server Actions for Master Room ---
 
@@ -35,14 +35,14 @@ export async function getMappedFacilitiesForRoom(id: number) {
 }
 
 export async function getFloorsByHostel(hostelId: number) {
-     const url = `/MasterRoom/get_floor_by_hostel/${hostelId}`;
-     return await api.get<any>('hostel', url);
+    const url = `/MasterRoom/get_floor_by_hostel/${hostelId}`;
+    return await api.get<any>('hostel', url);
 }
 
 export async function getRoomCategoryByHostel(hostelId: number) {
     // Assuming this endpoint exists based on pattern or utilizing generic get list if filtered
-    // If specific endpoint is not available, might need to use getRoomCategoryList and filter? 
-    // But usually localized dropdown logic exists. 
+    // If specific endpoint is not available, might need to use getRoomCategoryList and filter?
+    // But usually localized dropdown logic exists.
     // Trying standard naming convention for this module.
     const url = `/MasterRoom/get_room_category_by_hostel/${hostelId}`;
     return await api.get<any>('hostel', url);

@@ -603,7 +603,13 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                         </div>
 
                         <div className='space-y-2'>
-                            <InputText label='Break Name' required {...register('ttmB_BreakName')} error={errors.ttmB_BreakName?.message} />
+                            <InputText
+                                label='Break Name'
+                                placeholder='Enter Break Name'
+                                required
+                                {...register('ttmB_BreakName')}
+                                error={errors.ttmB_BreakName?.message}
+                            />
                         </div>
 
                         <div className='space-y-2'>
@@ -753,7 +759,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                                 : 'border-gray-300 hover:border-primary/40'
                                         )}>
                                         {day_ids.length === (daySearch.trim() ? filteredDayIds.length : Masterdaydata.data.length) &&
-                                            day_ids.length ? (
+                                        day_ids.length ? (
                                             <CheckSquare className='h-4 w-4 text-primary' />
                                         ) : (
                                             <Square className='h-4 w-4 text-gray-400' />
@@ -811,6 +817,7 @@ export default function AddBreakTimeSettingsForm({ onSuccess, className = '' }: 
                                 render={({ field }) => (
                                     <InputNumber
                                         {...field}
+                                        placeholder='Enter After Period'
                                         onChange={(value) => {
                                             field.onChange(value);
                                         }}

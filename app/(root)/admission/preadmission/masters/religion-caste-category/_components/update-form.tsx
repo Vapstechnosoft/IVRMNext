@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import {
     useEditMasterReligionCasteCategory,
     useMasterCasteCategoryDropdown,
@@ -15,7 +16,6 @@ import { Save } from 'lucide-react';
 import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Spinner } from '@/components/ui/spinner';
 
 type FormFields = {
     ircC_Id: number;
@@ -206,7 +206,7 @@ export default function UpdateMasterReligionCasteCategoryForm({
                         loadingText='Updating...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Update
+                            Update Religion Caste Category
                         </div>
                     </Button>
                 </div>

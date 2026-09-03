@@ -1,8 +1,8 @@
 'use server';
 
+import type { superAdminMasterSchema } from '@/schemas/super-admin/super-admin-module/masters';
 import type { ISuperAdminMasterOrder } from '@/types/super-admin/super-admin-module/masters';
-import { superAdminMasterSchema } from '@/schemas/super-admin/super-admin-module/masters';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 export async function addOrUpdateSuperAdminMaster(data: z.infer<typeof superAdminMasterSchema.addOrUpdate>) {
     console.log('Saving Super Admin Master (Stub):', data);

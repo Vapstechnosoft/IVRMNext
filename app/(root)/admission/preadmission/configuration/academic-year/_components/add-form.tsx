@@ -49,14 +49,21 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
             asmaY_NewFlg: false,
             asmaY_NewAdmissionFlg: false,
             asmaY_Order: 0,
-            asmaY_PreAdm_F_Time: '',
-            asmaY_PreAdm_T_Time: ''
+            asmaY_PreAdm_F_Time: '00:00',
+            asmaY_PreAdm_T_Time: '23:59'
         }
     });
 
     // Watch From/To Year to auto-fill asmaY_Year
     const academicFromYear = useWatch({ control, name: 'academicFromYear' });
     const academicToYear = useWatch({ control, name: 'academicToYear' });
+
+    // Auto-select first institution if available
+    useEffect(() => {
+        if (institutionList && institutionList.length > 0) {
+            setValue('mI_Id', institutionList[0].mI_Id, { shouldValidate: true });
+        }
+    }, [institutionList, setValue]);
 
     // Auto-increment logic: when From Year changes, set To Year to From Year + 1 if From Year is a valid number
     useEffect(() => {
@@ -81,7 +88,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
         name: 'asmaY_RegularFeeFDate'
     });
 
-    // Auto-generate asmaY_Year like "2024-2025" and populate dates
+    // Auto-generate asmaY_Year like "2024-2025"
     useEffect(() => {
         if (
             academicFromYear &&
@@ -91,40 +98,26 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
             academicToYear.length === 4 &&
             !Number.isNaN(Number(academicToYear))
         ) {
-            const fromYear = Number(academicFromYear);
-            const toYear = Number(academicToYear);
-
             setValue('asmaY_Year', `${academicFromYear}-${academicToYear}`, {
                 shouldValidate: true
             });
-
-            // Populate Start Date (June 1st of From Year)
-            const startDate = new Date(fromYear, 5, 1); // June is index 5
-            setValue('asmaY_From_Date', startDate.toISOString(), { shouldValidate: true });
-
-            // Populate End Date (May 31st of To Year)
-            const endDate = new Date(toYear, 4, 31); // May is index 4
-            setValue('asmaY_To_Date', endDate.toISOString(), { shouldValidate: true });
-
-            // Populate Pre Admission Start Date (January 1st of From Year)
-            const preAdmStartDate = new Date(fromYear, 0, 1); // January is index 0
-            setValue('asmaY_PreAdm_F_Date', preAdmStartDate.toISOString(), { shouldValidate: true });
-
-            // Populate Pre Admission End Date (May 31st of To Year)
-            setValue('asmaY_PreAdm_T_Date', endDate.toISOString(), { shouldValidate: true });
-
-            // Populate Cut-off Date (June 1st of From Year)
-            setValue('asmaY_Cut_Of_Date', startDate.toISOString(), { shouldValidate: true });
-
-            // Populate Academic Year Code with From Year if empty
-            setValue('asmaY_AcademicYearCode', academicFromYear, { shouldValidate: true });
         } else {
             setValue('asmaY_Year', '');
         }
     }, [academicFromYear, academicToYear, setValue]);
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const onSubmit: SubmitHandler<FormFields | any> = async (data) => {
         try {
+            const sanitizeDate = (val: any) => (val && val !== '' ? val : null);
+            const formatTimeWithSeconds = (timeStr: string | null | undefined) => {
+                if (!timeStr) return null;
+                const parts = timeStr.split(':');
+                if (parts.length === 2) {
+                    return `${timeStr}:00`;
+                }
+                return timeStr;
+            };
+
             const payload = {
                 ASMAY_Id: 0,
                 MI_Id: Number(data.mI_Id),
@@ -133,8 +126,10 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                 ASMAY_To_Date: data.asmaY_To_Date,
                 ASMAY_PreAdm_F_Date: data.asmaY_PreAdm_F_Date,
                 ASMAY_PreAdm_T_Date: data.asmaY_PreAdm_T_Date,
-                ASMAY_PreAdm_F_Time: data.asmaY_PreAdm_F_Time || null,
-                ASMAY_PreAdm_T_Time: data.asmaY_PreAdm_T_Time || null,
+                ASMAY_PreAdm_F_Time: formatTimeWithSeconds(data.asmaY_PreAdm_F_Time),
+                asmaY_PreAdm_F_Time: formatTimeWithSeconds(data.asmaY_PreAdm_F_Time),
+                ASMAY_PreAdm_T_Time: formatTimeWithSeconds(data.asmaY_PreAdm_T_Time),
+                asmaY_PreAdm_T_Time: formatTimeWithSeconds(data.asmaY_PreAdm_T_Time),
                 ASMAY_Order: Number(data.asmaY_Order),
                 ASMAY_ActiveFlag: 1,
                 ASMAY_Cut_Of_Date: data.asmaY_Cut_Of_Date,
@@ -142,14 +137,22 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                 ASMAY_ReggularFlg: Boolean(data.asmaY_ReggularFlg),
                 ASMAY_NewFlg: Boolean(data.asmaY_NewFlg),
                 ASMAY_NewAdmissionFlg: Boolean(data.asmaY_NewAdmissionFlg),
-                ASMAY_TransportSDate: data.asmaY_TransportSDate,
-                ASMAY_TransportEDate: data.asmaY_TransportEDate,
-                ASMAY_ReferenceDate: data.asmaY_ReferenceDate,
+
+                ASMAY_TransportSDate: sanitizeDate(data.asmaY_TransportSDate),
+                asmaY_TransportSDate: sanitizeDate(data.asmaY_TransportSDate),
+                ASMAY_TransportEDate: sanitizeDate(data.asmaY_TransportEDate),
+                asmaY_TransportEDate: sanitizeDate(data.asmaY_TransportEDate),
+                ASMAY_ReferenceDate: sanitizeDate(data.asmaY_ReferenceDate),
+                asmaY_ReferenceDate: sanitizeDate(data.asmaY_ReferenceDate),
                 ASMAY_AcademicYearCode: data.asmaY_AcademicYearCode,
-                ASMAY_AdvanceFeeDate: data.asmaY_AdvanceFeeDate,
-                ASMAY_RegularFeeFDate: data.asmaY_RegularFeeFDate,
-                ASMAY_RegularFeeTDate: data.asmaY_RegularFeeTDate,
-                ASMAY_ArrearFeeDate: data.asmaY_ArrearFeeDate
+                ASMAY_AdvanceFeeDate: sanitizeDate(data.asmaY_AdvanceFeeDate),
+                asmaY_AdvanceFeeDate: sanitizeDate(data.asmaY_AdvanceFeeDate),
+                ASMAY_RegularFeeFDate: sanitizeDate(data.asmaY_RegularFeeFDate),
+                asmaY_RegularFeeFDate: sanitizeDate(data.asmaY_RegularFeeFDate),
+                ASMAY_RegularFeeTDate: sanitizeDate(data.asmaY_RegularFeeTDate),
+                asmaY_RegularFeeTDate: sanitizeDate(data.asmaY_RegularFeeTDate),
+                ASMAY_ArrearFeeDate: sanitizeDate(data.asmaY_ArrearFeeDate),
+                asmaY_ArrearFeeDate: sanitizeDate(data.asmaY_ArrearFeeDate)
             };
 
             const response = await addOrUpdatePreAdmissionYear(payload);
@@ -163,7 +166,7 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                 toast.error(response.message || 'Failed to save academic year.');
             }
         } catch (error: any) {
-            toast.error(error.message || 'An unexpected error occurred.');
+            toast.error(typeof error === 'string' ? error : error?.message || 'An unexpected error occurred.');
         }
     };
 
@@ -591,6 +594,12 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -632,6 +641,12 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -668,7 +683,18 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    fromDate={transportFromDate ? addDays(new Date(transportFromDate), 1) : undefined}
+                                                    fromDate={
+                                                        transportFromDate
+                                                            ? addDays(new Date(transportFromDate), 1)
+                                                            : academicFromYear
+                                                              ? new Date(Number(academicFromYear), 0, 1)
+                                                              : undefined
+                                                    }
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -710,6 +736,12 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -746,7 +778,18 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
-                                                    fromDate={regularFeeFromDate ? addDays(new Date(regularFeeFromDate), 1) : undefined}
+                                                    fromDate={
+                                                        regularFeeFromDate
+                                                            ? addDays(new Date(regularFeeFromDate), 1)
+                                                            : academicFromYear
+                                                              ? new Date(Number(academicFromYear), 0, 1)
+                                                              : undefined
+                                                    }
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -785,6 +828,12 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -821,6 +870,12 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                                                         field.onChange(date?.toISOString());
                                                         setOpenPopover(null);
                                                     }}
+                                                    fromDate={academicFromYear ? new Date(Number(academicFromYear), 0, 1) : undefined}
+                                                    toDate={
+                                                        academicToYear
+                                                            ? new Date(Number(academicToYear), 11, 31)
+                                                            : new Date(new Date().getFullYear() + 20, 11, 31)
+                                                    }
                                                 />
                                             </PopoverContent>
                                         </Popover>
@@ -934,15 +989,17 @@ export function TimeSpinnerField({
         const [hStr = '12', mStr = '00'] = (v || '').split(':');
         let h = Number(hStr) % 24;
         const m = Math.min(59, Math.max(0, Number(mStr)));
-        const ampm = h >= 12 ? 'PM' : 'AM';
+        const parsedAmpm = h >= 12 ? 'PM' : 'AM';
         h = h % 12 || 12;
-        return { h, m, ampm };
+        return { h, m, ampm: parsedAmpm };
     }
 
-    const { h, m, ampm } = parse(value);
+    const { h, m, ampm } = parse(value || '12:00');
+    const isEmpty = !value;
 
-    const [localH, setLocalH] = useState(String(h).padStart(2, '0'));
-    const [localM, setLocalM] = useState(String(m).padStart(2, '0'));
+    const [localH, setLocalH] = useState(isEmpty ? '' : String(h).padStart(2, '0'));
+    const [localM, setLocalM] = useState(isEmpty ? '' : String(m).padStart(2, '0'));
+    const [localAmpm, setLocalAmpm] = useState(isEmpty ? '' : ampm);
 
     function emit(newH: number, newM: number, newAmpm: string) {
         let h24 = newH % 12;
@@ -950,43 +1007,50 @@ export function TimeSpinnerField({
         onChange(`${String(h24).padStart(2, '0')}:${String(newM).padStart(2, '0')}`);
         setLocalH(String(newH).padStart(2, '0'));
         setLocalM(String(newM).padStart(2, '0'));
+        setLocalAmpm(newAmpm);
     }
 
     // Sync from prop when not active typing
     useEffect(() => {
         if (document.activeElement !== hoursRef.current) {
-            setLocalH(String(h).padStart(2, '0'));
+            setLocalH(isEmpty ? '' : String(h).padStart(2, '0'));
         }
-    }, [h]);
+    }, [h, isEmpty]);
 
     useEffect(() => {
         if (document.activeElement !== minutesRef.current) {
-            setLocalM(String(m).padStart(2, '0'));
+            setLocalM(isEmpty ? '' : String(m).padStart(2, '0'));
         }
-    }, [m]);
+    }, [m, isEmpty]);
+
+    useEffect(() => {
+        if (document.activeElement !== ampmRef.current) {
+            setLocalAmpm(isEmpty ? '' : ampm);
+        }
+    }, [ampm, isEmpty]);
 
     useEffect(() => {
         const handleHoursWheel = (e: WheelEvent) => {
             e.preventDefault();
             if (e.deltaY < 0) {
-                emit((h % 12) + 1 || 12, m, ampm);
+                emit((h % 12) + 1 || 12, m, localAmpm || 'AM');
             } else {
-                emit(((h - 2 + 12) % 12) + 1, m, ampm);
+                emit(((h - 2 + 12) % 12) + 1, m, localAmpm || 'AM');
             }
         };
 
         const handleMinutesWheel = (e: WheelEvent) => {
             e.preventDefault();
             if (e.deltaY < 0) {
-                emit(h, (m + 1) % 60, ampm);
+                emit(h, (m + 1) % 60, localAmpm || 'AM');
             } else {
-                emit(h, (m - 1 + 60) % 60, ampm);
+                emit(h, (m - 1 + 60) % 60, localAmpm || 'AM');
             }
         };
 
         const handleAmpmWheel = (e: WheelEvent) => {
             e.preventDefault();
-            emit(h, m, ampm === 'AM' ? 'PM' : 'AM');
+            emit(h, m, (localAmpm || 'AM') === 'AM' ? 'PM' : 'AM');
         };
 
         const hEl = hoursRef.current;
@@ -1002,15 +1066,18 @@ export function TimeSpinnerField({
             if (mEl) mEl.removeEventListener('wheel', handleMinutesWheel);
             if (aEl) aEl.removeEventListener('wheel', handleAmpmWheel);
         };
-    }, [h, m, ampm]);
+    }, [h, m, localAmpm]);
 
     return (
         <div className='flex flex-col gap-1.5'>
             <Label>{label}</Label>
             <div className='flex items-center gap-2'>
                 {/* Hours */}
-                <div className='flex flex-col items-center'>
-                    <button type='button' onClick={() => emit((h % 12) + 1 || 12, m, ampm)} className='rounded p-0.5 hover:bg-muted'>
+                <div className='flex flex-col items-center gap-0.5'>
+                    <button
+                        type='button'
+                        onClick={() => emit((h % 12) + 1 || 12, m, localAmpm || 'AM')}
+                        className='text-primary hover:text-primary/80 focus:outline-none'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
                     <input
@@ -1018,29 +1085,37 @@ export function TimeSpinnerField({
                         type='text'
                         maxLength={2}
                         value={localH}
+                        placeholder='HH'
                         onChange={(e) => {
                             const val = e.target.value.replace(/\D/g, '').slice(0, 2);
                             setLocalH(val);
                         }}
                         onBlur={() => {
+                            if (!localH) return;
                             let num = Number(localH);
                             if (Number.isNaN(num) || num < 1 || num > 12) {
                                 num = h;
                             }
-                            emit(num, m, ampm);
+                            emit(num, m, localAmpm || 'AM');
                         }}
-                        className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                        className='flex h-8 w-11 items-center justify-center rounded-sm border border-blue-400 bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                     />
-                    <button type='button' onClick={() => emit(((h - 2 + 12) % 12) + 1, m, ampm)} className='rounded p-0.5 hover:bg-muted'>
+                    <button
+                        type='button'
+                        onClick={() => emit(((h - 2 + 12) % 12) + 1, m, localAmpm || 'AM')}
+                        className='text-primary hover:text-primary/80 focus:outline-none'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
                 </div>
 
-                <span className='font-bold text-lg leading-none'>:</span>
+                <span className='font-bold text-lg leading-none mt-0'>:</span>
 
                 {/* Minutes */}
-                <div className='flex flex-col items-center'>
-                    <button type='button' onClick={() => emit(h, (m + 1) % 60, ampm)} className='rounded p-0.5 hover:bg-muted'>
+                <div className='flex flex-col items-center gap-0.5'>
+                    <button 
+                        type='button' 
+                        onClick={() => emit(h, (m + 1) % 60, localAmpm || 'AM')} 
+                        className='text-primary hover:text-primary/80 focus:outline-none'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
                     <input
@@ -1048,34 +1123,41 @@ export function TimeSpinnerField({
                         type='text'
                         maxLength={2}
                         value={localM}
+                        placeholder='MM'
                         onChange={(e) => {
                             const val = e.target.value.replace(/\D/g, '').slice(0, 2);
                             setLocalM(val);
                         }}
                         onBlur={() => {
+                            if (!localM) return;
                             let num = Number(localM);
                             if (Number.isNaN(num) || num < 0 || num > 59) {
                                 num = m;
                             }
-                            emit(h, num, ampm);
+                            emit(h, num, localAmpm || 'AM');
                         }}
-                        className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                        className='flex h-8 w-11 items-center justify-center rounded-sm border border-blue-400 bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                     />
-                    <button type='button' onClick={() => emit(h, (m - 1 + 60) % 60, ampm)} className='rounded p-0.5 hover:bg-muted'>
+                    <button
+                        type='button'
+                        onClick={() => emit(h, (m - 1 + 60) % 60, localAmpm || 'AM')}
+                        className='text-primary hover:text-primary/80 focus:outline-none'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
                 </div>
 
                 {/* AM / PM select dropdown */}
-                <div className='flex flex-col items-center'>
-                    <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>
-                        <ChevronUp className='h-4 w-4' />
-                    </button>
+                <div className='flex flex-col items-center gap-0.5 mt-0'>
+                    {/* Placeholder to align vertically with inputs that have top arrows */}
+                    <div className='h-4 w-4 mb-0.5'></div>
                     <select
                         ref={ampmRef}
-                        value={ampm}
+                        value={localAmpm}
                         onChange={(e) => emit(h, m, e.target.value)}
-                        className='flex h-9 w-14 cursor-pointer appearance-none items-center justify-center rounded-md border border-input bg-transparent px-1 text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'>
+                        className='flex h-8 w-14 cursor-pointer appearance-none items-center justify-center rounded-sm border border-blue-400 bg-transparent px-1 text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'>
+                        <option value='' disabled className='hidden'>
+                            --
+                        </option>
                         <option value='AM' className='bg-background text-foreground'>
                             AM
                         </option>
@@ -1083,9 +1165,8 @@ export function TimeSpinnerField({
                             PM
                         </option>
                     </select>
-                    <button type='button' onClick={() => emit(h, m, ampm === 'AM' ? 'PM' : 'AM')} className='rounded p-0.5 hover:bg-muted'>
-                        <ChevronDown className='h-4 w-4' />
-                    </button>
+                    {/* Placeholder to align vertically with inputs that have bottom arrows */}
+                    <div className='h-4 w-4 mt-0.5'></div>
                 </div>
             </div>
             {error && <p className='text-red-500 text-sm'>{error}</p>}

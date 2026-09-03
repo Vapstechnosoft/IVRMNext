@@ -61,7 +61,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     const [_loadingSections, setLoadingSections] = useState(false);
     const { refetchAll } = useMasterCategoryClassMapping();
 
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Local mapping list (table) and edit state
     const [mappingList, setMappingList] = useState<
@@ -451,7 +451,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     const safeSections = Array.isArray(sections) ? sections : [];
     const safeMappingList = Array.isArray(mappingList) ? mappingList : [];
 
-    if (isLoading || safeMappingList.length === 0) {
+    if (isLoading) {
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
@@ -472,7 +472,10 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                         control={control}
                         name='asmaY_Id'
                         render={({ field }) => (
-                            <Select value={String(field.value ?? '')} disabled>
+                            <Select
+                                key={`year-${field.value}`}
+                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                disabled>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Academic Year' />
                                 </SelectTrigger>
@@ -507,7 +510,10 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                         control={control}
                         name='emcA_Id'
                         render={({ field }) => (
-                            <Select value={String(field.value ?? '')} disabled>
+                            <Select
+                                key={`category-${field.value}`}
+                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                disabled>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Category' />
                                 </SelectTrigger>
@@ -534,7 +540,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                         name='asmcL_Id'
                         render={({ field }) => (
                             <Select
-                                value={field.value ? String(field.value) : undefined}
+                                key={`class-${field.value}`}
+                                value={field.value && field.value !== 0 ? String(field.value) : undefined}
                                 onValueChange={(val) => field.onChange(Number(val))}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Class' />

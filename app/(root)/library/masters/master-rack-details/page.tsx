@@ -21,7 +21,13 @@ export default function MasterRackDetailsPage(props: { searchParams: SearchParam
 
     return (
         <FormProvider<IMasterRackDetails>>
-            <MasterRackDetailsPageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
+            <MasterRackDetailsPageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
+                refetchAll={refetchAll}
+                searchParams={searchParams}
+            />
         </FormProvider>
     );
 }
@@ -30,24 +36,40 @@ function MasterRackDetailsPageContent({
     response,
     isLoading,
     error,
-    refetchAll
+    refetchAll,
+    searchParams
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     refetchAll: any;
+    searchParams: any;
 }) {
     const { isEditFormOpen, selectedRow, closeEditForm } = useFormContext<IMasterRackDetails>();
 
     // Defensive data mapping
     const rawData = response?.data;
-    const tableData = Array.isArray(rawData) ? rawData : (rawData?.rackDetails || []);
+    let tableData = Array.isArray(rawData) ? rawData : rawData?.rackDetails || [];
     const subjectList = rawData?.subjects || [];
-    
-    const tableProps = useDataTableProps(rawData, { 
-        dataKey: Array.isArray(rawData) ? undefined : 'rackDetails' 
-    });
 
+    // Client-side filtering because backend returns all records
+    const searchQuery = searchParams?.search_query as string;
+    const searchColumns = searchParams?.search_columns as string;
+
+    if (searchQuery) {
+        tableData = tableData.filter((row: any) => {
+            const columnsToSearch = searchColumns ? searchColumns.split(',') : Object.keys(row);
+            return columnsToSearch.some((col) => {
+                const value = row[col];
+                if (value == null) return false;
+                return String(value).toLowerCase().includes(searchQuery.toLowerCase());
+            });
+        });
+    }
+
+    const tableProps = useDataTableProps(rawData, {
+        dataKey: Array.isArray(rawData) ? undefined : 'rackDetails'
+    });
 
     return (
         <div className='min-h-screen'>
@@ -97,15 +119,11 @@ function MasterRackDetailsPageContent({
                         columnPinning={{ right: ['actions'] }}
                         showSearchColumns={true}
                         showViewOptions={true}
-                        manualFiltering={true}
-                        manualPagination={true}
-                        manualSorting={true}
                         loadingMessage='Loading rack details...'
                         noDataTitle='No Rack Details Found'
                         noDataDescription='Get started by creating your first rack entry'
                         errorTitle='Error Loading Rack Details'
                     />
-
                 </CollapsibleSection>
 
                 {/* Forms */}

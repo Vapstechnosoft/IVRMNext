@@ -41,14 +41,20 @@ export default function AddMasterPageForm({ onSuccess }: AddMasterPageFormProps)
                 try {
                     const response = await getMasterPageById(selectedRow.ivrmP_Id);
                     if (response.success && response.data) {
+                        const pageData = response.data;
+                        const displayName = pageData.ivrmP_PageDisplayName || (pageData as any).IVRMP_PageDisplayName || pageData.ivrmmP_PageName || (pageData as any).IVRMMP_PageName || selectedRow.ivrmP_PageDisplayName || selectedRow.ivrmmP_PageName || '';
                         reset({
-                            ...response.data,
+                            ...pageData,
+                            ivrmmP_PageName: pageData.ivrmmP_PageName || (pageData as any).IVRMMP_PageName || selectedRow.ivrmmP_PageName || '',
+                            ivrmP_PageDisplayName: displayName,
+                            ivrmP_PageDesc: pageData.ivrmP_PageDesc || (pageData as any).IVRMP_PageDesc || (pageData as any).ivrmP_PageURL || selectedRow.ivrmP_PageDesc || '',
                             ivrmP_MandatoryFlag: response.data.ivrmP_MandatoryFlag === null ? 0 : (typeof response.data.ivrmP_MandatoryFlag === 'boolean' ? (response.data.ivrmP_MandatoryFlag ? 1 : 0) : response.data.ivrmP_MandatoryFlag),
                         });
                     } else {
                         toast.error('Failed to load page details');
                         reset({
                             ...selectedRow,
+                            ivrmP_PageDisplayName: selectedRow.ivrmP_PageDisplayName || selectedRow.ivrmmP_PageName || '',
                             ivrmP_MandatoryFlag: selectedRow.ivrmP_MandatoryFlag ? 1 : 0
                         });
                     }

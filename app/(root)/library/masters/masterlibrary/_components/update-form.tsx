@@ -9,7 +9,7 @@ import { addOrUpdateMasterLibrary } from '@/server/library/masters/master_librar
 import type { IMasterLibraryList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -18,12 +18,19 @@ type FormFields = z.infer<typeof masterLibrarySchema.addOrUpdate>;
 
 interface UpdateMasterLibraryFormProps {
     onSuccess?: () => void;
+    onSaveAndNext?: (id: string) => void;
     className?: string;
     selectedRow: IMasterLibraryList;
 }
 
-export default function UpdateMasterLibraryForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterLibraryFormProps) {
+export default function UpdateMasterLibraryForm({
+    onSuccess,
+    onSaveAndNext,
+    className = '',
+    selectedRow: row
+}: UpdateMasterLibraryFormProps) {
     const { refetchAll } = useMasterLibrary();
+    const [shouldNext, setShouldNext] = useState(false);
 
     const {
         register,
@@ -53,12 +60,16 @@ export default function UpdateMasterLibraryForm({ onSuccess, className = '', sel
                 lmaL_LibraryName: lmaL_LibraryName
             };
 
-            const response = await addOrUpdateMasterLibrary(payload);
+            const response: any = await addOrUpdateMasterLibrary(payload);
 
-            if (response.success) {
+            if (response.success || response.returnval) {
                 toast.success(response.message || 'Master Library updated successfully');
                 refetchAll();
-                onSuccess?.();
+                if (shouldNext && onSaveAndNext) {
+                    onSaveAndNext(row.lmaL_Id.toString());
+                } else {
+                    onSuccess?.();
+                }
             } else {
                 toast.error(response.message || 'Failed to update Master Library');
             }
@@ -113,13 +124,26 @@ export default function UpdateMasterLibraryForm({ onSuccess, className = '', sel
                     </Button>
                     <Button
                         type='submit'
+                        onClick={() => setShouldNext(false)}
                         disabled={isSubmitting}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
-                        isLoading={isSubmitting}
+                        isLoading={isSubmitting && !shouldNext}
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
                             Update Master Library
+                        </div>
+                    </Button>
+                    <Button
+                        type='submit'
+                        onClick={() => setShouldNext(true)}
+                        disabled={isSubmitting}
+                        className='order-1 w-fit bg-[#4251b1] transition-all duration-200 hover:scale-105 hover:bg-[#35418e] sm:order-3'
+                        isLoading={isSubmitting && shouldNext}
+                        loadingText='Saving...'>
+                        <div className='flex items-center'>
+                            <Save className='mr-2 h-4 w-4' />
+                            Update & Next
                         </div>
                     </Button>
                 </div>

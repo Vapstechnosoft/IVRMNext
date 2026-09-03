@@ -18,11 +18,11 @@ import { registrationColumns } from './_components/columns';
 import { CalendarIcon, FileSpreadsheet, Printer, RotateCcw } from 'lucide-react';
 
 import { usePreAdmissionRegistrationReport } from '@/hooks/admission/preadmission/useReports';
-import { getPreAdmissionRegistrationReport } from '@/server/admission/preadmission/reports/report';
 import { getExcelRegistrationReport } from '@/server/admission/preadmission/reports/month_end_report';
+import { getPreAdmissionRegistrationReport } from '@/server/admission/preadmission/reports/report';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
 import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
 import { RegistrationReportPrint } from './_components/registration-report-print';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
@@ -47,8 +47,6 @@ export default function RegistrationPageprops(props: {
     // Removed selection state as per user request
     const [printData, setPrintData] = useState<IRigistrationReportList[]>([]);
     const [isPrinting, setIsPrinting] = useState(false);
-
-
 
     /** -----------------------------
      *  Date Filters
@@ -109,8 +107,8 @@ export default function RegistrationPageprops(props: {
                 excelResponse instanceof Blob
                     ? excelResponse
                     : new Blob([new Uint8Array(excelResponse)], {
-                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                    });
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -331,9 +329,7 @@ export default function RegistrationPageprops(props: {
                         Export to Excel
                     </Button>
 
-                    <Button
-                        variant='outline'
-                        onClick={triggerPrint}>
+                    <Button variant='outline' onClick={triggerPrint}>
                         <Printer className='mr-2 h-4 w-4' />
                         Print
                     </Button>
@@ -380,10 +376,7 @@ export default function RegistrationPageprops(props: {
                     pointerEvents: 'none',
                     zIndex: -1
                 }}>
-                <RegistrationReportPrint
-                    ref={printRef}
-                    data={printData}
-                />
+                <RegistrationReportPrint ref={printRef} data={printData} />
             </div>
         </div>
     );

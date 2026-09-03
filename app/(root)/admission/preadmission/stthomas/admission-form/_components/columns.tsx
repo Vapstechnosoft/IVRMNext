@@ -280,6 +280,8 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                 amC_Id: combined.amC_Id ?? combined.studentCategoryId ?? combined.imcC_Id ?? 0,
                                 amsT_AadharNo:
                                     combined.amsT_AadharNo ?? combined.aadharNo ?? combined.aadhar_No ?? combined.amsT_Aadhar_No ?? '',
+                                amsT_ApparNo:
+                                    combined.amsT_ApparNo ?? combined.apparNo ?? combined.appar_No ?? combined.amsT_Appar_No ?? '',
                                 amsT_DOB: combined.amsT_DOB ?? combined.dob ?? combined.dateOfBirth ?? combined.pasR_DOB ?? null,
                                 amsT_Date: combined.amsT_Date ?? combined.admissionDate ?? combined.date ?? null,
 

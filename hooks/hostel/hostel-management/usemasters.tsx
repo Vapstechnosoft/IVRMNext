@@ -1,11 +1,11 @@
 import { HOSTEL_QUERY_KEYS } from '@/constants/query-keys';
-import { useState, useEffect, useCallback } from 'react';
-import { fetchMasterFacilityData } from '@/server/hostel/hostel-management/masters/facility';
-import { ApiSearchparams } from '@/types';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
 import { deleteBed, fetchBedData } from '@/server/hostel/hostel-management/masters/bed';
-import { IBedDisplay, IHostel } from '@/types/hostel/hostel-management/masters';
+import { fetchMasterFacilityData } from '@/server/hostel/hostel-management/masters/facility';
+import type { ApiSearchparams } from '@/types';
+import type { IBedDisplay, IHostel } from '@/types/hostel/hostel-management/masters';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 export const useMasterFacility = (searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();

@@ -2,27 +2,27 @@
 
 import { Button } from '@/components/ui/button';
 import { CardContent } from '@/components/ui/card';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { DatePicker } from '@/components/ui/date-picker';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStudentAgeCalculation } from '@/hooks/sports/useStudentAgeCalculation';
 import { type StudentAgeCalculationFormData, studentAgeCalculationSchema } from '@/schemas/sports/transactions/student-age-calculation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search } from 'lucide-react';
-import { useEffect, useState, use, useMemo } from 'react';
+import { Loader2 } from 'lucide-react';
+import { use, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 const createColumns = () => [
-    { 
-        id: 'SPCCAC_Id', 
-        accessorKey: 'id', 
+    {
+        id: 'SPCCAC_Id',
+        accessorKey: 'id',
         header: ({ column }: any) => <DataTableColumnHeader column={column} title='SL. No.' />,
         cell: ({ row, table }: any) => {
             const pageIndex = table.getState().pagination.pageIndex;
@@ -30,47 +30,47 @@ const createColumns = () => [
             return <div>{pageIndex * pageSize + row.index + 1}</div>;
         }
     },
-    { 
-        id: 'ASMAY_Year', 
-        accessorKey: 'asmaY_Year', 
+    {
+        id: 'ASMAY_Year',
+        accessorKey: 'asmaY_Year',
         header: ({ column }: any) => <DataTableColumnHeader column={column} title='Academic Year' />,
-        enableSorting: true 
+        enableSorting: true
     },
-    { 
-        id: 'studentName', 
-        accessorKey: 'studentName', 
+    {
+        id: 'studentName',
+        accessorKey: 'studentName',
         header: ({ column }: any) => <DataTableColumnHeader column={column} title='Student Name' />,
-        enableSorting: true 
+        enableSorting: true
     },
-    { 
-        id: 'ASMCL_ClassName', 
-        accessorKey: 'asmcL_ClassName', 
+    {
+        id: 'ASMCL_ClassName',
+        accessorKey: 'asmcL_ClassName',
         header: ({ column }: any) => <DataTableColumnHeader column={column} title='Class' />,
-        enableSorting: true 
+        enableSorting: true
     },
-    { 
-        id: 'ASMC_SectionName', 
-        accessorKey: 'asmC_SectionName', 
+    {
+        id: 'ASMC_SectionName',
+        accessorKey: 'asmC_SectionName',
         header: ({ column }: any) => <DataTableColumnHeader column={column} title='Section' />,
-        enableSorting: true 
+        enableSorting: true
     },
-    { 
-        id: 'Age_Years', 
-        accessorKey: 'age_Years', 
+    {
+        id: 'Age_Years',
+        accessorKey: 'age_Years',
         header: ({ column }: any) => <DataTableColumnHeader column={column} title='Age Year' />,
-        enableSorting: true 
+        enableSorting: true
     },
-    { 
-        id: 'Age_Months', 
-        accessorKey: 'age_Months', 
+    {
+        id: 'Age_Months',
+        accessorKey: 'age_Months',
         header: ({ column }: any) => <DataTableColumnHeader column={column} title='Month' />,
-        enableSorting: true 
+        enableSorting: true
     },
-    { 
-        id: 'Age_Days', 
-        accessorKey: 'age_Days', 
+    {
+        id: 'Age_Days',
+        accessorKey: 'age_Days',
         header: ({ column }: any) => <DataTableColumnHeader column={column} title="Day's" />,
-        enableSorting: true 
+        enableSorting: true
     }
 ];
 
@@ -226,7 +226,7 @@ export default function StudentAgeCalculationPage(props: { searchParams: SearchP
 
     return (
         <div className='space-y-6'>
-            <CollapsibleSection title="Age Calculation Entry" defaultOpen={true}>
+            <CollapsibleSection title='Age Calculation Entry' defaultOpen={true}>
                 <CardContent key={resetKey}>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 pt-4'>
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
@@ -309,7 +309,7 @@ export default function StudentAgeCalculationPage(props: { searchParams: SearchP
                                 <Label>
                                     Student Name <span className='text-red-500'>*</span>
                                 </Label>
-                                 <Controller
+                                <Controller
                                     control={control}
                                     name='student'
                                     render={({ field }) => (
@@ -360,15 +360,12 @@ export default function StudentAgeCalculationPage(props: { searchParams: SearchP
                 </CardContent>
             </CollapsibleSection>
 
-            <CollapsibleSection title="Age Calculated Records" defaultOpen={true} size="lg">
+            <CollapsibleSection title='Age Calculated Records' defaultOpen={true} size='lg'>
                 <GenericDataTable<any>
                     {...tableProps}
                     columns={columns}
                     isLoading={initialData.isLoading}
                     error={initialData.error}
-                    manualPagination={true}
-                    manualSorting={true}
-                    manualFiltering={true}
                     showSearchColumns={true}
                     loadingMessage='Loading age calculations...'
                 />

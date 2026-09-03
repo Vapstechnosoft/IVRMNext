@@ -1,4 +1,3 @@
-
 export interface IInvRGRNLoadData {
     get_grn_item_supplier: IInvRGRNItemSupplier[];
     get_grnreport: IInvRGRNReportData[];

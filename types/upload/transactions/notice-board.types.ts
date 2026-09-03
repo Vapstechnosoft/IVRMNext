@@ -1,5 +1,5 @@
-import type { z } from 'zod';
 import type { noticeBoardSchema } from '@/schemas/upload/transactions/notice-board.schema';
+import type { z } from 'zod';
 
 export type INoticeBoard = z.infer<typeof noticeBoardSchema>;
 

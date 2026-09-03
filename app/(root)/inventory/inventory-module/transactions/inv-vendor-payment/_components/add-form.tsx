@@ -1,32 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useForm, useFieldArray, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod'; // Import z for extraction if needed, but we use schema file
-import { invVendorPaymentSchema, type InvVendorPaymentSchema } from '@/schemas/inventory/transactions/inv-vendor-payment';
-import { useInvVendorPayment } from '@/hooks/inventory/transactions/use-inv-vendor-payment';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { CalendarIcon, Save, RotateCcw, X, Plus, Eye } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
+import { useInvVendorPayment } from '@/hooks/inventory/transactions/use-inv-vendor-payment';
 import { cn } from '@/lib/utils';
-import { GRNPaymentDetailsModal } from './grn-payment-details-modal';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { type InvVendorPaymentSchema, invVendorPaymentSchema } from '@/schemas/inventory/transactions/inv-vendor-payment';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
+import { CalendarIcon, Eye, RotateCcw, Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { GRNPaymentDetailsModal } from './grn-payment-details-modal';
 
 interface AddFormProps {
     onSuccess: () => void;
@@ -47,6 +38,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [detailsData, setDetailsData] = useState<any[]>([]);
     const [selectedGRNNo, setSelectedGRNNo] = useState('');
+    const [resetKey, setResetKey] = useState(0);
 
     const form = useForm<InvVendorPaymentSchema>({
         resolver: zodResolver(invVendorPaymentSchema),
@@ -55,11 +47,23 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
             invspT_PaymentDate: new Date(),
             invspT_ModeOfPayment: '',
             invspT_Amount: 0,
-            invspT_Remarks: ''
+            invspT_Remarks: '',
+            invspT_BankName: '',
+            invspT_ChequeDDNo: '',
+            invspT_PaymentReference: '',
+            paymentArray: []
         }
     });
 
-    const { control, handleSubmit, register, watch, setValue, reset, formState: { errors } } = form;
+    const {
+        control,
+        handleSubmit,
+        register,
+        watch,
+        setValue,
+        reset,
+        formState: { errors }
+    } = form;
     const { fields, replace, update } = useFieldArray({
         control,
         name: 'paymentArray'
@@ -88,7 +92,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
             const paymentId = initialData.invspT_Id || initialData.invspt_id || initialData.INVSPT_Id || 0;
             const supplierId = initialData.invmS_Id || initialData.invms_id || initialData.INVMs_Id || 0;
 
-            console.log("Extracted Payment ID for Edit:", paymentId);
+            console.log('Extracted Payment ID for Edit:', paymentId);
 
             // Edit Mode
             getModelDetailsMutation.mutate(paymentId, {
@@ -105,9 +109,9 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                             invmgrN_Id: d.invmgrN_Id ?? d.invmgrn_id,
                             invmgrN_GRNNo: d.invmgrN_GRNNo || d.invmgrn_grnno,
                             invmgrN_PurchaseValue: purchaseValue,
-                            invmgrN_TotalPaid: totalPaid, // Total Paid 
+                            invmgrN_TotalPaid: totalPaid, // Total Paid
                             invmgrN_TotalBalance: totalBalance,
-                            invsptgrN_Amount: amount,  // Amount paid in this transaction record
+                            invsptgrN_Amount: amount, // Amount paid in this transaction record
                             invsptgrN_Remarks: d.invsptgrN_Remarks || d.invsptgrn_remarks || '',
                             checkedvalue: true,
                             // Original values for calculation logic
@@ -140,7 +144,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
     }, [initialData, reset]);
 
     const handleSupplierChange = (supplierId: string) => {
-        const id = parseInt(supplierId);
+        const id = Number.parseInt(supplierId);
         setValue('invmS_Id', id);
 
         if (!initialData) {
@@ -158,7 +162,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                         checkedvalue: false,
                         INVSPTGRN_Amount_New: g.invmgrN_TotalPaid || 0,
                         INVMGRN_TotalBalance_New: g.invmgrN_TotalBalance,
-                        paystatus: g.invmgrN_TotalBalance === 0 ? '0' : (g.invmgrN_TotalPaid > 0 ? '1' : '2')
+                        paystatus: g.invmgrN_TotalBalance === 0 ? '0' : g.invmgrN_TotalPaid > 0 ? '1' : '2'
                     }));
                     replace(mappedGrns);
                 }
@@ -167,7 +171,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
     };
 
     const handleAmountBlur = (index: number, currentAmountStr: string) => {
-        const amountToPay = parseFloat(currentAmountStr) || 0;
+        const amountToPay = Number.parseFloat(currentAmountStr) || 0;
         const field = fields[index];
         const prevPaid = field.INVSPTGRN_Amount_New || 0; // Previously paid
         // The original balance before this payment:
@@ -182,7 +186,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
         let newBalance = purchaseValue - newTotalPaid;
 
         if (newTotalPaid > purchaseValue) {
-            toast.error("Paid Amount must be Less than or Equal to Purchase Amount");
+            toast.error('Paid Amount must be Less than or Equal to Purchase Amount');
             // Reset to 0 or max allowed? Angular sets INVSPTGRN_Amount to 0.
             newTotalPaid = prevPaid;
             newBalance = purchaseValue - prevPaid;
@@ -198,26 +202,29 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
 
     const handleViewGRNDetails = (grnId: number, grnNo: string) => {
         if (!watchedSupplier) {
-            toast.error("Please select a supplier first");
+            toast.error('Please select a supplier first');
             return;
         }
-        getGRNDetailMutation.mutate({ invmS_Id: watchedSupplier, invmgrN_Id: grnId }, {
-            onSuccess: (res) => {
-                setDetailsData(res.data || []);
-                setSelectedGRNNo(grnNo);
-                setIsDetailsModalOpen(true);
-            },
-            onError: () => {
-                toast.error("Failed to fetch payment details");
+        getGRNDetailMutation.mutate(
+            { invmS_Id: watchedSupplier, invmgrN_Id: grnId },
+            {
+                onSuccess: (res) => {
+                    setDetailsData(res.data || []);
+                    setSelectedGRNNo(grnNo);
+                    setIsDetailsModalOpen(true);
+                },
+                onError: () => {
+                    toast.error('Failed to fetch payment details');
+                }
             }
-        });
+        );
     };
 
     const onSubmit = (data: InvVendorPaymentSchema) => {
         // Filter checked or amounts > 0
-        const validPayments = data.paymentArray?.filter(p => p.checkedvalue && p.invsptgrN_Amount > 0);
+        const validPayments = data.paymentArray?.filter((p) => p.checkedvalue && p.invsptgrN_Amount > 0);
         if (!validPayments || validPayments.length === 0) {
-            toast.error("Please select at least one GRN and enter an amount");
+            toast.error('Please select at least one GRN and enter an amount');
             return;
         }
 
@@ -230,7 +237,7 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
             paymentArray: validPayments
         };
 
-        console.log("AddVendorPaymentForm: Submitting payload:", payload);
+        console.log('AddVendorPaymentForm: Submitting payload:', payload);
 
         saveMutation.mutate(payload, {
             onSuccess: (res) => {
@@ -240,31 +247,38 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
     };
 
     const onError = (errors: any) => {
-        console.error("Form Validation Errors:", errors);
-        toast.error("Please check the form for errors.");
+        console.error('Form Validation Errors:', errors);
+        toast.error('Please check the form for errors.');
         // Specifically check for invspT_Amount error which might be hidden
         if (errors.invspT_Amount) {
             toast.error(`Total Amount Error: ${errors.invspT_Amount.message}`);
         }
     };
 
+    const handleReset = () => {
+        reset();
+        setResetKey((prev) => prev + 1);
+    };
+
     return (
-        <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                    <div className="grid gap-2">
-                        <label className="text-sm font-medium">Supplier <span className="text-destructive">*</span></label>
+        <form onSubmit={handleSubmit(onSubmit, onError)} className='space-y-6'>
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                <div className='space-y-4'>
+                    <div className='grid gap-2'>
+                        <label className='font-medium text-sm'>
+                            Supplier <span className='text-destructive'>*</span>
+                        </label>
                         <Controller
                             control={control}
-                            name="invmS_Id"
+                            name='invmS_Id'
                             render={({ field }) => (
                                 <Select
+                                    key={`supplier-${resetKey}`}
                                     onValueChange={(val) => handleSupplierChange(val)}
-                                    value={field.value?.toString()}
-                                    disabled={!!initialData}
-                                >
-                                    <SelectTrigger className="text-muted-foreground">
-                                        <SelectValue placeholder="Select Supplier" />
+                                    value={field.value ? field.value.toString() : undefined}
+                                    disabled={!!initialData}>
+                                    <SelectTrigger className={cn('w-full', !field.value && 'text-muted-foreground')}>
+                                        <SelectValue placeholder='Select Supplier' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {supplierList.map((s: any) => (
@@ -276,18 +290,20 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                                 </Select>
                             )}
                         />
-                        {errors.invmS_Id && <span className="text-xs text-destructive">{errors.invmS_Id.message}</span>}
+                        {errors.invmS_Id && <span className='text-destructive text-xs'>{errors.invmS_Id.message}</span>}
                     </div>
 
-                    <div className="grid gap-2">
-                        <label className="text-sm font-medium">Mode of Payment <span className="text-destructive">*</span></label>
+                    <div className='grid gap-2'>
+                        <label className='font-medium text-sm'>
+                            Mode of Payment <span className='text-destructive'>*</span>
+                        </label>
                         <Controller
                             control={control}
-                            name="invspT_ModeOfPayment"
+                            name='invspT_ModeOfPayment'
                             render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <SelectTrigger className="text-muted-foreground">
-                                        <SelectValue placeholder="Select Mode" />
+                                <Select key={`mode-${resetKey}`} onValueChange={field.onChange} value={field.value || undefined}>
+                                    <SelectTrigger className={cn('w-full', !field.value && 'text-muted-foreground')}>
+                                        <SelectValue placeholder='Select Mode' />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {paymentModeList.map((m: any) => (
@@ -299,35 +315,47 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                                 </Select>
                             )}
                         />
-                        {errors.invspT_ModeOfPayment && <span className="text-xs text-destructive">{errors.invspT_ModeOfPayment.message}</span>}
+                        {errors.invspT_ModeOfPayment && (
+                            <span className='text-destructive text-xs'>{errors.invspT_ModeOfPayment.message}</span>
+                        )}
                     </div>
 
                     {watchedMode && ['BANK', 'RTGS/NEFT', 'SWIPE/CARD', 'RTGS'].includes(watchedMode.toUpperCase()) && (
                         <>
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium">Bank Name</label>
-                                <Input {...register('invspT_BankName')} placeholder="Bank Name" />
-                                {errors.invspT_BankName && <span className="text-xs text-destructive">{errors.invspT_BankName.message}</span>}
+                            <div className='grid gap-2'>
+                                <label className='font-medium text-sm'>Bank Name</label>
+                                <Input {...register('invspT_BankName')} placeholder='Bank Name' />
+                                {errors.invspT_BankName && (
+                                    <span className='text-destructive text-xs'>{errors.invspT_BankName.message}</span>
+                                )}
                             </div>
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium">Cheque/DD No.</label>
-                                <Input {...register('invspT_ChequeDDNo')} placeholder="Cheque/DD No." />
+                            <div className='grid gap-2'>
+                                <label className='font-medium text-sm'>Cheque/DD No.</label>
+                                <Input {...register('invspT_ChequeDDNo')} placeholder='Cheque/DD No.' />
                             </div>
-                            <div className="grid gap-2">
-                                <label className="text-sm font-medium">Cheque Date</label>
+                            <div className='grid gap-2'>
+                                <label className='font-medium text-sm'>Cheque Date</label>
                                 <Controller
                                     control={control}
-                                    name="invspT_ChequeDDDate"
+                                    name='invspT_ChequeDDDate'
                                     render={({ field }) => (
                                         <Popover>
                                             <PopoverTrigger asChild>
-                                                <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                                    {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                <Button
+                                                    variant={'outline'}
+                                                    className={cn('pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                                    {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                                    <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                                                 </Button>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0" align="start">
-                                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date("1900-01-01")} initialFocus />
+                                            <PopoverContent className='w-auto p-0' align='start'>
+                                                <Calendar
+                                                    mode='single'
+                                                    selected={field.value}
+                                                    onSelect={field.onChange}
+                                                    disabled={(date) => date < new Date('1900-01-01')}
+                                                    initialFocus
+                                                />
                                             </PopoverContent>
                                         </Popover>
                                     )}
@@ -337,55 +365,65 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                     )}
                 </div>
 
-                <div className="space-y-4">
-                    <div className="grid gap-2">
-                        <label className="text-sm font-medium">Payment Reference</label>
-                        <Input {...register('invspT_PaymentReference')} placeholder="Reference" />
+                <div className='space-y-4'>
+                    <div className='grid gap-2'>
+                        <label className='font-medium text-sm'>Payment Reference</label>
+                        <Input {...register('invspT_PaymentReference')} placeholder='Reference' />
                     </div>
-                    <div className="grid gap-2">
-                        <label className="text-sm font-medium">Payment Date <span className="text-destructive">*</span></label>
+                    <div className='grid gap-2'>
+                        <label className='font-medium text-sm'>
+                            Payment Date <span className='text-destructive'>*</span>
+                        </label>
                         <Controller
                             control={control}
-                            name="invspT_PaymentDate"
+                            name='invspT_PaymentDate'
                             render={({ field }) => (
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        <Button
+                                            variant={'outline'}
+                                            className={cn('pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                            {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                                            <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                                         </Button>
                                     </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date < new Date("1900-01-01")} initialFocus />
+                                    <PopoverContent className='w-auto p-0' align='start'>
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            disabled={(date) => date < new Date('1900-01-01')}
+                                            initialFocus
+                                        />
                                     </PopoverContent>
                                 </Popover>
                             )}
                         />
-                        {errors.invspT_PaymentDate && <span className="text-xs text-destructive">{errors.invspT_PaymentDate.message}</span>}
+                        {errors.invspT_PaymentDate && <span className='text-destructive text-xs'>{errors.invspT_PaymentDate.message}</span>}
                     </div>
 
-                    <div className="grid gap-2">
-                        <label className="text-sm font-medium">Remarks</label>
-                        <Textarea {...register('invspT_Remarks')} placeholder="Enter Remarks" />
+                    <div className='grid gap-2'>
+                        <label className='font-medium text-sm'>Remarks</label>
+                        <Textarea {...register('invspT_Remarks')} placeholder='Enter Remarks' />
                     </div>
                 </div>
             </div>
 
             {/* GRN Grid */}
             {!!watchedSupplier && fields.length > 0 && (
-                <div className="border rounded-md overflow-hidden">
+                <div className='overflow-hidden rounded-md border'>
                     <Table>
                         <TableHeader>
-                            <TableRow className="bg-muted/50">
-                                <TableHead className="w-[50px]">Select</TableHead>
+                            <TableRow className='bg-muted/50'>
+                                <TableHead className='w-[50px]'>Select</TableHead>
                                 <TableHead>GRN No</TableHead>
-                                <TableHead className="text-right">Purchase Value</TableHead>
-                                <TableHead className="text-right">Total Paid</TableHead>
-                                <TableHead className="text-right">Balance</TableHead>
-                                <TableHead className="text-right w-[150px]">Payment Amount</TableHead>
+                                <TableHead className='text-right'>Purchase Value</TableHead>
+                                <TableHead className='text-right'>Total Paid</TableHead>
+                                <TableHead className='text-right'>Balance</TableHead>
+                                <TableHead className='w-[150px] text-right'>Payment Amount</TableHead>
                                 <TableHead>Remarks</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead className="text-center">View</TableHead>
+                                <TableHead className='text-center'>View</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -404,16 +442,16 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                                             )}
                                         />
                                     </TableCell>
-                                    <TableCell className="font-medium">{field.invmgrN_GRNNo}</TableCell>
-                                    <TableCell className="text-right">{field.invmgrN_PurchaseValue?.toFixed(2)}</TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className='font-medium'>{field.invmgrN_GRNNo}</TableCell>
+                                    <TableCell className='text-right'>{field.invmgrN_PurchaseValue?.toFixed(2)}</TableCell>
+                                    <TableCell className='text-right'>
                                         <Controller
                                             control={control}
                                             name={`paymentArray.${index}.invmgrN_TotalPaid`}
                                             render={({ field: valField }) => <span>{valField.value?.toFixed(2)}</span>}
                                         />
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className='text-right'>
                                         <Controller
                                             control={control}
                                             name={`paymentArray.${index}.invmgrN_TotalBalance`}
@@ -426,8 +464,8 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                                             name={`paymentArray.${index}.invsptgrN_Amount`}
                                             render={({ field: valField }) => (
                                                 <Input
-                                                    type="number"
-                                                    className="text-right h-8"
+                                                    type='number'
+                                                    className='h-8 text-right'
                                                     {...valField}
                                                     onChange={(e) => valField.onChange(e.target.valueAsNumber || 0)}
                                                     onBlur={(e) => {
@@ -439,31 +477,32 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <Input {...register(`paymentArray.${index}.invsptgrN_Remarks`)} className="h-8" />
+                                        <Input {...register(`paymentArray.${index}.invsptgrN_Remarks`)} className='h-8' />
                                     </TableCell>
                                     <TableCell>
-                                        {field.paystatus === '0' && <span className="text-green-600 font-bold text-xs">Full Paid</span>}
-                                        {field.paystatus === '1' && <span className="text-blue-600 font-bold text-xs">Part Paid</span>}
-                                        {field.paystatus === '2' && <span className="text-red-600 font-bold text-xs">Not Paid</span>}
+                                        {field.paystatus === '0' && <span className='font-bold text-green-600 text-xs'>Full Paid</span>}
+                                        {field.paystatus === '1' && <span className='font-bold text-blue-600 text-xs'>Part Paid</span>}
+                                        {field.paystatus === '2' && <span className='font-bold text-red-600 text-xs'>Not Paid</span>}
                                     </TableCell>
-                                    <TableCell className="text-center">
+                                    <TableCell className='text-center'>
                                         <Button
-                                            type="button"
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 w-8 p-0"
-                                            onClick={() => handleViewGRNDetails(field.invmgrN_Id, field.invmgrN_GRNNo || '')}
-                                        >
-                                            <Eye className="h-4 w-4 text-blue-500" />
+                                            type='button'
+                                            variant='ghost'
+                                            size='sm'
+                                            className='h-8 w-8 p-0'
+                                            onClick={() => handleViewGRNDetails(field.invmgrN_Id, field.invmgrN_GRNNo || '')}>
+                                            <Eye className='h-4 w-4 text-blue-500' />
                                         </Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            <TableRow className="bg-muted font-bold">
-                                <TableCell colSpan={2} className="text-center">Total</TableCell>
-                                <TableCell className="text-right">{totalPurchase.toFixed(2)}</TableCell>
-                                <TableCell className="text-right">{totalPaid.toFixed(2)}</TableCell>
-                                <TableCell className="text-right">{totalBalance.toFixed(2)}</TableCell>
+                            <TableRow className='bg-muted font-bold'>
+                                <TableCell colSpan={2} className='text-center'>
+                                    Total
+                                </TableCell>
+                                <TableCell className='text-right'>{totalPurchase.toFixed(2)}</TableCell>
+                                <TableCell className='text-right'>{totalPaid.toFixed(2)}</TableCell>
+                                <TableCell className='text-right'>{totalBalance.toFixed(2)}</TableCell>
                                 <TableCell></TableCell>
                                 <TableCell></TableCell>
                                 <TableCell></TableCell>
@@ -474,9 +513,14 @@ export default function AddVendorPaymentForm({ onSuccess, initialData }: AddForm
                 </div>
             )}
 
-            <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => reset()}><RotateCcw className="w-4 h-4 mr-2" /> Reset</Button>
-                <Button type="submit" disabled={saveMutation.isPending}><Save className="w-4 h-4 mr-2" /> {saveMutation.isPending ? 'Saving...' : (initialData ? 'Update Payment' : 'Save Payment')}</Button>
+            <div className='flex justify-end gap-2'>
+                <Button type='button' variant='outline' onClick={handleReset}>
+                    <RotateCcw className='mr-2 h-4 w-4' /> Reset
+                </Button>
+                <Button type='submit' disabled={saveMutation.isPending}>
+                    <Save className='mr-2 h-4 w-4' />{' '}
+                    {saveMutation.isPending ? 'Saving...' : initialData ? 'Update Payment' : 'Save Payment'}
+                </Button>
             </div>
 
             <GRNPaymentDetailsModal

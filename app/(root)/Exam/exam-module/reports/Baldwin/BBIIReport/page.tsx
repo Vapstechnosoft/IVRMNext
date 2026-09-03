@@ -1,13 +1,12 @@
 'use client';
 
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { getExamReportCard } from '@/server/exam/exam-module/reports/cumulative-report';
+import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import BBIIReportForm from './_components/add-form';
 import BBIIReportView from './_components/report-view';
-import { getExamReportCard } from '@/server/exam/exam-module/reports/cumulative-report';
-import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Loader2 } from 'lucide-react';
 
 export default function BBIIReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
@@ -16,9 +15,11 @@ export default function BBIIReportPage() {
     const [attendancePresent, setAttendancePresent] = useState<any[]>([]);
     const [examName, setExamName] = useState('');
     const [academicYear, setAcademicYear] = useState('');
+    const [selectedClass, setSelectedClass] = useState('');
+    const [selectedSection, setSelectedSection] = useState('');
     const [classTeacher, setClassTeacher] = useState('');
     const [showRemarks, setShowRemarks] = useState(true);
-    const [showRank, setShowRank] = useState(false);
+    const [showRankInSection, setShowRankInSection] = useState(false);
     const [isReportVisible, setIsReportVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -27,15 +28,17 @@ export default function BBIIReportPage() {
             setIsLoading(true);
             setReportData([]);
             setIsReportVisible(false);
-            console.log(payload, "pay");
+            setSelectedClass(payload.selectedClassName || '');
+            setSelectedSection(payload.selectedSectionName || '');
+            setShowRemarks(payload.showRemarks ?? true);
+            setShowRankInSection(payload.showRankInSection ?? payload.showRank ?? false);
+
             const res = await getExamReportCard(payload);
-            console.log("response", res);
 
             const apiData = res?.data;
             const flatRows: any[] = apiData?.list || (Array.isArray(apiData) ? apiData : []);
 
             if (res && res.success && Array.isArray(flatRows) && flatRows.length > 0) {
-                // Extract extra lists from response
                 const grade_details = apiData?.grade_details || (res as any).grade_details || [];
                 const stud_work_attendence = apiData?.stud_work_attendence || (res as any).stud_work_attendence || [];
                 const stud_present_attendence = apiData?.stud_present_attendence || (res as any).stud_present_attendence || [];
@@ -44,26 +47,28 @@ export default function BBIIReportPage() {
                 const studentMap = new Map<number, any>();
 
                 flatRows.forEach((row: any) => {
-                    const studentId = row.amsT_Id;
+                    const studentId =
+                        row.amsT_Id ?? row.AMST_Id ?? row.AMST_ID ?? row.amst_Id ?? row.student_id ?? row.studentId ?? row.StudentId;
+                    if (!studentId) return;
 
                     if (!studentMap.has(studentId)) {
                         studentMap.set(studentId, {
                             student_id: studentId,
-                            amsT_FirstName: row.amsT_FirstName,
-                            amsT_DOB: row.amsT_DOB,
-                            amsT_AdmNo: row.amsT_AdmNo,
-                            amaY_RollNo: row.amaY_RollNo,
-                            asmcL_ClassName: row.asmcL_ClassName,
-                            asmC_SectionName: row.asmC_SectionName,
-                            estmP_TotalMaxMarks: row.estmP_TotalMaxMarks,
-                            estmP_TotalObtMarks: row.estmP_TotalObtMarks,
-                            estmP_Percentage: row.estmP_Percentage,
-                            classheld: row.classheld || row.asA_ClassHeld,
-                            classatt: row.classatt || row.asA_Class_Attended,
-                            estmP_TotalGrade: row.estmP_TotalGrade,
-                            estmP_ClassRank: row.estmP_ClassRank,
-                            estmP_SectionRank: row.estmP_SectionRank,
-                            estmP_TotalGradeRemark: row.estmP_TotalGradeRemark,
+                            amsT_FirstName: row.amsT_FirstName || row.AMST_FirstName || row.studentName || '',
+                            amsT_DOB: row.amsT_DOB || row.AMST_DOB || '',
+                            amsT_AdmNo: row.amsT_AdmNo || row.AMST_AdmNo || '',
+                            amaY_RollNo: row.amaY_RollNo || row.AMAY_RollNo || '',
+                            asmcL_ClassName: row.asmcL_ClassName || row.ASMCL_ClassName || '',
+                            asmC_SectionName: row.asmC_SectionName || row.ASMC_SectionName || '',
+                            estmP_TotalMaxMarks: row.estmP_TotalMaxMarks ?? row.ESTMP_TotalMaxMarks,
+                            estmP_TotalObtMarks: row.estmP_TotalObtMarks ?? row.ESTMP_TotalObtMarks,
+                            estmP_Percentage: row.estmP_Percentage ?? row.ESTMP_Percentage,
+                            classheld: row.classheld || row.asA_ClassHeld || row.ASA_ClassHeld,
+                            classatt: row.classatt || row.asA_Class_Attended || row.ASA_Class_Attended,
+                            estmP_TotalGrade: row.estmP_TotalGrade || row.ESTMP_TotalGrade,
+                            estmP_ClassRank: row.estmP_ClassRank || row.ESTMP_ClassRank,
+                            estmP_SectionRank: row.estmP_SectionRank || row.ESTMP_SectionRank,
+                            estmP_TotalGradeRemark: row.estmP_TotalGradeRemark || row.ESTMP_TotalGradeRemark,
                             stu_grandmin_marks: row.estmpssS_ObtainedMarks,
                             totaleyceS_MarksEntryMax: row.totaleyceS_MarksEntryMax,
                             totalestM_Marks: row.totalestM_Marks,
@@ -71,7 +76,10 @@ export default function BBIIReportPage() {
                         });
                     } else {
                         const existing = studentMap.get(studentId);
-                        if (row.estmP_TotalGradeRemark && (!existing.estmP_TotalGradeRemark || existing.estmP_TotalGradeRemark.trim() === '')) {
+                        if (
+                            row.estmP_TotalGradeRemark &&
+                            (!existing.estmP_TotalGradeRemark || existing.estmP_TotalGradeRemark.trim() === '')
+                        ) {
                             existing.estmP_TotalGradeRemark = row.estmP_TotalGradeRemark;
                         }
                         if (row.estmP_TotalMaxMarks && !existing.estmP_TotalMaxMarks) {
@@ -104,9 +112,9 @@ export default function BBIIReportPage() {
                         }
 
                         studentMap.get(studentId).sub_list.push({
-                            amsT_Id: row.amsT_Id,
-                            ismS_Id: row.ismS_Id,
-                            ismS_SubjectName: row.ismS_SubjectName,
+                            amsT_Id: studentId,
+                            ismS_Id: row.ismS_Id ?? row.ISMS_Id ?? row.ISMS_ID,
+                            ismS_SubjectName: row.ismS_SubjectName || row.ISMS_SubjectName,
                             eyceS_MaxMarks: row.eyceS_MaxMarks || row.estmpS_MaxMarks,
                             eyceS_MinMarks: row.eyceS_MinMarks || row.estmpS_MinMarks,
                             eyceS_MarksEntryMax: row.eyceS_MarksEntryMax,
@@ -120,7 +128,7 @@ export default function BBIIReportPage() {
                             emgR_Id: row.emgR_Id,
                             EYCES_MarksDisplayFlg: row.EYCES_MarksDisplayFlg || row.eyceS_MarksDisplayFlg,
                             EYCES_GradeDisplayFlg: row.EYCES_GradeDisplayFlg || row.eyceS_GradeDisplayFlg,
-                            emgD_Remarks: row.emgD_Remarks,
+                            emgD_Remarks: row.emgD_Remarks
                         });
                     }
                 });
@@ -132,10 +140,16 @@ export default function BBIIReportPage() {
                 setExamName(flatRows[0].emE_ExamName || 'Progress Card');
                 setAcademicYear(flatRows[0].asmaY_Year || flatRows[0].amaY_Year || '');
                 setClassTeacher(clstchname?.[0]?.hrmE_EmployeeFirstName || clstchname?.[0]?.clstchname || '');
-                setShowRemarks(true);
-                setShowRank(false);
+                setShowRemarks(payload.showRemarks ?? true);
+                setShowRankInSection(payload.showRankInSection ?? payload.showRank ?? false);
                 setIsReportVisible(true);
                 toast.success('Report generated successfully');
+
+                if (payload.isPrint) {
+                    setTimeout(() => {
+                        window.print();
+                    }, 400);
+                }
             } else {
                 toast.error('No record found');
                 setIsReportVisible(false);
@@ -150,28 +164,35 @@ export default function BBIIReportPage() {
     };
 
     const handleReset = () => {
-        window.location.reload();
+        setReportData([]);
+        setGradeRemarks([]);
+        setAttendanceWork([]);
+        setAttendancePresent([]);
+        setExamName('');
+        setAcademicYear('');
+        setSelectedClass('');
+        setSelectedSection('');
+        setClassTeacher('');
+        setShowRemarks(true);
+        setShowRankInSection(false);
+        setIsReportVisible(false);
     };
 
     return (
-        <div className="container mx-auto p-4 space-y-8">
-            <Card className="shadow-lg border-t-4 border-t-primary">
-                <CardHeader>
-                    <CardTitle className="text-2xl font-bold text-center">Progress Card Report (BBII)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <BBIIReportForm onSuccess={handleFormSuccess} onReset={handleReset} />
-                </CardContent>
-            </Card>
+        <div className='flex flex-col gap-6 p-4'>
+            <CollapsibleSection title='BBII Report Criteria' defaultOpen>
+                <BBIIReportForm onSuccess={handleFormSuccess} onReset={handleReset} />
+            </CollapsibleSection>
 
             {isLoading && (
-                <div className="flex justify-center p-12">
-                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                <div className='flex flex-col items-center justify-center gap-4 p-12'>
+                    <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                    <p className='animate-pulse text-muted-foreground'>Generating BBII Reports...</p>
                 </div>
             )}
 
             {isReportVisible && !isLoading && (
-                <CollapsibleSection title="Report Preview" defaultOpen>
+                <CollapsibleSection title='Report Preview' defaultOpen>
                     <BBIIReportView
                         reportData={reportData}
                         gradeRemarks={gradeRemarks}
@@ -179,9 +200,12 @@ export default function BBIIReportPage() {
                         attendancePresent={attendancePresent}
                         examName={examName}
                         academicYear={academicYear}
+                        selectedClass={selectedClass}
+                        selectedSection={selectedSection}
                         classTeacher={classTeacher}
                         showRemarks={showRemarks}
-                        showRank={showRank}
+                        showRank={showRankInSection}
+                        showRankInSection={showRankInSection}
                     />
                 </CollapsibleSection>
             )}

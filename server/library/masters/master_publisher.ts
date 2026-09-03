@@ -16,8 +16,12 @@ export async function addOrUpdateMasterPublisher(data: any) {
 }
 
 export async function toggleMasterPublisher(id: number) {
-    const url = `/MasterPublisher/deactiveY/${id}`;
-    return await api.post('library', url);
+    try {
+        const url = `/MasterPublisher/toggle/${id}`;
+        return await api.put<any>('library', url, {});
+    } catch (error: any) {
+        return { success: false, message: error?.message || 'Failed to toggle record' };
+    }
 }
 
 export async function deleteMasterPublisher(id: number) {

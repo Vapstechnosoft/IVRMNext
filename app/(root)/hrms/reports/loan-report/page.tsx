@@ -7,18 +7,21 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useReportDepartments, useReportDesignations, useReportGroupTypes, useReportEmployeesByGroupTypeDeptAndDesignation } from '@/hooks/hrms/useReports';
 import { useLeaveYearDropdown, useMonthDropdown } from '@/hooks/hrms/useMasters';
+import {
+    useReportDepartments,
+    useReportDesignations,
+    useReportEmployeesByGroupTypeDeptAndDesignation,
+    useReportGroupTypes
+} from '@/hooks/hrms/useReports';
+import { useLoanReport } from '@/hooks/hrms/useReports';
+import { getMasterInstitution } from '@/server/hrms/master-dropdown';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Printer, RefreshCw, Search } from 'lucide-react';
-import { useState, useMemo, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { useLoanReport } from '@/hooks/hrms/useReports';
-import { getMasterInstitution } from '@/server/hrms/master-dropdown';
-
-
 
 // Define the form fields type
 type LoanReportFormFields = {
@@ -69,8 +72,6 @@ const LoanReportSchema = z
         }
     });
 
-
-
 export default function LoanReportPage() {
     const [isSearching, setIsSearching] = useState(false);
     const [reportData, setReportData] = useState<any>(null);
@@ -109,20 +110,27 @@ export default function LoanReportPage() {
 
     const { data: masterGroupTypes, isLoading: masterGroupTypesLoading, isError: masterGroupTypesError } = useReportGroupTypes();
 
-    const { data: masterDepartments, isLoading: masterDepartmentsLoading, isError: masterDepartmentsError } = useReportDepartments(groupTypeIds);
+    const {
+        data: masterDepartments,
+        isLoading: masterDepartmentsLoading,
+        isError: masterDepartmentsError
+    } = useReportDepartments(groupTypeIds);
 
-    const { data: masterDesignations, isLoading: masterDesignationsLoading, isError: masterDesignationsError } = useReportDesignations(groupTypeIds, deptIds);
+    const {
+        data: masterDesignations,
+        isLoading: masterDesignationsLoading,
+        isError: masterDesignationsError
+    } = useReportDesignations(groupTypeIds, deptIds);
 
     const { data: masterMonths, isLoading: masterMonthsLoading, isError: masterMonthsError } = useMonthDropdown();
 
     const { data: masterYears, isLoading: masterYearsLoading, isError: masterYearsError } = useLeaveYearDropdown();
 
-    const { data: employeesData, isLoading: isEmpLoading } =
-        useReportEmployeesByGroupTypeDeptAndDesignation(
-            watchedGroupType.map(Number),
-            watchedDepartment.map(Number),
-            watchedDesignation.map(Number),
-        );
+    const { data: employeesData, isLoading: isEmpLoading } = useReportEmployeesByGroupTypeDeptAndDesignation(
+        watchedGroupType.map(Number),
+        watchedDepartment.map(Number),
+        watchedDesignation.map(Number)
+    );
 
     const { mutateAsync: fetchLoanReport, isPending: isLoanReportPending } = useLoanReport();
 
@@ -159,17 +167,13 @@ export default function LoanReportPage() {
     const empOptions = useMemo(
         () =>
             employeesData?.data?.employeeNames?.map((e: any) => {
-                const fullName =
-                    e.employeeFullName ||
-                    e.hrme_employee_first_name ||
-                    e.hrmE_EmployeeFirstName ||
-                    "";
+                const fullName = e.employeeFullName || e.hrme_employee_first_name || e.hrmE_EmployeeFirstName || '';
                 return {
-                    label: e.value || fullName || "Unknown Employee",
-                    value: String(e.key || e.hrme_id || e.hrmE_Id),
+                    label: e.value || fullName || 'Unknown Employee',
+                    value: String(e.key || e.hrme_id || e.hrmE_Id)
                 };
             }) || [],
-        [employeesData],
+        [employeesData]
     );
 
     useEffect(() => {
@@ -186,9 +190,8 @@ export default function LoanReportPage() {
         fetchInstitution();
     }, []);
 
-
     const onSearch = async (data: LoanReportFormFields) => {
-        console.log("form data", data);
+        console.log('form data', data);
         setIsSearching(true);
 
         const year = YearsOptions.find((year: any) => year.value === data.year)?.label;
@@ -205,9 +208,9 @@ export default function LoanReportPage() {
                 const response = await fetchLoanReport(payload);
                 if (response.success && response.data.length > 0) {
                     setReportData(response.data);
-                    toast.success("Data fetched successfully");
+                    toast.success('Data fetched successfully');
                 } else {
-                    toast.info("No data found");
+                    toast.info('No data found');
                 }
             } else {
                 const payload = {
@@ -218,9 +221,9 @@ export default function LoanReportPage() {
                 const response = await fetchLoanReport(payload);
                 if (response.success && response.data.length > 0) {
                     setReportData(response.data);
-                    toast.success("Data fetched successfully");
+                    toast.success('Data fetched successfully');
                 } else {
-                    toast.info("No data found");
+                    toast.info('No data found');
                 }
             }
         } catch (error: any) {
@@ -241,7 +244,7 @@ export default function LoanReportPage() {
             employee: ''
         });
         setReportData(null);
-        setResetKey(prev => prev + 1);
+        setResetKey((prev) => prev + 1);
         toast.info('Form has been reset');
     };
     const handlePrint = () => {
@@ -361,7 +364,8 @@ export default function LoanReportPage() {
                                                 options={groupTypeOptions}
                                                 defaultValue={field.value}
                                                 onValueChange={field.onChange}
-                                                placeholder='Select Group Types'
+                                                placeholder={masterGroupTypesLoading ? 'Loading...' : 'Select Group Types'}
+                                                disabled={masterGroupTypesLoading}
                                                 className='w-full'
                                                 maxHeight={240}
                                             />
@@ -383,7 +387,8 @@ export default function LoanReportPage() {
                                                 options={DepartmentsOptions}
                                                 defaultValue={field.value}
                                                 onValueChange={field.onChange}
-                                                placeholder='Select Departments'
+                                                placeholder={masterDepartmentsLoading ? 'Loading...' : 'Select Departments'}
+                                                disabled={masterDepartmentsLoading || watchedGroupType?.length === 0}
                                                 className='w-full'
                                                 maxHeight={240}
                                             />
@@ -405,7 +410,8 @@ export default function LoanReportPage() {
                                                 options={DesignationOptions}
                                                 defaultValue={field.value}
                                                 onValueChange={field.onChange}
-                                                placeholder='Select Designations'
+                                                placeholder={masterDesignationsLoading ? 'Loading...' : 'Select Designations'}
+                                                disabled={masterDesignationsLoading || watchedDepartment?.length === 0}
                                                 className='w-full'
                                                 maxHeight={240}
                                             />
@@ -426,9 +432,14 @@ export default function LoanReportPage() {
                                                 name='month'
                                                 control={control}
                                                 render={({ field }) => (
-                                                    <Select onValueChange={field.onChange} value={field.value}>
+                                                    <Select
+                                                        onValueChange={field.onChange}
+                                                        value={field.value}
+                                                        disabled={masterMonthsLoading}>
                                                         <SelectTrigger className='w-full'>
-                                                            <SelectValue placeholder='Select Month' />
+                                                            <SelectValue
+                                                                placeholder={masterMonthsLoading ? 'Loading...' : 'Select Month'}
+                                                            />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {masterMonthsLoading ? (
@@ -461,9 +472,12 @@ export default function LoanReportPage() {
                                                 name='year'
                                                 control={control}
                                                 render={({ field }) => (
-                                                    <Select onValueChange={field.onChange} value={field.value}>
+                                                    <Select
+                                                        onValueChange={field.onChange}
+                                                        value={field.value}
+                                                        disabled={masterYearsLoading}>
                                                         <SelectTrigger className='w-full'>
-                                                            <SelectValue placeholder='Select Year' />
+                                                            <SelectValue placeholder={masterYearsLoading ? 'Loading...' : 'Select Year'} />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             {masterYearsLoading ? (
@@ -499,9 +513,12 @@ export default function LoanReportPage() {
                                             name='employee'
                                             control={control}
                                             render={({ field }) => (
-                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                <Select
+                                                    onValueChange={field.onChange}
+                                                    value={field.value}
+                                                    disabled={isEmpLoading || watchedDesignation?.length === 0}>
                                                     <SelectTrigger className='w-full'>
-                                                        <SelectValue placeholder='Select Employee' />
+                                                        <SelectValue placeholder={isEmpLoading ? 'Loading...' : 'Select Employee'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {empOptions.map((opt: any) => (
@@ -555,7 +572,7 @@ export default function LoanReportPage() {
                             variant='outline'
                             size='md'
                             className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                            <div className='flex justify-end gap-3 w-full md:w-full print:hidden'>
+                            <div className='flex w-full justify-end gap-3 md:w-full print:hidden'>
                                 <Button
                                     type='button'
                                     variant='outline'
@@ -573,7 +590,7 @@ export default function LoanReportPage() {
                             </div>
                             <div className='space-y-6 p-6' id='printable-report'>
                                 <div className='h-[200px] w-full'>
-                                    <img src={institution?.mI_Logo} alt="logo" className='h-full w-full object-contain' />
+                                    <img src={institution?.mI_Logo} alt='logo' className='h-full w-full object-contain' />
                                 </div>
                                 <div className='text-center'>
                                     <h2 className='font-bold text-2xl'>Employee Loan Report</h2>
@@ -584,28 +601,18 @@ export default function LoanReportPage() {
                                     <table className='w-full border-collapse'>
                                         <thead>
                                             <tr className='border-white-300 border-b-2 bg-white-100'>
-                                                <th className='border border-white-300 px-4 py-3 text-center font-semibold text-sm'>SI. No</th>
-                                                <th className='border border-white-300 px-4 py-3  font-semibold text-sm'>
-                                                    Employee Code
+                                                <th className='border border-white-300 px-4 py-3 text-center font-semibold text-sm'>
+                                                    SI. No
                                                 </th>
-                                                <th className='border border-white-300 px-4 py-3  font-semibold text-sm'>
-                                                    Employee Name
-                                                </th>
-                                                <th className='border border-white-300 px-4 py-3  font-semibold text-sm'>
+                                                <th className='border border-white-300 px-4 py-3 font-semibold text-sm'>Employee Code</th>
+                                                <th className='border border-white-300 px-4 py-3 font-semibold text-sm'>Employee Name</th>
+                                                <th className='border border-white-300 px-4 py-3 font-semibold text-sm'>
                                                     Total Loan Amount
                                                 </th>
-                                                <th className='border border-white-300 px-4 py-3  font-semibold text-sm'>
-                                                    Paid Amount
-                                                </th>
-                                                <th className='border border-white-300 px-4 py-3  font-semibold text-sm'>
-                                                    Balance Amount
-                                                </th>
-                                                <th className='border border-white-300 px-4 py-3  font-semibold text-sm'>
-                                                    Month
-                                                </th>
-                                                <th className='border border-white-300 px-4 py-3  font-semibold text-sm'>
-                                                    Year
-                                                </th>
+                                                <th className='border border-white-300 px-4 py-3 font-semibold text-sm'>Paid Amount</th>
+                                                <th className='border border-white-300 px-4 py-3 font-semibold text-sm'>Balance Amount</th>
+                                                <th className='border border-white-300 px-4 py-3 font-semibold text-sm'>Month</th>
+                                                <th className='border border-white-300 px-4 py-3 font-semibold text-sm'>Year</th>
                                                 {/* <th className='border border-white-300 px-4 py-3 text-center font-semibold text-sm'>
                                                 Status
                                             </th> */}
@@ -615,8 +622,12 @@ export default function LoanReportPage() {
                                             {reportData.map((loan: any, index: number) => (
                                                 <tr key={index} className='hover:bg-white-50'>
                                                     <td className='border border-white-300 px-4 py-2 text-center text-sm'>{index + 1}</td>
-                                                    <td className='border border-white-300 px-4 py-2 text-center text-sm'>{loan.employeeId}</td>
-                                                    <td className='border border-white-300 px-4 py-2 text-center text-sm'>{loan.employeeName}</td>
+                                                    <td className='border border-white-300 px-4 py-2 text-center text-sm'>
+                                                        {loan.employeeId}
+                                                    </td>
+                                                    <td className='border border-white-300 px-4 py-2 text-center text-sm'>
+                                                        {loan.employeeName}
+                                                    </td>
                                                     <td className='border border-white-300 px-4 py-2 text-center text-sm'>
                                                         ₹
                                                         {loan.totalhreL_LoanAmount.toLocaleString('en-IN', {
@@ -624,8 +635,12 @@ export default function LoanReportPage() {
                                                             maximumFractionDigits: 2
                                                         })}
                                                     </td>
-                                                    <td className='border border-white-300 px-4 py-2 text-center text-sm'>{loan.toatlPaidAmount}</td>
-                                                    <td className='border border-white-300 px-4 py-2 text-center text-sm'>{loan.totalhreLT_LoanAmount}</td>
+                                                    <td className='border border-white-300 px-4 py-2 text-center text-sm'>
+                                                        {loan.toatlPaidAmount}
+                                                    </td>
+                                                    <td className='border border-white-300 px-4 py-2 text-center text-sm'>
+                                                        {loan.totalhreLT_LoanAmount}
+                                                    </td>
                                                     <td className='border border-white-300 px-4 py-2 text-center text-sm'>
                                                         {loan.hreLT_Month}
                                                     </td>
@@ -643,13 +658,9 @@ export default function LoanReportPage() {
                                         </tbody>
                                     </table>
                                 </div>
-
-
                             </div>
                         </CollapsibleSection>
                     )}
-
-
                 </div>
             </div>
         </>

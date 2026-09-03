@@ -1,19 +1,20 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { getStaffReplacementClassSectionReport } from '@/server/timetable/reports/staff-replacement-class-section';
+import { useMutation } from '@tanstack/react-query';
 import { Loader2, Printer } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { useMutation } from '@tanstack/react-query';
-import { getStaffReplacementClassSectionReport } from '@/server/timetable/reports/staff-replacement-class-section';
 
 interface TimeTableGridProps {
     params: any;
+    onPrint?: () => void;
 }
 
-export default function TimeTableGrid({ params }: TimeTableGridProps) {
+export default function TimeTableGrid({ params, onPrint }: TimeTableGridProps) {
     const [reportData, setReportData] = useState<any>(null);
     const reportMutation = useMutation({
         mutationFn: (data: any) => getStaffReplacementClassSectionReport(data)
@@ -24,7 +25,14 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
             reportMutation.mutate(params, {
                 onSuccess: (response: any) => {
                     const data = response.data || response;
-                    if (data && ((data.tt && data.tt.length > 0) || (data.TT && data.TT.length > 0) || (data.Table4 && data.Table4.length > 0))) {
+                    if (
+                        data &&
+                        ((data.tt && data.tt.length > 0) ||
+                            (data.TT && data.TT.length > 0) ||
+                            (data.Table4 && data.Table4.length > 0) ||
+                            (data.periodslst && data.periodslst.length > 0) ||
+                            (data.gridweeks && data.gridweeks.length > 0))
+                    ) {
                         processReportData(data);
                     } else {
                         toast.error(response.message || 'No data available for selected details');
@@ -116,7 +124,10 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
                     const daySpecificBreak = allBreakList.find((b: any) => {
                         const bDayId = b.ttmD_Id || b.TTMD_Id || b.day_id || b.ttmd_id;
                         const bAfter = b.ttmB_AfterPeriod || b.afterPeriod || b.ttmb_afterperiod;
-                        return Number(bDayId) === Number(dayId) && Number.parseFloat(String(periodCol.after_ped_name)) === Number.parseFloat(String(bAfter));
+                        return (
+                            Number(bDayId) === Number(dayId) &&
+                            Number.parseFloat(String(periodCol.after_ped_name)) === Number.parseFloat(String(bAfter))
+                        );
                     });
 
                     if (daySpecificBreak) {
@@ -144,10 +155,6 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
         });
     };
 
-    const handlePrint = () => {
-        window.print();
-    };
-
     if (reportMutation.isPending) {
         return (
             <div className='flex h-64 items-center justify-center rounded-xl border border-purple-100 bg-white shadow-md'>
@@ -162,20 +169,19 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
     if (!reportData) return null;
 
     return (
-        <div className='fade-in slide-in-from-top-4 mx-auto max-w-7xl animate-in overflow-hidden rounded-xl border border-purple-100 bg-white shadow-md duration-500'>
+        <div className='fade-in slide-in-from-top-4 mx-auto max-w-7xl overflow-hidden rounded-xl border border-purple-100 bg-white shadow-md duration-500'>
             {/* HEADER */}
-            <div className='flex items-center justify-between bg-gradient-to-r from-purple-700 via-purple-600 to-purple-800 px-6 py-4'>
+            <div className='flex items-center justify-between bg-gradient-to-r from-purple-700 via-purple-600 to-purple-800 px-6 py-4 print:hidden'>
                 <h2 className='flex items-center gap-2 font-extrabold text-sm text-white uppercase tracking-widest'>
                     <span className='h-2 w-2 animate-pulse rounded-full bg-orange-400' />
                     Time Table View
                 </h2>
                 <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handlePrint}
-                    className="h-8 bg-white/10 text-white border-white/20 hover:bg-white/20 hover:text-white"
-                >
-                    <Printer className="mr-2 h-4 w-4" />
+                    variant='outline'
+                    size='sm'
+                    onClick={onPrint}
+                    className='h-8 w-24 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white'>
+                    <Printer className='mr-2 h-4 w-4' />
                     Print
                 </Button>
             </div>
@@ -219,8 +225,13 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
                 </div>
 
                 {/* TABLE GRID CONTAINER */}
-                <div className='overflow-x-auto rounded-xl border border-purple-100 bg-slate-50/30'>
-                    <table className='w-full min-w-[1200px] border-collapse text-[11px]'>
+                <div className='overflow-x-auto rounded-xl border border-purple-100 bg-slate-50/30 print:overflow-visible'>
+                    <style type='text/css' media='print'>
+                        {`
+                        @page { size: landscape; margin: 10mm; }
+                        `}
+                    </style>
+                    <table className='w-full min-w-[1200px] border-collapse text-[11px] print:min-w-0'>
                         <thead>
                             <tr className='bg-purple-50'>
                                 <th className='sticky left-0 z-10 min-w-[120px] border-purple-100 border-r border-b bg-purple-50 px-4 py-4 text-left font-black text-purple-800 uppercase tracking-tighter'>
@@ -245,16 +256,16 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
                                         return (
                                             <td
                                                 key={cIdx}
-                                                className={`border-purple-50 border-r px-2 py-4 text-center transition-all ${cell.is_break
-                                                    ? 'bg-orange-50/20 font-black text-orange-400/60 italic'
-                                                    : 'font-semibold text-purple-900 group-hover:bg-orange-50/10'
-                                                    }`}
-                                                style={{ color: cell.color }}
-                                            >
+                                                className={`border-purple-50 border-r px-2 py-4 text-center transition-all ${
+                                                    cell.is_break
+                                                        ? 'bg-orange-50/20 font-black text-orange-400/60 italic'
+                                                        : 'font-semibold text-purple-900 group-hover:bg-orange-50/10'
+                                                }`}
+                                                style={{ color: cell.color }}>
                                                 {cell.is_break ? (
-                                                    <span className='text-[9px] tracking-tighter uppercase'>{cell.content || 'BRK'}</span>
+                                                    <span className='text-[9px] uppercase tracking-tighter'>{cell.content || 'BRK'}</span>
                                                 ) : (
-                                                    <span>{cell.content || '—'}</span>
+                                                    <span>{cell.content || ''}</span>
                                                 )}
                                             </td>
                                         );

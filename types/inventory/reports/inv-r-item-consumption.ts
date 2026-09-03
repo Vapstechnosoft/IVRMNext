@@ -1,4 +1,3 @@
-
 export interface IInvRItemConsumptionLoadData {
     // Entities
     items?: IInvRItemConsumptionEntity[];

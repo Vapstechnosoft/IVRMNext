@@ -8,9 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMasterLeave, useSaveMasterLeave } from '@/hooks/hrms/leave-management/useMasters';
 import { MASTER_LEAVE_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import { Loader2, RotateCcw, Save, X } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import type { MasterLeave } from './columns';
-import { useState } from 'react';
 interface AddMasterLeaveFormProps {
     onSuccess?: () => void;
     onCancel?: () => void;
@@ -44,7 +44,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
             hrmL_LeaveCode: '',
             hrmL_LeaveType: '',
             hrmL_LeaveDetails: '',
-            hrmL_LeaveCreditFlg: true,
+            hrmL_LeaveCreditFlg: false,
             hrmL_LateDeductFlag: false,
             hrmL_ProbationNotApplicableFlg: false,
             hrmL_LeaveApplyCriteria: '',
@@ -111,7 +111,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                                         <SelectTrigger id='hrmL_LeaveType'>
                                             <SelectValue placeholder='Select Leave Type' />
                                         </SelectTrigger>
-                                        <SelectContent >
+                                        <SelectContent>
                                             {leaveTypeOptions.map((option) => (
                                                 <SelectItem key={option.value} value={option.value}>
                                                     {option.label}
@@ -120,7 +120,7 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                                         </SelectContent>
                                     </Select>
                                     {errors.hrmL_LeaveType?.message && (
-                                        <p className='mt-1 text-xs text-destructive'>{errors.hrmL_LeaveType.message}</p>
+                                        <p className='mt-1 text-destructive text-xs'>{errors.hrmL_LeaveType.message}</p>
                                     )}
                                 </div>
                             )}
@@ -145,15 +145,10 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                             control={control}
                             render={({ field }) => (
                                 <div className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id='hrmL_LeaveCreditFlg'
-                                        checked={Boolean(field.value)}
-                                        onCheckedChange={field.onChange}
-                                    />
+                                    <Checkbox id='hrmL_LeaveCreditFlg' checked={Boolean(field.value)} onCheckedChange={field.onChange} />
                                     <label
                                         htmlFor='hrmL_LeaveCreditFlg'
-                                        className='cursor-pointer select-none text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
-                                    >
+                                        className='cursor-pointer select-none font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                                         Leave Credit
                                     </label>
                                     {errors.hrmL_LeaveCreditFlg?.message && <FormError>{errors.hrmL_LeaveCreditFlg.message}</FormError>}
@@ -166,15 +161,10 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                             control={control}
                             render={({ field }) => (
                                 <div className='flex items-center gap-2'>
-                                    <Checkbox
-                                        id='hrmL_LateDeductFlag'
-                                        checked={Boolean(field.value)}
-                                        onCheckedChange={field.onChange}
-                                    />
+                                    <Checkbox id='hrmL_LateDeductFlag' checked={Boolean(field.value)} onCheckedChange={field.onChange} />
                                     <label
                                         htmlFor='hrmL_LateDeductFlag'
-                                        className='cursor-pointer select-none text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'
-                                    >
+                                        className='cursor-pointer select-none font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                                         Late Deduct
                                     </label>
                                     {errors.hrmL_LateDeductFlag?.message && <FormError>{errors.hrmL_LateDeductFlag.message}</FormError>}
@@ -183,7 +173,6 @@ export default function AddMasterLeaveForm({ onSuccess, onCancel, className = ''
                         />
                     </div>
                 </div>
-
 
                 <div className='flex justify-end gap-2'>
                     {onCancel && (

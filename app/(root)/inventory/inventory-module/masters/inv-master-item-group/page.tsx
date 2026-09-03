@@ -6,10 +6,13 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useInvMasterItemGroup } from '@/hooks/inventory/masters/use-inv-master-item-group';
 import type { IInvMasterItemGroup } from '@/types/inventory/masters/inv-master-group';
-import { Plus, X, Boxes, PlusCircle, Pencil } from 'lucide-react';
+import { Boxes, Pencil, Plus, PlusCircle, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import React from 'react';
 import { InvMasterItemGroupColumns } from './_components/item-group-columns';
 import { AddItemGroupForm, ToggleItemGroupForm, UpdateItemGroupForm } from './_components/item-group-form';
+
+import { useInvMasterUserGroup } from '@/hooks/inventory/masters/use-inv-master-user-group';
 
 export default function InvMasterItemGroupPage() {
     return (
@@ -23,11 +26,56 @@ function ItemGroupPageContent() {
     const searchParams = useSearchParams();
     const params = Object.fromEntries(searchParams.entries());
     const { data: response, isLoading } = useInvMasterItemGroup(params);
+    const { data: userGroupResponse } = useInvMasterUserGroup();
     const { openAddForm } = useFormContext<IInvMasterItemGroup>();
 
-    const tableProps = useDataTableProps(response?.data, {
-        dataKey: 'get_itemgroup',
-        totalKey: 'itemgroupTotal'
+    const userGroupsList = React.useMemo(() => {
+        if (!userGroupResponse) return [];
+        const payload = userGroupResponse.data || userGroupResponse;
+        if (Array.isArray(payload)) return payload;
+        if (Array.isArray(payload.data)) return payload.data;
+        if (Array.isArray(payload.get_usergroup)) return payload.get_usergroup;
+        return [];
+    }, [userGroupResponse]);
+
+    const enrichedData = React.useMemo(() => {
+        if (!response) return undefined;
+
+        // The actual API payload could be directly `response`, or wrapped inside `response.data`.
+        const payload = response?.data || response;
+
+        let itemGroups = [];
+        if (Array.isArray(payload)) {
+            itemGroups = payload;
+        } else if (Array.isArray(payload?.data)) {
+            itemGroups = payload.data;
+        } else if (Array.isArray(payload?.get_itemgroup)) {
+            itemGroups = payload.get_itemgroup;
+        }
+
+        const enrichedItemGroups = itemGroups.map((item: any) => {
+            const userGroup = userGroupsList.find((ug: any) => ug.invmG_Id === item.invmG_ParentId);
+            return {
+                ...item,
+                userGroupName: userGroup ? userGroup.invmG_GroupName : ''
+            };
+        });
+
+        // Preserve all original response properties (like success, total)
+        if (Array.isArray(payload)) {
+            return enrichedItemGroups;
+        }
+
+        return {
+            ...payload,
+            data: enrichedItemGroups,
+            get_itemgroup: enrichedItemGroups
+        };
+    }, [response, userGroupsList]);
+
+    const tableProps = useDataTableProps(enrichedData, {
+        dataKey: 'data',
+        totalKey: 'total'
     });
 
     return (
@@ -71,7 +119,7 @@ function ItemGroupPageContent() {
                     </CollapsibleSection>
 
                     {/* Forms */}
-                    <FormSections response={response} />
+                    <FormSections response={response} userGroupsList={userGroupsList} />
                 </div>
             </div>
         </div>
@@ -80,9 +128,10 @@ function ItemGroupPageContent() {
 
 interface FormSectionsProps {
     response: any;
+    userGroupsList: any[];
 }
 
-function FormSections({ response }: FormSectionsProps) {
+function FormSections({ response, userGroupsList }: FormSectionsProps) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -95,7 +144,7 @@ function FormSections({ response }: FormSectionsProps) {
         editFormRef
     } = useFormContext<IInvMasterItemGroup>();
 
-    const userGroupOptions = (response?.data?.get_usergroup || []).map((item: any) => ({
+    const userGroupOptions = userGroupsList.map((item: any) => ({
         label: item.invmG_GroupName,
         value: item.invmG_Id.toString()
     }));
@@ -154,9 +203,7 @@ function FormSections({ response }: FormSectionsProps) {
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && (
-                <ToggleItemGroupForm rowData={selectedRow} onClose={closeToggleForm} />
-            )}
+            {isToggleFormOpen && selectedRow && <ToggleItemGroupForm rowData={selectedRow} onClose={closeToggleForm} />}
         </>
     );
 }
