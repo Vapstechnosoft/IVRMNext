@@ -323,7 +323,7 @@ export function NavigationSystem() {
                 transition={{ duration: 0.5 }}>
                 {/* Horizontal Navigation Bar - Now hidden by default to keep header clean */}
                 <nav
-                    className='scrollbar-hide hidden items-center overflow-x-auto scroll-smooth'
+                    className='scrollbar-hide flex items-center overflow-x-auto scroll-smooth'
                     onMouseLeave={() => setHoveredModule(null)}>
                     <div className='relative flex min-w-max items-center space-x-1 px-2'>
                         {/* Clear Filter Button if active */}
