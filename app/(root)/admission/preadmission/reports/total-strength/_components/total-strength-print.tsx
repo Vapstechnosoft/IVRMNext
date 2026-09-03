@@ -181,7 +181,6 @@ export const TotalStrengthPrint = React.forwardRef<HTMLDivElement, TotalStrength
                             </td>
                         </tr>
                     </tbody>
-
                 </table>
             </div>
         );

@@ -402,71 +402,71 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                             data.graph1_Scores && studentDetails.length === 1
                                 ? data.graph1_Scores
                                 : graphSubjects.map((s: any) => {
-                                      const subjScore = s.subjectObtainedMarks ?? s.subjectPercentage ?? s.ESTMPPS_ObtainedMarks;
-                                      if (subjScore !== undefined) return Number(subjScore);
+                                    const subjScore = s.subjectObtainedMarks ?? s.subjectPercentage ?? s.ESTMPPS_ObtainedMarks;
+                                    if (subjScore !== undefined) return Number(subjScore);
 
-                                      // Otherwise calculate sum of marks across all groups
-                                      let total = 0;
-                                      groupWiseExamList
-                                          .filter((e) => e.isTotal)
-                                          .forEach((groupTotalExam: any) => {
-                                              const groupExams = groupWiseExamList.filter(
-                                                  (e) =>
-                                                      !e.isTotal &&
-                                                      !e.isGrade &&
-                                                      (e.EMPG_DistplayName || e.empG_DistplayName) ===
-                                                          (groupTotalExam.EMPG_DistplayName || groupTotalExam.empG_DistplayName)
-                                              );
-                                              groupExams.forEach((ge) => {
-                                                  const mark = studentMarks.find((m: any) => {
-                                                      const ismsMatch =
-                                                          (m.ISMS_Id || m.ismS_Id) &&
-                                                          (s.ISMS_Id || s.ismS_Id) &&
-                                                          (m.ISMS_Id || m.ismS_Id) === (s.ISMS_Id || s.ismS_Id);
-                                                      const nameMatch =
-                                                          (m.ismS_SubjectName || m.ISMS_SubjectName) &&
-                                                          (s.subjectName || s.ISMS_SubjectName) &&
-                                                          (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() ===
-                                                              (s.subjectName || s.ISMS_SubjectName).toLowerCase();
-                                                      return (ismsMatch || nameMatch) && (m.EME_Id || m.emE_Id) === ge.EME_Id;
-                                                  });
-                                                  if (mark) total += mark.ObtainedMarks || mark.obtainedMarks || 0;
-                                              });
-                                          });
-                                      return total;
-                                  });
+                                    // Otherwise calculate sum of marks across all groups
+                                    let total = 0;
+                                    groupWiseExamList
+                                        .filter((e) => e.isTotal)
+                                        .forEach((groupTotalExam: any) => {
+                                            const groupExams = groupWiseExamList.filter(
+                                                (e) =>
+                                                    !e.isTotal &&
+                                                    !e.isGrade &&
+                                                    (e.EMPG_DistplayName || e.empG_DistplayName) ===
+                                                    (groupTotalExam.EMPG_DistplayName || groupTotalExam.empG_DistplayName)
+                                            );
+                                            groupExams.forEach((ge) => {
+                                                const mark = studentMarks.find((m: any) => {
+                                                    const ismsMatch =
+                                                        (m.ISMS_Id || m.ismS_Id) &&
+                                                        (s.ISMS_Id || s.ismS_Id) &&
+                                                        (m.ISMS_Id || m.ismS_Id) === (s.ISMS_Id || s.ismS_Id);
+                                                    const nameMatch =
+                                                        (m.ismS_SubjectName || m.ISMS_SubjectName) &&
+                                                        (s.subjectName || s.ISMS_SubjectName) &&
+                                                        (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() ===
+                                                        (s.subjectName || s.ISMS_SubjectName).toLowerCase();
+                                                    return (ismsMatch || nameMatch) && (m.EME_Id || m.emE_Id) === ge.EME_Id;
+                                                });
+                                                if (mark) total += mark.ObtainedMarks || mark.obtainedMarks || 0;
+                                            });
+                                        });
+                                    return total;
+                                });
 
                         const graphClassAverages =
                             data.graph1_Averages && studentDetails.length === 1
                                 ? data.graph1_Averages
                                 : graphSubjects.map((s: any) => {
-                                      const subjAvg = s.classAverage ?? s.ESTMPPS_ClassAverage ?? s.estmpps_ClassAverage;
-                                      if (subjAvg !== undefined) return Number(subjAvg);
+                                    const subjAvg = s.classAverage ?? s.ESTMPPS_ClassAverage ?? s.estmpps_ClassAverage;
+                                    if (subjAvg !== undefined) return Number(subjAvg);
 
-                                      // If missing, look for it in studentMarks
-                                      let avg = 0;
-                                      const markWithAvg = studentMarks.find((m: any) => {
-                                          const ismsMatch =
-                                              (m.ISMS_Id || m.ismS_Id) &&
-                                              (s.ISMS_Id || s.ismS_Id) &&
-                                              (m.ISMS_Id || m.ismS_Id) === (s.ISMS_Id || s.ismS_Id);
-                                          const nameMatch =
-                                              (m.ismS_SubjectName || m.ISMS_SubjectName) &&
-                                              (s.subjectName || s.ISMS_SubjectName) &&
-                                              (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() ===
-                                                  (s.subjectName || s.ISMS_SubjectName).toLowerCase();
-                                          return (
-                                              (ismsMatch || nameMatch) &&
-                                              (m.ESTMPPS_ClassAverage || m.estmpps_ClassAverage || m.classAverage)
-                                          );
-                                      });
-                                      if (markWithAvg)
-                                          avg =
-                                              markWithAvg.ESTMPPS_ClassAverage ||
-                                              markWithAvg.estmpps_ClassAverage ||
-                                              markWithAvg.classAverage;
-                                      return avg;
-                                  });
+                                    // If missing, look for it in studentMarks
+                                    let avg = 0;
+                                    const markWithAvg = studentMarks.find((m: any) => {
+                                        const ismsMatch =
+                                            (m.ISMS_Id || m.ismS_Id) &&
+                                            (s.ISMS_Id || s.ismS_Id) &&
+                                            (m.ISMS_Id || m.ismS_Id) === (s.ISMS_Id || s.ismS_Id);
+                                        const nameMatch =
+                                            (m.ismS_SubjectName || m.ISMS_SubjectName) &&
+                                            (s.subjectName || s.ISMS_SubjectName) &&
+                                            (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() ===
+                                            (s.subjectName || s.ISMS_SubjectName).toLowerCase();
+                                        return (
+                                            (ismsMatch || nameMatch) &&
+                                            (m.ESTMPPS_ClassAverage || m.estmpps_ClassAverage || m.classAverage)
+                                        );
+                                    });
+                                    if (markWithAvg)
+                                        avg =
+                                            markWithAvg.ESTMPPS_ClassAverage ||
+                                            markWithAvg.estmpps_ClassAverage ||
+                                            markWithAvg.classAverage;
+                                    return avg;
+                                });
 
                         // Graph 2: Performance Analysis (Term wise)
                         const groupedMarksBySubject = graphSubjects.map((subj: any) => {
@@ -487,7 +487,7 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                             (m.ismS_SubjectName || m.ISMS_SubjectName) &&
                                             (subj.subjectName || subj.ISMS_SubjectName) &&
                                             (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() ===
-                                                (subj.subjectName || subj.ISMS_SubjectName).toLowerCase();
+                                            (subj.subjectName || subj.ISMS_SubjectName).toLowerCase();
                                         return (ismsMatch || nameMatch) && (m.EME_Id || m.emE_Id) === (exam.EME_Id || exam.emE_Id);
                                     });
                                     if (mark) groupTotal += mark.ObtainedMarks || mark.obtainedMarks || 0;
@@ -504,12 +504,12 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                             data.graph2_Datasets && studentDetails.length === 1
                                 ? data.graph2_Datasets
                                 : allTerms.map((term: any, idx: number) => ({
-                                      label: term as string,
-                                      data: groupedMarksBySubject.map((subject: any) => subject.terms[term] || 0),
-                                      backgroundColor: termColors[term as string] || (idx === 0 ? '#1cc405' : '#770396'),
-                                      borderColor: 'black',
-                                      borderWidth: 1
-                                  }))
+                                    label: term as string,
+                                    data: groupedMarksBySubject.map((subject: any) => subject.terms[term] || 0),
+                                    backgroundColor: termColors[term as string] || (idx === 0 ? '#1cc405' : '#770396'),
+                                    borderColor: 'black',
+                                    borderWidth: 1
+                                }))
                         ).map((dataset: any) => ({
                             ...dataset,
                             barPercentage: 0.2,
@@ -639,7 +639,7 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                                     (m.ismS_SubjectName || m.ISMS_SubjectName) &&
                                                                     (subj.subjectName || subj.ISMS_SubjectName) &&
                                                                     (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() ===
-                                                                        (subj.subjectName || subj.ISMS_SubjectName).toLowerCase();
+                                                                    (subj.subjectName || subj.ISMS_SubjectName).toLowerCase();
                                                                 return (ismsMatch || nameMatch) && (m.EME_Id || m.emE_Id) === exam.EME_Id;
                                                             });
 
@@ -656,7 +656,7 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                                             (m.ismS_SubjectName || m.ISMS_SubjectName) &&
                                                                             (subj.subjectName || subj.ISMS_SubjectName) &&
                                                                             (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() ===
-                                                                                (subj.subjectName || subj.ISMS_SubjectName).toLowerCase();
+                                                                            (subj.subjectName || subj.ISMS_SubjectName).toLowerCase();
                                                                         return (
                                                                             (ismsMatch || nameMatch) &&
                                                                             (m.EME_Id || m.emE_Id) !== 9800000 &&
@@ -672,8 +672,8 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                                     totalMarks > 0
                                                                         ? totalMarks.toString()
                                                                         : subj.subjectObtainedMarks
-                                                                          ? subj.subjectObtainedMarks.toString()
-                                                                          : '';
+                                                                            ? subj.subjectObtainedMarks.toString()
+                                                                            : '';
                                                             } else if (exam.isGrade) {
                                                                 if (subj.subjectGrade) {
                                                                     displayValue = subj.subjectGrade;
@@ -689,9 +689,9 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                                                                 (m.ismS_SubjectName || m.ISMS_SubjectName) &&
                                                                                 (subj.subjectName || subj.ISMS_SubjectName) &&
                                                                                 (m.ismS_SubjectName || m.ISMS_SubjectName).toLowerCase() ===
-                                                                                    (
-                                                                                        subj.subjectName || subj.ISMS_SubjectName
-                                                                                    ).toLowerCase();
+                                                                                (
+                                                                                    subj.subjectName || subj.ISMS_SubjectName
+                                                                                ).toLowerCase();
                                                                             return (
                                                                                 (ismsMatch || nameMatch) &&
                                                                                 (m.EME_Id || m.emE_Id) !== 9800000 &&
@@ -987,12 +987,8 @@ export const ReportList = ({ data, academicYear, generatedDate }: ReportListProp
                                     <table className='w-full border-collapse border border-gray-400 text-sm'>
                                         <tbody>
                                             <tr>
-                                                <th className='w-32 border border-gray-400 bg-[#BABABA] p-2 text-left text-black uppercase'>
-                                                    RESULT
-                                                </th>
-                                                <th className='border border-gray-400 p-2 text-left font-bold uppercase'>
-                                                    {remarkObj.eprD_PromotionName || report.estmP_Result || '-'}
-                                                </th>
+                                                <th className='border border-gray-400 bg-[#BABABA] p-2 text-black w-32 text-left uppercase'>RESULT</th>
+                                                <th className='border border-gray-400 p-2 text-left font-bold uppercase'>{remarkObj?.eprD_PromotionName || report?.estmP_Result || report?.overallResult || '-'}</th>
                                             </tr>
                                         </tbody>
                                     </table>

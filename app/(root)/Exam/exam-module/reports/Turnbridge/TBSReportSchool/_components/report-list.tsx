@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
+import { useRef } from 'react';
 import { getMockTBSReportData } from './mock-data';
 
 interface ReportListProps {
@@ -13,10 +14,26 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         window.print();
     };
 
-    let reportData = data && data.studentdetails && data.studentdetails.length > 0 ? data : getMockTBSReportData();
+    const rawStudentList = data?.studentdetails || data?.getstudentdetails || data?.data?.studentdetails || data?.data?.getstudentdetails;
+    const hasRealStudents = Array.isArray(rawStudentList) && rawStudentList.length > 0;
+
+    let reportData = hasRealStudents ? {
+        ...data,
+        studentdetails: rawStudentList,
+        getstudentdetails: rawStudentList,
+        getstudentwisesubjectlist: data?.getstudentwisesubjectlist || data?.studentwisesubjectlist || data?.data?.getstudentwisesubjectlist || [],
+        getstudentmarksdetails: data?.getstudentmarksdetails || data?.studentmarksdetails || data?.data?.getstudentmarksdetails || [],
+        getstudentwisetermwisedetails: data?.getstudentwisetermwisedetails || data?.studentwisetermwisedetails || data?.data?.getstudentwisetermwisedetails || [],
+        getstudentwiseattendancedetails: data?.getstudentwiseattendancedetails || data?.studentwiseattendancedetails || data?.data?.getstudentwiseattendancedetails || [],
+        examwiseremarks: data?.examwiseremarks || data?.data?.examwiseremarks || [],
+        getpromotionremarksdetails: data?.getpromotionremarksdetails || data?.promotionremarksdetails || data?.data?.getpromotionremarksdetails || [],
+        getgroupdetails: data?.getgroupdetails || data?.groupdetails || data?.data?.getgroupdetails || [],
+        getgroupexamdetails: data?.getgroupexamdetails || data?.groupexamdetails || data?.data?.getgroupexamdetails || [],
+        getstudent_examwisemarks: data?.getstudent_examwisemarks || data?.student_examwisemarks || data?.data?.getstudent_examwisemarks || []
+    } : getMockTBSReportData();
 
     // If using mock data and we have selected students in params, update the mock data to reflect them
-    if ((!data || !data.studentdetails || data.studentdetails.length === 0) && params?.selectedStudentDetails?.length > 0) {
+    if (!hasRealStudents && params?.selectedStudentDetails?.length > 0) {
         const mockBase = getMockTBSReportData();
         const newStudentDetails = params.selectedStudentDetails.map((s: any, idx: number) => ({
             AMST_Id: s.amsT_Id,
@@ -41,79 +58,22 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             // English, Math, Science, Social Studies, Hindi
             [101, 102, 103, 104, 105].forEach((id, sidx) => {
                 const subNames = ['English', 'Mathematics', 'Science', 'Social Studies', 'Hindi'];
-                newSubjects.push({
-                    AMST_Id: std.AMST_Id,
-                    ISMS_Id: id,
-                    ISMS_SubjectName: subNames[sidx],
-                    EYCES_MarksDisplayFlg: true,
-                    GropuFlag: 0
-                });
+                newSubjects.push({ AMST_Id: std.AMST_Id, ISMS_Id: id, ISMS_SubjectName: subNames[sidx], EYCES_MarksDisplayFlg: true, GropuFlag: 0 });
 
                 // T1 marks
-                newMarks.push({
-                    AMST_Id: std.AMST_Id,
-                    ISMS_Id: id,
-                    EME_Id: 1,
-                    EMPSG_DisplayName: 'T1',
-                    ObtainedMarks: 80 + (std.AMST_Id % 10),
-                    EYCES_MarksDisplayFlg: true,
-                    PassFailFlag: 'P'
-                });
+                newMarks.push({ AMST_Id: std.AMST_Id, ISMS_Id: id, EME_Id: 1, EMPSG_DisplayName: 'T1', ObtainedMarks: 80 + (std.AMST_Id % 10), EYCES_MarksDisplayFlg: true, PassFailFlag: 'P' });
                 // T2 marks
-                newMarks.push({
-                    AMST_Id: std.AMST_Id,
-                    ISMS_Id: id,
-                    EME_Id: 2,
-                    EMPSG_DisplayName: 'T2',
-                    ObtainedMarks: 82 + (std.AMST_Id % 10),
-                    EYCES_MarksDisplayFlg: true,
-                    PassFailFlag: 'P'
-                });
+                newMarks.push({ AMST_Id: std.AMST_Id, ISMS_Id: id, EME_Id: 2, EMPSG_DisplayName: 'T2', ObtainedMarks: 82 + (std.AMST_Id % 10), EYCES_MarksDisplayFlg: true, PassFailFlag: 'P' });
             });
 
-            newExamMarks.push({
-                AMST_Id: std.AMST_Id,
-                EME_Id: 1,
-                EMPSG_DisplayName: 'T1',
-                ObtainedMarks: 410,
-                TotalMarks: 500,
-                TotalPercentage: '82.0'
-            });
-            newExamMarks.push({
-                AMST_Id: std.AMST_Id,
-                EME_Id: 2,
-                EMPSG_DisplayName: 'T2',
-                ObtainedMarks: 425,
-                TotalMarks: 500,
-                TotalPercentage: '85.0'
-            });
-            newExamMarks.push({
-                AMST_Id: std.AMST_Id,
-                EME_Id: 9800000,
-                EMPSG_DisplayName: 'T1',
-                ObtainedMarks: 410,
-                TotalMarks: 500,
-                TotalPercentage: '82.0'
-            });
+            newExamMarks.push({ AMST_Id: std.AMST_Id, EME_Id: 1, EMPSG_DisplayName: 'T1', ObtainedMarks: 410, TotalMarks: 500, TotalPercentage: '82.0' });
+            newExamMarks.push({ AMST_Id: std.AMST_Id, EME_Id: 2, EMPSG_DisplayName: 'T2', ObtainedMarks: 425, TotalMarks: 500, TotalPercentage: '85.0' });
+            newExamMarks.push({ AMST_Id: std.AMST_Id, EME_Id: 9800000, EMPSG_DisplayName: 'T1', ObtainedMarks: 410, TotalMarks: 500, TotalPercentage: '82.0' });
 
             newTermWise.push({ AMST_Id: std.AMST_Id, ESTMPP_TotalObtMarks: 835, ESTMPP_TotalMaxMarks: 1000, ESTMPP_Percentage: '83.5' });
 
-            newAttendance.push({
-                AMST_Id: std.AMST_Id,
-                EME_Id: 1,
-                EMPSG_DisplayName: 'T1',
-                TOTALAttendancePercentage: 94,
-                TOTALPRESENTDAYS: 47,
-                TOTALWORKINGDAYS: 50
-            });
-            newAttendance.push({
-                AMST_Id: std.AMST_Id,
-                EME_Id: 2,
-                EMPSG_DisplayName: 'T2',
-                TOTALAttendancePercentage: 96,
-                TOTALPRESENTDAYS: 48,
-                TOTALWORKINGDAYS: 50
-            });
+            newAttendance.push({ AMST_Id: std.AMST_Id, EME_Id: 1, EMPSG_DisplayName: 'T1', TOTALAttendancePercentage: 94, TOTALPRESENTDAYS: 47, TOTALWORKINGDAYS: 50 });
+            newAttendance.push({ AMST_Id: std.AMST_Id, EME_Id: 2, EMPSG_DisplayName: 'T2', TOTALAttendancePercentage: 96, TOTALPRESENTDAYS: 48, TOTALWORKINGDAYS: 50 });
 
             newRemarks.push({ AMST_Id: std.AMST_Id, EME_ExamName: 'TERM 1', ESTMP_ClassRank: 1, EMER_Remarks: 'Excellent effort.' });
             newRemarks.push({ AMST_Id: std.AMST_Id, EME_ExamName: 'TERM 2', ESTMP_ClassRank: 1, EMER_Remarks: 'Consistent performance.' });
@@ -124,6 +84,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         reportData = {
             ...mockBase,
             studentdetails: newStudentDetails,
+            getstudentdetails: newStudentDetails,
             getstudentwisesubjectlist: newSubjects,
             getstudentmarksdetails: newMarks,
             getstudent_examwisemarks: newExamMarks,
@@ -134,7 +95,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         };
     }
 
-    if (!reportData || !reportData.studentdetails || reportData.studentdetails.length === 0) {
+    if (!reportData || (!reportData.studentdetails && !reportData.getstudentdetails)) {
         return (
             <div className='flex h-40 items-center justify-center rounded-lg border bg-card text-muted-foreground'>
                 No data available to display.
@@ -152,7 +113,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         getpromotionremarksdetails,
         getgroupdetails,
         getgroupexamdetails,
-        getstudent_examwisemarks
+        getstudent_examwisemarks,
     } = reportData;
 
     // Build groupwiseexamlist (mirrors AngularJS controller logic)
@@ -171,7 +132,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                 EMPSGE_ForMaxMarkrs: d.empsgE_ForMaxMarkrs,
                 examnamedisplay: d.emE_ExamCode,
                 colspan: null,
-                Attcolspan: null
+                Attcolspan: null,
             });
         });
         groupwiseexamlist.push({
@@ -183,7 +144,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Total',
             colspan: 2,
-            Attcolspan: 2
+            Attcolspan: 2,
         });
         groupwiseexamlist.push({
             EMPG_GroupName: dd.empG_GroupName,
@@ -194,65 +155,87 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             EMPSGE_ForMaxMarkrs: counttotal,
             examnamedisplay: 'Term Average',
             colspan: null,
-            Attcolspan: null
+            Attcolspan: null,
         });
     });
 
     // Visible exam columns (exclude 9800001 rows = "Term Average")
     const visibleExams = groupwiseexamlist.filter((g) => g.EME_Id !== 9800001);
 
-    const getStudentSubjects = (amstId: number) => (getstudentwisesubjectlist || []).filter((s: any) => s.AMST_Id === amstId);
+    const getStudentSubjects = (amstId: number) =>
+        (getstudentwisesubjectlist || []).filter((s: any) => s.AMST_Id === amstId);
 
-    const getStudentMarks = (amstId: number) => (getstudentmarksdetails || []).filter((m: any) => m.AMST_Id === amstId);
+    const getStudentMarks = (amstId: number) =>
+        (getstudentmarksdetails || []).filter((m: any) => m.AMST_Id === amstId);
 
-    const getExamwiseMarks = (amstId: number) => (getstudent_examwisemarks || []).filter((m: any) => m.AMST_Id === amstId);
+    const getExamwiseMarks = (amstId: number) =>
+        (getstudent_examwisemarks || []).filter((m: any) => (m.AMST_Id ?? m.amsT_Id) === amstId);
 
-    const getStudentMark = (studentmarks: any[], subjectId: number, examId: number, displayName: string) =>
-        studentmarks.find((m: any) => m.ISMS_Id === subjectId && m.EME_Id === examId && m.EMPSG_DisplayName === displayName);
+    const getStudentMark = (studentmarks: any[], subjectId: number, examId: number, displayName: string) => {
+        let mark = studentmarks.find((m: any) => (m.ISMS_Id === subjectId || m.isms_id === subjectId) && m.EME_Id === examId && m.EMPSG_DisplayName === displayName);
+        if (!mark) {
+            mark = studentmarks.find((m: any) => (m.ISMS_Id === subjectId || m.isms_id === subjectId) && m.EME_Id === examId);
+        }
+        if (!mark && examId === 9800000) {
+            const groupExams = (getgroupexamdetails || []).filter((d: any) => d.empG_DistplayName === displayName || d.EMPSG_DisplayName === displayName);
+            const groupExamIds = groupExams.map((g: any) => g.emE_Id || g.EME_Id);
+
+            const groupMarks = studentmarks.filter((m: any) =>
+                (m.ISMS_Id === subjectId || m.isms_id === subjectId) &&
+                (groupExamIds.length === 0 || groupExamIds.includes(m.EME_Id) || m.EMPSG_DisplayName === displayName)
+            );
+
+            if (groupMarks.length > 0) {
+                const totalObtained = groupMarks.reduce((sum: number, m: any) => sum + Number(m.ObtainedMarks ?? m.obtainedMarks ?? 0), 0);
+                const hasPassFail = groupMarks.some((m: any) => ['AB', 'M', 'L'].includes(m.PassFailFlag));
+                return {
+                    ObtainedMarks: totalObtained,
+                    EYCES_MarksDisplayFlg: true,
+                    PassFailFlag: hasPassFail ? groupMarks.find((m: any) => ['AB', 'M', 'L'].includes(m.PassFailFlag))?.PassFailFlag : 'P'
+                };
+            }
+        }
+        return mark;
+    };
 
     const getStudentExamMark = (examwisemarks: any[], examId: number, displayName: string) =>
         examwisemarks.find((m: any) => m.EME_Id === examId && m.EMPSG_DisplayName === displayName);
 
     const renderMarkValue = (mark: any, grpexam: any, subj: any) => {
         if (!mark) return '';
-        const passFailFlag = mark.PassFailFlag || '';
-        const obtainedMarks = mark.ObtainedMarks ?? '';
-        const obtainedGrade = mark.ObtainedGrade ?? '';
-        const marksDisplayFlg = mark.EYCES_MarksDisplayFlg;
-        const gradeDisplayFlg = mark.EYCES_GradeDisplayFlg;
-        const examName = grpexam.EME_ExamName;
+        const passFailFlag = mark.PassFailFlag || mark.passFailFlag || '';
+        const obtainedMarks = mark.ObtainedMarks ?? mark.obtainedMarks;
+        const obtainedGrade = mark.ObtainedGrade ?? mark.obtainedGrade ?? '';
         const emeId = grpexam.EME_Id;
 
         if (['AB', 'M', 'L'].includes(passFailFlag)) {
             return passFailFlag;
         }
 
-        // Not AB/M/L cases
-        if (marksDisplayFlg && emeId !== 9800001 && emeId !== 9800000 && Number(obtainedMarks) > 0) {
-            if (examName !== 'Term Average') return String(obtainedMarks);
+        if (obtainedMarks !== '' && obtainedMarks !== null && obtainedMarks !== undefined) {
             return String(obtainedMarks);
         }
-        if (!marksDisplayFlg && gradeDisplayFlg && emeId !== 9800001 && emeId !== 9800000) {
-            return String(obtainedGrade);
-        }
 
-        // Yearly aggregate (9800001)
-        if (marksDisplayFlg && emeId === 9800001) {
-            if (mark.GropuFlag === 1 && Number(mark.GroupMarks) > 0) return String(mark.GroupMarks);
-            if (mark.GropuFlag === 0 && Number(obtainedMarks) > 0) return String(obtainedMarks);
-        }
-        if (gradeDisplayFlg && !marksDisplayFlg && (emeId === 9800000 || emeId === 9800001)) {
+        if (obtainedGrade) {
             return String(obtainedGrade);
         }
 
         return '';
     };
 
-    const renderYearlyAggregate = (subj: any) => {
-        const passFailFlag = subj.PassFailFlag || '';
+    const renderYearlyAggregate = (subj: any, amstId: number) => {
+        const passFailFlag = subj.PassFailFlag || subj.passFailFlag || '';
         if (passFailFlag === 'AB') return 'AB';
-        if (subj.EYCES_GradeDisplayFlg && !subj.EYCES_MarksDisplayFlg) return subj.ESTMPPSG_GroupObtGrade || '';
-        if (subj.EYCES_MarksDisplayFlg) return subj.ESTMPPSG_GroupObtMarks || '';
+        if (subj.ESTMPPSG_GroupObtMarks || subj.estmppsg_GroupObtMarks) return String(subj.ESTMPPSG_GroupObtMarks || subj.estmppsg_GroupObtMarks);
+        if (subj.ESTMPPSG_GroupObtGrade || subj.estmppsg_GroupObtGrade) return String(subj.ESTMPPSG_GroupObtGrade || subj.estmppsg_GroupObtGrade);
+
+        const studentmarks = getStudentMarks(amstId);
+        const subjectMarks = studentmarks.filter((m: any) => (m.ISMS_Id === subj.ISMS_Id || m.isms_id === subj.ISMS_Id) && m.EME_Id !== 9800000 && m.EME_Id !== 9800001);
+        if (subjectMarks.length > 0) {
+            const sumObtained = subjectMarks.reduce((sum: number, m: any) => sum + Number(m.ObtainedMarks ?? m.obtainedMarks ?? 0), 0);
+            return String(sumObtained);
+        }
+
         return '';
     };
 
@@ -261,15 +244,15 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             <div className='no-print mb-6 flex justify-end gap-3 rounded-t-md border-gray-200 border-b bg-gray-50/50 px-4 py-3'>
                 <Button
                     onClick={handlePrint}
-                    className='flex w-fit items-center gap-2 bg-sky-800 font-medium text-white shadow-sm transition-colors hover:bg-sky-900'>
+                    className='flex w-fit items-center gap-2 bg-sky-800 font-medium text-white shadow-sm transition-colors hover:bg-sky-900'
+                >
                     <Printer className='h-4 w-4' /> Print
                 </Button>
             </div>
 
             <div id='tb-print-area'>
-                <style
-                    dangerouslySetInnerHTML={{
-                        __html: `
+                <style dangerouslySetInnerHTML={{
+                    __html: `
                     @media print {
                         @page { size: A4 landscape; margin: 10mm; }
                         body {
@@ -348,9 +331,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         padding: 4px 6px;
                         text-align: left;
                     }
-                `
-                    }}
-                />
+                `}} />
 
                 {(studentdetails || []).map((report: any, idx: number) => {
                     const amstId = report.AMST_Id;
@@ -363,7 +344,10 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     const attendanceDetails = (getstudentwiseattendancedetails || []).filter((a: any) => a.AMST_Id === amstId);
 
                     return (
-                        <div key={`tb-report-${amstId}-${idx}`} className={`tb-pagelayout ${idx > 0 ? 'page-break' : ''}`}>
+                        <div
+                            key={`tb-report-${amstId}-${idx}`}
+                            className={`tb-pagelayout ${idx > 0 ? 'page-break' : ''}`}
+                        >
                             {/* Student Info Header */}
                             <table className='tb-table' style={{ backgroundColor: 'transparent' }}>
                                 <tbody>
@@ -375,9 +359,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             <b>{report.studentname}</b>
                                         </th>
                                         <th style={{ width: '20%' }}>
-                                            <b>
-                                                {report.classname}&nbsp;&nbsp;{report.sectionname}
-                                            </b>
+                                            <b>{report.classname}&nbsp;&nbsp;{report.sectionname}</b>
                                         </th>
                                         <th style={{ width: '15%' }}>
                                             <b>Adm&nbsp;{report.admno}</b>
@@ -400,13 +382,10 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 <thead>
                                                     <tr className='tb-header-row'>
                                                         <th style={{ width: '30px' }}>No</th>
-                                                        <th style={{ width: '150px' }} className='tb-subject-col'>
-                                                            <b>Subject</b>
-                                                        </th>
+                                                        <th style={{ width: '150px' }} className='tb-subject-col'><b>Subject</b></th>
                                                         {visibleExams.map((grpexam: any, gi: number) => (
                                                             <th key={`exam-hdr-${gi}`} className='tb-exam-header'>
-                                                                <b>{grpexam.examnamedisplay}</b>
-                                                                <br />
+                                                                <b>{grpexam.examnamedisplay}</b><br />
                                                                 {grpexam.EMPSGE_ForMaxMarkrs ? <b>({grpexam.EMPSGE_ForMaxMarkrs})</b> : ''}
                                                             </th>
                                                         ))}
@@ -419,30 +398,16 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     {studentSubjects.map((subj: any, si: number) => (
                                                         <tr key={`subj-${si}`}>
                                                             <td>{si + 1}</td>
-                                                            <td
-                                                                className='tb-subject-col'
-                                                                style={{ width: '150px', wordBreak: 'break-word' }}>
+                                                            <td className='tb-subject-col' style={{ width: '150px', wordBreak: 'break-word' }}>
                                                                 {subj.ISMS_SubjectName}
                                                             </td>
                                                             {visibleExams.map((grpexam: any, gi: number) => {
                                                                 // Skip EME_Id 9800001 (term average) columns - already filtered
-                                                                const mark = getStudentMark(
-                                                                    studentmarks,
-                                                                    subj.ISMS_Id,
-                                                                    grpexam.EME_Id,
-                                                                    grpexam.EMPG_DistplayName
-                                                                );
-                                                                const showDash =
-                                                                    !subj.EYCES_MarksDisplayFlg &&
-                                                                    grpexam.EME_ExamName === 'Term Average' &&
-                                                                    grpexam.EME_Id !== 9800000 &&
-                                                                    grpexam.EME_Id !== 9800001;
+                                                                const mark = getStudentMark(studentmarks, subj.ISMS_Id, grpexam.EME_Id, grpexam.EMPG_DistplayName);
+                                                                const showDash = !subj.EYCES_MarksDisplayFlg && grpexam.EME_ExamName === 'Term Average' && grpexam.EME_Id !== 9800000 && grpexam.EME_Id !== 9800001;
 
                                                                 // colspan for rowspan logic (group subjects)
-                                                                const skipCell =
-                                                                    subj.GropuFlag === 1 &&
-                                                                    grpexam.EME_Id === 9800001 &&
-                                                                    subj.colspan === -1;
+                                                                const skipCell = subj.GropuFlag === 1 && grpexam.EME_Id === 9800001 && subj.colspan === -1;
                                                                 if (skipCell) return null;
 
                                                                 const rowSpan =
@@ -455,12 +420,12 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                                                 return (
                                                                     <td key={`mark-${gi}`} rowSpan={rowSpan}>
-                                                                        {mark ? renderMarkValue(mark, grpexam, subj) : showDash ? '-' : ''}
+                                                                        {mark ? renderMarkValue(mark, grpexam, subj) : (showDash ? '-' : '')}
                                                                     </td>
                                                                 );
                                                             })}
                                                             {/* Yearly Aggregate */}
-                                                            <td>{renderYearlyAggregate(subj)}</td>
+                                                            <td>{renderYearlyAggregate(subj, amstId)}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -469,76 +434,50 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 <tbody>
                                                     {/* Total Marks Row */}
                                                     <tr>
-                                                        <th colSpan={2} className='text-center'>
-                                                            TOTAL MARKS
-                                                        </th>
+                                                        <th colSpan={2} className='text-center'>TOTAL MARKS</th>
                                                         {visibleExams
                                                             .filter((g) => g.EME_Id !== 9800001)
                                                             .map((grpexam: any, gi: number) => {
-                                                                const mark = getStudentExamMark(
-                                                                    examwisemarks,
-                                                                    grpexam.EME_Id,
-                                                                    grpexam.EMPG_DistplayName
-                                                                );
+                                                                const mark = getStudentExamMark(examwisemarks, grpexam.EME_Id, grpexam.EMPG_DistplayName);
                                                                 return (
-                                                                    <th
-                                                                        key={`total-${gi}`}
-                                                                        colSpan={
-                                                                            grpexam.EME_Id !== 9800001 && grpexam.EME_Id === 9800000
-                                                                                ? grpexam.colspan
-                                                                                : 1
-                                                                        }>
+                                                                    <th key={`total-${gi}`}
+                                                                        colSpan={grpexam.EME_Id !== 9800001 && grpexam.EME_Id === 9800000 ? grpexam.colspan : 1}>
                                                                         {mark ? `${mark.ObtainedMarks}/${mark.TotalMarks}` : ''}
                                                                     </th>
                                                                 );
                                                             })}
                                                         <th>
-                                                            {termwiseDetail
-                                                                ? `${termwiseDetail.ESTMPP_TotalObtMarks} / ${termwiseDetail.ESTMPP_TotalMaxMarks}`
-                                                                : ''}
+                                                            {termwiseDetail ? `${termwiseDetail.ESTMPP_TotalObtMarks} / ${termwiseDetail.ESTMPP_TotalMaxMarks}` : ''}
                                                         </th>
                                                     </tr>
 
                                                     {/* Percentage Row */}
                                                     <tr>
-                                                        <th colSpan={2} className='text-center'>
-                                                            Percentage
-                                                        </th>
+                                                        <th colSpan={2} className='text-center'>Percentage</th>
                                                         {visibleExams
                                                             .filter((g) => g.EME_Id !== 9800001)
                                                             .map((grpexam: any, gi: number) => {
-                                                                const mark = getStudentExamMark(
-                                                                    examwisemarks,
-                                                                    grpexam.EME_Id,
-                                                                    grpexam.EMPG_DistplayName
-                                                                );
+                                                                const mark = getStudentExamMark(examwisemarks, grpexam.EME_Id, grpexam.EMPG_DistplayName);
                                                                 return (
-                                                                    <th
-                                                                        key={`pct-${gi}`}
-                                                                        colSpan={
-                                                                            grpexam.EME_Id !== 9800001 && grpexam.EME_Id === 9800000
-                                                                                ? grpexam.colspan
-                                                                                : 1
-                                                                        }>
+                                                                    <th key={`pct-${gi}`}
+                                                                        colSpan={grpexam.EME_Id !== 9800001 && grpexam.EME_Id === 9800000 ? grpexam.colspan : 1}>
                                                                         {mark ? mark.TotalPercentage : ''}
                                                                     </th>
                                                                 );
                                                             })}
-                                                        <th>{termwiseDetail?.ESTMPP_Percentage || ''}</th>
+                                                        <th>
+                                                            {termwiseDetail?.ESTMPP_Percentage || ''}
+                                                        </th>
                                                     </tr>
 
                                                     {/* Attendance % Row */}
                                                     <tr>
-                                                        <th colSpan={2} className='text-center'>
-                                                            Attendance %
-                                                        </th>
+                                                        <th colSpan={2} className='text-center'>Attendance %</th>
                                                         {visibleExams
                                                             .filter((g) => g.EME_Id !== 9800001)
                                                             .map((grpexam: any, gi: number) => {
-                                                                const att = attendanceDetails.find(
-                                                                    (a: any) =>
-                                                                        a.EME_Id === grpexam.EME_Id &&
-                                                                        a.EMPSG_DisplayName === grpexam.EMPG_DistplayName
+                                                                const att = attendanceDetails.find((a: any) =>
+                                                                    a.EME_Id === grpexam.EME_Id && a.EMPSG_DisplayName === grpexam.EMPG_DistplayName
                                                                 );
                                                                 return (
                                                                     <th key={`att-${gi}`} colSpan={grpexam.Attcolspan || 1}>
@@ -546,21 +485,19 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                                     </th>
                                                                 );
                                                             })}
-                                                        <th rowSpan={2}>{report.TOTALAttendancePercentage || ''}</th>
+                                                        <th rowSpan={2}>
+                                                            {report.TOTALAttendancePercentage || ''}
+                                                        </th>
                                                     </tr>
 
                                                     {/* Cumulative Attendance Row */}
                                                     <tr>
-                                                        <th colSpan={2} className='text-center'>
-                                                            Cumulative Attendence/Days
-                                                        </th>
+                                                        <th colSpan={2} className='text-center'>Cumulative Attendence/Days</th>
                                                         {visibleExams
                                                             .filter((g) => g.EME_Id !== 9800001)
                                                             .map((grpexam: any, gi: number) => {
-                                                                const att = attendanceDetails.find(
-                                                                    (a: any) =>
-                                                                        a.EME_Id === grpexam.EME_Id &&
-                                                                        a.EMPSG_DisplayName === grpexam.EMPG_DistplayName
+                                                                const att = attendanceDetails.find((a: any) =>
+                                                                    a.EME_Id === grpexam.EME_Id && a.EMPSG_DisplayName === grpexam.EMPG_DistplayName
                                                                 );
                                                                 return (
                                                                     <th key={`cumatt-${gi}`} colSpan={grpexam.Attcolspan || 1}>
@@ -572,60 +509,42 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                                     {/* Teacher's Signature Row */}
                                                     <tr>
-                                                        <th colSpan={2} className='text-center'>
-                                                            Teacher&apos;s Signature &amp; Date
-                                                        </th>
+                                                        <th colSpan={2} className='text-center'>Teacher&apos;s Signature &amp; Date</th>
                                                         {visibleExams
                                                             .filter((g) => g.EME_Id !== 9800001)
                                                             .map((grpexam: any, gi: number) => (
-                                                                <th
-                                                                    key={`tsig-${gi}`}
-                                                                    colSpan={
-                                                                        grpexam.EME_Id !== 9800001 && grpexam.EME_Id === 9800000
-                                                                            ? grpexam.colspan
-                                                                            : 1
-                                                                    }
-                                                                    style={{ height: '40px' }}></th>
+                                                                <th key={`tsig-${gi}`}
+                                                                    colSpan={grpexam.EME_Id !== 9800001 && grpexam.EME_Id === 9800000 ? grpexam.colspan : 1}
+                                                                    style={{ height: '40px' }}>
+                                                                </th>
                                                             ))}
                                                         <th></th>
                                                     </tr>
 
                                                     {/* Principal's Signature Row */}
                                                     <tr>
-                                                        <th colSpan={2} className='text-center'>
-                                                            Principal&apos;s Signature &amp; Date
-                                                        </th>
+                                                        <th colSpan={2} className='text-center'>Principal&apos;s Signature &amp; Date</th>
                                                         {visibleExams
                                                             .filter((g) => g.EME_Id !== 9800001)
                                                             .map((grpexam: any, gi: number) => (
-                                                                <th
-                                                                    key={`psig-${gi}`}
-                                                                    colSpan={
-                                                                        grpexam.EME_Id !== 9800001 && grpexam.EME_Id === 9800000
-                                                                            ? grpexam.colspan
-                                                                            : 1
-                                                                    }
-                                                                    style={{ height: '40px' }}></th>
+                                                                <th key={`psig-${gi}`}
+                                                                    colSpan={grpexam.EME_Id !== 9800001 && grpexam.EME_Id === 9800000 ? grpexam.colspan : 1}
+                                                                    style={{ height: '40px' }}>
+                                                                </th>
                                                             ))}
                                                         <th></th>
                                                     </tr>
 
                                                     {/* Parent's Signature Row */}
                                                     <tr>
-                                                        <th colSpan={2} className='text-center'>
-                                                            Parent&apos;s Signature &amp; Date
-                                                        </th>
+                                                        <th colSpan={2} className='text-center'>Parent&apos;s Signature &amp; Date</th>
                                                         {visibleExams
                                                             .filter((g) => g.EME_Id !== 9800001)
                                                             .map((grpexam: any, gi: number) => (
-                                                                <th
-                                                                    key={`parsig-${gi}`}
-                                                                    colSpan={
-                                                                        grpexam.EME_Id !== 9800001 && grpexam.EME_Id === 9800000
-                                                                            ? grpexam.colspan
-                                                                            : 1
-                                                                    }
-                                                                    style={{ height: '40px' }}></th>
+                                                                <th key={`parsig-${gi}`}
+                                                                    colSpan={grpexam.EME_Id !== 9800001 && grpexam.EME_Id === 9800000 ? grpexam.colspan : 1}
+                                                                    style={{ height: '40px' }}>
+                                                                </th>
                                                             ))}
                                                         <th></th>
                                                     </tr>
@@ -638,7 +557,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             <table className='comments-table'>
                                                 <thead>
                                                     <tr>
-                                                        <th style={{ height: '94px' }}>Teacher&apos;s Comments/Rank</th>
+                                                        <th style={{ height: '94px' }}>
+                                                            Teacher&apos;s Comments/Rank
+                                                        </th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>

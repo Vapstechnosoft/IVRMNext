@@ -90,9 +90,7 @@ export default function UpdateEventSponsorMappingForm({ selectedRow, onSuccess }
 function FormFields({ details, control, watch, setValue, errors }: { details: any; control: any; watch: any; setValue: any; errors: any }) {
     const allPrograms = details?.events || [];
     // Deduplicate by Event ID + Program Name.
-    const programs = Array.from(
-        new Map(allPrograms.map((item: any) => [`${item.spccE_Id}::${item.spccpM_Name}`, item])).values()
-    ) as any[];
+    const programs = Array.from(new Map(allPrograms.map((item: any) => [`${item.spccE_Id}::${item.spccpM_Name}`, item])).values()) as any[];
 
     const sponsors = details?.sponsorList || [];
 
@@ -111,10 +109,16 @@ function FormFields({ details, control, watch, setValue, errors }: { details: an
                                     field.onChange(Number.parseInt(id));
                                     setValue('spccpM_Name', name);
                                 }}
-                                value={field.value !== undefined && watch('spccpM_Name') ? `${field.value}::${watch('spccpM_Name')}` : undefined}>
+                                value={
+                                    field.value !== undefined && watch('spccpM_Name')
+                                        ? `${field.value}::${watch('spccpM_Name')}`
+                                        : undefined
+                                }>
                                 <SelectTrigger
                                     className={
-                                        errors.spccE_Id ? 'border-destructive ring-destructive/20' : 'transition-colors hover:border-primary/50'
+                                        errors.spccE_Id
+                                            ? 'border-destructive ring-destructive/20'
+                                            : 'transition-colors hover:border-primary/50'
                                     }>
                                     <SelectValue placeholder='Select Program' />
                                 </SelectTrigger>
@@ -144,7 +148,9 @@ function FormFields({ details, control, watch, setValue, errors }: { details: an
                             <Select onValueChange={(val) => field.onChange(Number.parseInt(val))} value={field.value?.toString()}>
                                 <SelectTrigger
                                     className={
-                                        errors.spccmsP_Id ? 'border-destructive ring-destructive/20' : 'transition-colors hover:border-primary/50'
+                                        errors.spccmsP_Id
+                                            ? 'border-destructive ring-destructive/20'
+                                            : 'transition-colors hover:border-primary/50'
                                     }>
                                     <SelectValue placeholder='Select Sponsor' />
                                 </SelectTrigger>

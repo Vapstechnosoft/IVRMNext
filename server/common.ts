@@ -746,20 +746,20 @@ export async function getUserAccessibleModules() {
         const pagesByMenuId = new Map<number, any[]>();
         pages.forEach((page: any) => {
             const url = page.ivrmP_PageURL || '';
-            if (!url.startsWith('app.')) {
-                const menuId = page.menuId;
-                if (!pagesByMenuId.has(menuId)) {
-                    pagesByMenuId.set(menuId, []);
-                }
-                pagesByMenuId.get(menuId)!.push({
-                    id: page.pageId,
-                    name: page.ivrmmP_PageName,
-                    icon: 'Settings',
-                    url: page.ivrmP_PageURL,
-                    title: page.ivrmmP_PageName,
-                    description: page.ivrmmP_PageName
-                });
+            // if (!url.startsWith('app.')) {
+            const menuId = page.menuId;
+            if (!pagesByMenuId.has(menuId)) {
+                pagesByMenuId.set(menuId, []);
             }
+            pagesByMenuId.get(menuId)!.push({
+                id: page.pageId,
+                name: page.ivrmmP_PageName,
+                icon: 'Settings',
+                url: page.ivrmP_PageURL,
+                title: page.ivrmmP_PageName,
+                description: page.ivrmmP_PageName
+            });
+            // }
         }
         );
 
@@ -820,6 +820,8 @@ export async function getUserAccessibleModules() {
                 };
             })
             .filter((module: any) => module !== null);
+
+        console.log('topModules', topModules);
 
         const aiEdgeModule = {
             id: 50005,
@@ -935,3 +937,4 @@ export async function markAllReadUserNotification() {
     const url = '/v1/user_notification/mark_all_read';
     return await api.put<any>('default', url);
 }
+

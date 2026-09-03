@@ -3,65 +3,93 @@
 import { type ApiResponse, api } from '@/lib/apiService';
 
 export const getInitialData = async () => {
-    // Mock data for initial dropdowns
-    const acdlist = [
-        { asmaY_Id: 1, asmaY_Year: '2023-2024', Selected: true },
-        { asmaY_Id: 2, asmaY_Year: '2024-2025', Selected: false }
+    let acdlist: any[] = [];
+    let monthlist: any[] = [];
+    let examlist: any[] = [];
+
+    const endpoints = [
+        '/ExamMonthEndReport/getdetails/0',
+        '/ExamMonthEndReport/getdetails',
+        '/exam_month_end_report/getdetails',
+        '/ExamMonthEndReportFacade/getdetails'
     ];
 
-    const monthlist = [
-        { ivrM_Month_Id: 1, ivrM_Month_Name: 'January', Selected: false },
-        { ivrM_Month_Id: 2, ivrM_Month_Name: 'February', Selected: false },
-        { ivrM_Month_Id: 3, ivrM_Month_Name: 'March', Selected: false },
-        { ivrM_Month_Id: 4, ivrM_Month_Name: 'April', Selected: false },
-        { ivrM_Month_Id: 5, ivrM_Month_Name: 'May', Selected: false },
-        { ivrM_Month_Id: 6, ivrM_Month_Name: 'June', Selected: false },
-        { ivrM_Month_Id: 7, ivrM_Month_Name: 'July', Selected: false },
-        { ivrM_Month_Id: 8, ivrM_Month_Name: 'August', Selected: false },
-        { ivrM_Month_Id: 9, ivrM_Month_Name: 'September', Selected: false },
-        { ivrM_Month_Id: 10, ivrM_Month_Name: 'October', Selected: true },
-        { ivrM_Month_Id: 11, ivrM_Month_Name: 'November', Selected: false },
-        { ivrM_Month_Id: 12, ivrM_Month_Name: 'December', Selected: false }
-    ];
+    for (const ep of endpoints) {
+        try {
+            let res: any;
+            if (ep.includes('Facade')) {
+                res = await api.post<any>('exam', ep, {});
+            } else {
+                res = await api.get<any>('exam', ep);
+            }
+            const raw = res?.data || res;
+            if (raw && typeof raw === 'object') {
+                const years = raw.acdlist || raw.yearlist || raw.yearList || raw.getyear || raw.academicYearList || raw.year_list;
+                const months = raw.monthlist || raw.monthList || raw.getmonth || raw.month_list;
+                const exams = raw.examlist || raw.examList || raw.getexam || raw.exam_list;
 
-    const examlist = [
-        { emE_Id: 1, emE_ExamName: 'Mid Term Exam', Selected: false },
-        { emE_Id: 2, emE_ExamName: 'Annual Exam', Selected: false },
-        { emE_Id: 3, emE_ExamName: 'Monthly Test', Selected: true }
-    ];
+                if (Array.isArray(years) && years.length > 0) acdlist = years;
+                if (Array.isArray(months) && months.length > 0) monthlist = months;
+                if (Array.isArray(exams) && exams.length > 0) examlist = exams;
 
-    return {
-        acdlist,
-        monthlist,
-        examlist
-    };
+                if (acdlist.length > 0 || monthlist.length > 0 || examlist.length > 0) {
+                    break;
+                }
+            }
+        } catch (err) {
+            console.warn(`[getInitialData] ${ep} failed:`, err);
+        }
+    }
+
+    if (acdlist.length === 0) {
+        try {
+            const yrRes: any = await api.get<any>('exam', '/exam_master/get_academic_year_list');
+            const rawYr = yrRes?.data || yrRes;
+            if (Array.isArray(rawYr) && rawYr.length > 0) {
+                acdlist = rawYr;
+            }
+        } catch (err) {
+            console.warn('[getInitialData] /exam_master/get_academic_year_list failed:', err);
+        }
+    }
+
+    return { acdlist, monthlist, examlist };
 };
 
 export const getReportData = async (_data: any): Promise<ApiResponse<any>> => {
-    try {
-        const url = '/exam_month_end_report';
+    const payload = {
+        asmaY_Id: Number(_data.ASMAY_Id),
+        emE_Id: Number(_data.EME_Id),
+        ivrM_Month_Id: Number(_data.IVRM_Month_Id),
+        ASMAY_Id: Number(_data.ASMAY_Id),
+        EME_Id: Number(_data.EME_Id),
+        IVRM_Month_Id: Number(_data.IVRM_Month_Id),
+        genderflage: _data.radiodata || 'All',
+        radiodata: _data.radiodata || 'All'
+    };
 
-        const res = await api.post<ApiResponse<any>>('exam', url, {
-            asmaY_Id: _data.ASMAY_Id,
-            emE_Id: _data.EME_Id
-        });
+    const endpoints = [
+        '/ExamMonthEndReport/getreport',
+        '/ExamMonthEndReport/onreport',
+        '/ExamMonthEndReportFacade/getreport',
+        '/ExamMonthEndReportFacade/onreport',
+        '/exam_month_end_report'
+    ];
 
-        return res;
-    } catch (e) {
-        console.error('API failed, returning mock data', e);
-
-        return {
-            success: true,
-            message: 'Mock data returned due to API failure',
-            data: {
-                datareport: [
-                    { asmcL_ClassName: 'Class 1 A', pass: 25, fail: 5 },
-                    { asmcL_ClassName: 'Class 2 A', pass: 28, fail: 2 },
-                    { asmcL_ClassName: 'Class 3 A', pass: 30, fail: 0 },
-                    { asmcL_ClassName: 'Class 4 A', pass: 20, fail: 10 },
-                    { asmcL_ClassName: 'Class 5 A', pass: 22, fail: 8 }
-                ]
+    let lastError: any = null;
+    for (const ep of endpoints) {
+        try {
+            console.log(`[getReportData] Attempting POST to: ${ep} with payload:`, JSON.stringify(payload));
+            const res = await api.post<any>('exam', ep, payload);
+            if (res) {
+                console.log(`[getReportData] Success response from ${ep}`);
+                return res;
             }
-        };
+        } catch (e: any) {
+            console.warn(`[getReportData] POST ${ep} failed:`, e);
+            lastError = e;
+        }
     }
+
+    throw lastError || new Error('All report endpoints failed');
 };

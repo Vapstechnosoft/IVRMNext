@@ -19,7 +19,7 @@ export default function BBIIReportPage() {
     const [selectedSection, setSelectedSection] = useState('');
     const [classTeacher, setClassTeacher] = useState('');
     const [showRemarks, setShowRemarks] = useState(true);
-    const [showRank, setShowRank] = useState(false);
+    const [showRankInSection, setShowRankInSection] = useState(false);
     const [isReportVisible, setIsReportVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -30,6 +30,9 @@ export default function BBIIReportPage() {
             setIsReportVisible(false);
             setSelectedClass(payload.selectedClassName || '');
             setSelectedSection(payload.selectedSectionName || '');
+            setShowRemarks(payload.showRemarks ?? true);
+            setShowRankInSection(payload.showRankInSection ?? payload.showRank ?? false);
+
             const res = await getExamReportCard(payload);
 
             const apiData = res?.data;
@@ -137,10 +140,16 @@ export default function BBIIReportPage() {
                 setExamName(flatRows[0].emE_ExamName || 'Progress Card');
                 setAcademicYear(flatRows[0].asmaY_Year || flatRows[0].amaY_Year || '');
                 setClassTeacher(clstchname?.[0]?.hrmE_EmployeeFirstName || clstchname?.[0]?.clstchname || '');
-                setShowRemarks(true);
-                setShowRank(false);
+                setShowRemarks(payload.showRemarks ?? true);
+                setShowRankInSection(payload.showRankInSection ?? payload.showRank ?? false);
                 setIsReportVisible(true);
                 toast.success('Report generated successfully');
+
+                if (payload.isPrint) {
+                    setTimeout(() => {
+                        window.print();
+                    }, 400);
+                }
             } else {
                 toast.error('No record found');
                 setIsReportVisible(false);
@@ -156,6 +165,16 @@ export default function BBIIReportPage() {
 
     const handleReset = () => {
         setReportData([]);
+        setGradeRemarks([]);
+        setAttendanceWork([]);
+        setAttendancePresent([]);
+        setExamName('');
+        setAcademicYear('');
+        setSelectedClass('');
+        setSelectedSection('');
+        setClassTeacher('');
+        setShowRemarks(true);
+        setShowRankInSection(false);
         setIsReportVisible(false);
     };
 
@@ -185,7 +204,8 @@ export default function BBIIReportPage() {
                         selectedSection={selectedSection}
                         classTeacher={classTeacher}
                         showRemarks={showRemarks}
-                        showRank={showRank}
+                        showRank={showRankInSection}
+                        showRankInSection={showRankInSection}
                     />
                 </CollapsibleSection>
             )}
