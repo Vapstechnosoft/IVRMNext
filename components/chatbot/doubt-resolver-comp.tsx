@@ -6,10 +6,24 @@ import { Mic, Calculator, Send, Sparkles, User, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
+import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
+
 interface Message {
     id: string;
     role: 'user' | 'assistant';
     content: string;
+}
+
+function formatMathContent(text: string): string {
+    if (!text) return '';
+    return text
+        // Replace display math \[ ... \] with $$ ... $$
+        .replace(/\\\[([\s\S]*?)\\\]/g, (_, math) => `\n\n$$\n${math.trim()}\n$$\n\n`)
+        // Replace inline math \( ... \) with $ ... $
+        .replace(/\\\(([\s\S]*?)\\\)/g, (_, math) => `$${math.trim()}$`);
 }
 
 type TabType = 'Numbers' | 'Basic Math' | 'Roots' | 'Trigonometry' | 'Logarithms' | 'Factorial' | 'Statistics' | 'Constants' | 'Fractions' | 'Quadratic' | 'X & Y Vars';
@@ -636,13 +650,35 @@ export default function DoubtResolverComp() {
                                             </div>
                                         )}
                                         <div
-                                            className={`max-w-[85%] rounded-3xl px-5 py-3.5 text-sm leading-relaxed shadow-sm ${
+                                            className={`max-w-[88%] rounded-3xl px-6 py-4 text-sm leading-relaxed shadow-sm ${
                                                 msg.role === 'user'
                                                     ? 'bg-primary text-primary-foreground rounded-tr-none'
-                                                    : 'bg-card text-foreground border border-border rounded-tl-none whitespace-pre-line'
+                                                    : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-none'
                                             }`}
                                         >
-                                            {msg.content}
+                                            {msg.role === 'user' ? (
+                                                <div className="whitespace-pre-wrap">{msg.content}</div>
+                                            ) : (
+                                                <div className="math-markdown-content overflow-x-auto text-slate-800">
+                                                    <ReactMarkdown
+                                                        remarkPlugins={[remarkMath]}
+                                                        rehypePlugins={[rehypeKatex]}
+                                                        components={{
+                                                            p: ({ children }) => <p className="mb-2.5 last:mb-0 leading-relaxed">{children}</p>,
+                                                            strong: ({ children }) => <strong className="font-bold text-slate-900 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">{children}</strong>,
+                                                            h1: ({ children }) => <h1 className="text-lg font-black text-purple-800 border-b pb-1.5 mt-4 mb-2">{children}</h1>,
+                                                            h2: ({ children }) => <h2 className="text-base font-black text-purple-700 border-b pb-1 mt-3 mb-2">{children}</h2>,
+                                                            h3: ({ children }) => <h3 className="text-sm font-bold text-purple-600 mt-3 mb-1.5">{children}</h3>,
+                                                            ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2 pl-1">{children}</ul>,
+                                                            ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 my-2 pl-1">{children}</ol>,
+                                                            li: ({ children }) => <li className="text-slate-800">{children}</li>,
+                                                            blockquote: ({ children }) => <blockquote className="border-l-4 border-purple-400 bg-purple-50 p-3 rounded-r-lg italic my-2">{children}</blockquote>
+                                                        }}
+                                                    >
+                                                        {formatMathContent(msg.content)}
+                                                    </ReactMarkdown>
+                                                </div>
+                                            )}
                                         </div>
                                         {msg.role === 'user' && (
                                             <div className="flex-shrink-0 h-8 w-8 rounded-full bg-slate-100 border border-border flex items-center justify-center text-slate-600">
