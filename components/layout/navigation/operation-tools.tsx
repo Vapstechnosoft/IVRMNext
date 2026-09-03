@@ -67,12 +67,6 @@ export function OperationTools() {
         // Make AI Edge links portal-aware
         let targetUrl = page.url;
         if (targetUrl.includes('ai-notemaker') || targetUrl.includes('ai-performance-analysis') || targetUrl.includes('ai-question-paper-generator') || targetUrl.includes('ai-mcq-quiz') || targetUrl.includes('ai-doubt-resolver')) {
-        if (
-            targetUrl.includes('ai-notemaker') ||
-            targetUrl.includes('ai-performance-analysis') ||
-            targetUrl.includes('ai-question-paper-generator') ||
-            targetUrl.includes('ai-mcq-quiz')
-        ) {
             if (pathname.includes('/StaffPortal/')) {
                 if (targetUrl.includes('ai-notemaker')) targetUrl = '/StaffPortal/ai-notemaker';
                 else if (targetUrl.includes('ai-performance-analysis')) targetUrl = '/StaffPortal/ai-performance-analysis';
@@ -313,3 +307,4 @@ export function OperationTools() {
         </>
     );
 }
+

@@ -138,12 +138,12 @@ export function NavigationSystem() {
 
             // Make AI Edge links portal-aware
             let targetUrl = firstPageUrl;
-            if (targetUrl.includes('ai-notemaker') || targetUrl.includes('ai-performance-analysis') || targetUrl.includes('ai-question-paper-generator') || targetUrl.includes('ai-mcq-quiz') || targetUrl.includes('ai-doubt-resolver')) {
             if (
                 targetUrl.includes('ai-notemaker') ||
                 targetUrl.includes('ai-performance-analysis') ||
                 targetUrl.includes('ai-question-paper-generator') ||
-                targetUrl.includes('ai-mcq-quiz')
+                targetUrl.includes('ai-mcq-quiz') ||
+                targetUrl.includes('ai-doubt-resolver')
             ) {
                 if (pathname.includes('/StaffPortal/')) {
                     if (targetUrl.includes('ai-notemaker')) targetUrl = '/StaffPortal/ai-notemaker';
@@ -292,12 +292,12 @@ export function NavigationSystem() {
 
         // Make AI Edge links portal-aware
         let targetUrl = page.url;
-        if (targetUrl.includes('ai-notemaker') || targetUrl.includes('ai-performance-analysis') || targetUrl.includes('ai-question-paper-generator') || targetUrl.includes('ai-mcq-quiz') || targetUrl.includes('ai-doubt-resolver')) {
         if (
             targetUrl.includes('ai-notemaker') ||
             targetUrl.includes('ai-performance-analysis') ||
             targetUrl.includes('ai-question-paper-generator') ||
-            targetUrl.includes('ai-mcq-quiz')
+            targetUrl.includes('ai-mcq-quiz') ||
+            targetUrl.includes('ai-doubt-resolver')
         ) {
             if (pathname.includes('/StaffPortal/')) {
                 // If in Staff Portal, force Staff Portal routes
