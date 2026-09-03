@@ -181,11 +181,14 @@ export function NavigationSystem() {
     useEffect(() => {
         const handleExternalRequest = (event: any) => {
             const moduleName = event.detail;
-            if (moduleName && accessibleModule?.data) {
-                const moduleExists = accessibleModule.data.some((m) => m.name === moduleName);
-                if (moduleExists) {
-                    handleModuleClick(moduleName);
-                }
+            if (moduleName) {
+                const targetModule = accessibleModule?.data?.find(
+                    (m) => m.name.toLowerCase() === moduleName.toLowerCase()
+                );
+                const nameToOpen = targetModule ? targetModule.name : moduleName;
+                setActiveDrawer(nameToOpen);
+                setActiveModule(nameToOpen);
+                setHoveredSubMenu(null);
             }
         };
 
@@ -463,7 +466,7 @@ export function NavigationSystem() {
                                                 }}>
                                                 <div className='flex flex-wrap items-start gap-8'>
                                                     {accessibleModule?.data
-                                                        ?.find((m) => m.name === activeDrawer)
+                                                        ?.find((m) => m.name.toLowerCase() === activeDrawer?.toLowerCase())
                                                         ?.menu.map((menu) => (
                                                             <motion.div
                                                                 key={menu.id}
@@ -679,3 +682,4 @@ export function NavigationSystem() {
         </div>
     );
 }
+
