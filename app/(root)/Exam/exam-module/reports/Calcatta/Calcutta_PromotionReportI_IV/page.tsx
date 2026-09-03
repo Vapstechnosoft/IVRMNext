@@ -47,6 +47,7 @@ export default function CalcuttaPromotionReportItoIVPage() {
                         institution={reportData?.getinstitution?.[0] || null}
                         examwisetotal={reportData?.examwisetotal}
                     />
+                )}
             </div>
         </div>
     );

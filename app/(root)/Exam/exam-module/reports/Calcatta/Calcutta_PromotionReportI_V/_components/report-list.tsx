@@ -230,6 +230,14 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                             (e: any) => Number(e.EME_Id) !== 9800000 && Number(e.EME_Id) !== 98000012
                         );
 
+                        // Find the real group object from getgroupdetails to get exams
+                        const realGrp =
+                            getgroupdetails.find((g: any) => matchTermName(g.empG_DistplayName ?? g.EMPG_DistplayName ?? '', grpName)) ||
+                            grp;
+                        const exams = getGrpExams(realGrp).filter(
+                            (e: any) => Number(e.EME_Id) !== 9800000 && Number(e.EME_Id) !== 98000012
+                        );
+
                         let totalObt = 0;
                         let totalMax = 0;
                         let allAbsent = true;
@@ -439,6 +447,7 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                         // Extract Obtained Marks
                         const obtainedVal = totalRec?.ObtainedMarks ?? totalRec?.obtainedMarks ?? totalRec?.obtainedmarks ?? null;
                         const obtained = obtainedVal !== null && !isNaN(Number(obtainedVal)) ? Number(obtainedVal) : 0;
+
                         // Extract Class Highest
                         let highest = 0;
                         const highestVal =
@@ -584,6 +593,9 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                         <div
                             key={index}
                             className={`page-break mx-auto w-[98%] max-w-[98%] bg-white p-4 font-sans ${index < studentdetails.length - 1 ? 'mb-8' : ''}`}>
+                    return (
+                            {/* Header spacing for pre-printed card headers */}
+                            <div className='pt-[100px] print:pt-[150px]'></div>
                             <table
                                 className='mb-2 w-full table-fixed border-collapse border border-black'
                                 style={{ fontFamily: 'system-ui' }}>
@@ -936,6 +948,25 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                             </div>
 
                             {/* Semester Remarks Box */}
+                            {/* Suggestion Box */}
+                            <div className='pt-2'>
+                                <table className='w-full border-collapse border border-black text-sm' style={{ fontFamily: 'system-ui' }}>
+                                    <tbody>
+                                        <tr>
+                                            <th className='border border-black bg-[#d1d5db] p-2 text-center font-bold uppercase print:bg-[#d1d5db]'>
+                                                {EMPG_GroupName || 'SEMESTER 1'}
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <td className='min-h-[40px] border border-black p-2 text-left font-sans font-semibold uppercase'>
+                                                Suggestion : {student.suggestions?.[0] || ''}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Semester Remarks Box */}
                             <div className='pt-2'>
                                 <table className='w-full border-collapse border border-black text-sm' style={{ fontFamily: 'system-ui' }}>
                                     <tbody>
@@ -1007,6 +1038,7 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                                                     tick={{ fontSize: 14, fontWeight: 'bold', fill: '#000' }}
                                                                     tickLine={false}
                                                                     axisLine={true}
+                                                                />
 
                                                                 <Bar dataKey='highest' fill='#3f51b5' barSize={20}>
                                                                     <LabelList
@@ -1047,6 +1079,10 @@ const CalcuttaPromotionReportView = ({ data, dateInfo, institution }: CalcuttaPr
                                                                 className='inline-block h-3.5 w-3.5 bg-[#00ff00]'
                                                             Obtained Marks
                                                     </div>
+                                                        <span className='flex items-center gap-2'>
+                                                            <span
+                                                                style={{ border: '0.5px solid black' }}></span>
+                                                        </span>
                                                 </td>
                                             </tr>
                                         </tbody>

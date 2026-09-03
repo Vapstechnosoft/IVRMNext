@@ -100,6 +100,7 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                         const appToResult = subj.EMPS_AppToResultFlg ?? subj.empS_AppToResultFlg;
                         return appToResult === true || appToResult === 'true' || Number(appToResult) === 1;
                     });
+
                     // 2. Group subjects by esG_SubjectGroupName
                     const groupMap: { [key: string]: any[] } = {};
                     applicableSubjects.forEach((subj: any) => {
@@ -124,19 +125,38 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                     const subjRowSpanMap = new Map<number, number>();
                     const subjGroupSizeMap = new Map<number, number>();
                         const currentSubjId = subj.ISMS_Id ?? subj.ismS_Id;
+                    });
+
+                    applicableSubjects.forEach((subj: any) => {
+                        const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
+                        const isGrouped =
+                            subj.GropuFlag === 1 ||
+                            subj.GropuFlag === '1' ||
+                            subj.GropuFlag === true ||
+                            subj.GropuFlag === 'true' ||
+                            subj.gropuFlag === 1 ||
+                            subj.gropuFlag === '1' ||
+                            subj.gropuFlag === true ||
+                            subj.gropuFlag === 'true';
+                        if (isGrouped && groupName) {
+                            const trimmed = groupName.trim();
                             const groupSubjs = groupMap[trimmed];
                             // Sort by grporder to ensure consistent ordering
                             groupSubjs.sort((a: any, b: any) => (a.grporder ?? 0) - (b.grporder ?? 0));
                             const firstSubj = groupSubjs[0];
                             const firstSubjId = firstSubj.ISMS_Id ?? firstSubj.ismS_Id;
+
                             if (Number(currentSubjId) === Number(firstSubjId)) {
                                 subjRowSpanMap.set(currentSubjId, groupSubjs.length);
                             } else {
                                 subjRowSpanMap.set(currentSubjId, -1);
+                            }
                             subjGroupSizeMap.set(currentSubjId, groupSubjs.length);
                         } else {
                             subjRowSpanMap.set(currentSubjId, 1);
                             subjGroupSizeMap.set(currentSubjId, 1);
+                        }
+                    });
                     const matchTermName = (termA: string, termB: string) => {
                         const normalize = (str: string) => {
                             return (str ?? '')
@@ -162,6 +182,8 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                     };
                     const getGrpExams = (g: any) => {
                         return g.groupewiseexam ?? g.groupwiseexam ?? g.groupWiseExam ?? [];
+
+                    };
                     const getMarkRecord = (subjId: number, emeId: number, termName: string) => {
                         return student.studentmarks?.find((mrks: any) => {
                             const mSubjId = mrks.ISMS_Id ?? mrks.ismS_Id;
@@ -172,6 +194,7 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                 Number(mSubjId) === Number(subjId) && Number(mEmeId) === Number(emeId) && matchTermName(mGrpName, termName)
                             );
                         });
+                    };
                     const getSubjectSemesterTotal = (subj: any, grpName: string) => {
                         const subjId = subj.ISMS_Id ?? subj.ismS_Id;
                         const realGrp = getgroupdetails.find((g: any) =>
@@ -200,6 +223,21 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                     const getSubjectSemesterHighest = (subj: any, grpName: string) => {
                         let maxHighest = 0;
                         let hasHighest = false;
+                            } else {
+                            }
+                        });
+                    };
+
+                        const subjId = subj.ISMS_Id ?? subj.ismS_Id;
+                        const realGrp = getgroupdetails.find((g: any) =>
+                            matchTermName(g.empG_DistplayName ?? g.EMPG_DistplayName ?? '', grpName)
+                        ) || { empG_DistplayName: grpName };
+                        const exams = getGrpExams(realGrp).filter(
+                            (e: any) => Number(e.EME_Id) !== 9800000 && Number(e.EME_Id) !== 98000012
+                        );
+                        exams.forEach((exam: any) => {
+                            const rec = getMarkRecord(subjId, exam.EME_Id, grpName);
+                            if (rec) {
                                 const hVal =
                                     rec.ESTMPPS_ClassHighest ??
                                     rec.estmppS_ClassHighest ??
@@ -210,6 +248,10 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                     maxHighest = Math.max(maxHighest, Number(hVal));
                                     hasHighest = true;
                         return hasHighest ? maxHighest : '';
+                                }
+                            }
+                        });
+                    };
                     const getGroupSemesterTotal = (groupName: string, grpName: string) => {
                         const subjsInGroup = groupMap[groupName.trim()] || [];
                         let sumObt = 0;
@@ -222,11 +264,20 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                     sumObt += tot.obtained;
                                 sumMax += tot.max;
                                 count++;
+                                }
+                            }
+                        });
                         if (count === 0) return { obtained: null, max: 0 };
                         return {
                             obtained: Math.round(sumObt / count),
                             max: Math.round(sumMax / count)
                     const getSemesterTotalSum = (grpName: string) => {
+                        };
+                    };
+
+                        let sumObt = 0;
+                        let sumMax = 0;
+                        let hasMarks = false;
                         applicableSubjects.forEach((subj: any) => {
                             const subjId = subj.ISMS_Id || subj.ismS_Id;
                             const rowSpan = subjRowSpanMap.get(subjId);
@@ -249,6 +300,7 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                     anyRec.eyceS_GradeDisplayFlg === 'true';
                                 const isGradeOnly = gradeDisplay && !marksDisplay;
                                 if (isGradeOnly) return;
+                            }
                             const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
                             const isGrouped =
                                 subj.GropuFlag === 1 ||
@@ -269,6 +321,15 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                     const scholasticSubjects = applicableSubjects.filter((subj: any) => {
                         const anyRec = student.studentmarks?.find(
                             (m: any) => Number(m.ISMS_Id ?? m.ismS_Id) === Number(subj.ISMS_Id ?? subj.ismS_Id)
+                                    sumObt += tot.obtained;
+                                }
+                            } else {
+                                if (tot.obtained !== null && typeof tot.obtained === 'number') {
+                            }
+                        });
+                    };
+
+                        );
                         if (anyRec) {
                             const marksDisplay =
                                 anyRec.EYCES_MarksDisplayFlg === true ||
@@ -286,12 +347,15 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                 anyRec.eyceS_GradeDisplayFlg === 'true';
                             return marksDisplay || !gradeDisplay;
                         return true;
+                        }
+                    });
                     const localChartData =
                         student.chartData && student.chartData.length > 0
                             ? student.chartData
                             : scholasticSubjects.map((subj: any) => {
                                   const subjId = subj.ISMS_Id ?? subj.ismS_Id;
                                   const subjectName = subj.ISMS_SubjectName ?? subj.ismS_SubjectName;
+
                                   const totalRec = student.studentmarks?.find((m: any) => {
                                       const mSubjId = m.ISMS_Id ?? m.ismS_Id;
                                       const mEmeId = m.EME_Id ?? m.emE_Id;
@@ -305,6 +369,16 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                   });
                                   const highestRec = student.studentmarks?.find((m: any) => {
                                           Number(mEmeId) === 98000012 &&
+
+                                      const mSubjId = m.ISMS_Id ?? m.ismS_Id;
+                                      const mEmeId = m.EME_Id ?? m.emE_Id;
+                                      const mGrpName = (m.EMPSG_DisplayName ?? m.empsG_DisplayName ?? '')?.trim().toUpperCase();
+                                      const targetGrpName = (EMPG_GroupName ?? '')?.trim().toUpperCase();
+                                      return (
+                                          Number(mSubjId) === Number(subjId) &&
+                                          matchTermName(mGrpName, targetGrpName)
+                                      );
+                                  });
                                   let obtained = 0;
                                   if (totalRec) {
                                       const passFail = totalRec.PassFailFlag ?? totalRec.passFailFlag;
@@ -322,6 +396,7 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                               : Number(totalRec.ObtainedMarks ?? totalRec.obtainedMarks ?? 0);
                                       }
                                   }
+
                                   let highest = obtained;
                                   if (highestRec) {
                                       const hVal =
@@ -332,11 +407,19 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                       if (hVal !== undefined && hVal !== null && !isNaN(Number(hVal)) && Number(hVal) > 0) {
                                           highest = Number(hVal);
                                   } else if (totalRec) {
+                                      }
+                                      const hVal =
                                           totalRec.ESTMPPS_ClassHighest ??
                                           totalRec.estmppS_ClassHighest ??
                                           totalRec.ESTMPS_ClassHighest ??
                                           totalRec.estmpS_ClassHighest;
                                   let average = Math.round(highest * 0.82) || obtained;
+                                      if (hVal !== undefined && hVal !== null && !isNaN(Number(hVal)) && Number(hVal) > 0) {
+                                          highest = Number(hVal);
+                                      }
+                                  }
+
+                                  if (totalRec) {
                                       const avgVal =
                                           totalRec.ESTMPPS_SectionAverage ??
                                           totalRec.ESTMPS_SectionAverage ??
@@ -348,6 +431,8 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                           totalRec.estmpS_ClassAverage;
                                       if (avgVal !== undefined && avgVal !== null && !isNaN(Number(avgVal)) && Number(avgVal) > 0) {
                                           average = Number(avgVal);
+                                      }
+                                  }
                                   return {
                                       subject: subjectName,
                                       obtained,
@@ -355,6 +440,7 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                       average
                                   };
                               });
+
                     const getCellValue = (subj: any, exam: any) => {
                         const subjId = subj.ISMS_Id || subj.ismS_Id;
                         const examId = exam.EME_Id;
@@ -380,6 +466,7 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                         const mr = getMarkRecord(subjId, examId, grpName);
                         const passFail = mr?.PassFailFlag ?? mr?.passFailFlag;
                         const isAbsent = ['AB', 'M', 'L'].includes(passFail || '');
+
                         if (examId !== 9800000 && examId !== 98000012) {
                             if (!mr) return '';
                             if (isAbsent) return gradeDisplay && isME ? '-' : 'AB';
@@ -388,10 +475,12 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                             const maxmarks = mr.maxmarks ?? mr.maxMarks ?? mr.max_marks ?? 0;
                             if (isME && obtainedMarks !== 0) return '-';
                             return isSE ? `${obtainedMarks} / ${maxmarks}` : obtainedMarks;
+                        }
                         if (examId === 9800000) {
                             if (isGradeOnly) {
                                 if (!mr) return '-';
                                 return mr.ObtainedGrade ?? mr.obtainedGrade ?? '-';
+                            }
                             if (mr) {
                                 const oVal = mr.ObtainedMarks ?? mr.obtainedMarks;
                                 if (oVal !== undefined && oVal !== null && oVal !== '') {
@@ -400,6 +489,21 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                 if (tot.obtained === null) return '';
                                 if (tot.obtained.toString() === 'AB') return 'AB';
                                 return isSE ? `${tot.obtained} / ${tot.max}` : tot.obtained;
+                                }
+                            }
+                            const groupName = subj.esG_SubjectGroupName ?? subj.ESG_SubjectGroupName;
+                            const isGrouped =
+                                subj.GropuFlag === 1 ||
+                                subj.GropuFlag === '1' ||
+                                subj.GropuFlag === true ||
+                                subj.GropuFlag === 'true' ||
+                                subj.gropuFlag === 1 ||
+                                subj.gropuFlag === '1' ||
+                                subj.gropuFlag === true ||
+                                subj.gropuFlag === 'true';
+
+                            if (isGrouped && groupName) {
+                                const tot = getGroupSemesterTotal(groupName, grpName);
                             const semTotal = getSubjectSemesterTotal(subj, grpName);
                             if (semTotal.obtained === null) return '';
                             if (semTotal.obtained === 'AB') return 'AB';
@@ -410,6 +514,13 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                 const hVal = mr.ESTMPPS_ClassHighest ?? mr.estmppS_ClassHighest;
                                 if (hVal !== undefined && hVal !== null && hVal !== '') {
                                     return hVal;
+                        }
+
+                            if (isGradeOnly) {
+                                if (!mr) return '-';
+                            }
+                            if (mr) {
+                                }
                             // Use examwisetotal prop to get highest value
                             if (student.examwisetotal && Array.isArray(student.examwisetotal)) {
                                 const highestRec = student.examwisetotal.find((rec: any) => {
@@ -431,6 +542,11 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                             const semHighest = getSubjectSemesterHighest(subj, grpName);
                             return semHighest !== '' ? semHighest : '';
                         return '';
+                                }
+                            }
+                        }
+
+                    };
 
                     return (
                         <div
@@ -879,6 +995,8 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                         <div>: {student.amsT_AdmNo || student.admno || ''}</div>
                                                         <div className='font-bold'>Total Students</div>
                                                         <div>: {studentdetails.length}</div>
+                                                    </div>
+                                                    <div className='grid grid-cols-[120px_1fr] items-center gap-2 text-[14px]'>
                                                 </div>
                                                 <div className='flex flex-1'>
                                                     <div className='flex-1 space-y-2'>
@@ -891,6 +1009,8 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                         <div className='grid grid-cols-[80px_1fr] items-center gap-2 text-[14px]'>
                                                             <div className='font-bold'>Roll No</div>
                                                             <div>: {student.amaY_RollNo || student.rollno || 1}</div>
+                                                        </div>
+                                                    </div>
                                                     <div className='ml-auto flex w-[100px] items-center justify-center text-right'>
                                                         {student.amsT_Photoname || student.student_photo ? (
                                                             <div className='relative h-[100px] w-[100px] border border-gray-300'>
@@ -903,12 +1023,19 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                             <div className='flex h-[100px] w-[100px] items-center justify-center border border-gray-300 bg-gray-100 text-gray-400 text-xs'>
                                                                 Photo
                                                         )}
+                                                            </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                             {/* Main Split Table */}
                             <table className='mb-2 w-full border-collapse border-[1.5px] border-black text-[12px]'>
+
+                                <tbody>
+                                    <tr>
                                         {/* Left section: Subjects */}
                                         <td className='w-[100%] border-black border-r p-0 align-top'>
                                             <table className='w-full border-collapse'>
@@ -930,6 +1057,12 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                                 className='whitespace-pre-wrap border-black border-b border-l p-1 text-center leading-tight'>
                                                                 {exam.examnamedisplay}
                                                                 {exam.EMPSGE_ForMaxMarkrs ? `\n[${exam.EMPSGE_ForMaxMarkrs}]` : ''}
+                                                    <tr>
+                                                            <th
+                                                                key={idx}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
                                                 </thead>
                                                 <tbody>
                                                     {applicableSubjects.map((subj: any, sIdx: number) => {
@@ -944,6 +1077,8 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                             subj.gropuFlag === true ||
                                                             subj.gropuFlag === 'true';
                                                         const rowSpanVal = subjRowSpanMap.get(subjId) ?? 1;
+
+                                                        return (
                                                             <tr key={sIdx}>
                                                                 <td className='border-black border-r border-b p-1 text-left'>
                                                                     {subj.ISMS_SubjectName || subj.ismS_SubjectName}
@@ -955,6 +1090,7 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                                     if (isSubjGrouped && isTotalCol && rowSpanVal === -1) return null;
                                                                     const rs = isSubjGrouped && isTotalCol ? rowSpanVal : 1;
                                                                     const cellValue = getCellValue(subj, exam);
+
                                                                     return (
                                                                         <td
                                                                             key={eIdx}
@@ -965,6 +1101,11 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                                 })}
                                                             </tr>
                                                     {/* TOTAL row */}
+                                                                        </td>
+                                                        );
+                                                    })}
+
+                                                    <tr>
                                                         <td className='border-black border-r border-b p-1 text-left font-bold uppercase'>
                                                             TOTAL
                                                         </td>
@@ -977,6 +1118,9 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                                 if (semSum) {
                                                                     totalValue = `${semSum.obtained} / ${semSum.max}`;
                                                                     totalValue = '-';
+                                                                } else {
+                                                                }
+                                                            }
                                                             return (
                                                                 <td
                                                                     key={eIdx}
@@ -994,6 +1138,24 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                     {/* Attendance row */}
                                                         <td className='border-black border-r p-1 text-left font-bold uppercase'>
                                                             Attendance
+                                                                </td>
+                                                    </tr>
+
+                                                    <tr>
+                                                        <td className='border-black border-r border-b p-1 text-left font-bold uppercase'>
+                                                        </td>
+                                                        {groupwiseexamlist?.map((exam: any, eIdx: number) => {
+                                                            const isTotalCol = Number(exam.EME_Id) === 9800000;
+                                                            if (isTotalCol) {
+                                                                const grpName = exam.EMPG_DistplayName || exam.empG_DistplayName;
+                                                                const semSum = getSemesterTotalSum(grpName);
+                                                                } else {
+                                                                }
+                                                            }
+                                                            return (
+                                                                <td
+                                                                    key={eIdx}
+                                                                    className='border-black border-b border-l p-1 text-center font-bold'>
                                                         {getgroupdetails?.map((grp: any, gIdx: number) => {
                                                             const grpName = grp.empG_DistplayName ?? grp.EMPG_DistplayName;
                                                             const att = student.attendance?.find((a: any) => {
@@ -1005,6 +1167,8 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                                 attVal !== undefined && attVal !== null && attVal !== ''
                                                                     ? `${attVal}%`
                                                                     : '-';
+                                                            return (
+                                                                <td
                                                                     key={gIdx}
                                                                     colSpan={grp.groupewiseexam?.length || 1}
                                                                     className='border-black border-l p-1 text-center font-bold'>
@@ -1016,6 +1180,17 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                         <td className='border-black border-b bg-gray-100 p-1 text-center uppercase'>
                                             {EMPG_GroupName || 'SEMESTER 1'}
                                         <td className='p-2 text-left uppercase'>Suggestion : {student.suggestions[0] || ''}</td>
+                                                                </td>
+                                                            );
+                                                        })}
+                                                    </tr>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                                <tbody>
+                                    <tr>
 
                             {/* Graph Analysis Box */}
                             {localChartData && localChartData.length > 0 && (
@@ -1060,6 +1235,7 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                                 tick={{ fontSize: 14, fontWeight: 'bold', fill: '#000' }}
                                                                 tickLine={false}
                                                                 axisLine={true}
+                                                            />
 
                                                             <Bar dataKey='highest' fill='#3f51b5' barSize={20}>
                                                                 <LabelList
@@ -1100,6 +1276,10 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                             className='inline-block h-3.5 w-3.5 bg-[#00ff00]'
                                                         Obtained Marks
                                                 </div>
+                                                    <span className='flex items-center gap-2'>
+                                                        <span
+                                                            style={{ border: '0.5px solid black' }}></span>
+                                                    </span>
                                             </td>
                                         </tr>
                                     </tbody>

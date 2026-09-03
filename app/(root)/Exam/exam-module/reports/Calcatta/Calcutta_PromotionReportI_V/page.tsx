@@ -51,6 +51,7 @@ export default function CalcuttaPromotionReportItoVPage() {
                         dateInfo={dateInfo}
                         institution={reportData?.getinstitution?.[0] || null}
                     />
+                )}
             </div>
         </div>
     );

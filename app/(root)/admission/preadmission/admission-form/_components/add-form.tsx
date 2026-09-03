@@ -3952,6 +3952,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         placeholder='Enter 12 digit number'
                                                         {...register('amsT_AadharNo')}
                                                         error={errors.amsT_AadharNo?.message}
+                                                    />
                                                     <div className='flex flex-col gap-1.5'>
                                                         <Controller
                                                             name='amsT_ApparNo'

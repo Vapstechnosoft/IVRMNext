@@ -486,6 +486,8 @@ export default function CalcuttaPromotionReportIX_XList() {
                         : '-',
                 'Yearly Avg':
                         : '-'
+                    attAvg?.percentage !== undefined && attAvg?.percentage !== null && attAvg?.percentage !== ''
+                        ? `${attAvg.percentage}%`
             });
 
             // Remarks row
@@ -608,6 +610,7 @@ export default function CalcuttaPromotionReportIX_XList() {
                                 flex-wrap: wrap;
                                 margin-right: -15px;
                                 margin-left: -15px;
+                            }
                             .col-sm-4, .col-sm-6, .col-sm-7, .col-sm-8 {
                                 position: relative;
                                 width: 100%;
@@ -615,6 +618,7 @@ export default function CalcuttaPromotionReportIX_XList() {
                                 padding-right: 15px;
                                 padding-left: 15px;
                                 box-sizing: border-box;
+                            }
                             @media (min-width: 768px) {
                                 .col-sm-6 {
                                     flex: 0 0 50%;
@@ -629,12 +633,15 @@ export default function CalcuttaPromotionReportIX_XList() {
                                 .col-sm-8 {
                                     flex: 0 0 66.666667%;
                                     max-width: 66.666667%;
+                                }
+                            }
 
                             .table {
                                 width: 100% !important;
                                 max-width: 100% !important;
                                 margin-bottom: 20px !important;
                                 border-collapse: collapse !important;
+                            }
                             .table-bordered th, .table-bordered td {
                                 border: 0.5px solid black !important;
                                 padding: 4px !important;
@@ -642,6 +649,7 @@ export default function CalcuttaPromotionReportIX_XList() {
                             .text-center { text-align: center !important; }
                             .text-left { text-align: left !important; }
                             .text-right { text-align: right !important; }
+                            }
                             @media print {
                                 body {
                                     font-family: system-ui, -apple-system, sans-serif !important;
@@ -650,6 +658,7 @@ export default function CalcuttaPromotionReportIX_XList() {
                                 .printable-content {
                                     padding: 0 !important;
                                     width: 100% !important;
+                                }
                                 .page-break {
                                     page-break-after: always !important;
                                     width: 98% !important;
@@ -664,6 +673,8 @@ export default function CalcuttaPromotionReportIX_XList() {
                         `
                             }}
                         />
+                                }
+                            }
                         {reportData.studentdetails.map((student: any, index: number) => {
                             const studentName =
                                 student.studentname ??
@@ -1238,6 +1249,8 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                     '\u2003\u2003\u2003\u2003'}
                                             </label>
                                         </caption>
+                                        <tbody>
+                                            <tr>
                                                 <td style={{ border: '0.5px solid black', width: '100%' }}>
                                                     <div className='row'>
                                                         <div className='col-sm-6 text-left'>
@@ -1251,6 +1264,12 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                                     <b>Total Students</b>{' '}
                                                                 <div className='padding-top-10 col-sm-7'>
                                                                     : {reportData.studentdetails.length}
+                                                                </div>
+                                                                <div className='padding-top-10 col-sm-4'>
+                                                            </div>
+                                                        </div>
+                                                        <div className='col-sm-6 text-left'>
+                                                            <div className='row'>
                                                                 <div className='col-sm-8'>
                                                                     <div className='row'>
                                                                         <div className='padding-top-10 col-sm-6'>
@@ -1261,6 +1280,11 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                                         <div className='padding-top-10 col-sm-6'>: {rollNo}</div>
                                                                 <div className='col-sm-4 text-right' style={{ height: '100px' }}>
                                                                     {photoName ? (
+                                                                        <div className='padding-top-10 col-sm-6'>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                        <img
                                                                             src={photoName}
                                                                             alt='Student Img'
                                                                             style={{
@@ -1274,6 +1298,12 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                                                 border: '1px solid #ccc',
                                                                             }}></div>
                                                                     )}
+                                                                        />
+                                                                            style={{
+                                                                                width: '100px',
+                                                                                height: '100px',
+                                                                                display: 'inline-block'
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1608,6 +1638,7 @@ export default function CalcuttaPromotionReportIX_XList() {
                                         <table
                                             className='table-bordered table w-full border-collapse border-[1.5px] border-black font-bold text-[12px]'
                                             style={{ fontFamily: 'system-ui' }}>
+                                            <tbody>
                                                 <tr style={{ border: '0.5px solid black' }}>
                                                     <td
                                                         className='border-black border-b p-1 text-center font-bold text-white uppercase'
@@ -1616,6 +1647,8 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                     </td>
                                                     <td className='border border-black p-2 text-left font-bold uppercase'>
                                                         Suggestion : {student.suggestions?.[0] || ''}
+                                                </tr>
+                                                <tr>
                                                     </td>
                                                 </tr>
                                             </tbody>
@@ -1675,6 +1708,10 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                                         <YAxis
                                                                             domain={[0, 100]}
                                                                             ticks={[0, 50, 100]}
+                                                                            tick={{ fontSize: 14, fontWeight: 'bold', fill: '#000' }}
+                                                                            tickLine={false}
+                                                                            axisLine={true}
+                                                                        />
 
                                                                         <Bar dataKey='highest' fill='#3f51b5' barSize={20}>
                                                                             <LabelList
@@ -1690,6 +1727,14 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                                     </BarChart>
                                                                 </ResponsiveContainer>
                                                             </div>
+                                                                            <LabelList
+                                                                                position='top'
+                                                                                style={{ fontSize: 13, fill: '#000', fontWeight: 'bold' }}
+                                                                            />
+                                                                        </Bar>
+                                                        </td>
+                                                    </tr>
+                                                    <tr style={{ border: '0.5px solid black' }}>
                                                         <td colSpan={3} className='p-2 text-center font-bold'>
                                                             <div className='flex items-center justify-center gap-12 text-black text-sm'>
                                                                 <span className='flex items-center gap-2'>
@@ -1702,6 +1747,13 @@ export default function CalcuttaPromotionReportIX_XList() {
                                                                     Average Marks
                                                                         className='inline-block h-3.5 w-3.5 bg-[#00ff00]'
                                                                     Obtained Marks
+                                                                <span className='flex items-center gap-2'>
+                                                                    <span
+                                                                        style={{ border: '0.5px solid black' }}></span>
+                                                                </span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
                                                 </tbody>
                                             </table>
                                         </div>
@@ -1709,6 +1761,8 @@ export default function CalcuttaPromotionReportIX_XList() {
                                     {/* Signatures Section */}
                                     <div className='margin-top-100 print:margin-top-100'>
                                         <table className='table' style={{ width: '100%', fontFamily: 'system-ui' }}>
+
+                                            <tbody>
                                                 <tr style={{ border: '0.5px solid' }}>
                                                     <th className='text-center font-bold'>Principal's Signature</th>
                                                     <th className='text-center font-bold'>Class Teacher's Signature</th>

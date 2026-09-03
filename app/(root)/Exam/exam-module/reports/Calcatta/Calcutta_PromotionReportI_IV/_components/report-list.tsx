@@ -629,6 +629,8 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                         <div>: {student.amsT_AdmNo || student.admno || ''}</div>
                                                         <div className='font-bold'>Total Students</div>
                                                         <div>: {studentdetails.length}</div>
+                                                    </div>
+                                                    <div className='grid grid-cols-[120px_1fr] items-center gap-2 text-[14px]'>
                                                 </div>
                                                 <div className='flex flex-1'>
                                                     <div className='flex-1 space-y-2'>
@@ -641,6 +643,8 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                         <div className='grid grid-cols-[80px_1fr] items-center gap-2 text-[14px]'>
                                                             <div className='font-bold'>Roll No</div>
                                                             <div>: {student.amaY_RollNo || student.rollno || 1}</div>
+                                                        </div>
+                                                    </div>
                                                     <div className='ml-auto flex w-[100px] items-center justify-center text-right'>
                                                         {student.amsT_Photoname || student.student_photo ? (
                                                             <div className='relative h-[100px] w-[100px] border border-gray-300'>
@@ -653,6 +657,9 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                             <div className='flex h-[100px] w-[100px] items-center justify-center border border-gray-300 bg-gray-100 text-gray-400 text-xs'>
                                                                 Photo
                                                         )}
+                                                            </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -766,6 +773,14 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                                     const rs = isSubjGrouped && isTotalCol ? rowSpanVal : 1;
                                                                     const cellValue = getCellValue(subj, exam);
                                                                             rowSpan={rs}
+
+                                                                <td className='border-black border-r border-b p-1 text-left'>
+                                                                    {subj.ISMS_SubjectName || subj.ismS_SubjectName}
+                                                                </td>
+                                                                {groupwiseexamlist?.map((exam: any, eIdx: number) => {
+                                                                    return (
+                                                                        <td
+                                                                            key={eIdx}
                                                                             className='border-black border-b border-l p-1 text-center font-semibold'>
                                                                             {cellValue}
                                                                         </td>
@@ -1036,6 +1051,7 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                 GRAPHICAL ANALYSIS
                                             </td>
                                         </tr>
+                                        <tr>
                                             <td colSpan={3} className='border-black border-b p-2'>
                                                 <div className='mx-auto h-[320px] w-[98%]'>
                                                     <ResponsiveContainer width='100%' height='100%'>
@@ -1057,6 +1073,10 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                             <YAxis
                                                                 domain={[0, 100]}
                                                                 ticks={[0, 50, 100]}
+                                                                tick={{ fontSize: 14, fontWeight: 'bold', fill: '#000' }}
+                                                                tickLine={false}
+                                                                axisLine={true}
+                                                            />
 
                                                             <Bar dataKey='highest' fill='#3f51b5' barSize={20}>
                                                                 <LabelList
@@ -1072,6 +1092,13 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                                         </BarChart>
                                                     </ResponsiveContainer>
                                                 </div>
+                                                                <LabelList
+                                                                    position='top'
+                                                                    style={{ fontSize: 13, fill: '#000', fontWeight: 'bold' }}
+                                                                />
+                                                            </Bar>
+                                            </td>
+                                        </tr>
                                         <tr style={{ border: '0.5px solid black' }}>
                                             <td colSpan={3} className='border border-black p-2 text-center font-bold'>
                                                 <div className='flex items-center justify-center gap-12 font-bold text-black text-sm'>
@@ -1088,6 +1115,13 @@ const CalcuttaPromotionReportView = ({ data, institution, examwisetotal }: Calcu
                                     </tbody>
                                 </table>
                             )}
+                                                    <span className='flex items-center gap-2'>
+                                                        <span
+                                                            style={{ border: '0.5px solid black' }}></span>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
 
                             {/* Signatures Box */}
                             <table className='w-full border-collapse border-[1.5px] border-black text-center font-bold text-[13px]'>
