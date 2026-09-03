@@ -24,6 +24,11 @@ export async function getInvStockItems(storeId: number) {
     return await api.get<any>('inventory', url);
 }
 
+export async function getInvMasterItemList() {
+    const url = `/INV_MasterProductFacade/LoadItemList`;
+    return await api.get<any>('inventory', url);
+}
+
 export async function getInvStockEditData(id: number) {
     const url = `/INV_StockFacade/EditStock?INVSTO_Id=${id}`;
     return await api.get<any>('inventory', url);

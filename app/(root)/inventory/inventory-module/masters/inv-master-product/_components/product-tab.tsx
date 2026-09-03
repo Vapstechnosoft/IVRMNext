@@ -7,10 +7,9 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { useInvMasterProduct } from '@/hooks/inventory/masters/use-inv-master-product';
-import { tableSearchVariables } from '@/lib/data-table.config';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Box, PlusCircle, X } from 'lucide-react';
-import { parseAsInteger, useQueryState } from 'nuqs';
+import { useMemo } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { getProductColumns } from './product-columns';
@@ -35,19 +34,35 @@ const formSchema = z.object({
         .optional()
 });
 
-export default function ProductTab() {
-    // Pagination State
-    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
-    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+interface ProductTabProps {
+    searchParams?: any;
+}
 
-    const searchParams = { page: currentPage, page_size: pageSize };
+export default function ProductTab({ searchParams }: ProductTabProps) {
     const { loadData, saveProductMutation, refreshAll, isLoadDataLoading, getTaxListMutation, getProductTaxMutation } =
-        useInvMasterProduct(searchParams);
+        useInvMasterProduct(searchParams ?? {});
 
     const { isAddFormOpen, isEditFormOpen, closeAddForm, closeEditForm, openEditForm, addFormRef, editFormRef } = useFormContext<any>();
 
-    const data = (loadData as any)?.get_product || (loadData as any)?.data || [];
-    const tableProps = useDataTableProps({ ...((loadData || {}) as any), data });
+    const enrichedData = useMemo(() => {
+        if (!loadData) return undefined;
+        const items =
+            (loadData as any)?.get_product ||
+            (loadData as any)?.data ||
+            (Array.isArray(loadData) ? loadData : []);
+        const total =
+            (loadData as any)?.total ||
+            (loadData as any)?.data?.total ||
+            (Array.isArray(items) ? items.length : 0);
+        return {
+            ...loadData,
+            data: items,
+            total
+        };
+    }, [loadData]);
+
+    const data = enrichedData?.data || [];
+    const tableProps = useDataTableProps(enrichedData);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),

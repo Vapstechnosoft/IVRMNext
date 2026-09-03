@@ -448,7 +448,7 @@ export default function OralReScheduleForm({ onSuccess, initialData }: OralReSch
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {details?.oralTestSchedule?.map((sch: any) => (
+                                                    {(details?.oralTestSchedule || details?.data?.oralTestSchedule || [])?.map((sch: any) => (
                                                         <SelectItem key={sch.paotS_Id} value={String(sch.paotS_Id)}>
                                                             {sch.paotS_ScheduleName}
                                                         </SelectItem>

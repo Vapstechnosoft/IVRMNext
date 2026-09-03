@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { CollapsibleContent } from '@/components/ui/collapsible';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -51,7 +50,7 @@ export default function ProgressCardReportForm({
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
-    const [students, setStudents] = useState<{ amsT_AdmNo: number; amsT_Id: number; studentName?: string | null }[]>([]);
+    const [students, setStudents] = useState<{ amsT_AdmNo?: string | number; amsT_Id: number; studentName?: string | null }[]>([]);
     const [allStudentsSelected, setAllStudentsSelected] = useState(false);
 
     const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
@@ -183,16 +182,25 @@ export default function ProgressCardReportForm({
             return;
         }
 
+        const selectedClassObj = classes.find((c) => c.asmcL_Id === data.asmcL_Id);
+        const selectedSectionObj = sections.find((s) => s.asmS_Id === data.asmS_Id);
+        const selectedExamObj = exams.find((e) => e.emE_Id === data.emE_Id);
+        const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
+
         const currentDateTime = new Date().toISOString();
         const payload: any = {
-            // mI_Id: 30,
+            mI_Id: 0,
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
             emE_Id: data.emE_Id,
             amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
             fromDate: currentDateTime,
-            toDate: currentDateTime
+            toDate: currentDateTime,
+            selectedClassName: selectedClassObj?.asmcL_ClassName,
+            selectedSectionName: selectedSectionObj?.asmC_SectionName,
+            selectedExamName: selectedExamObj?.emE_ExamName,
+            selectedYearName: selectedYearObj?.asmaY_Year
         };
         if (onSuccess) {
             await onSuccess(payload);
@@ -216,7 +224,7 @@ export default function ProgressCardReportForm({
 
     return (
         <div className='rounded-lg border bg-card text-card-foreground shadow-sm'>
-            <CollapsibleContent className='p-6'>
+            <div className='p-6'>
                 <FormProvider {...methods}>
                     <form onSubmit={handleSubmit(onSubmit)} className='space-y-6' noValidate>
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
@@ -435,7 +443,7 @@ export default function ProgressCardReportForm({
                         </div>
                     </form>
                 </FormProvider>
-            </CollapsibleContent>
+            </div>
         </div>
     );
 }

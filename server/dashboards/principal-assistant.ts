@@ -359,8 +359,8 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     chartData,
                     recommendations: [
                         'Outstanding fees stand at ' +
-                        (100 - Number.parseFloat(collectionRate)).toFixed(1) +
-                        '%. Send friendly automated payment links via WhatsApp before the upcoming term exams.',
+                            (100 - Number.parseFloat(collectionRate)).toFixed(1) +
+                            '%. Send friendly automated payment links via WhatsApp before the upcoming term exams.',
                         'Establish installment payment plans for families with long-standing dues to ease collection.',
                         'Focus recovery drives on the classes with highest pending balances.'
                     ]
@@ -448,7 +448,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     if (countData?.applicationsCount) {
                         totalAdmissions = Number(countData.applicationsCount) || totalAdmissions;
                     }
-                } catch (e) { }
+                } catch (e) {}
 
                 const defaultResponse = {
                     numbers: [
@@ -695,7 +695,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     if (lateEmps.length > 0) {
                         lateCount = lateEmps.length;
                     }
-                } catch (e) { }
+                } catch (e) {}
 
                 const defaultResponse = {
                     numbers: [
@@ -744,7 +744,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                         // Mock daily fee based on total collected ratio
                         dailyFeeCollection = Math.round(totalFeeCollected / 150);
                     }
-                } catch (e) { }
+                } catch (e) {}
 
                 const defaultResponse = {
                     numbers: [
@@ -797,7 +797,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                         totalReceivable = feesDataArray.reduce((acc: number, curr: any) => acc + (curr.receivable || 0), 0);
                         collectionPercent = Math.round((totalCollected / totalReceivable) * 100);
                     }
-                } catch (e) { }
+                } catch (e) {}
 
                 const defaultResponse = {
                     numbers: [
@@ -816,8 +816,8 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     recommendations: [
                         'The overall school health index stands strong at 87/100, driven by excellent academic scores.',
                         'The primary bottleneck remains Fee Recovery at ' +
-                        collectionPercent +
-                        '%. Focus collections to exceed the 90% benchmark.',
+                            collectionPercent +
+                            '%. Focus collections to exceed the 90% benchmark.',
                         'Infrastructure and Parent satisfaction rating can be boosted by addressing minor campus repairs.'
                     ]
                 };

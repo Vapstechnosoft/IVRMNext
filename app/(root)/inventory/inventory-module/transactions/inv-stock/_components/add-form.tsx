@@ -10,7 +10,7 @@ import { type TInvStock, invStockSchema } from '@/schemas/inventory/transactions
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Package, Plus, RotateCcw, Save, Trash2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -20,13 +20,12 @@ interface AddStockFormProps {
 }
 
 export default function AddStockForm({ onSuccess, initialData }: AddStockFormProps) {
-    const { saveMutation, editMutation, getStoresQuery, getItemsMutation } = useInvStock();
-    const fetchItems = getItemsMutation.mutate;
+    const { saveMutation, editMutation, getStoresQuery, getItemsQuery } = useInvStock();
     const fetchEditData = editMutation.mutate;
     const isEdit = !!initialData;
-    const [rowItems, setRowItems] = useState<Record<number, any[]>>({});
 
-    const storeList = getStoresQuery.data?.data || [];
+    const storeList = getStoresQuery.data?.data || getStoresQuery.data?.get_store || (Array.isArray(getStoresQuery.data) ? getStoresQuery.data : []);
+    const itemList = getItemsQuery.data?.data || getItemsQuery.data?.get_item || (Array.isArray(getItemsQuery.data) ? getItemsQuery.data : []);
 
     const form = useForm<TInvStock>({
         resolver: zodResolver(invStockSchema),
@@ -63,34 +62,6 @@ export default function AddStockForm({ onSuccess, initialData }: AddStockFormPro
 
     const handleStoreChange = (storeId: number, index: number) => {
         setValue(`stocklist.${index}.invmsT_Id`, storeId);
-        // Reset item selection when store changes
-        setValue(`stocklist.${index}.invmI_Id`, 0);
-        setValue(`stocklist.${index}.invstO_BatchNo`, '');
-        setValue(`stocklist.${index}.invstO_PurchaseDate`, new Date());
-        setValue(`stocklist.${index}.invstO_PurchaseRate`, 0);
-        setValue(`stocklist.${index}.invstO_SalesRate`, 0);
-        setValue(`stocklist.${index}.invstO_AvaiableStock`, 0);
-
-        if (!storeId) {
-            setRowItems((prev) => ({ ...prev, [index]: [] }));
-            return;
-        }
-
-        fetchItems(storeId, {
-            onSuccess: (res: any) => {
-                // Use data if available, regardless of strict success flag if data is present
-                // per user sample showing success:false but valid data
-                const items = res.data || [];
-                setRowItems((prev) => ({ ...prev, [index]: items }));
-
-                if (!items.length && !res.success) {
-                    toast.error(res.message || 'Failed to fetch items');
-                }
-            },
-            onError: () => {
-                setRowItems((prev) => ({ ...prev, [index]: [] }));
-            }
-        });
     };
 
     const handleItemChange = (itemId: number, index: number) => {
@@ -104,16 +75,6 @@ export default function AddStockForm({ onSuccess, initialData }: AddStockFormPro
                     if (res.data && res.data.length > 0) {
                         const editData = res.data[0];
 
-                        // Load items for the store in edit mode
-                        if (editData.invmsT_Id) {
-                            fetchItems(editData.invmsT_Id, {
-                                onSuccess: (itemRes: any) => {
-                                    const items = itemRes.data || [];
-                                    setRowItems((prev) => ({ ...prev, 0: items }));
-                                }
-                            });
-                        }
-
                         reset({
                             stocklist: [
                                 {
@@ -126,7 +87,7 @@ export default function AddStockForm({ onSuccess, initialData }: AddStockFormPro
                 }
             });
         }
-    }, [isEdit, initialData, reset, fetchEditData, fetchItems]);
+    }, [isEdit, initialData, reset, fetchEditData]);
 
     const onSubmit = (data: TInvStock) => {
         saveMutation.mutate(data, {
@@ -209,19 +170,22 @@ export default function AddStockForm({ onSuccess, initialData }: AddStockFormPro
                                             render={({ field }) => (
                                                 <Select
                                                     onValueChange={(val) => handleItemChange(Number(val), index)}
-                                                    value={field.value?.toString()}
-                                                    disabled={!rowItems[index]?.length}>
+                                                    value={field.value ? field.value.toString() : undefined}>
                                                     <SelectTrigger className='h-9 border-primary/10 bg-background hover:border-primary/40 focus:ring-primary/20'>
                                                         <SelectValue
-                                                            placeholder={rowItems[index]?.length ? 'Select Item' : 'Select Store First'}
+                                                            placeholder={getItemsQuery.isLoading ? 'Loading items...' : 'Select Item'}
                                                         />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {rowItems[index]?.map((item: any) => (
-                                                            <SelectItem key={item.invmi_Id} value={item.invmi_Id.toString()}>
-                                                                {item.invmi_ItemName}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {itemList.map((item: any) => {
+                                                            const itemId = item.invmI_Id ?? item.invmi_Id;
+                                                            const itemName = item.invmI_ItemName ?? item.invmi_ItemName;
+                                                            return (
+                                                                <SelectItem key={itemId} value={itemId?.toString()}>
+                                                                    {itemName}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             )}

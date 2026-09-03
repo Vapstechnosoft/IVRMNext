@@ -19,6 +19,7 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form';
 // import { MultiSelect } from '@/components/ui/extension/multi-select';
 
 import { getInvTSalesItemDetails } from '@/server/inventory/transactions/inv-t-sales';
+import { getInvMasterItemList } from '@/server/inventory/transactions/inv-stock';
 import type { IInvTSales } from '@/types/inventory/transactions/inv-t-sales';
 
 interface UpdateSalesFormProps {
@@ -68,6 +69,8 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
             SaleItem: [
                 {
                     invmI_Id: 0,
+                    invmuoM_Id: 0,
+                    INVMUOM_Id: 0,
                     invtsL_SalesQty: 0,
                     invtsL_SalesPrice: 0,
                     invtsL_DiscountAmt: 0,
@@ -99,6 +102,43 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
     const watchedSectionId = watch('asmS_Id');
     const watchedStoreId = watch('invmsT_Id');
     const watchedStudentId = watch('amsT_Id');
+
+    // Fetch Master Items on Mount using getInvMasterItemList
+    useEffect(() => {
+        const fetchItems = async () => {
+            try {
+                const res = await getInvMasterItemList();
+                const rawItems =
+                    (Array.isArray(res?.data) ? res.data : null) ||
+                    res?.data?.get_item ||
+                    res?.get_item ||
+                    res?.data?.get_Item ||
+                    res?.get_Item ||
+                    (Array.isArray(res) ? res : []);
+
+                if (Array.isArray(rawItems) && rawItems.length > 0) {
+                    const normalizedItems = rawItems
+                        .map((item: any) => ({
+                            invmI_Id: item.invmi_Id ?? item.invmI_Id ?? item.INVMI_Id,
+                            invmI_ItemName: item.invmi_ItemName ?? item.invmI_ItemName ?? item.INVMI_ItemName,
+                            invstO_SalesRate: item.invsto_SalesRate ?? item.invstO_SalesRate ?? item.INVSTO_SalesRate ?? 0,
+                            invstO_BatchNo: item.invsto_BatchNo ?? item.invstO_BatchNo ?? item.INVSTO_BatchNo ?? '',
+                            invstO_AvaiableStock: item.invsto_AvaiableStock ?? item.invstO_AvaiableStock ?? item.INVSTO_AvaiableStock ?? 0,
+                            INVMUOM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? item.invmuO_Id ?? item.INVMUO_Id ?? item.invmU_Id ?? item.INVMU_Id ?? 0,
+                            invmuoM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? item.invmuO_Id ?? item.INVMUO_Id ?? item.invmU_Id ?? item.INVMU_Id ?? 0
+                        }))
+                        .filter((i: any) => i.invmI_Id && i.invmI_ItemName);
+
+                    const uniqueItems = Array.from(new Map(normalizedItems.map((item: any) => [item.invmI_Id, item])).values());
+                    setItemsList(uniqueItems);
+                }
+            } catch (error) {
+                console.error('Failed to load items using getInvMasterItemList:', error);
+            }
+        };
+
+        fetchItems();
+    }, []);
 
     // Fetch Student Class/Section
     useEffect(() => {
@@ -196,14 +236,16 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
                                 const mappedItems = res.data.map((item: any) => ({
                                     invtsL_Id: item.invtsL_Id,
                                     invmI_Id: item.invmI_Id,
-                                    invmuoM_Id: item.invmuoM_Id,
-                                    invstO_BatchNo: item.invstO_BatchNo,
-                                    invstO_SalesRate: item.invstO_SalesRate,
+                                    invmuoM_Id: item.invmuoM_Id ?? item.INVMUOM_Id ?? item.invmuom_Id ?? 0,
+                                    INVMUOM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? 0,
+                                    invstO_BatchNo: item.invstO_BatchNo ?? item.invtsL_BatchNo ?? '',
+                                    invtsL_BatchNo: item.invtsL_BatchNo ?? item.invstO_BatchNo ?? '',
+                                    invstO_SalesRate: item.invstO_SalesRate ?? item.invtsL_SalesPrice ?? 0,
                                     invtsL_SalesQty: item.invtsL_SalesQty,
                                     invtsL_Amount: item.invtsL_Amount,
                                     invtsL_DiscountAmt: item.invtsL_DiscountAmt,
                                     invtsL_TaxAmt: item.invtsL_TaxAmt,
-                                    invtsL_SalesPrice: item.invtsL_SalesQty > 0 ? item.invtsL_Amount / item.invtsL_SalesQty : 0
+                                    invtsL_SalesPrice: item.invtsL_SalesQty > 0 ? item.invtsL_Amount / item.invtsL_SalesQty : (item.invtsL_SalesPrice || 0)
                                 }));
                                 form.setValue('SaleItem', mappedItems);
                             }
@@ -227,11 +269,13 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
                     const rawItems = Array.isArray(res.data) ? res.data : res?.data?.get_item || [];
                     // Normalize keys
                     const normalizedItems = rawItems.map((item: any) => ({
-                        invmI_Id: item.invmi_Id ?? item.invmI_Id,
-                        invmI_ItemName: item.invmi_ItemName ?? item.invmI_ItemName,
-                        invstO_SalesRate: item.invsto_SalesRate ?? item.invstO_SalesRate,
-                        invstO_BatchNo: item.invsto_BatchNo ?? item.invstO_BatchNo,
-                        invstO_AvaiableStock: item.invsto_AvaiableStock ?? item.invstO_AvaiableStock ?? 0
+                        invmI_Id: item.invmi_Id ?? item.invmI_Id ?? item.INVMI_Id,
+                        invmI_ItemName: item.invmi_ItemName ?? item.invmI_ItemName ?? item.INVMI_ItemName,
+                        invstO_SalesRate: item.invsto_SalesRate ?? item.invstO_SalesRate ?? item.INVSTO_SalesRate ?? 0,
+                        invstO_BatchNo: item.invsto_BatchNo ?? item.invstO_BatchNo ?? item.INVSTO_BatchNo ?? '',
+                        invstO_AvaiableStock: item.invsto_AvaiableStock ?? item.invstO_AvaiableStock ?? item.INVSTO_AvaiableStock ?? 0,
+                        INVMUOM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? item.invmuO_Id ?? item.INVMUO_Id ?? item.invmU_Id ?? item.INVMU_Id ?? 0,
+                        invmuoM_Id: item.INVMUOM_Id ?? item.invmuoM_Id ?? item.invmuom_Id ?? item.invmuO_Id ?? item.INVMUO_Id ?? item.invmU_Id ?? item.INVMU_Id ?? 0
                     }));
 
                     // Deduplicate items to prevent duplicate Select values
@@ -363,6 +407,12 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
     const handleItemChange = async (index: number, itemId: number) => {
         const item = itemsList.find((i: any) => i.invmI_Id === itemId);
         if (item) {
+            const initialUomId = item.INVMUOM_Id || item.invmuoM_Id || 0;
+            if (initialUomId) {
+                setValue(`SaleItem.${index}.invmuoM_Id`, initialUomId);
+                setValue(`SaleItem.${index}.INVMUOM_Id`, initialUomId);
+            }
+
             const storeId = watch('invmsT_Id');
             const payload = {
                 INVMI_Id: item.invmI_Id,
@@ -390,17 +440,29 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
                             stockObj?.invsto_AvaiableStock ??
                             0;
 
+                        const fetchedUomId =
+                            detail?.INVMUOM_Id ??
+                            detail?.invmuoM_Id ??
+                            detail?.invmuom_Id ??
+                            item.INVMUOM_Id ??
+                            item.invmuoM_Id ??
+                            0;
+
                         if (detail) {
                             // Bind Item Details
-                            setValue(`SaleItem.${index}.invmuoM_Id`, detail.INVMUOM_Id ?? detail.invmuoM_Id ?? detail.invmuom_Id);
+                            setValue(`SaleItem.${index}.invmuoM_Id`, fetchedUomId);
+                            setValue(`SaleItem.${index}.INVMUOM_Id`, fetchedUomId);
                             setValue(
                                 `SaleItem.${index}.invtsL_BatchNo`,
-                                detail.INVSTO_BatchNo ?? detail.invstO_BatchNo ?? detail.invsto_BatchNo
+                                detail.INVSTO_BatchNo ?? detail.invstO_BatchNo ?? detail.invsto_BatchNo ?? item.invstO_BatchNo ?? ''
                             );
                             setValue(
                                 `SaleItem.${index}.invtsL_SalesPrice`,
-                                detail.INVSTO_SalesRate ?? detail.invstO_SalesRate ?? detail.invsto_SalesRate ?? 0
+                                detail.INVSTO_SalesRate ?? detail.invstO_SalesRate ?? detail.invsto_SalesRate ?? item.invstO_SalesRate ?? 0
                             );
+                        } else if (fetchedUomId) {
+                            setValue(`SaleItem.${index}.invmuoM_Id`, fetchedUomId);
+                            setValue(`SaleItem.${index}.INVMUOM_Id`, fetchedUomId);
                         }
 
                         // Bind Taxes
@@ -487,12 +549,13 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
             student_flag: data.stu_Flag,
             saleItem: data.SaleItem.map((item: any) => ({
                 invmI_Id: item.invmI_Id,
-                invmuoM_Id: item.invmuoM_Id,
-                invtsL_BatchNo: item.invtsL_BatchNo,
+                invtsL_BatchNo: item.invtsL_BatchNo || '',
+                INVMUOM_Id: Number(item.INVMUOM_Id || item.invmuoM_Id || 0),
+                invmuoM_Id: Number(item.invmuoM_Id || item.INVMUOM_Id || 0),
                 invtsL_SalesQty: item.invtsL_SalesQty,
                 invtsL_SalesPrice: item.invtsL_SalesPrice,
-                invtsL_DiscountAmt: item.invtsL_DiscountAmt,
-                invtsL_TaxAmt: item.invtsL_TaxAmt,
+                invtsL_DiscountAmt: item.invtsL_DiscountAmt || 0,
+                invtsL_TaxAmt: item.invtsL_TaxAmt || 0,
                 invtsL_Amount: item.invtsL_Amount,
                 saleItemTax: item.SalesItemTax || []
             })),
@@ -1011,6 +1074,8 @@ export default function UpdateSalesForm({ onSuccess, selectedRow }: UpdateSalesF
                             onClick={() =>
                                 append({
                                     invmI_Id: 0,
+                                    invmuoM_Id: 0,
+                                    INVMUOM_Id: 0,
                                     invtsL_SalesQty: 0,
                                     invtsL_SalesPrice: 0,
                                     invtsL_DiscountAmt: 0,

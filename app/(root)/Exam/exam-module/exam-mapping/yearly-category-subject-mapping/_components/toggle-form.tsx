@@ -43,9 +43,22 @@ export default function ToggleCategorySubjectMappingForm({ rowData, onClose }: T
                 toast.error('Mapping ID missing');
                 return;
             }
-            const response = await toggleYearlyCategorySubjectMapping(rowData.eycG_Id);
-            if (response?.success) {
-                toast.success(response.message || 'Category Subject Mapping status updated successfully');
+            const response: any = await toggleYearlyCategorySubjectMapping(rowData.eycG_Id);
+            const isSuccess =
+                response?.success === true ||
+                response?.returnval === true ||
+                response?.returnval === 'true' ||
+                response?.returnVal === true ||
+                response?.returnVal === 'true' ||
+                (response &&
+                    typeof response === 'object' &&
+                    response?.success !== false &&
+                    response?.returnval !== false &&
+                    response?.returnVal !== false &&
+                    !response?.error);
+
+            if (isSuccess) {
+                toast.success(response?.message || 'Category Subject Mapping status updated successfully');
                 refetchAll();
                 closeDialog();
             } else {
@@ -53,7 +66,7 @@ export default function ToggleCategorySubjectMappingForm({ rowData, onClose }: T
             }
         } catch (error: any) {
             console.error('TOGGLE ERROR', error);
-            toast.error(error.message || 'Something went wrong');
+            toast.error(error?.message || 'Something went wrong');
         }
     };
 

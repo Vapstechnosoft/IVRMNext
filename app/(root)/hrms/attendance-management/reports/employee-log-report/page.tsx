@@ -90,7 +90,9 @@ function EmployeeLogReportPageContent({
                 row.outtime || row.outtime === null || row.outtime === '' || row.outtime === 'A' || row.outtime === '00:00' ? 'A' : '',
             'Working Time':
                 row.workingtime ||
-                row.workingtime === null || row.workingtime === '' || row.workingtime === 'A' ||
+                row.workingtime === null ||
+                row.workingtime === '' ||
+                row.workingtime === 'A' ||
                 row.workingtime === '00:00'
                     ? 'A'
                     : '',
@@ -99,7 +101,9 @@ function EmployeeLogReportPageContent({
                 row.earlyby || row.earlyby === null || row.earlyby === '' || row.earlyby === 'A' || row.earlyby === '00:00' ? 'A' : '',
             'In Temp':
                 row.intemperature ||
-                row.intemperature === null || row.intemperature === '' || row.intemperature === 'A' ||
+                row.intemperature === null ||
+                row.intemperature === '' ||
+                row.intemperature === 'A' ||
                 row.intemperature === '00:00'
                     ? 'A'
                     : ''

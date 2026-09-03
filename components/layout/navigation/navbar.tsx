@@ -2,6 +2,7 @@ import { ROUTES } from '@/constants/routes';
 import { auth } from '@/lib/auth';
 import { UserNav } from '../user-nav';
 import { AIAgentHeader } from './ai-agent-header';
+import { ContactUs } from './contact-us';
 import { HeaderSearch } from './header-search';
 import { IntelligentAppsMenu } from './intelligent-apps-menu';
 import Logo from './logo';
@@ -27,6 +28,7 @@ export default async function Navbar() {
                     <div className='flex items-center gap-4'>
                         <HeaderSearch />
                         <OperationTools />
+                        <ContactUs />
                         <IntelligentAppsMenu />
                         <AIAgentHeader />
 

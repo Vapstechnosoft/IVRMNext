@@ -18,6 +18,7 @@ import { Save } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 import type { z } from 'zod';
 import { masterUpdateRollNumberColumns } from './_components/columns';
 
@@ -215,14 +216,30 @@ export default function MasterUpdateRollNumberPage(props: {
 
             const response = await updateRollNumbers(payload);
             if (response.success) {
-                toast.success(response.message || 'Roll numbers updated successfully!');
-                handleReset();
-                window.location.reload();
+                Swal.fire({
+                    title: 'Success!',
+                    text: response.message || 'Record Saved Successfully',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    handleReset();
+                    window.location.reload();
+                });
             } else {
-                toast.error(response.message);
+                Swal.fire({
+                    title: 'Error!',
+                    text: response.message || 'Not Saved',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
             }
         } catch (_error: any) {
-            toast.error('An error occurred while updating roll numbers');
+            Swal.fire({
+                title: 'Error!',
+                text: 'An error occurred while updating roll numbers',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
         }
     };
 
@@ -371,6 +388,13 @@ export default function MasterUpdateRollNumberPage(props: {
                             </div>
                         </div>
                     </CollapsibleSection>
+
+                    {showTable && students.length === 0 && !UpdateStudentRolesLoading && !UpdateStudentRolesError && (
+                        <div className='mt-6 flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white p-12 text-center shadow-sm'>
+                            <p className='font-medium text-gray-500 text-lg'>No records found</p>
+                            <p className='mt-1 text-gray-400 text-sm'>No students found for the selected criteria.</p>
+                        </div>
+                    )}
 
                     {showTable && students.length > 0 && (
                         <>

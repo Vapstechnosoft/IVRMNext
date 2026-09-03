@@ -13,7 +13,8 @@ interface BBIIReportViewProps {
     academicYear: string;
     classTeacher: string;
     showRemarks: boolean;
-    showRank: boolean;
+    showRank?: boolean;
+    showRankInSection?: boolean;
     selectedClass?: string;
     selectedSection?: string;
 }
@@ -28,10 +29,12 @@ export default function BBIIReportView({
     classTeacher,
     showRemarks,
     showRank,
+    showRankInSection,
     selectedClass,
     selectedSection
 }: BBIIReportViewProps) {
     const [isMounted, setIsMounted] = useState(false);
+    const displayRank = showRankInSection ?? showRank ?? false;
 
     useEffect(() => {
         setIsMounted(true);
@@ -55,6 +58,7 @@ export default function BBIIReportView({
     };
 
     const getSubjectRemark = (sub: any) => {
+        if (!showRemarks) return '';
         if (sub.emgD_Remarks) return sub.emgD_Remarks;
         if (!gradeRemarks || !Array.isArray(gradeRemarks) || gradeRemarks.length === 0) return '';
         const remarkObj = gradeRemarks.find(
@@ -388,7 +392,7 @@ export default function BBIIReportView({
                                         </tr>
 
                                         {/* Rank Row */}
-                                        {showRank && (
+                                        {displayRank && (
                                             <tr>
                                                 <td className='text-left'>
                                                     <b>RANK IN SECTION</b>
