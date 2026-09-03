@@ -98,7 +98,7 @@ export async function generateSalarySlip(requestBody: SalarySlipGenerateRequest)
  * POST /api/EmployeeSalarySlipGeneration/SendEmailSMS
  */
 export async function sendSalarySlipEmailSMSWhatsApp(requestBody: any): Promise<ApiResponse<any>> {
-    const response = await api.post<any>('hrms', '/api/EmployeeSalarySlipGeneration/SendEmailSMSWhatsApp', requestBody);
+    const response = await api.post<any>('hrms', '/api/ReportEmployeeSalarySlipGeneration/SendEmailSMSWhatsApp', requestBody);
     if (response && typeof response === 'object' && 'success' in response && 'data' in response) {
         return response as ApiResponse<any>;
     }
