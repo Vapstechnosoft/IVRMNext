@@ -270,14 +270,15 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                                 <p>Class Teacher Signature</p>
                             </div>
                             <div>
-                                <Image
+                                <div className='mx-auto h-16 w-32 border-black border-t' />
+                                {/* <Image
                                     src='https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/5176b5e3-d100-4fb0-92fc-2fcc2b902ae2.jpg'
                                     alt='Principal'
                                     width={120}
                                     height={80}
                                     className='-mt-12 mx-auto'
                                     unoptimized
-                                />
+                                /> */}
                                 <p>Principal Signature</p>
                             </div>
                             <div>
