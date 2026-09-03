@@ -209,6 +209,24 @@ export function NavigationSystem() {
         };
     }, [accessibleModule?.data]);
 
+    // Auto-select first sub-menu when drawer opens so pages appear immediately
+    useEffect(() => {
+        if (activeDrawer && accessibleModule?.data) {
+            const currentMod = accessibleModule.data.find(
+                (m) => m.name.toLowerCase() === activeDrawer.toLowerCase()
+            );
+            if (currentMod && currentMod.menu?.[0]?.sub_menu?.[0]) {
+                const firstMenu = currentMod.menu[0];
+                const firstSubMenu = firstMenu.sub_menu[0];
+                setHoveredSubMenu({
+                    menuName: firstMenu.name,
+                    subMenuName: firstSubMenu.name,
+                    pages: firstSubMenu.pages
+                });
+            }
+        }
+    }, [activeDrawer, accessibleModule?.data]);
+
     useEffect(() => {
         // Restore navigation context and filters from sessionStorage on mount
         if (typeof window !== 'undefined') {
@@ -525,7 +543,7 @@ export function NavigationSystem() {
                                                                                             // If already active, then navigate
                                                                                             handleSubMenuClick(
                                                                                                 accessibleModule?.data?.find(
-                                                                                                    (m) => m.name === activeDrawer
+                                                                                                    (m) => m.name.toLowerCase() === activeDrawer?.toLowerCase()
                                                                                                 )!,
                                                                                                 menu,
                                                                                                 subMenu
@@ -581,7 +599,7 @@ export function NavigationSystem() {
                                                                             handlePageClick(
                                                                                 page,
                                                                                 accessibleModule?.data?.find(
-                                                                                    (m) => m.name === activeDrawer
+                                                                                    (m) => m.name.toLowerCase() === activeDrawer?.toLowerCase()
                                                                                 )!,
                                                                                 { name: hoveredSubMenu.menuName },
                                                                                 {
@@ -682,4 +700,5 @@ export function NavigationSystem() {
         </div>
     );
 }
+
 
