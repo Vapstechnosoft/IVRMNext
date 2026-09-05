@@ -464,6 +464,60 @@ export async function getUserAccessibleModules() {
     try {
         const session = await auth(); // Still useful for logging or future role checks
 
+        const aiEdgeModule = {
+            id: 50005,
+            name: 'AI Edge',
+            icon: 'Sparkles',
+            menu: [
+                {
+                    id: 1,
+                    name: 'AI Edge',
+                    icon: 'BookOpen',
+                    sub_menu: [
+                        {
+                            id: 1,
+                            name: 'AI Tools',
+                            icon: 'Database',
+                            pages: [
+                                {
+                                    id: 1,
+                                    name: 'Question Paper Generator',
+                                    icon: 'FileText',
+                                    url: '/iframe/ai-question-paper-generator',
+                                    title: 'AI Question Paper Generator',
+                                    description: 'Generate question papers from textbooks using AI'
+                                },
+                                {
+                                    id: 2,
+                                    name: 'AI Notemaker',
+                                    icon: 'FileText',
+                                    url: '/iframe/ai-notemaker',
+                                    title: 'AI Notemaker',
+                                    description: 'Summarize and create structured notes from textbooks using AI'
+                                },
+                                {
+                                    id: 3,
+                                    name: 'AI Performance Analysis',
+                                    icon: 'BarChart',
+                                    url: '/Exam/exam-module/ai-performance-analysis',
+                                    title: 'AI Performance Analysis',
+                                    description: 'Analyze performance metrics and AI-driven insights'
+                                },
+                                {
+                                    id: 4,
+                                    name: 'AI Doubt Resolver',
+                                    icon: 'MessageSquare',
+                                    url: '/iframe/ai-doubt-resolver',
+                                    title: 'AI Doubt Resolver',
+                                    description: 'Resolve academic doubts using AI'
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+
         if (session?.role?.toUpperCase() === 'SUPER ADMIN' || session?.role?.toUpperCase() === 'SUPERADMIN') {
             return {
                 success: true,
@@ -700,7 +754,8 @@ export async function getUserAccessibleModules() {
                                 ]
                             }
                         ]
-                    }
+                    },
+                    aiEdgeModule as any
                 ]
             } as any;
         }
@@ -820,59 +875,7 @@ export async function getUserAccessibleModules() {
             })
             .filter((module: any) => module !== null);
 
-        const aiEdgeModule = {
-            id: 50005,
-            name: 'AI Edge',
-            icon: 'Sparkles',
-            menu: [
-                {
-                    id: 1,
-                    name: 'AI Edge',
-                    icon: 'BookOpen',
-                    sub_menu: [
-                        {
-                            id: 1,
-                            name: 'AI Tools',
-                            icon: 'Database',
-                            pages: [
-                                {
-                                    id: 1,
-                                    name: 'Question Paper Generator',
-                                    icon: 'FileText',
-                                    url: '/iframe/ai-question-paper-generator',
-                                    title: 'AI Question Paper Generator',
-                                    description: 'Generate question papers from textbooks using AI'
-                                },
-                                {
-                                    id: 2,
-                                    name: 'AI Notemaker',
-                                    icon: 'FileText',
-                                    url: '/iframe/ai-notemaker',
-                                    title: 'AI Notemaker',
-                                    description: 'Summarize and create structured notes from textbooks using AI'
-                                },
-                                {
-                                    id: 3,
-                                    name: 'AI Performance Analysis',
-                                    icon: 'BarChart',
-                                    url: '/Exam/exam-module/ai-performance-analysis',
-                                    title: 'AI Performance Analysis',
-                                    description: 'Analyze performance metrics and AI-driven insights'
-                                },
-                                {
-                                    id: 4,
-                                    name: 'AI Doubt resolver',
-                                    icon: 'MessageSquare',
-                                    url: '/iframe/ai-doubt-resolver',
-                                    title: 'AI Doubt resolver',
-                                    description: 'Resolve academic doubts using AI'
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        };
+        console.log('topModules', topModules);
 
         topModules.push(aiEdgeModule as any);
 

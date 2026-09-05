@@ -54,10 +54,21 @@ export interface StudentStrongSubject {
     praise: string;
 }
 
+export interface PerformancePrediction {
+    predictedScoreRange: string;
+    confidenceLevel: string;
+    trajectory: 'Improving' | 'Stable' | 'At Risk' | 'High Growth Potential';
+    predictedSubjectScores: { subject: string; predictedScore: number; potentialScore: number }[];
+    keyRiskFactors: string[];
+    growthOpportunities: string[];
+    actionableMilestones: string[];
+}
+
 export interface IndividualAnalysis {
     weakestSubject: StudentWeakestSubject;
     needsImprovement: StudentSubjectImprovement[];
     strongSubjects: StudentStrongSubject[];
     overallAssessment: string;
     improvementStrategy: string;
+    performancePrediction?: PerformancePrediction;
 }
