@@ -8,7 +8,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useCollegeFeePrevilegeList } from '@/hooks/fees/college/useMasters';
 import type { ICollegeFeePrivilegeList } from '@/types/fees/college/masters/masterclgfeeprevilege';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { use, useMemo } from 'react';
 import AddCollegeFeePrivilegeForm from './_components/add-form';
 import { collegeFeePrivilegeColumns } from './_components/columns';
 import ToggleCollegeFeePrivilegeForm from './_components/toggle-form';
@@ -19,8 +19,8 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function CollegeFeePrivilegePage(props: {
     searchParams: SearchParams;
 }) {
-    const _searchParams = use(props.searchParams);
-    const { data: response, isLoading, error } = useCollegeFeePrevilegeList(_searchParams);
+    const searchParams = use(props.searchParams);
+    const { data: response, isLoading, error } = useCollegeFeePrevilegeList(searchParams);
 
     return (
         <FormProvider<ICollegeFeePrivilegeList>>
@@ -39,11 +39,29 @@ function CollegeFeePrivilegePageContent({
     error: any;
 }) {
     const { openAddForm } = useFormContext<ICollegeFeePrivilegeList>();
-    const listData = response?.data?.prelist || (Array.isArray(response?.data) ? response.data : []);
-    const tableProps = useDataTableProps(listData);
 
-    // Extract records count
-    const totalRecords = listData.length;
+    const normalizedResponse = useMemo(() => {
+        if (!response) return response;
+
+        const prelist =
+            (response?.data as any)?.prelist ||
+            (Array.isArray(response?.data) ? response.data : null) ||
+            response?.prelist ||
+            (Array.isArray(response) ? response : []);
+
+        return {
+            ...response,
+            data: prelist,
+            total: response?.total ?? (Array.isArray(prelist) ? prelist.length : 0),
+            success: response?.success ?? true,
+            message: response?.message
+        };
+    }, [response]);
+
+    const tableProps = useDataTableProps(normalizedResponse);
+
+    // Extract total records count from server total or fallback to data length
+    const totalRecords = response?.total ?? tableProps.totalItems ?? 0;
 
     return (
         <div className='min-h-screen'>
@@ -79,6 +97,8 @@ function CollegeFeePrivilegePageContent({
                         columns={collegeFeePrivilegeColumns}
                         isLoading={isLoading}
                         error={error}
+                        isSearchRequired={true}
+                        isPaginationRequired={true}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading college fee privileges...'
                         noDataTitle='No Fee Privileges Found'

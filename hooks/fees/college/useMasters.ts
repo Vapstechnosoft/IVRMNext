@@ -1,9 +1,11 @@
 import { COLLEGE_QUERY_KEYS } from '@/constants/query-keys';
 import {
     getCollegeFeePrivilegeAcademicYears,
+    getCollegeFeePrivilegeEdit,
     getCollegeFeePrivilegeFeeGroups,
     getCollegeFeePrivilegeFeeHeads,
     getCollegeFeePrivilegeList,
+    getCollegeFeePrivilegeRoles,
     getCollegeFeePrivilegeUsersByRole
 } from '@/server/fees/college/masters/masterclgfeeprevilege';
 import type { ApiSearchparams } from '@/types';
@@ -21,6 +23,23 @@ export const useCollegeFeePrivilegeAcademicYears = () => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_PREVILEGE_ACADEMIC_YEARS]
+            });
+        }
+    };
+};
+
+export const useCollegeFeePrivilegeRoles = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_PREVILEGE_ROLES],
+            queryFn: async () => getCollegeFeePrivilegeRoles(),
+            staleTime: 1000 * 60 * 10
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_PREVILEGE_ROLES]
             });
         }
     };
@@ -67,14 +86,34 @@ export const useCollegeFeePrivilegeUsersByRole = (roleId?: number) => {
         ...useQuery({
             queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_PREVILEGE_USERS_BY_ROLE, roleId],
             queryFn: async () => {
-                if (roleId === undefined || roleId === null) return null;
+                if (roleId === undefined || roleId === null || Number.isNaN(roleId)) return null;
                 return getCollegeFeePrivilegeUsersByRole(roleId);
             },
-            enabled: roleId !== undefined && roleId !== null
+            enabled: roleId !== undefined && roleId !== null && !Number.isNaN(roleId)
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_PREVILEGE_USERS_BY_ROLE]
+            });
+        }
+    };
+};
+
+export const useCollegeFeePrivilegeEdit = (fglId?: number) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_PREVILEGE_EDIT, fglId],
+            queryFn: async () => {
+                if (!fglId) return null;
+                return getCollegeFeePrivilegeEdit(fglId);
+            },
+            enabled: !!fglId
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_PREVILEGE_EDIT]
             });
         }
     };
@@ -98,6 +137,9 @@ export const useCollegeFeePrevilegeList = (searchParams?: ApiSearchparams) => {
                     queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_PREVILEGE_ACADEMIC_YEARS]
                 }),
                 queryClient.invalidateQueries({
+                    queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_PREVILEGE_ROLES]
+                }),
+                queryClient.invalidateQueries({
                     queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_PREVILEGE_GROUPS]
                 }),
                 queryClient.invalidateQueries({
@@ -105,6 +147,9 @@ export const useCollegeFeePrevilegeList = (searchParams?: ApiSearchparams) => {
                 }),
                 queryClient.invalidateQueries({
                     queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_PREVILEGE_USERS_BY_ROLE]
+                }),
+                queryClient.invalidateQueries({
+                    queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_PREVILEGE_EDIT]
                 })
             ]);
         }

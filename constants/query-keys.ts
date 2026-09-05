@@ -701,9 +701,11 @@ export const COLLEGE_QUERY_KEYS = {
     TRANSACTION_TRANSFER_LOAD_DATA: 'college_transaction_transfer_load_data',
     COLLEGE_FEE_PREVILEGE_LIST: 'college_fee_previlege_list',
     COLLEGE_FEE_PREVILEGE_ACADEMIC_YEARS: 'college_fee_previlege_academic_years',
+    COLLEGE_FEE_PREVILEGE_ROLES: 'college_fee_previlege_roles',
     COLLEGE_FEE_PREVILEGE_GROUPS: 'college_fee_previlege_groups',
     COLLEGE_FEE_PREVILEGE_HEADS: 'college_fee_previlege_heads',
-    COLLEGE_FEE_PREVILEGE_USERS_BY_ROLE: 'college_fee_previlege_users_by_role'
+    COLLEGE_FEE_PREVILEGE_USERS_BY_ROLE: 'college_fee_previlege_users_by_role',
+    COLLEGE_FEE_PREVILEGE_EDIT: 'college_fee_previlege_edit'
 };
 export const ONLINE_EXAM_QUERY_KEYS = {
     MASTER_QUESTION: 'online_exam_master_question',

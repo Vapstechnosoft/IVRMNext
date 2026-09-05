@@ -8,8 +8,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
     useCollegeFeePrevilegeList,
     useCollegeFeePrivilegeAcademicYears,
+    useCollegeFeePrivilegeEdit,
     useCollegeFeePrivilegeFeeGroups,
     useCollegeFeePrivilegeFeeHeads,
+    useCollegeFeePrivilegeRoles,
     useCollegeFeePrivilegeUsersByRole
 } from '@/hooks/fees/college/useMasters';
 import { cn } from '@/lib/utils';
@@ -32,6 +34,82 @@ interface UpdateCollegeFeePrivilegeFormProps {
 
 type FormFields = z.infer<typeof collegeFeePrevilegeSchema.addOrUpdate>;
 
+function extractArrayData<T = any>(data: any, preferredKeys: string[] = []): T[] {
+    if (!data) return [];
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data.$values)) return data.$values;
+    if (Array.isArray(data.data)) return data.data;
+    if (Array.isArray(data.data?.$values)) return data.data.$values;
+
+    const source = data.data && typeof data.data === 'object' && !Array.isArray(data.data) ? data.data : data;
+
+    for (const key of preferredKeys) {
+        if (Array.isArray(source[key]) && source[key].length > 0) {
+            return source[key];
+        }
+        if (Array.isArray(source[key]?.$values) && source[key].$values.length > 0) {
+            return source[key].$values;
+        }
+    }
+
+    for (const key of Object.keys(source)) {
+        if (Array.isArray(source[key]) && source[key].length > 0) {
+            return source[key];
+        }
+    }
+
+    return [];
+}
+
+function deduplicateById<T = any>(items: T[], getId: (item: T) => string): T[] {
+    const seen = new Set<string>();
+    return items.filter((item, index) => {
+        const id = getId(item) || `idx-${index}`;
+        if (seen.has(id)) {
+            return false;
+        }
+        seen.add(id);
+        return true;
+    });
+}
+
+function getAcademicYearItem(ay: any) {
+    const id = ay.asmaY_Id ?? ay.ASMAY_Id ?? ay.yearId ?? ay.id ?? ay.Id;
+    const name = ay.asmaY_Year ?? ay.ASMAY_Year ?? ay.yearName ?? ay.asmaY_AcademicYearCode ?? ay.name ?? `Year ${id || ''}`;
+    return { id: id ? id.toString() : '', name: String(name || '') };
+}
+
+function getGroupItem(g: any) {
+    const id = g.fmG_Id ?? g.fmG_ID ?? g.FMG_ID ?? g.fmg_id ?? g.groupId ?? g.id ?? g.Id;
+    const name = g.fmG_GroupName ?? g.fmg_groupname ?? g.groupName ?? g.name ?? `Group ${id || ''}`;
+    return { id: id ? id.toString() : '', name: String(name || '') };
+}
+
+function getHeadItem(h: any) {
+    const id = h.fmH_Id ?? h.fmH_ID ?? h.FMH_Id ?? h.FMH_ID ?? h.fmh_id ?? h.headId ?? h.id ?? h.Id;
+    const name = h.fmH_FeeName ?? h.feeHeadName ?? h.headName ?? h.feeName ?? h.name ?? `Head ${id || ''}`;
+    return { id: id ? id.toString() : '', name: String(name || '') };
+}
+
+function getRoleItem(r: any) {
+    const id = r.ivrmrT_Id ?? r.ivrmR_Id ?? r.IVRMRT_Id ?? r.IVRMR_Id ?? r.roleId ?? r.role_Id ?? r.id ?? r.Id;
+    const name = r.ivrmrT_Role ?? r.ivrmR_Role ?? r.IVRMRT_Role ?? r.IVRMR_Role ?? r.roleName ?? r.role_name ?? r.name ?? r.Name;
+    return { id: id ? id.toString() : '', name: String(name || `Role ${id || ''}`) };
+}
+
+function getUserItem(u: any) {
+    const id = u.userId ?? u.user_Id ?? u.UserId ?? u.User_Id ?? u.id ?? u.Id;
+    const name =
+        u.normalizedUserName ??
+        u.userName ??
+        u.UserName ??
+        u.normalized_UserName ??
+        u.ivrmstAU_UserName ??
+        u.name ??
+        `User ${id || ''}`;
+    return { id: id ? id.toString() : '', name: String(name || '') };
+}
+
 export default function UpdateCollegeFeePrivilegeForm({
     onSuccess,
     selectedRow,
@@ -39,7 +117,9 @@ export default function UpdateCollegeFeePrivilegeForm({
     className = ''
 }: UpdateCollegeFeePrivilegeFormProps) {
     const { refetchAll } = useCollegeFeePrevilegeList();
+    const { data: editResponse } = useCollegeFeePrivilegeEdit(Number(selectedRow?.fgL_Id || selectedRow?.fgl_id));
     const { data: academicYearsData, isLoading: isAcademicYearsLoading } = useCollegeFeePrivilegeAcademicYears();
+    const { data: rolesData, isLoading: isRolesLoading } = useCollegeFeePrivilegeRoles();
     const { data: feeGroupsData, isLoading: isFeeGroupsLoading } = useCollegeFeePrivilegeFeeGroups();
     const { data: feeHeadsData, isLoading: isFeeHeadsLoading } = useCollegeFeePrivilegeFeeHeads();
 
@@ -76,122 +156,157 @@ export default function UpdateCollegeFeePrivilegeForm({
         return pageData?.data || pageData || {};
     }, [pageData]);
 
-    // Extract dropdown lists
+    // 1. Academic Years (/CommonCollegeFee/getacademicyears)
     const academicYears = useMemo(() => {
-        const fromApi =
-            (academicYearsData?.data as any)?.adcyear ||
-            (academicYearsData as any)?.adcyear ||
-            (academicYearsData?.data as any) ||
-            academicYearsData;
-        if (Array.isArray(fromApi) && fromApi.length > 0) return fromApi;
-        const raw = effectiveData?.adcyear || [];
-        return Array.isArray(raw) ? raw : [];
+        const fromApi = extractArrayData(academicYearsData, ['adcyear', 'yearlist', 'academic_year', 'fillyear']);
+        const list = fromApi.length > 0 ? fromApi : extractArrayData(effectiveData, ['adcyear', 'yearlist', 'academic_year']);
+        return deduplicateById(list, (item) => getAcademicYearItem(item).id);
     }, [academicYearsData, effectiveData]);
 
+    // 2. Roles (/CommonCollegeFee/getroles)
+    const roles = useMemo(() => {
+        const fromApi = extractArrayData(rolesData, [
+            'role',
+            'rolelist',
+            'roles',
+            'fillrole',
+            'fillroles',
+            'userrtorole',
+            'customRoles',
+            'userRole',
+            'getroles'
+        ]);
+        const list =
+            fromApi.length > 0
+                ? fromApi
+                : extractArrayData(effectiveData, ['role', 'rolelist', 'roles', 'fillrole', 'fillroles', 'userrtorole']);
+        return deduplicateById(list, (item) => getRoleItem(item).id);
+    }, [rolesData, effectiveData]);
+
+    // 3. Groups (/CommonCollegeFee/getfeegroups)
     const groups = useMemo(() => {
-        const fromApi =
-            (feeGroupsData?.data as any)?.group || (feeGroupsData as any)?.group || (feeGroupsData?.data as any) || feeGroupsData;
-        if (Array.isArray(fromApi) && fromApi.length > 0) return fromApi;
-        const raw = effectiveData?.group || [];
-        return Array.isArray(raw) ? raw : [];
+        const fromApi = extractArrayData(feeGroupsData, ['group', 'grouplist', 'fillgroup', 'groups', 'feegroup']);
+        const list = fromApi.length > 0 ? fromApi : extractArrayData(effectiveData, ['group', 'grouplist', 'fillgroup']);
+        return deduplicateById(list, (item) => getGroupItem(item).id);
     }, [feeGroupsData, effectiveData]);
 
+    // 4. Heads (/CommonCollegeFee/getfeeheads)
     const heads = useMemo(() => {
-        const fromApi =
-            (feeHeadsData?.data as any)?.head ||
-            (feeHeadsData?.data as any)?.feeheads ||
-            (feeHeadsData as any)?.head ||
-            (feeHeadsData as any)?.feeheads ||
-            (feeHeadsData?.data as any) ||
-            feeHeadsData;
-        if (Array.isArray(fromApi) && fromApi.length > 0) return fromApi;
-        const raw = effectiveData?.head || effectiveData?.feeheads || [];
-        return Array.isArray(raw) ? raw : [];
+        const fromApi = extractArrayData(feeHeadsData, ['head', 'feeheads', 'fillhead', 'heads', 'feehead']);
+        const list = fromApi.length > 0 ? fromApi : extractArrayData(effectiveData, ['head', 'feeheads', 'fillhead']);
+        return deduplicateById(list, (item) => getHeadItem(item).id);
     }, [feeHeadsData, effectiveData]);
 
-    const roles = useMemo(() => {
-        const raw = effectiveData?.role || effectiveData?.roles || [];
-        return Array.isArray(raw) ? raw : [];
-    }, [effectiveData]);
-
-    // Active users list
+    // 5. Users (/MasterClgFeePrevilegeFacade/getusername?IVRMRT_Id=...)
     const users = useMemo(() => {
-        const raw =
-            (roleUsersData?.data as any)?.usnam ||
-            (roleUsersData?.data as any)?.userlist ||
-            (roleUsersData as any)?.usnam ||
-            (roleUsersData as any)?.userlist ||
-            (roleUsersData?.data as any) ||
-            roleUsersData ||
-            [];
-        return Array.isArray(raw) ? raw : [];
+        const list = extractArrayData(roleUsersData, ['usnam', 'userlist', 'filluser', 'users', 'user_list', 'username']);
+        return deduplicateById(list, (item) => getUserItem(item).id);
     }, [roleUsersData]);
 
-    // Initialize edit form values from selectedRow
+    // Initialize edit form values from edit API response or selectedRow
     useEffect(() => {
         if (!selectedRow) return;
 
-        // Set academic year
-        if (selectedRow.asmaY_Id) {
-            setValue('academicYear', selectedRow.asmaY_Id.toString());
+        const editData = (editResponse as any)?.data ?? editResponse;
+        const editItem = Array.isArray(editData?.editlist)
+            ? editData.editlist[0]
+            : Array.isArray(editData?.savedlist)
+              ? editData.savedlist[0]
+              : Array.isArray(editData)
+                ? editData[0]
+                : editData || {};
+
+        // Set Academic Year
+        const asmayId = editItem?.asmaY_Id ?? editItem?.ASMAY_Id ?? selectedRow.asmaY_Id;
+        if (asmayId) {
+            setValue('academicYear', asmayId.toString());
         } else if (academicYears.length > 0) {
-            setValue('academicYear', academicYears[0]?.asmaY_Id?.toString() || '');
+            const firstYear = getAcademicYearItem(academicYears[0]).id;
+            if (firstYear) setValue('academicYear', firstYear);
         }
 
-        // Set group
-        const matchedGroup = groups.find(
-            (g: any) => g.fmG_Id === selectedRow.fmG_ID || g.fmG_Id === selectedRow.fmG_Id || g.fmG_GroupName === selectedRow.fmG_GroupName
-        );
-        if (matchedGroup) {
-            setValue('group', matchedGroup.fmG_Id.toString());
-        } else if (selectedRow.fmG_ID || selectedRow.fmG_Id) {
-            setValue('group', (selectedRow.fmG_ID || selectedRow.fmG_Id)!.toString());
+        // Set Group
+        const fmgId = editItem?.fmG_Id ?? editItem?.fmG_ID ?? editItem?.FMG_ID ?? selectedRow.fmG_ID ?? selectedRow.fmG_Id;
+        if (fmgId) {
+            setValue('group', fmgId.toString());
+        } else {
+            const matchedGroup = groups.find((g: any) => {
+                const { id, name } = getGroupItem(g);
+                return name === selectedRow.fmG_GroupName || id === selectedRow.fmG_ID?.toString();
+            });
+            if (matchedGroup) {
+                setValue('group', getGroupItem(matchedGroup).id);
+            }
         }
 
-        // Set role
-        const matchedRole = roles.find((r: any) => r.ivrmrT_Id === selectedRow.ivrmrT_Id || r.ivrmrT_Role === selectedRow.ivrmrT_Role);
-        if (matchedRole) {
-            setValue('roles', matchedRole.ivrmrT_Id.toString());
-        } else if (selectedRow.ivrmrT_Id) {
-            setValue('roles', selectedRow.ivrmrT_Id.toString());
+        // Set Role
+        const roleId = editItem?.ivrmrT_Id ?? editItem?.IVRMRT_Id ?? selectedRow.ivrmrT_Id;
+        if (roleId) {
+            setValue('roles', roleId.toString());
+        } else {
+            const matchedRole = roles.find((r: any) => {
+                const { id, name } = getRoleItem(r);
+                return name === selectedRow.ivrmrT_Role || id === selectedRow.ivrmrT_Id?.toString();
+            });
+            if (matchedRole) {
+                setValue('roles', getRoleItem(matchedRole).id);
+            }
         }
 
-        // Set head
-        const matchedHead = heads.find((h: any) => h.fmH_Id === selectedRow.fmH_Id || h.fmH_FeeName === selectedRow.fmH_FeeName);
-        if (matchedHead) {
-            setValue('heads', [matchedHead.fmH_Id.toString()]);
-        } else if (selectedRow.fmH_Id) {
-            setValue('heads', [selectedRow.fmH_Id.toString()]);
+        // Set Heads (multi-select)
+        if (Array.isArray(editData?.grouphead) && editData.grouphead.length > 0) {
+            const headIds = editData.grouphead.map((h: any) => getHeadItem(h).id).filter(Boolean);
+            setValue('heads', headIds);
+        } else if (editItem?.fmH_Id ?? editItem?.FMH_Id ?? selectedRow.fmH_Id) {
+            const headId = editItem?.fmH_Id ?? editItem?.FMH_Id ?? selectedRow.fmH_Id;
+            setValue('heads', [headId.toString()]);
+        } else {
+            const matchedHead = heads.find((h: any) => getHeadItem(h).name === selectedRow.fmH_FeeName);
+            if (matchedHead) {
+                setValue('heads', [getHeadItem(matchedHead).id]);
+            }
         }
 
-        // Set user
-        const userId = selectedRow.user_Id || (selectedRow as any).userId;
-        if (userId) {
+        // Set Users (multi-select)
+        if (Array.isArray(editData?.userlist) && editData.userlist.length > 0) {
+            const userIds = editData.userlist.map((u: any) => getUserItem(u).id).filter(Boolean);
+            setValue('users', userIds);
+        } else if (editItem?.userId ?? editItem?.user_Id ?? editItem?.UserId ?? selectedRow.user_Id) {
+            const userId = editItem?.userId ?? editItem?.user_Id ?? editItem?.UserId ?? selectedRow.user_Id;
             setValue('users', [userId.toString()]);
         }
-    }, [selectedRow, setValue, academicYears, groups, heads, roles]);
+    }, [selectedRow, editResponse, setValue, academicYears, groups, heads, roles]);
 
     // Filter heads
     const filteredHeads = useMemo(() => {
         if (!headSearchTerm.trim()) return heads;
-        return heads.filter((h: any) => (h.fmH_FeeName || '').toLowerCase().includes(headSearchTerm.trim().toLowerCase()));
+        return heads.filter((h: any) => {
+            const { name } = getHeadItem(h);
+            return name.toLowerCase().includes(headSearchTerm.trim().toLowerCase());
+        });
     }, [heads, headSearchTerm]);
 
     // Filter users
     const filteredUsers = useMemo(() => {
         if (!userSearchTerm.trim()) return users;
-        return users.filter((u: any) =>
-            (u.normalizedUserName || u.userName || u.normalized_UserName || '').toLowerCase().includes(userSearchTerm.trim().toLowerCase())
-        );
+        return users.filter((u: any) => {
+            const { name } = getUserItem(u);
+            return name.toLowerCase().includes(userSearchTerm.trim().toLowerCase());
+        });
     }, [users, userSearchTerm]);
 
-    const isAllHeadsSelected = heads.length > 0 && heads.every((h: any) => selectedHeads.includes(h.fmH_Id.toString()));
+    const isAllHeadsSelected =
+        heads.length > 0 &&
+        heads.every((h: any) => {
+            const { id } = getHeadItem(h);
+            return selectedHeads.includes(id);
+        });
 
     const handleSelectAllHeads = () => {
         if (isAllHeadsSelected) {
             setValue('heads', [], { shouldValidate: true });
         } else {
-            const allIds = heads.map((h: any) => h.fmH_Id.toString());
+            const allIds = heads.map((h: any) => getHeadItem(h).id).filter(Boolean);
             setValue('heads', allIds, { shouldValidate: true });
         }
     };
@@ -203,13 +318,17 @@ export default function UpdateCollegeFeePrivilegeForm({
     };
 
     const isAllUsersSelected =
-        users.length > 0 && users.every((u: any) => selectedUsers.includes((u.userId ?? u.user_Id ?? u.id).toString()));
+        users.length > 0 &&
+        users.every((u: any) => {
+            const { id } = getUserItem(u);
+            return selectedUsers.includes(id);
+        });
 
     const handleSelectAllUsers = () => {
         if (isAllUsersSelected) {
             setValue('users', [], { shouldValidate: true });
         } else {
-            const allIds = users.map((u: any) => (u.userId ?? u.user_Id ?? u.id).toString());
+            const allIds = users.map((u: any) => getUserItem(u).id).filter(Boolean);
             setValue('users', allIds, { shouldValidate: true });
         }
     };
@@ -222,9 +341,10 @@ export default function UpdateCollegeFeePrivilegeForm({
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            const fglId = Number(selectedRow.fgL_Id || selectedRow.fgl_id || 0);
             const payload = {
-                fgL_Id: Number(selectedRow.fgL_Id),
-                FGL_Id: Number(selectedRow.fgL_Id),
+                fgL_Id: fglId,
+                FGL_Id: fglId,
                 ASMAY_Id: Number(data.academicYear),
                 asmaY_Id: Number(data.academicYear),
                 fmG_ID: Number(data.group),
@@ -259,7 +379,7 @@ export default function UpdateCollegeFeePrivilegeForm({
                     <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
                         {/* Left Column: Academic Year, Group, Head */}
                         <div className='space-y-4'>
-                            {/* Academic Year (Disabled in Edit Mode) */}
+                            {/* Academic Year */}
                             <div className='space-y-1.5'>
                                 <Label className='font-medium text-sm'>
                                     Academic Year <span className='text-destructive'>*</span>
@@ -268,16 +388,30 @@ export default function UpdateCollegeFeePrivilegeForm({
                                     name='academicYear'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={true}>
-                                            <SelectTrigger className='w-full opacity-80'>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='--Select Academic Year--' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {academicYears.map((ay: any) => (
-                                                    <SelectItem key={ay.asmaY_Id} value={ay.asmaY_Id.toString()}>
-                                                        {ay.asmaY_Year}
+                                                {isAcademicYearsLoading && academicYears.length === 0 ? (
+                                                    <SelectItem value='_loading' disabled>
+                                                        Loading academic years...
                                                     </SelectItem>
-                                                ))}
+                                                ) : academicYears.length === 0 ? (
+                                                    <SelectItem value='_empty' disabled>
+                                                        No academic years available
+                                                    </SelectItem>
+                                                ) : (
+                                                    academicYears.map((ay: any, index: number) => {
+                                                        const { id, name } = getAcademicYearItem(ay);
+                                                        if (!id) return null;
+                                                        return (
+                                                            <SelectItem key={`ay-${id}-${index}`} value={id}>
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -294,19 +428,30 @@ export default function UpdateCollegeFeePrivilegeForm({
                                     name='group'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                            disabled={groups.length === 0 && isFeeGroupsLoading}>
+                                        <Select onValueChange={field.onChange} value={field.value}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='--Select Group--' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {groups.map((g: any) => (
-                                                    <SelectItem key={g.fmG_Id} value={g.fmG_Id.toString()}>
-                                                        {g.fmG_GroupName}
+                                                {isFeeGroupsLoading && groups.length === 0 ? (
+                                                    <SelectItem value='_loading' disabled>
+                                                        Loading groups...
                                                     </SelectItem>
-                                                ))}
+                                                ) : groups.length === 0 ? (
+                                                    <SelectItem value='_empty' disabled>
+                                                        No groups available
+                                                    </SelectItem>
+                                                ) : (
+                                                    groups.map((g: any, index: number) => {
+                                                        const { id, name } = getGroupItem(g);
+                                                        if (!id) return null;
+                                                        return (
+                                                            <SelectItem key={`group-${id}-${index}`} value={id}>
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -363,12 +508,14 @@ export default function UpdateCollegeFeePrivilegeForm({
                                                 {heads.length === 0 ? 'No heads available' : 'No matching heads found'}
                                             </div>
                                         ) : (
-                                            filteredHeads.map((head: any) => {
-                                                const idStr = head.fmH_Id.toString();
+                                            filteredHeads.map((head: any, index: number) => {
+                                                const { id: idStr, name } = getHeadItem(head);
+                                                if (!idStr) return null;
                                                 const isChecked = selectedHeads.includes(idStr);
+                                                const key = `head-item-${idStr}-${index}`;
                                                 return (
                                                     <label
-                                                        key={head.fmH_Id}
+                                                        key={key}
                                                         className={cn(
                                                             'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors hover:bg-muted/70',
                                                             isChecked && 'bg-primary/10 font-medium text-primary'
@@ -379,7 +526,7 @@ export default function UpdateCollegeFeePrivilegeForm({
                                                             checked={isChecked}
                                                             onChange={() => handleToggleHead(idStr)}
                                                         />
-                                                        <span>{head.fmH_FeeName}</span>
+                                                        <span>{name}</span>
                                                     </label>
                                                 );
                                             })
@@ -392,7 +539,7 @@ export default function UpdateCollegeFeePrivilegeForm({
 
                         {/* Right Column: Roles, User Name */}
                         <div className='space-y-4'>
-                            {/* Roles (Disabled in Edit Mode) */}
+                            {/* Roles */}
                             <div className='space-y-1.5'>
                                 <Label className='font-medium text-sm'>
                                     Roles <span className='text-destructive'>*</span>
@@ -401,16 +548,30 @@ export default function UpdateCollegeFeePrivilegeForm({
                                     name='roles'
                                     control={control}
                                     render={({ field }) => (
-                                        <Select onValueChange={field.onChange} value={field.value} disabled={true}>
-                                            <SelectTrigger className='w-full opacity-80'>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='--Select Role--' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {roles.map((r: any) => (
-                                                    <SelectItem key={r.ivrmrT_Id} value={r.ivrmrT_Id.toString()}>
-                                                        {r.ivrmrT_Role}
+                                                {isRolesLoading && roles.length === 0 ? (
+                                                    <SelectItem value='_loading' disabled>
+                                                        Loading roles...
                                                     </SelectItem>
-                                                ))}
+                                                ) : roles.length === 0 ? (
+                                                    <SelectItem value='_empty' disabled>
+                                                        No roles available
+                                                    </SelectItem>
+                                                ) : (
+                                                    roles.map((r: any, index: number) => {
+                                                        const { id, name } = getRoleItem(r);
+                                                        if (!id) return null;
+                                                        return (
+                                                            <SelectItem key={`role-${id}-${index}`} value={id}>
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -419,85 +580,83 @@ export default function UpdateCollegeFeePrivilegeForm({
                             </div>
 
                             {/* User Name Multi-Select */}
-                            <div className='fade-in-50 animate-in space-y-1.5 duration-200'>
-                                <div className='flex items-center justify-between'>
-                                    <Label className='font-medium text-sm'>
-                                        User Name <span className='text-destructive'>*</span>
-                                    </Label>
-                                    <span className='text-muted-foreground text-xs'>
-                                        {selectedUsers.length} of {users.length} selected
-                                    </span>
-                                </div>
-
-                                <div className='rounded-md border border-input bg-background p-3 shadow-sm'>
-                                    <div className='mb-2 flex items-center justify-between gap-2 border-b pb-2'>
-                                        <div className='relative flex-1'>
-                                            <Search className='-translate-y-1/2 absolute top-1/2 left-2.5 h-3.5 w-3.5 text-muted-foreground' />
-                                            <InputText
-                                                placeholder='Search User...'
-                                                value={userSearchTerm}
-                                                onChange={(e) => setUserSearchTerm(e.target.value)}
-                                                className='h-8 pl-8 text-xs'
-                                            />
-                                        </div>
-                                        <Button
-                                            type='button'
-                                            variant='outline'
-                                            size='sm'
-                                            onClick={handleSelectAllUsers}
-                                            disabled={users.length === 0 || isRoleUsersLoading}
-                                            className='h-8 text-xs'>
-                                            {isAllUsersSelected ? (
-                                                <>
-                                                    <CheckSquare className='mr-1.5 h-3.5 w-3.5 text-primary' /> Deselect All
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Square className='mr-1.5 h-3.5 w-3.5' /> Select All
-                                                </>
-                                            )}
-                                        </Button>
+                            {selectedRole && (
+                                <div className='fade-in-50 animate-in space-y-1.5 duration-200'>
+                                    <div className='flex items-center justify-between'>
+                                        <Label className='font-medium text-sm'>
+                                            User Name <span className='text-destructive'>*</span>
+                                        </Label>
+                                        <span className='text-muted-foreground text-xs'>
+                                            {selectedUsers.length} of {users.length} selected
+                                        </span>
                                     </div>
 
-                                    <div className='max-h-48 space-y-1 overflow-y-auto pr-1'>
-                                        {isRoleUsersLoading ? (
-                                            <div className='py-4 text-center text-muted-foreground text-xs'>Loading users...</div>
-                                        ) : filteredUsers.length === 0 ? (
-                                            <div className='py-4 text-center text-muted-foreground text-xs'>
-                                                {users.length === 0 ? 'No users found for this role' : 'No matching users found'}
+                                    <div className='rounded-md border border-input bg-background p-3 shadow-sm'>
+                                        <div className='mb-2 flex items-center justify-between gap-2 border-b pb-2'>
+                                            <div className='relative flex-1'>
+                                                <Search className='-translate-y-1/2 absolute top-1/2 left-2.5 h-3.5 w-3.5 text-muted-foreground' />
+                                                <InputText
+                                                    placeholder='Search User...'
+                                                    value={userSearchTerm}
+                                                    onChange={(e) => setUserSearchTerm(e.target.value)}
+                                                    className='h-8 pl-8 text-xs'
+                                                />
                                             </div>
-                                        ) : (
-                                            filteredUsers.map((user: any) => {
-                                                const userId = user.userId ?? user.user_Id ?? user.id;
-                                                const userName =
-                                                    user.normalizedUserName ??
-                                                    user.userName ??
-                                                    user.normalized_UserName ??
-                                                    `User ${userId}`;
-                                                const idStr = userId.toString();
-                                                const isChecked = selectedUsers.includes(idStr);
-                                                return (
-                                                    <label
-                                                        key={userId}
-                                                        className={cn(
-                                                            'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors hover:bg-muted/70',
-                                                            isChecked && 'bg-primary/10 font-medium text-primary'
-                                                        )}>
-                                                        <input
-                                                            type='checkbox'
-                                                            className='h-4 w-4 rounded border-gray-300 text-primary accent-primary focus:ring-primary'
-                                                            checked={isChecked}
-                                                            onChange={() => handleToggleUser(idStr)}
-                                                        />
-                                                        <span>{userName}</span>
-                                                    </label>
-                                                );
-                                            })
-                                        )}
+                                            <Button
+                                                type='button'
+                                                variant='outline'
+                                                size='sm'
+                                                onClick={handleSelectAllUsers}
+                                                disabled={users.length === 0 || isRoleUsersLoading}
+                                                className='h-8 text-xs'>
+                                                {isAllUsersSelected ? (
+                                                    <>
+                                                        <CheckSquare className='mr-1.5 h-3.5 w-3.5 text-primary' /> Deselect All
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Square className='mr-1.5 h-3.5 w-3.5' /> Select All
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
+
+                                        <div className='max-h-48 space-y-1 overflow-y-auto pr-1'>
+                                            {isRoleUsersLoading ? (
+                                                <div className='py-4 text-center text-muted-foreground text-xs'>Loading users...</div>
+                                            ) : filteredUsers.length === 0 ? (
+                                                <div className='py-4 text-center text-muted-foreground text-xs'>
+                                                    {users.length === 0 ? 'No users found for this role' : 'No matching users found'}
+                                                </div>
+                                            ) : (
+                                                filteredUsers.map((user: any, index: number) => {
+                                                    const { id: idStr, name } = getUserItem(user);
+                                                    if (!idStr) return null;
+                                                    const isChecked = selectedUsers.includes(idStr);
+                                                    const key = `user-item-${idStr}-${index}`;
+                                                    return (
+                                                        <label
+                                                            key={key}
+                                                            className={cn(
+                                                                'flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-1.5 text-xs transition-colors hover:bg-muted/70',
+                                                                isChecked && 'bg-primary/10 font-medium text-primary'
+                                                            )}>
+                                                            <input
+                                                                type='checkbox'
+                                                                className='h-4 w-4 rounded border-gray-300 text-primary accent-primary focus:ring-primary'
+                                                                checked={isChecked}
+                                                                onChange={() => handleToggleUser(idStr)}
+                                                            />
+                                                            <span>{name}</span>
+                                                        </label>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
                                     </div>
+                                    <FormError>{errors.users?.message}</FormError>
                                 </div>
-                                <FormError>{errors.users?.message}</FormError>
-                            </div>
+                            )}
                         </div>
                     </div>
 
