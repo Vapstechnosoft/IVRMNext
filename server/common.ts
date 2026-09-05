@@ -760,8 +760,7 @@ export async function getUserAccessibleModules() {
                 description: page.ivrmmP_PageName
             });
             // }
-        }
-        );
+        });
 
         // Sort helper
         const sortByOrder = (a: any, b: any) => (a.order || 0) - (b.order || 0);
@@ -820,8 +819,6 @@ export async function getUserAccessibleModules() {
                 };
             })
             .filter((module: any) => module !== null);
-
-        console.log('topModules', topModules);
 
         const aiEdgeModule = {
             id: 50005,
@@ -937,4 +934,3 @@ export async function markAllReadUserNotification() {
     const url = '/v1/user_notification/mark_all_read';
     return await api.put<any>('default', url);
 }
-
