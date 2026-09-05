@@ -53,13 +53,18 @@ export async function forgotUsernameAction(mobileNo: string) {
                     Accept: 'application/json'
                 },
                 // Assuming it might expect MobileNo in payload based on typical IVRM practices
-                body: JSON.stringify({ MobileNo: cleanMobile, mobileNo: cleanMobile, Mobilenumber: cleanMobile, AMST_MobileNo: Number(cleanMobile) }),
+                body: JSON.stringify({
+                    MobileNo: cleanMobile,
+                    mobileNo: cleanMobile,
+                    Mobilenumber: cleanMobile,
+                    AMST_MobileNo: Number(cleanMobile)
+                }),
                 cache: 'no-store'
             });
 
             if (resPost.ok) {
                 const data = await resPost.json();
-                
+
                 // Based on user provided response format:
                 // { "success": true, "message": "...", "data": "VVVSS2533" }
                 if (data && data.success === true) {
@@ -72,17 +77,17 @@ export async function forgotUsernameAction(mobileNo: string) {
                     }
                 }
             } else {
-                 console.error('ForgotUserName API returned non-ok status:', resPost.status);
+                console.error('ForgotUserName API returned non-ok status:', resPost.status);
             }
         }
     } catch (err) {
         console.error('forgotUsernameAction POST error:', err);
     }
-    
+
     try {
         if (baseUrl) {
-             // Fallback GET request if POST is not the supported method
-             const res = await fetch(`${baseUrl}/configuration/ForgotUserName/${cleanMobile}`, {
+            // Fallback GET request if POST is not the supported method
+            const res = await fetch(`${baseUrl}/configuration/ForgotUserName/${cleanMobile}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -95,7 +100,7 @@ export async function forgotUsernameAction(mobileNo: string) {
                 const data = await res.json();
                 if (data && data.success === true) {
                     if (data.data) {
-                         return { success: true, username: String(data.data) };
+                        return { success: true, username: String(data.data) };
                     }
                 }
             }

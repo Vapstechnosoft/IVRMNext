@@ -71,26 +71,13 @@ function StudentApplicationPageContent({
         let result = response?.data?.studentList || [];
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
-            result = result.filter(
-                (row: any) =>
-                    String(row.studentName || '')
-                        .toLowerCase()
-                        .includes(query) ||
-                    String(row.className || '')
-                        .toLowerCase()
-                        .includes(query) ||
-                    String(row.sectionName || '')
-                        .toLowerCase()
-                        .includes(query) ||
-                    String(row.admissionNo || '')
-                        .toLowerCase()
-                        .includes(query) ||
-                    String(row.emailId || '')
-                        .toLowerCase()
-                        .includes(query) ||
-                    String(row.mobileNo || '')
-                        .toLowerCase()
-                        .includes(query)
+            result = result.filter((row: any) =>
+                String(row.studentName || '').toLowerCase().includes(query) ||
+                String(row.className || '').toLowerCase().includes(query) ||
+                String(row.sectionName || '').toLowerCase().includes(query) ||
+                String(row.admissionNo || '').toLowerCase().includes(query) ||
+                String(row.emailId || '').toLowerCase().includes(query) ||
+                String(row.mobileNo || '').toLowerCase().includes(query)
             );
         }
         return result;
@@ -103,7 +90,9 @@ function StudentApplicationPageContent({
     }, [filteredData, page, pageSize]);
 
     const tableProps = useDataTableProps(
-        response?.data && response.data.studentList ? { ...response, data: paginatedData, total: filteredData.length } : response
+        response?.data && response.data.studentList
+            ? { ...response, data: paginatedData, total: filteredData.length }
+            : response
     );
     const [isSuccessOpen, setSuccessOpen] = useState(false);
     const [successType, setSuccessType] = useState<'create' | 'update'>('create');
@@ -153,7 +142,7 @@ function StudentApplicationPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Admission Application
+                        Add AdmissionForm
                     </Button>
                 </div>
                 {isSuccessOpen && (

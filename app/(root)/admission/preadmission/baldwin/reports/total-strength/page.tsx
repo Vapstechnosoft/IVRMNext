@@ -146,9 +146,9 @@ export default function TotalStrengthPage() {
         if (!response) return { schoolName: '', logoUrl: '', schoolAddress: '', schoolPhone: '' };
 
         let logoUrl = '';
-        let schoolName = '';
-        let schoolAddress = '';
-        let schoolPhone = '';
+        const schoolName = '';
+        const schoolAddress = '';
+        const schoolPhone = '';
 
         // Foolproof recursive search for logo URL
         const findLogo = (obj: any): string => {
@@ -315,7 +315,6 @@ export default function TotalStrengthPage() {
             toast.error('Failed to download Excel');
         }
     };
-
 
     const [isPrinting, setIsPrinting] = useState(false);
     const triggerPrint = useReactToPrint({
@@ -622,7 +621,11 @@ export default function TotalStrengthPage() {
                                 defaultOpen={true}
                                 variant='default'
                                 size='lg'
-                                title={selectedAcademicYearName ? `Total Strength Report (${selectedAcademicYearName})` : 'Total Strength Report'}
+                                title={
+                                    selectedAcademicYearName
+                                        ? `Total Strength Report (${selectedAcademicYearName})`
+                                        : 'Total Strength Report'
+                                }
                                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                                 <div className='space-y-4 p-4'>
                                     {isLoading ? (
@@ -639,7 +642,7 @@ export default function TotalStrengthPage() {
                                                 const { schoolName, logoUrl } = getMasterCompanyInfo();
                                                 if (!schoolName && !logoUrl) return null;
                                                 return (
-                                                    <div className='flex flex-col items-center justify-center border-b pb-4 mb-2 gap-3 text-center sm:flex-row sm:text-left'>
+                                                    <div className='mb-2 flex flex-col items-center justify-center gap-3 border-b pb-4 text-center sm:flex-row sm:text-left'>
                                                         {logoUrl && (
                                                             <img
                                                                 src={logoUrl}
@@ -650,11 +653,9 @@ export default function TotalStrengthPage() {
                                                         )}
                                                         {schoolName && (
                                                             <div>
-                                                                <h2 className='text-lg font-bold text-gray-900 uppercase'>
-                                                                    {schoolName}
-                                                                </h2>
+                                                                <h2 className='font-bold text-gray-900 text-lg uppercase'>{schoolName}</h2>
                                                                 {selectedAcademicYearName && (
-                                                                    <p className='text-xs font-medium text-gray-500'>
+                                                                    <p className='font-medium text-gray-500 text-xs'>
                                                                         Total Strength Report - {selectedAcademicYearName}
                                                                     </p>
                                                                 )}
@@ -669,7 +670,9 @@ export default function TotalStrengthPage() {
                                                         <tr className='bg-gray-100'>
                                                             <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Sl.No</th>
                                                             <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Class</th>
-                                                            <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Section</th>
+                                                            <th className='border border-gray-300 px-4 py-2 text-left font-bold'>
+                                                                Section
+                                                            </th>
                                                             <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Boys</th>
                                                             <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Girls</th>
 
@@ -682,13 +685,18 @@ export default function TotalStrengthPage() {
                                                     <tbody>
                                                         {Object.keys(groupedData()).length === 0 ? (
                                                             <tr>
-                                                                <td colSpan={6} className='border border-gray-300 px-4 py-8 text-center text-gray-500'>
+                                                                <td
+                                                                    colSpan={6}
+                                                                    className='border border-gray-300 px-4 py-8 text-center text-gray-500'>
                                                                     No student strength data found.
                                                                 </td>
                                                             </tr>
                                                         ) : (
                                                             Object.entries(groupedData())
-                                                                .sort(([, aSec], [, bSec]) => (aSec[0]?.ASMCL_Order || 0) - (bSec[0]?.ASMCL_Order || 0))
+                                                                .sort(
+                                                                    ([, aSec], [, bSec]) =>
+                                                                        (aSec[0]?.ASMCL_Order || 0) - (bSec[0]?.ASMCL_Order || 0)
+                                                                )
                                                                 .map(([groupKey, sections], index) => (
                                                                     <Fragment key={groupKey}>
                                                                         {sections.map((item: any, sectionIndex: number) => (
@@ -705,8 +713,12 @@ export default function TotalStrengthPage() {
                                                                                     {item.sectionname}
                                                                                 </td>
 
-                                                                                <td className='border border-gray-300 px-4 py-2 text-right'>{item.boys}</td>
-                                                                                <td className='border border-gray-300 px-4 py-2 text-right'>{item.girls}</td>
+                                                                                <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                                    {item.boys}
+                                                                                </td>
+                                                                                <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                                    {item.girls}
+                                                                                </td>
 
                                                                                 <td className='border border-gray-300 px-4 py-2 text-right font-medium'>
                                                                                     {item.totalstudents}
@@ -714,7 +726,9 @@ export default function TotalStrengthPage() {
                                                                             </tr>
                                                                         ))}
                                                                         <tr key={`total-${groupKey}`} className='bg-gray-50 font-semibold'>
-                                                                            <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
+                                                                            <td
+                                                                                colSpan={3}
+                                                                                className='border border-gray-300 px-4 py-2 text-right'>
                                                                                 Total for {sections[0]?.classname || groupKey}
                                                                             </td>
                                                                             <td className='border border-gray-300 px-4 py-2 text-right font-semibold'>

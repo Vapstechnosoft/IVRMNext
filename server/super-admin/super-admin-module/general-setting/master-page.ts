@@ -13,9 +13,11 @@ export async function saveMasterPage(data: any) {
             return {
                 success: false,
                 message: 'Validation failed',
-                errors: validation.error.flatten().fieldErrors
+                errors: validation.error.flatten().fieldErrors,
             };
         }
+
+        const browserUrl = data.ivrmP_BrowserUrl || data.ivrmP_BrowerUrl || data.IVRMP_BrowserUrl || data.ivrmP_PageDesc || "string";
 
         const payload = {
             createdDate: new Date().toISOString(),
@@ -27,9 +29,11 @@ export async function saveMasterPage(data: any) {
             ivrmP_TemplateFlag: data.ivrmP_TemplateFlag ?? true,
             ivrM_Module_Category_Id: data.ivrM_Module_Category_Id ?? 0,
             ivrmP_MandatoryFlag: !!data.ivrmP_MandatoryFlag,
-            ivrmP_PageDisplayName: data.ivrmP_PageDisplayName || data.ivrmmP_PageName || 'string',
+            ivrmP_PageDisplayName: data.ivrmP_PageDisplayName || data.ivrmmP_PageName || "string",
             userid: data.userid ?? 0,
-            ivrmP_BrowerUrl: data.ivrmP_BrowerUrl || 'string'
+            ivrmP_BrowerUrl: browserUrl,
+            ivrmP_BrowserUrl: browserUrl,
+            IVRMP_BrowserUrl: browserUrl,
         };
 
         const response = await api.post<any>('sadmin', 'MasterPageFacade/master_map_save/1209', payload);
@@ -39,19 +43,19 @@ export async function saveMasterPage(data: any) {
             return {
                 success: true,
                 message: response.message || 'Master Page saved successfully!',
-                data: response.data
+                data: response.data,
             };
         }
 
         return {
             success: false,
-            message: response.message || 'Failed to save master page'
+            message: response.message || 'Failed to save master page',
         };
     } catch (error: any) {
-        console.error('Save Error:', error);
+        console.error("Save Error:", error);
         return {
             success: false,
-            message: error?.message || 'An unexpected error occurred while saving'
+            message: error?.message || 'An unexpected error occurred while saving',
         };
     }
 }
@@ -68,9 +72,18 @@ export async function getMasterPages(searchParams: any) {
     const response = await api.get<any>('sadmin', url);
 
     if (response.success && Array.isArray(response.data)) {
+        const mappedData = response.data.map((item: any) => ({
+            ...item,
+            ivrmP_Id: item.ivrmP_Id ?? item.IVRMP_Id ?? 0,
+            ivrmmP_PageName: item.ivrmmP_PageName ?? item.IVRMMP_PageName ?? item.ivrmP_PageName ?? item.IVRMP_PageName ?? '',
+            ivrmP_PageDisplayName: item.ivrmP_PageDisplayName ?? item.IVRMP_PageDisplayName ?? item.ivrmmP_PageName ?? item.IVRMMP_PageName ?? '',
+            ivrmP_PageDesc: item.ivrmP_PageDesc ?? item.IVRMP_PageDesc ?? item.ivrmP_PageURL ?? item.IVRMP_PageURL ?? '',
+            ivrmP_MandatoryFlag: item.ivrmP_MandatoryFlag ?? item.IVRMP_MandatoryFlag ?? 0
+        }));
+
         return {
             success: true,
-            data: response.data as IMasterPage[],
+            data: mappedData as IMasterPage[],
             message: response.message,
             total: response.total || response.data.length,
             page: response.page || 1,
@@ -96,19 +109,19 @@ export async function deleteMasterPage(id: number) {
             revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
             return {
                 success: true,
-                message: response.message || 'Record deleted successfully'
+                message: response.message || 'Record deleted successfully',
             };
         }
 
         return {
             success: false,
-            message: response.message || 'Failed to delete record'
+            message: response.message || 'Failed to delete record',
         };
     } catch (error: any) {
-        console.error('Delete Error:', error);
+        console.error("Delete Error:", error);
         return {
             success: false,
-            message: error?.message || 'Failed to delete record'
+            message: error?.message || 'Failed to delete record',
         };
     }
 }
@@ -118,9 +131,18 @@ export async function getMasterPageById(id: number) {
     const response = await api.get<any>('sadmin', url);
 
     if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+        const item = response.data[0];
+        const mappedItem: IMasterPage = {
+            ...item,
+            ivrmP_Id: item.ivrmP_Id ?? item.IVRMP_Id ?? id,
+            ivrmmP_PageName: item.ivrmmP_PageName ?? item.IVRMMP_PageName ?? item.ivrmP_PageName ?? item.IVRMP_PageName ?? '',
+            ivrmP_PageDisplayName: item.ivrmP_PageDisplayName ?? item.IVRMP_PageDisplayName ?? item.ivrmmP_PageName ?? item.IVRMMP_PageName ?? '',
+            ivrmP_PageDesc: item.ivrmP_PageDesc ?? item.IVRMP_PageDesc ?? item.ivrmP_PageURL ?? item.IVRMP_PageURL ?? '',
+            ivrmP_MandatoryFlag: item.ivrmP_MandatoryFlag ?? item.IVRMP_MandatoryFlag ?? 0
+        };
         return {
             success: true,
-            data: response.data[0] as IMasterPage,
+            data: mappedItem,
             message: response.message
         };
     }
@@ -151,11 +173,11 @@ export async function activateDeactivateMasterPage(id: number) {
         revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-page');
         return {
             success: true,
-            message: res.message || 'Master Page status updated successfully'
+            message: res.message || 'Master Page status updated successfully',
         };
     }
     return {
         success: false,
-        message: res.message || 'Failed to update status'
+        message: res.message || 'Failed to update status',
     };
 }

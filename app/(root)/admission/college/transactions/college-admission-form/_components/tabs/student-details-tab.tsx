@@ -9,11 +9,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { getCasteByCategory, onBranchChange, onCourseChange } from '@/server/admission/college/admission-form';
 import { format } from 'date-fns';
 import { CalendarIcon, ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { onCourseChange, onBranchChange, getCasteByCategory } from '@/server/college/CollegeAdmission/Transactions/clgadmission-form';
 
 export function StudentDetailsTab({ initialData, onNext }: { initialData: any; onNext: () => void }) {
     const { control, watch, setValue } = useFormContext();
@@ -25,6 +25,7 @@ export function StudentDetailsTab({ initialData, onNext }: { initialData: any; o
     const selectedCourse = watch('AMCO_Id');
     const selectedBranch = watch('AMB_Id');
     const selectedCasteCategory = watch('IMCC_Id');
+    const selectedYear = watch('ASMAY_Id');
 
     useEffect(() => {
         if (selectedCourse) {
@@ -45,7 +46,8 @@ export function StudentDetailsTab({ initialData, onNext }: { initialData: any; o
     }, [selectedCasteCategory]);
 
     const handleCourseChange = async (courseId: string) => {
-        const res = await onCourseChange(Number(courseId));
+        if (!selectedYear) return;
+        const res = await onCourseChange(Number(selectedYear), Number(courseId));
         if (res.success && res.data) {
             setBranches(res.data.branches || []);
             setValue('AMB_Id', '');
@@ -54,7 +56,8 @@ export function StudentDetailsTab({ initialData, onNext }: { initialData: any; o
     };
 
     const handleBranchChange = async (branchId: string) => {
-        const res = await onBranchChange(Number(branchId));
+        if (!selectedYear) return;
+        const res = await onBranchChange(Number(selectedYear), Number(branchId), 0);
         if (res.success && res.data) {
             setSemesters(res.data.semesters || []);
             setValue('AMSE_Id', '');

@@ -4,7 +4,10 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 
 export async function getInvMasterProductLoadData(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'invmP_ProductName,invmP_ProductCode,invmP_ProductPrice,invmP_Id,invmP_ActiveFlg'
+    );
     const url = `/INV_MasterProductFacade/GetProductList?${urlParams}`;
     return await api.get<any>('inventory', url);
 }
@@ -20,7 +23,10 @@ export async function getInvMasterItemList() {
 }
 
 export async function getInvMasterProductItemList(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'invmP_ProductName,invmI_ItemName,invmpI_ItemQty,invmpI_Id,invmpI_ActiveFlg'
+    );
     const url = `/INV_MasterProductFacade/GetProductItemList?${urlParams}`;
     return await api.get<any>('inventory', url);
 }

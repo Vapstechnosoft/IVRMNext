@@ -22,9 +22,9 @@ import { Save, X } from 'lucide-react';
 import React, { useRef, useState, useMemo, useCallback } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 import type { z } from 'zod';
 import { getActiveDeactiveColumns } from './_components/columns';
-import Swal from 'sweetalert2';
 
 type FormFields = z.infer<typeof masterActiveDeactiveStudentSchema>;
 
@@ -62,6 +62,7 @@ export default function MasterActiveDeactiveStudentPage(props: {
     const [selectedStudents, setSelectedStudents] = useState<Set<number>>(new Set());
     const [studentData, setStudentData] = useState<Map<number, StudentData>>(new Map());
     const studentDataRef = useRef<Map<number, StudentData>>(new Map());
+    const [isSaving, setIsSaving] = useState(false);
 
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
     const { data: masterClass, isLoading: preadmissionClassLoading, isError: preadmissionClassError } = useMasterClassDropdown();
@@ -85,13 +86,13 @@ export default function MasterActiveDeactiveStudentPage(props: {
 
     const apiSearchParams: ApiSearchparams | undefined = searchParams
         ? {
-              page: Number(searchParams.page) || 1,
-              page_size: Number(searchParams.page_size) || 10,
-              sort_column: String(searchParams.sort_column || ''),
-              sort_direction: String(searchParams.sort_direction || 'asc'),
-              search_query: String(searchParams.search_query || ''),
-              search_columns: String(searchParams.search_columns || '')
-          }
+            page: Number(searchParams.page) || 1,
+            page_size: Number(searchParams.page_size) || 10,
+            sort_column: String(searchParams.sort_column || ''),
+            sort_direction: String(searchParams.sort_direction || 'asc'),
+            search_query: String(searchParams.search_query || ''),
+            search_columns: String(searchParams.search_columns || '')
+        }
         : undefined;
 
     const {
@@ -199,10 +200,11 @@ export default function MasterActiveDeactiveStudentPage(props: {
             asmaY_Id: academicYearId,
             asmcL_Id: classId,
             asmS_Id: sectionId,
-            amsT_SOL: amst_sol as any,
+            amsT_SOL: amsT_SOL_activate as any,
             students: studentsArray
         };
 
+        setIsSaving(true);
         try {
             const response = await ActiveDeactive(payload);
             if (response.success) {
@@ -222,6 +224,8 @@ export default function MasterActiveDeactiveStudentPage(props: {
             }
         } catch (error: any) {
             toast.error(error.message || 'Failed to update students');
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -419,7 +423,10 @@ export default function MasterActiveDeactiveStudentPage(props: {
                                     <div className='flex gap-4'>
                                         <Button
                                             className='min-w-[120px] bg-primary text-primary-foreground hover:bg-primary/90'
-                                            onClick={handleSave}>
+                                            onClick={handleSave}
+                                            isLoading={isSaving}
+                                            loadingText='Saving...'
+                                            disabled={isSaving}>
                                             <Save className='mr-2 h-4 w-4' />
                                             Save
                                         </Button>
