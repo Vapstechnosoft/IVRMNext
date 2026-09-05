@@ -27,6 +27,7 @@ import type {
     SalaryUpdationItem
 } from '@/types/hrms/salary-updation';
 import { RefreshCcw, RefreshCw, X } from 'lucide-react';
+import { parseAsInteger, useQueryState } from 'nuqs';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -90,6 +91,11 @@ function SalaryUpdationPageContent({
     const [gridData, setGridData] = useState<EmployeeDropdown[]>([]);
     const [localSearch, setLocalSearch] = useState('');
 
+    // Client-side pagination state
+    const [tablePage, setTablePage] = useState(1);
+    // Sync page size from the DataTable's URL param (page_size)
+    const [tablePageSize] = useQueryState('page_size', parseAsInteger.withDefault(10));
+
     const processedGridData = useMemo(() => {
         if (!localSearch) return gridData;
         const lowerSearch = localSearch.toLowerCase();
@@ -100,6 +106,12 @@ function SalaryUpdationPageContent({
                     .includes(lowerSearch) || (emp.HRME_EmployeeCode || '').toLowerCase().includes(lowerSearch)
         );
     }, [gridData, localSearch]);
+
+    // Sliced data for current page (required because DataTable uses manualPagination: true)
+    const pagedGridData = useMemo(() => {
+        const start = (tablePage - 1) * tablePageSize;
+        return processedGridData.slice(start, start + tablePageSize);
+    }, [processedGridData, tablePage, tablePageSize]);
 
     // Initial Data Loading
     useEffect(() => {
@@ -263,6 +275,7 @@ function SalaryUpdationPageContent({
                     setGridData(initializedEmps);
                     setFilteredEmployees(initializedEmps);
                     setHasSearched(true);
+                    setTablePage(1); // Reset to first page on new search
                     setSelectedEmployees([]); // Reset selection on new search
                     if (initializedEmps?.length > 0) {
                         toast.success('Search completed successfully');
@@ -386,6 +399,7 @@ function SalaryUpdationPageContent({
         setFilteredEmployees([]);
         setLocalSearch('');
         setSelectedEmployees([]);
+        setTablePage(1);
     };
 
     // Column Construction
@@ -418,6 +432,11 @@ function SalaryUpdationPageContent({
         [visibleEarningHeads, visibleDeductionHeads, selectedEmployees, allGridIds]
     );
     const tableProps = useDataTableProps(processedGridData);
+
+    // Reset to page 1 whenever the filtered data changes (local search changes)
+    useEffect(() => {
+        setTablePage(1);
+    }, [localSearch]);
 
     return (
         <div className='min-h-screen'>
@@ -663,7 +682,7 @@ function SalaryUpdationPageContent({
                                         />
                                     </div>
                                     <GenericDataTable
-                                        data={processedGridData}
+                                        data={pagedGridData}
                                         columns={columns}
                                         totalItems={processedGridData.length}
                                         isLoading={isLoading}
@@ -672,6 +691,7 @@ function SalaryUpdationPageContent({
                                         isSearchRequired={false}
                                         scrollable={true}
                                         maxHeight='400px'
+                                        onPageChange={(page) => setTablePage(page)}
                                     />
                                 </div>
 
