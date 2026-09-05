@@ -90,7 +90,7 @@ export async function analyzeStudentPerformance(reportData: any): Promise<Indivi
         throw new Error('GROQ_API_KEY is not defined');
     }
 
-    const prompt = `You are an educational performance analyst. Analyze the following student report data and provide a detailed analysis.
+    const prompt = `You are an educational performance analyst and predictive AI strategist. Analyze the following student report data and provide a detailed analysis along with AI-driven Performance Prediction for upcoming terms.
 
 Student Report Data:
 ${JSON.stringify(reportData, null, 2)}
@@ -101,6 +101,7 @@ Please analyze this data and provide:
 3. **Strong Subjects**: Identify subjects where the student is performing well
 4. **Overall Assessment**: Provide an overall performance summary with actionable advice
 5. **Improvement Strategy**: Suggest a focused study plan
+6. **Performance Prediction**: Predict future exam performance, target score range, trajectory status ("Improving" | "Stable" | "At Risk" | "High Growth Potential"), predicted vs potential subject scores, key risk factors, and actionable milestones.
 
 Format your response as JSON with this structure:
 {
@@ -108,7 +109,18 @@ Format your response as JSON with this structure:
   "needsImprovement": [{"name": "subject", "score": number, "recommendation": "specific advice"}],
   "strongSubjects": [{"name": "subject", "score": number, "praise": "positive note"}],
   "overallAssessment": "detailed summary",
-  "improvementStrategy": "actionable study plan"
+  "improvementStrategy": "actionable study plan",
+  "performancePrediction": {
+    "predictedScoreRange": "e.g., 85% - 90%",
+    "confidenceLevel": "High (based on score consistency)",
+    "trajectory": "High Growth Potential",
+    "predictedSubjectScores": [
+      { "subject": "subject name", "predictedScore": number, "potentialScore": number }
+    ],
+    "keyRiskFactors": ["risk factor 1", "risk factor 2"],
+    "growthOpportunities": ["growth tip 1", "growth tip 2"],
+    "actionableMilestones": ["milestone 1", "milestone 2"]
+  }
 }`;
 
     try {
