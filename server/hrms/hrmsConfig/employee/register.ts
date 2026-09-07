@@ -469,7 +469,7 @@ export async function getEmployeeRegisterOnload(MI_Id: number, HRME_Id?: number)
  */
 export async function getEmployeeList(searchParams?: ApiSearchparams) {
     const session = await auth();
-    const MI_Id = session?.user?.mi_id || 30;
+    const MI_Id = session?.user?.mi_id;
 
     // Define columns to search against if not already specified
     const searchColumns =
@@ -509,6 +509,7 @@ export async function getEmployeeList(searchParams?: ApiSearchparams) {
         console.log(`✅ [API DEBUG] getEmployeeList final normalized array length: ${normalizedGridData.length}`);
 
         // Determine total count
+        // biome-ignore lint/complexity/useOptionalChain: <explanation>
         const total = response?.total || (response?.data && response.data.total) || response?.totalItems || normalizedGridData.length;
 
         return {
