@@ -105,7 +105,7 @@ export default function SelectionForm({
             {isRoleSelected && (
                 <>
                     {/* Trust Selection (If trusts exist or required for role) */}
-                    {trusts.length > 0 && (
+                    {/* {trusts.length > 0 && (
                         <div className='space-y-2'>
                             <Label className='font-semibold text-sm'>
                                 Trust Name: <span className='text-red-500'>*</span>
@@ -129,7 +129,7 @@ export default function SelectionForm({
                                 )}
                             />
                         </div>
-                    )}
+                    )} */}
 
                     {/* Institution Selection */}
                     <div className={`space-y-2 ${isAdmin && filterData === 'Multiple' ? 'md:col-span-2' : ''}`}>

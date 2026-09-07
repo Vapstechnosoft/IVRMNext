@@ -167,11 +167,35 @@ export async function generateSalaryForSelectedEmployees(data: SalaryCalculation
 /**
  * Search employees by selection criteria (New API)
  * POST /api/TransEmployeeSalaryCalculation/employee_details_by_selection
+ * Body: filter fields (year, month, group/dept/designation lists)
+ * Query params: page, page_size, search_query, search_columns, sort_column, sort_direction
  */
 export async function searchEmployeesBySelection(payload: NewSalaryCalculationSearchRequest) {
     const url = '/api/TransEmployeeSalaryCalculation/employee_details_by_selection';
     try {
-        const response = await api.post<SelectionEmployee[]>('hrms', url, payload);
+        // Separate body fields from query parameter fields
+        const {
+            page,
+            page_size,
+            search_query,
+            search_columns,
+            sort_column,
+            sort_direction,
+            ...bodyFields
+        } = payload;
+
+        // Build query params object (only include defined values)
+        const queryParams: Record<string, string | number> = {};
+        if (page !== undefined) queryParams.page = page;
+        if (page_size !== undefined) queryParams.page_size = page_size;
+        if (search_query) queryParams.search_query = search_query;
+        if (search_columns) queryParams.search_columns = search_columns;
+        if (sort_column) queryParams.sort_column = sort_column;
+        if (sort_direction) queryParams.sort_direction = sort_direction;
+
+        const response = await api.post<SelectionEmployee[]>('hrms', url, bodyFields, {
+            params: queryParams
+        });
         // Ensure success: true is returned in the response
         if (response && typeof response === 'object' && 'success' in response) {
             return response;

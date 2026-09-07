@@ -253,11 +253,17 @@ export interface SalaryCalculationGenerateResponse {
 
 // New Search Request based on user provided JSON
 export interface NewSalaryCalculationSearchRequest {
+    // POST body fields
     hreS_Year: string;
     hreS_Month: string;
     hrmdeS_IdList: number[];
     hrmD_IdList: number[];
     groupTypeIdList: number[];
+    // Query parameter fields (sent as URL params)
+    page?: number;
+    page_size?: number;
+    search_query?: string;
+    search_columns?: string;
     sort_column?: string;
     sort_direction?: string;
 }
