@@ -11,7 +11,7 @@ import {
     useSalarySlipOnload,
     useSendSalarySlipEmailSMS
 } from '@/hooks/hrms/useReports';
-import { Loader2, Printer, X } from 'lucide-react';
+import { Loader2, Mail, MessageSquare, Printer, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -65,6 +65,7 @@ export default function SalarySlipPage() {
         address: '',
         logo: ''
     });
+    const [sendingType, setSendingType] = useState<string | null>(null);
 
     const reportRef = useRef<HTMLDivElement>(null);
 
@@ -330,7 +331,7 @@ export default function SalarySlipPage() {
         );
     };
 
-    const handleWhatsApp = () => {
+    const handleSendCommunication = (type: 'WhatsApp' | 'SMS' | 'Email') => {
         if (!reportData) return;
         const slips = Array.isArray(reportData) ? reportData : [reportData];
         const monthName = MONTH_LIST.find((m) => m.id.toString() === filters.month.toString())?.name || filters.month;
@@ -362,26 +363,30 @@ export default function SalarySlipPage() {
         });
 
         if (emp_ids.length === 0) {
-            toast.error('Could not find matching employees to send WhatsApp.');
+            toast.error(`Could not find matching employees to send ${type}.`);
             return;
         }
 
         const data = {
-            EmailSMS: 'WhatsApp',
+            EmailSMS: type,
             empid: emp_ids,
             Template: tmplt,
             HRES_Month: filters.month
         };
 
         console.log('data:', data);
+        setSendingType(type);
 
         sendSalarySlipEmailSMSWhatsApp(data, {
             onSuccess: (res) => {
                 if (res.success) {
-                    toast.success('Successfully sent WhatsApp messages');
+                    toast.success(`Successfully sent ${type} messages`);
                 } else {
-                    toast.error(res.message || 'Failed to send WhatsApp messages');
+                    toast.error(res.message || `Failed to send ${type} messages`);
                 }
+            },
+            onSettled: () => {
+                setSendingType(null);
             }
         });
     };
@@ -466,12 +471,30 @@ export default function SalarySlipPage() {
 
                             <Button
                                 variant='outline'
-                                className='border-green-200 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800'
-                                onClick={handleWhatsApp}
+                                className='border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800'
+                                onClick={() => handleSendCommunication('Email')}
                                 disabled={isSending}>
-                                {isSending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FaWhatsapp className='mr-2 h-4 w-4' />}
-                                WHATSAPP
+                                {isSending && sendingType === 'Email' ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Mail className='mr-2 h-4 w-4' />}
+                                EMAIL
                             </Button>
+
+                            {/* <Button
+                                variant='outline'
+                                className='border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 hover:text-purple-800'
+                                onClick={() => handleSendCommunication('SMS')}
+                                disabled={isSending}>
+                                {isSending && sendingType === 'SMS' ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <MessageSquare className='mr-2 h-4 w-4' />}
+                                SMS
+                            </Button> */}
+
+                            {/* <Button
+                                variant='outline'
+                                className='border-green-200 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800'
+                                onClick={() => handleSendCommunication('WhatsApp')}
+                                disabled={isSending}>
+                                {isSending && sendingType === 'WhatsApp' ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <FaWhatsapp className='mr-2 h-4 w-4' />}
+                                WHATSAPP
+                            </Button> */}
 
                             <Button variant='default' onClick={handlePrint}>
                                 <Printer className='mr-2 h-4 w-4' />
