@@ -374,14 +374,18 @@ export default function AddFeePrivilegeForm({ onSuccess, className = '' }: AddMa
             console.log('Submitting payload:', JSON.stringify(payload));
 
             const res = await addOrUpdateFeePrivilege(payload);
-            if (res) {
+            if (res?.success) {
                 // toast.success('Privilege saved successfully');
                 toast.success(res.message);
+                handleReset();
+                onSuccess?.();
+                refetchAll();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                toast.error(res?.message || 'Save failed');
             }
-
-            handleReset();
-            onSuccess?.();
-            refetchAll();
         } catch (_err: any) {
             toast.error('Something went wrong while saving.');
         }
