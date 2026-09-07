@@ -47,9 +47,16 @@ import {
 import {
     getSectionsByClass as getSectionsByClassTransfer,
     getStaffPeriodDetails,
-    getStaffPeriodTransferMasters
+    getStaffPeriodTransferMasters,
+    getStaffPeriodTransferReport,
+    saveStaffPeriodTransfer
 } from '@/server/timetable/transactions/staffperiodtransfer';
-import type { StaffPeriodTransferMasters, Section as TransferSection } from '@/types/timetable/Transaction/staffperiodtransfer';
+import type {
+    SaveStaffPeriodTransferPayload,
+    StaffPeriodTransferMasters,
+    StaffPeriodTransferReportData,
+    Section as TransferSection
+} from '@/types/timetable/Transaction/staffperiodtransfer';
 
 // staff-replacement-in-unallocated-period
 import {
@@ -302,6 +309,28 @@ export const useStaffTransferSectionsByClass = (asmcL_Id: number) => {
             return res.data || [];
         },
         enabled: !!asmcL_Id
+    });
+};
+export const useStaffPeriodTransferReport = (payload: {
+    asmaY_Id: number | string;
+    hrmE_Id: number | string;
+}) => {
+    return useQuery<StaffPeriodTransferReportData | null>({
+        queryKey: [TIMETABLE_QUERY_KEYS.STAFF_PERIOD_DETAILS, payload.asmaY_Id, payload.hrmE_Id],
+        queryFn: async () => {
+            const res = await getStaffPeriodTransferReport(payload);
+            return (res?.data || res) as StaffPeriodTransferReportData;
+        },
+        enabled: !!payload.asmaY_Id && !!payload.hrmE_Id && payload.asmaY_Id !== '0' && payload.hrmE_Id !== '0'
+    });
+};
+export const useSaveStaffPeriodTransfer = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (payload: SaveStaffPeriodTransferPayload | any) => await saveStaffPeriodTransfer(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [TIMETABLE_QUERY_KEYS.STAFF_PERIOD_DETAILS] });
+        }
     });
 };
 export const useStaffPeriodDetails = (payload: {
