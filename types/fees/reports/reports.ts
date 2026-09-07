@@ -588,3 +588,29 @@ export interface FeeUserWiseDailyCollectionData {
     totalAmount: number;
     receiptCount: number;
 }
+
+export interface IFeeChallanReportRequest {
+    ASMAY_Id: number;
+    ASMCL_Id: number;
+    ASMS_Id: number;
+    fromDate: string;
+    toDate: string;
+    receiptsGenerated?: boolean;
+}
+
+export interface IFeeChallanReportItem {
+    slNo?: number;
+    studentName: string;
+    rollNo: number | string;
+    className: string;
+    sectionName: string;
+    challanNo: string;
+    amount: number;
+    isSelected?: boolean;
+}
+
+export interface IFeeChallanReportResponse {
+    success: boolean;
+    message?: string;
+    data: IFeeChallanReportItem[];
+}
