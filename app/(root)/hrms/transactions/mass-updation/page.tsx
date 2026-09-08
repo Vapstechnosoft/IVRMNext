@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { Label } from '@/components/ui/extension/field';
+import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { MultiSelect } from '@/components/ui/multi-select';
@@ -53,7 +53,15 @@ export default function MassUpdationPage() {
     const { mutate: saveMassUpdate, isPending: isSaving } = useSaveMassUpdation();
 
     // Form Control
-    const { control, handleSubmit, watch, setValue, reset, getValues } = useForm({
+    const {
+        control,
+        handleSubmit,
+        watch,
+        setValue,
+        reset,
+        getValues,
+        formState: { errors }
+    } = useForm({
         defaultValues: {
             groupType: [] as string[],
             department: [] as string[],
@@ -398,7 +406,7 @@ export default function MassUpdationPage() {
                                 <Controller
                                     name='groupType'
                                     control={control}
-                                    rules={{ required: true }}
+                                    rules={{ validate: (val) => (val && val.length > 0) || 'Please select Group Type' }}
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={[
@@ -414,6 +422,7 @@ export default function MassUpdationPage() {
                                         />
                                     )}
                                 />
+                                {errors.groupType && <FormError>{errors.groupType.message as string}</FormError>}
                             </div>
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>
@@ -422,7 +431,7 @@ export default function MassUpdationPage() {
                                 <Controller
                                     name='department'
                                     control={control}
-                                    rules={{ required: true }}
+                                    rules={{ validate: (val) => (val && val.length > 0) || 'Please select Department' }}
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={[
@@ -438,6 +447,7 @@ export default function MassUpdationPage() {
                                         />
                                     )}
                                 />
+                                {errors.department && <FormError>{errors.department.message as string}</FormError>}
                             </div>
                             <div className='space-y-3'>
                                 <Label className='font-semibold'>
@@ -446,7 +456,7 @@ export default function MassUpdationPage() {
                                 <Controller
                                     name='designation'
                                     control={control}
-                                    rules={{ required: true }}
+                                    rules={{ validate: (val) => (val && val.length > 0) || 'Please select Designation' }}
                                     render={({ field }) => (
                                         <MultiSelect
                                             options={[
@@ -462,6 +472,7 @@ export default function MassUpdationPage() {
                                         />
                                     )}
                                 />
+                                {errors.designation && <FormError>{errors.designation.message as string}</FormError>}
                             </div>
                         </div>
                         <div className='flex justify-end gap-2'>

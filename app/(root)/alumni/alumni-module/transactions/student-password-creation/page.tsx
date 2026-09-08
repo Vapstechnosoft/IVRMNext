@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { exportToExcel } from '@/lib/export-to-file';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import {
     getInitialData,
     getReportDetails,
@@ -14,7 +16,7 @@ import {
 } from '@/server/alumni/student-password-creation';
 import type { IClass, ICredentialStudent, ISection, IYear } from '@/types/alumni/student-password-creation';
 import { FileSpreadsheet, Loader2, Printer } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { getStudentPasswordCreationColumns } from './_components/columns';
 import FilterForm from './_components/filter-form';
@@ -30,6 +32,33 @@ export default function StudentPasswordCreationPage() {
     const [selectedStudents, setSelectedStudents] = useState<ICredentialStudent[]>([]);
     const [filterParams, setFilterParams] = useState<any>(null);
     const [hasSearched, setHasSearched] = useState(false);
+
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withDefault(''));
+
+    const filteredStudents = useMemo(() => {
+        if (!searchQuery) return students;
+        const lowerQuery = searchQuery.toLowerCase();
+        return students.filter((s) => {
+            return (
+                (s.studentname && String(s.studentname).toLowerCase().includes(lowerQuery)) ||
+                (s.amsT_AdmNo && String(s.amsT_AdmNo).toLowerCase().includes(lowerQuery)) ||
+                (s.username && String(s.username).toLowerCase().includes(lowerQuery)) ||
+                (s.password && String(s.password).toLowerCase().includes(lowerQuery)) ||
+                (s.asmcL_ClassName && String(s.asmcL_ClassName).toLowerCase().includes(lowerQuery)) ||
+                (s.asmC_SectionName && String(s.asmC_SectionName).toLowerCase().includes(lowerQuery)) ||
+                (s.amsT_MobileNo && String(s.amsT_MobileNo).toLowerCase().includes(lowerQuery)) ||
+                (s.amsT_emailId && String(s.amsT_emailId).toLowerCase().includes(lowerQuery))
+            );
+        });
+    }, [students, searchQuery]);
+
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withDefault(10));
+
+    const paginatedStudents = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        return filteredStudents.slice(startIndex, startIndex + pageSize);
+    }, [filteredStudents, currentPage, pageSize]);
 
     useEffect(() => {
         const fetchInitial = async () => {
@@ -183,6 +212,7 @@ export default function StudentPasswordCreationPage() {
                             setSelectedStudents([]);
                             setHasSearched(false);
                         }}
+                        isLoading={tableLoading}
                     />
                 )}
             </CollapsibleSection>
@@ -193,11 +223,11 @@ export default function StudentPasswordCreationPage() {
                         {students.length > 0 ? (
                             <>
                                 <GenericDataTable<ICredentialStudent>
-                                    data={students}
+                                    data={paginatedStudents}
                                     columns={columns}
                                     isLoading={tableLoading}
                                     onRowSelectionChange={setSelectedStudents}
-                                    totalItems={students.length}
+                                    totalItems={filteredStudents.length}
                                 />
 
                                 <div className='flex flex-wrap items-center justify-center gap-4 border-t pt-6'>

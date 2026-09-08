@@ -8,7 +8,7 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterCourse } from '@/hooks/hrms/useMasters';
 import type { IMasterCourseList } from '@/types/hrms/hrms-config/master';
 import { Plus, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import AddCourseForm from './_components/add-form';
 import { columns } from './_components/columns';
 import ReorderCourseForm from './_components/reorder-form';
@@ -18,16 +18,17 @@ import UpdateCourseForm from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterCoursePage(props: { searchParams: SearchParams }) {
-    const [searchParams, setSearchParams] = useState<any>({});
+    // const [searchParams, setSearchParams] = useState<any>({});
+    const searchParams = use(props.searchParams);
 
-    useEffect(() => {
-        const fetchParams = async () => {
-            const params = await props.searchParams;
-            // Override page and page_size to fetch all records for client-side filtering
-            setSearchParams({ ...params, page: 1, page_size: 10000 });
-        };
-        fetchParams();
-    }, [props.searchParams]);
+    // useEffect(() => {
+    //     const fetchParams = async () => {
+    //         const params = await props.searchParams;
+    //         // Override page and page_size to fetch all records for client-side filtering
+    //         setSearchParams({ ...params, page: 1, page_size: 10000 });
+    //     };
+    //     fetchParams();
+    // }, [props.searchParams]);
 
     const { data: response, isLoading, error } = useMasterCourse(searchParams);
 

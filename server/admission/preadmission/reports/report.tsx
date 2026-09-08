@@ -8,7 +8,13 @@ const formatDate = (date?: Date | null) => (date ? format(date, 'yyyy-MM-dd') : 
 export async function getStudentTcReport(data: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, ',ivrmmR_Name');
     const url = `/StudentTcReport/GetAdmissionTcReport?${urlParams}`;
-    return await api.post<any>('admission', url, data);
+    
+    // Merge searchParams into the body payload so the backend [FromBody] can read it
+    const payload = {
+        ...data,
+        ...searchParams,
+    };
+    return await api.post<any>('admission', url, payload);
 }
 export async function getMonthEndReport(data: any) {
     const url = `/monthendreport/GetMonthEndReport?AcayId=${data.ASMAY_Id}&Month=${data.month}&Year=${data.year}&AMC_Id=${data.AMC_Id}`;

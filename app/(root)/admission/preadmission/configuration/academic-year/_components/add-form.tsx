@@ -49,8 +49,8 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
             asmaY_NewFlg: false,
             asmaY_NewAdmissionFlg: false,
             asmaY_Order: 0,
-            asmaY_PreAdm_F_Time: '',
-            asmaY_PreAdm_T_Time: ''
+            asmaY_PreAdm_F_Time: '00:00',
+            asmaY_PreAdm_T_Time: '23:59'
         }
     });
 
@@ -1073,11 +1073,11 @@ export function TimeSpinnerField({
             <Label>{label}</Label>
             <div className='flex items-center gap-2'>
                 {/* Hours */}
-                <div className='flex flex-col items-center'>
+                <div className='flex flex-col items-center gap-0.5'>
                     <button
                         type='button'
                         onClick={() => emit((h % 12) + 1 || 12, m, localAmpm || 'AM')}
-                        className='rounded p-0.5 hover:bg-muted'>
+                        className='text-primary hover:text-primary/80 focus:outline-none'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
                     <input
@@ -1098,21 +1098,24 @@ export function TimeSpinnerField({
                             }
                             emit(num, m, localAmpm || 'AM');
                         }}
-                        className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                        className='flex h-8 w-11 items-center justify-center rounded-sm border border-blue-400 bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                     />
                     <button
                         type='button'
                         onClick={() => emit(((h - 2 + 12) % 12) + 1, m, localAmpm || 'AM')}
-                        className='rounded p-0.5 hover:bg-muted'>
+                        className='text-primary hover:text-primary/80 focus:outline-none'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
                 </div>
 
-                <span className='font-bold text-lg leading-none'>:</span>
+                <span className='font-bold text-lg leading-none mt-0'>:</span>
 
                 {/* Minutes */}
-                <div className='flex flex-col items-center'>
-                    <button type='button' onClick={() => emit(h, (m + 1) % 60, localAmpm || 'AM')} className='rounded p-0.5 hover:bg-muted'>
+                <div className='flex flex-col items-center gap-0.5'>
+                    <button 
+                        type='button' 
+                        onClick={() => emit(h, (m + 1) % 60, localAmpm || 'AM')} 
+                        className='text-primary hover:text-primary/80 focus:outline-none'>
                         <ChevronUp className='h-4 w-4' />
                     </button>
                     <input
@@ -1133,29 +1136,25 @@ export function TimeSpinnerField({
                             }
                             emit(h, num, localAmpm || 'AM');
                         }}
-                        className='flex h-9 w-12 items-center justify-center rounded-md border border-input bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+                        className='flex h-8 w-11 items-center justify-center rounded-sm border border-blue-400 bg-transparent text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
                     />
                     <button
                         type='button'
                         onClick={() => emit(h, (m - 1 + 60) % 60, localAmpm || 'AM')}
-                        className='rounded p-0.5 hover:bg-muted'>
+                        className='text-primary hover:text-primary/80 focus:outline-none'>
                         <ChevronDown className='h-4 w-4' />
                     </button>
                 </div>
 
                 {/* AM / PM select dropdown */}
-                <div className='flex flex-col items-center'>
-                    <button
-                        type='button'
-                        onClick={() => emit(h, m, (localAmpm || 'AM') === 'AM' ? 'PM' : 'AM')}
-                        className='rounded p-0.5 hover:bg-muted'>
-                        <ChevronUp className='h-4 w-4' />
-                    </button>
+                <div className='flex flex-col items-center gap-0.5 mt-0'>
+                    {/* Placeholder to align vertically with inputs that have top arrows */}
+                    <div className='h-4 w-4 mb-0.5'></div>
                     <select
                         ref={ampmRef}
                         value={localAmpm}
                         onChange={(e) => emit(h, m, e.target.value)}
-                        className='flex h-9 w-14 cursor-pointer appearance-none items-center justify-center rounded-md border border-input bg-transparent px-1 text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'>
+                        className='flex h-8 w-14 cursor-pointer appearance-none items-center justify-center rounded-sm border border-blue-400 bg-transparent px-1 text-center font-medium text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'>
                         <option value='' disabled className='hidden'>
                             --
                         </option>
@@ -1166,12 +1165,8 @@ export function TimeSpinnerField({
                             PM
                         </option>
                     </select>
-                    <button
-                        type='button'
-                        onClick={() => emit(h, m, (localAmpm || 'AM') === 'AM' ? 'PM' : 'AM')}
-                        className='rounded p-0.5 hover:bg-muted'>
-                        <ChevronDown className='h-4 w-4' />
-                    </button>
+                    {/* Placeholder to align vertically with inputs that have bottom arrows */}
+                    <div className='h-4 w-4 mt-0.5'></div>
                 </div>
             </div>
             {error && <p className='text-red-500 text-sm'>{error}</p>}

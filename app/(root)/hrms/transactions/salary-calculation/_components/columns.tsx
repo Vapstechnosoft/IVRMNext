@@ -24,13 +24,18 @@ interface SalaryCalculationColumnsProps {
     selectedEmployees: number[];
     onEmployeeSelect: (employeeId: number, selected: boolean) => void;
     onSelectAll: (selected: boolean) => void;
+    currentPage: number;
+    pageSize: number;
 }
 export function getSalaryCalculationColumns({
     employees,
     selectedEmployees,
     onEmployeeSelect,
-    onSelectAll
+    onSelectAll,
+    currentPage,
+    pageSize
 }: SalaryCalculationColumnsProps): ColumnDef<Employee>[] {
+    const pageOffset = (currentPage - 1) * pageSize;
     return [
         {
             id: 'select',
@@ -62,15 +67,15 @@ export function getSalaryCalculationColumns({
             header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
             cell: ({ row, table }) => {
                 const index = table.getSortedRowModel().rows.findIndex((r) => r.id === row.id);
-                return <div>{index + 1}</div>;
+                return <div>{pageOffset + index + 1}</div>;
             }
         },
         {
             accessorKey: 'HRME_EmployeeCode',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
             cell: ({ row }) => <div>{row.getValue('HRME_EmployeeCode')}</div>,
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         },
         {
             accessorKey: 'HRME_EmployeeFirstName',
@@ -81,8 +86,8 @@ export function getSalaryCalculationColumns({
                     `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
                 return <div>{fullName}</div>;
             },
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         }
     ];
 }

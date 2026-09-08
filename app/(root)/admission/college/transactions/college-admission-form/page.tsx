@@ -1,4 +1,4 @@
-import { getInitialData } from '@/server/admission/college/admission-form';
+import { getInitialData } from '@/server/college/CollegeAdmission/Transactions/clgadmission-form';
 import { AdmissionFormWrapper } from './_components/admission-form-wrapper';
 
 export const dynamic = 'force-dynamic';

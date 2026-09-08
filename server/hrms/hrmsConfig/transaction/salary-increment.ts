@@ -1,5 +1,6 @@
 'use server';
 import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import type {
     NewSalaryIncrementSaveRequest,
@@ -150,8 +151,59 @@ export async function deleteSalaryIncrement(id: number): Promise<ApiResponse<Sal
  * GET /api/TransEmployeeSalaryIncreementProcess/get_employee_increment_grid
  */
 export async function getEmployeeIncrementGrid(searchParams?: ApiSearchparams): Promise<ApiResponse<any[]>> {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'hrmE_EmployeeFirstName,hrmE_EmployeeCode,hrmeD_Name');
-    const url = `/api/TransEmployeeSalaryIncreementProcess/get_employee_increment_grid?${urlParams}`;
+    const session = await auth();
+    const MI_Id = session?.user?.mi_id || 30;
+
+    // Map frontend column IDs to backend anonymous type properties
+    const frontendToBackendMap: Record<string, string[]> = {
+        'employeeName': ['FirstName', 'LastName'],
+        'hrmD_DepartmentName': ['HRMD_DepartmentName'],
+        'hreiC_IncrementDate': ['HREIC_IncrementDate'],
+        'hrmeD_Name': ['HRMED_Name'],
+        'PreviousAmount': ['HREICED_PreviousAmount'],
+        'amount': ['Amount'],
+        'flag': ['Flag']
+    };
+
+    let backendSearchColumns: string[] = [];
+    if (searchParams?.search_columns) {
+        const frontendCols = searchParams.search_columns.split(',');
+        for (const col of frontendCols) {
+            if (frontendToBackendMap[col]) {
+                backendSearchColumns.push(...frontendToBackendMap[col]);
+            } else {
+                backendSearchColumns.push(col); // Fallback
+            }
+        }
+    }
+
+    if (backendSearchColumns.length === 0) {
+        backendSearchColumns = ['FirstName', 'LastName', 'HRMD_DepartmentName', 'HRMED_Name', 'HREICED_PreviousAmount', 'Amount', 'Flag'];
+    }
+
+    const searchColumns = backendSearchColumns.join(',');
+
+    let sortColumn = searchParams?.sort_column;
+    if (sortColumn && frontendToBackendMap[sortColumn]) {
+        sortColumn = frontendToBackendMap[sortColumn][0]; // Pick the first mapped column for sorting
+    }
+
+    // Build query parameters carefully like this update what are the columns to filter
+    let queryUrl = `MI_Id=${MI_Id}`;
+
+    if (searchParams) {
+        if (searchParams.page) queryUrl += `&page=${searchParams.page}`;
+        if (searchParams.page_size) queryUrl += `&page_size=${searchParams.page_size}`;
+        if (sortColumn) queryUrl += `&sort_column=${sortColumn}`;
+        if (searchParams.sort_direction) queryUrl += `&sort_direction=${searchParams.sort_direction}`;
+        if (searchParams.search_query) {
+            queryUrl += `&search_query=${encodeURIComponent(searchParams.search_query)}`;
+            queryUrl += `&search_column=${encodeURIComponent(searchColumns)}`;
+        }
+    }
+
+    const url = `/api/TransEmployeeSalaryIncreementProcess/get_employee_increment_grid?${queryUrl}`;
+    
     try {
         const response = await api.get<any[]>('hrms', url);
         return response;

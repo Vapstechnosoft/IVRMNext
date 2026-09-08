@@ -14,6 +14,7 @@ import {
     EyeOff,
     KeyRound,
     Lock,
+    Loader2,
     Mail,
     Newspaper,
     Send,
@@ -61,6 +62,20 @@ export default function SigninForm() {
         // Force light mode for auth page
         document.documentElement.classList.remove('dark');
         document.documentElement.classList.add('light');
+
+        // Check if user was logged in previously (session expired and redirected here)
+        if (typeof window !== 'undefined' && sessionStorage.getItem('isLoggedIn') === 'true') {
+            const checkSessionExpired = async () => {
+                try {
+                    const Swal = (await import('sweetalert2')).default;
+                    await Swal.fire('Your Session has been Expired.....Please Re-login');
+                } catch (err) {
+                    console.error('Failed to load SweetAlert2', err);
+                }
+                sessionStorage.removeItem('isLoggedIn');
+            };
+            checkSessionExpired();
+        }
     }, []);
 
     const {
@@ -318,11 +333,10 @@ export default function SigninForm() {
                                     className={`btn-premium-primary ${isPending ? 'is-authenticating' : ''}`}
                                     disabled={isPending}>
                                     {isPending ? (
-                                        <div className='loading-spinner'>
-                                            <div className='dot' />
-                                            <div className='dot' />
-                                            <div className='dot' />
-                                        </div>
+                                        <>
+                                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                            <span>Signing In...</span>
+                                        </>
                                     ) : (
                                         <>
                                             <span>Sign In</span>

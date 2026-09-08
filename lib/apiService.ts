@@ -32,6 +32,7 @@ export type ApiBaseUrlKey =
     | 'default'
     | 'preadmission'
     | 'admission'
+    | 'college'
     | 'fees'
     | 'exam'
     | 'naac'
@@ -50,7 +51,8 @@ export type ApiBaseUrlKey =
     | 'lessonplanner'
     | 'transport'
     | 'pettycashandassettracking'
-    | 'hrmsrecruitment';
+    | 'hrmsrecruitment'
+    | 'collegepreadmission';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -83,7 +85,10 @@ class ApiService {
             lessonplanner: process.env.NEXT_PUBLIC_LESSONPLANNER_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             transport: process.env.NEXT_PUBLIC_TRANSPORT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             pettycashandassettracking: process.env.NEXT_PUBLIC_PETTYCASH_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-            hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
+            hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            college: process.env.NEXT_PUBLIC_COLLEGE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+            collegepreadmission: process.env.NEXT_PUBLIC_COLLEGEPREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
+
         };
 
         // Debug: info base URLs in development
@@ -173,6 +178,7 @@ class ApiService {
                             if (currentTimestamp >= session.expires_at) {
                                 const Swal = (await import('sweetalert2')).default;
                                 await signOut({ redirect: false });
+                                sessionStorage.removeItem('isLoggedIn'); // Prevent double Swal on the sign-in page
                                 await Swal.fire('Your Session has been Expired.....Please Re-login');
                                 window.location.href = '/sign-in';
                                 return Promise.reject(new Error('Session Expired'));
@@ -209,6 +215,7 @@ class ApiService {
                             const { signOut } = await import('next-auth/react');
                             const Swal = (await import('sweetalert2')).default;
                             await signOut({ redirect: false });
+                            sessionStorage.removeItem('isLoggedIn'); // Prevent double Swal on the sign-in page
                             await Swal.fire('Your Session has been Expired.....Please Re-login');
                             window.location.href = '/sign-in';
                         } else {

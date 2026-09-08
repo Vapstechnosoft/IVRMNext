@@ -203,6 +203,7 @@ const SubjectTableRow = React.memo(
         setErrors,
         validateRowWithZod
     }: SubjectTableRowProps) => {
+        const isChecked = !!s.checkedvalue;
         const hasMaxMarks =
             s.eyceS_MaxMarks !== '' && s.eyceS_MaxMarks !== null && s.eyceS_MaxMarks !== undefined && s.eyceS_MaxMarks !== 0;
         const hasMinMarks =
@@ -213,17 +214,17 @@ const SubjectTableRow = React.memo(
             s.eyceS_MarksEntryMax !== undefined &&
             s.eyceS_MarksEntryMax !== 0;
 
-        const canToggleSubFlags = hasMaxMarks && hasMinMarks && hasEntryMax;
+        const canToggleSubFlags = isChecked && hasMaxMarks && hasMinMarks && hasEntryMax;
 
         const renderFieldError = (field: string) => {
-            if (!errors) return null;
+            if (!isChecked || !errors) return null;
             const msg = errors[field];
             if (!msg) return null;
             return <div className='mt-1 text-red-500 text-xs'>{msg}</div>;
         };
 
         return (
-            <tr className={index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
+            <tr className={!isChecked ? 'bg-slate-100/60 text-muted-foreground' : index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}>
                 <td className='border p-2 text-center align-top'>{index + 1}</td>
 
                 <td className='border p-2 text-center align-top'>
@@ -232,14 +233,15 @@ const SubjectTableRow = React.memo(
 
                 <td className='border p-2 align-top'>
                     <div className='text-sm'>
-                        <div className='font-medium'>{s.ismS_SubjectName}</div>
-                        <div className='text-slate-500 text-xs'>{s.ismS_SubjectCode ?? ''}</div>
+                        <div className={`font-medium ${!isChecked ? 'text-slate-500' : ''}`}>{s.ismS_SubjectName}</div>
+                        <div className='text-slate-400 text-xs'>{s.ismS_SubjectCode ?? ''}</div>
                     </div>
                 </td>
 
                 {/* Max Marks */}
                 <td className='w-28 border p-2 align-top'>
                     <Input
+                        disabled={!isChecked}
                         value={s.eyceS_MaxMarks === '' || s.eyceS_MaxMarks === 0 ? '' : String(s.eyceS_MaxMarks)}
                         onChange={(e) => {
                             const raw = e.target.value.replace(/\D/g, '');
@@ -254,6 +256,7 @@ const SubjectTableRow = React.memo(
                             }));
                         }}
                         onBlur={() => {
+                            if (!isChecked) return;
                             const rowErrors = validateRowWithZod(s);
                             setErrors((prev) => ({
                                 ...prev,
@@ -262,7 +265,7 @@ const SubjectTableRow = React.memo(
                         }}
                         placeholder='Enter Max Marks'
                         inputMode='numeric'
-                        className={`text-center ${errors?.eyceS_MaxMarks ? 'border-red-500' : ''}`}
+                        className={`text-center ${isChecked && errors?.eyceS_MaxMarks ? 'border-red-500' : ''}`}
                     />
                     {renderFieldError('eyceS_MaxMarks')}
                 </td>
@@ -270,6 +273,7 @@ const SubjectTableRow = React.memo(
                 {/* Min Marks */}
                 <td className='w-24 border p-2 align-top'>
                     <Input
+                        disabled={!isChecked}
                         value={s.eyceS_MinMarks === '' || s.eyceS_MinMarks === 0 ? '' : String(s.eyceS_MinMarks)}
                         onChange={(e) => {
                             const raw = e.target.value.replace(/\D/g, '');
@@ -283,6 +287,7 @@ const SubjectTableRow = React.memo(
                             }));
                         }}
                         onBlur={() => {
+                            if (!isChecked) return;
                             const rowErrors = validateRowWithZod(s);
                             setErrors((prev) => ({
                                 ...prev,
@@ -291,7 +296,7 @@ const SubjectTableRow = React.memo(
                         }}
                         placeholder='Enter Min Marks'
                         inputMode='numeric'
-                        className={`text-center ${errors?.eyceS_MinMarks ? 'border-red-500' : ''}`}
+                        className={`text-center ${isChecked && errors?.eyceS_MinMarks ? 'border-red-500' : ''}`}
                     />
                     {renderFieldError('eyceS_MinMarks')}
                 </td>
@@ -299,6 +304,7 @@ const SubjectTableRow = React.memo(
                 {/* Max Entry */}
                 <td className='w-28 border p-2 align-top'>
                     <Input
+                        disabled={!isChecked}
                         value={s.eyceS_MarksEntryMax === '' || s.eyceS_MarksEntryMax === 0 ? '' : String(s.eyceS_MarksEntryMax)}
                         onChange={(e) => {
                             const raw = e.target.value.replace(/\D/g, '');
@@ -312,6 +318,7 @@ const SubjectTableRow = React.memo(
                             }));
                         }}
                         onBlur={() => {
+                            if (!isChecked) return;
                             const rowErrors = validateRowWithZod(s);
                             setErrors((prev) => ({
                                 ...prev,
@@ -320,7 +327,7 @@ const SubjectTableRow = React.memo(
                         }}
                         placeholder='Enter Max Entry'
                         inputMode='numeric'
-                        className={`text-center ${errors?.eyceS_MarksEntryMax ? 'border-red-500' : ''}`}
+                        className={`text-center ${isChecked && errors?.eyceS_MarksEntryMax ? 'border-red-500' : ''}`}
                     />
                     {renderFieldError('eyceS_MarksEntryMax')}
                 </td>
@@ -364,19 +371,24 @@ const SubjectTableRow = React.memo(
                 {/* Marks / Grade options */}
                 <td className='border p-2 align-top'>
                     <RadioGroup
+                        disabled={!isChecked}
                         value={s.eyceS_MarksGradeEntryFlg ?? 'M'}
                         onValueChange={(val) => updateSubjectField(s.ismS_Id, 'eyceS_MarksGradeEntryFlg', val)}
                         className='flex items-center justify-center gap-6'>
                         <div className='flex items-center gap-2'>
-                            <RadioGroupItem value='M' id={`marks-${s.ismS_Id}`} />
-                            <label htmlFor={`marks-${s.ismS_Id}`} className='cursor-pointer select-none font-medium text-sm leading-none'>
+                            <RadioGroupItem value='M' id={`marks-${s.ismS_Id}`} disabled={!isChecked} />
+                            <label
+                                htmlFor={`marks-${s.ismS_Id}`}
+                                className={`select-none font-medium text-sm leading-none ${!isChecked ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer'}`}>
                                 Marks
                             </label>
                         </div>
 
                         <div className='flex items-center gap-2'>
-                            <RadioGroupItem value='G' id={`grade-${s.ismS_Id}`} />
-                            <label htmlFor={`grade-${s.ismS_Id}`} className='cursor-pointer select-none font-medium text-sm leading-none'>
+                            <RadioGroupItem value='G' id={`grade-${s.ismS_Id}`} disabled={!isChecked} />
+                            <label
+                                htmlFor={`grade-${s.ismS_Id}`}
+                                className={`select-none font-medium text-sm leading-none ${!isChecked ? 'cursor-not-allowed text-muted-foreground' : 'cursor-pointer'}`}>
                                 Grade
                             </label>
                         </div>
@@ -386,6 +398,7 @@ const SubjectTableRow = React.memo(
                 {/* Marks Display */}
                 <td className='border p-2 text-center align-top'>
                     <Checkbox
+                        disabled={!isChecked}
                         checked={!!s.eyceS_MarksDisplayFlg}
                         onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_MarksDisplayFlg', !!v)}
                     />
@@ -394,6 +407,7 @@ const SubjectTableRow = React.memo(
                 {/* Grade Display */}
                 <td className='border p-2 text-center align-top'>
                     <Checkbox
+                        disabled={!isChecked}
                         checked={!!s.eyceS_GradeDisplayFlg}
                         onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_GradeDisplayFlg', !!v)}
                     />
@@ -402,6 +416,7 @@ const SubjectTableRow = React.memo(
                 {/* Apply to Result */}
                 <td className='border p-2 text-center align-top'>
                     <Checkbox
+                        disabled={!isChecked}
                         checked={!!s.eyceS_AplResultFlg}
                         onCheckedChange={(v) => updateSubjectField(s.ismS_Id, 'eyceS_AplResultFlg', !!v)}
                     />
@@ -409,6 +424,7 @@ const SubjectTableRow = React.memo(
 
                 <td className='w-[150px] min-w-[150px] max-w-[150px] border p-2 align-top'>
                     <Select
+                        disabled={!isChecked}
                         value={s.emgR_Id ? String(s.emgR_Id) : ''}
                         onValueChange={(val) => {
                             const num = Number(val);
@@ -432,7 +448,7 @@ const SubjectTableRow = React.memo(
                                 };
                             });
                         }}>
-                        <SelectTrigger className='w-full'>
+                        <SelectTrigger className='w-full' disabled={!isChecked}>
                             <SelectValue placeholder='Select Grade' />
                         </SelectTrigger>
 
@@ -678,6 +694,13 @@ export default function SubjectTableWithValidation({
     // ---------- Update helpers ----------
     const setSubjectChecked = useCallback((id: number, checked: boolean) => {
         setSubjects((prev) => prev.map((s) => (s.ismS_Id === id ? { ...s, checkedvalue: checked } : s)));
+        if (!checked) {
+            setErrors((prev) => {
+                if (!prev[id]) return prev;
+                const { [id]: _, ...rest } = prev;
+                return rest;
+            });
+        }
     }, []);
 
     // Validate a single row using Zod — this returns an object mapping field->message (or empty object)
@@ -756,36 +779,43 @@ export default function SubjectTableWithValidation({
 
         if (field === 'selectAll') {
             setSubjects((s) => s.map((row) => ({ ...row, checkedvalue: !!value })));
+            if (!value) {
+                setErrors({});
+            }
             return;
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'subExam') {
-            setSubjects((s) => s.map((row) => ({ ...row, eyceS_SubExamFlg: !!value })));
+            setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_SubExamFlg: !!value } : row)));
             return;
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'subSubject') {
-            setSubjects((s) => s.map((row) => ({ ...row, eyceS_SubSubjectFlg: !!value })));
+            setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_SubSubjectFlg: !!value } : row)));
             return;
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'marksDisplay') {
-            setSubjects((s) => s.map((row) => ({ ...row, eyceS_MarksDisplayFlg: !!value })));
+            setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_MarksDisplayFlg: !!value } : row)));
             return;
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'gradeDisplay') {
-            setSubjects((s) => s.map((row) => ({ ...row, eyceS_GradeDisplayFlg: !!value })));
+            setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_GradeDisplayFlg: !!value } : row)));
             return;
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'applyToResult') {
-            setSubjects((s) => s.map((row) => ({ ...row, eyceS_AplResultFlg: !!value })));
+            setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_AplResultFlg: !!value } : row)));
             return;
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'maxMarks') {
-            // Bulk update and validate all rows
+            // Bulk update and validate checked rows
             const numOrEmpty = value === '' ? '' : Number(value);
             setSubjects((prev) =>
-                prev.map((row) => ({
-                    ...row,
-                    eyceS_MaxMarks: toNumOrEmpty(value)
-                }))
+                prev.map((row) =>
+                    row.checkedvalue
+                        ? {
+                              ...row,
+                              eyceS_MaxMarks: toNumOrEmpty(value)
+                          }
+                        : row
+                )
             );
 
             // run validation after state update
@@ -793,6 +823,10 @@ export default function SubjectTableWithValidation({
                 setErrors((prevErrs) => {
                     const copy: Record<number, Record<string, string>> = { ...prevErrs };
                     subjects.forEach((row) => {
+                        if (!row.checkedvalue) {
+                            delete copy[row.ismS_Id];
+                            return;
+                        }
                         const candidate = { ...row, eyceS_MaxMarks: numOrEmpty } as NormalizedSubject;
                         const rowValidation = validateRowWithZod(candidate);
                         if (Object.keys(rowValidation).length === 0) {
@@ -809,12 +843,18 @@ export default function SubjectTableWithValidation({
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'minMarks') {
             const numOrEmpty = value === '' ? '' : Number(value);
-            setSubjects((s) => s.map((row) => ({ ...row, eyceS_MinMarks: numOrEmpty })));
+            setSubjects((s) =>
+                s.map((row) => (row.checkedvalue ? { ...row, eyceS_MinMarks: numOrEmpty } : row))
+            );
 
             setTimeout(() => {
                 setErrors((prevErrs) => {
                     const copy: Record<number, Record<string, string>> = { ...prevErrs };
                     subjects.forEach((row) => {
+                        if (!row.checkedvalue) {
+                            delete copy[row.ismS_Id];
+                            return;
+                        }
                         const candidate = { ...row, eyceS_MinMarks: numOrEmpty } as NormalizedSubject;
                         const rowValidation = validateRowWithZod(candidate);
                         if (Object.keys(rowValidation).length === 0) {
@@ -831,12 +871,18 @@ export default function SubjectTableWithValidation({
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'maxEntry') {
             const numOrEmpty = value === '' ? '' : Number(value);
-            setSubjects((s) => s.map((row) => ({ ...row, eyceS_MarksEntryMax: numOrEmpty })));
+            setSubjects((s) =>
+                s.map((row) => (row.checkedvalue ? { ...row, eyceS_MarksEntryMax: numOrEmpty } : row))
+            );
 
             setTimeout(() => {
                 setErrors((prevErrs) => {
                     const copy: Record<number, Record<string, string>> = { ...prevErrs };
                     subjects.forEach((row) => {
+                        if (!row.checkedvalue) {
+                            delete copy[row.ismS_Id];
+                            return;
+                        }
                         const candidate = { ...row, eyceS_MarksEntryMax: numOrEmpty } as NormalizedSubject;
                         const rowValidation = validateRowWithZod(candidate);
                         if (Object.keys(rowValidation).length === 0) {

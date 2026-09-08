@@ -243,7 +243,9 @@ export default function UpdateMasterFeeConfigForm({ onSuccess, feeconfigname = '
                 rolenme: 't',
                 FMC_Receipt_SignatoryImage: '',
                 finemapping: false,
-                fineenabledisable: false
+                fineenabledisable: false,
+
+                FMC_FineEnableDisable: defaultString(data.FMC_FineEnableDisable),
                 // userid: 22
             };
 

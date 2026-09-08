@@ -87,16 +87,18 @@ export const documentViewReportColumns: ColumnDef<IPreadmissionDocumentView>[] =
                         </DialogHeader>
                         <div className='flex-1 overflow-auto'>
                             {isLoading ? (
-                                <div className='flex items-center justify-center p-10'>
-                                    <Spinner />
+                                <div className='flex flex-col items-center justify-center p-10 space-y-4'>
+                                    <Spinner className='bg-primary' size='lg' />
+                                    <p className='text-sm text-muted-foreground font-medium'>Loading student details...</p>
                                 </div>
                             ) : (
                                 <ApplicationPrintView
                                     printRef={printRef}
                                     data={{
-                                        ...studentDetails?.data,
-                                        academic_year: studentDetails?.data?.academic_year || row.original.academic_year || '',
-                                        asmcL_ClassName: studentDetails?.data?.asmcL_ClassName || row.original.applied_class_name || ''
+                                        ...studentDetails,
+                                        ...(studentDetails?.data || {}),
+                                        academic_year: studentDetails?.data?.academic_year || studentDetails?.academic_year || row.original.academic_year || '',
+                                        asmcL_ClassName: studentDetails?.data?.asmcL_ClassName || studentDetails?.asmcL_ClassName || row.original.applied_class_name || ''
                                     }}
                                 />
                             )}
@@ -137,16 +139,37 @@ export const documentViewReportColumns: ColumnDef<IPreadmissionDocumentView>[] =
         header: ({ column }) => <DataTableColumnHeader column={column} title='Download' className='font-bold text-black' />,
         cell: ({ row }) => {
             const docs = row.original.doclist || [];
+            
+            const handleDownload = async (url: string, fileName: string) => {
+                try {
+                    const response = await fetch(url);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const blob = await response.blob();
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = blobUrl;
+                    const extension = url.split('.').pop() || '';
+                    const hasExtension = fileName.includes('.');
+                    link.download = hasExtension ? fileName : `${fileName}.${extension}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(blobUrl);
+                } catch (error) {
+                    console.error("Error downloading the file:", error);
+                    window.open(url, '_blank');
+                }
+            };
+
             return (
                 <div className='flex flex-col gap-1'>
                     {docs.map((doc: any, index: number) => (
-                        <a
+                        <span
                             key={index}
-                            href={doc.document_Path}
-                            download
-                            className='flex items-center gap-1 text-blue-600 text-xs hover:underline'>
+                            onClick={() => handleDownload(doc.document_Path, doc.amsmD_DocumentName || 'download')}
+                            className='flex items-center gap-1 text-blue-600 text-xs hover:underline cursor-pointer'>
                             <Download className='h-3 w-3' /> {doc.amsmD_DocumentName}
-                        </a>
+                        </span>
                     ))}
                 </div>
             );

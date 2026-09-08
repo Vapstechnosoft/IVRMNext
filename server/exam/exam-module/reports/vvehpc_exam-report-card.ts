@@ -4,15 +4,10 @@ import { api } from '@/lib/apiService';
 import { IMasterInstitution } from '@/types/exam/exam-module/report';
 
 export async function getExamReportCard(data: any) {
-    try {
-        const url = '/individual_exam_report_card/exam_report_card';
-        console.info('url', url);
-        console.info('data', data);
-        return await api.post<any>('exam', url, data);
-    } catch (error) {
-        console.warn('getExamReportCard error:', error);
-        return { success: false, data: null };
-    }
+    const url = '/individual_exam_report_card/exam_report_card';
+    console.info('url', url);
+    console.info('data', data);
+    return await api.post<any>('exam', url, data);
 }
 
 //Elective Subject Report
@@ -52,57 +47,37 @@ export async function getExamElectivesReport(payload: any) {
     return res;
 }
 
-function extractArray(response: any): any[] {
-    if (!response) return [];
-    if (Array.isArray(response)) return response;
-    if (Array.isArray(response.data)) return response.data;
-    if (Array.isArray(response.$values)) return response.$values;
-
-    if (typeof response === 'object') {
-        for (const key of Object.keys(response)) {
-            if (Array.isArray(response[key])) {
-                return response[key];
-            }
-            if (response[key] && typeof response[key] === 'object' && Array.isArray(response[key].$values)) {
-                return response[key].$values;
-            }
-        }
-    }
-
-    return [];
-}
-
 export async function getCategoryDropDownByYearList(asmaY_Id: number) {
     const url = `/exam_master_category/exam_category_drop_down_by_academic_year_list/${asmaY_Id}`;
-    const response = await api.get<any>('exam', url);
-    return extractArray(response);
+    const response = await api.get<{ data: any[] }>('exam', url);
+    return response.data || [];
 }
 
 export async function getClassDropDownByYearCategoryList(asmaY_Id: number, emcA_Id?: number | 'All') {
     const id = emcA_Id === 'All' ? 0 : emcA_Id || 0;
     const url = `/exam_master_category/class_drop_down_by_academic_year_list/${asmaY_Id}/${id}`;
-    const response = await api.get<any>('exam', url);
-    return extractArray(response);
+    const response = await api.get<{ data: any[] }>('exam', url);
+    return response.data || [];
 }
 
 export async function getSectionDropDownByYearCategoryClassList(asmaY_Id: number, emcA_Id: number, asmcL_Id: number) {
     const url = `/exam_master_category/sections_dropdown_by_year_category_class/${asmaY_Id}/${emcA_Id}/${asmcL_Id}`;
-    const response = await api.get<any>('exam', url);
-    return extractArray(response);
+    const response = await api.get<{ data: any[] }>('exam', url);
+    return response.data || [];
 }
 
 export async function getSubjectGroupDropDownByYearCategoryList(asmaY_Id: number, emcA_Id?: number | 'All') {
     const id = emcA_Id === 'All' ? 0 : emcA_Id || 0;
     const url = `/baldwin_elective_report/group_drop_down_by_year_category_with_flag?asmay_id=${asmaY_Id}&emca_id=${id}`;
-    const response = await api.get<any>('exam', url);
-    return extractArray(response);
+    const response = await api.get<{ data: any[] }>('exam', url);
+    return response.data || [];
 }
 
 export async function getSubjectDropDownByYearCategorySubjectGroupList(asmaY_Id: number, emcA_Id: number | 'All', emG_Id: number) {
     const id = emcA_Id === 'All' ? 0 : emcA_Id;
     const url = `/baldwin_elective_report/subjects_drop_down_by_year_category_group_with_flag?asmay_id=${asmaY_Id}&emca_id=${id}&emg_id=${emG_Id}`;
-    const response = await api.get<any>('exam', url);
-    return extractArray(response);
+    const response = await api.get<{ data: any[] }>('exam', url);
+    return response.data || [];
 }
 
 export async function getMasterInstitution() {
