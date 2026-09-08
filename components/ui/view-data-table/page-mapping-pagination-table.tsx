@@ -198,12 +198,14 @@ export function PageMappingPaginationTable<T>({
             <div className='mt-6 flex pb-2'>
                 <div className='flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-2 py-1 shadow-sm'>
                     <button
+                        type="button"
                         onClick={() => setCurrentPage(1)}
                         disabled={currentPage === 1}
                         className='p-1 text-gray-400 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50'>
                         <ChevronsLeft className='h-4 w-4' />
                     </button>
                     <button
+                        type="button"
                         onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
                         className='mr-2 p-1 text-gray-400 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50'>
@@ -218,6 +220,7 @@ export function PageMappingPaginationTable<T>({
                         ) : (
                             <button
                                 key={pageNum}
+                                type="button"
                                 onClick={() => setCurrentPage(pageNum as number)}
                                 className={`flex h-8 min-w-[32px] items-center justify-center rounded-full font-medium text-sm transition-all ${
                                     currentPage === pageNum
@@ -230,12 +233,14 @@ export function PageMappingPaginationTable<T>({
                     )}
 
                     <button
+                        type="button"
                         onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
                         className='ml-2 p-1 text-gray-400 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50'>
                         <ChevronRight className='h-4 w-4' />
                     </button>
                     <button
+                        type="button"
                         onClick={() => setCurrentPage(totalPages)}
                         disabled={currentPage === totalPages}
                         className='p-1 text-gray-400 transition-colors hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-50'>
