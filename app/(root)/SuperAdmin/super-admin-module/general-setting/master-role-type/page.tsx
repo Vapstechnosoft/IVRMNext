@@ -10,7 +10,7 @@ import { tableSearchVariables } from '@/lib/data-table.config';
 import { getMasterRoleTypes } from '@/server/super-admin/super-admin-module/general-setting/master-role-type';
 import type { IMasterRoleType } from '@/types/super-admin/super-admin-module/general-setting/master-role-type';
 import { Plus, X } from 'lucide-react';
-import { parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import React, { useEffect, useState } from 'react';
 import AddMasterRoleTypeForm from './_components/add-form';
 import { masterRoleTypeColumns } from './_components/columns';
@@ -29,16 +29,30 @@ function MasterRoleTypePageContent() {
     const [data, setData] = useState<IMasterRoleType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Pagination State
+    // Pagination & Search State synced with URL
     const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
     const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('asc')
+    );
+    const [searchColumns] = useQueryState(
+        tableSearchVariables.search_columns,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
     const [totalItems, setTotalItems] = useState(0);
 
     const fetchData = React.useCallback(async () => {
         setIsLoading(true);
         const searchParams = {
             page: page,
-            page_size: pageSize
+            page_size: pageSize,
+            search_query: searchQuery,
+            sort_column: sortBy,
+            sort_direction: sortDirection,
+            search_columns: searchColumns
         };
 
         try {
@@ -52,7 +66,7 @@ function MasterRoleTypePageContent() {
         } finally {
             setIsLoading(false);
         }
-    }, [page, pageSize]);
+    }, [page, pageSize, searchQuery, sortBy, sortDirection, searchColumns]);
 
     useEffect(() => {
         fetchData();

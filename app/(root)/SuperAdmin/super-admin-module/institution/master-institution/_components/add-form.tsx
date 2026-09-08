@@ -8,7 +8,7 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCountryDropdown, useStateDropdown, useTrustNameDropdown } from '@/hooks/super-admin/super-admin-module/use-master-institution';
 import { institutionMasterSchema } from '@/schemas/super-admin/super-admin-module/institution/master-institution';
-import type { ICountryDropdown, IStateDropdown } from '@/types/super-admin/super-admin-module/institution/master-institution';
+import type { ICountryDropdown, IStateDropdown, IMasterInstitution } from '@/types/super-admin/super-admin-module/institution/master-institution';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, Trash2, X } from 'lucide-react';
 import React, { useEffect } from 'react';
@@ -26,12 +26,18 @@ const vcMasterData = [
 ];
 
 interface AddMasterInstitutionFormProps {
+    initialData?: IMasterInstitution | null;
     onSuccess?: () => void;
     onRefresh?: () => void;
     className?: string;
 }
 
-export default function AddMasterInstitutionForm({ onSuccess, onRefresh, className = '' }: AddMasterInstitutionFormProps) {
+export default function AddMasterInstitutionForm({
+    initialData,
+    onSuccess,
+    onRefresh,
+    className = ''
+}: AddMasterInstitutionFormProps) {
     const {
         control,
         register,
@@ -121,12 +127,78 @@ export default function AddMasterInstitutionForm({ onSuccess, onRefresh, classNa
     const { data: trustNameResponse, isLoading: isTrustNamesLoading } = useTrustNameDropdown();
     const trustNameList = (trustNameResponse?.data || []) as any[];
 
-    // Reset state when country changes
+    // Populate data when initialData is provided
     useEffect(() => {
-        if (countryId) {
+        if (initialData) {
+            reset({
+                mI_Id: initialData.mI_Id,
+                mO_Id: initialData.mO_Id,
+                mO_Name: initialData.mO_Name || initialData.organisationName || '',
+                mI_OrganisationType: initialData.mI_OrganisationType || '',
+                mI_Address1: initialData.mI_Address1 || '',
+                mI_Address2: initialData.mI_Address2 || '',
+                mI_Address3: initialData.mI_Address3 || '',
+                ivrmmcT_Name: initialData.ivrmmcT_Name || '',
+                ivrmmC_Id: initialData.ivrmmC_Id,
+                ivrmmS_Id: initialData.ivrmmS_Id,
+                mI_Pincode: initialData.mI_Pincode ? String(initialData.mI_Pincode) : '',
+                mI_FaxNo: initialData.mI_FaxNo || '',
+                mI_Name: initialData.mI_Name || '',
+                mI_Affiliation: initialData.mI_Affiliation || '',
+                mI_Subdomain: initialData.mI_Subdomain || '',
+                mI_CreditType: initialData.mI_CreditType || '',
+                mI_EntityId: initialData.mI_EntityId || '',
+                mI_ContactDetails: initialData.mI_ContactDetails || '',
+                mI_SMSCountAlert: initialData.mI_SMSCountAlert || '',
+                mI_AboutInstitute: initialData.mI_AboutInstitute || '',
+                mI_TAN: initialData.mI_TAN || '',
+                mI_PAN: initialData.mI_PAN || '',
+                mI_80GRegNo: initialData.mI_80GRegNo || '',
+                mI_SchoolCollegeFlag: initialData.mI_SchoolCollegeFlag || '',
+                mI_NAAC_InstitutionTypeFlg: initialData.mI_NAAC_InstitutionTypeFlg || '',
+                mI_NAAC_SubInstitutionTypeFlg: initialData.mI_NAAC_SubInstitutionTypeFlg || '',
+                mI_DateSeparator: initialData.mI_DateSeparator || '/',
+                mI_GradingSystem: initialData.mI_GradingSystem || '',
+                mI_FontSize: initialData.mI_FontSize || '12',
+                mI_FontColor: initialData.mI_FontColor || '',
+                mI_FormColor: initialData.mI_FormColor || '',
+                mI_WeekStartDay: initialData.mI_WeekStartDay || 'Monday',
+                mI_DateFormat: initialData.mI_DateFormat || 'DD/MM/YYYY',
+                mI_FranchiseFlag: initialData.mI_FranchiseFlag || false,
+                mI_VCStudentFlag: initialData.mI_VCStudentFlag || '',
+                mI_VCOthersFlag: initialData.mI_VCOthersFlag || '',
+                mI_MSTeamsClientId: initialData.mI_MSTeamsClientId || '',
+                mI_MSTeamsTenentId: initialData.mI_MSTeamsTenentId || '',
+                mI_MSTemasClinetSecretCode: initialData.mI_MSTemasClinetSecretCode || '',
+                mI_MSTeamsAppAccessTockenURL: initialData.mI_MSTeamsAppAccessTockenURL || '',
+                mI_MSTeamsAdminUsername: initialData.mI_MSTeamsAdminUsername || '',
+                mI_MSTeamsUserAceessTockenURL: initialData.mI_MSTeamsUserAceessTockenURL || '',
+                mI_MSTeamsMeetingScheduleURL: initialData.mI_MSTeamsMeetingScheduleURL || '',
+                mI_MSTeamsGrantType: initialData.mI_MSTeamsGrantType || '',
+                mI_MSTeamsScope: initialData.mI_MSTeamsScope || '',
+                mI_MSTeamsAdminPassword: initialData.mI_MSTeamsAdminPassword || '',
+                phones: [{ mipN_PhoneNo: '' }],
+                mobiles: [{ mimN_MobileNo: '' }],
+                emails: [{ miE_EmailId: '' }],
+                emails1: [{ mI_SMSAlertToemailids: '' }],
+                vcDetails: vcMasterData.map((vc) => ({
+                    mvidcoN_Id: vc.mvidcoN_Id,
+                    checkedvalue: false,
+                    mvidconinT_HostedURL: ''
+                }))
+            });
+            if (initialData.mI_MSTeamsClientId) {
+                setShowMSTeams(true);
+            }
+        }
+    }, [initialData, reset]);
+
+    // Reset state when country changes manually (not on initial load)
+    useEffect(() => {
+        if (countryId && !initialData) {
             setValue('ivrmmS_Id', undefined as any);
         }
-    }, [countryId, setValue]);
+    }, [countryId, initialData, setValue]);
 
     // Dynamic Lists
     const { fields: phoneFields, append: appendPhone, remove: removePhone } = useFieldArray({ control, name: 'phones' });
@@ -139,7 +211,7 @@ export default function AddMasterInstitutionForm({ onSuccess, onRefresh, classNa
         try {
             console.log('Form Data:', data);
             await new Promise((resolve) => setTimeout(resolve, 1000));
-            toast.success('Institution Master added successfully (Simulation)');
+            toast.success(initialData ? 'Institution Master updated successfully' : 'Institution Master added successfully');
             reset();
             onRefresh?.();
             onSuccess?.();
@@ -147,6 +219,7 @@ export default function AddMasterInstitutionForm({ onSuccess, onRefresh, classNa
             toast.error(error.message || 'Something went wrong');
         }
     };
+
 
     return (
         <div className={className}>
