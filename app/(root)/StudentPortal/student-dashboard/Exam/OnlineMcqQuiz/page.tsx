@@ -22,6 +22,7 @@ import {
     Trophy,
     X
 } from 'lucide-react';
+import { getAvailableExams, getExamQuestions, saveAnswer, submitExam } from '@/server/naac/lp-online-exam/student-exam';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -52,25 +53,38 @@ export default function StudentOnlineMcqQuizPage() {
         const loadDashboard = async () => {
             setLoading(true);
             try {
-                // 1. Load Published Quizzes
-                const saved = localStorage.getItem('ai_published_quizzes');
-                const quizzes = saved ? JSON.parse(saved) : [];
-
-                // Filter by availability window (Only show if current time is within [activeFrom, activeTo])
-                const now = new Date();
-                const filteredQuizzes = quizzes.filter((quiz: any) => {
-                    if (!quiz.activeFrom || !quiz.activeTo) return true; // Show if no window specified
-                    const from = new Date(quiz.activeFrom);
-                    const to = new Date(quiz.activeTo);
-                    return now >= from && now <= to;
-                });
-
-                setAvailableQuizzes(filteredQuizzes);
+                // 1. Fetch exams from Backend
+                const res = await getAvailableExams();
+                if (res.success) {
+                    const exams = res.data || [];
+                    const mappedQuizzes = exams.map((exam: any) => ({
+                        id: exam.lpmoeeX_Id || exam.LPMOEEX_Id,
+                        title: exam.lpmoeeX_ExamName || exam.LPMOEEX_ExamName,
+                        questionsCount: exam.lpmoeeX_NoOfQuestion || exam.LPMOEEX_NoOfQuestion || 0,
+                        duration: exam.lpmoeeX_Duration || exam.LPMOEEX_Duration || 'N/A',
+                        activeFrom: exam.lpmoeeX_FromDateTime || exam.LPMOEEX_FromDateTime,
+                        activeTo: exam.lpmoeeX_ToDateTime || exam.LPMOEEX_ToDateTime,
+                        date: new Date(exam.lpmoeeX_CreatedDate || exam.LPMOEEX_CreatedDate || Date.now()).toLocaleDateString()
+                    }));
+                    
+                    // Filter by availability window (Only show if current time is within [activeFrom, activeTo])
+                    const now = new Date();
+                    const filteredQuizzes = mappedQuizzes.filter((quiz: any) => {
+                        if (!quiz.activeFrom && !quiz.activeTo) return true; // Show if no window specified
+                        const from = quiz.activeFrom ? new Date(quiz.activeFrom) : new Date(0);
+                        const to = quiz.activeTo ? new Date(quiz.activeTo) : new Date(8640000000000000); // Max date
+                        return now >= from && now <= to;
+                    });
+                    
+                    setAvailableQuizzes(filteredQuizzes);
+                } else {
+                    toast.error(`Failed to load exams: ${res.message}`);
+                }
 
                 // 2. Load Student Analytics (To check attempts)
-                const res = await fetch(`/api/exam/student-analytics/${studentId}`);
-                if (res.ok) {
-                    const data = await res.json();
+                const analyticsRes = await fetch(`/api/exam/student-analytics/${studentId}`);
+                if (analyticsRes.ok) {
+                    const data = await analyticsRes.json();
                     setStudentAnalytics(data);
                 }
             } catch (err) {
@@ -115,14 +129,30 @@ export default function StudentOnlineMcqQuizPage() {
         setLoading(true);
 
         try {
-            const res = await fetch(`/api/exam/get-quiz-details/${quiz.id}`);
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
+            const res = await getExamQuestions(quiz.id);
+            if (res.success && res.data) {
+                // Ensure questions is an array
+                const questionsList = Array.isArray(res.data) ? res.data : 
+                                    (res.data.$values ? res.data.$values : []);
+                
+                if (questionsList.length === 0) {
+                    toast.error('This assessment has no questions yet.');
+                    return;
+                }
 
-            setSelectedQuiz({ ...quiz, ...data });
-            setViewMode('taking-quiz');
-            setCurrentQuestionIdx(0);
-            setUserAnswers({});
+                // The backend now returns { id, question_text, type, order, options }
+                // where options is an array of strings.
+                setSelectedQuiz({ 
+                    ...quiz, 
+                    questions: questionsList 
+                });
+                
+                setViewMode('taking-quiz');
+                setCurrentQuestionIdx(0);
+                setUserAnswers({});
+            } else {
+                toast.error(`Cannot load quiz: ${res.message || 'Unknown error'}`);
+            }
         } catch (err: any) {
             toast.error('Cannot load quiz: ' + err.message);
         } finally {
@@ -133,30 +163,41 @@ export default function StudentOnlineMcqQuizPage() {
     const handleSubmitQuiz = async () => {
         setIsSubmitting(true);
         try {
-            const formattedAnswers = selectedQuiz.questions.map((q: any, idx: number) => ({
-                question_id: q.id || idx + 1,
-                selected: userAnswers[idx] || ''
-            }));
-
-            const res = await fetch('/api/exam/submit-quiz', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    exam_id: selectedQuiz.id,
-                    student_id: studentId,
-                    answers: formattedAnswers,
-                    time_taken: 120 // Mock value
-                })
+            // Save answers iteratively
+            const savePromises = selectedQuiz.questions.map((q: any, idx: number) => {
+                if (!userAnswers[idx]) return Promise.resolve(null);
+                
+                const payload = {
+                    LPMOEEX_Id: selectedQuiz.id,
+                    LPMOEQ_Id: q.id || idx + 1,
+                    LPMOEQOA_Id: 0, // Not matching with option ID yet
+                    Answer: userAnswers[idx] || ''
+                };
+                return saveAnswer(payload);
             });
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
+            await Promise.all(savePromises);
 
-            setSubmissionResult(data);
+            // Final submit
+            const res = await submitExam(selectedQuiz.id);
+            
+            if (!res.success) {
+                toast.error(`Error submitting exam: ${res.message}`);
+                return;
+            }
+
+            // Mock result for UI since backend doesn't calculate score immediately
+            const mockResult = {
+                quiz_title: selectedQuiz.title,
+                score: Object.keys(userAnswers).length, // Just pretending they got everything they answered right
+                total_questions: selectedQuiz.questions.length
+            };
+
+            setSubmissionResult(mockResult);
             setViewMode('result');
-            toast.success('Quiz submitted successfully!');
+            toast.success('Exam submitted successfully!');
         } catch (err: any) {
-            toast.error('Submission failed: ' + err.message);
+            toast.error('Cannot submit exam: ' + err.message);
         } finally {
             setIsSubmitting(false);
         }

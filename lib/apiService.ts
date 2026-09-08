@@ -100,10 +100,10 @@ class ApiService {
     public getBaseUrl(key: ApiBaseUrlKey | string): string {
         if (key === 'exam') {
             return (
-                process.env.EXAM_API_BASE_URL ||
+                process.env.NEXT_PUBLIC_EXAM_LOCAL_API_BASE_URL ||
                 process.env.NEXT_PUBLIC_EXAM_API_BASE_URL ||
-                this.baseUrls.exam ||
-                'http://localhost:50006/api'
+                process.env.EXAM_API_BASE_URL ||
+                'https://localhost:50258/api'
             );
         }
         return typeof key === 'string' && key in this.baseUrls ? this.baseUrls[key as ApiBaseUrlKey] : this.baseUrls.default;

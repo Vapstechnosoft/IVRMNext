@@ -1,41 +1,72 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IAnswerPaperInitialData, IStudentEvaluationDetails, IStudentExamSubmission } from '@/types/exam/online-exam/transactions';
+import { auth } from '@/lib/auth';
 
-// Get Initial Filter dropdowns (Years, Classes, Sections, Exams)
+const getMiId = async () => {
+    const session = await auth();
+    const id = Number(session?.mi_id);
+    return id > 0 ? id : 30;
+};
+
 export async function getAnswerPaperInitialData() {
-    const url = '/LP_OnlineExamAnswerPaperCorrection/getloaddata';
-    return await api.get<IAnswerPaperInitialData>('exam', url);
+    let baseData: any = {};
+
+    // 1. Fetch primary dropdown data (years, classes, sections, subjects) from 'exam' service
+    const initialEndpoints = [
+        '/OE_AnswerPaperCorrection/GetInitialLoadData',
+        '/LP_OnlineExamPublishToStudent/GetInitialLoadData',
+        '/OE_SchoolExamReport/GetInitialLoadData'
+    ];
+
+    for (const ep of initialEndpoints) {
+        try {
+            const res: any = await api.get('exam', ep);
+            const data = res?.data || res;
+            if (data?.getyear || data?.getclass || data?.yearList) {
+                baseData = data;
+                break;
+            }
+        } catch (e) {}
+    }
+
+    if (!baseData?.getyear && !baseData?.yearList) {
+        try {
+            const naacRes: any = await api.get('naac', '/MasterOEExamFacade/GetInitialLoadData');
+            if (naacRes?.data) baseData = naacRes.data;
+            else if (naacRes) baseData = naacRes;
+        } catch (e) {
+            console.error('Error fetching NAAC initial load data:', e);
+        }
+    }
+
+    // 2. Fetch master online exams list (LP_Master_OE_Exam)
+    try {
+        const miId = await getMiId();
+        const examRes: any = await api.post('exam', '/MasterOEExamFacade/GetMasterExamList', { MI_Id: miId, mi_id: miId });
+        const examList = examRes?.data?.$values || examRes?.data || examRes;
+        if (Array.isArray(examList) && examList.length > 0) {
+            baseData.getexams = examList;
+            baseData.getexam = examList;
+            baseData.masterExamList = examList;
+        }
+    } catch (e) {
+        console.error('Error fetching MasterOEExamFacade exam list:', e);
+    }
+
+    return { data: baseData };
 }
 
-// Fetch student exam submissions matching filter criteria
-export async function getStudentSubmissions(filterData: {
-    ASMAY_Id: number;
-    ASMCL_Id: number;
-    ASMS_Id: number;
-    ISMS_Id: number;
-    LPMOEEX_Id: number;
-}) {
-    const url = '/LP_OnlineExamAnswerPaperCorrection/getstudentlist';
-    return await api.post<IStudentExamSubmission[]>('exam', url, filterData);
+export async function getStudentSubmissions(data: any) {
+    return await api.post<any>('exam', '/LP_OnlineExamAnswerPaperCorrection/getstudentlist', { MI_Id: await getMiId(), ...data });
 }
 
-// Fetch student's individual question & answer sheet for evaluation
-export async function getStudentAnswerSheet(data: {
-    AMST_Id: number;
-    LPMOEEX_Id: number;
-}) {
-    const url = '/LP_OnlineExamAnswerPaperCorrection/getstudentanswers';
-    return await api.post<IStudentEvaluationDetails>('exam', url, data);
+export async function getStudentAnswerSheet(data: any) {
+    return await api.post<any>('exam', '/LP_OnlineExamAnswerPaperCorrection/getstudentanswers', { MI_Id: await getMiId(), ...data });
 }
 
-// Save teacher evaluated marks
-export async function saveEvaluatedMarks(data: {
-    AMST_Id: number;
-    LPMOEEX_Id: number;
-    evaluations: { questionId: number; awardedMarks: number; teacherRemarks?: string }[];
-}) {
-    const url = '/LP_OnlineExamAnswerPaperCorrection/saveevaluatedmarks';
-    return await api.post<any>('exam', url, data);
+export async function saveEvaluatedMarks(data: any) {
+    return await api.post<any>('exam', '/LP_OnlineExamAnswerPaperCorrection/saveevaluatedmarks', { MI_Id: await getMiId(), ...data });
 }
+
+

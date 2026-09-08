@@ -93,11 +93,14 @@ export default function StaffWiseReportFilterForm({
                         {...register('asmaY_Id', { valueAsNumber: true })}
                         className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
                         <option value=''>-- Select Year --</option>
-                        {years.map((y) => (
-                            <option key={y.asmaY_Id} value={y.asmaY_Id}>
-                                {y.asmaY_Year}
-                            </option>
-                        ))}
+                        {years.map((y, idx) => {
+                            const val = y.asmaY_Id ?? (y as any).ASMAY_Id ?? idx;
+                            return (
+                                <option key={`staff-year-${val}-${idx}`} value={val}>
+                                    {y.asmaY_Year ?? (y as any).ASMAY_Year}
+                                </option>
+                            );
+                        })}
                     </select>
                     {errors.asmaY_Id && <p className='text-[11px] text-destructive'>{errors.asmaY_Id.message}</p>}
                 </div>
@@ -112,11 +115,14 @@ export default function StaffWiseReportFilterForm({
                         {...register('asmcL_Id', { valueAsNumber: true })}
                         className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
                         <option value=''>-- All Classes --</option>
-                        {classes.map((c) => (
-                            <option key={c.asmcL_Id} value={c.asmcL_Id}>
-                                {c.asmcL_ClassName}
-                            </option>
-                        ))}
+                        {classes.map((c, idx) => {
+                            const val = c.asmcL_Id ?? (c as any).ASMCL_Id ?? idx;
+                            return (
+                                <option key={`staff-class-${val}-${idx}`} value={val}>
+                                    {c.asmcL_ClassName ?? (c as any).ASMCL_ClassName}
+                                </option>
+                            );
+                        })}
                     </select>
                 </div>
 
@@ -130,11 +136,14 @@ export default function StaffWiseReportFilterForm({
                         {...register('asmS_Id', { valueAsNumber: true })}
                         className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
                         <option value=''>-- All Sections --</option>
-                        {sections.map((s) => (
-                            <option key={s.asmS_Id} value={s.asmS_Id}>
-                                {s.asmC_SectionName}
-                            </option>
-                        ))}
+                        {sections.map((s, idx) => {
+                            const val = s.asmS_Id ?? (s as any).ASMS_Id ?? idx;
+                            return (
+                                <option key={`staff-sec-${val}-${idx}`} value={val}>
+                                    {s.asmC_SectionName ?? (s as any).asmS_SectionName}
+                                </option>
+                            );
+                        })}
                     </select>
                 </div>
 
@@ -148,11 +157,14 @@ export default function StaffWiseReportFilterForm({
                         {...register('ismS_Id', { valueAsNumber: true })}
                         className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
                         <option value=''>-- All Subjects --</option>
-                        {subjects.map((sub) => (
-                            <option key={sub.ismS_Id} value={sub.ismS_Id}>
-                                {sub.ismS_SubjectName}
-                            </option>
-                        ))}
+                        {subjects.map((sub, idx) => {
+                            const val = sub.ismS_Id ?? (sub as any).ISMS_Id ?? idx;
+                            return (
+                                <option key={`staff-sub-${val}-${idx}`} value={val}>
+                                    {sub.ismS_SubjectName ?? (sub as any).ISMS_SubjectName}
+                                </option>
+                            );
+                        })}
                     </select>
                 </div>
 
@@ -166,23 +178,26 @@ export default function StaffWiseReportFilterForm({
                         {...register('lpmoeeX_Id', { valueAsNumber: true })}
                         className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
                         <option value=''>-- Select Exam --</option>
-                        {exams.map((ex) => (
-                            <option key={ex.lpmoeeX_Id} value={ex.lpmoeeX_Id}>
-                                {ex.lpmoeeX_ExamName}
-                            </option>
-                        ))}
+                        {exams.map((ex, idx) => {
+                            const val = ex.lpmoeeX_Id ?? (ex as any).LPMOEEX_Id ?? idx;
+                            return (
+                                <option key={`staff-exam-${val}-${idx}`} value={val}>
+                                    {ex.lpmoeeX_ExamName ?? (ex as any).LPMOEEX_ExamName}
+                                </option>
+                            );
+                        })}
                     </select>
                     {errors.lpmoeeX_Id && <p className='text-[11px] text-destructive'>{errors.lpmoeeX_Id.message}</p>}
                 </div>
             </div>
 
             {/* Action buttons */}
-            <div className='flex items-center justify-end gap-3 pt-2'>
-                <Button type='button' variant='outline' size='sm' onClick={handleFormReset} className='h-9 gap-1.5 text-xs'>
-                    <RotateCcw className='h-3.5 w-3.5' /> Reset
+            <div className='flex items-center justify-center sm:justify-end gap-2 pt-2'>
+                <Button type='button' variant='outline' size='sm' onClick={handleFormReset} className='h-8 px-3 gap-1.5 text-xs w-auto font-medium'>
+                    <RotateCcw className='h-3 w-3' /> Reset
                 </Button>
-                <Button type='submit' size='sm' disabled={isLoading} className='h-9 min-w-28 gap-1.5 text-xs shadow-sm'>
-                    <Search className='h-3.5 w-3.5' /> {isLoading ? 'Generating...' : 'Generate Report'}
+                <Button type='submit' size='sm' disabled={isLoading} className='h-8 px-4 gap-1.5 text-xs w-auto font-medium shadow-sm bg-orange-600 hover:bg-orange-700 text-white'>
+                    <Search className='h-3 w-3' /> {isLoading ? 'Generating...' : 'Generate Report'}
                 </Button>
             </div>
         </form>

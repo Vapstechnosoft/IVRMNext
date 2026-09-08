@@ -694,3 +694,8 @@ export const ONLINE_EXAM_QUERY_KEYS = {
     STAFF_WISE_REPORT: 'online_exam_staff_wise_report',
     NOT_SUBMITTED_REPORT: 'online_exam_not_submitted_report'
 };
+
+export const LP_ONLINE_EXAM_QUERY_KEYS = {
+    MASTER_OE_EXAM: 'lp_online_exam_master_oe_exam',
+    MASTER_OE_EXAM_INITIAL_DATA: 'lp_online_exam_master_oe_exam_initial_data'
+};

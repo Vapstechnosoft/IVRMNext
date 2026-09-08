@@ -7,13 +7,14 @@ function extractArray(val: any): any[] {
     return [];
 }
 
+import { PolygonBanner } from '@/components/ui/extension/polygon-banner';
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useMasterComplexity } from '@/hooks/exam/online-exam/useMasters';
 import type { IMasterComplexity } from '@/types/exam/online-exam/masters';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, ChevronRight } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useMemo } from 'react';
 import AddMasterComplexityForm from './_components/add-form';
@@ -55,31 +56,51 @@ function MasterComplexityContent() {
 
     return (
         <div className='min-h-screen'>
+            {/* Banner Section */}
+            <PolygonBanner 
+                title="Master Complexity" 
+                description="Configure question difficulty levels (Easy, Medium, Hard) and default selections"
+                breadcrumb={
+                    <div className='flex flex-wrap items-center gap-2 text-sm text-white/80'>
+                        <span className='font-medium'>Exam</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span>Online Exam</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span className='font-medium'>Masters</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span className='font-bold text-white'>Master Complexity</span>
+                    </div>
+                }
+            />
+
             <div className='container space-y-4 p-4'>
                 {/* Header */}
-                <div className='flex items-center justify-between'>
-                    <div>
-                        <h1 className='font-bold text-2xl text-foreground tracking-tight'>Master Complexity</h1>
-                        <p className='text-muted-foreground text-sm'>
-                            Configure question difficulty levels (Easy, Medium, Hard) and default selections
-                        </p>
-                    </div>
-                    <Button onClick={openAddForm} className='gap-2 shadow-sm'>
+                <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end mt-4'>
+                    <Button
+                        type='button'
+                        onClick={openAddForm}
+                        className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
                         Add Complexity
                     </Button>
                 </div>
 
+                {/* Complexity Data Table */}
+                <CollapsibleSection
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable<IMasterComplexity>
+                        columns={masterComplexityColumns}
+                        {...tableProps}
+                        isLoading={isLoading}
+                        error={error}
+                    />
+                </CollapsibleSection>
+                
                 {/* Form Sections */}
                 <FormSections />
-
-                {/* Complexity Data Table */}
-                <GenericDataTable<IMasterComplexity>
-                    columns={masterComplexityColumns}
-                    {...tableProps}
-                    isLoading={isLoading}
-                    error={error}
-                />
             </div>
         </div>
     );
