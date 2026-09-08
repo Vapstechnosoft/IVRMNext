@@ -166,10 +166,11 @@ interface MarksInputCellProps {
     papertypeid?: number;
     papertypeGradeDetails?: Array<{ empatY_Id: number; emgD_Name: string }>;
     onArrow?: (direction: 'left' | 'right' | 'up' | 'down') => void;
+    disabled?: boolean;
 }
 
 const MarksInputCell = React.forwardRef<HTMLInputElement, MarksInputCellProps>(
-    ({ value, max, min, onChange, placeholder, marksGradeEntryFlg, gradeDetails, papertypeid, papertypeGradeDetails, onArrow }, ref) => {
+    ({ value, max, min, onChange, placeholder, marksGradeEntryFlg, gradeDetails, papertypeid, papertypeGradeDetails, onArrow, disabled = false }, ref) => {
         const [local, setLocal] = useState<string>(value === '' || value === undefined ? '' : String(value));
         const [error, setError] = useState<string>('');
 
@@ -303,7 +304,8 @@ const MarksInputCell = React.forwardRef<HTMLInputElement, MarksInputCellProps>(
             <div className='flex flex-col items-start'>
                 <Input
                     ref={ref}
-                    className={`w-[120px] rounded border px-2 py-1 text-sm ${error ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'}`}
+                    disabled={disabled}
+                    className={`w-[120px] rounded border px-2 py-1 text-sm ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : error ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'}`}
                     placeholder={placeholder}
                     value={local}
                     onChange={handleChange}
@@ -1916,6 +1918,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                                 value={val}
                                                                 max={se.eycessE_MaxMarks}
                                                                 min={se.eycessE_MinMarks}
+                                                                disabled={!student.selected}
                                                                 onChange={(v) =>
                                                                     updateSubSubjectSubExamMark(student.amsT_Id, se.emsS_Id, se.emsE_Id, v)
                                                                 }
@@ -1952,6 +1955,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                                     value={val}
                                                                     max={subsub.maxMarks}
                                                                     min={subsub.minMarks}
+                                                                    disabled={!student.selected}
                                                                     onChange={(v) =>
                                                                         updateSubSubjectMark(student.amsT_Id, subsub.subsubId, v)
                                                                     }
@@ -1989,6 +1993,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                                     value={val}
                                                                     max={subexam.maxMarks}
                                                                     min={subexam.minMarks}
+                                                                    disabled={!student.selected}
                                                                     onChange={(v) =>
                                                                         updateSubExamMark(student.amsT_Id, subexam.subexamId, v)
                                                                     }
@@ -2021,6 +2026,7 @@ export function MarksCustomTable({ ASMAY_Id, ASMCL_Id, ASMS_Id, EME_Id, ISMS_Id,
                                                         value={student.ESTM_Marks ?? ''}
                                                         max={subjectMeta.marksEntryMax || subjectMeta.maxMarks}
                                                         min={subjectMeta.minMarks}
+                                                        disabled={!student.selected}
                                                         onChange={(v) => updateSimpleMark(student.amsT_Id, v)}
                                                         placeholder={
                                                             subjectMeta.marksGradeEntryFlg === 'M' ? 'Enter Marks...' : 'Enter Grade...'

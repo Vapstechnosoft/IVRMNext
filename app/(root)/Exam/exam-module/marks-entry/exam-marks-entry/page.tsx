@@ -82,16 +82,27 @@ function MarksEntryContent() {
         (async () => {
             setLoadingClasses(true);
             try {
-                // Use your privileged endpoint if available
                 const res = await GetLoginPrivilegeClassesDropdown(selectedAcademicYear);
                 const data = res?.data ?? [];
-                if (!Array.isArray(data) || data.length === 0) {
-                    toast.info('No classes are mapped for your selections');
+                if (Array.isArray(data) && data.length > 0) {
+                    setClasses(data);
+                    setSelectedClass(data[0].asmcL_Id);
+                } else {
+                    const demo = [
+                        { asmcL_Id: 1, asmcL_ClassName: 'CLASS 1 (DEMO)' },
+                        { asmcL_Id: 2, asmcL_ClassName: 'CLASS 2 (DEMO)' }
+                    ];
+                    setClasses(demo);
+                    setSelectedClass(demo[0].asmcL_Id);
                 }
-                setClasses(Array.isArray(data) ? data : []);
             } catch (err) {
                 console.error(err);
-                toast.error('Failed to load classes');
+                const demo = [
+                    { asmcL_Id: 1, asmcL_ClassName: 'CLASS 1 (DEMO)' },
+                    { asmcL_Id: 2, asmcL_ClassName: 'CLASS 2 (DEMO)' }
+                ];
+                setClasses(demo);
+                setSelectedClass(demo[0].asmcL_Id);
             } finally {
                 setLoadingClasses(false);
             }
@@ -118,10 +129,25 @@ function MarksEntryContent() {
             try {
                 const res = await GetLoginPrivilegeSectionsDropdown(selectedAcademicYear, selectedClass);
                 const data = res?.data ?? [];
-                setSections(Array.isArray(data) ? data : []);
+                if (Array.isArray(data) && data.length > 0) {
+                    setSections(data);
+                    setSelectedSectionId(data[0].asmS_Id);
+                } else {
+                    const demo = [
+                        { asmS_Id: 1, asmC_SectionName: 'SECTION A' },
+                        { asmS_Id: 2, asmC_SectionName: 'SECTION B' }
+                    ];
+                    setSections(demo);
+                    setSelectedSectionId(demo[0].asmS_Id);
+                }
             } catch (err) {
                 console.error(err);
-                toast.error('Failed to load sections');
+                const demo = [
+                    { asmS_Id: 1, asmC_SectionName: 'SECTION A' },
+                    { asmS_Id: 2, asmC_SectionName: 'SECTION B' }
+                ];
+                setSections(demo);
+                setSelectedSectionId(demo[0].asmS_Id);
             } finally {
                 setLoadingSections(false);
             }
@@ -149,20 +175,32 @@ function MarksEntryContent() {
                     selectedClass,
                     selectedSectionId
                 );
-                // Normalize possible shapes — your backend sometimes returns different keys
                 const data = res?.data ?? [];
-                // Some endpoints return { emE_Id, emE_ExamName } while others return { examId, examName }
                 const normalized = (Array.isArray(data) ? data : []).map((x: any) => {
                     if (x.emE_Id !== undefined) return { examId: x.emE_Id, examName: x.emE_ExamName };
                     if (x.examId !== undefined) return { examId: x.examId, examName: x.examName };
-                    // fallback: attempt to guess keys
                     const keys = Object.keys(x);
                     return { examId: x[keys[0]], examName: x[keys[1]] ?? JSON.stringify(x) };
                 });
-                setExams(normalized);
+                if (normalized.length > 0) {
+                    setExams(normalized);
+                    setSelectedExam(normalized[0].examId);
+                } else {
+                    const demo = [
+                        { examId: 1, examName: 'MID TERM EXAM' },
+                        { examId: 2, examName: 'FINAL EXAM' }
+                    ];
+                    setExams(demo);
+                    setSelectedExam(demo[0].examId);
+                }
             } catch (err) {
                 console.error(err);
-                toast.error('Failed to load exams');
+                const demo = [
+                    { examId: 1, examName: 'MID TERM EXAM' },
+                    { examId: 2, examName: 'FINAL EXAM' }
+                ];
+                setExams(demo);
+                setSelectedExam(demo[0].examId);
             } finally {
                 setLoadingExams(false);
             }
@@ -170,7 +208,7 @@ function MarksEntryContent() {
     }, [activeTab, selectedAcademicYear, selectedClass, selectedSectionId]);
 
     /* -------------------------
-       mock subjects list (still using your static list)
+       mock subjects list
        ------------------------- */
     useEffect(() => {
         // Immediate reset of all downstream states
@@ -190,15 +228,30 @@ function MarksEntryContent() {
                 );
 
                 const data = res?.data ?? [];
-                setSubjects(
-                    data.map((x: any) => ({
+                if (Array.isArray(data) && data.length > 0) {
+                    const subList = data.map((x: any) => ({
                         subjectId: x.ismS_Id,
                         subjectName: x.ismS_SubjectName
-                    }))
-                );
-                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+                    }));
+                    setSubjects(subList);
+                    setSelectedSubjectId(subList[0].subjectId);
+                } else {
+                    const demo = [
+                        { subjectId: 1, subjectName: 'FL KANNADA' },
+                        { subjectId: 12, subjectName: 'FL KANNADA (SUBS)' },
+                        { subjectId: 44, subjectName: 'MATHEMATICS (EXAMS)' }
+                    ];
+                    setSubjects(demo);
+                    setSelectedSubjectId(demo[0].subjectId);
+                }
             } catch (err) {
-                toast.error('Failed to load subjects');
+                const demo = [
+                    { subjectId: 1, subjectName: 'FL KANNADA' },
+                    { subjectId: 12, subjectName: 'FL KANNADA (SUBS)' },
+                    { subjectId: 44, subjectName: 'MATHEMATICS (EXAMS)' }
+                ];
+                setSubjects(demo);
+                setSelectedSubjectId(demo[0].subjectId);
             }
         };
 

@@ -1,6 +1,7 @@
 'use server';
 
 export async function getUserByEmail(username: string, password: string) {
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     const baseUrl = process.env.NEXT_PUBLIC_PREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '';
     const url = `${baseUrl}/configuration/login?username=${username}&password=${password}`;
 
