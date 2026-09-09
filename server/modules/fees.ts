@@ -209,6 +209,14 @@ export const feesModule: IUserAccessibleModules = {
                             description: 'Manage Master Fee Privilege Details'
                         },
                         {
+                            id: 391,
+                            name: 'Master College Fee Privilege',
+                            icon: 'BadgeIndianRupee',
+                            url: '/fees/college/masters/masterclgfeeprevilege',
+                            title: 'Master College Fee Privilege',
+                            description: 'Manage Master College Fee Privilege Details'
+                        },
+                        {
                             id: 40,
                             name: 'Master Online Payment Head Group',
                             icon: 'BadgeIndianRupee',

@@ -39,6 +39,60 @@ const AuraGlow = () => (
     />
 );
 
+const DEFAULT_AI_EDGE_MODULE = {
+    id: 50005,
+    name: 'AI Edge',
+    icon: 'Sparkles',
+    menu: [
+        {
+            id: 1,
+            name: 'AI Edge',
+            icon: 'BookOpen',
+            sub_menu: [
+                {
+                    id: 1,
+                    name: 'AI Tools',
+                    icon: 'Database',
+                    pages: [
+                        {
+                            id: 1,
+                            name: 'Question Paper Generator',
+                            icon: 'FileText',
+                            url: '/iframe/ai-question-paper-generator',
+                            title: 'AI Question Paper Generator',
+                            description: 'Generate question papers from textbooks using AI'
+                        },
+                        {
+                            id: 2,
+                            name: 'AI Notemaker',
+                            icon: 'FileText',
+                            url: '/iframe/ai-notemaker',
+                            title: 'AI Notemaker',
+                            description: 'Summarize and create structured notes from textbooks using AI'
+                        },
+                        {
+                            id: 3,
+                            name: 'AI Performance Analysis',
+                            icon: 'BarChart',
+                            url: '/Exam/exam-module/ai-performance-analysis',
+                            title: 'AI Performance Analysis',
+                            description: 'Analyze performance metrics and AI-driven insights'
+                        },
+                        {
+                            id: 4,
+                            name: 'AI Doubt Resolver',
+                            icon: 'MessageSquare',
+                            url: '/iframe/ai-doubt-resolver',
+                            title: 'AI Doubt Resolver',
+                            description: 'Resolve academic doubts using AI'
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+};
+
 // Helper function to get icon with fallback for known module names
 const getIconWithFallback = (iconName: string | null | undefined, moduleName: string): any => {
     if (iconName) {
@@ -181,11 +235,14 @@ export function NavigationSystem() {
     useEffect(() => {
         const handleExternalRequest = (event: any) => {
             const moduleName = event.detail;
-            if (moduleName && accessibleModule?.data) {
-                const moduleExists = accessibleModule.data.some((m) => m.name === moduleName);
-                if (moduleExists) {
-                    handleModuleClick(moduleName);
-                }
+            if (moduleName) {
+                const targetModule = accessibleModule?.data?.find(
+                    (m) => m.name.toLowerCase() === moduleName.toLowerCase()
+                );
+                const nameToOpen = targetModule ? targetModule.name : moduleName;
+                setActiveDrawer(nameToOpen);
+                setActiveModule(nameToOpen);
+                setHoveredSubMenu(null);
             }
         };
 
@@ -205,6 +262,26 @@ export function NavigationSystem() {
             window.removeEventListener('module-filter', handleFilterRequest);
         };
     }, [accessibleModule?.data]);
+
+    // Auto-select first sub-menu when drawer opens so pages appear immediately
+    useEffect(() => {
+        if (activeDrawer) {
+            const currentMod =
+                accessibleModule?.data?.find(
+                    (m) => m.name.toLowerCase() === activeDrawer.toLowerCase()
+                ) || (activeDrawer.toLowerCase() === 'ai edge' ? (DEFAULT_AI_EDGE_MODULE as any) : null);
+
+            if (currentMod && currentMod.menu?.[0]?.sub_menu?.[0]) {
+                const firstMenu = currentMod.menu[0];
+                const firstSubMenu = firstMenu.sub_menu[0];
+                setHoveredSubMenu({
+                    menuName: firstMenu.name,
+                    subMenuName: firstSubMenu.name,
+                    pages: firstSubMenu.pages
+                });
+            }
+        }
+    }, [activeDrawer, accessibleModule?.data]);
 
     useEffect(() => {
         // Restore navigation context and filters from sessionStorage on mount
@@ -323,7 +400,7 @@ export function NavigationSystem() {
                 transition={{ duration: 0.5 }}>
                 {/* Horizontal Navigation Bar - Now hidden by default to keep header clean */}
                 <nav
-                    className='scrollbar-hide hidden items-center overflow-x-auto scroll-smooth'
+                    className='scrollbar-hide flex items-center overflow-x-auto scroll-smooth'
                     onMouseLeave={() => setHoveredModule(null)}>
                     <div className='relative flex min-w-max items-center space-x-1 px-2'>
                         {/* Clear Filter Button if active */}
@@ -450,28 +527,22 @@ export function NavigationSystem() {
                                         {/* Content area with split scrolling */}
                                         <div className='flex flex-1 flex-col gap-0 overflow-hidden px-0 py-0 xl:flex-row'>
                                             {/* Left Panel: Menu Categories with vertical scroll */}
-                                            <motion.div
-                                                className='scrollbar-hide flex-1 overflow-y-auto p-6 md:p-10'
-                                                initial='hidden'
-                                                animate='visible'
-                                                variants={{
-                                                    visible: {
-                                                        transition: {
-                                                            staggerChildren: 0.04
-                                                        }
-                                                    }
-                                                }}>
-                                                <div className='flex flex-wrap items-start gap-8'>
-                                                    {accessibleModule?.data
-                                                        ?.find((m) => m.name === activeDrawer)
-                                                        ?.menu.map((menu) => (
-                                                            <motion.div
-                                                                key={menu.id}
-                                                                variants={{
-                                                                    hidden: { opacity: 0, scale: 0.95 },
-                                                                    visible: { opacity: 1, scale: 1 }
-                                                                }}
-                                                                className='group relative flex min-w-[240px] flex-col'>
+                                            {(() => {
+                                                 const activeModuleObj =
+                                                     accessibleModule?.data?.find(
+                                                         (m) => m.name.toLowerCase() === activeDrawer?.toLowerCase()
+                                                     ) || (activeDrawer?.toLowerCase() === 'ai edge' ? (DEFAULT_AI_EDGE_MODULE as any) : null);
+
+                                                 return (
+                                                     <motion.div
+                                                         className='scrollbar-hide flex-1 overflow-y-auto p-6 md:p-10'
+                                                         initial='visible'
+                                                         animate='visible'>
+                                                         <div className='flex flex-wrap items-start gap-8'>
+                                                             {activeModuleObj?.menu?.map((menu: any) => (
+                                                                 <motion.div
+                                                                     key={menu.id}
+                                                                     className='group relative flex min-w-[240px] flex-col'>
                                                                 {/* Interactive Glowing Card */}
                                                                 <div
                                                                     className={cn(
@@ -521,9 +592,7 @@ export function NavigationSystem() {
                                                                                         } else {
                                                                                             // If already active, then navigate
                                                                                             handleSubMenuClick(
-                                                                                                accessibleModule?.data?.find(
-                                                                                                    (m) => m.name === activeDrawer
-                                                                                                )!,
+                                                                                                activeModuleObj!,
                                                                                                 menu,
                                                                                                 subMenu
                                                                                             );
@@ -544,8 +613,10 @@ export function NavigationSystem() {
                                                                 </div>
                                                             </motion.div>
                                                         ))}
-                                                </div>
-                                            </motion.div>
+                                                 </div>
+                                                     </motion.div>
+                                                 );
+                                             })()}
 
                                             {/* Right Panel: Dynamic Page Detail Panel - Sticky Header with Scrollable List */}
                                             <div
@@ -574,19 +645,21 @@ export function NavigationSystem() {
                                                                 {hoveredSubMenu.pages.map((page, idx) => (
                                                                     <button
                                                                         key={idx}
-                                                                        onClick={() =>
+                                                                        onClick={() => {
+                                                                            const activeModuleObj =
+                                                                                accessibleModule?.data?.find(
+                                                                                    (m) => m.name.toLowerCase() === activeDrawer?.toLowerCase()
+                                                                                ) || (activeDrawer?.toLowerCase() === 'ai edge' ? (DEFAULT_AI_EDGE_MODULE as any) : null);
                                                                             handlePageClick(
                                                                                 page,
-                                                                                accessibleModule?.data?.find(
-                                                                                    (m) => m.name === activeDrawer
-                                                                                )!,
+                                                                                activeModuleObj!,
                                                                                 { name: hoveredSubMenu.menuName },
                                                                                 {
                                                                                     name: hoveredSubMenu.subMenuName,
                                                                                     pages: hoveredSubMenu.pages
                                                                                 }
-                                                                            )
-                                                                        }
+                                                                            );
+                                                                        }}
                                                                         className='group/page flex w-full items-center gap-3 rounded-2xl border border-transparent px-5 py-3 text-left text-[#4a4a4a] text-[14px] transition-all hover:border-orange-100/50 hover:bg-orange-50/50 hover:text-orange-600'>
                                                                         <div className='h-1.5 w-1.5 rounded-full bg-orange-500/20 transition-colors group-hover/page:bg-orange-500' />
                                                                         <span className='transition-transform group-hover/page:translate-x-0.5'>
@@ -679,3 +752,5 @@ export function NavigationSystem() {
         </div>
     );
 }
+
+
