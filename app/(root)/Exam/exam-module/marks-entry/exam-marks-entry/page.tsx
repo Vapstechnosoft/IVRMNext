@@ -62,6 +62,14 @@ function MarksEntryContent() {
         }
     }, [academicDropdownData, academicError, selectedAcademicYear]);
 
+    const extractArray = (res: any): any[] => {
+        if (!res) return [];
+        if (Array.isArray(res)) return res;
+        if (Array.isArray(res.data)) return res.data;
+        if (res.data && Array.isArray(res.data.data)) return res.data.data;
+        return [];
+    };
+
     /* -------------------------
        Load classes when academic year changes
        ------------------------- */
@@ -83,26 +91,18 @@ function MarksEntryContent() {
             setLoadingClasses(true);
             try {
                 const res = await GetLoginPrivilegeClassesDropdown(selectedAcademicYear);
-                const data = res?.data ?? [];
-                if (Array.isArray(data) && data.length > 0) {
+                const data = extractArray(res);
+                if (data.length > 0) {
                     setClasses(data);
                     setSelectedClass(data[0].asmcL_Id);
                 } else {
-                    const demo = [
-                        { asmcL_Id: 1, asmcL_ClassName: 'CLASS 1 (DEMO)' },
-                        { asmcL_Id: 2, asmcL_ClassName: 'CLASS 2 (DEMO)' }
-                    ];
-                    setClasses(demo);
-                    setSelectedClass(demo[0].asmcL_Id);
+                    setClasses([]);
+                    setSelectedClass(undefined);
                 }
             } catch (err) {
                 console.error(err);
-                const demo = [
-                    { asmcL_Id: 1, asmcL_ClassName: 'CLASS 1 (DEMO)' },
-                    { asmcL_Id: 2, asmcL_ClassName: 'CLASS 2 (DEMO)' }
-                ];
-                setClasses(demo);
-                setSelectedClass(demo[0].asmcL_Id);
+                setClasses([]);
+                setSelectedClass(undefined);
             } finally {
                 setLoadingClasses(false);
             }
@@ -128,26 +128,18 @@ function MarksEntryContent() {
             setLoadingSections(true);
             try {
                 const res = await GetLoginPrivilegeSectionsDropdown(selectedAcademicYear, selectedClass);
-                const data = res?.data ?? [];
-                if (Array.isArray(data) && data.length > 0) {
+                const data = extractArray(res);
+                if (data.length > 0) {
                     setSections(data);
                     setSelectedSectionId(data[0].asmS_Id);
                 } else {
-                    const demo = [
-                        { asmS_Id: 1, asmC_SectionName: 'SECTION A' },
-                        { asmS_Id: 2, asmC_SectionName: 'SECTION B' }
-                    ];
-                    setSections(demo);
-                    setSelectedSectionId(demo[0].asmS_Id);
+                    setSections([]);
+                    setSelectedSectionId(undefined);
                 }
             } catch (err) {
                 console.error(err);
-                const demo = [
-                    { asmS_Id: 1, asmC_SectionName: 'SECTION A' },
-                    { asmS_Id: 2, asmC_SectionName: 'SECTION B' }
-                ];
-                setSections(demo);
-                setSelectedSectionId(demo[0].asmS_Id);
+                setSections([]);
+                setSelectedSectionId(undefined);
             } finally {
                 setLoadingSections(false);
             }
@@ -175,8 +167,8 @@ function MarksEntryContent() {
                     selectedClass,
                     selectedSectionId
                 );
-                const data = res?.data ?? [];
-                const normalized = (Array.isArray(data) ? data : []).map((x: any) => {
+                const data = extractArray(res);
+                const normalized = data.map((x: any) => {
                     if (x.emE_Id !== undefined) return { examId: x.emE_Id, examName: x.emE_ExamName };
                     if (x.examId !== undefined) return { examId: x.examId, examName: x.examName };
                     const keys = Object.keys(x);
@@ -186,21 +178,13 @@ function MarksEntryContent() {
                     setExams(normalized);
                     setSelectedExam(normalized[0].examId);
                 } else {
-                    const demo = [
-                        { examId: 1, examName: 'MID TERM EXAM' },
-                        { examId: 2, examName: 'FINAL EXAM' }
-                    ];
-                    setExams(demo);
-                    setSelectedExam(demo[0].examId);
+                    setExams([]);
+                    setSelectedExam(undefined);
                 }
             } catch (err) {
                 console.error(err);
-                const demo = [
-                    { examId: 1, examName: 'MID TERM EXAM' },
-                    { examId: 2, examName: 'FINAL EXAM' }
-                ];
-                setExams(demo);
-                setSelectedExam(demo[0].examId);
+                setExams([]);
+                setSelectedExam(undefined);
             } finally {
                 setLoadingExams(false);
             }
@@ -208,7 +192,7 @@ function MarksEntryContent() {
     }, [activeTab, selectedAcademicYear, selectedClass, selectedSectionId]);
 
     /* -------------------------
-       mock subjects list
+       Subjects list
        ------------------------- */
     useEffect(() => {
         // Immediate reset of all downstream states
@@ -227,31 +211,22 @@ function MarksEntryContent() {
                     selectedExam
                 );
 
-                const data = res?.data ?? [];
-                if (Array.isArray(data) && data.length > 0) {
+                const data = extractArray(res);
+                if (data.length > 0) {
                     const subList = data.map((x: any) => ({
-                        subjectId: x.ismS_Id,
-                        subjectName: x.ismS_SubjectName
+                        subjectId: x.ismS_Id || x.subjectId,
+                        subjectName: x.ismS_SubjectName || x.subjectName
                     }));
                     setSubjects(subList);
                     setSelectedSubjectId(subList[0].subjectId);
                 } else {
-                    const demo = [
-                        { subjectId: 1, subjectName: 'FL KANNADA' },
-                        { subjectId: 12, subjectName: 'FL KANNADA (SUBS)' },
-                        { subjectId: 44, subjectName: 'MATHEMATICS (EXAMS)' }
-                    ];
-                    setSubjects(demo);
-                    setSelectedSubjectId(demo[0].subjectId);
+                    setSubjects([]);
+                    setSelectedSubjectId(undefined);
                 }
             } catch (err) {
-                const demo = [
-                    { subjectId: 1, subjectName: 'FL KANNADA' },
-                    { subjectId: 12, subjectName: 'FL KANNADA (SUBS)' },
-                    { subjectId: 44, subjectName: 'MATHEMATICS (EXAMS)' }
-                ];
-                setSubjects(demo);
-                setSelectedSubjectId(demo[0].subjectId);
+                console.error(err);
+                setSubjects([]);
+                setSelectedSubjectId(undefined);
             }
         };
 

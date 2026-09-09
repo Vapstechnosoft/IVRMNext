@@ -180,6 +180,7 @@ const MarksInputCell = React.forwardRef<HTMLInputElement, MarksInputCellProps>(
         }, [value]);
 
         const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            if (disabled) return;
             const raw = e.target.value;
             setLocal(raw);
 
@@ -305,7 +306,9 @@ const MarksInputCell = React.forwardRef<HTMLInputElement, MarksInputCellProps>(
                 <Input
                     ref={ref}
                     disabled={disabled}
-                    className={`w-[120px] rounded border px-2 py-1 text-sm ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60' : error ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'}`}
+                    readOnly={disabled}
+                    tabIndex={disabled ? -1 : 0}
+                    className={`w-[120px] rounded border px-2 py-1 text-sm ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60 pointer-events-none' : error ? 'border-red-500 bg-red-50' : 'border-gray-300 bg-white'}`}
                     placeholder={placeholder}
                     value={local}
                     onChange={handleChange}
