@@ -274,7 +274,7 @@ export interface Ifeetransaction {
     classname: string;
     sectionname: string;
     amsT_AdmNo: string;
-
+    mI_Id:number;
     fyP_Receipt_No: string;
     fyP_Date: string; // or Date
     fyP_Tot_Amount: number;

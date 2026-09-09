@@ -50,12 +50,12 @@ export function exportToExcel(data: IFeeChallanReportItem[], fileName = 'Fee_Cha
 
     const worksheetData = data.map((item, index) => ({
         'SL.No': item.slNo || index + 1,
-        'Student Name': item.studentName || '',
-        'Roll No': item.rollNo || '',
-        'Class': item.className || '',
-        'Section': item.sectionName || '',
-        'Challan No': item.challanNo || '',
-        'Amount': item.amount || 0
+        'Student Name': item.name || '',
+        'Roll No': item.amay_rollno || '',
+        'Class': item.asmcl_classname || '',
+        'Section': item.asmc_sectionname || '',
+        'Challan No': item.fyp_challanno || '',
+        'Amount': item.fyp_tot_amount || 0
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(worksheetData);
