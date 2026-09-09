@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { EmployeeListDTO } from '@/types/super-admin/user-creation/staff-user-creation';
-import { Download, Search } from 'lucide-react';
+import { Download, Printer, Search } from 'lucide-react';
 import { useState } from 'react';
 
 interface ViewUsernamesModalProps {
@@ -58,6 +58,87 @@ export default function ViewUsernamesModal({ isOpen, onClose, users, roleName }:
         document.body.removeChild(link);
     };
 
+    const handlePrint = () => {
+        if (filteredUsers.length === 0) return;
+
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+
+        const title = isAdmin ? 'Admin List With Usernames' : 'Employee List With Usernames';
+
+        let printContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>${title}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    h1 { text-align: center; margin-bottom: 20px; color: #1e3a8a; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #4f46e5; color: white; }
+                    tr:nth-child(even) { background-color: #f2f2f2; }
+                    @media print {
+                        body { margin: 0; }
+                        @page { margin: 1cm; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>${title}</h1>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 80px; text-align: center;">SL.NO.</th>`;
+        
+        if (isAdmin) {
+            printContent += `
+                            <th>Institute Name</th>
+                            <th>User Name</th>`;
+        } else {
+            printContent += `
+                            <th>Employee Name</th>
+                            <th>Employee Code</th>
+                            <th>User Name</th>`;
+        }
+
+        printContent += `
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${filteredUsers.map((user, index) => {
+                            let rowHTML = `<tr>
+                                <td style="text-align: center;">${index + 1}</td>`;
+                            
+                            if (isAdmin) {
+                                rowHTML += `
+                                <td>${user.intname || user.mI_Name || '------'}</td>
+                                <td>${user.user_Name || '------'}</td>`;
+                            } else {
+                                rowHTML += `
+                                <td>${user.stafname || '------'}</td>
+                                <td>${user.hrmE_EmployeeCode || '------'}</td>
+                                <td>${user.user_Name || '------'}</td>`;
+                            }
+                            
+                            rowHTML += `</tr>`;
+                            return rowHTML;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 250);
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className='flex max-h-[90vh] max-w-4xl flex-col overflow-hidden p-0'>
@@ -68,14 +149,24 @@ export default function ViewUsernamesModal({ isOpen, onClose, users, roleName }:
                     <p className='mt-1 text-blue-700 text-sm uppercase'>
                         NOTE: EXISTING USERNAMES FOR <b>{roleName || 'SELECTED ROLE'}</b>
                     </p>
-                    <Button 
-                        onClick={handleExportToExcel} 
-                        variant="outline" 
-                        className="flex items-center gap-2 bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800 w-fit"
-                    >
-                        <Download className="h-4 w-4" />
-                        Export to Excel
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button 
+                            onClick={handleExportToExcel} 
+                            variant="outline" 
+                            className="flex items-center gap-2 bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800 w-fit"
+                        >
+                            <Download className="h-4 w-4" />
+                            Export to Excel
+                        </Button>
+                        <Button 
+                            onClick={handlePrint} 
+                            variant="outline" 
+                            className="flex items-center gap-2 bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 hover:text-blue-800 w-fit"
+                        >
+                            <Printer className="h-4 w-4" />
+                            Print
+                        </Button>
+                    </div>
                 </DialogHeader>
 
                 

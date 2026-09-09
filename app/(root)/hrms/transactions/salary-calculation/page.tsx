@@ -16,13 +16,14 @@ import type {
 } from '@/types/hrms/salary-calculation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Calculator, Loader2, Search, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { type Employee, getSalaryCalculationColumns } from './_components/columns';
-import { useQueryState, parseAsString } from 'nuqs';
+import { useQueryState, parseAsString, parseAsInteger } from 'nuqs';
 import { tableSearchVariables } from '@/lib/data-table.config';
+
 interface SearchForm {
     groupType: string[];
     department: string[];
@@ -41,16 +42,40 @@ const searchSchema = z.object({
 
 export default function SalaryCalculationPage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
+    const [totalEmployees, setTotalEmployees] = useState(0);
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
     const [hasSearched, setHasSearched] = useState(false);
     const [fromDate, setFromDate] = useState<string>('');
     const [toDate, setToDate] = useState<string>('');
     const [currentSearchData, setCurrentSearchData] = useState<SearchForm | null>(null);
+    const [isFormSearching, setIsFormSearching] = useState(false);
+
+    // URL-synced table params
+    const [searchTerm, setSearchTerm] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [page, setPage] = useQueryState(
+        tableSearchVariables.page,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(1)
+    );
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false }).withDefault(10)
+    );
+    const [sortColumn] = useQueryState(
+        tableSearchVariables.sort_column,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+
     const {
         handleSubmit,
         reset,
         watch,
-        setValue,
         control,
         formState: { isValid }
     } = useForm<SearchForm>({
@@ -68,8 +93,6 @@ export default function SalaryCalculationPage() {
     const watchedGroupType = watch('groupType');
     const watchedDepartment = watch('department');
     const watchedDesignation = watch('designation');
-    const watchedSalaryMonth = watch('salaryMonth');
-    const watchedSalaryYear = watch('salaryYear');
     const { data: monthOptionsData } = useMasterMonths();
     const { data: yearOptionsData } = useMasterYears();
     const searchMutation = useSearchEmployeesBySelection();
@@ -87,6 +110,102 @@ export default function SalaryCalculationPage() {
     useEffect(() => {
         setHasSearched(false);
     }, [watchedGroupType, watchedDepartment, watchedDesignation]);
+
+    // Core search executor — accepts filter form data + table params
+    const executeSearch = useCallback(
+        (
+            formData: SearchForm,
+            overrides?: {
+                page?: number;
+                pageSize?: number;
+                searchQuery?: string;
+                sortCol?: string;
+                sortDir?: string;
+                fromForm?: boolean;
+            }
+        ) => {
+            // Only show button spinner for explicit form submissions
+            if (overrides?.fromForm) setIsFormSearching(true);
+
+            const payload: NewSalaryCalculationSearchRequest = {
+                hreS_Year: formData.salaryYear,
+                hreS_Month: formData.salaryMonth,
+                groupTypeIdList: (formData.groupType || []).map((v) => Number(v)),
+                hrmD_IdList: (formData.department || []).map((v) => Number(v)),
+                hrmdeS_IdList: (formData.designation || []).map((v) => Number(v)),
+                // Query params
+                page: overrides?.page ?? page ?? 1,
+                page_size: overrides?.pageSize ?? pageSize ?? 10,
+                search_query: overrides?.searchQuery ?? searchTerm ?? undefined,
+                sort_column: overrides?.sortCol ?? sortColumn ?? undefined,
+                sort_direction: overrides?.sortDir ?? sortDirection ?? undefined
+            };
+            console.log('Search Payload:', payload);
+
+            searchMutation.mutate(payload, {
+                onSuccess: (responseData: ApiResponse<SelectionEmployee[]>) => {
+                    if (overrides?.fromForm) setIsFormSearching(false);
+                    const employeeList = responseData.data || [];
+                    const employeesWithStatus: Employee[] = employeeList.map((emp: SelectionEmployee) => {
+                        return {
+                            ...emp,
+                            HRME_Id: emp.hrmE_Id,
+                            HRME_EmployeeFirstName: emp.hrmE_FirstName,
+                            HRME_EmployeeMiddleName: emp.hrmE_MiddleName,
+                            HRME_EmployeeLastName: emp.hrmE_LastName,
+                            HRME_EmployeeCode: emp.hrmE_EmployeeCode,
+                            HRME_DateOfJoining: emp.hrmE_DOJ,
+                            HRME_MobileNo: emp.hrmE_MobileNo || '',
+                            HRME_EmailID: emp.hrmE_EmailID || '',
+                            MI_Id: 0,
+                            HRMGT_Id: emp.hrmgT_Id,
+                            HRMD_Id: emp.hrmD_Id,
+                            HRMDES_Id: emp.hrmdeS_Id,
+                            calculationStatus: 'Not Calculated' as const,
+                            basicSalary: 0,
+                            allowances: 0,
+                            deductions: 0,
+                            netSalary: 0
+                        } as Employee;
+                    });
+
+                    setEmployees(employeesWithStatus);
+                    // Use server total if returned, otherwise fall back to list length
+                    setTotalEmployees((responseData as any).total ?? employeesWithStatus.length);
+                    setHasSearched(true);
+                    setCurrentSearchData(formData);
+
+                    if (formData.salaryMonth && formData.salaryYear) {
+                        setFromDate(`01/${formData.salaryMonth}/${formData.salaryYear}`);
+                        setToDate(`Last of ${formData.salaryMonth}/${formData.salaryYear}`);
+                    }
+                    if (employeesWithStatus.length === 0) {
+                        toast.info('No employees found matching criteria');
+                    } else {
+                        toast.success(`Search completed successfully. Found ${employeesWithStatus.length} employees`);
+                    }
+                },
+                onError: () => {
+                    if (overrides?.fromForm) setIsFormSearching(false);
+                    setEmployees([]);
+                    setTotalEmployees(0);
+                    setHasSearched(true);
+                }
+            });
+        },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [page, pageSize, searchTerm, sortColumn, sortDirection]
+    );
+
+    // Re-trigger search when table params change (only after initial search was done)
+    useEffect(() => {
+        if (hasSearched && currentSearchData) {
+            executeSearch(currentSearchData);
+        }
+        // Only react to table-param changes — not form-level changes
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page, pageSize, searchTerm, sortColumn, sortDirection]);
+
     // Memoized options for Select/MultiSelect components
     const groupTypeOptions = useMemo(() => {
         return (
@@ -119,60 +238,9 @@ export default function SalaryCalculationPage() {
     const yearOptions = useMemo<MasterDropdown[]>(() => (yearOptionsData?.data || []) as MasterDropdown[], [yearOptionsData]);
 
     const onSubmit: SubmitHandler<SearchForm> = async (data: SearchForm) => {
-        const payload: NewSalaryCalculationSearchRequest = {
-            hreS_Year: data.salaryYear,
-            hreS_Month: data.salaryMonth,
-            groupTypeIdList: (data.groupType || []).map((v) => Number(v)),
-            hrmD_IdList: (data.department || []).map((v) => Number(v)),
-            hrmdeS_IdList: (data.designation || []).map((v) => Number(v))
-        };
-        console.log('Search Payload:', payload);
-
-        searchMutation.mutate(payload, {
-            onSuccess: (responseData: ApiResponse<SelectionEmployee[]>) => {
-                const employeeList = responseData.data || [];
-                const employeesWithStatus: Employee[] = employeeList.map((emp: SelectionEmployee) => {
-                    return {
-                        ...emp,
-                        HRME_Id: emp.hrmE_Id,
-                        HRME_EmployeeFirstName: emp.hrmE_FirstName,
-                        HRME_EmployeeMiddleName: emp.hrmE_MiddleName,
-                        HRME_EmployeeLastName: emp.hrmE_LastName,
-                        HRME_EmployeeCode: emp.hrmE_EmployeeCode,
-                        HRME_DateOfJoining: emp.hrmE_DOJ,
-                        HRME_MobileNo: emp.hrmE_MobileNo || '',
-                        HRME_EmailID: emp.hrmE_EmailID || '',
-                        MI_Id: 0,
-                        HRMGT_Id: emp.hrmgT_Id,
-                        HRMD_Id: emp.hrmD_Id,
-                        HRMDES_Id: emp.hrmdeS_Id,
-                        calculationStatus: 'Not Calculated' as const,
-                        basicSalary: 0,
-                        allowances: 0,
-                        deductions: 0,
-                        netSalary: 0
-                    } as Employee;
-                });
-
-                setEmployees(employeesWithStatus);
-                setHasSearched(true);
-                setCurrentSearchData(data);
-
-                if (data.salaryMonth && data.salaryYear) {
-                    setFromDate(`01/${data.salaryMonth}/${data.salaryYear}`);
-                    setToDate(`Last of ${data.salaryMonth}/${data.salaryYear}`);
-                }
-                if (employeesWithStatus.length === 0) {
-                    toast.info('No employees found matching criteria');
-                } else {
-                    toast.success(`Search completed successfully. Found ${employeesWithStatus.length} employees`);
-                }
-            },
-            onError: () => {
-                setEmployees([]);
-                setHasSearched(true);
-            }
-        });
+        // Reset pagination to page 1 on a fresh search
+        await setPage(1);
+        executeSearch(data, { page: 1, fromForm: true });
     };
 
     const handleEmployeeSelect = (employeeId: number, selected: boolean) => {
@@ -231,8 +299,12 @@ export default function SalaryCalculationPage() {
         });
         setResetKey((prev) => prev + 1); // Reset form
         setEmployees([]);
+        setTotalEmployees(0);
         setSelectedEmployees([]);
         setHasSearched(false);
+        setCurrentSearchData(null);
+        setSearchTerm('');
+        setPage(1);
     };
 
     return (
@@ -362,8 +434,8 @@ export default function SalaryCalculationPage() {
                         </div>
                         {/* Search and Cancel Buttons */}
                         <div className='flex gap-2 pt-4'>
-                            <Button type='submit' disabled={!isValid} className='w-fit transition-all duration-200 hover:scale-105'>
-                                {searchMutation.isPending ? (
+                            <Button type='submit' disabled={!isValid || isFormSearching} className='w-fit transition-all duration-200 hover:scale-105'>
+                                {isFormSearching ? (
                                     <>
                                         <Loader2 className='mr-2 h-4 w-4 animate-spin' />
                                         SEARCHING...
@@ -396,6 +468,7 @@ export default function SalaryCalculationPage() {
                         headerClassName=''>
                         <SalaryCalculationTable
                             employees={employees}
+                            totalEmployees={totalEmployees}
                             isLoading={searchMutation.isPending || calculateMutation.isPending}
                             selectedEmployees={selectedEmployees}
                             onEmployeeSelect={handleEmployeeSelect}
@@ -404,6 +477,9 @@ export default function SalaryCalculationPage() {
                             fromDate={fromDate}
                             toDate={toDate}
                             handleReset={handleReset}
+                            onPageChange={(newPage) => setPage(newPage)}
+                            currentPage={page ?? 1}
+                            pageSize={pageSize ?? 10}
                         />
                     </CollapsibleSection>
                 )}
@@ -424,6 +500,7 @@ export default function SalaryCalculationPage() {
 }
 interface SalaryCalculationTableProps {
     employees: Employee[];
+    totalEmployees: number;
     isLoading: boolean;
     selectedEmployees: number[];
     onEmployeeSelect: (employeeId: number, selected: boolean) => void;
@@ -432,9 +509,13 @@ interface SalaryCalculationTableProps {
     fromDate: string;
     toDate: string;
     handleReset: () => void;
+    onPageChange: (page: number) => void;
+    currentPage: number;
+    pageSize: number;
 }
 function SalaryCalculationTable({
     employees,
+    totalEmployees,
     isLoading,
     selectedEmployees,
     onEmployeeSelect,
@@ -442,35 +523,21 @@ function SalaryCalculationTable({
     onGenerateSalary,
     fromDate,
     toDate,
-    handleReset
+    handleReset,
+    onPageChange,
+    currentPage,
+    pageSize
 }: SalaryCalculationTableProps) {
-    const [searchTerm, setSearchTerm] = useQueryState(
-        tableSearchVariables.search,
-        parseAsString.withOptions({ shallow: false }).withDefault('')
-    );
-
-    // Local filtering logic for search
-    const filteredBySearch = useMemo(() => {
-        if (!searchTerm) return employees;
-        const lowerSearch = searchTerm.toLowerCase();
-        return employees.filter((emp) => {
-            const fullName =
-                `${emp.HRME_EmployeeFirstName} ${emp.HRME_EmployeeMiddleName || ''} ${emp.HRME_EmployeeLastName || ''}`.toLowerCase();
-            const code = (emp.HRME_EmployeeCode || '').toLowerCase();
-            return fullName.includes(lowerSearch) || code.includes(lowerSearch);
-        });
-    }, [employees, searchTerm]);
-
-    // Prepare table response format for useDataTableProps
+    // Build server-side table response — search/pagination handled by backend
     const tableResponse = useMemo(() => {
         return {
             success: true,
-            data: filteredBySearch,
-            total: filteredBySearch.length,
+            data: employees,
+            total: totalEmployees,
             page: 1,
-            page_size: filteredBySearch.length
+            page_size: employees.length
         };
-    }, [filteredBySearch]);
+    }, [employees, totalEmployees]);
 
     const tableProps = useDataTableProps(tableResponse);
 
@@ -478,55 +545,19 @@ function SalaryCalculationTable({
     const columns = useMemo(
         () =>
             getSalaryCalculationColumns({
-                employees: filteredBySearch,
+                employees,
                 selectedEmployees,
                 onEmployeeSelect,
-                onSelectAll
+                onSelectAll,
+                currentPage,
+                pageSize
             }),
-        [filteredBySearch, selectedEmployees, onEmployeeSelect, onSelectAll]
+        [employees, selectedEmployees, onEmployeeSelect, onSelectAll, currentPage, pageSize]
     );
 
     return (
         <div className='space-y-4'>
-            {/* Date Range and Search Display */}
-            {/* <div className="rounded-lg bg-muted/50 p-4">
-        <div className="flex items-center justify-between gap-4">
-          <div className="text-muted-foreground text-sm">
-            {fromDate && toDate
-              ? `Date From: ${fromDate} to ${toDate}`
-              : "Employee List"}
-          </div>
-          <div className='flex items-center gap-2'>
-                        <div className='relative flex items-center'>
-                            <Mic className='absolute left-3 h-4 w-4 text-muted-foreground' />
-                            <input
-                                type='text'
-                                placeholder='Search code or name...'
-                                className='w-64 rounded-md border bg-background pl-9 pr-9 py-1.5 text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            {searchTerm && (
-                                <X
-                                    className='absolute right-3 h-4 w-4 cursor-pointer text-muted-foreground hover:text-foreground'
-                                    onClick={() => setSearchTerm('')}
-                                />
-                            )}
-                        </div>
-                        <Button
-                            variant='ghost'
-                            size='sm'
-                            className='h-8 w-8 p-0'
-                            onClick={() => setSearchTerm('')}
-                            title='Refresh/Reset'
-                        >
-                            <RefreshCw className='h-4 w-4' />
-                        </Button>
-                    </div>
-        </div>
-      </div> */}
-
-            {/* Employee Data Table - Display All Records */}
+            {/* Employee Data Table */}
             <div className=' rounded-md '>
                 <GenericDataTable
                     {...tableProps}
@@ -535,8 +566,9 @@ function SalaryCalculationTable({
                     error={null}
                     showViewOptions={false}
                     isSearchRequired={true}
-                    isPaginationRequired={false}
+                    isPaginationRequired={true}
                     columnPinning={{ left: ['select'] }}
+                    onPageChange={onPageChange}
                 />
             </div>
 
