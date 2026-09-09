@@ -121,10 +121,10 @@ export function buildSalaryEntryColumns(
         {
             id: 'slNo',
             header: ({ column }) => <DataTableColumnHeader column={column} title='SL NO' />,
-            cell: ({ row }) => {
-                const continuousIndex = row.index + 1;
-
-                return <span className='pl-2'>{continuousIndex}</span>;
+            cell: ({ row, table }) => {
+                const { pageIndex, pageSize } = table.getState().pagination;
+                const slNo = pageIndex * pageSize + row.index + 1;
+                return <span className='pl-2'>{slNo}</span>;
             },
             enableSorting: false,
             size: 60

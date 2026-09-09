@@ -1,10 +1,8 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, RotateCcw, Search } from 'lucide-react';
-import { useState } from 'react';
+import { RotateCcw, Search } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -14,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { type StaffPeriodTransferValues, staffPeriodTransferSchema } from '@/schemas/timetable/transactions';
 
 import { useStaffPeriodTransferMasters } from '@/hooks/timetable/useTransactions';
-import { getStaffPeriodTransferMasters } from '@/server/timetable/transactions/staffperiodtransfer';
 
 interface StaffPeriodTransferFormProps {
     onFetch: (data: StaffPeriodTransferValues | null) => void;
@@ -22,8 +19,6 @@ interface StaffPeriodTransferFormProps {
 
 export default function StaffPeriodTransferForm({ onFetch }: StaffPeriodTransferFormProps) {
     const { data: masters, isLoading: mastersLoading } = useStaffPeriodTransferMasters();
-
-    const [saving, setSaving] = useState(false);
 
     const {
         control,
@@ -40,20 +35,7 @@ export default function StaffPeriodTransferForm({ onFetch }: StaffPeriodTransfer
 
     /* -------------------- SUBMIT -------------------- */
     const onSubmit = async (data: StaffPeriodTransferValues) => {
-        if (saving) return;
-
-        setSaving(true);
-        try {
-            await getStaffPeriodTransferMasters(); // just validates / preloads
-            toast.success('Details loaded');
-
-            onFetch(data); // ✅ THIS IS THE KEY FIX
-        } catch (error) {
-            console.error(error);
-            toast.error('Unable to load details');
-        } finally {
-            setSaving(false);
-        }
+        onFetch(data);
     };
 
     /* -------------------- RESET -------------------- */
@@ -137,9 +119,9 @@ export default function StaffPeriodTransferForm({ onFetch }: StaffPeriodTransfer
                     <div className='flex gap-2 border-t pt-4'>
                         <Button
                             type='submit'
-                            disabled={mastersLoading || saving}
+                            disabled={mastersLoading}
                             className='bg-orange-500 px-6 font-semibold text-xs hover:bg-orange-600'>
-                            {saving ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
+                            <Search className='mr-2 h-4 w-4' />
                             Get Details
                         </Button>
 
