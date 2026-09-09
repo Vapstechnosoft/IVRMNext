@@ -2,10 +2,10 @@ import { createStringOnlySchema, deleteIdSchema } from '@/schemas/validationSche
 import { z } from 'zod';
 
 export const DeputationSchema = z.object({
-    asmaY_Id: z.string().optional(),
-    ttmD_Date: z.date({ required_error: 'Date is required' }),
+    asmaY_Id: z.string().min(1, 'Please Select Academic Year'),
+    ttmD_Date: z.date({ required_error: 'Please Select Date' }).optional().nullable(),
     absent_Staff_Flag: z.boolean().default(false),
-    hrmE_Id: z.string().min(1, 'Staff Name is required'),
+    hrmE_Id: z.string().min(1, 'Please Select Staff'),
     ttmD_Id: z.number().optional(),
     ttmD_Day: z.string().optional(),
     ttmD_Remarks: z.string().optional(),

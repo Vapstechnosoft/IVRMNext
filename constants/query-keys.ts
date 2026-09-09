@@ -133,6 +133,7 @@ export const PREADMISSION_QUERY_KEYS = {
 };
 
 export const FEES_QUERY_KEYS = {
+    FEE_CHALLAN_REPORT: 'fee_challan_report',
     FEE_HEADS: 'fee_head',
     FEE_MODEOFPAYMENT: 'fee_modeofpayment',
     MASTER_CLASS_CATEGORY: 'master_class_category',
