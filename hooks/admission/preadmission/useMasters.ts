@@ -622,3 +622,23 @@ export const useMasterActivity = (searchParams?: ApiSearchparams) => {
         }
     };
 };
+
+export const useMasterClassHeldAllDetails = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: ['master_class_held_all_details'],
+            queryFn: async () => {
+                const { getMasterClassHeldAllDetails } = await import('@/server/admission/preadmission/masters/class_held');
+                return await getMasterClassHeldAllDetails();
+            },
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['master_class_held_all_details']
+            });
+        }
+    };
+};
