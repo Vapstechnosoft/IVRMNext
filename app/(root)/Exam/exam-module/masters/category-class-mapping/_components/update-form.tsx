@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterCategoryClassMapping } from '@/hooks/exam/exammodule/usemasters';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { categoryClassMappingSchema } from '@/schemas/exam/exam-module/masters';
 import {
     addOrUpdateCategoryClassMapping,
@@ -12,6 +11,7 @@ import {
     getCategoryMappedSections,
     getClassMappedSections
 } from '@/server/exam/exam-module/masters/category-class-mapping';
+import { getExamAcademicYearDropdown } from '@/server/exam/exam-module/masters/exam';
 import { getOpeningClassDropdownData } from '@/server/fees/trasactions/fee_opening_balance';
 import type { ICategoryMapping } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -52,7 +52,8 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
         } as any
     });
 
-    const [academicYears, _setAcademicYears] = useState<AcademicYear[]>([]);
+    const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+    const [academicYearLoading, setAcademicYearLoading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [classes, setClasses] = useState<ClassItem[]>([]);
     const [sections, setSections] = useState<SectionItem[]>([]);
@@ -99,14 +100,29 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     const watchedCategory = watch('emcA_Id');
     const watchedClass = watch('asmcL_Id');
 
+    // Load academic years
+    useEffect(() => {
+        const fetchAcademicYears = async () => {
+            try {
+                setAcademicYearLoading(true);
+                const res = await getExamAcademicYearDropdown();
+                const yearData = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+                setAcademicYears(yearData);
+            } catch (err: any) {
+                toast.error(err.message || 'Failed to load academic years');
+            } finally {
+                setAcademicYearLoading(false);
+            }
+        };
+
+        fetchAcademicYears();
+    }, []);
+
     //Initialize the form with selectedrowValues
     useEffect(() => {
         setValue('asmaY_Id', selectedRow?.asmaY_Id ?? 0);
         setValue('emcA_Id', selectedRow?.emcA_Id ?? 0);
     }, [selectedRow, classes.length, categories.length, academicYears.length]);
-
-    // Academic years hook
-    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
     // Load categories & classes
     useEffect(() => {
@@ -445,7 +461,7 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
     };
 
     // Safe arrays to avoid undefined.map errors
-    const safeAcademicYears = Array.isArray(academicYear?.data) ? academicYear.data : [];
+    const safeAcademicYears = Array.isArray(academicYears) ? academicYears : [];
     const safeCategories = Array.isArray(categories) ? categories : [];
     const safeClasses = Array.isArray(classes) ? classes : [];
     const safeSections = Array.isArray(sections) ? sections : [];

@@ -2,11 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { PolygonBanner } from '@/components/ui/extension/polygon-banner';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useExamLoginPrivileges } from '@/hooks/exam/exammodule/exam-mapping';
 import type { IExamLoginPrivileges } from '@/types/exam/exam-module/exam-mapping';
-import { Plus, X } from 'lucide-react';
+import { ChevronRight, Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddExamLoginPrivileges from './_components/add-form';
 import { ExamLoginPrivilegesColumns } from './_components/columns';
@@ -42,9 +43,26 @@ function ExamLoginPrivilegesPageContent({
 
     return (
         <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
+            {/* Banner Section */}
+            <PolygonBanner
+                title='ExamLoginPrivileges'
+                description='Manage Exam Login Privileges'
+                breadcrumb={
+                    <div className='flex flex-wrap items-center gap-2 text-sm text-white/90'>
+                        <span>Exam</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span>Exam Module</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span>Exam Mapping</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span className='font-bold text-white'>ExamLoginPrivileges</span>
+                    </div>
+                }
+            />
+
+            <div className='container space-y-4 p-4'>
                 {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+                <div className='mt-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}

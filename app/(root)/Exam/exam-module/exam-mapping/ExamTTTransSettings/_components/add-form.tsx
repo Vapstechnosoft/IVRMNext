@@ -6,7 +6,6 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useExamTTTransSettings } from '@/hooks/exam/exammodule/exam-mapping';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { examTTTransSettingsSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import {
     getExamTTTransViewRecords,
@@ -14,6 +13,7 @@ import {
     getSubjectListAndTimeSlots,
     saveExamTTTransSettings
 } from '@/server/exam/exam-module/exam-mapping/exam-tt-trans-settings';
+import { getExamAcademicYearDropdown } from '@/server/exam/exam-module/masters/exam';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist
@@ -38,7 +38,9 @@ interface Props {
 
 export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Props) {
     const { refetchAll } = useExamTTTransSettings();
-    const { data: acYearData, isLoading: acYearLoading } = useAcademicYearDropdown();
+
+    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
+    const [acYearLoading, setAcYearLoading] = useState(false);
 
     const [isPending, startTransition] = useTransition();
     const [loadingCascade, setLoadingCascade] = useState(false);
@@ -61,12 +63,29 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
 
     const [errors, setErrors] = useState<Record<string, string>>({});
 
+    // Load Academic Years on Mount
+    useEffect(() => {
+        const fetchAcademicYears = async () => {
+            try {
+                setAcYearLoading(true);
+                const res = await getExamAcademicYearDropdown();
+                const yearData = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+                setAcademicYears(yearData);
+            } catch (err: any) {
+                toast.error(err?.message || 'Failed to load academic years');
+            } finally {
+                setAcYearLoading(false);
+            }
+        };
+
+        fetchAcademicYears();
+    }, []);
+
     // Pre-populate on edit
     useEffect(() => {
         if (!editData) return;
         (async () => {
             try {
-                console.log('editData', editData);
                 setAsmay(String(editData.asmaY_Id));
                 setAsmcl(String(editData.asmcL_Id));
                 setAsms(String(editData.asmS_Id));
@@ -75,37 +94,19 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                 setFromDate(editData.extT_FromDate?.split('T')[0] ?? '');
                 setToDate(editData.extT_EndDate?.split('T')[0] ?? '');
                 setExttId(editData.extT_Id);
-                // const res = await getExamTTTransEditDetails(editData.extT_Id);
-                // const edit = res?.data?.listedit?.[0];
-                // if (!edit) return;
 
-                // setExttId(editData.extT_Id);
-
-                // // Load classes for that year
-                setAsmay(String(editData.asmaY_Id));
+                // Load classes for that year
                 const clsRes = await getClassDropDownByAcademicYearlist(editData.asmaY_Id);
                 setClasses(clsRes?.data ?? []);
-                setAsmcl(String(editData.asmcL_Id));
 
-                // // Load sections
-                console.log('editData.asmcL_Id', editData.asmcL_Id);
-                console.log('editData.asmaY_Id', editData.asmaY_Id);
+                // Load sections
                 const secRes = await getSectionsDropDownByAcademicYearandClasslist(editData.asmaY_Id, editData.asmcL_Id);
-                console.log('editData.asmcL_Id', editData.asmcL_Id);
-                console.log('editData.asmaY_Id', editData.asmaY_Id);
-                console.log('secRes', secRes);
                 setSections(secRes?.data ?? []);
-                setAsms(String(editData.asmS_Id));
 
-                // // Load subject groups & exams
+                // Load subject groups & exams
                 const sgRes = await getSubjectGroupsAndExamsBySection(editData.asmS_Id, editData.asmcL_Id, editData.asmaY_Id);
                 setSubjectGroups(sgRes?.data?.subject_group ?? []);
                 setExams(sgRes?.data?.examlist ?? []);
-                setEme(String(editData.emE_Id));
-                setEmg(String(editData.emG_Id));
-
-                // setFromDate(edit.extT_FromDate?.split('T')[0] ?? '');
-                // setToDate(edit.extT_EndDate?.split('T')[0] ?? '');
 
                 // Load subjects
                 const subRes = await getSubjectListAndTimeSlots({
@@ -117,14 +118,11 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                 });
                 const { data: listedit } = await getExamTTTransViewRecords(editData.extT_Id);
 
-                console.log('listedit', listedit);
-                console.log('subRes?.data?.time_slot', subRes?.data?.time_slot);
-                console.log('subRes?.data?.subject_name', subRes?.data?.subject_name);
                 setTimeSlots(subRes?.data?.time_slot ?? []);
 
                 const subjects: any[] = subRes?.data?.subject_name ?? [];
                 const merged: SubjectRow[] = subjects.map((s: any) => {
-                    const match = listedit.find((e: any) => e.ismS_Id === s.ismS_Id);
+                    const match = listedit?.find((e: any) => e.ismS_Id === s.ismS_Id);
                     return match
                         ? {
                               ismS_Id: s.ismS_Id,
@@ -136,7 +134,6 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                         : { ismS_Id: s.ismS_Id, ismS_SubjectName: s.ismS_SubjectName, check_save: 0, exttS_Date: '', ettS_Id: '' };
                 });
                 setMainList(merged);
-                console.log('merged___', merged);
             } catch {
                 toast.error('Failed to load edit data');
             }
@@ -191,7 +188,6 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
             setLoadingCascade(true);
             try {
                 const res = await getClassDropDownByAcademicYearlist(Number(asmay));
-                console.log('classes response', res);
                 setClasses(res?.data ?? []);
             } catch {
                 toast.error('Failed to load classes');
@@ -209,7 +205,6 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
             setLoadingCascade(true);
             try {
                 const res = await getSectionsDropDownByAcademicYearandClasslist(Number(asmay), Number(asmcl));
-                console.log('sections response', res);
                 setSections(res?.data ?? []);
             } catch {
                 toast.error('Failed to load sections');
@@ -240,7 +235,7 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
 
     // 4. Fetch Subjects & Time Slots
     useEffect(() => {
-        if (!asmay || !asmcl || !asms || !emg || isEditMode) return;
+        if (!asmay || !asmcl || !asms || !emg || !eme || isEditMode) return;
         async function fetchSubjects() {
             setLoadingCascade(true);
             try {
@@ -353,41 +348,31 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                     ASMAY_Id: Number(asmay),
                     EME_Id: Number(eme),
                     EMG_Id: Number(emg),
-
-                    // ✅ FIXED DATE FORMAT (ISO for .NET 8)
                     EXTT_FromDate: fromDate ? new Date(fromDate).toISOString() : null,
-
                     EXTT_EndDate: toDate ? new Date(toDate).toISOString() : null,
-
                     EXTT_Id: Number(exttId) || 0,
-
                     TempararyArrayList: checkedRows.map((r) => ({
-                        ISMS_Id: Number(r.ismS_Id), // ✅ corrected casing
+                        ISMS_Id: Number(r.ismS_Id),
                         check_save: '1',
-
                         EXTTS_Date: r.exttS_Date ? new Date(r.exttS_Date).toISOString() : null,
-
-                        ETTS_Id: Number(r.ettS_Id), // ✅ corrected casing
+                        ETTS_Id: Number(r.ettS_Id),
                         ISMS_SubjectName: r.ismS_SubjectName
                     }))
                 };
 
-                console.log('Exam TT Settings payload:', payload);
-
                 const res = await saveExamTTTransSettings(payload);
 
                 if (res?.success === true) {
-                    toast.success('Saved successfully');
+                    toast.success(res?.message || 'Saved successfully');
                     refetchAll?.();
                     onSuccess?.();
-                }
-                if (res?.success === false) {
-                    toast.error(res?.message);
+                } else if (res?.success === false) {
+                    toast.error(res?.message || 'Failed to save');
                     return;
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
-                toast.error('Failed to save');
+                toast.error(err?.message || 'Failed to save');
             }
         });
     }
@@ -411,8 +396,8 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
 
     return (
         <div className='flex w-full flex-col gap-6'>
-            <div className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
-                <div className='grid grid-cols-2 gap-6'>
+            <div className='flex flex-col gap-6 rounded-2xl bg-white p-2'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                     {/* Left Column */}
                     <div className='flex flex-col gap-4'>
                         <div>
@@ -429,7 +414,7 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                                             Loading...
                                         </SelectItem>
                                     ) : (
-                                        acYearData?.data?.map((y: any) => (
+                                        academicYears.map((y: any) => (
                                             <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
                                                 {y.asmaY_Year}
                                             </SelectItem>
@@ -632,7 +617,7 @@ export default function AddExamTTTransSettingsForm({ onSuccess, editData }: Prop
                 )}
 
                 {/* Buttons */}
-                <div className='mt-6 flex w-fit gap-4'>
+                <div className='mt-4 flex w-fit gap-3'>
                     <Button type='button' onClick={handleSave} disabled={isPending} className='w-fit'>
                         {isPending ? (
                             <>
