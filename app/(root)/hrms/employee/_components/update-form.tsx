@@ -2203,8 +2203,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                        {...register('lastName')}
-                                                        error={errors.lastName?.message as string | undefined}
+                                                        // {...register('lastName')}
+                                                        // error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Employee Code'

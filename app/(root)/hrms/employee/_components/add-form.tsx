@@ -2093,7 +2093,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     <InputText
                                                         label='Last Name'
                                                         placeholder='Enter Last Name'
-                                                        required
+                                                        
                                                         id='lastName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2124,8 +2124,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                        {...register('lastName')}
-                                                        error={errors.lastName?.message as string | undefined}
+                                                        // {...register('lastName')}
+                                                        // error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Employee Code'
