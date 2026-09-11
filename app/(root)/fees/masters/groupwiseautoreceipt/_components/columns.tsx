@@ -241,13 +241,15 @@ const decodeHtmlEntities = (html: string): string => {
 };
 
 // Replace placeholders
-// Update the function signature
 const replacePlaceholders = (html: string, rowData: IMasterGroupWiseAutoReciptList, institute: IMasterInstitution | null): string => {
     let processedHtml = html;
 
     for (const { pattern, value } of PLACEHOLDER_CONFIG) {
         processedHtml = processedHtml.replace(pattern, value(rowData));
     }
+
+    // Replace specific angular tags first to preserve them
+    processedHtml = processedHtml.replace(/\{\{imgname\}\}/gi, institute?.mI_Logo || 'https://via.placeholder.com/800x120?text=Institute+Header');
 
     // Add institute placeholders with null checks
     processedHtml = processedHtml.replace(/\[InstituteLogo\]/gi, institute?.mI_Logo || '');
@@ -258,20 +260,19 @@ const replacePlaceholders = (html: string, rowData: IMasterGroupWiseAutoReciptLi
     processedHtml = processedHtml.replace(/baldwin/gi, '');
     processedHtml = processedHtml.replace(/Baldwin/gi, '');
 
-    // Remove Angular-style placeholders
+    // Replace some known angular ng-if blocks that might clutter the preview
+    // e.g., ng-if="receiptformat == 1" which hides "Total Charges"
+    processedHtml = processedHtml.replace(/ng-if="receiptformat == 1"/gi, 'style="display:none;"');
+
+    // Remove Angular-style placeholders (makes them empty)
     processedHtml = processedHtml.replace(/\{\{.*?\}\}/g, '');
 
     return processedHtml;
 };
 
 // Generate iframe content with institute logo
-// Update the generateIframeContent function
 const generateIframeContent = (html: string, institute: IMasterInstitution | null, isFullDocument: boolean): string => {
     if (isFullDocument) return html;
-
-    const hasLogo = institute?.mI_Logo && institute.mI_Logo.trim() !== '';
-    const logoUrl = institute?.mI_Logo || '';
-    const instituteName = institute?.mI_Name || '';
 
     return `
         <!DOCTYPE html>
@@ -289,123 +290,113 @@ const generateIframeContent = (html: string, institute: IMasterInstitution | nul
                     }
                     
                     body {
-                        background: #f0f2f5;
+                        background: white;
                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        padding: 40px 20px;
+                        padding: 20px;
                         margin: 0;
                     }
                     
-                    .preview-container {
-                        max-width: 1200px;
-                        margin: 0 auto;
-                        background: white;
-                        border-radius: 12px;
-                        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-                        overflow: hidden;
+                    /* Hide Angular modal elements that are redundant in our React Dialog */
+                    .modal-footer { display: none !important; }
+                    .modal-content { border: none !important; box-shadow: none !important; }
+                    .modal-dialog { max-width: 100% !important; margin: 0 !important; width: 100% !important; }
+                    .modal-body { padding: 0 !important; }
+
+                    /* Styling to match the blue theme from the image */
+                    .table-bordered {
+                        border: 1px solid #dee2e6;
                     }
                     
-                    /* Header Section - FIXED FOR FULL WIDTH LOGO */
-                    .receipt-header {
-                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                        color: white;
-                        padding: 30px;
+                    .table thead th,
+                    .table thead td {
+                        background-color: #0056b3 !important; /* Blue header */
+                        color: white !important;
+                        border-color: #004a99 !important;
+                        font-size: 13px;
+                        padding: 8px !important;
                         text-align: center;
-                        width: 100%;
-                    }
-                    
-                    .logo-container {
-                        margin-bottom: 20px;
-                        width: 100%;
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                    }
-                    
-                    .school-logo {
-                        max-width: 100%;
-                        width: auto;
-                        height: auto;
-                        max-height: 120px;
-                        object-fit: contain;
-                        background: white;
-                        padding: 10px;
-                        border-radius: 8px;
-                    }
-                    
-                    /* Alternative: Full width logo container */
-                    .full-width-logo {
-                        width: 100%;
-                        text-align: center;
-                        background: white;
-                        padding: 20px;
-                        margin-bottom: 20px;
-                    }
-                    
-                    .full-width-logo img {
-                        max-width: 100%;
-                        height: auto;
-                        max-height: 150px;
-                        object-fit: contain;
-                    }
-                    
-                    .school-name {
-                        font-size: 28px;
                         font-weight: bold;
-                        margin-bottom: 10px;
                     }
-                    
-                    .school-address {
-                        font-size: 14px;
-                        opacity: 0.9;
+
+                    .table tbody td {
+                        font-size: 13px;
+                        padding: 8px !important;
+                        border-color: #dee2e6 !important;
+                    }
+
+                    h5 {
+                        color: #0056b3;
+                        font-weight: 600;
+                        margin-top: 15px;
+                        margin-bottom: 15px;
+                    }
+
+                    .control-label {
+                        font-size: 13px;
+                        margin-bottom: 0;
+                        white-space: nowrap;
+                    }
+
+                    hr {
+                        border-top: 1px solid #ddd;
+                        margin: 10px 0;
+                    }
+
+                    .form-group {
                         margin-bottom: 5px;
                     }
-                    
-                    .receipt-content {
-                        padding: 30px;
-                        background: white;
+
+                    .row {
+                        margin-bottom: 0;
                     }
-                    
-                    /* Table Styling */
-                    .receipt-table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin: 20px 0;
+
+                    .printmodal img {
+                        max-height: 120px;
+                        width: auto;
+                        margin: 0 auto 20px auto;
+                        display: block;
                     }
-                    
-                    .receipt-table th,
-                    .receipt-table td {
-                        border: 1px solid #dee2e6;
-                        padding: 12px;
+
+                    /* Fix alignment for Bootstrap 3 grid inside Bootstrap 5 */
+                    .form-group {
+                        display: flex;
+                        flex-wrap: wrap;
+                        align-items: baseline;
+                        margin-bottom: 8px;
+                    }
+                    .form-group > [class*="col-"] {
+                        padding-right: 5px;
+                        padding-left: 5px;
+                    }
+                    .form-group > .col-sm-2 { width: 16.666667%; }
+                    .form-group > .col-sm-3 { width: 25%; }
+                    .form-group > .col-sm-4 { width: 33.333333%; }
+                    .form-group > .col-sm-5 { width: 41.666667%; }
+                    .form-group > .col-sm-6 { width: 50%; }
+                    .form-group > .col-sm-7 { width: 58.333333%; }
+                    .form-group > .col-sm-8 { width: 66.666667%; }
+                    .form-group > .col-sm-9 { width: 75%; }
+                    .form-group > .col-sm-10 { width: 83.333333%; }
+                    .form-group > .col-sm-12 { width: 100%; }
+
+                    .col-sm-offset-8 {
+                        margin-left: 0 !important;
+                    }
+                    .col-sm-offset-8 h5 {
+                        white-space: nowrap;
                         text-align: left;
+                        margin-top: 30px;
                     }
-                    
-                    .receipt-table th {
-                        background: #f8f9fa;
-                        font-weight: 600;
-                    }
-                    
-                    .receipt-footer {
-                        background: #f8f9fa;
-                        padding: 20px 30px;
-                        text-align: center;
-                        border-top: 1px solid #dee2e6;
-                        font-size: 12px;
-                        color: #6c757d;
-                    }
-                    
+
+                    /* Utility classes used in angular template */
+                    .margin-bottom-5 { margin-bottom: 5px; }
+                    .table-width { width: 100%; }
+
                     @media print {
-                        body {
-                            background: white;
-                            padding: 0;
-                        }
-                        
-                        .preview-container {
-                            box-shadow: none;
-                        }
-                        
-                        .receipt-header {
-                            background: #f8f9fa !important;
-                            color: black !important;
+                        body { padding: 0; }
+                        .table thead th {
+                            background-color: #0056b3 !important;
+                            color: white !important;
                             -webkit-print-color-adjust: exact;
                             print-color-adjust: exact;
                         }
@@ -414,28 +405,7 @@ const generateIframeContent = (html: string, institute: IMasterInstitution | nul
             </head>
             <body>
                 <div class="preview-container">
-                    <div class="receipt-header">
-                        <!-- FIXED: Full width logo display -->
-                        <div class="full-width-logo">
-                            ${
-                                hasLogo
-                                    ? `<img src="${logoUrl}" alt="Institute Logo" 
-                                      onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\' viewBox=\\'0 0 100 100\\'%3E%3Crect width=\\'100\\' height=\\'100\\' fill=\\'%23f0f0f0\\'/%3E%3Ctext x=\\'50\\' y=\\'55\\' text-anchor=\\'middle\\' fill=\\'%23999\\' font-size=\\'14\\'%3E🏫%3C/text%3E%3C/svg%3E'" />`
-                                    : '<div style="font-size: 60px;">🏫</div>'
-                            }
-                        </div>
-                        
-                        ${instituteName ? `<div class="school-name">${instituteName}</div>` : ''}
-                    </div>
-                    
-                    <div class="receipt-content">
-                        ${html}
-                    </div>
-                    
-                    <div class="receipt-footer">
-                        <p>© ${new Date().getFullYear()} - Official Receipt</p>
-                        <p>Generated on: ${new Date().toLocaleString()}</p>
-                    </div>
+                    ${html}
                 </div>
             </body>
         </html>
@@ -509,7 +479,7 @@ export function TemplatePreviewCell({ templateHtml, rowData }: TemplatePreviewCe
                             {loading && <span className='ml-2 text-gray-500 text-sm'>(Loading institution details...)</span>}
                         </DialogTitle>
                         <DialogClose asChild>
-                            <Button variant='outline' size='sm'>
+                            <Button variant='outline' size='sm' className='w-fit'>
                                 Close
                             </Button>
                         </DialogClose>
@@ -681,16 +651,15 @@ const PrintReceiptButton = ({ htmlContent, institution }: { htmlContent: string;
                 <body>
                     <div class="print-container">
                         <div class="print-header">
-                            ${
-                                hasLogo
-                                    ? `
+                            ${hasLogo
+                ? `
                                 <div class="logo-wrapper">
                                     <img src="${logoUrl}" alt="Institute Logo" class="print-logo" 
                                          onerror="this.style.display='none'" />
                                 </div>
                             `
-                                    : ''
-                            }
+                : ''
+            }
                             
                             ${instituteName ? `<div class="print-school-name">${instituteName}</div>` : ''}
                         </div>

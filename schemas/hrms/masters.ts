@@ -14,8 +14,8 @@ export const bankMasterSchema = z.object({
         .string({ message: 'Bank Name is required' })
         .min(3, { message: 'Bank Name must be at least 3 characters' })
         .max(50, { message: 'Bank Name must not exceed 50 characters' })
-        .regex(/^[A-Za-z0-9\s.]+$/, {
-            message: 'Bank Name must contain only alphabets, numbers, spaces, and periods (.)'
+        .regex(/^[A-Za-z\s.]+$/, {
+            message: 'Bank Name must contain only alphabets'
         })
         .refine((value) => value.trim() === value, {
             message: 'Bank Name cannot have leading or trailing spaces'

@@ -600,7 +600,7 @@ function SalaryUpdationPageContent({
                             </div>
 
                             <div className='space-y-3'>
-                                <Label className='font-semibold'>Heads</Label>
+                                <Label className='font-semibold'>Heads<span className='text-destructive'>*</span></Label>
                                 <Controller
                                     name='heads'
                                     control={control}

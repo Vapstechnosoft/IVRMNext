@@ -3023,7 +3023,7 @@ export default function FeeDefaulterReport() {
                                 </thead>
                                 <tbody>
                                     {studentreportData
-                                        .filter((student) => selectedIds.includes(student.amsT_Id))
+                                        .filter((student) => selectedIds.includes(student.id))
                                         .map((student, index) => (
                                             <tr key={student.amsT_Id} className='border-b hover:bg-gray-50'>
                                                 <td className='border-r p-3 text-sm'>{index + 1}</td>
@@ -3125,7 +3125,7 @@ export default function FeeDefaulterReport() {
                                 </thead>
                                 <tbody>
                                     {studentreportData
-                                        .filter((student) => selectedIds.includes(student.amsT_Id))
+                                        .filter((student) => selectedIds.includes(student.id))
                                         .map((student, index) => (
                                             <tr key={student.amsT_Id} className='border-b hover:bg-gray-50'>
                                                 <td className='border-r p-3 text-sm'>{index + 1}</td>
@@ -3227,7 +3227,7 @@ export default function FeeDefaulterReport() {
                                 </thead>
                                 <tbody>
                                     {studentreportData
-                                        .filter((student) => selectedIds.includes(student.amsT_Id))
+                                        .filter((student) => selectedIds.includes(student.id))
                                         .map((student, index) => (
                                             <tr key={student.amsT_Id} className='border-b hover:bg-gray-50'>
                                                 <td className='border-r p-3 text-sm'>{index + 1}</td>
