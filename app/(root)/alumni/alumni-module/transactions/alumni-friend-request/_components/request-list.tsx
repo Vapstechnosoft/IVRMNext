@@ -2,12 +2,12 @@
 
 import ViewProfileModal from '@/app/(root)/alumni/alumni-module/transactions/alumni-friend-request/_components/view-profile-modal';
 import { Button } from '@/components/ui/button';
+import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 import { sendFriendRequest } from '@/server/alumni/alumni-friend-request';
 import type { IAlumniFriendRequest } from '@/types/alumni/alumni-friend-request';
 import { Send } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { GenericDataTable } from '@/components/ui/view-data-table/view-generic-data-table';
 import { getColumns } from './columns';
 
 interface RequestListProps {
@@ -98,11 +98,7 @@ export default function RequestList({
             </div>
 
             {viewingAlumniId && (
-                <ViewProfileModal
-                    alumniId={viewingAlumniId}
-                    alumniName={viewingAlumniName}
-                    onClose={() => setViewingAlumniId(null)}
-                />
+                <ViewProfileModal alumniId={viewingAlumniId} alumniName={viewingAlumniName} onClose={() => setViewingAlumniId(null)} />
             )}
         </div>
     );

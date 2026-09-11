@@ -2,7 +2,7 @@
   "name": "IVRM-AI",
   "short_name": "IVRM-AI",
   "icons": [
-   {
+    {
       "src": "/icons/VAPS.png",
       "sizes": "192x192",
       "type": "image/png",
@@ -14,7 +14,7 @@
       "type": "image/png"
     },
     {
-     "src": "/icons/VAPS.png",
+      "src": "/icons/VAPS.png",
       "sizes": "512x512",
       "type": "image/png"
     }

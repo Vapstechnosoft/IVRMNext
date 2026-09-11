@@ -111,7 +111,7 @@ export const getAttendanceColumns = (monthDateWise: boolean, monthList?: any[]):
             cell: ({ row }) => {
                 const apiRemarks = (row.original as any).Remarks || (row.original as any).remarks;
                 if (apiRemarks) return <div>{apiRemarks}</div>;
-                
+
                 // Fallback computation if backend doesn't provide Remarks
                 const percentage = Number(row.getValue('Percentage'));
                 let remarks = 'Poor Attendance';

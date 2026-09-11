@@ -1,16 +1,16 @@
 'use server';
 
-import { SportsCCNameDTO, SportsCCNameMasterDataDTO } from "@/types/sports/masters/sports-cc-name";
+import type { SportsCCNameDTO, SportsCCNameMasterDataDTO } from '@/types/sports/masters/sports-cc-name';
 
 // Mock Data
-let MOCK_GROUPS = [
+const MOCK_GROUPS = [
     { spccmsccG_Id: 1, spccmsccG_SportsCCGroupName: 'Athletics' },
     { spccmsccG_Id: 2, spccmsccG_SportsCCGroupName: 'Team Sports' },
     { spccmsccG_Id: 3, spccmsccG_SportsCCGroupName: 'Indoor Games' },
-    { spccmsccG_Id: 4, spccmsccG_SportsCCGroupName: 'Swimming' },
+    { spccmsccG_Id: 4, spccmsccG_SportsCCGroupName: 'Swimming' }
 ];
 
-let MOCK_DATA: SportsCCNameDTO[] = [
+const MOCK_DATA: SportsCCNameDTO[] = [
     {
         spccmscC_Id: 1,
         spccmsccG_Id: 1,
@@ -84,16 +84,20 @@ export async function saveSportsCCName(data: SportsCCNameDTO): Promise<{ success
 
     if (data.spccmscC_Id && data.spccmscC_Id > 0) {
         // Update
-        const index = MOCK_DATA.findIndex(d => d.spccmscC_Id === data.spccmscC_Id);
+        const index = MOCK_DATA.findIndex((d) => d.spccmscC_Id === data.spccmscC_Id);
         if (index !== -1) {
-            const group = MOCK_GROUPS.find(g => g.spccmsccG_Id === data.spccmsccG_Id);
-            MOCK_DATA[index] = { ...data, groupName: group?.spccmsccG_SportsCCGroupName, spccmscC_ActiveFlag: MOCK_DATA[index].spccmscC_ActiveFlag };
+            const group = MOCK_GROUPS.find((g) => g.spccmsccG_Id === data.spccmsccG_Id);
+            MOCK_DATA[index] = {
+                ...data,
+                groupName: group?.spccmsccG_SportsCCGroupName,
+                spccmscC_ActiveFlag: MOCK_DATA[index].spccmscC_ActiveFlag
+            };
             return { success: true, message: 'Record Updated Successfully' };
         }
         return { success: false, message: 'Record not found' };
     } else {
         // Create
-        const group = MOCK_GROUPS.find(g => g.spccmsccG_Id === data.spccmsccG_Id);
+        const group = MOCK_GROUPS.find((g) => g.spccmsccG_Id === data.spccmsccG_Id);
         const newRecord = {
             ...data,
             spccmscC_Id: Math.floor(Math.random() * 10000),
@@ -106,7 +110,7 @@ export async function saveSportsCCName(data: SportsCCNameDTO): Promise<{ success
 }
 
 export async function deleteSportsCCName(id: number, activeFlag: boolean): Promise<{ success: boolean; message: string }> {
-    const index = MOCK_DATA.findIndex(item => item.spccmscC_Id === id);
+    const index = MOCK_DATA.findIndex((item) => item.spccmscC_Id === id);
     if (index !== -1) {
         MOCK_DATA[index].spccmscC_ActiveFlag = !activeFlag;
         return { success: true, message: activeFlag ? 'Record Deactivated Successfully!' : 'Record Activated Successfully!' };

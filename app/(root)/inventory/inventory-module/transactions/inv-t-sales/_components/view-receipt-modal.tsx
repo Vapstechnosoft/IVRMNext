@@ -1,17 +1,16 @@
 'use client';
 
-import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { Button } from '@/components/ui/button';
-import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
-import type { IInvTSales } from '@/types/inventory/transactions/inv-t-sales';
-import { useEffect, useState, useRef } from 'react';
+import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useInvTSales } from '@/hooks/inventory/transactions/use-inv-t-sales';
 import { numberToWords } from '@/lib/utils';
+import type { IInvTSales } from '@/types/inventory/transactions/inv-t-sales';
 import { format } from 'date-fns';
-import { useReactToPrint } from 'react-to-print';
-import { createPortal } from 'react-dom';
 import { Printer } from 'lucide-react';
-import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useReactToPrint } from 'react-to-print';
 
 interface ViewReceiptModalProps {
     rowData: IInvTSales;
@@ -45,7 +44,7 @@ export function ViewReceiptModal({ rowData, onClose }: ViewReceiptModalProps) {
 
     const handlePrint = useReactToPrint({
         contentRef: contentRef,
-        documentTitle: `Receipt-${rowData.invmsL_SalesNo}`,
+        documentTitle: `Receipt-${rowData.invmsL_SalesNo}`
     });
 
     useEffect(() => {
@@ -62,10 +61,10 @@ export function ViewReceiptModal({ rowData, onClose }: ViewReceiptModalProps) {
 
                 if (headerResponse) {
                     const dataObj = headerResponse.data || headerResponse;
-                    const dataArray = Array.isArray(dataObj) 
-                        ? dataObj 
-                        : (dataObj?.get_Saletypes || dataObj?.data?.get_Saletypes || (Array.isArray(dataObj?.data) ? dataObj.data : []));
-                        
+                    const dataArray = Array.isArray(dataObj)
+                        ? dataObj
+                        : dataObj?.get_Saletypes || dataObj?.data?.get_Saletypes || (Array.isArray(dataObj?.data) ? dataObj.data : []);
+
                     if (Array.isArray(dataArray) && dataArray.length > 0) {
                         setHeaderData(dataArray[0]);
                     }
@@ -73,10 +72,12 @@ export function ViewReceiptModal({ rowData, onClose }: ViewReceiptModalProps) {
 
                 if (itemsResponse) {
                     const dataObj = itemsResponse.data || itemsResponse;
-                    const dataArray = Array.isArray(dataObj) 
-                        ? dataObj 
-                        : (dataObj?.get_SaleItemDetails || dataObj?.data?.get_SaleItemDetails || (Array.isArray(dataObj?.data) ? dataObj.data : []));
-                        
+                    const dataArray = Array.isArray(dataObj)
+                        ? dataObj
+                        : dataObj?.get_SaleItemDetails ||
+                          dataObj?.data?.get_SaleItemDetails ||
+                          (Array.isArray(dataObj?.data) ? dataObj.data : []);
+
                     if (Array.isArray(dataArray)) {
                         setItems(dataArray);
                     }
@@ -102,80 +103,80 @@ export function ViewReceiptModal({ rowData, onClose }: ViewReceiptModalProps) {
     const displayDate = headerData?.invmsL_SalesDate || items[0]?.invmsL_SalesDate || rowData.invmsL_SalesDate;
 
     const renderReceipt = (isPrint: boolean) => (
-        <div className={`p-8 bg-white text-black ${isPrint ? 'print:p-0' : ''}`}>
+        <div className={`bg-white p-8 text-black ${isPrint ? 'print:p-0' : ''}`}>
             {/* Header Section with Logo and Title */}
-            <div className="flex flex-col items-center mb-6">
-                <h2 className="text-xl font-bold uppercase border-b-2 border-black pb-1 mb-4">Receipt</h2>
+            <div className='mb-6 flex flex-col items-center'>
+                <h2 className='mb-4 border-black border-b-2 pb-1 font-bold text-xl uppercase'>Receipt</h2>
             </div>
 
             {/* Info Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 mb-6 text-sm">
-                <div className="grid grid-cols-[100px_auto] gap-2">
-                    <span className="font-semibold">Adm No.</span>
+            <div className='mb-6 grid grid-cols-1 gap-x-8 gap-y-2 text-sm md:grid-cols-2'>
+                <div className='grid grid-cols-[100px_auto] gap-2'>
+                    <span className='font-semibold'>Adm No.</span>
                     <span>: {headerData?.amsT_AdmNo || 'N/A'}</span>
                 </div>
-                <div className="grid grid-cols-[100px_auto] gap-2">
-                    <span className="font-semibold">Date</span>
+                <div className='grid grid-cols-[100px_auto] gap-2'>
+                    <span className='font-semibold'>Date</span>
                     <span>: {displayDate ? format(new Date(displayDate), 'dd/MM/yyyy') : 'N/A'}</span>
                 </div>
-                <div className="grid grid-cols-[100px_auto] gap-2">
-                    <span className="font-semibold">Name</span>
+                <div className='grid grid-cols-[100px_auto] gap-2'>
+                    <span className='font-semibold'>Name</span>
                     <span>: {headerData?.studentName || 'N/A'}</span>
                 </div>
-                <div className="grid grid-cols-[100px_auto] gap-2">
-                    <span className="font-semibold">Class</span>
+                <div className='grid grid-cols-[100px_auto] gap-2'>
+                    <span className='font-semibold'>Class</span>
                     <span>: {headerData?.asmcL_ClassName || ''}</span>
                 </div>
-                <div className="grid grid-cols-[100px_auto] gap-2">
-                    <span className="font-semibold">Father</span>
+                <div className='grid grid-cols-[100px_auto] gap-2'>
+                    <span className='font-semibold'>Father</span>
                     <span>: {headerData?.amsT_FatherName || 'N/A'}</span>
                 </div>
             </div>
 
             {/* Items Table */}
-            <div className="mb-6">
-                <table className="w-full border-collapse border border-black text-sm">
+            <div className='mb-6'>
+                <table className='w-full border-collapse border border-black text-sm'>
                     <thead>
-                        <tr className="bg-gray-100">
-                            <th className="border border-black p-2 text-center w-12">SL.No</th>
-                            <th className="border border-black p-2 text-left">Item</th>
-                            <th className="border border-black p-2 text-center w-24">Quantity</th>
-                            <th className="border border-black p-2 text-right w-32">Sale Price</th>
-                            <th className="border border-black p-2 text-right w-32">Amount</th>
+                        <tr className='bg-gray-100'>
+                            <th className='w-12 border border-black p-2 text-center'>SL.No</th>
+                            <th className='border border-black p-2 text-left'>Item</th>
+                            <th className='w-24 border border-black p-2 text-center'>Quantity</th>
+                            <th className='w-32 border border-black p-2 text-right'>Sale Price</th>
+                            <th className='w-32 border border-black p-2 text-right'>Amount</th>
                         </tr>
                     </thead>
                     <tbody>
                         {items.map((item, index) => (
                             <tr key={index}>
-                                <td className="border border-black p-2 text-center">{index + 1}</td>
-                                <td className="border border-black p-2">{item.invmI_ItemName}</td>
-                                <td className="border border-black p-2 text-center">{item.invtsL_SalesQty}</td>
-                                <td className="border border-black p-2 text-right">{item.invtsL_SalesPrice?.toFixed(2)}</td>
-                                <td className="border border-black p-2 text-right">{item.invtsL_Amount?.toFixed(2)}</td>
+                                <td className='border border-black p-2 text-center'>{index + 1}</td>
+                                <td className='border border-black p-2'>{item.invmI_ItemName}</td>
+                                <td className='border border-black p-2 text-center'>{item.invtsL_SalesQty}</td>
+                                <td className='border border-black p-2 text-right'>{item.invtsL_SalesPrice?.toFixed(2)}</td>
+                                <td className='border border-black p-2 text-right'>{item.invtsL_Amount?.toFixed(2)}</td>
                             </tr>
                         ))}
                         {/* Total Row */}
-                        <tr className="font-bold bg-gray-50">
-                            <td colSpan={4} className="border border-black p-2 text-right">Total</td>
-                            <td className="border border-black p-2 text-right">{totalAmount.toFixed(2)}</td>
+                        <tr className='bg-gray-50 font-bold'>
+                            <td colSpan={4} className='border border-black p-2 text-right'>
+                                Total
+                            </td>
+                            <td className='border border-black p-2 text-right'>{totalAmount.toFixed(2)}</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             {/* Footer Section */}
-            <div className="space-y-6">
-                <div className="flex gap-2 text-sm">
-                    <span className="font-bold whitespace-nowrap">Amount Received (in Words):</span>
-                    <span className="border-b border-dotted border-black flex-grow">
-                        {totalWords}
-                    </span>
+            <div className='space-y-6'>
+                <div className='flex gap-2 text-sm'>
+                    <span className='whitespace-nowrap font-bold'>Amount Received (in Words):</span>
+                    <span className='flex-grow border-black border-b border-dotted'>{totalWords}</span>
                 </div>
 
-                <div className="flex justify-end mt-12 pt-8">
-                    <div className="text-center">
-                        <div className="h-12"></div> {/* Space for signature */}
-                        <p className="font-semibold border-t border-black px-8 pt-1 inline-block">Authorised Signatory</p>
+                <div className='mt-12 flex justify-end pt-8'>
+                    <div className='text-center'>
+                        <div className='h-12'></div> {/* Space for signature */}
+                        <p className='inline-block border-black border-t px-8 pt-1 font-semibold'>Authorised Signatory</p>
                     </div>
                 </div>
             </div>
@@ -183,47 +184,45 @@ export function ViewReceiptModal({ rowData, onClose }: ViewReceiptModalProps) {
     );
 
     return (
-        <AdaptiveDialog title={`Receipt Details: ${rowData.invmsL_SalesNo}`} isOpen={true} onClose={onClose} size="2xl">
-            <AdaptiveBody className="flex flex-col gap-4">
+        <AdaptiveDialog title={`Receipt Details: ${rowData.invmsL_SalesNo}`} isOpen={true} onClose={onClose} size='2xl'>
+            <AdaptiveBody className='flex flex-col gap-4'>
                 {isLoading && (
-                    <div className="flex h-64 items-center justify-center">
-                        <div className="text-lg text-muted-foreground">Loading receipt details...</div>
+                    <div className='flex h-64 items-center justify-center'>
+                        <div className='text-lg text-muted-foreground'>Loading receipt details...</div>
                     </div>
                 )}
                 <div className={isLoading ? 'hidden' : 'block'}>
-                    <ScrollArea className="max-h-[80vh]">
-                        {renderReceipt(false)}
-                    </ScrollArea>
+                    <ScrollArea className='max-h-[80vh]'>{renderReceipt(false)}</ScrollArea>
                 </div>
             </AdaptiveBody>
             <AdaptiveFooter>
-                <Button onClick={() => handlePrint()} variant="default">
-                    <Printer className="w-4 h-4 mr-2" />
+                <Button onClick={() => handlePrint()} variant='default'>
+                    <Printer className='mr-2 h-4 w-4' />
                     Print
                 </Button>
-                <Button onClick={onClose} variant="outline">Close</Button>
+                <Button onClick={onClose} variant='outline'>
+                    Close
+                </Button>
             </AdaptiveFooter>
 
-            {typeof document !== 'undefined' && createPortal(
-                <div
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: 0,
-                        height: 0,
-                        overflow: 'visible',
-                        opacity: 0,
-                        pointerEvents: 'none',
-                        zIndex: -1
-                    }}
-                >
-                    <div ref={contentRef}>
-                        {renderReceipt(true)}
-                    </div>
-                </div>,
-                document.body
-            )}
+            {typeof document !== 'undefined' &&
+                createPortal(
+                    <div
+                        style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            width: 0,
+                            height: 0,
+                            overflow: 'visible',
+                            opacity: 0,
+                            pointerEvents: 'none',
+                            zIndex: -1
+                        }}>
+                        <div ref={contentRef}>{renderReceipt(true)}</div>
+                    </div>,
+                    document.body
+                )}
         </AdaptiveDialog>
     );
 }

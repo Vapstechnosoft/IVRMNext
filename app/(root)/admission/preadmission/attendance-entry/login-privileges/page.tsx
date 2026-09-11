@@ -5,19 +5,19 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGetLoginPrivilegeEmployees, useLoginPrivileges } from '@/hooks/admission/preadmission/useLoginPrivilege';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import type { ILoginPrivilege, ILoginPrivilegeDTO } from '@/types/admission/preadmission/login_privilege';
 import { Loader2, X } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
-import { toast } from 'sonner';
 import { parseAsString, useQueryState } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { loginPrivilegeColumns } from './_components/columns';
 import DeleteLoginPrivilegeForm from './_components/delete-form';
 
@@ -50,17 +50,14 @@ function LoginPrivilegePageContent() {
     const [classSectionList, setMappingClassSections] = useState<any[]>([]);
     const [subjects, setMappingSubjects] = useState<any[]>([]);
 
-    const [searchQuery] = useQueryState(
-        tableSearchVariables.search,
-        parseAsString.withDefault('')
-    );
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withDefault(''));
 
     const filteredTableData = useMemo(() => {
         if (!searchQuery || !tableData) return tableData || [];
         const lowerQuery = searchQuery.toLowerCase();
-        
+
         const searchableKeys = ['asmaY_Year', 'userName', 'asmcL_ClassName', 'asmC_SectionName', 'pamS_SubjectName'];
-        
+
         return tableData.filter((item: any) => {
             return searchableKeys.some((key) => {
                 const val = item[key];
@@ -271,11 +268,7 @@ function PrivilegeForm({
 
                         // Populate available lists first to ensure mapping section has data
                         // Using explicit values if available, otherwise undefined to trigger fallback in handleSearch
-                        await handleSearch(
-                            yId ? String(yId) : undefined,
-                            String(eId),
-                            sId ? String(sId) : undefined
-                        );
+                        await handleSearch(yId ? String(yId) : undefined, String(eId), sId ? String(sId) : undefined);
 
                         if (String(eId) === '1') {
                             // Populate Type 1 temp list
@@ -333,7 +326,12 @@ function PrivilegeForm({
             });
 
             if (result) {
-                const rawClassList = result.classSectionList || result.data?.classSectionList || result.classsectionList || result.data?.classsectionList || [];
+                const rawClassList =
+                    result.classSectionList ||
+                    result.data?.classSectionList ||
+                    result.classsectionList ||
+                    result.data?.classsectionList ||
+                    [];
 
                 const seenIds = new Set();
                 const csList = rawClassList.reduce((acc: any[], item: any) => {
@@ -349,12 +347,17 @@ function PrivilegeForm({
                     return acc;
                 }, []);
 
-                setMappingClassSections(csList);
+                if (csList.length > 0) {
+                    setMappingClassSections(csList);
+                }
 
                 const subList = result.subjectList || result.data?.subjectList || [];
-                setMappingSubjects(subList);
+                if (Array.isArray(subList) && subList.length > 0) {
+                    setMappingSubjects(subList);
+                }
 
-                const privileges = result.loginPrivileges || result.data?.loginPrivileges || result.loginPData || result.data?.loginPData || [];
+                const privileges =
+                    result.loginPrivileges || result.data?.loginPrivileges || result.loginPData || result.data?.loginPData || [];
                 const total = result.total || result.data?.count || privileges.length;
                 onSearchSuccess(privileges, total);
                 setShowMapping(true);
@@ -500,7 +503,6 @@ function PrivilegeForm({
         }
     };
 
-
     return (
         <div className='space-y-4'>
             {/* Top Config Section */}
@@ -527,7 +529,12 @@ function PrivilegeForm({
                                     setMappingSubjects([]);
 
                                     // Only fetch if Year and Staff are selected and valid
-                                    if (selectedYearId && selectedStaffId && !isNaN(Number(selectedYearId)) && !isNaN(Number(selectedStaffId))) {
+                                    if (
+                                        selectedYearId &&
+                                        selectedStaffId &&
+                                        !isNaN(Number(selectedYearId)) &&
+                                        !isNaN(Number(selectedStaffId))
+                                    ) {
                                         handleSearch(selectedYearId, val, selectedStaffId);
                                     }
                                 }}
@@ -557,8 +564,8 @@ function PrivilegeForm({
                     <div className='mx-auto max-w-xl space-y-4'>
                         {/* Academic Year */}
                         <div className='flex items-center'>
-                            <Label className='w-1/3 text-right font-medium text-sm pr-4'>
-                                Academic Year:<span className='text-destructive ml-1'>*</span>
+                            <Label className='w-1/3 pr-4 text-right font-medium text-sm'>
+                                Academic Year:<span className='ml-1 text-destructive'>*</span>
                             </Label>
                             <div className='w-2/3'>
                                 <Select
@@ -588,8 +595,8 @@ function PrivilegeForm({
 
                         {/* User/Staff */}
                         <div className='flex items-center'>
-                            <Label className='w-1/3 text-right font-medium text-sm pr-4'>
-                                User/ Staff:<span className='text-destructive ml-1'>*</span>
+                            <Label className='w-1/3 pr-4 text-right font-medium text-sm'>
+                                User/ Staff:<span className='ml-1 text-destructive'>*</span>
                             </Label>
                             <div className='w-2/3'>
                                 <Select
@@ -636,24 +643,31 @@ function PrivilegeForm({
                                         <div className='bg-primary p-2 font-bold text-primary-foreground text-sm'>
                                             Class-Section:<span className='text-red-400'>*</span>
                                         </div>
-                                        <div className="p-1 border-b">
-                                            <Input placeholder="Search Class-Section..." value={csSearch1} onChange={(e) => setCsSearch1(e.target.value)} className="h-8 text-sm" />
+                                        <div className='border-b p-1'>
+                                            <Input
+                                                placeholder='Search Class-Section...'
+                                                value={csSearch1}
+                                                onChange={(e) => setCsSearch1(e.target.value)}
+                                                className='h-8 text-sm'
+                                            />
                                         </div>
                                         <ScrollArea className='h-[250px] bg-background p-2'>
-                                            {classSectionList.filter(item => item.label.toLowerCase().includes(csSearch1.toLowerCase())).map((item) => (
-                                                <div
-                                                    key={item.id}
-                                                    className='flex items-center space-x-2 rounded py-1 pl-1 hover:bg-accent hover:text-accent-foreground'>
-                                                    <Checkbox
-                                                        id={`cs-${item.id}`}
-                                                        checked={selectedClassSections.includes(item.id)}
-                                                        onCheckedChange={() => handleClassSectionToggle(item.id)}
-                                                    />
-                                                    <Label htmlFor={`cs-${item.id}`} className='cursor-pointer font-normal text-sm'>
-                                                        {item.label}
-                                                    </Label>
-                                                </div>
-                                            ))}
+                                            {classSectionList
+                                                .filter((item) => item.label.toLowerCase().includes(csSearch1.toLowerCase()))
+                                                .map((item) => (
+                                                    <div
+                                                        key={item.id}
+                                                        className='flex items-center space-x-2 rounded py-1 pl-1 hover:bg-accent hover:text-accent-foreground'>
+                                                        <Checkbox
+                                                            id={`cs-${item.id}`}
+                                                            checked={selectedClassSections.includes(item.id)}
+                                                            onCheckedChange={() => handleClassSectionToggle(item.id)}
+                                                        />
+                                                        <Label htmlFor={`cs-${item.id}`} className='cursor-pointer font-normal text-sm'>
+                                                            {item.label}
+                                                        </Label>
+                                                    </div>
+                                                ))}
                                             {classSectionList.length === 0 && (
                                                 <div className='py-8 text-center text-muted-foreground text-sm'>
                                                     No Class-Sections Found
@@ -667,24 +681,33 @@ function PrivilegeForm({
                                         <div className='bg-primary p-2 font-bold text-primary-foreground text-sm'>
                                             Subject:<span className='text-red-400'>*</span>
                                         </div>
-                                        <div className="p-1 border-b">
-                                            <Input placeholder="Search Subject..." value={subSearch} onChange={(e) => setSubSearch(e.target.value)} className="h-8 text-sm" />
+                                        <div className='border-b p-1'>
+                                            <Input
+                                                placeholder='Search Subject...'
+                                                value={subSearch}
+                                                onChange={(e) => setSubSearch(e.target.value)}
+                                                className='h-8 text-sm'
+                                            />
                                         </div>
                                         <ScrollArea className='h-[250px] bg-background p-2'>
-                                            {subjects.filter((sub: any) => sub.ismS_SubjectName.toLowerCase().includes(subSearch.toLowerCase())).map((sub: any) => (
-                                                <div
-                                                    key={sub.ismS_Id}
-                                                    className='flex items-center space-x-2 rounded py-1 pl-1 hover:bg-accent hover:text-accent-foreground'>
-                                                    <Checkbox
-                                                        id={`sub-${sub.ismS_Id}`}
-                                                        checked={selectedSubjects.includes(String(sub.ismS_Id))}
-                                                        onCheckedChange={() => handleSubjectToggle(String(sub.ismS_Id))}
-                                                    />
-                                                    <Label htmlFor={`sub-${sub.ismS_Id}`} className='cursor-pointer font-normal text-sm'>
-                                                        {sub.ismS_SubjectName}
-                                                    </Label>
-                                                </div>
-                                            ))}
+                                            {subjects
+                                                .filter((sub: any) => sub.ismS_SubjectName.toLowerCase().includes(subSearch.toLowerCase()))
+                                                .map((sub: any) => (
+                                                    <div
+                                                        key={sub.ismS_Id}
+                                                        className='flex items-center space-x-2 rounded py-1 pl-1 hover:bg-accent hover:text-accent-foreground'>
+                                                        <Checkbox
+                                                            id={`sub-${sub.ismS_Id}`}
+                                                            checked={selectedSubjects.includes(String(sub.ismS_Id))}
+                                                            onCheckedChange={() => handleSubjectToggle(String(sub.ismS_Id))}
+                                                        />
+                                                        <Label
+                                                            htmlFor={`sub-${sub.ismS_Id}`}
+                                                            className='cursor-pointer font-normal text-sm'>
+                                                            {sub.ismS_SubjectName}
+                                                        </Label>
+                                                    </div>
+                                                ))}
                                             {subjects.length === 0 && (
                                                 <div className='py-8 text-center text-muted-foreground text-sm'>No Subjects Found</div>
                                             )}
@@ -729,7 +752,9 @@ function PrivilegeForm({
                                                         <td className='p-2'>
                                                             <div className='flex flex-wrap gap-1'>
                                                                 {t.subs.map((s: any) => (
-                                                                    <span key={s.ISMS_Id} className='rounded bg-muted px-1.5 py-0.5 text-[10px]'>
+                                                                    <span
+                                                                        key={s.ISMS_Id}
+                                                                        className='rounded bg-muted px-1.5 py-0.5 text-[10px]'>
                                                                         {s.ISMS_SubjectName}
                                                                     </span>
                                                                 ))}
@@ -757,16 +782,25 @@ function PrivilegeForm({
                         {(role === '2' || role === '3') && (
                             <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                                 {/* Available Box */}
-                                <div className='overflow-hidden rounded-md border border-border shadow-sm bg-white'>
-                                    <div className='bg-[#3f51b5] p-2 font-bold text-white text-sm'>
-                                        Class-Section<span className='text-red-400 ml-1'>*</span>
+                                <div className='overflow-hidden rounded-md border border-border bg-white shadow-sm'>
+                                    <div className='bg-[#3f51b5] p-2 font-bold text-sm text-white'>
+                                        Class-Section<span className='ml-1 text-red-400'>*</span>
                                     </div>
-                                    <div className="p-1 border-b">
-                                        <Input placeholder="Search Available Sections..." value={csSearchAvail} onChange={(e) => setCsSearchAvail(e.target.value)} className="h-8 text-sm" />
+                                    <div className='border-b p-1'>
+                                        <Input
+                                            placeholder='Search Available Sections...'
+                                            value={csSearchAvail}
+                                            onChange={(e) => setCsSearchAvail(e.target.value)}
+                                            className='h-8 text-sm'
+                                        />
                                     </div>
                                     <ScrollArea className='h-[300px] bg-background p-2'>
                                         {classSectionList
-                                            .filter((x) => !selectedClassSections.includes(x.id) && x.label.toLowerCase().includes(csSearchAvail.toLowerCase()))
+                                            .filter(
+                                                (x) =>
+                                                    !selectedClassSections.includes(x.id) &&
+                                                    x.label.toLowerCase().includes(csSearchAvail.toLowerCase())
+                                            )
                                             .map((item) => (
                                                 <div
                                                     key={item.id}
@@ -790,14 +824,23 @@ function PrivilegeForm({
                                 </div>
 
                                 {/* Selected Box */}
-                                <div className='overflow-hidden rounded-md border border-border shadow-sm bg-white'>
-                                    <div className='bg-[#3f51b5] p-2 font-bold text-white text-sm'>Class-Section</div>
-                                    <div className="p-1 border-b">
-                                        <Input placeholder="Search Selected Sections..." value={csSearchSel} onChange={(e) => setCsSearchSel(e.target.value)} className="h-8 text-sm" />
+                                <div className='overflow-hidden rounded-md border border-border bg-white shadow-sm'>
+                                    <div className='bg-[#3f51b5] p-2 font-bold text-sm text-white'>Class-Section</div>
+                                    <div className='border-b p-1'>
+                                        <Input
+                                            placeholder='Search Selected Sections...'
+                                            value={csSearchSel}
+                                            onChange={(e) => setCsSearchSel(e.target.value)}
+                                            className='h-8 text-sm'
+                                        />
                                     </div>
                                     <ScrollArea className='h-[300px] p-2'>
                                         {classSectionList
-                                            .filter((x) => selectedClassSections.includes(x.id) && x.label.toLowerCase().includes(csSearchSel.toLowerCase()))
+                                            .filter(
+                                                (x) =>
+                                                    selectedClassSections.includes(x.id) &&
+                                                    x.label.toLowerCase().includes(csSearchSel.toLowerCase())
+                                            )
                                             .map((item) => (
                                                 <div
                                                     key={item.id}
@@ -822,15 +865,8 @@ function PrivilegeForm({
 
                         {/* Bottom Actions */}
                         <div className='mt-8 flex justify-center gap-4 border-t pt-6'>
-                            <Button
-                                className='w-36 bg-primary text-white hover:bg-primary/90'
-                                onClick={handleSave}
-                                disabled={isSubmitting}>
-                                {isSubmitting ? (
-                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                                ) : (
-                                    <i className='fa fa-floppy-o mr-2' />
-                                )}
+                            <Button className='w-36 bg-primary text-white hover:bg-primary/90' onClick={handleSave} disabled={isSubmitting}>
+                                {isSubmitting ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <i className='fa fa-floppy-o mr-2' />}
                                 SAVE
                             </Button>
                             <Button variant='destructive' className='w-36' onClick={handleClear} disabled={isSubmitting}>

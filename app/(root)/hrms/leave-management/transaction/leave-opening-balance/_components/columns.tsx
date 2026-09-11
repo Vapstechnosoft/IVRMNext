@@ -5,9 +5,9 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import type { BaseEntity } from '@/lib/localdb';
 import type { LeaveOpeningBalanceEntry } from '@/types/hrms/leave-management/transaction/leave-opening-balance';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Edit, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
-export interface LeaveOpeningBalance extends BaseEntity, LeaveOpeningBalanceEntry { }
+export interface LeaveOpeningBalance extends BaseEntity, LeaveOpeningBalanceEntry {}
 
 interface LeaveOpeningBalanceColumnsProps {
     onEdit: (row: LeaveOpeningBalance) => void;
@@ -55,8 +55,7 @@ export const getLeaveOpeningBalanceColumns = ({ onEdit, onDelete }: LeaveOpening
                         variant='outline'
                         size='sm'
                         onClick={() => onDelete(entity)}
-                        className='text-destructive hover:text-destructive'
-                    >
+                        className='text-destructive hover:text-destructive'>
                         <Trash2 className='h-4 w-4' />
                     </Button>
                 </div>

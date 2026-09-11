@@ -1,19 +1,14 @@
 import { STAFF_PORTAL_QUERY_KEYS } from '@/constants/query-keys';
 import {
-    getDashboardDetails,
-    getNoticeBoard,
-    getEvents,
+    changeProfile,
     getAssetList,
+    getDashboardDetails,
+    getEvents,
     getMedicalRecords,
     getNoticeAttachments,
-    changeProfile
+    getNoticeBoard
 } from '@/server/staff-portal/dashboard';
-import type {
-    INoticeFilterRequest,
-    IAssetFilterRequest,
-    IMedicalRecordRequest,
-    IEmployeeDashboardResponse
-} from '@/types/staff-portal/dashboard';
+import type { IAssetFilterRequest, IMedicalRecordRequest, INoticeFilterRequest } from '@/types/staff-portal/dashboard';
 import { useQuery } from '@tanstack/react-query';
 
 export const useStaffDashboard = () => {
@@ -23,7 +18,7 @@ export const useStaffDashboard = () => {
             const resp = await getDashboardDetails();
             return resp.data;
         },
-        staleTime: 5 * 60 * 1000,
+        staleTime: 5 * 60 * 1000
     });
 };
 
@@ -34,7 +29,7 @@ export const useStaffNoticeBoard = (params: INoticeFilterRequest) => {
             const resp = await getNoticeBoard(params);
             return resp.data;
         },
-        enabled: !!params,
+        enabled: !!params
     });
 };
 
@@ -45,7 +40,7 @@ export const useStaffEvents = (params: { flag: string; OnClickOrOnChange: string
             const resp = await getEvents(params);
             return resp.data;
         },
-        enabled: !!params,
+        enabled: !!params
     });
 };
 
@@ -56,7 +51,7 @@ export const useStaffAssets = (params: IAssetFilterRequest) => {
             const resp = await getAssetList(params);
             return resp.data;
         },
-        enabled: !!params,
+        enabled: !!params
     });
 };
 
@@ -67,7 +62,7 @@ export const useStaffMedicalRecords = (params: IMedicalRecordRequest) => {
             const resp = await getMedicalRecords(params);
             return resp.data;
         },
-        enabled: !!params.HRME_Id,
+        enabled: !!params.HRME_Id
     });
 };
 
@@ -78,7 +73,7 @@ export const useStaffNoticeAttachments = (INTB_Id: number) => {
             const resp = await getNoticeAttachments(INTB_Id);
             return resp.data;
         },
-        enabled: !!INTB_Id,
+        enabled: !!INTB_Id
     });
 };
 

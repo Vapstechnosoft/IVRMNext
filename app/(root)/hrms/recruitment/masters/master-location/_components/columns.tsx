@@ -5,7 +5,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 
 export interface MasterLocation {
     hrmlO_Id: number;
-    mi_Id: number;           // institution ID from API response
+    mi_Id: number; // institution ID from API response
     hrmlO_Institution: string;
     hrmlO_LocationName: string;
     hrmlO_LocationDesc: string;
@@ -18,7 +18,7 @@ interface MasterLocationColumnsProps {
     onToggle?: (row: MasterLocation) => void;
 }
 
-export const getMasterLocationColumns = ({ onEdit,onToggle }: MasterLocationColumnsProps): ColumnDef<MasterLocation>[] => [
+export const getMasterLocationColumns = ({ onEdit, onToggle }: MasterLocationColumnsProps): ColumnDef<MasterLocation>[] => [
     {
         id: 'sl',
         header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
@@ -28,14 +28,14 @@ export const getMasterLocationColumns = ({ onEdit,onToggle }: MasterLocationColu
     {
         accessorKey: 'hrmlO_LocationName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Location Name' />,
-        cell: ({ row }) => <div className='font-medium'>{row.original.hrmlO_LocationName}</div>,
+        cell: ({ row }) => <div className='font-medium'>{row.original.hrmlO_LocationName}</div>
     },
     {
         accessorKey: 'hrmlO_LocationDesc',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Location Description' />,
-        cell: ({ row }) => <div className='font-medium'>{row.original.hrmlO_LocationDesc}</div>,
+        cell: ({ row }) => <div className='font-medium'>{row.original.hrmlO_LocationDesc}</div>
     },
-   {
+    {
         id: 'actions',
         header: 'Action',
         enableSorting: false,
@@ -53,4 +53,3 @@ export const getMasterLocationColumns = ({ onEdit,onToggle }: MasterLocationColu
         }
     }
 ];
-

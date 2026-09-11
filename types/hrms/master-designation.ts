@@ -1,9 +1,11 @@
 export interface MasterDesignationResponse {
     success?: boolean;
     message?: string;
-    data?: DesignationDetail[] | {
-        designationlList: DesignationDetail[];
-    };
+    data?:
+        | DesignationDetail[]
+        | {
+              designationlList: DesignationDetail[];
+          };
     designationlList?: DesignationDetail[];
     retrunMsg?: string;
     roleId?: number;

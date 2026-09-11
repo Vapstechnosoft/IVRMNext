@@ -42,7 +42,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             emgR_Id: gradeData.emgR_Id,
             mI_Id: gradeData.mI_Id ?? 0,
             emgR_GradeName: gradeData.emgR_GradeName ?? '',
-            emgR_MarksPerFlag: (gradeData.emgR_MarksPerFlag?.toUpperCase() === 'P' ? 'P' : 'M'),
+            emgR_MarksPerFlag: gradeData.emgR_MarksPerFlag?.toUpperCase() === 'P' ? 'P' : 'M',
             emgR_ActiveFlag: gradeData.emgR_ActiveFlag ?? true,
             grade_list: []
         }
@@ -86,7 +86,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                         : [];
 
                     const rawFlag = (result.data as any)?.[0]?.emgR_MarksPerFlag ?? gradeData.emgR_MarksPerFlag;
-                    const marksPerFlag = (rawFlag?.toUpperCase() === 'P' ? 'P' : 'M');
+                    const marksPerFlag = rawFlag?.toUpperCase() === 'P' ? 'P' : 'M';
 
                     reset(
                         {
@@ -227,7 +227,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                     : [];
 
                 const rawFlag = (result.data as any)?.[0]?.emgR_MarksPerFlag ?? gradeData.emgR_MarksPerFlag;
-                const marksPerFlag = (rawFlag?.toUpperCase() === 'P' ? 'P' : 'M');
+                const marksPerFlag = rawFlag?.toUpperCase() === 'P' ? 'P' : 'M';
 
                 reset({
                     emgR_Id: gradeData.emgR_Id,
@@ -271,7 +271,13 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`} noValidate>
             {/* Grade Info */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <InputText label='Grade Name' required placeholder='Enter Grade Name' {...register('emgR_GradeName')} error={errors.emgR_GradeName?.message} />
+                <InputText
+                    label='Grade Name'
+                    required
+                    placeholder='Enter Grade Name'
+                    {...register('emgR_GradeName')}
+                    error={errors.emgR_GradeName?.message}
+                />
                 <div>
                     <Label>
                         Marks/Percentage <span className='text-red-500'>*</span>

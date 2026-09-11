@@ -3,17 +3,16 @@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
-import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type CalcuttaPromotionReportItoIXSchema, calcuttaPromotionReportItoIXSchema } from '@/schemas/exam/exam-module/reports';
+import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 import {
     getClassDropDownByAcademicYearlist,
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getPromotionalGroups } from '@/server/exam/exam-module/masters/category-class-mapping';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -43,7 +42,7 @@ export default function CalcuttaPromotionReportItoIXForm({
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
-    const [terms, setTerms] = useState<{ empG_GroupName: string, empG_DisplayName?: string }[]>([]);
+    const [terms, setTerms] = useState<{ empG_GroupName: string; empG_DisplayName?: string }[]>([]);
     const [students, setStudents] = useState<{ amsT_Id: number; amsT_AdmNo?: string | number; studentName: string }[]>([]);
 
     const { data: academicData, error: academicError, isLoading: academicYearLoading } = useAcademicYearDropdown();
@@ -133,9 +132,7 @@ export default function CalcuttaPromotionReportItoIXForm({
                     selectedSection
                 );
 
-                const valid = Array.isArray(studentRes?.data)
-                    ? (studentRes.data as any[]).filter((s) => !!s?.amsT_Id)
-                    : [];
+                const valid = Array.isArray(studentRes?.data) ? (studentRes.data as any[]).filter((s) => !!s?.amsT_Id) : [];
 
                 const formattedStudents = valid.map((s) => ({
                     amsT_Id: s.amsT_Id,
@@ -157,7 +154,6 @@ export default function CalcuttaPromotionReportItoIXForm({
                 }
 
                 setValue('studentList', []);
-
             } catch {
                 toast.error('Failed to load students and terms');
             } finally {
@@ -176,15 +172,15 @@ export default function CalcuttaPromotionReportItoIXForm({
 
     // on submit
     const onSubmit = async (data: CalcuttaPromotionReportItoIXSchema) => {
-        const selectedYearObj = academicYears.find(y => Number(y.asmaY_Id) === Number(data.asmaY_Id));
+        const selectedYearObj = academicYears.find((y) => Number(y.asmaY_Id) === Number(data.asmaY_Id));
         const payload: any = {
             ASMAY_Id: data.asmaY_Id,
             ASMAY_Year: selectedYearObj?.asmaY_Year || '',
             ASMCL_Id: data.asmcL_Id,
             ASMS_Id: data.asmS_Id,
-            Temp_AmstIds: data.studentList.map(s => ({ AMST_Id: s.amsT_Id })),
+            Temp_AmstIds: data.studentList.map((s) => ({ AMST_Id: s.amsT_Id })),
             EMPG_GroupName: data.allTerm ? '' : data.empG_GroupName,
-            flag: "4"
+            flag: '4'
         };
 
         const dates = {
@@ -373,21 +369,14 @@ export default function CalcuttaPromotionReportItoIXForm({
                                     <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
                                         <div className='sm:w-40' />
                                         <div className='flex flex-1 items-center gap-2'>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                id="allTerm"
-                                            />
-                                            <Label htmlFor="allTerm" className='font-medium text-sm'>
+                                            <Checkbox checked={field.value} onCheckedChange={field.onChange} id='allTerm' />
+                                            <Label htmlFor='allTerm' className='font-medium text-sm'>
                                                 All Term
                                             </Label>
                                         </div>
                                     </div>
                                 )}
                             />
-
-
-
                         </div>
 
                         <div className='space-y-6'>
@@ -420,9 +409,9 @@ export default function CalcuttaPromotionReportItoIXForm({
                                                     value: s.amsT_Id.toString()
                                                 }))}
                                                 onChange={(selectedValues) => {
-                                                    field.onChange(selectedValues.map(id => ({ amsT_Id: Number(id) })));
+                                                    field.onChange(selectedValues.map((id) => ({ amsT_Id: Number(id) })));
                                                 }}
-                                                value={field.value?.map(v => String(v.amsT_Id)) ?? []}
+                                                value={field.value?.map((v) => String(v.amsT_Id)) ?? []}
                                                 placeholder='Select Students'
                                                 height='300px'
                                                 isSearchRequired

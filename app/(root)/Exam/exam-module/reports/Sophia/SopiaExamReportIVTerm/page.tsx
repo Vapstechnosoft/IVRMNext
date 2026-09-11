@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { useState } from 'react';
 import SopiaExamReportIVTermForm from './_components/report-form';
 import SopiaExamReportIVTermView from './_components/report-list';
 

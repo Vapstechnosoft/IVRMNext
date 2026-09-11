@@ -1,4 +1,4 @@
-export const printDepartmentSalaryReport = (reportData: any, month: string, year: string, departmentNames: string = '') => {
+export const printDepartmentSalaryReport = (reportData: any, month: string, year: string, departmentNames = '') => {
     const printWindow = window.open('', '', 'width=1200,height=800');
     if (!printWindow) {
         alert('Please allow popups to print the report');
@@ -7,6 +7,20 @@ export const printDepartmentSalaryReport = (reportData: any, month: string, year
 
     const departmentDetails = reportData.departmentSalaryDetails || [];
     const currentDate = new Date();
+
+    // Dynamic institution details from API response (same as on-screen preview)
+    const institutionDetails = reportData.institutionDetails || {};
+    const institutionName = institutionDetails.mI_Name || '';
+    const institutionAddress = [
+        institutionDetails.mI_Address1,
+        institutionDetails.mI_Address2,
+        institutionDetails.mI_Address3
+    ]
+        .filter(Boolean)
+        .join(', ');
+    const institutionPinLine = institutionDetails.ivrmmcT_Name
+        ? `${institutionDetails.ivrmmcT_Name} - ${institutionDetails.mI_Pincode || ''}`
+        : (institutionDetails.mI_Pincode || '');
 
     // Determine dynamic headers (union of all rows)
     const earningMap = new Map<number, { id: number; name: string; order: number; index: number }>();
@@ -28,13 +42,9 @@ export const printDepartmentSalaryReport = (reportData: any, month: string, year
     const earningHeads = Array.from(earningMap.values()).sort((a, b) => a.order - b.order || a.index - b.index);
     const deductionHeads = Array.from(deductionMap.values()).sort((a, b) => a.order - b.order || a.index - b.index);
 
-    const earningHeaders = earningHeads.map((head: any) =>
-        `<th class="text-right">${head.name}</th>`
-    ).join('');
+    const earningHeaders = earningHeads.map((head: any) => `<th class="text-right">${head.name}</th>`).join('');
 
-    const deductionHeaders = deductionHeads.map((head: any) =>
-        `<th class="text-right">${head.name}</th>`
-    ).join('');
+    const deductionHeaders = deductionHeads.map((head: any) => `<th class="text-right">${head.name}</th>`).join('');
 
     // Calculate totals across all rows
     let grandTotalGross = 0;
@@ -45,29 +55,34 @@ export const printDepartmentSalaryReport = (reportData: any, month: string, year
     const earningTotalsMap = new Map<number, number>();
     const deductionTotalsMap = new Map<number, number>();
 
-    const tableRows = departmentDetails.map((record: any, index: number) => {
-        // Look up amounts matching the dynamic heads
-        const earningCells = earningHeads.map((eh: any) => {
-            const val = record.earningresult?.find((e: any) => e.hrmeD_Id === eh.id)?.hresD_Amount || 0;
-            earningTotalsMap.set(eh.id, (earningTotalsMap.get(eh.id) || 0) + val);
-            return `<td class="text-right">${val.toFixed(2)}</td>`;
-        }).join('');
+    const tableRows = departmentDetails
+        .map((record: any, index: number) => {
+            // Look up amounts matching the dynamic heads
+            const earningCells = earningHeads
+                .map((eh: any) => {
+                    const val = record.earningresult?.find((e: any) => e.hrmeD_Id === eh.id)?.hresD_Amount || 0;
+                    earningTotalsMap.set(eh.id, (earningTotalsMap.get(eh.id) || 0) + val);
+                    return `<td class="text-right">${val.toFixed(2)}</td>`;
+                })
+                .join('');
 
-        const deductionCells = deductionHeads.map((dh: any) => {
-            const val = record.deductionresult?.find((d: any) => d.hrmeD_Id === dh.id)?.hresD_Amount || 0;
-            deductionTotalsMap.set(dh.id, (deductionTotalsMap.get(dh.id) || 0) + val);
-            return `<td class="text-right">${val.toFixed(2)}</td>`;
-        }).join('');
+            const deductionCells = deductionHeads
+                .map((dh: any) => {
+                    const val = record.deductionresult?.find((d: any) => d.hrmeD_Id === dh.id)?.hresD_Amount || 0;
+                    deductionTotalsMap.set(dh.id, (deductionTotalsMap.get(dh.id) || 0) + val);
+                    return `<td class="text-right">${val.toFixed(2)}</td>`;
+                })
+                .join('');
 
-        const gross = Number(record.grossEarning) || 0;
-        const totalDed = Number(record.grossDeduction) || 0;
-        const netPay = (record.netSalary !== undefined && record.netSalary !== null) ? Number(record.netSalary) : (gross - totalDed);
+            const gross = Number(record.grossEarning) || 0;
+            const totalDed = Number(record.grossDeduction) || 0;
+            const netPay = record.netSalary !== undefined && record.netSalary !== null ? Number(record.netSalary) : gross - totalDed;
 
-        grandTotalGross += gross;
-        grandTotalDed += totalDed;
-        grandTotalNet += netPay;
+            grandTotalGross += gross;
+            grandTotalDed += totalDed;
+            grandTotalNet += netPay;
 
-        return `
+            return `
           <tr>
               <td class="text-center">${index + 1}</td>
               <td>${record.hrmD_DepartmentName || ''}</td>
@@ -79,18 +94,23 @@ export const printDepartmentSalaryReport = (reportData: any, month: string, year
               <td class="text-right font-bold">${netPay.toFixed(2)}</td>
           </tr>
       `;
-    }).join('');
+        })
+        .join('');
 
     // Generate dynamic totals for each head in the footer
-    const earningTotalsCells = earningHeads.map((eh: any) => {
-        const val = earningTotalsMap.get(eh.id) || 0;
-        return `<td class="text-right">${val.toFixed(2)}</td>`;
-    }).join('');
+    const earningTotalsCells = earningHeads
+        .map((eh: any) => {
+            const val = earningTotalsMap.get(eh.id) || 0;
+            return `<td class="text-right">${val.toFixed(2)}</td>`;
+        })
+        .join('');
 
-    const deductionTotalsCells = deductionHeads.map((dh: any) => {
-        const val = deductionTotalsMap.get(dh.id) || 0;
-        return `<td class="text-right">${val.toFixed(2)}</td>`;
-    }).join('');
+    const deductionTotalsCells = deductionHeads
+        .map((dh: any) => {
+            const val = deductionTotalsMap.get(dh.id) || 0;
+            return `<td class="text-right">${val.toFixed(2)}</td>`;
+        })
+        .join('');
 
     const footerRow = `
       <tr class="font-bold bg-gray-100">
@@ -176,9 +196,9 @@ export const printDepartmentSalaryReport = (reportData: any, month: string, year
       </head>
       <body>
           <div class="header-container">
-               <img src="/assets/tunbridge_logo.png" class="logo" alt="Logo" onerror="this.style.display='none'"/>
-              <h1 class="institution-name">Tunbridge High School</h1>
-              <p>86/2 Infantry Road, Bangalore</p>
+              <h1 class="institution-name">${institutionName}</h1>
+              ${institutionAddress ? `<p>${institutionAddress}</p>` : ''}
+              ${institutionPinLine ? `<p>${institutionPinLine}</p>` : ''}
           </div>
 
           <div class="report-title">
@@ -220,4 +240,4 @@ export const printDepartmentSalaryReport = (reportData: any, month: string, year
     setTimeout(() => {
         printWindow.print();
     }, 250);
-}
+};

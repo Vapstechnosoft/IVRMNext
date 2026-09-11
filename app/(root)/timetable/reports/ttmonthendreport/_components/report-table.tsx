@@ -17,14 +17,7 @@ interface ReportTableProps {
     logoPath: string;
 }
 
-export default function ReportTable({
-    reportData,
-    enteredName,
-    formattedDate,
-    academicYearLabel,
-    monthLabel,
-    logoPath
-}: ReportTableProps) {
+export default function ReportTable({ reportData, enteredName, formattedDate, academicYearLabel, monthLabel, logoPath }: ReportTableProps) {
     const printRef = useRef<HTMLDivElement>(null);
 
     const handleExport = () => {
@@ -191,9 +184,7 @@ export default function ReportTable({
                         </div>
                     )}
 
-                    <h3 className='text-center font-bold text-gray-800 text-xl uppercase tracking-wider'>
-                        Time Table Month End Report
-                    </h3>
+                    <h3 className='text-center font-bold text-gray-800 text-xl uppercase tracking-wider'>Time Table Month End Report</h3>
                     <h4 className='mt-1 mb-4 text-center font-semibold text-md text-muted-foreground uppercase'>
                         Time Table {monthLabel} Month Report
                     </h4>

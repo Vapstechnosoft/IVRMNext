@@ -15,7 +15,11 @@ export const getStudentsByAcademicYear = async (asmayId: number): Promise<any> =
 };
 
 export const getStudentTCDetails = async (amstId: number, asmayId: number, statusFlag: string, feetobepaid = 0): Promise<any> => {
-    return api.post('admission', `/StudentTc/gettcDetails?AMST_Id=${amstId}&ASMAY_Id=${asmayId}&Status_flag=${statusFlag}&feetobepaid=${feetobepaid}`, {});
+    return api.post(
+        'admission',
+        `/StudentTc/gettcDetails?AMST_Id=${amstId}&ASMAY_Id=${asmayId}&Status_flag=${statusFlag}&feetobepaid=${feetobepaid}`,
+        {}
+    );
 };
 
 export const saveStudentTC = async (data: any): Promise<any> => {
@@ -53,7 +57,11 @@ export const onStudentNameChangeForCancel = async (asmayId: number, amstId: numb
 };
 
 export const saveTCCancelDetails = async (data: any): Promise<any> => {
-    return api.post('admission', `/StudentTc/SaveTCCancelDetails?AMST_Id=${data.AMST_Id}&ASMAY_Id=${data.ASMAY_Id}&TC_CancelReason=${encodeURIComponent(data.TC_CancelReason)}`, {});
+    return api.post(
+        'admission',
+        `/StudentTc/SaveTCCancelDetails?AMST_Id=${data.AMST_Id}&ASMAY_Id=${data.ASMAY_Id}&TC_CancelReason=${encodeURIComponent(data.TC_CancelReason)}`,
+        {}
+    );
 };
 
 export const checkTCDuplication = async (asmayId: number, tcNo: string): Promise<any> => {
@@ -65,6 +73,9 @@ export const getStudentNameList = async (asmayId: number, amstId = 0, flag = 'S'
 };
 
 export const searchStudentFilter = async (asmayId: number, amstSol: string, searchfilter: string, flag: string): Promise<any> => {
-    return api.post('admission', `/StudentTc/searchfilter?ASMAY_Id=${asmayId}&AMST_SOL=${amstSol}&searchfilter=${encodeURIComponent(searchfilter)}&flag=${flag}`, {});
+    return api.post(
+        'admission',
+        `/StudentTc/searchfilter?ASMAY_Id=${asmayId}&AMST_SOL=${amstSol}&searchfilter=${encodeURIComponent(searchfilter)}&flag=${flag}`,
+        {}
+    );
 };
-

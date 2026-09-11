@@ -26,7 +26,6 @@ export interface ILibTransactionReportInitialData {
     }>;
 }
 
-
 export interface ILibTransactionReportYearListData {
     departmentList: Array<{
         asmaY_Id: number;

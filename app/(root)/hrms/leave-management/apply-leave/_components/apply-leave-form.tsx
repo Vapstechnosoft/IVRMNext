@@ -205,7 +205,7 @@ export function ApplyLeaveForm({ defaultEmployee, onSubmit, onCancel }: ApplyLea
                     <X className='mr-2 h-4 w-4' />
                     CANCEL
                 </Button>
-                <Button type='submit' size='sm' variant='outline' className='min-w-[160px]' >
+                <Button type='submit' size='sm' variant='outline' className='min-w-[160px]'>
                     APPLY LEAVE NOW
                 </Button>
             </div>

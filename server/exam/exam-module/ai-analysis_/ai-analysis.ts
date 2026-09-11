@@ -1,10 +1,6 @@
 'use server';
 
-import type {
-    ClassAnalysis,
-    IndividualAnalysis,
-    StudentPerformance
-} from '@/types/exam/exam-module/ai-analysis';
+import type { ClassAnalysis, IndividualAnalysis, StudentPerformance } from '@/types/exam/exam-module/ai-analysis';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
@@ -52,7 +48,7 @@ Identify exactly 5 weak performers and 5 top performers. Focus on overall perfor
                 Authorization: `Bearer ${GROQ_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: 'openai/gpt-oss-120b',
                 messages: [
                     {
                         role: 'system',
@@ -94,7 +90,7 @@ export async function analyzeStudentPerformance(reportData: any): Promise<Indivi
         throw new Error('GROQ_API_KEY is not defined');
     }
 
-    const prompt = `You are an educational performance analyst. Analyze the following student report data and provide a detailed analysis.
+    const prompt = `You are an educational performance analyst and predictive AI strategist. Analyze the following student report data and provide a detailed analysis along with AI-driven Performance Prediction for upcoming terms.
 
 Student Report Data:
 ${JSON.stringify(reportData, null, 2)}
@@ -105,6 +101,7 @@ Please analyze this data and provide:
 3. **Strong Subjects**: Identify subjects where the student is performing well
 4. **Overall Assessment**: Provide an overall performance summary with actionable advice
 5. **Improvement Strategy**: Suggest a focused study plan
+6. **Performance Prediction**: Predict future exam performance, target score range, trajectory status ("Improving" | "Stable" | "At Risk" | "High Growth Potential"), predicted vs potential subject scores, key risk factors, and actionable milestones.
 
 Format your response as JSON with this structure:
 {
@@ -112,7 +109,18 @@ Format your response as JSON with this structure:
   "needsImprovement": [{"name": "subject", "score": number, "recommendation": "specific advice"}],
   "strongSubjects": [{"name": "subject", "score": number, "praise": "positive note"}],
   "overallAssessment": "detailed summary",
-  "improvementStrategy": "actionable study plan"
+  "improvementStrategy": "actionable study plan",
+  "performancePrediction": {
+    "predictedScoreRange": "e.g., 85% - 90%",
+    "confidenceLevel": "High (based on score consistency)",
+    "trajectory": "High Growth Potential",
+    "predictedSubjectScores": [
+      { "subject": "subject name", "predictedScore": number, "potentialScore": number }
+    ],
+    "keyRiskFactors": ["risk factor 1", "risk factor 2"],
+    "growthOpportunities": ["growth tip 1", "growth tip 2"],
+    "actionableMilestones": ["milestone 1", "milestone 2"]
+  }
 }`;
 
     try {
@@ -123,7 +131,7 @@ Format your response as JSON with this structure:
                 Authorization: `Bearer ${GROQ_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: 'openai/gpt-oss-120b',
                 messages: [
                     {
                         role: 'system',
@@ -213,7 +221,7 @@ Ensure all scores are numbers. If a score is missing or invalid, skip that subje
                 Authorization: `Bearer ${GROQ_API_KEY}`
             },
             body: JSON.stringify({
-                model: 'llama-3.3-70b-versatile',
+                model: 'openai/gpt-oss-120b',
                 messages: [
                     {
                         role: 'system',
@@ -247,7 +255,6 @@ Ensure all scores are numbers. If a score is missing or invalid, skip that subje
             ...s,
             index: idx + 1
         }));
-
     } catch (error: any) {
         console.error('PDF Extraction failed:', error);
         throw new Error(`Failed to parse PDF: ${error.message}`);

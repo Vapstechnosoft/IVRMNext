@@ -82,6 +82,37 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
 
+    // Field casing normalizers for local vs live ASP.NET response compatibility
+    const normalizeCategories = (list: any[]) =>
+        (Array.isArray(list) ? list : []).map((item) => ({
+            emcA_Id: Number(item?.emcA_Id ?? item?.EMCA_Id ?? item?.emcA_ID ?? item?.id ?? 0),
+            emcA_CategoryName: String(item?.emcA_CategoryName ?? item?.EMCA_CategoryName ?? item?.categoryName ?? '')
+        })).filter((c) => c.emcA_Id > 0 || c.emcA_CategoryName);
+
+    const normalizeGroups = (list: any[]) =>
+        (Array.isArray(list) ? list : []).map((item) => ({
+            emG_Id: Number(item?.emG_Id ?? item?.EMG_Id ?? item?.emg_Id ?? item?.id ?? 0),
+            emG_GroupName: String(item?.emG_GroupName ?? item?.EMG_GroupName ?? item?.groupName ?? '')
+        })).filter((g) => g.emG_Id > 0 || g.emG_GroupName);
+
+    const normalizeSubjects = (list: any[]) =>
+        (Array.isArray(list) ? list : []).map((item) => ({
+            ismS_Id: Number(item?.ismS_Id ?? item?.ISMS_Id ?? item?.isms_Id ?? item?.id ?? 0),
+            ismS_SubjectName: String(item?.ismS_SubjectName ?? item?.ISMS_SubjectName ?? item?.subjectName ?? '')
+        })).filter((s) => s.ismS_Id > 0 || s.ismS_SubjectName);
+
+    const normalizeClasses = (list: any[]) =>
+        (Array.isArray(list) ? list : []).map((item) => ({
+            asmcL_Id: Number(item?.asmcL_Id ?? item?.ASMCL_Id ?? item?.asmcl_Id ?? item?.id ?? 0),
+            asmcL_ClassName: String(item?.asmcL_ClassName ?? item?.ASMCL_ClassName ?? item?.className ?? '')
+        })).filter((c) => c.asmcL_Id > 0 || c.asmcL_ClassName);
+
+    const normalizeSections = (list: any[]) =>
+        (Array.isArray(list) ? list : []).map((item) => ({
+            asmS_Id: Number(item?.asmS_Id ?? item?.ASMS_Id ?? item?.asms_Id ?? item?.id ?? 0),
+            asmC_SectionName: String(item?.asmC_SectionName ?? item?.ASMC_SectionName ?? item?.sectionName ?? '')
+        })).filter((s) => s.asmS_Id > 0 || s.asmC_SectionName);
+
     // Reset dependent fields when Type changes
     useEffect(() => {
         setValue('emcA_Id', 0);
@@ -106,8 +137,9 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
             try {
                 setLoadingCategories(true);
                 const res = await getCategoryDropDownByYearList(asmaY_Id);
-                setCategories(Array.isArray(res) ? res : []);
-                if (Array.isArray(res) && res.length === 0) {
+                const normalized = normalizeCategories(res);
+                setCategories(normalized);
+                if (normalized.length === 0) {
                     toast.info('No Categories are mapped');
                 }
             } catch (err: any) {
@@ -136,8 +168,8 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                     getSubjectGroupDropDownByYearCategoryList(asmaY_Id, categoryId),
                     type === 'csw' ? getClassDropDownByYearCategoryList(asmaY_Id, categoryId) : Promise.resolve([])
                 ]);
-                setGroups(Array.isArray(groupRes) ? groupRes : []);
-                setClasses(Array.isArray(classRes) ? classRes : []);
+                setGroups(normalizeGroups(groupRes));
+                setClasses(normalizeClasses(classRes));
             } catch {
                 toast.error('Failed to load groups or classes');
             } finally {
@@ -159,7 +191,7 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                 setLoadingSubjects(true);
                 const categoryId = emcA_Id === 'All' ? 'All' : emcA_Id;
                 const res = await getSubjectDropDownByYearCategorySubjectGroupList(asmaY_Id, categoryId, emG_Id);
-                setSubjects(Array.isArray(res) ? res : []);
+                setSubjects(normalizeSubjects(res));
             } catch {
                 toast.error('Failed to load subjects');
             } finally {
@@ -179,7 +211,7 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
             try {
                 setLoadingSections(true);
                 const res = await getSectionDropDownByYearCategoryClassList(asmaY_Id, Number(emcA_Id), asmcL_Id);
-                setSections(Array.isArray(res) ? res : []);
+                setSections(normalizeSections(res));
             } catch {
                 toast.error('Failed to load sections');
             } finally {
@@ -318,7 +350,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                 name='asmaY_Id'
                                 rules={{ required: 'Academic Year is required', validate: (v) => v > 0 || 'Academic Year is required' }}
                                 render={({ field, fieldState }) => (
-
                                     <div>
                                         <Label>
                                             Academic Year <span className='text-red-500'>*</span>
@@ -358,8 +389,10 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                 <Controller
                                     name='emcA_Id'
                                     control={control}
-                                    rules={{ required: 'Category is required', validate: (v) => (v !== 0 && v !== undefined) || 'Category is required' }}
-
+                                    rules={{
+                                        required: 'Category is required',
+                                        validate: (v) => (v !== 0 && v !== undefined) || 'Category is required'
+                                    }}
                                     render={({ field, fieldState }) => (
                                         <div>
                                             <Label>
@@ -412,8 +445,10 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                     <Controller
                                         name='emG_Id'
                                         control={control}
-                                        rules={{ required: 'Subject Group is required', validate: (v) => v > 0 || 'Subject Group is required' }}
-
+                                        rules={{
+                                            required: 'Subject Group is required',
+                                            validate: (v) => v > 0 || 'Subject Group is required'
+                                        }}
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
@@ -452,7 +487,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                         name='ismS_Id'
                                         control={control}
                                         rules={{ required: 'Subject is required', validate: (v) => v > 0 || 'Subject is required' }}
-
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
@@ -496,7 +530,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                         name='asmcL_Id'
                                         control={control}
                                         rules={{ required: 'Class is required', validate: (v) => v > 0 || 'Class is required' }}
-
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>
@@ -535,7 +568,6 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                         name='asmS_Id'
                                         control={control}
                                         rules={{ required: 'Section is required', validate: (v) => v > 0 || 'Section is required' }}
-
                                         render={({ field, fieldState }) => (
                                             <div>
                                                 <Label>

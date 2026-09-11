@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { getStaffAllotmentLoadData } from '@/server/hostel/hostel-management/transactions/staff-allotment';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import StaffAllotmentForm from './_components/add-form';
 import StaffAllotmentList from './_components/list';
-import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
 
 import { FormProvider } from '@/components/ui/form/form-provider';
 
@@ -46,26 +46,20 @@ export default function StaffAllotmentPage() {
 
     if (isLoading) {
         return (
-            <div className="flex h-[50vh] w-full items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className='flex h-[50vh] w-full items-center justify-center'>
+                <Loader2 className='h-8 w-8 animate-spin text-primary' />
             </div>
         );
     }
 
     return (
         <FormProvider>
-            <div className="container mx-auto p-4 space-y-8">
-                <h2 className="text-2xl font-bold text-gray-800">Staff Allotment</h2>
+            <div className='container mx-auto space-y-8 p-4'>
+                <h2 className='font-bold text-2xl text-gray-800'>Staff Allotment</h2>
 
-                <StaffAllotmentForm
-                    dropdowns={dropdowns}
-                    onSuccess={handleSuccess}
-                />
+                <StaffAllotmentForm dropdowns={dropdowns} onSuccess={handleSuccess} />
 
-                <StaffAllotmentList
-                    data={dropdowns.student_allotlist || []}
-                    onEdit={() => { }}
-                />
+                <StaffAllotmentList data={dropdowns.student_allotlist || []} onEdit={() => {}} />
             </div>
         </FormProvider>
     );

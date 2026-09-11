@@ -4,23 +4,24 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { IadmissionStudentApplicationList } from '@/types/admission/admission';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import React, { useEffect, useState } from 'react';
 import AddStudentAdmissionForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
 import ApplicationFormSuccessDialog from './_components/success-dialog';
-import { useQueryState } from 'nuqs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = (React as any).use(props.searchParams);
-    
+
     // Only pass asmay_id to the API so client-side changes don't trigger refetches or backend errors
     const apiSearchParams = React.useMemo(() => {
         return {
@@ -62,22 +63,21 @@ function StudentApplicationPageContent({
     searchParams: any;
 }) {
     const { openAddForm } = useFormContext();
+
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
     
-    const searchQuery = (searchParams?.search_query as string) || '';
-    const page = parseInt(searchParams?.page as string) || 1;
-    const pageSize = parseInt(searchParams?.page_size as string) || 10;
+    const page = currentPage || 1;
 
     const filteredData = React.useMemo(() => {
         let result = response?.data?.studentList || [];
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
-            result = result.filter((row: any) => 
-                String(row.studentName || '').toLowerCase().includes(query) ||
-                String(row.className || '').toLowerCase().includes(query) ||
-                String(row.sectionName || '').toLowerCase().includes(query) ||
-                String(row.admissionNo || '').toLowerCase().includes(query) ||
-                String(row.emailId || '').toLowerCase().includes(query) ||
-                String(row.mobileNo || '').toLowerCase().includes(query)
+            result = result.filter((row: any) =>
+                Object.values(row).some(
+                    (val) => val !== null && val !== undefined && String(val).toLowerCase().includes(query)
+                )
             );
         }
         return result;
@@ -90,15 +90,13 @@ function StudentApplicationPageContent({
     }, [filteredData, page, pageSize]);
 
     const tableProps = useDataTableProps(
-        response?.data && response.data.studentList 
-            ? { ...response, data: paginatedData, total: filteredData.length } 
+        response?.data && response.data.studentList
+            ? { ...response, data: paginatedData, total: filteredData.length }
             : response
     );
     const [isSuccessOpen, setSuccessOpen] = useState(false);
     const [successType, setSuccessType] = useState<'create' | 'update'>('create');
     const session = useSession();
-
-
 
     useEffect(() => {
         // Don't force a full page reload when session role is temporarily undefined.
@@ -124,10 +122,10 @@ function StudentApplicationPageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 {/* Header */}
-                <div className='flex justify-between items-center'>
+                <div className='flex items-center justify-between'>
                     <div className='w-64'>
                         <Select value={selectedYear} onValueChange={setSelectedYear}>
-                            <SelectTrigger className="w-full bg-background">
+                            <SelectTrigger className='w-full bg-background'>
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
                             <SelectContent>
@@ -144,7 +142,7 @@ function StudentApplicationPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Admission Application
+                        Add AdmissionForm
                     </Button>
                 </div>
                 {isSuccessOpen && (

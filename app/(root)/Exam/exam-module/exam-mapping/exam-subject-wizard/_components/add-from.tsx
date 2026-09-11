@@ -147,18 +147,25 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         if (gradeError) {
             toast.error(gradeError.message || 'Error fetching grades');
             setGradeList([]);
-        } else if (gradeData?.data && Array.isArray(gradeData.data)) {
-            const formattedGrades: IMasterGrade[] = gradeData.data.map((item: any) => ({
-                emgR_Id: item.emgR_Id?.toString() ?? '',
-                emgR_GradeName: item.emgR_GradeName ?? '',
-                emgR_MarksPerFlag: item.emgR_MarksPerFlag ?? 'm',
-                emgR_ActiveFlag: item.emgR_ActiveFlag ?? true,
-                grade_list: [],
-                mI_Id: item.mI_Id
-            }));
-            setGradeList(formattedGrades);
         } else {
-            setGradeList([]);
+            const rawGrades = Array.isArray(gradeData?.data)
+                ? gradeData.data
+                : Array.isArray(gradeData)
+                  ? gradeData
+                  : [];
+            if (rawGrades.length > 0) {
+                const formattedGrades: IMasterGrade[] = rawGrades.map((item: any) => ({
+                    emgR_Id: item.emgR_Id?.toString() ?? '',
+                    emgR_GradeName: item.emgR_GradeName ?? '',
+                    emgR_MarksPerFlag: item.emgR_MarksPerFlag ?? 'm',
+                    emgR_ActiveFlag: item.emgR_ActiveFlag ?? true,
+                    grade_list: [],
+                    mI_Id: item.mI_Id
+                }));
+                setGradeList(formattedGrades);
+            } else {
+                setGradeList([]);
+            }
         }
     }, [gradeData, gradeError]);
 
@@ -834,18 +841,57 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 exm_subject_subsubjects_subexam,
                 Temp_Subject_Order: values.Temp_Subject_Order ?? []
             };
-            const res = await addOrUpdateExamSubjectWizard(finalPayload);
-            if (res.success) toast.success('Exam Subject Wizard saved successfully');
-            else toast.error(res.message);
+            const res: any = await addOrUpdateExamSubjectWizard(finalPayload);
+            const isSuccess =
+                res?.success === true ||
+                res?.returnval === true ||
+                res?.returnval === 'true' ||
+                res?.returnval === 'saved' ||
+                res?.returnVal === true ||
+                res?.returnVal === 'true' ||
+                res?.returnVal === 'saved' ||
+                res?.returnVal === 'updated' ||
+                res?.returnval === 'updated' ||
+                res?.returnval === 'Record Saved Successfully' ||
+                res?.returnVal === 'Record Saved Successfully' ||
+                (res &&
+                    typeof res === 'object' &&
+                    res?.success !== false &&
+                    res?.returnval !== false &&
+                    res?.returnVal !== false &&
+                    res?.returnval !== 'failed' &&
+                    res?.returnVal !== 'failed' &&
+                    res?.returnval !== 'duplicate' &&
+                    res?.returnVal !== 'duplicate' &&
+                    res?.returnval !== 'Duplicate' &&
+                    res?.returnVal !== 'Duplicate' &&
+                    !res?.error);
 
-            onSuccess?.();
-            refetchAll();
-            router.refresh();
-            window.location.reload();
+            if (isSuccess) {
+                toast.success(res?.message || 'Data saved successfully');
+                onSuccess?.();
+                refetchAll();
+                router.refresh();
+            } else if (
+                res?.returnval === 'duplicate' ||
+                res?.returnVal === 'duplicate' ||
+                res?.returnval === 'Duplicate' ||
+                res?.returnVal === 'Duplicate'
+            ) {
+                toast.error(res?.message || 'Record already exists');
+            } else {
+                toast.error(res?.message || 'Failed to save the data');
+            }
         } catch (err: any) {
             console.error(err);
-            toast.error(err?.message ?? 'Failed to save Exam Subject Wizard');
+            toast.error(err?.message || 'Failed to save the data');
         }
+    };
+
+    const onError = (formErrors: any) => {
+        console.error('Validation errors:', formErrors);
+        const firstError = Object.values(formErrors)[0] as any;
+        toast.error(firstError?.message || 'Please fill all required fields before saving');
     };
 
     const handleReset = () => {
@@ -874,7 +920,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
     return (
         <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(onSubmit)}>
+            <form onSubmit={handleSubmit(onSubmit, onError)}>
                 <CollapsibleSection defaultOpen>
                     {isEditFormLoading ? (
                         <div className='flex h-64 items-center justify-center'>
@@ -975,7 +1021,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                         </Label>
                                         <Controller
                                             control={control}
-                                            name="exams_list"
+                                            name='exams_list'
                                             render={({ field }) => (
                                                 <CustomMultiSelectBox
                                                     options={exams.map((ex) => ({

@@ -1,11 +1,11 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { useEventMapping } from '@/hooks/sports/useEventMapping';
-import { IEventsMappingData } from '@/types/sports/events-mapping';
-import { ActionButtons } from '@/components/ui/form/action-buttons';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import type { IEventsMappingData } from '@/types/sports/events-mapping';
+import type { ColumnDef } from '@tanstack/react-table';
 
 export const eventsMappingColumns: ColumnDef<IEventsMappingData>[] = [
     {
@@ -54,7 +54,7 @@ export const eventsMappingColumns: ColumnDef<IEventsMappingData>[] = [
         accessorKey: 'spccE_StartTime',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Start Time' />,
         cell: ({ row }) => {
-            return <div className="lowercase">{row.original.spccE_StartTime}</div>
+            return <div className='lowercase'>{row.original.spccE_StartTime}</div>;
         },
         enableSorting: true
     },
@@ -73,7 +73,7 @@ export const eventsMappingColumns: ColumnDef<IEventsMappingData>[] = [
         accessorKey: 'spccE_EndTime',
         header: ({ column }) => <DataTableColumnHeader column={column} title='End Time' />,
         cell: ({ row }) => {
-            return <div className="lowercase">{row.original.spccE_EndTime}</div>
+            return <div className='lowercase'>{row.original.spccE_EndTime}</div>;
         },
         enableSorting: true
     },
@@ -87,8 +87,8 @@ export const eventsMappingColumns: ColumnDef<IEventsMappingData>[] = [
         header: 'Action',
         cell: ({ row }) => {
             return <ActionsCell row={row.original} />;
-        },
-    },
+        }
+    }
 ];
 
 const ActionsCell = ({ row }: { row: IEventsMappingData }) => {

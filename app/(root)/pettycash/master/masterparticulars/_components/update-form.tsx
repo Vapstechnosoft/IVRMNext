@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { masterParticularsSchema, type MasterParticularsFormValues } from '@/schemas/pettycash/masters';
+import { type MasterParticularsFormValues, masterParticularsSchema } from '@/schemas/pettycash/masters';
 import { addOrUpdateMasterParticulars } from '@/server/pettycash/master/particulars';
 import type { IMasterParticulars } from '@/types/pettycash/master/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -118,7 +118,7 @@ export default function UpdateMasterParticularsForm({ selectedRow, onSuccess, cl
                         disabled={isSubmitting}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
                         <div className='flex items-center'>
-                            <Save className='mr-2 font-bold h-4 w-4' />
+                            <Save className='mr-2 h-4 w-4 font-bold' />
                             {isSubmitting ? 'Updating...' : 'Update Particular'}
                         </div>
                     </Button>

@@ -1,53 +1,68 @@
 import { format } from 'date-fns';
 
 export function numberToWords(num: number) {
-    if (num === 0) return "Zero Rupees Only";
+    if (num === 0) return 'Zero Rupees Only';
 
     const isNegative = num < 0;
     const absNum = Math.abs(num);
 
     const a = [
-        "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
-        "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
-        "Seventeen", "Eighteen", "Nineteen"
+        '',
+        'One',
+        'Two',
+        'Three',
+        'Four',
+        'Five',
+        'Six',
+        'Seven',
+        'Eight',
+        'Nine',
+        'Ten',
+        'Eleven',
+        'Twelve',
+        'Thirteen',
+        'Fourteen',
+        'Fifteen',
+        'Sixteen',
+        'Seventeen',
+        'Eighteen',
+        'Nineteen'
     ];
 
-    const b = [
-        "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
-    ];
+    const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
     function inWords(n: number): string {
         if (n < 20) return a[n];
-        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? " " + a[n % 10] : "");
-        if (n < 1000) return a[Math.floor(n / 100)] + " Hundred" + (n % 100 ? " " + inWords(n % 100) : "");
-        if (n < 100000) return inWords(Math.floor(n / 1000)) + " Thousand" + (n % 1000 ? " " + inWords(n % 1000) : "");
-        if (n < 10000000) return inWords(Math.floor(n / 100000)) + " Lakh" + (n % 100000 ? " " + inWords(n % 100000) : "");
-        return inWords(Math.floor(n / 10000000)) + " Crore" + (n % 10000000 ? " " + inWords(n % 10000000) : "");
+        if (n < 100) return b[Math.floor(n / 10)] + (n % 10 ? ' ' + a[n % 10] : '');
+        if (n < 1000) return a[Math.floor(n / 100)] + ' Hundred' + (n % 100 ? ' ' + inWords(n % 100) : '');
+        if (n < 100000) return inWords(Math.floor(n / 1000)) + ' Thousand' + (n % 1000 ? ' ' + inWords(n % 1000) : '');
+        if (n < 10000000) return inWords(Math.floor(n / 100000)) + ' Lakh' + (n % 100000 ? ' ' + inWords(n % 100000) : '');
+        return inWords(Math.floor(n / 10000000)) + ' Crore' + (n % 10000000 ? ' ' + inWords(n % 10000000) : '');
     }
 
-    const [rupees, paise] = absNum.toFixed(2).split(".");
-    const rupeesVal = parseInt(rupees);
-    const paiseVal = parseInt(paise);
+    const [rupees, paise] = absNum.toFixed(2).split('.');
+    const rupeesVal = Number.parseInt(rupees);
+    const paiseVal = Number.parseInt(paise);
 
-    let words = "";
+    let words = '';
 
     if (rupeesVal > 0) {
-        words = inWords(rupeesVal) + " Rupees";
+        words = inWords(rupeesVal) + ' Rupees';
     }
 
     if (paiseVal > 0) {
         if (words) {
-            words += " and " + inWords(paiseVal) + " Paise";
+            words += ' and ' + inWords(paiseVal) + ' Paise';
         } else {
-            words = inWords(paiseVal) + " Paise";
+            words = inWords(paiseVal) + ' Paise';
         }
     }
 
     if (!words) {
-        words = "Zero Rupees";
+        words = 'Zero Rupees';
     }
 
-    return (isNegative ? "Minus " : "") + words + " Only";
+    return (isNegative ? 'Minus ' : '') + words + ' Only';
 }
 
 export function generateSalarySlipHtml(
@@ -55,13 +70,13 @@ export function generateSalarySlipHtml(
     institution: { name: string; address: string; logo: string },
     month: string,
     year: string,
-    showLopDays: boolean = false,
-    showLeaveDetails: boolean = false,
-    showPanCardNo: boolean = false,
-    showBankDetails: boolean = false
+    showLopDays = false,
+    showLeaveDetails = false,
+    showPanCardNo = false,
+    showBankDetails = false
 ) {
     const formatCurrency = (val: number) => (val || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    
+
     const earnings = slip.earnings || [];
     const deductions = slip.deductions || [];
     const maxRows = Math.max(earnings.length, deductions.length);
@@ -72,113 +87,198 @@ export function generateSalarySlipHtml(
         const d = deductions[i] || { name: '', amount: '' };
         rowsHtml += `
             <tr>
-                <td style="border: 1px solid black; padding: 8px; text-align: left;">${e.name || ''}</td>
-                <td style="border: 1px solid black; padding: 8px; text-align: right;">${e.amount ? formatCurrency(e.amount) : ''}</td>
-                <td style="border: 1px solid black; padding: 8px; text-align: left;">${d.name || ''}</td>
-                <td style="border: 1px solid black; padding: 8px; text-align: right;">${d.amount ? formatCurrency(d.amount) : ''}</td>
+                <td align="left">${e.name || '&nbsp;'}</td>
+                <td align="right">${e.amount ? formatCurrency(e.amount) : '&nbsp;'}</td>
+                <td align="left">${d.name || '&nbsp;'}</td>
+                <td align="right">${d.amount ? formatCurrency(d.amount) : '&nbsp;'}</td>
             </tr>
         `;
     }
 
     return `
-        <div class="salary-slip" style="page-break-after: always; padding: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333;">
-            <div style="border-bottom: 2px solid black; padding-bottom: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center;">
-                <img src="${institution.logo}" style="height: 140px; width: auto;" alt="logo" />
-                
-            </div>
+        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+        <td align="center">
+            <img src="${institution.logo}" height="70" />
+        </td>
+    </tr>
 
-            <h3 style="text-align: center; text-decoration: underline; margin-bottom: 30px; font-size: 20px;">
-                Salary Slip: ${month} ${year}
-            </h3>
+    <tr>
+        <td align="center">
+            <br/>
+            <b><u>Salary Slip: ${month} ${year}</u></b>
+            <br/><br/>
+        </td>
+    </tr>
+        </table>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 25px; font-size: 13px; line-height: 1.8;">
-                <div>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr><td style="width: 140px; font-weight: bold;">Name</td><td style="width: 10px;">:</td><td style="text-transform: uppercase;">${slip.employeeName}</td></tr>
-                        <tr><td style="font-weight: bold;">Department</td><td>:</td><td>${slip.department || '-'}</td></tr>
-                        <tr><td style="font-weight: bold;">Designation</td><td>:</td><td>${slip.designation}</td></tr>
-                        ${slip.uanNumber ? `<tr><td style="font-weight: bold;">PF UAN Number</td><td>:</td><td>${slip.uanNumber}</td></tr>` : ''}
-                        ${showBankDetails ? `
-                            <tr><td style="font-weight: bold;">Bank Name</td><td>:</td><td>${slip.bankName || '-'}</td></tr>
-                            <tr><td style="font-weight: bold;">Bank Acc No.</td><td>:</td><td>${slip.bankAccountNo || '-'}</td></tr>
-                        ` : ''}
-                    </table>
-                </div>
-                <div>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr><td style="width: 140px; font-weight: bold;">Employee Code</td><td style="width: 10px;">:</td><td>${slip.employeeCode}</td></tr>
-                        <tr><td style="font-weight: bold;">Date Of Joining</td><td>:</td><td>${slip.dateOfJoining ? format(new Date(slip.dateOfJoining), 'dd-MM-yyyy') : '-'}</td></tr>
-                        ${showPanCardNo && slip.panNo ? `<tr><td style="font-weight: bold;">PAN No.</td><td>:</td><td>${slip.panNo}</td></tr>` : ''}
-                        <tr><td style="font-weight: bold;">Total Days</td><td>:</td><td>${slip.totalDays || 0}</td></tr>
-                        ${showLopDays ? `<tr><td style="font-weight: bold;">L.W.O.P Days</td><td>:</td><td>${slip.lopDays || 0}</td></tr>` : ''}
-                        <tr><td style="font-weight: bold;">Pay Slip Seq</td><td>:</td><td>${slip.paySlipSeq || 0}</td></tr>
-                    </table>
-                </div>
-            </div>
+        <table width="100%" border="0" cellpadding="2" cellspacing="0">
+    <tr>
+        <td width="55%" valign="top">
+            <table width="100%" border="0" cellpadding="2" cellspacing="0">
 
-            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 13px;">
-                <thead>
-                    <tr style="background-color: #f9f9f9;">
-                        <th style="border: 1px solid black; padding: 10px; text-align: left; width: 35%;">Earnings</th>
-                        <th style="border: 1px solid black; padding: 10px; text-align: right; width: 15%;">Amount</th>
-                        <th style="border: 1px solid black; padding: 10px; text-align: left; width: 35%;">Deductions</th>
-                        <th style="border: 1px solid black; padding: 10px; text-align: right; width: 15%;">Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rowsHtml}
-                    <tr style="font-weight: bold;">
-                        <td style="border: 1px solid black; padding: 10px; text-align: left;">Total:</td>
-                        <td style="border: 1px solid black; padding: 10px; text-align: right;">${formatCurrency(slip.grossPay)}</td>
-                        <td style="border: 1px solid black; padding: 10px; text-align: left;">Total:</td>
-                        <td style="border: 1px solid black; padding: 10px; text-align: right;">${formatCurrency(slip.totalDeduction)}</td>
-                    </tr>
-                </tbody>
+                <tr>
+                    <td width="10" ><b>Name</b></td>
+                    <td>: ${slip.employeeName || '-'}</td>
+                </tr>
+
+                <tr>
+                    <td width="80" ><b>Department</b></td>
+                    <td>: ${slip.department || '-'}</td>
+                </tr>
+
+                <tr>
+                    <td width="80" ><b>Designation</b></td>
+                    <td>: ${slip.designation || '-'}</td>
+                </tr>
+
+                ${slip.uanNumber
+            ? `
+                <tr>
+                    <td width="80" ><b>PF UAN Number</b></td>
+                    <td>: ${slip.uanNumber}</td>
+                </tr>
+                `
+            : ''
+        }
+
+                ${showBankDetails
+            ? `
+                <tr>
+                    <td width="110"><b>Bank Name</b></td>
+                    <td>: ${slip.bankName || '-'}</td>
+                </tr>
+
+                <tr>
+                    <td width="110"><b>Bank Acc No.</b></td>
+                    <td>: ${slip.bankAccountNo || '-'}</td>
+                </tr>
+                `
+            : ''
+        }
+
             </table>
+        </td>
 
-            <div style="margin-bottom: 40px; font-size: 13px; line-height: 2;">
-                <div style="display: flex;"><span style="width: 180px; font-weight: bold;">Net Salary</span><span>: ${formatCurrency(slip.netPayable)} /-</span></div>
-                <div style="display: flex;"><span style="width: 180px; font-weight: bold;">Net Salary in Words</span><span style="font-weight: 600;">: ${numberToWords(slip.netPayable)}</span></div>
-                ${slip.pensionFund ? `<div style="display: flex;"><span style="width: 180px; font-weight: bold;">Pension Fund</span><span>: ${formatCurrency(slip.pensionFund)} /-</span></div>` : ''}
-            </div>
+        
+        <td width="40%" valign="top">
+            <table width="100%" border="0" cellpadding="2" cellspacing="0">
 
-            <div style="display: flex; justify-content: space-between; padding: 0 20px; font-weight: bold; font-size: 13px; margin-bottom: 50px;">
-                <span>Principal/Accountant</span>
-                <span>Signature</span>
-            </div>
+                <tr>
+                    <td width="110"><b>Employee Code</b></td>
+                    <td>: ${slip.employeeCode || '-'}</td>
+                </tr>
 
-            <p style="text-align: center; font-size: 12px; font-weight: bold; font-style: italic; margin-top: 50px;">
-                NOTE : Signature is not required because it is a computer generated statement.
-            </p>
+                <tr>
+                    <td width="110" ><b>Date Of Joining</b></td>
+                    <td>: ${slip.dateOfJoining
+            ? format(new Date(slip.dateOfJoining), 'dd-MM-yyyy')
+            : '-'
+        }</td>
+                </tr>
 
-            ${showLeaveDetails && slip.leaveDetails && slip.leaveDetails.length > 0 ? `
-                <div class="leave-details" style="margin-top: 50px; border-top: 2px dashed #ccc; padding-top: 40px;">
-                    <h4 style="text-align: center; font-size: 18px; text-decoration: underline; margin-bottom: 20px;">Leave Details</h4>
-                    <table style="width: 85%; margin: auto; border-collapse: collapse; font-size: 12px;">
-                        <thead>
-                            <tr style="background-color: #f5f5f5;">
-                                <th style="border: 1px solid black; padding: 8px; text-align: center;">Serial No.</th>
-                                <th style="border: 1px solid black; padding: 8px; text-align: center;">Leave Name</th>
-                                <th style="border: 1px solid black; padding: 8px; text-align: center;">Total Leaves</th>
-                                <th style="border: 1px solid black; padding: 8px; text-align: center;">Availed Leaves</th>
-                                <th style="border: 1px solid black; padding: 8px; text-align: center;">Balance Leaves</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${(slip.leaveDetails || []).map((l: any) => `
-                                <tr>
-                                    <td style="border: 1px solid black; padding: 8px; text-align: center;">${l.serialNo}</td>
-                                    <td style="border: 1px solid black; padding: 8px; text-align: left; padding-left: 15px;">${l.leaveName || '-'}</td>
-                                    <td style="border: 1px solid black; padding: 8px; text-align: center;">${l.totalLeaves || 0}</td>
-                                    <td style="border: 1px solid black; padding: 8px; text-align: center;">${l.availedLeaves || 0}</td>
-                                    <td style="border: 1px solid black; padding: 8px; text-align: center;">${l.balanceLeaves || 0}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            ` : ''}
-        </div>
+                ${showPanCardNo && slip.panNo
+            ? `
+                <tr>
+                    <td width="110"><b>PAN No.</b></td>
+                    <td>: ${slip.panNo}</td>
+                </tr>
+                `
+            : ''
+        }
+
+                <tr>
+                    <td width="110"><b>Total Days</b></td>
+                    <td>: ${slip.totalDays || 0}</td>
+                </tr>
+
+                ${showLopDays
+            ? `
+                <tr>
+                    <td width="110"><b>L.W.O.P Days</b></td>
+                    <td>: ${slip.lopDays || 0}</td>
+                </tr>
+                `
+            : ''
+        }
+
+                <tr>
+                    <td width="110"><b>Pay Slip Seq</b></td>
+                    <td>: ${slip.paySlipSeq || 0}</td>
+                </tr>
+
+            </table>
+        </td>
+    </tr>
+</table>
+        <br/><br/>
+
+        <table width="100%" border="1" cellpadding="5" cellspacing="0">
+            <tr bgcolor="#f9f9f9">
+                <th width="35%" align="left"><b>Earnings</b></th>
+                <th width="15%" align="right"><b>Amount</b></th>
+                <th width="35%" align="left"><b>Deductions</b></th>
+                <th width="15%" align="right"><b>Amount</b></th>
+            </tr>
+            ${rowsHtml}
+            <tr>
+                <td align="left"><b>Total:</b></td>
+                <td align="right"><b>${formatCurrency(slip.grossPay)}</b></td>
+                <td align="left"><b>Total:</b></td>
+                <td align="right"><b>${formatCurrency(slip.totalDeduction)}</b></td>
+            </tr>
+        </table>
+
+        <br/><br/>
+
+        <table width="100%" border="0" cellpadding="3" cellspacing="0">
+            <tr><td width="180"><b>Net Salary</b></td><td>: ${formatCurrency(slip.netPayable)} /-</td></tr>
+            <tr><td><b>Net Salary in Words</b></td><td>: <b>${numberToWords(slip.netPayable)}</b></td></tr>
+            ${slip.pensionFund ? `<tr><td><b>Pension Fund</b></td><td>: ${formatCurrency(slip.pensionFund)} /-</td></tr>` : ''}
+        </table>
+
+        <br/><br/><br/>
+
+        <table width="100%" border="0" cellpadding="0" cellspacing="0">
+            <tr>
+                <td align="left"><b>Principal/Accountant</b></td>
+                <td align="right"><b>Signature</b></td>
+            </tr>
+        </table>
+
+        <br/><br/>
+        <div align="center"><i><font size="1">NOTE : Signature is not required because it is a computer generated statement.</font></i></div>
+
+        ${showLeaveDetails && slip.leaveDetails && slip.leaveDetails.length > 0
+            ? `
+            <br/><br/>
+            <div align="center"><b><u>Leave Details</u></b></div>
+            <br/>
+            <table width="85%" align="center" border="1" cellpadding="5" cellspacing="0">
+                <tr bgcolor="#f5f5f5">
+                    <th align="center"><b>Serial No.</b></th>
+                    <th align="center"><b>Leave Name</b></th>
+                    <th align="center"><b>Total Leaves</b></th>
+                    <th align="center"><b>Availed Leaves</b></th>
+                    <th align="center"><b>Balance Leaves</b></th>
+                </tr>
+                ${(slip.leaveDetails || [])
+                .map(
+                    (l: any) => `
+                    <tr>
+                        <td align="center">${l.serialNo}</td>
+                        <td align="left">${l.leaveName || '-'}</td>
+                        <td align="center">${l.totalLeaves || 0}</td>
+                        <td align="center">${l.availedLeaves || 0}</td>
+                        <td align="center">${l.balanceLeaves || 0}</td>
+                    </tr>
+                `
+                )
+                .join('')}
+            </table>
+        `
+            : ''
+        }
     `;
 }
 
@@ -187,17 +287,19 @@ export function printSalarySlips(
     institution: { name: string; address: string; logo: string },
     month: string,
     year: string,
-    showLopDays: boolean = false,
-    showLeaveDetails: boolean = false,
-    showPanCardNo: boolean = false,
-    showBankDetails: boolean = false
+    showLopDays = false,
+    showLeaveDetails = false,
+    showPanCardNo = false,
+    showBankDetails = false
 ) {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    const content = slips.map((slip, index) => {
-        return generateSalarySlipHtml(slip, institution, month, year, showLopDays, showLeaveDetails, showPanCardNo, showBankDetails);
-    }).join('');
+    const content = slips
+        .map((slip, index) => {
+            return generateSalarySlipHtml(slip, institution, month, year, showLopDays, showLeaveDetails, showPanCardNo, showBankDetails);
+        })
+        .join('');
 
     printWindow.document.write(`
         <html>

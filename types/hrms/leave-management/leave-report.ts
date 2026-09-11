@@ -677,4 +677,3 @@ export interface GetLeaveReportYearwiseResponse {
     page?: number | null;
     page_size?: number | null;
 }
-

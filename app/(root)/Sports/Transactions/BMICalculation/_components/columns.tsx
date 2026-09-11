@@ -1,10 +1,10 @@
-import { ColumnDef } from '@tanstack/react-table';
-import { IBMICalculation } from '@/types/sports/transactions/bmi-calculation';
+import { Badge } from '@/components/ui/badge';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import { useBMICalculation } from '@/hooks/sports/useBMICalculation';
-import { Badge } from '@/components/ui/badge';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import type { IBMICalculation } from '@/types/sports/transactions/bmi-calculation';
+import type { ColumnDef } from '@tanstack/react-table';
 
 export const bmiCalculationColumns: ColumnDef<IBMICalculation>[] = [
     {
@@ -23,48 +23,48 @@ export const bmiCalculationColumns: ColumnDef<IBMICalculation>[] = [
     {
         accessorKey: 'asmaY_Year',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Year' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         id: 'studentName',
         accessorKey: 'studentName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'amsT_AdmNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Adm No.' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'asmcL_ClassName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'asmC_SectionName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Section' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'asondate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='As On Date' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'spccshW_Height',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Height' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'spccshW_Weight',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Weight' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'spccshW_BMI',
         header: ({ column }) => <DataTableColumnHeader column={column} title='BMI' />,
-        enableSorting: true,
+        enableSorting: true
     },
     {
         accessorKey: 'spccshW_BMIRemark',
@@ -86,7 +86,7 @@ export const bmiCalculationColumns: ColumnDef<IBMICalculation>[] = [
         cell: ({ row }) => {
             const { deactivate } = useBMICalculation();
             const { openEditForm } = useFormContext<IBMICalculation>();
-            
+
             return (
                 <ActionButtons
                     rowData={row.original}
@@ -102,6 +102,6 @@ export const bmiCalculationColumns: ColumnDef<IBMICalculation>[] = [
                     toggleConditionKey='spccmhW_ActiveFlag'
                 />
             );
-        },
-    },
+        }
+    }
 ];

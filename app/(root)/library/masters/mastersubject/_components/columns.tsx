@@ -25,7 +25,7 @@ export const MasterSubjectColumns: ColumnDef<IMasterSubjectList>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Parent Name' />,
         cell: ({ row }) => <div>{row.getValue('ismS_SubjectName')}</div>
     },
-   {
+    {
         accessorKey: 'lmS_SubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sub-Subject' />,
         cell: ({ row }) => <div>{row.getValue('lmS_SubjectName')}</div>

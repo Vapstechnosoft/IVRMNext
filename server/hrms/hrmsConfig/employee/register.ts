@@ -1,13 +1,12 @@
 'use server';
 
-import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
+import { extractListData, normalizeEmployeeList } from '@/app/(root)/hrms/employee/_components/employee-register-helper';
+import { type ApiResponse, api } from '@/lib/apiService';
 import { auth } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
-import { extractListData, normalizeEmployeeList } from '@/app/(root)/hrms/employee/_components/employee-register-helper';
 import type {
     IBankDropdown,
     IBloodGroupDropdown,
-
     ICasteCategoryDropdown,
     ICasteDropdown,
     IContactTypeDropdown,
@@ -16,7 +15,6 @@ import type {
     IDepartmentDropdown,
     IDesignationDropdown,
     IEmployeeDetailResponse,
-    IEmployeeList,
     IEmployeeSaveRequest,
     IEmployeeSaveResponse,
     IEmployeeTypeDropdown,
@@ -34,7 +32,6 @@ import type {
     IStateDropdown,
     ITeachingTypeDropdown
 } from '@/types/hrms/hrms-config/employee';
-import type { EmployeeRegisterOnloadResponse } from '@/types/hrms/employee-register';
 
 // ==================== Dropdown Endpoints ====================
 
@@ -472,7 +469,7 @@ export async function getEmployeeRegisterOnload(MI_Id: number, HRME_Id?: number)
  */
 export async function getEmployeeList(searchParams?: ApiSearchparams) {
     const session = await auth();
-    const MI_Id = session?.user?.mi_id || 30;
+    const MI_Id = session?.user?.mi_id;
 
     // Define columns to search against if not already specified
     const searchColumns =
@@ -512,11 +509,8 @@ export async function getEmployeeList(searchParams?: ApiSearchparams) {
         console.log(`✅ [API DEBUG] getEmployeeList final normalized array length: ${normalizedGridData.length}`);
 
         // Determine total count
-        const total = response?.total ||
-            (response?.data && response.data.total) ||
-            response?.totalItems ||
-            normalizedGridData.length;
-
+        // biome-ignore lint/complexity/useOptionalChain: <explanation>
+        const total = response?.total || (response?.data && response.data.total) || response?.totalItems || normalizedGridData.length;
 
         return {
             success: response?.success !== false,
@@ -526,7 +520,6 @@ export async function getEmployeeList(searchParams?: ApiSearchparams) {
             page: response?.page || 1,
             page_size: response?.page_size || 10
         };
-
     } catch (error: any) {
         console.error('❌ [API ERROR] getEmployeeList:', error.message);
         return {
@@ -745,8 +738,6 @@ export async function saveEmployeeArrears(data: any) {
         return { success: false, message: error?.message || 'Failed to save arrear details' };
     }
 }
-
-
 
 /**
  * Save Employee Bank Details

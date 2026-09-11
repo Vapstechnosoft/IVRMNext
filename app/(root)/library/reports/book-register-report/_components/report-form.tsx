@@ -45,14 +45,14 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-5xl space-y-6 p-8 bg-white rounded-lg shadow-sm border border-t-4 border-t-orange-400'>
-            
-            <div className='flex justify-center mb-6'>
+        <form
+            onSubmit={handleSubmit(onSubmit)}
+            className='mx-auto max-w-5xl space-y-6 rounded-lg border border-t-4 border-t-orange-400 bg-white p-8 shadow-sm'>
+            <div className='mb-6 flex justify-center'>
                 <div className='w-full max-w-2xl space-y-6'>
-                    
                     {/* Book Type Radio */}
                     <div className='w-full'>
-                        <Label className='font-semibold text-[#4251b1] block mb-4'>BOOK TYPE :-</Label>
+                        <Label className='mb-4 block font-semibold text-[#4251b1]'>BOOK TYPE :-</Label>
                         <Controller
                             control={control}
                             name='Type'
@@ -60,29 +60,35 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                 <RadioGroup
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    className='flex flex-row items-center justify-center gap-12 mt-2'>
+                                    className='mt-2 flex flex-row items-center justify-center gap-12'>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='all' id='r-all' />
-                                        <Label htmlFor='r-all' className='cursor-pointer font-normal'>ALL</Label>
+                                        <Label htmlFor='r-all' className='cursor-pointer font-normal'>
+                                            ALL
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='Issue' id='r-issue' />
-                                        <Label htmlFor='r-issue' className='cursor-pointer font-normal'>Issue</Label>
+                                        <Label htmlFor='r-issue' className='cursor-pointer font-normal'>
+                                            Issue
+                                        </Label>
                                     </div>
                                     <div className='flex items-center space-x-2'>
                                         <RadioGroupItem value='Reference' id='r-reference' />
-                                        <Label htmlFor='r-reference' className='cursor-pointer font-normal'>Reference</Label>
+                                        <Label htmlFor='r-reference' className='cursor-pointer font-normal'>
+                                            Reference
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                             )}
                         />
-                        {errors.Type && <p className='text-xs text-destructive mt-1 text-center'>{errors.Type.message}</p>}
+                        {errors.Type && <p className='mt-1 text-center text-destructive text-xs'>{errors.Type.message}</p>}
                     </div>
 
                     <hr className='border-muted-foreground/20' />
 
                     {/* Department */}
-                    <div className='flex items-center gap-4 mt-6'>
+                    <div className='mt-6 flex items-center gap-4'>
                         <Label className='min-w-[150px] text-right font-medium text-sm'>
                             Department:<span className='text-red-500'>*</span>
                         </Label>
@@ -109,7 +115,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                     </Select>
                                 )}
                             />
-                            {errors.LMD_Id && <p className='text-xs text-destructive mt-1'>{errors.LMD_Id.message}</p>}
+                            {errors.LMD_Id && <p className='mt-1 text-destructive text-xs'>{errors.LMD_Id.message}</p>}
                         </div>
                     </div>
                 </div>
@@ -121,18 +127,16 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
             <div className='flex items-center justify-center gap-4'>
                 <Button
                     type='submit'
-                    className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#4251b1] hover:bg-[#35418e] text-white shadow-sm rounded-sm'
-                    disabled={isLoading}
-                >
+                    className='h-8 w-auto min-w-[120px] rounded-sm bg-[#4251b1] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#35418e]'
+                    disabled={isLoading}>
                     {isLoading ? <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <Search className='mr-1.5 h-3.5 w-3.5' />}
                     REPORT
                 </Button>
                 <Button
                     type='button'
-                    className='w-auto h-8 px-8 py-1 text-xs min-w-[120px] bg-[#ff5a30] hover:bg-[#e64d26] text-white shadow-sm rounded-sm'
+                    className='h-8 w-auto min-w-[120px] rounded-sm bg-[#ff5a30] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#e64d26]'
                     onClick={() => reset()}
-                    disabled={isLoading}
-                >
+                    disabled={isLoading}>
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>

@@ -1,10 +1,10 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useMasterClass } from '@/hooks/admission/preadmission/useMasters';
 import { masterClassSchema } from '@/schemas/admission/preadmission/masters';
 import { addOrUpdateMasterClass } from '@/server/admission/preadmission/masters/class';
@@ -92,7 +92,16 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
             const response = await addOrUpdateMasterClass(payload);
 
             if (response.success) {
-                toast.success('Record Updated Successfully');
+                const Swal = (await import('sweetalert2')).default;
+                Swal.fire({
+                    title: 'Success',
+                    text: 'Record Updated Successfully',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    allowOutsideClick: true
+                }).then(() => {
+                    window.location.reload();
+                });
                 reset();
                 refetchAll();
                 onSuccess?.();
@@ -144,7 +153,6 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                             id='asmcl_classname'
                             //placeholder='Enter Class Name (e.g. Class I)'
                             {...register('asmcl_classname')}
-
                             defaultValue={row.asmcL_ClassName}
                             error={errors.asmcl_classname?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -328,7 +336,7 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
                             <Label
                                 aria-label='Preadmission Class'
                                 htmlFor='asmcl_preadmflag'
-                                className='cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                className='cursor-pointer font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
                                 Preadmission Class
                             </Label>
                         </div>

@@ -3,34 +3,32 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { DatePicker } from '@/components/ui/date-picker';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { DatePicker } from '@/components/ui/date-picker';
-import { 
-    getInitialData, 
-    onYearChange, 
-    onCourseChange, 
-    onBranchChange, 
-    onSemesterChange, 
-    onSectionChange, 
-    searchFilter, 
-    onStudentChange, 
-    checkDuplicateTC, 
-    saveTC 
+import { cn } from '@/lib/utils';
+import {
+    getInitialData,
+    onBranchChange,
+    onCourseChange,
+    onSemesterChange,
+    onStudentChange,
+    onYearChange,
+    saveTC,
+    searchFilter
 } from '@/server/admission/sms/transactions/sms-college-student-tc';
-import { ISMSCollegeStudentTCDetails } from '@/types/admission/sms/transactions/sms-college-student-tc';
+import type { ISMSCollegeStudentTCDetails } from '@/types/admission/sms/transactions/sms-college-student-tc';
 import { format } from 'date-fns';
-import { Eraser, Save, Search, User } from 'lucide-react';
+import { Eraser, Save, User } from 'lucide-react';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { Check, ChevronsUpDown } from 'lucide-react';
 
 export default function SMSCollegeStudentTCPage() {
     // Initial Data
@@ -239,7 +237,7 @@ export default function SMSCollegeStudentTCPage() {
                 const sub = res.data.getstudentlanguagesubjects;
 
                 setStudentDetails(sd);
-                
+
                 // Populate Form
                 if (sd) {
                     setMedInstruction(sd.ACSTC_MediumOfINStruction || '');
@@ -257,7 +255,7 @@ export default function SMSCollegeStudentTCPage() {
                     setExtraActivities(sd.ACSTC_ExtraActivities || '');
                     setConduct(sd.ACSTC_Conduct || '');
                     setRemarks(sd.ACSTC_Remarks || '');
-                    
+
                     setPromotionDate(sd.ACSTC_PromotionDate ? new Date(sd.ACSTC_PromotionDate) : new Date());
                     setAppDate(sd.ACSTC_TCApplicationDate ? new Date(sd.ACSTC_TCApplicationDate) : new Date());
                     setTcDate(sd.ACSTC_TCDate ? new Date(sd.ACSTC_TCDate) : new Date());
@@ -275,8 +273,14 @@ export default function SMSCollegeStudentTCPage() {
                 }
 
                 if (sub) {
-                    const l = sub.filter(s => s.flag === 1).map(s => s.subjectname).join(', ');
-                    const e = sub.filter(s => s.flag !== 1).map(s => s.subjectname).join(', ');
+                    const l = sub
+                        .filter((s) => s.flag === 1)
+                        .map((s) => s.subjectname)
+                        .join(', ');
+                    const e = sub
+                        .filter((s) => s.flag !== 1)
+                        .map((s) => s.subjectname)
+                        .join(', ');
                     setLanguagesStudied(l);
                     setElectivesStudied(e);
                 }
@@ -310,8 +314,8 @@ export default function SMSCollegeStudentTCPage() {
             ACSTC_TCDate: tcDate.toDateString(),
             ACSTC_TCIssueDate: tcDate.toDateString(),
             ACSTC_LastAttendedDate: lastAttendedDate?.toDateString(),
-            ACSTC_WorkingDays: parseInt(schoolDays),
-            ACSTC_AttendedDays: parseInt(attendedDays),
+            ACSTC_WorkingDays: Number.parseInt(schoolDays),
+            ACSTC_AttendedDays: Number.parseInt(attendedDays),
             ACSTC_PromotionDate: promotionDate?.toDateString(),
             ACSTC_MediumOfINStruction: medInstruction,
             ACSTC_LanguageStudied: languagesStudied,
@@ -407,70 +411,90 @@ export default function SMSCollegeStudentTCPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Select value={selectedYear} onValueChange={handleYearChange}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Year' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {years.map(y => (
-                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>
+                                    {years.map((y) => (
+                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                            {y.asmaY_Year}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Course <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Course <span className='text-red-500'>*</span>
+                            </Label>
                             <Select value={selectedCourse} onValueChange={handleCourseChange} disabled={admSelection === 'All'}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Course' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {courses.map(c => (
-                                        <SelectItem key={c.amcO_Id} value={c.amcO_Id.toString()}>{c.amcO_CourseName}</SelectItem>
+                                    {courses.map((c) => (
+                                        <SelectItem key={c.amcO_Id} value={c.amcO_Id.toString()}>
+                                            {c.amcO_CourseName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Branch <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Branch <span className='text-red-500'>*</span>
+                            </Label>
                             <Select value={selectedBranch} onValueChange={handleBranchChange} disabled={admSelection === 'All'}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Branch' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {branches.map(b => (
-                                        <SelectItem key={b.amB_Id} value={b.amB_Id.toString()}>{b.amB_BranchName}</SelectItem>
+                                    {branches.map((b) => (
+                                        <SelectItem key={b.amB_Id} value={b.amB_Id.toString()}>
+                                            {b.amB_BranchName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Semester <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Semester <span className='text-red-500'>*</span>
+                            </Label>
                             <Select value={selectedSemester} onValueChange={handleSemesterChange} disabled={admSelection === 'All'}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Semester' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {semesters.map(s => (
-                                        <SelectItem key={s.amsE_Id} value={s.amsE_Id.toString()}>{s.amsE_SEMName}</SelectItem>
+                                    {semesters.map((s) => (
+                                        <SelectItem key={s.amsE_Id} value={s.amsE_Id.toString()}>
+                                            {s.amsE_SEMName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Section <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Section <span className='text-red-500'>*</span>
+                            </Label>
                             <Select value={selectedSection} onValueChange={handleSectionChange} disabled={admSelection === 'All'}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Section' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {sections.map(s => (
-                                        <SelectItem key={s.acmS_Id} value={s.acmS_Id.toString()}>{s.acmS_SectionName}</SelectItem>
+                                    {sections.map((s) => (
+                                        <SelectItem key={s.acmS_Id} value={s.acmS_Id.toString()}>
+                                            {s.acmS_SectionName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -502,7 +526,9 @@ export default function SMSCollegeStudentTCPage() {
 
                         <div className='flex items-center space-x-2 rounded-lg border p-4'>
                             <Checkbox id='tempTC' checked={tempTC} onCheckedChange={(val) => setTempTC(!!val)} />
-                            <Label htmlFor='tempTC' className='cursor-pointer font-medium'>Temporary TC</Label>
+                            <Label htmlFor='tempTC' className='cursor-pointer font-medium'>
+                                Temporary TC
+                            </Label>
                         </div>
 
                         <div className='space-y-2 rounded-lg border p-4'>
@@ -520,25 +546,26 @@ export default function SMSCollegeStudentTCPage() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Student Name <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Student Name <span className='text-red-500'>*</span>
+                            </Label>
                             <Popover open={studentSearchOpen} onOpenChange={setStudentSearchOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
-                                        variant="outline"
-                                        role="combobox"
+                                        variant='outline'
+                                        role='combobox'
                                         aria-expanded={studentSearchOpen}
-                                        className="w-full justify-between"
-                                    >
-                                        {selectedStudent ? selectedStudent.studentName : "Select or Search Student..."}
-                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        className='w-full justify-between'>
+                                        {selectedStudent ? selectedStudent.studentName : 'Select or Search Student...'}
+                                        <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-[400px] p-0">
+                                <PopoverContent className='w-[400px] p-0'>
                                     <Command shouldFilter={false}>
-                                        <CommandInput 
-                                            placeholder="Type 2+ chars to search..." 
-                                            value={studentSearchTerm} 
-                                            onValueChange={handleStudentSearch} 
+                                        <CommandInput
+                                            placeholder='Type 2+ chars to search...'
+                                            value={studentSearchTerm}
+                                            onValueChange={handleStudentSearch}
                                         />
                                         <CommandList>
                                             <CommandEmpty>No students found.</CommandEmpty>
@@ -547,12 +574,11 @@ export default function SMSCollegeStudentTCPage() {
                                                     <CommandItem
                                                         key={s.amcsT_Id}
                                                         value={s.amcsT_Id}
-                                                        onSelect={() => handleStudentSelect(s)}
-                                                    >
+                                                        onSelect={() => handleStudentSelect(s)}>
                                                         <Check
                                                             className={cn(
-                                                                "mr-2 h-4 w-4",
-                                                                selectedStudent?.amcsT_Id === s.amcsT_Id ? "opacity-100" : "opacity-0"
+                                                                'mr-2 h-4 w-4',
+                                                                selectedStudent?.amcsT_Id === s.amcsT_Id ? 'opacity-100' : 'opacity-0'
                                                             )}
                                                         />
                                                         {s.studentName}
@@ -572,7 +598,7 @@ export default function SMSCollegeStudentTCPage() {
             {studentDetails && (
                 <CollapsibleSection title='Student Profile' defaultOpen={true}>
                     <div className='flex flex-col gap-6 md:flex-row'>
-                        <div className='flex-1 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+                        <div className='grid flex-1 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
                             {[
                                 { label: 'Student Name', value: studentDetails.studentname },
                                 { label: 'Reg No', value: studentDetails.regno },
@@ -582,9 +608,9 @@ export default function SMSCollegeStudentTCPage() {
                                 { label: 'Semester', value: studentDetails.semestername },
                                 { label: 'Section', value: studentDetails.sectionname },
                                 { label: 'Father Name', value: studentDetails.fathername }
-                            ].map(item => (
+                            ].map((item) => (
                                 <div key={item.label} className='space-y-1'>
-                                    <p className='text-muted-foreground text-sm font-medium'>{item.label}</p>
+                                    <p className='font-medium text-muted-foreground text-sm'>{item.label}</p>
                                     <p className='font-bold'>{item.value || '-'}</p>
                                 </div>
                             ))}
@@ -594,7 +620,7 @@ export default function SMSCollegeStudentTCPage() {
                                 {studentDetails.studentphoto ? (
                                     <img src={studentDetails.studentphoto} alt='Profile' className='h-full w-full object-cover' />
                                 ) : (
-                                    <User className='text-muted-foreground h-16 w-16' />
+                                    <User className='h-16 w-16 text-muted-foreground' />
                                 )}
                             </div>
                         </div>
@@ -615,7 +641,10 @@ export default function SMSCollegeStudentTCPage() {
                                 <div className='grid grid-cols-2 gap-4'>
                                     <div className='space-y-2'>
                                         <Label>Admission date</Label>
-                                        <Input value={studentDetails.doa ? format(new Date(studentDetails.doa), 'dd-MM-yyyy') : '-'} disabled />
+                                        <Input
+                                            value={studentDetails.doa ? format(new Date(studentDetails.doa), 'dd-MM-yyyy') : '-'}
+                                            disabled
+                                        />
                                     </div>
                                     <div className='space-y-2'>
                                         <Label>Promotion Date</Label>
@@ -644,22 +673,34 @@ export default function SMSCollegeStudentTCPage() {
                             </CardHeader>
                             <CardContent className='space-y-4'>
                                 <div className='space-y-2'>
-                                    <Label>TC Number <span className='text-red-500'>*</span></Label>
+                                    <Label>
+                                        TC Number <span className='text-red-500'>*</span>
+                                    </Label>
                                     <Input value={tcNo} onChange={(e) => setTcNo(e.target.value)} placeholder='Enter TC No' />
                                 </div>
                                 <div className='grid grid-cols-2 gap-4'>
                                     <div className='space-y-2'>
-                                        <Label>Application Date <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Application Date <span className='text-red-500'>*</span>
+                                        </Label>
                                         <DatePicker date={appDate} setDate={setAppDate} />
                                     </div>
                                     <div className='space-y-2'>
-                                        <Label>TC Issue Date <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            TC Issue Date <span className='text-red-500'>*</span>
+                                        </Label>
                                         <DatePicker date={tcDate} setDate={setTcDate} />
                                     </div>
                                 </div>
                                 <div className='space-y-2'>
-                                    <Label>Leaving Reason <span className='text-red-500'>*</span></Label>
-                                    <Textarea value={leavingReason} onChange={(e) => setLeavingReason(e.target.value)} className='min-h-[80px]' />
+                                    <Label>
+                                        Leaving Reason <span className='text-red-500'>*</span>
+                                    </Label>
+                                    <Textarea
+                                        value={leavingReason}
+                                        onChange={(e) => setLeavingReason(e.target.value)}
+                                        className='min-h-[80px]'
+                                    />
                                 </div>
                             </CardContent>
                         </Card>
@@ -671,16 +712,22 @@ export default function SMSCollegeStudentTCPage() {
                             </CardHeader>
                             <CardContent className='space-y-4'>
                                 <div className='space-y-2'>
-                                    <Label>Last Date of Attendance <span className='text-red-500'>*</span></Label>
+                                    <Label>
+                                        Last Date of Attendance <span className='text-red-500'>*</span>
+                                    </Label>
                                     <DatePicker date={lastAttendedDate} setDate={setLastAttendedDate} />
                                 </div>
                                 <div className='grid grid-cols-2 gap-4'>
                                     <div className='space-y-2'>
-                                        <Label>No. of College Days <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            No. of College Days <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Input type='number' value={schoolDays} onChange={(e) => setSchoolDays(e.target.value)} />
                                     </div>
                                     <div className='space-y-2'>
-                                        <Label>No. of Attended Days <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            No. of Attended Days <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Input type='number' value={attendedDays} onChange={(e) => setAttendedDays(e.target.value)} />
                                     </div>
                                 </div>
@@ -714,10 +761,16 @@ export default function SMSCollegeStudentTCPage() {
                                 <div className='grid grid-cols-2 gap-4'>
                                     <div className='space-y-2'>
                                         <Label>Qualified For Promotion?</Label>
-                                        <Input value={promotionQualified} onChange={(e) => setPromotionQualified(e.target.value)} placeholder='Yes/No' />
+                                        <Input
+                                            value={promotionQualified}
+                                            onChange={(e) => setPromotionQualified(e.target.value)}
+                                            placeholder='Yes/No'
+                                        />
                                     </div>
                                     <div className='space-y-2'>
-                                        <Label>Qualified Status <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Qualified Status <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Select value={qualifiedStatus} onValueChange={setQualifiedStatus}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='--Select--' />
@@ -748,7 +801,7 @@ export default function SMSCollegeStudentTCPage() {
                                     </div>
                                     <div className='space-y-2'>
                                         <Label>Fee Due</Label>
-                                        <Input value={feeDue.toFixed(2)} disabled className='text-red-500 font-bold' />
+                                        <Input value={feeDue.toFixed(2)} disabled className='font-bold text-red-500' />
                                     </div>
                                     <div className='space-y-2'>
                                         <Label>Library Due</Label>
@@ -763,14 +816,16 @@ export default function SMSCollegeStudentTCPage() {
                         </Card>
 
                         {/* Remarks & Others */}
-                        <div className='md:col-span-2 space-y-6'>
+                        <div className='space-y-6 md:col-span-2'>
                             <Card>
                                 <CardHeader>
                                     <CardTitle className='text-lg'>Remarks & Conduct</CardTitle>
                                 </CardHeader>
                                 <CardContent className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                     <div className='space-y-2'>
-                                        <Label>Conduct / Character <span className='text-red-500'>*</span></Label>
+                                        <Label>
+                                            Conduct / Character <span className='text-red-500'>*</span>
+                                        </Label>
                                         <Input value={conduct} onChange={(e) => setConduct(e.target.value)} />
                                     </div>
                                     <div className='space-y-2'>

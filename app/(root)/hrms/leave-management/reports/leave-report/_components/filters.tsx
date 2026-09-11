@@ -1,5 +1,4 @@
 'use client';
-import { format, parse } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -8,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { MultiSelect } from '@/components/ui/multi-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { format, parse } from 'date-fns';
 import { Loader2, X } from 'lucide-react';
 export interface LeaveReportFilters {
     selectedTypes: number[];
@@ -266,8 +266,8 @@ export function LeaveReportFilters({
                         </div>
                     </>
                 )}
-                
-                <div className='grid grid-cols-1 items-start gap-4 md:grid-cols-3 mt-4'>
+
+                <div className='mt-4 grid grid-cols-1 items-start gap-4 md:grid-cols-3'>
                     {/* Employee Leave Balance Checkbox */}
                     <div className='flex items-center gap-2 md:col-span-3'>
                         <Checkbox

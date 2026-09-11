@@ -2,12 +2,10 @@
 
 import { api } from '@/lib/apiService';
 
-
 export async function getSchoolTpinGenerationInitialDetails() {
     const url = '/SchoolTpinGenreation/loaddata';
     return await api.get<any>('admission', url);
 }
-
 
 export async function searchSchoolTpinGeneration(data: {
     ASMAY_Id: number;

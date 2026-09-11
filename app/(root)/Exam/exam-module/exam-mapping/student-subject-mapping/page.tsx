@@ -55,6 +55,8 @@ interface StudentSubjectMapping {
 interface Student {
     amsT_Id: number;
     amsT_FirstName: string;
+    amsT_MiddleName?: string;
+    amsT_LastName?: string;
     amsT_AdmNo: string;
     amaY_RollNo: number;
     sub_list: StudentSubjectMapping[];
@@ -336,6 +338,8 @@ function StudentSubjectMappingContent() {
                 return {
                     amsT_Id: student.amsT_Id || 0,
                     amsT_FirstName: fullName,
+                    amsT_MiddleName: student.amsT_MiddleName || student.AMST_MiddleName || student.amst_middlename || '',
+                    amsT_LastName: student.amsT_LastName || student.AMST_LastName || student.amst_lastname || '',
                     amsT_AdmNo: student.amsT_AdmNo || '',
                     amaY_RollNo: student.amaY_RollNo || 0,
                     sub_list: (student.sub_list || []).map((sub: any) => ({

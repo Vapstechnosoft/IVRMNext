@@ -2,7 +2,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { numberToWords } from '@/lib/utils';
-import { IFeeIncomeTaxReportResult } from '@/types/fees/reports/FeeIncomeTax_Report';
+import type { IFeeIncomeTaxReportResult } from '@/types/fees/reports/FeeIncomeTax_Report';
 import React from 'react';
 
 interface FeeIncomeTaxPrintProps {
@@ -22,42 +22,40 @@ export const FeeIncomeTaxPrint = React.forwardRef<HTMLDivElement, FeeIncomeTaxPr
     });
 
     return (
-        <div ref={ref} className='p-8 text-black bg-white printable-content'>
+        <div ref={ref} className='printable-content bg-white p-8 text-black'>
             <div className='space-y-8'>
                 {/* Header Section with Logo */}
-                <div className='text-center space-y-4 pb-6 border-b-2 border-gray-100'>
-                    {logoUrl && (
-                        <img src={logoUrl} alt="Institution Logo" className="mx-auto max-h-24 object-contain mb-4" />
-                    )}
-                    <h1 className='text-3xl font-black uppercase tracking-wider text-gray-900'>FEE RECEIPT</h1>
-                    <div className='w-24 h-1 bg-blue-600 mx-auto rounded-full'></div>
+                <div className='space-y-4 border-gray-100 border-b-2 pb-6 text-center'>
+                    {logoUrl && <img src={logoUrl} alt='Institution Logo' className='mx-auto mb-4 max-h-24 object-contain' />}
+                    <h1 className='font-black text-3xl text-gray-900 uppercase tracking-wider'>FEE RECEIPT</h1>
+                    <div className='mx-auto h-1 w-24 rounded-full bg-blue-600'></div>
                 </div>
 
                 {/* Top Info Bar */}
-                <div className='flex justify-between items-end border-b border-gray-200 pb-4'>
+                <div className='flex items-end justify-between border-gray-200 border-b pb-4'>
                     <div className='space-y-1'>
-                        <p className='text-sm text-gray-600 font-medium uppercase tracking-tight'>Admission Number</p>
-                        <p className='text-lg font-bold border-b-2 border-blue-100 px-1 inline-block'>{firstItem.amsT_AdmNo}</p>
+                        <p className='font-medium text-gray-600 text-sm uppercase tracking-tight'>Admission Number</p>
+                        <p className='inline-block border-blue-100 border-b-2 px-1 font-bold text-lg'>{firstItem.amsT_AdmNo}</p>
                     </div>
-                    <div className='text-right space-y-1'>
-                        <p className='text-sm text-gray-600 font-medium uppercase tracking-tight'>Date</p>
-                        <p className='text-lg font-bold border-b-2 border-blue-100 px-1 inline-block'>{currentDate}</p>
+                    <div className='space-y-1 text-right'>
+                        <p className='font-medium text-gray-600 text-sm uppercase tracking-tight'>Date</p>
+                        <p className='inline-block border-blue-100 border-b-2 px-1 font-bold text-lg'>{currentDate}</p>
                     </div>
                 </div>
 
                 {/* Purpose Notice */}
-                <div className='text-center py-2 bg-blue-50/50 rounded-lg border border-blue-100'>
-                    <p className='text-sm font-semibold text-blue-800 italic'>
+                <div className='rounded-lg border border-blue-100 bg-blue-50/50 py-2 text-center'>
+                    <p className='font-semibold text-blue-800 text-sm italic'>
                         "This Certificate is issued for Income Tax Purpose / Educational Concession only"
                     </p>
                 </div>
 
                 {/* Student Details Grid */}
                 <div className='grid grid-cols-2 gap-x-12 gap-y-6 pt-4'>
-                    <PrintDetailRow label="Name of Student" value={firstItem.studentName} />
-                    <PrintDetailRow label="Father / Mother Name" value={firstItem.amsT_FatherName || firstItem.amsT_MotherName} />
-                    <PrintDetailRow label="Class & Section" value={`${firstItem.className} - ${firstItem.sectionName}`} />
-                    <PrintDetailRow label="Academic Year" value={firstItem.academicYear} />
+                    <PrintDetailRow label='Name of Student' value={firstItem.studentName} />
+                    <PrintDetailRow label='Father / Mother Name' value={firstItem.amsT_FatherName || firstItem.amsT_MotherName} />
+                    <PrintDetailRow label='Class & Section' value={`${firstItem.className} - ${firstItem.sectionName}`} />
+                    <PrintDetailRow label='Academic Year' value={firstItem.academicYear} />
                 </div>
 
                 {/* Fee Breakdown Table */}
@@ -65,29 +63,33 @@ export const FeeIncomeTaxPrint = React.forwardRef<HTMLDivElement, FeeIncomeTaxPr
                     <Table className='border-2 border-gray-900'>
                         <TableHeader>
                             <TableRow className='bg-gray-900 hover:bg-gray-900'>
-                                <TableHead className='text-white font-bold h-12 px-6 border-r border-gray-700'>Sl No.</TableHead>
-                                <TableHead className='text-white font-bold h-12 px-6 border-r border-gray-700'>Description of Fee</TableHead>
-                                <TableHead className='text-white font-bold h-12 px-6 text-right'>Amount (₹)</TableHead>
+                                <TableHead className='h-12 border-gray-700 border-r px-6 font-bold text-white'>Sl No.</TableHead>
+                                <TableHead className='h-12 border-gray-700 border-r px-6 font-bold text-white'>
+                                    Description of Fee
+                                </TableHead>
+                                <TableHead className='h-12 px-6 text-right font-bold text-white'>Amount (₹)</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {data.map((item, index) => (
-                                <TableRow key={index} className='border-b border-gray-900 hover:bg-transparent'>
-                                    <TableCell className='font-medium text-center border-r border-gray-900 py-4'>{index + 1}</TableCell>
-                                    <TableCell className='font-bold border-r border-gray-900 py-4 px-6 uppercase tracking-tight'>
+                                <TableRow key={index} className='border-gray-900 border-b hover:bg-transparent'>
+                                    <TableCell className='border-gray-900 border-r py-4 text-center font-medium'>{index + 1}</TableCell>
+                                    <TableCell className='border-gray-900 border-r px-6 py-4 font-bold uppercase tracking-tight'>
                                         {item.fmH_HeadName || `Fee Paid for ${item.academicYear}`}
                                     </TableCell>
-                                    <TableCell className='text-right font-black py-4 px-6 text-lg'>
+                                    <TableCell className='px-6 py-4 text-right font-black text-lg'>
                                         {item.totalPaidAmount?.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                                        <p className='text-[10px] font-normal text-gray-500 lowercase mt-1 tracking-wider'>
+                                        <p className='mt-1 font-normal text-[10px] text-gray-500 lowercase tracking-wider'>
                                             ({numberToWords(item.totalPaidAmount)} RUPEES ONLY)
                                         </p>
                                     </TableCell>
                                 </TableRow>
                             ))}
-                            <TableRow className='bg-gray-50 font-black hover:bg-gray-50 border-t-2 border-gray-900'>
-                                <TableCell colSpan={2} className='text-right py-6 px-6 text-xl tracking-widest uppercase'>Total Amount Paid</TableCell>
-                                <TableCell className='text-right py-6 px-6 text-2xl text-blue-700 border-l border-gray-900'>
+                            <TableRow className='border-gray-900 border-t-2 bg-gray-50 font-black hover:bg-gray-50'>
+                                <TableCell colSpan={2} className='px-6 py-6 text-right text-xl uppercase tracking-widest'>
+                                    Total Amount Paid
+                                </TableCell>
+                                <TableCell className='border-gray-900 border-l px-6 py-6 text-right text-2xl text-blue-700'>
                                     {totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                                 </TableCell>
                             </TableRow>
@@ -96,11 +98,11 @@ export const FeeIncomeTaxPrint = React.forwardRef<HTMLDivElement, FeeIncomeTaxPr
                 </div>
 
                 {/* Total Words Section */}
-                <div className='border-2 border-gray-900 p-6 bg-gray-50 rounded-md relative overflow-hidden'>
-                    <div className='absolute top-0 left-0 w-2 h-full bg-gray-900'></div>
+                <div className='relative overflow-hidden rounded-md border-2 border-gray-900 bg-gray-50 p-6'>
+                    <div className='absolute top-0 left-0 h-full w-2 bg-gray-900'></div>
                     <div className='space-y-1'>
-                        <p className='text-xs font-bold text-gray-500 uppercase tracking-widest'>Amount in Words</p>
-                        <p className='text-lg font-black uppercase tracking-tight text-gray-900'>
+                        <p className='font-bold text-gray-500 text-xs uppercase tracking-widest'>Amount in Words</p>
+                        <p className='font-black text-gray-900 text-lg uppercase tracking-tight'>
                             {numberToWords(totalAmount)} RUPEES ONLY
                         </p>
                     </div>
@@ -108,13 +110,13 @@ export const FeeIncomeTaxPrint = React.forwardRef<HTMLDivElement, FeeIncomeTaxPr
 
                 {/* Signature Block */}
                 <div className='flex justify-between pt-24 pb-8'>
-                    <div className='text-center min-w-[220px]'>
-                        <div className='w-full border-t-2 border-gray-900 mb-2'></div>
-                        <p className='text-xs font-black uppercase tracking-widest text-gray-700'>Accountant Signature</p>
+                    <div className='min-w-[220px] text-center'>
+                        <div className='mb-2 w-full border-gray-900 border-t-2'></div>
+                        <p className='font-black text-gray-700 text-xs uppercase tracking-widest'>Accountant Signature</p>
                     </div>
-                    <div className='text-center min-w-[220px]'>
-                        <div className='w-full border-t-2 border-gray-900 mb-2'></div>
-                        <p className='text-xs font-black uppercase tracking-widest text-gray-700'>Principal / Headmaster Signature</p>
+                    <div className='min-w-[220px] text-center'>
+                        <div className='mb-2 w-full border-gray-900 border-t-2'></div>
+                        <p className='font-black text-gray-700 text-xs uppercase tracking-widest'>Principal / Headmaster Signature</p>
                     </div>
                 </div>
             </div>
@@ -139,10 +141,8 @@ FeeIncomeTaxPrint.displayName = 'FeeIncomeTaxPrint';
 function PrintDetailRow({ label, value }: { label: string; value: string }) {
     return (
         <div className='flex flex-col space-y-1'>
-            <p className='text-[10px] font-black text-gray-500 uppercase tracking-widest'>{label}</p>
-            <p className='text-base font-bold border-b-2 border-gray-200 pb-1 text-gray-900'>
-                {value || '---'}
-            </p>
+            <p className='font-black text-[10px] text-gray-500 uppercase tracking-widest'>{label}</p>
+            <p className='border-gray-200 border-b-2 pb-1 font-bold text-base text-gray-900'>{value || '---'}</p>
         </div>
     );
 }

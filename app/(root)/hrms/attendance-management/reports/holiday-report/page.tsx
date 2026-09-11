@@ -6,7 +6,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { exportToExcel } from '@/lib/utils';
 import { format } from 'date-fns';
-import { FileSpreadsheet, Printer, X } from 'lucide-react';
+import { FileSpreadsheet, Printer } from 'lucide-react';
 import { use, useState } from 'react';
 import AddHolidayReportForm from './_components/add-from';
 import type { HolidayReportRow } from './_components/columns';
@@ -20,11 +20,7 @@ export default function HolidayReportPage(props: { searchParams: SearchParams })
 
     return (
         <FormProvider<HolidayReportRow>>
-            <HolidayReportPageContent
-                reportData={reportData}
-                onReportData={setReportData}
-                searchParams={searchParams}
-            />
+            <HolidayReportPageContent reportData={reportData} onReportData={setReportData} searchParams={searchParams} />
         </FormProvider>
     );
 }
@@ -60,11 +56,7 @@ function FormSections({
                         className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                         <X className='h-4 w-4 text-destructive' /> Close
                     </Button> */}
-                    <AddHolidayReportForm
-                        onSuccess={closeAddForm}
-                        onReportData={onReportData}
-                        onReset={handleReset}
-                    />
+                    <AddHolidayReportForm onSuccess={closeAddForm} onReportData={onReportData} onReset={handleReset} />
                 </div>
             </CollapsibleSection>
         </div>
@@ -94,7 +86,7 @@ function HolidayReportPageContent({
         const exportData = selectedRows.map((row, index) => ({
             'Sl.No': index + 1,
             'Holiday Name': row.fomhwD_HolidayWDName || '',
-            'Date': row.fomhwdD_Date ? format(new Date(row.fomhwdD_Date), 'dd-MM-yyyy') : ''
+            Date: row.fomhwdD_Date ? format(new Date(row.fomhwdD_Date), 'dd-MM-yyyy') : ''
         }));
 
         exportToExcel(exportData, 'Holiday_Report');

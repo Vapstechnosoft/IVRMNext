@@ -1,16 +1,16 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 
 // -------------------------- Master Job Server FUNCTIONS --------------------------
 
 export interface saveOrUpdateJobPayload {
-  hrmJ_Id: number;
-  hrmJ_JobCode: string;
-  hrmJ_JobTiTle: string;
-  hrmlO_Id: number;
-  hrC_Id: number;
-  hrmJ_Posted: string;
+    hrmJ_Id: number;
+    hrmJ_JobCode: string;
+    hrmJ_JobTiTle: string;
+    hrmlO_Id: number;
+    hrC_Id: number;
+    hrmJ_Posted: string;
 }
 
 export async function getMasterGridData(): Promise<ApiResponse<any>> {
@@ -20,7 +20,7 @@ export async function getMasterGridData(): Promise<ApiResponse<any>> {
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error fetching master job grid data:', error);
@@ -35,7 +35,7 @@ export async function saveOrUpdateJob(payload: saveOrUpdateJobPayload): Promise<
         return {
             success: response?.success ?? true,
             message: response?.message || 'Job saved successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error saving/updating job:', error);
@@ -50,14 +50,13 @@ export async function getMasterJobByIdData(jobId: number): Promise<ApiResponse<a
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error fetching master job by jobid data:', error);
         throw error;
     }
 }
-
 
 export async function toggleJobStatusData(jobId: number): Promise<ApiResponse<any>> {
     const url = `/api/MasterJob/toggle_job_status/${jobId}`;
@@ -66,7 +65,7 @@ export async function toggleJobStatusData(jobId: number): Promise<ApiResponse<an
         return {
             success: response?.success ?? true,
             message: response?.message || 'Job deleted successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error deleting job by jobid data:', error);
@@ -83,14 +82,13 @@ export async function getInstitutionByLogin(): Promise<ApiResponse<any>> {
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error fetching institution by login data:', error);
         throw error;
     }
 }
-
 
 export async function getCandidateDropDownDataByInstitution(): Promise<ApiResponse<any>> {
     const url = `/api/AddCandidateInterviewVMS/get_candidates_by_institutionId`;
@@ -99,7 +97,7 @@ export async function getCandidateDropDownDataByInstitution(): Promise<ApiRespon
         return {
             success: response?.success ?? true,
             message: response?.message || 'Data fetched successfully',
-            data: response?.data || response,
+            data: response?.data || response
         };
     } catch (error) {
         console.error('Error fetching candidate dropdown data:', error);

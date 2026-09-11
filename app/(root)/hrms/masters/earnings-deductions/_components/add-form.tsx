@@ -21,7 +21,7 @@ import type {
 } from '@/types/hrms/hrms-config/master';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
 import { Save } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -91,8 +91,8 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                     !k.toLowerCase().endsWith('id')
             );
 
-            const finalKey = idField ? item[idField] : keyVal ?? (keys[0] ? item[keys[0]] : '');
-            const finalValue = nameField ? item[nameField] : displayVal ?? finalKey;
+            const finalKey = idField ? item[idField] : (keyVal ?? (keys[0] ? item[keys[0]] : ''));
+            const finalValue = nameField ? item[nameField] : (displayVal ?? finalKey);
 
             return {
                 key: String(finalKey ?? '').trim(),
@@ -110,6 +110,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
 
     // Rounding Type dropdown
     const { data: roundingTypeDropdownResponse, isLoading: isLoadingRoundingTypes } = useRoundingTypeDropdown();
+    console.log("rounding types", roundingTypeDropdownResponse)
     const roundingTypeDropdown: IRoundingTypeDropdown[] = useMemo(() => {
         return mapToDropdownItems(roundingTypeDropdownResponse);
     }, [roundingTypeDropdownResponse]);
@@ -155,6 +156,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                 hrmeD_ReviseFlg: data.HRMED_ReviseFlg ?? true,
                 hrmeD_Order: data.HRMED_Order || 0
             };
+            console.log("Payload earcn deduction", payload);
             const response = await saveMasterEarningsDeductions(payload);
 
             if (response?.success) {
@@ -227,7 +229,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                                     const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
-                                                        <SafeSelectItem key={key} value={key}>
+                                                        <SafeSelectItem key={key} value={value}>
                                                             {value}
                                                         </SafeSelectItem>
                                                     );

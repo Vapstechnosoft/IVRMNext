@@ -1,34 +1,34 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
-import { Button } from '@/components/ui/button';
+import { exportToExcel } from '@/lib/export-to-file';
 import { getMasterClass } from '@/server/admission/preadmission/masters/class';
 import type { IMasterClassList } from '@/types/admission/preadmission/masters';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Download, Eye, Printer } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { exportToExcel } from '@/lib/export-to-file';
 
 const columns: ColumnDef<IMasterClassList>[] = [
     {
         accessorKey: 'asmcL_Id',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='w-full pl-6 font-bold text-black' />,
         cell: ({ row }) => <div className='w-full pl-6'>{row.index + 1}</div>,
-        enableSorting: false,
+        enableSorting: false
     },
     {
         accessorKey: 'asmcL_ClassName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class Name' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_ClassName')}</div>,
-        enableSorting: false,
+        enableSorting: false
     },
     {
         accessorKey: 'asmcL_Order',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Class Order' className='font-bold text-black' />,
         cell: ({ row }) => <div>{row.getValue('asmcL_Order')}</div>,
-        enableSorting: false,
+        enableSorting: false
     }
 ];
 
@@ -120,23 +120,28 @@ export default function ViewDetailsDialog() {
 
     return (
         <>
-            <Button type='button' onClick={handleOpenDialog} className='w-fit transition-all duration-200 hover:scale-90 bg-[#3f51b5] hover:bg-[#3f51b5]/90 text-white'>
+            <Button
+                type='button'
+                onClick={handleOpenDialog}
+                className='w-fit bg-[#3f51b5] text-white transition-all duration-200 hover:scale-90 hover:bg-[#3f51b5]/90'>
                 <Eye className='mr-2 h-4 w-4' />
                 View Details
             </Button>
             {isDialogOpen && (
-                <AdaptiveDialog title='Master Class List Report' isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} className='max-w-4xl'>
+                <AdaptiveDialog
+                    title='Master Class List Report'
+                    isOpen={isDialogOpen}
+                    onClose={() => setIsDialogOpen(false)}
+                    className='max-w-4xl'>
                     <AdaptiveBody className='flex flex-col gap-5'>
                         {masterCompany && masterCompany.length > 0 && (
-                            <div className='flex flex-col items-center justify-center gap-2 border-b pb-4 mt-2'>
-                                <div className='flex flex-col sm:flex-row items-center gap-4'>
+                            <div className='mt-2 flex flex-col items-center justify-center gap-2 border-b pb-4'>
+                                <div className='flex flex-col items-center gap-4 sm:flex-row'>
                                     {masterCompany[0].log && (
                                         <img src={masterCompany[0].log} alt='Company Logo' className='h-16 w-auto object-contain' />
                                     )}
                                 </div>
-                                <h2 className='text-lg font-semibold text-muted-foreground uppercase mt-2'>
-                                    Master Class List Report
-                                </h2>
+                                <h2 className='mt-2 font-semibold text-lg text-muted-foreground uppercase'>Master Class List Report</h2>
                             </div>
                         )}
                         <div className='my-2 max-h-[60vh] overflow-y-auto rounded-lg border p-3 shadow-sm'>
@@ -155,13 +160,23 @@ export default function ViewDetailsDialog() {
                             />
                         </div>
                     </AdaptiveBody>
-                    <AdaptiveFooter className='flex justify-between items-center w-full'>
+                    <AdaptiveFooter className='flex w-full items-center justify-between'>
                         <div className='flex items-center gap-2'>
-                            <Button variant='outline' onClick={handleExportExcel} type='button' disabled={isLoading || classList.length === 0} className='gap-2'>
+                            <Button
+                                variant='outline'
+                                onClick={handleExportExcel}
+                                type='button'
+                                disabled={isLoading || classList.length === 0}
+                                className='gap-2'>
                                 <Download className='h-4 w-4' />
                                 Export Excel
                             </Button>
-                            <Button variant='outline' onClick={handlePrint} type='button' disabled={isLoading || classList.length === 0} className='gap-2'>
+                            <Button
+                                variant='outline'
+                                onClick={handlePrint}
+                                type='button'
+                                disabled={isLoading || classList.length === 0}
+                                className='gap-2'>
                                 <Printer className='h-4 w-4' />
                                 Print
                             </Button>
@@ -183,7 +198,9 @@ export default function ViewDetailsDialog() {
                             )}
                         </div>
                     )}
-                    <h2 style={{ fontSize: '20px', fontWeight: 'bold', textAlign: 'center', marginBottom: '24px' }}>Master Class List Report</h2>
+                    <h2 style={{ fontSize: '20px', fontWeight: 'bold', textAlign: 'center', marginBottom: '24px' }}>
+                        Master Class List Report
+                    </h2>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
                             <tr>

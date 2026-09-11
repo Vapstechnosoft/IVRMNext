@@ -1,25 +1,29 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { FormError, Label } from '@/components/ui/extension/field';
+import { Input } from '@/components/ui/input';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Textarea } from '@/components/ui/textarea';
+import { type RoomTransferValues, roomTransferSchema } from '@/schemas/hostel/transactions/room-transfer.schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2, Save, XCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { roomTransferSchema, RoomTransferValues } from '@/schemas/hostel/transactions/room-transfer.schema';
-import { FormError, Label } from '@/components/ui/extension/field';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Loader2, Save, XCircle } from 'lucide-react';
 
-
-import { format } from 'date-fns';
-import { getFloorsAndCategories, getRoomsForTransfer, getRoomTransferLoadData, getTransferPersonDetail, saveRoomTransfer } from '@/server/hostel/hostel-management/transactions/room-transfer';
-import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { DateField } from '@/components/ui/dateField';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+    getFloorsAndCategories,
+    getRoomTransferLoadData,
+    getRoomsForTransfer,
+    getTransferPersonDetail,
+    saveRoomTransfer
+} from '@/server/hostel/hostel-management/transactions/room-transfer';
+import { format } from 'date-fns';
 
 export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () => void }) {
     const [loading, setLoading] = useState(false);
@@ -36,7 +40,7 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
             HLHSALTC_TransferDate: new Date(),
             HLHSTRSC_EntireRoomReqdFlg: 0,
             HLHSTRSC_NewRoomFee: 0
-        },
+        }
     });
 
     const selectedType = useWatch({ control: form.control, name: 'type' });
@@ -83,7 +87,7 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
         const data = await getRoomTransferLoadData(type);
         if (data?.studentdata) {
             // The API response key varies: studentdata, staffdata, guestdata?
-            // Looking at `getVacateLoadData` in previous turn, it returned `list`. 
+            // Looking at `getVacateLoadData` in previous turn, it returned `list`.
             // But `getRoomTransferLoadData` calls `CLGHostelVacant/loaddata`.
             // Let's assume the response structure or just use what `data` provides.
             // Based on `transfer-form.tsx` line 80 (commented out), it seemed ambiguous.
@@ -106,7 +110,10 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                 form.setValue('currentHostel', detail.HLMH_Name);
                 form.setValue('currentRoom', detail.HRMRM_RoomNo);
                 form.setValue('currentCategory', detail.HLMRCA_RoomCategory);
-                form.setValue('joiningDate', detail.HLHSALTC_AllotmentDate || detail.HLHSTALT_AllotmentDate || detail.hlhgstalT_AllotmentDate);
+                form.setValue(
+                    'joiningDate',
+                    detail.HLHSALTC_AllotmentDate || detail.HLHSTALT_AllotmentDate || detail.hlhgstalT_AllotmentDate
+                );
                 setHostels(data.hostel_list || []);
             }
         }
@@ -147,8 +154,8 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
             };
 
             const result = await saveRoomTransfer(payload);
-            if (result?.returnval === true || result?.returnval === "save") {
-                toast.success("Room transferred successfully!");
+            if (result?.returnval === true || result?.returnval === 'save') {
+                toast.success('Room transferred successfully!');
                 onSaveSuccess();
                 form.reset({
                     type: values.type,
@@ -160,43 +167,45 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                 setHostels([]);
                 loadInitialData(values.type);
             } else {
-                toast.error(result?.returnval || "Failed to transfer room");
+                toast.error(result?.returnval || 'Failed to transfer room');
             }
         } catch (error) {
-            console.error("Submit error", error);
-            toast.error("An error occurred during submission");
+            console.error('Submit error', error);
+            toast.error('An error occurred during submission');
         }
         setLoading(false);
     }
 
     return (
-        <Card className="shadow-lg border-primary/20">
-            <CardContent className="pt-6">
+        <Card className='border-primary/20 shadow-lg'>
+            <CardContent className='pt-6'>
                 <FormProvider {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
                         {/* Radio Group Header */}
-                        <div className="flex justify-center">
-                            <div className="flex items-center space-x-8 px-12 py-2 border rounded-full bg-white shadow-sm">
+                        <div className='flex justify-center'>
+                            <div className='flex items-center space-x-8 rounded-full border bg-white px-12 py-2 shadow-sm'>
                                 <Controller
                                     control={form.control}
-                                    name="type"
+                                    name='type'
                                     render={({ field }) => (
-                                        <RadioGroup
-                                            onValueChange={field.onChange}
-                                            defaultValue={field.value}
-                                            className="flex space-x-8"
-                                        >
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="stud" id="r1" />
-                                                <Label htmlFor="r1" className="cursor-pointer">Student</Label>
+                                        <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex space-x-8'>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='stud' id='r1' />
+                                                <Label htmlFor='r1' className='cursor-pointer'>
+                                                    Student
+                                                </Label>
                                             </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="staff" id="r2" />
-                                                <Label htmlFor="r2" className="cursor-pointer">Staff</Label>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='staff' id='r2' />
+                                                <Label htmlFor='r2' className='cursor-pointer'>
+                                                    Staff
+                                                </Label>
                                             </div>
-                                            <div className="flex items-center space-x-2">
-                                                <RadioGroupItem value="guest" id="r3" />
-                                                <Label htmlFor="r3" className="cursor-pointer">Guest</Label>
+                                            <div className='flex items-center space-x-2'>
+                                                <RadioGroupItem value='guest' id='r3' />
+                                                <Label htmlFor='r3' className='cursor-pointer'>
+                                                    Guest
+                                                </Label>
                                             </div>
                                         </RadioGroup>
                                     )}
@@ -205,11 +214,12 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                         </div>
 
                         {/* Person Selection */}
-                        <div className="flex justify-center items-center space-x-4 max-w-2xl mx-auto py-2">
-                            <Label className="w-40 text-right font-bold whitespace-nowrap">
-                                {selectedType === 'stud' ? 'Student' : selectedType === 'staff' ? 'Staff' : 'Guest'} Name:<span className="text-red-500">*</span>
+                        <div className='mx-auto flex max-w-2xl items-center justify-center space-x-4 py-2'>
+                            <Label className='w-40 whitespace-nowrap text-right font-bold'>
+                                {selectedType === 'stud' ? 'Student' : selectedType === 'staff' ? 'Staff' : 'Guest'} Name:
+                                <span className='text-red-500'>*</span>
                             </Label>
-                            <div className="w-72">
+                            <div className='w-72'>
                                 <Controller
                                     control={form.control}
                                     name={selectedType === 'stud' ? 'AMCST_Id' : selectedType === 'staff' ? 'HRME_Id' : 'HLHGSTALT_Id'}
@@ -217,13 +227,12 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                                         <div>
                                             <Select
                                                 value={field.value ? String(field.value) : undefined}
-                                                onValueChange={(val) => field.onChange(Number(val))}
-                                            >
+                                                onValueChange={(val) => field.onChange(Number(val))}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="--Select--" />
+                                                    <SelectValue placeholder='--Select--' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {personData.map(p => {
+                                                    {personData.map((p) => {
                                                         const id = p.amcsT_Id || p.hrmE_Id || p.hlhgstalT_Id;
                                                         const name = p.studentname || p.staffname || p.hlhgstalT_GuestName;
                                                         return (
@@ -241,47 +250,46 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 pt-4 max-w-6xl mx-auto">
+                        <div className='mx-auto grid max-w-6xl grid-cols-1 gap-x-12 gap-y-4 pt-4 md:grid-cols-2'>
                             {/* Left Column: Current Details & Actions */}
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-1 gap-2 border-b pb-4">
-                                    <div className="flex text-sm">
-                                        <span className="w-32 font-medium">Hostel Name</span>
-                                        <span className="px-2">:</span>
-                                        <span className="flex-1">{form.getValues('currentHostel') || ''}</span>
+                            <div className='space-y-4'>
+                                <div className='grid grid-cols-1 gap-2 border-b pb-4'>
+                                    <div className='flex text-sm'>
+                                        <span className='w-32 font-medium'>Hostel Name</span>
+                                        <span className='px-2'>:</span>
+                                        <span className='flex-1'>{form.getValues('currentHostel') || ''}</span>
                                     </div>
-                                    <div className="flex text-sm">
-                                        <span className="w-32 font-medium">Room Name</span>
-                                        <span className="px-2">:</span>
-                                        <span className="flex-1">{form.getValues('currentRoom') || ''}</span>
+                                    <div className='flex text-sm'>
+                                        <span className='w-32 font-medium'>Room Name</span>
+                                        <span className='px-2'>:</span>
+                                        <span className='flex-1'>{form.getValues('currentRoom') || ''}</span>
                                     </div>
-                                    <div className="flex text-sm">
-                                        <span className="w-32 font-medium">Category Name</span>
-                                        <span className="px-2">:</span>
-                                        <span className="flex-1">{form.getValues('currentCategory') || ''}</span>
+                                    <div className='flex text-sm'>
+                                        <span className='w-32 font-medium'>Category Name</span>
+                                        <span className='px-2'>:</span>
+                                        <span className='flex-1'>{form.getValues('currentCategory') || ''}</span>
                                     </div>
-                                    <div className="flex text-sm">
-                                        <span className="w-32 font-medium">Date Of Joining</span>
-                                        <span className="px-2">:</span>
-                                        <span className="flex-1">
-                                            {form.getValues('joiningDate') ? format(new Date(form.getValues('joiningDate')!), 'dd-MM-yyyy') : ''}
+                                    <div className='flex text-sm'>
+                                        <span className='w-32 font-medium'>Date Of Joining</span>
+                                        <span className='px-2'>:</span>
+                                        <span className='flex-1'>
+                                            {form.getValues('joiningDate')
+                                                ? format(new Date(form.getValues('joiningDate')!), 'dd-MM-yyyy')
+                                                : ''}
                                         </span>
                                     </div>
                                 </div>
 
                                 <Controller
                                     control={form.control}
-                                    name="HLHSALTC_TransferDate"
+                                    name='HLHSALTC_TransferDate'
                                     render={({ field, fieldState }) => (
-                                        <div className="flex items-center space-x-4">
-                                            <Label className="w-32 font-medium">Transfer Date:<span className="text-red-500">*</span></Label>
-                                            <div className="w-64">
-                                                <DateField
-                                                    field={field}
-                                                    fieldState={fieldState}
-                                                    label=""
-                                                    placeholder="dd-mm-yyyy"
-                                                />
+                                        <div className='flex items-center space-x-4'>
+                                            <Label className='w-32 font-medium'>
+                                                Transfer Date:<span className='text-red-500'>*</span>
+                                            </Label>
+                                            <div className='w-64'>
+                                                <DateField field={field} fieldState={fieldState} label='' placeholder='dd-mm-yyyy' />
                                             </div>
                                         </div>
                                     )}
@@ -289,16 +297,18 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
 
                                 <Controller
                                     control={form.control}
-                                    name="HLHSTRSC_NewRoomFee"
+                                    name='HLHSTRSC_NewRoomFee'
                                     render={({ field, fieldState }) => (
-                                        <div className="flex items-center space-x-4">
-                                            <Label className="w-32 font-medium">New Room Fee:<span className="text-red-500">*</span></Label>
-                                            <div className="w-64">
-                                                <Input 
-                                                    type="number" 
-                                                    {...field} 
+                                        <div className='flex items-center space-x-4'>
+                                            <Label className='w-32 font-medium'>
+                                                New Room Fee:<span className='text-red-500'>*</span>
+                                            </Label>
+                                            <div className='w-64'>
+                                                <Input
+                                                    type='number'
+                                                    {...field}
                                                     onChange={(e) => field.onChange(Number.parseFloat(e.target.value))}
-                                                    placeholder="New Room Fee"
+                                                    placeholder='New Room Fee'
                                                 />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
@@ -306,17 +316,17 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                                     )}
                                 />
 
-                                <div className="flex justify-center py-2 max-w-sm">
+                                <div className='flex max-w-sm justify-center py-2'>
                                     <Controller
                                         control={form.control}
-                                        name="HLHSTRSC_EntireRoomReqdFlg"
+                                        name='HLHSTRSC_EntireRoomReqdFlg'
                                         render={({ field }) => (
-                                            <div className="flex items-center space-x-2 border rounded-md px-12 py-2 bg-gray-50 border-gray-200">
+                                            <div className='flex items-center space-x-2 rounded-md border border-gray-200 bg-gray-50 px-12 py-2'>
                                                 <Checkbox
                                                     checked={field.value === 1}
                                                     onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
                                                 />
-                                                <Label className="cursor-pointer font-medium">Entire Room Required?</Label>
+                                                <Label className='cursor-pointer font-medium'>Entire Room Required?</Label>
                                             </div>
                                         )}
                                     />
@@ -324,16 +334,12 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
 
                                 <Controller
                                     control={form.control}
-                                    name="HLHSTRSC_AllotmentRemarks"
+                                    name='HLHSTRSC_AllotmentRemarks'
                                     render={({ field, fieldState }) => (
-                                        <div className="flex items-start space-x-4">
-                                            <Label className="w-32 font-medium pt-2">Allotment Remarks</Label>
-                                            <div className="flex-1">
-                                                <Textarea 
-                                                    placeholder="Allotment Remarks" 
-                                                    {...field} 
-                                                    className="min-h-[80px]"
-                                                />
+                                        <div className='flex items-start space-x-4'>
+                                            <Label className='w-32 pt-2 font-medium'>Allotment Remarks</Label>
+                                            <div className='flex-1'>
+                                                <Textarea placeholder='Allotment Remarks' {...field} className='min-h-[80px]' />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
                                         </div>
@@ -342,23 +348,24 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                             </div>
 
                             {/* Right Column: Transfer To Dropdowns */}
-                            <div className="space-y-4">
+                            <div className='space-y-4'>
                                 <Controller
                                     control={form.control}
-                                    name="ToHLMH_Id"
+                                    name='ToHLMH_Id'
                                     render={({ field, fieldState }) => (
-                                        <div className="flex items-center space-x-4">
-                                            <Label className="w-32 font-medium text-left">Hostel Name:<span className="text-red-500">*</span></Label>
-                                            <div className="w-64">
+                                        <div className='flex items-center space-x-4'>
+                                            <Label className='w-32 text-left font-medium'>
+                                                Hostel Name:<span className='text-red-500'>*</span>
+                                            </Label>
+                                            <div className='w-64'>
                                                 <Select
                                                     value={field.value ? String(field.value) : undefined}
-                                                    onValueChange={(val) => field.onChange(Number(val))}
-                                                >
+                                                    onValueChange={(val) => field.onChange(Number(val))}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select--" />
+                                                        <SelectValue placeholder='--Select--' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {hostels.map(h => (
+                                                        {hostels.map((h) => (
                                                             <SelectItem key={h.hlmH_Id} value={h.hlmH_Id.toString()}>
                                                                 {h.hlmH_Name}
                                                             </SelectItem>
@@ -373,20 +380,21 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
 
                                 <Controller
                                     control={form.control}
-                                    name="HLMRCA_Id"
+                                    name='HLMRCA_Id'
                                     render={({ field, fieldState }) => (
-                                        <div className="flex items-center space-x-4">
-                                            <Label className="w-32 font-medium text-left">Room Category:<span className="text-red-500">*</span></Label>
-                                            <div className="w-64">
+                                        <div className='flex items-center space-x-4'>
+                                            <Label className='w-32 text-left font-medium'>
+                                                Room Category:<span className='text-red-500'>*</span>
+                                            </Label>
+                                            <div className='w-64'>
                                                 <Select
                                                     value={field.value ? String(field.value) : undefined}
-                                                    onValueChange={(val) => field.onChange(Number(val))}
-                                                >
+                                                    onValueChange={(val) => field.onChange(Number(val))}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select--" />
+                                                        <SelectValue placeholder='--Select--' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {categories.map(c => (
+                                                        {categories.map((c) => (
                                                             <SelectItem key={c.hlmrcA_Id} value={c.hlmrcA_Id.toString()}>
                                                                 {c.hlmrcA_RoomCategory}
                                                             </SelectItem>
@@ -401,20 +409,21 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
 
                                 <Controller
                                     control={form.control}
-                                    name="hlmF_Id"
+                                    name='hlmF_Id'
                                     render={({ field, fieldState }) => (
-                                        <div className="flex items-center space-x-4">
-                                            <Label className="w-32 font-medium text-left">Floor Name:<span className="text-red-500">*</span></Label>
-                                            <div className="w-64">
+                                        <div className='flex items-center space-x-4'>
+                                            <Label className='w-32 text-left font-medium'>
+                                                Floor Name:<span className='text-red-500'>*</span>
+                                            </Label>
+                                            <div className='w-64'>
                                                 <Select
                                                     value={field.value ? String(field.value) : undefined}
-                                                    onValueChange={(val) => field.onChange(Number(val))}
-                                                >
+                                                    onValueChange={(val) => field.onChange(Number(val))}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select--" />
+                                                        <SelectValue placeholder='--Select--' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {floors.map(f => (
+                                                        {floors.map((f) => (
                                                             <SelectItem key={f.hlmF_Id} value={f.hlmF_Id.toString()}>
                                                                 {f.hrmF_FloorName}
                                                             </SelectItem>
@@ -429,20 +438,21 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
 
                                 <Controller
                                     control={form.control}
-                                    name="HRMRM_Id"
+                                    name='HRMRM_Id'
                                     render={({ field, fieldState }) => (
-                                        <div className="flex items-center space-x-4">
-                                            <Label className="w-32 font-medium text-left">Room Name:<span className="text-red-500">*</span></Label>
-                                            <div className="w-64">
+                                        <div className='flex items-center space-x-4'>
+                                            <Label className='w-32 text-left font-medium'>
+                                                Room Name:<span className='text-red-500'>*</span>
+                                            </Label>
+                                            <div className='w-64'>
                                                 <Select
                                                     value={field.value ? String(field.value) : undefined}
-                                                    onValueChange={(val) => field.onChange(Number(val))}
-                                                >
+                                                    onValueChange={(val) => field.onChange(Number(val))}>
                                                     <SelectTrigger>
-                                                        <SelectValue placeholder="--Select--" />
+                                                        <SelectValue placeholder='--Select--' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {rooms.map(r => (
+                                                        {rooms.map((r) => (
                                                             <SelectItem key={r.hrmrM_Id} value={r.hrmrM_Id.toString()}>
                                                                 {r.hrmrM_RoomNo}
                                                             </SelectItem>
@@ -457,16 +467,12 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
 
                                 <Controller
                                     control={form.control}
-                                    name="HLHSTRSC_VacateRemarks"
+                                    name='HLHSTRSC_VacateRemarks'
                                     render={({ field, fieldState }) => (
-                                        <div className="flex items-start space-x-4">
-                                            <Label className="w-32 font-medium text-left pt-2">Vacate Remarks</Label>
-                                            <div className="flex-1">
-                                                <Textarea 
-                                                    placeholder="Vacate Remarks" 
-                                                    {...field} 
-                                                    className="min-h-[80px]"
-                                                />
+                                        <div className='flex items-start space-x-4'>
+                                            <Label className='w-32 pt-2 text-left font-medium'>Vacate Remarks</Label>
+                                            <div className='flex-1'>
+                                                <Textarea placeholder='Vacate Remarks' {...field} className='min-h-[80px]' />
                                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                             </div>
                                         </div>
@@ -476,13 +482,20 @@ export default function RoomTransferForm({ onSaveSuccess }: { onSaveSuccess: () 
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center justify-center gap-4 pt-6 border-t">
-                            <Button type="submit" disabled={loading} className="w-32 bg-blue-700 hover:bg-blue-800 text-white border-none font-bold uppercase">
-                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                                {loading ? "..." : "TRANSFER"}
+                        <div className='flex items-center justify-center gap-4 border-t pt-6'>
+                            <Button
+                                type='submit'
+                                disabled={loading}
+                                className='w-32 border-none bg-blue-700 font-bold text-white uppercase hover:bg-blue-800'>
+                                {loading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Save className='mr-2 h-4 w-4' />}
+                                {loading ? '...' : 'TRANSFER'}
                             </Button>
-                            <Button type="button" variant="outline" onClick={() => form.reset()} className="w-32 bg-orange-500 hover:bg-orange-600 text-white border-none font-bold uppercase">
-                                <XCircle className="h-4 w-4 mr-2" />
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={() => form.reset()}
+                                className='w-32 border-none bg-orange-500 font-bold text-white uppercase hover:bg-orange-600'>
+                                <XCircle className='mr-2 h-4 w-4' />
                                 CANCEL
                             </Button>
                         </div>

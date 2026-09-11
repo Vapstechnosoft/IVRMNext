@@ -1,66 +1,66 @@
 'use client';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { BarChart3, FileSpreadsheet, Printer, Search, X } from 'lucide-react';
+import { format } from 'date-fns';
+import { Search, X } from 'lucide-react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { DatePicker } from '@/components/ui/date-picker';
-import { format } from 'date-fns';
 import { z } from 'zod';
-const interviewReportSchema = z.object({
-    fromDate: z.string({ required_error: 'From Date is required' }).min(1, 'From Date is required'),
-    toDate: z.string({ required_error: 'To Date is required' }).min(1, 'To Date is required'),
-    status: z.string({ required_error: 'Status is required' }).min(1, 'Status is required'),
-    interviewRound: z.string({ required_error: 'Interview Round is required' }).min(1, 'Interview Round is required'),
+const interviewReportSchema = z
+    .object({
+        fromDate: z.string({ required_error: 'From Date is required' }).min(1, 'From Date is required'),
+        toDate: z.string({ required_error: 'To Date is required' }).min(1, 'To Date is required'),
+        status: z.string({ required_error: 'Status is required' }).min(1, 'Status is required'),
+        interviewRound: z.string({ required_error: 'Interview Round is required' }).min(1, 'Interview Round is required')
+    })
+    .superRefine((data, ctx) => {
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
 
-}).superRefine((data, ctx) => {
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
-
-    if (data.fromDate) {
-        const from = new Date(data.fromDate);
-        if (from > today) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Future dates are not allowed',
-                path: ['fromDate'],
-            });
+        if (data.fromDate) {
+            const from = new Date(data.fromDate);
+            if (from > today) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Future dates are not allowed',
+                    path: ['fromDate']
+                });
+            }
         }
-    }
 
-    if (data.toDate) {
-        const to = new Date(data.toDate);
-        if (to > today) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Future dates are not allowed',
-                path: ['toDate'],
-            });
+        if (data.toDate) {
+            const to = new Date(data.toDate);
+            if (to > today) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Future dates are not allowed',
+                    path: ['toDate']
+                });
+            }
         }
-    }
 
-    if (data.fromDate && data.toDate) {
-        const from = new Date(data.fromDate);
-        const to = new Date(data.toDate);
+        if (data.fromDate && data.toDate) {
+            const from = new Date(data.fromDate);
+            const to = new Date(data.toDate);
 
-        if (from > to) {
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'From Date must be less than or equal to To Date',
-                path: ['fromDate'],
-            });
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'To Date must be greater than or equal to From Date',
-                path: ['toDate'],
-            });
+            if (from > to) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'From Date must be less than or equal to To Date',
+                    path: ['fromDate']
+                });
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'To Date must be greater than or equal to From Date',
+                    path: ['toDate']
+                });
+            }
         }
-    }
-});
+    });
 type FormFields = z.infer<typeof interviewReportSchema>;
 
 const INTERVIEW_ROUNDS = [
@@ -94,14 +94,13 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
             status: 'All',
             interviewRound: '',
             fromDate: '',
-            toDate: '',
+            toDate: ''
         }
     });
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             // Call the parent handler to generate report
             await onGenerateReport?.(data);
-            
         } catch (error: any) {
             toast.error(error.message || 'Failed to generate report');
         }
@@ -122,7 +121,7 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                             </Label>
                             <div className='relative'>
                                 <Controller
-                                    name="fromDate"
+                                    name='fromDate'
                                     control={control}
                                     render={({ field }) => (
                                         <DatePicker
@@ -145,7 +144,7 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                                         value={field.value}
                                         onValueChange={field.onChange}
                                         className='rounded-md border bg-gray-50 p-2'>
-                                        <div className='flex  gap-3'>
+                                        <div className='flex gap-3'>
                                             <div className='flex items-center space-x-2'>
                                                 <RadioGroupItem value='All' id='all' />
                                                 <Label htmlFor='all' className='cursor-pointer font-normal text-sm'>
@@ -185,7 +184,7 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                             </Label>
                             <div className='relative'>
                                 <Controller
-                                    name="toDate"
+                                    name='toDate'
                                     control={control}
                                     render={({ field }) => (
                                         <DatePicker
@@ -198,17 +197,17 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                                 {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label className="block text-sm font-medium">
-                                Interview Rounds:<span className="text-red-500">*</span>
+                        <div className='space-y-2'>
+                            <Label className='block font-medium text-sm'>
+                                Interview Rounds:<span className='text-red-500'>*</span>
                             </Label>
                             <Controller
-                                name="interviewRound"
+                                name='interviewRound'
                                 control={control}
                                 render={({ field }) => (
                                     <Select key={field.value} onValueChange={field.onChange} value={field.value || undefined}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Round" />
+                                            <SelectValue placeholder='Select Round' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {INTERVIEW_ROUNDS.map((round) => (
@@ -220,9 +219,7 @@ export default function InterviewReportForm({ onGenerateReport, className = '' }
                                     </Select>
                                 )}
                             />
-                            {errors.interviewRound && (
-                                <FormError>{errors.interviewRound.message}</FormError>
-                            )}
+                            {errors.interviewRound && <FormError>{errors.interviewRound.message}</FormError>}
                         </div>
                         {/* <div className='space-y-2'>
                             <Label className='block font-medium text-sm'>Grade:</Label>

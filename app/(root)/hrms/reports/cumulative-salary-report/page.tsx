@@ -18,7 +18,6 @@ import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { printCumulativeSalaryReport } from './_components/print-utils';
 
-
 // Static Month List (copied from Exam Module reference)
 const MONTH_LIST = [
     { id: 1, name: 'January' },
@@ -164,14 +163,14 @@ function CumulativeSalaryReportContent() {
 
         console.log('yearString', yearString);
         console.log('monthName', monthName);
-        console.log("data.designation", data.designation)
+        console.log('data.designation', data.designation);
         generateReport(
             {
                 hreS_Year: yearString,
                 hreS_Month: monthName,
                 hrmdeS_IdList: data.designation.map(Number),
                 hrmD_IdList: data.department.map(Number),
-                groupTypeIdList:data.groupType.map(Number),
+                groupTypeIdList: data.groupType.map(Number),
                 hrmdeS_Ids: 'string'
             },
             {
@@ -285,34 +284,41 @@ function CumulativeSalaryReportContent() {
         const earningGroup =
             earningColumns.length > 0
                 ? [
-                    {
-                        id: 'earnings_group',
-                        header: () => (
-                            <div className='rounded-t-md border bg-green-100 py-1 text-center font-bold text-green-700 dark:bg-green-900/20 dark:text-green-300'>
-                                Earnings
-                            </div>
-                        ),
-                        columns: earningColumns
-                    }
-                ]
+                      {
+                          id: 'earnings_group',
+                          header: () => (
+                              <div className='rounded-t-md border bg-green-100 py-1 text-center font-bold text-green-700 dark:bg-green-900/20 dark:text-green-300'>
+                                  Earnings
+                              </div>
+                          ),
+                          columns: earningColumns
+                      }
+                  ]
                 : [];
 
         const deductionGroup =
             deductionColumns.length > 0
                 ? [
-                    {
-                        id: 'deductions_group',
-                        header: () => (
-                            <div className='rounded-t-md border bg-red-100 py-1 text-center font-bold text-red-700 dark:bg-red-900/20 dark:text-red-300'>
-                                Deductions
-                            </div>
-                        ),
-                        columns: deductionColumns
-                    }
-                ]
+                      {
+                          id: 'deductions_group',
+                          header: () => (
+                              <div className='rounded-t-md border bg-red-100 py-1 text-center font-bold text-red-700 dark:bg-red-900/20 dark:text-red-300'>
+                                  Deductions
+                              </div>
+                          ),
+                          columns: deductionColumns
+                      }
+                  ]
                 : [];
 
-        return [...baseColumns, ...summaryColumns.slice(0, 1), ...earningGroup, ...summaryColumns.slice(1, 2), ...deductionGroup, ...summaryColumns.slice(2)];
+        return [
+            ...baseColumns,
+            ...summaryColumns.slice(0, 1),
+            ...earningGroup,
+            ...summaryColumns.slice(1, 2),
+            ...deductionGroup,
+            ...summaryColumns.slice(2)
+        ];
     }, [reportData]);
 
     const processedGridData = useMemo(() => {
@@ -338,7 +344,7 @@ function CumulativeSalaryReportContent() {
                                 name='year'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears} key = {field.value}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears} key={field.value}>
                                         <SelectTrigger>
                                             <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select Year'} />
                                         </SelectTrigger>
@@ -363,9 +369,7 @@ function CumulativeSalaryReportContent() {
                                 name='month'
                                 control={control}
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears}
-                                    key = {field.value}
-                                    >
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoadingYears} key={field.value}>
                                         <SelectTrigger>
                                             <SelectValue placeholder={isLoadingYears ? 'Loading...' : 'Select Month'} />
                                         </SelectTrigger>
@@ -464,11 +468,11 @@ function CumulativeSalaryReportContent() {
                             variant='outline'
                             onClick={handleCancel}
                             disabled={reportLoading}
-                            className='w-32 border-orange-500 text-orange-600 hover:bg-orange-50 transition-all rounded-xl'>
+                            className='w-32 rounded-xl border-orange-500 text-orange-600 transition-all hover:bg-orange-50'>
                             <X className='mr-2 h-4 w-4' />
                             CANCEL
                         </Button>
-                        <Button type='submit' disabled={reportLoading} className='w-32 transition-all rounded-xl'>
+                        <Button type='submit' disabled={reportLoading} className='w-32 rounded-xl transition-all'>
                             {reportLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                             Generate
                         </Button>

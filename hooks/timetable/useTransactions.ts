@@ -1,42 +1,75 @@
 'use client';
 
 import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ApiSearchparams } from '@/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 // time-table-generation
 import { getAcademicYear, getCategory, getTimeTableGenerationGridData } from '@/server/timetable/transactions/timetablegeneration';
 
 // deputation
-import { getAbsentStaffList, getDeputationMasters } from '@/server/timetable/transactions/deputation';
+import {
+    getAbsentStaff,
+    getAllDetailsViewRecords2,
+    getAcademicYearData as getDeputationAcademicYearData,
+    getDeputationDetails,
+    getFreeStaffDets,
+    getPeriodAlloted,
+    getViewAbsent,
+    getViewDeputation,
+    getViewRecordsPopup9,
+    saveDeputationDetails
+} from '@/server/timetable/transactions/deputation';
+import type {
+    IAbsentStaffPayload,
+    IFreeStaffPayload,
+    IPeriodAllotedPayload,
+    ISaveDeputationPayload,
+    IViewAbsentPayload,
+    IViewDeputationPayload,
+    IViewRecords2Payload,
+    IViewRecordsPopup9Payload
+} from '@/types/timetable/Transaction/deputation';
 
 // manual-Period-insersion
-import { getManualPeriodInsertionMasters, getSectionsByClass as getSectionsByClassManual, getManualPeriodInsertionReportData, saveManualPeriodInsertion } from '@/server/timetable/transactions/manualperiodinsertion';
+import {
+    getManualPeriodInsertionMasters,
+    getManualPeriodInsertionReportData,
+    getSectionsByClass as getSectionsByClassManual,
+    saveManualPeriodInsertion
+} from '@/server/timetable/transactions/manualperiodinsertion';
 import type { ManualPeriodInsertionMasters, Section as ManualSection } from '@/types/timetable/Transaction/manualperiodinsertion';
 
 // staff-replacement-existing-to-new
 import {
+    getSectionDropdown as getSectionDropdownExisting,
     getSectionsByClass as getSectionsByClassExisting,
     getStaffReplacementExistingToNewMasters,
     getStaffReplacementGridData,
     getStaffReplacementInitialDetails,
-    saveStaffReplacementExistingToNew,
-    getSectionDropdown as getSectionDropdownExisting
+    saveStaffReplacementExistingToNew
 } from '@/server/timetable/transactions/staffreplacementexistingtonew';
 
 // staffPeriodTransfer
 import {
     getSectionsByClass as getSectionsByClassTransfer,
     getStaffPeriodDetails,
-    getStaffPeriodTransferMasters
+    getStaffPeriodTransferMasters,
+    getStaffPeriodTransferReport,
+    saveStaffPeriodTransfer
 } from '@/server/timetable/transactions/staffperiodtransfer';
-import type { Section as TransferSection, StaffPeriodTransferMasters } from '@/types/timetable/Transaction/staffperiodtransfer';
+import type {
+    SaveStaffPeriodTransferPayload,
+    StaffPeriodTransferMasters,
+    StaffPeriodTransferReportData,
+    Section as TransferSection
+} from '@/types/timetable/Transaction/staffperiodtransfer';
 
 // staff-replacement-in-unallocated-period
 import {
+    TTStaffReplacementInUnallocatedPeriodReport,
     getStaffReplacementUnallocatedPeriodNewMasters,
-    saveStaffReplacementInUnallocatedPeriod,
-    TTStaffReplacementInUnallocatedPeriodReport
+    saveStaffReplacementInUnallocatedPeriod
 } from '@/server/timetable/transactions/staffreplacementinunallocatedperiod';
 
 // staff-replacement-In-their-timeTable
@@ -57,10 +90,7 @@ export const useGenerationMasters = () => {
         ...useQuery({
             queryKey: [TIMETABLE_QUERY_KEYS.TT_GENERATION_MASTERS],
             queryFn: async () => {
-                const [yearsResponse, categoriesResponse] = await Promise.all([
-                    getAcademicYear({}),
-                    getCategory({})
-                ]);
+                const [yearsResponse, categoriesResponse] = await Promise.all([getAcademicYear({}), getCategory({})]);
                 return {
                     years: yearsResponse.data ?? [],
                     categories: categoriesResponse.data ?? []
@@ -95,27 +125,125 @@ export const useTimeTableGenerationGridData = (searchParams: any) => {
 };
 
 // ================= deputation =================
-export const useDeputationMasters = () => {
+
+export const useTimeTableAcademicYear = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TT_ACADEMICYEAR, searchParams ?? {}],
+            queryFn: async () => getDeputationAcademicYearData(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TT_ACADEMICYEAR]
+            });
+        }
+    };
+};
+
+export const useDeputationDetails = () => {
     return useQuery({
         queryKey: [TIMETABLE_QUERY_KEYS.DEPUTATION_MASTERS],
         queryFn: async () => {
-            const res = await getDeputationMasters();
+            const res = await getDeputationDetails();
             return res.data || res;
         }
     });
 };
-export const useAbsentStaffList = (payload: { asmaY_Id: number; ttmD_Date: string; absent_Staff_Flag: boolean }) => {
+
+export const useDeputationMasters = useDeputationDetails;
+
+export const useAbsentStaffList = (payload: IAbsentStaffPayload, enabled = true) => {
     return useQuery({
         queryKey: [TIMETABLE_QUERY_KEYS.DEPUTATION_ABSENT_STAFF, payload],
         queryFn: async () => {
-            const res = await getAbsentStaffList({
-                asmaY_Id: payload.asmaY_Id,
-                TTSD_Date: payload.ttmD_Date,
-                absFlag: payload.absent_Staff_Flag
-            });
-            return res.data || [];
+            const res = await getAbsentStaff(payload);
+            return res.data || res;
         },
-        enabled: !!payload.asmaY_Id && !!payload.ttmD_Date
+        enabled: enabled && !!payload.TTSD_Date && !!payload.ASMAY_Id
+    });
+};
+
+export const usePeriodAlloted = (payload: IPeriodAllotedPayload, enabled = true) => {
+    return useQuery({
+        queryKey: ['DEPUTATION_PERIOD_ALLOTED', payload],
+        queryFn: async () => {
+            const res = await getPeriodAlloted(payload);
+            return res.data || res;
+        },
+        enabled: enabled && !!payload.HRME_Id && !!payload.TTSD_Date && !!payload.ASMAY_Id
+    });
+};
+
+export const useFreeStaffDetails = (payload: IFreeStaffPayload, enabled = true) => {
+    return useQuery({
+        queryKey: ['DEPUTATION_FREE_STAFF', payload],
+        queryFn: async () => {
+            const res = await getFreeStaffDets(payload);
+            return res.data || res;
+        },
+        enabled: enabled && !!payload.TTMP_Id && !!payload.TTSD_Date && !!payload.ASMAY_Id
+    });
+};
+
+export const useAllDetailsViewRecords2 = (payload: IViewRecords2Payload, enabled = true) => {
+    return useQuery({
+        queryKey: ['DEPUTATION_VIEW_RECORDS_2', payload],
+        queryFn: async () => {
+            const res = await getAllDetailsViewRecords2(payload);
+            return res.data || res;
+        },
+        enabled: enabled && !!payload.HRME_Id && !!payload.ASMAY_Id
+    });
+};
+
+export const useViewRecordsPopup9 = (payload: IViewRecordsPopup9Payload, enabled = true) => {
+    return useQuery({
+        queryKey: ['DEPUTATION_VIEW_RECORDS_9', payload],
+        queryFn: async () => {
+            const res = await getViewRecordsPopup9(payload);
+            return res.data || res;
+        },
+        enabled: enabled && !!payload.HRME_Id && !!payload.ASMAY_Id && !!payload.TTMD_Id
+    });
+};
+
+export const useViewDeputation = (payload: IViewDeputationPayload, enabled = true) => {
+    return useQuery({
+        queryKey: ['DEPUTATION_VIEW_DEPUTATION', payload],
+        queryFn: async () => {
+            const res = await getViewDeputation(payload);
+            return res.data || res;
+        },
+        enabled: enabled && !!payload.HRME_Id && !!payload.ASMAY_Id
+    });
+};
+
+export const useViewAbsent = (payload: IViewAbsentPayload, enabled = true) => {
+    return useQuery({
+        queryKey: ['DEPUTATION_VIEW_ABSENT', payload],
+        queryFn: async () => {
+            const res = await getViewAbsent(payload);
+            return res.data || res;
+        },
+        enabled: enabled && !!payload.HRME_Id && !!payload.ASMAY_Id
+    });
+};
+
+export const useSaveDeputationDetails = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (payload: ISaveDeputationPayload) => {
+            return await saveDeputationDetails(payload);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [TIMETABLE_QUERY_KEYS.DEPUTATION_MASTERS] });
+            queryClient.invalidateQueries({ queryKey: ['DEPUTATION_PERIOD_ALLOTED'] });
+            queryClient.invalidateQueries({ queryKey: ['DEPUTATION_FREE_STAFF'] });
+        }
     });
 };
 
@@ -181,7 +309,7 @@ export const useSectionDropdown = () => {
         queryFn: async () => {
             const res = await getSectionDropdownExisting();
             return res.data || [];
-        },
+        }
     });
 };
 export const useStaffReplacementInitialDetails = (id = 0) => {
@@ -241,7 +369,35 @@ export const useStaffTransferSectionsByClass = (asmcL_Id: number) => {
         enabled: !!asmcL_Id
     });
 };
-export const useStaffPeriodDetails = (payload: { asmaY_Id: number; hrmE_Id: number; asmcL_Id: number; asms_Id: number; ismS_Id: number; }) => {
+export const useStaffPeriodTransferReport = (payload: {
+    asmaY_Id: number | string;
+    hrmE_Id: number | string;
+}) => {
+    return useQuery<StaffPeriodTransferReportData | null>({
+        queryKey: [TIMETABLE_QUERY_KEYS.STAFF_PERIOD_DETAILS, payload.asmaY_Id, payload.hrmE_Id],
+        queryFn: async () => {
+            const res = await getStaffPeriodTransferReport(payload);
+            return (res?.data || res) as StaffPeriodTransferReportData;
+        },
+        enabled: !!payload.asmaY_Id && !!payload.hrmE_Id && payload.asmaY_Id !== '0' && payload.hrmE_Id !== '0'
+    });
+};
+export const useSaveStaffPeriodTransfer = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (payload: SaveStaffPeriodTransferPayload | any) => await saveStaffPeriodTransfer(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [TIMETABLE_QUERY_KEYS.STAFF_PERIOD_DETAILS] });
+        }
+    });
+};
+export const useStaffPeriodDetails = (payload: {
+    asmaY_Id: number;
+    hrmE_Id: number;
+    asmcL_Id: number;
+    asms_Id: number;
+    ismS_Id: number;
+}) => {
     return useQuery({
         queryKey: [TIMETABLE_QUERY_KEYS.STAFF_PERIOD_DETAILS, payload],
         queryFn: async () => {

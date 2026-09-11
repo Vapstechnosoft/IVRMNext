@@ -10,13 +10,13 @@ const ActionButtonsCell = ({ row, deleteFunc }: { row: any; deleteFunc: any }) =
     const { openEditForm, openToggleForm, openDetailsView } = useFormContext();
 
     return (
-        <div className="flex items-center gap-2">
+        <div className='flex items-center gap-2'>
             <ActionButtons
                 rowData={row.original}
                 buttons={{
                     edit: true,
                     toggle: true,
-                    delete: false,
+                    delete: false
                 }}
                 onEdit={(data: any) => {
                     openEditForm(data);
@@ -51,11 +51,6 @@ export const periodSubjectColumns: ColumnDef<TTPeriodSubjectGridData>[] = [
     {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => (
-            <ActionButtonsCell
-                row={row}
-                deleteFunc={deactivateFixingPeriodSubject}
-            />
-        )
+        cell: ({ row }) => <ActionButtonsCell row={row} deleteFunc={deactivateFixingPeriodSubject} />
     }
 ];

@@ -8,7 +8,6 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStateDropdown } from '@/hooks/hrms/useEmployeeRegister';
-import { format } from 'date-fns';
 import {
     useArrearsList,
     useBankDropdown,
@@ -79,6 +78,7 @@ import type {
     ITeachingTypeDropdown
 } from '@/types/hrms/hrms-config/employee';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { Check, ChevronLeft, ChevronRight, Plus, RefreshCw, Save, Trash2, Upload, X } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -273,15 +273,15 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     key: Number(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? 0),
                     value: String(
                         item.hrmD_DepartmentName ??
-                        item.HRMD_DepartmentName ??
-                        item.hrmD_Name ??
-                        item.HRMD_Name ??
-                        item.name ??
-                        item.departmentName ??
-                        item.HRMD_ProjectName ??
-                        item.value ??
-                        item.label ??
-                        ''
+                            item.HRMD_DepartmentName ??
+                            item.hrmD_Name ??
+                            item.HRMD_Name ??
+                            item.name ??
+                            item.departmentName ??
+                            item.HRMD_ProjectName ??
+                            item.value ??
+                            item.label ??
+                            ''
                     )
                 };
             })
@@ -321,14 +321,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     ),
                     value: String(
                         item.ivrmmR_Name ??
-                        item.IVRMMR_Name ??
-                        item.hrmR_Name ??
-                        item.name ??
-                        item.religionName ??
-                        item.ReligionName ??
-                        item.value ??
-                        item.label ??
-                        ''
+                            item.IVRMMR_Name ??
+                            item.hrmR_Name ??
+                            item.name ??
+                            item.religionName ??
+                            item.ReligionName ??
+                            item.value ??
+                            item.label ??
+                            ''
                     )
                 };
             })
@@ -371,16 +371,16 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     key: String(item.hrmspL_Id ?? item.HRMSPL_Id ?? item.hrmS_Id ?? item.HRMS_Id ?? item.id ?? item.key ?? ''),
                     value: String(
                         item.hrmspL_SpecialisationName ??
-                        item.HRMSPL_SpecialisationName ??
-                        item.hrmS_SpecialisationName ??
-                        item.HRMS_SpecialisationName ??
-                        item.masterSpecialisationName ??
-                        item.specialisationName ??
-                        item.specializationName ??
-                        item.name ??
-                        item.value ??
-                        item.label ??
-                        'Unknown'
+                            item.HRMSPL_SpecialisationName ??
+                            item.hrmS_SpecialisationName ??
+                            item.HRMS_SpecialisationName ??
+                            item.masterSpecialisationName ??
+                            item.specialisationName ??
+                            item.specializationName ??
+                            item.name ??
+                            item.value ??
+                            item.label ??
+                            'Unknown'
                     )
                 };
             })
@@ -435,7 +435,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
 
     // Memoize retirement years
     const retirementYrs = useMemo(() => {
-        const years = (payrollStandardResponse as any)?.data?.[0]?.hrC_RetirementYrs || (payrollStandardResponse as any)?.data?.hrC_RetirementYrs || 60;
+        const years =
+            (payrollStandardResponse as any)?.data?.[0]?.hrC_RetirementYrs ||
+            (payrollStandardResponse as any)?.data?.hrC_RetirementYrs ||
+            60;
         console.log('🔍 [UPDATE-FORM] Fetched Retirement Years:', years);
         return years;
     }, [payrollStandardResponse]);
@@ -453,12 +456,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     key: String(item.hrmC_Id ?? item.HRMC_Id ?? item.courseId ?? item.id ?? item.key ?? ''),
                     value: String(
                         item.hrmC_CourseName ??
-                        item.HRMC_CourseName ??
-                        item.courseName ??
-                        item.name ??
-                        item.value ??
-                        item.label ??
-                        'Unknown'
+                            item.HRMC_CourseName ??
+                            item.courseName ??
+                            item.name ??
+                            item.value ??
+                            item.label ??
+                            'Unknown'
                     )
                 };
             })
@@ -926,7 +929,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                         setCurrentStep(2);
                     } else {
                         console.error('❌ [DEBUG] Tab 1 - Failed to get employee ID from response');
-                        toast.error('Failed to get employee ID from response');
+                        toast.error(response?.message || 'Failed to get employee ID from response');
                     }
                 },
                 onError: (error: any) => {
@@ -1484,11 +1487,34 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const contactCountryId = contactCountry ? Number(contactCountry) : null;
     const permanentCountryId = permanentCountry ? Number(permanentCountry) : null;
 
+    // Reset state fields when country changes manually (not during initial load)
+    const prevContactCountryRef = useRef<string | null>(contactCountry);
+    useEffect(() => {
+        if (!setValue || !isFormInitialized) return;
+        if (prevContactCountryRef.current !== contactCountry) {
+            prevContactCountryRef.current = contactCountry;
+            setValue('contactState', '', { shouldValidate: true, shouldDirty: true });
+        }
+    }, [contactCountry, setValue, isFormInitialized]);
+
+    const prevPermanentCountryRef = useRef<string | null>(permanentCountry);
+    useEffect(() => {
+        if (!setValue || !isFormInitialized || sameAsCommunicationAddress) return;
+        if (prevPermanentCountryRef.current !== permanentCountry) {
+            prevPermanentCountryRef.current = permanentCountry;
+            setValue('permanentState', '', { shouldValidate: true, shouldDirty: true });
+        }
+    }, [permanentCountry, setValue, isFormInitialized, sameAsCommunicationAddress]);
+
+
     // Fetch states for contact country
     const { data: contactStates = [], isLoading: isLoadingContactStates } = useStateDropdown(contactCountryId);
+
+    console.log("contactStates", contactStates);
     // Fetch states for permanent country
     const { data: permanentStates = [], isLoading: isLoadingPermanentStates } = useStateDropdown(permanentCountryId);
 
+    console.log("permanentStates", permanentStates);
     // Use fetched states if country is selected, otherwise fall back to empty array
     const availableContactStates: IStateDropdown[] = contactCountryId ? (Array.isArray(contactStates) ? contactStates : []) : [];
 
@@ -1497,10 +1523,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const availablePermanentStates: IStateDropdown[] = sameAsCommunicationAddress
         ? availableContactStates
         : permanentCountryId
-            ? Array.isArray(permanentStates)
-                ? permanentStates
-                : []
-            : [];
+          ? Array.isArray(permanentStates)
+              ? permanentStates
+              : []
+          : [];
 
     // Copy communication address to permanent address when checkbox is checked
     const prevSameAsAddress = useRef(sameAsCommunicationAddress);
@@ -1667,7 +1693,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     // Effect to populate form when employeeData is loaded
     // Fetch specific employee details using the ID-based endpoint (likely has better data)
     const { data: employeeDetailsData, isLoading: isLoadingDetails } = useEmployeeById(selectedRow?.hrmE_Id || null);
-    console.log("employee details",employeeDetailsData)
+    console.log('employee details', employeeDetailsData);
 
     // Effect to populate form when employeeData is loaded
     useEffect(() => {
@@ -1890,8 +1916,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         }
     };
 
-    
-
     // Show loading for dropdowns or employee details
     if (
         isLoadingGrades ||
@@ -1958,8 +1982,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-400'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -2015,8 +2039,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-500'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -2179,8 +2203,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                        {...register('lastName')}
-                                                        error={errors.lastName?.message as string | undefined}
+                                                        // {...register('lastName')}
+                                                        // error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Employee Code'
@@ -3150,17 +3174,17 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-muted-foreground text-sm'>
                                                                     {field.value
                                                                         ? (() => {
-                                                                            try {
-                                                                                const date = new Date(field.value);
-                                                                                return date.toLocaleDateString('en-GB', {
-                                                                                    day: '2-digit',
-                                                                                    month: '2-digit',
-                                                                                    year: 'numeric'
-                                                                                });
-                                                                            } catch {
-                                                                                return field.value;
-                                                                            }
-                                                                        })()
+                                                                              try {
+                                                                                  const date = new Date(field.value);
+                                                                                  return date.toLocaleDateString('en-GB', {
+                                                                                      day: '2-digit',
+                                                                                      month: '2-digit',
+                                                                                      year: 'numeric'
+                                                                                  });
+                                                                              } catch {
+                                                                                  return field.value;
+                                                                              }
+                                                                          })()
                                                                         : 'Pick date of retirement'}
                                                                 </div>
                                                                 {fieldState?.error && (
@@ -3325,7 +3349,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         maxLength={10}
                                                                         {...register(`mobileDetails.${index}.mobileNo`)}
                                                                         className='min-w-[200px] flex-1'
-                                                                        error={(errors.mobileDetails as any)?.[index]?.mobileNo?.message as string}
+                                                                        error={
+                                                                            (errors.mobileDetails as any)?.[index]?.mobileNo
+                                                                                ?.message as string
+                                                                        }
                                                                     />
                                                                     <Button
                                                                         type='button'
@@ -3752,11 +3779,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             </div>
                                                             {(errors.bankDetails ||
                                                                 (watch('modeOfPayment') === 'Bank' && bankFields.length === 0)) && (
-                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                        {(errors.bankDetails as any)?.message ||
-                                                                            'Bank Details are required when Mode of Payment is Bank'}
-                                                                    </div>
-                                                                )}
+                                                                <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                    {(errors.bankDetails as any)?.message ||
+                                                                        'Bank Details are required when Mode of Payment is Bank'}
+                                                                </div>
+                                                            )}
                                                             <div className='rounded-lg border bg-card'>
                                                                 <div className='rounded-t-lg bg-gray-200 px-4 py-2 text-gray-900'>
                                                                     <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
@@ -3847,7 +3874,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         }
                                                                                     }}
                                                                                     {...register(`bankDetails.${index}.bankAccountNo`)}
-                                                                                    error={(errors.bankDetails as any)?.[index]?.bankAccountNo?.message as string}
+                                                                                    error={
+                                                                                        (errors.bankDetails as any)?.[index]?.bankAccountNo
+                                                                                            ?.message as string
+                                                                                    }
                                                                                     className='w-full'
                                                                                 />
                                                                             </div>
@@ -3864,7 +3894,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                             </SelectTrigger>
                                                                                             <SelectContent>
                                                                                                 {(options?.contactTypes || []).length ===
-                                                                                                    0 ? (
+                                                                                                0 ? (
                                                                                                     <SelectItem value='no-options' disabled>
                                                                                                         No options available
                                                                                                     </SelectItem>
@@ -3884,8 +3914,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                         .map((item: any) => {
                                                                                                             const val = getSafeValue(
                                                                                                                 item.key ||
-                                                                                                                item.value ||
-                                                                                                                item.id
+                                                                                                                    item.value ||
+                                                                                                                    item.id
                                                                                                             );
                                                                                                             if (!val) return null;
                                                                                                             return (
@@ -3901,8 +3931,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                                         item.name ||
                                                                                                                         String(
                                                                                                                             item.key ||
-                                                                                                                            item.value ||
-                                                                                                                            item.id
+                                                                                                                                item.value ||
+                                                                                                                                item.id
                                                                                                                         )}
                                                                                                                 </SelectItem>
                                                                                                             );
@@ -4059,7 +4089,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 <Label>
                                                                                     State <span className='text-red-500'>*</span>
                                                                                 </Label>
-                                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                                <Select key={isLoadingContactStates ? 'loading' : 'loaded'} onValueChange={field.onChange} value={field.value || ''}>
                                                                                     <SelectTrigger>
                                                                                         <SelectValue placeholder='Select State' />
                                                                                     </SelectTrigger>
@@ -4244,8 +4274,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 State <span className='text-red-500'>*</span>
                                                                             </Label>
                                                                             <Select
+                                                                                key={isLoadingPermanentStates ? 'loading' : 'loaded'}
                                                                                 onValueChange={field.onChange}
-                                                                                value={field.value}
+                                                                                value={field.value || ''}
                                                                                 disabled={sameAsCommunicationAddress}>
                                                                                 <SelectTrigger>
                                                                                     <SelectValue placeholder='Select State' />
@@ -4449,9 +4480,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                                 ) => {
                                                                                                                     return (
                                                                                                                         course.key !=
-                                                                                                                        null &&
+                                                                                                                            null &&
                                                                                                                         course.key !==
-                                                                                                                        undefined &&
+                                                                                                                            undefined &&
                                                                                                                         course.key !== 0
                                                                                                                     );
                                                                                                                 }
@@ -4622,15 +4653,23 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 label='Registration No. *'
                                                                                 id={`qualificationDetails.${index}.registrationNo`}
                                                                                 maxLength={50}
-                                                                                {...register(`qualificationDetails.${index}.registrationNo`)}
-                                                                                error={(errors.qualificationDetails as any)?.[index]?.registrationNo?.message}
+                                                                                {...register(
+                                                                                    `qualificationDetails.${index}.registrationNo`
+                                                                                )}
+                                                                                error={
+                                                                                    (errors.qualificationDetails as any)?.[index]
+                                                                                        ?.registrationNo?.message
+                                                                                }
                                                                             />
                                                                             <InputText
                                                                                 label='Result *'
                                                                                 id={`qualificationDetails.${index}.result`}
                                                                                 maxLength={20}
                                                                                 {...register(`qualificationDetails.${index}.result`)}
-                                                                                error={(errors.qualificationDetails as any)?.[index]?.result?.message}
+                                                                                error={
+                                                                                    (errors.qualificationDetails as any)?.[index]?.result
+                                                                                        ?.message
+                                                                                }
                                                                             />
                                                                         </div>
                                                                         {/* Row 5: CGPA Or Percentage dropdown */}
@@ -4742,8 +4781,16 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                         }
                                                                                     }
                                                                                 }}
-                                                                                {...register(`qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`)}
-                                                                                error={(errors.qualificationDetails as any)?.[index]?.[cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa']?.message}
+                                                                                {...register(
+                                                                                    `qualificationDetails.${index}.${cgpaOrPercentage === 'Percentage' ? 'percentage' : 'cgpa'}`
+                                                                                )}
+                                                                                error={
+                                                                                    (errors.qualificationDetails as any)?.[index]?.[
+                                                                                        cgpaOrPercentage === 'Percentage'
+                                                                                            ? 'percentage'
+                                                                                            : 'cgpa'
+                                                                                    ]?.message
+                                                                                }
                                                                             />
                                                                         </div>
                                                                         {/* Row 6: Area Of Specialization */}
@@ -4771,7 +4818,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                                 return (
                                                                                                                     spec.key != null &&
                                                                                                                     spec.key !==
-                                                                                                                    undefined &&
+                                                                                                                        undefined &&
                                                                                                                     spec.key !== 0
                                                                                                                 );
                                                                                                             }
@@ -4887,7 +4934,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                     `qualificationDetails.${index}.registrationYear`
                                                                                 )}
                                                                                 error={
-                                                                                    (errors.qualificationDetails as any)?.[index]?.registrationYear?.message
+                                                                                    (errors.qualificationDetails as any)?.[index]
+                                                                                        ?.registrationYear?.message
                                                                                 }
                                                                             />
                                                                             <InputText
@@ -5146,7 +5194,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     maxLength={500}
                                                                     minHeight={60}
                                                                     {...register(`experienceDetails.${index}.organisationAddress`)}
-                                                                    error={(errors.experienceDetails as any)?.[index]?.organisationAddress?.message}
+                                                                    error={
+                                                                        (errors.experienceDetails as any)?.[index]?.organisationAddress
+                                                                            ?.message
+                                                                    }
                                                                     placeholder='Enter organisation address...'
                                                                 />
                                                             </div>
@@ -5157,7 +5208,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     maxLength={500}
                                                                     minHeight={60}
                                                                     {...register(`experienceDetails.${index}.reasonForLeaving`)}
-                                                                    error={(errors.experienceDetails as any)?.[index]?.reasonForLeaving?.message}
+                                                                    error={
+                                                                        (errors.experienceDetails as any)?.[index]?.reasonForLeaving
+                                                                            ?.message
+                                                                    }
                                                                     placeholder='Enter reason for leaving...'
                                                                 />
                                                             </div>
@@ -5242,7 +5296,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     maxLength={400}
                                                                     {...register(`documentList.${index}.documentDescription`)}
                                                                     placeholder='Enter description'
-                                                                    error={(errors.documentList as any)?.[index]?.documentDescription?.message}
+                                                                    error={
+                                                                        (errors.documentList as any)?.[index]?.documentDescription?.message
+                                                                    }
                                                                 />
                                                                 <div className='space-y-2 md:col-span-2'>
                                                                     <Label>Upload Document</Label>
@@ -5294,7 +5350,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     </div>
                                                                     {(errors.documentList as any)?.[index]?.document?.message && (
                                                                         <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                            {String((errors.documentList as any)?.[index]?.document?.message)}
+                                                                            {String(
+                                                                                (errors.documentList as any)?.[index]?.document?.message
+                                                                            )}
                                                                         </div>
                                                                     )}
                                                                 </div>

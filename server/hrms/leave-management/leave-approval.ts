@@ -1,29 +1,28 @@
 'use server';
 import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { api, type ApiResponse, getSearchParamsUrl } from '@/lib/apiService';
-import type { ApiSearchparams } from '@/types';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
+    ApproveRejectLeaveStatusRequest,
     GetApprovalStatusRequest,
     GetApprovalStatusResponseData,
-    GetStatusAsyncRequest,
-    GetStatusAsyncResponseData,
-    RejectStatusAsyncRequest,
-    RejectStatusAsyncResponseData,
-    GetApprovedLeaveRequest,
-    GetApprovedLeaveResponseData,
-    ViewLeaveBalanceHistoryRequest,
-    ViewLeaveBalanceHistoryResponseData,
-    GetRequestStatusRequest,
-    GetRequestStatusResponseData,
     GetApproveStatusAsyncRequest,
     GetApproveStatusAsyncResponseData,
+    GetApprovedLeaveRequest,
+    GetApprovedLeaveResponseData,
     GetPeriodApprovalStatusRequest,
     GetPeriodApprovalStatusResponseData,
+    GetRequestStatusRequest,
+    GetRequestStatusResponseData,
+    GetStatusAsyncRequest,
+    GetStatusAsyncResponseData,
+    LeaveApprovalGridItem,
+    LeaveBalanceHistoryItem,
     PeriodLeaveStatusRequest,
     PeriodLeaveStatusResponseData,
-    LeaveApprovalGridItem,
-    ApproveRejectLeaveStatusRequest,
-    LeaveBalanceHistoryItem
+    RejectStatusAsyncRequest,
+    RejectStatusAsyncResponseData,
+    ViewLeaveBalanceHistoryRequest,
+    ViewLeaveBalanceHistoryResponseData
 } from '@/types/hrms/leave-management/leave-approval';
 
 /**
@@ -61,7 +60,6 @@ export async function getApprovalStatus(request: GetApprovalStatusRequest): Prom
         };
     }
 }
-
 
 /**
  * Approve leave application
@@ -309,7 +307,9 @@ export async function getApprovedLeave(request: GetApprovedLeaveRequest): Promis
  * View leave balance history
  * POST /api/LeaveApprovalFacade/ViewLeaveBalanceHistory
  */
-export async function viewLeaveBalanceHistory(request: ViewLeaveBalanceHistoryRequest): Promise<ApiResponse<ViewLeaveBalanceHistoryResponseData>> {
+export async function viewLeaveBalanceHistory(
+    request: ViewLeaveBalanceHistoryRequest
+): Promise<ApiResponse<ViewLeaveBalanceHistoryResponseData>> {
     const url = '/api/LeaveApproval/view_leave_balance_history';
     const requestBody: ViewLeaveBalanceHistoryRequest = {
         HRME_Id: request.HRME_Id || 0
@@ -366,7 +366,9 @@ export async function getRequestStatus(request: GetRequestStatusRequest): Promis
  * Get approve status async
  * POST /api/LeaveApprovalFacade/GetApproveStatusAsync
  */
-export async function getApproveStatusAsync(request: GetApproveStatusAsyncRequest): Promise<ApiResponse<GetApproveStatusAsyncResponseData>> {
+export async function getApproveStatusAsync(
+    request: GetApproveStatusAsyncRequest
+): Promise<ApiResponse<GetApproveStatusAsyncResponseData>> {
     const url = '/api/LeaveApproval/get_approve_status_async';
     const requestBody: GetApproveStatusAsyncRequest = {
         LoginId: request.LoginId || 0,
@@ -399,7 +401,9 @@ export async function getApproveStatusAsync(request: GetApproveStatusAsyncReques
  * Get period approval status
  * POST /api/LeaveApproval/get_period_approval_status
  */
-export async function getPeriodApprovalStatus(request: GetPeriodApprovalStatusRequest): Promise<ApiResponse<GetPeriodApprovalStatusResponseData>> {
+export async function getPeriodApprovalStatus(
+    request: GetPeriodApprovalStatusRequest
+): Promise<ApiResponse<GetPeriodApprovalStatusResponseData>> {
     const url = '/api/LeaveApproval/get_period_approval_status';
     const requestBody: GetPeriodApprovalStatusRequest = {
         MI_Id: request.MI_Id || HRMS_MI_ID,

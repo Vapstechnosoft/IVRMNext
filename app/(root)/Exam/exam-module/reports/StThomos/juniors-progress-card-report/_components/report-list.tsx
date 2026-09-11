@@ -23,7 +23,15 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     console.log('Juniors Progress Card Report Raw Data:', data);
 
     // Normalize institution details
-    const institution = data.institutionList?.[0] || data.masterinstitution || data.institution || data.getinstitution;
+    const institution =
+        (Array.isArray(data.institutionList) && data.institutionList[0]) ||
+        (Array.isArray(data.masterinstitution) && data.masterinstitution[0]) ||
+        (Array.isArray(data.institution) && data.institution[0]) ||
+        (Array.isArray(data.getinstitution) && data.getinstitution[0]) ||
+        data.institutionList ||
+        data.masterinstitution ||
+        data.institution ||
+        data.getinstitution;
 
     // Config Flags
     const showLogo = params?.printLogo;
@@ -40,8 +48,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
     // Case-insensitive/spelling robust group name matcher
     const matchGroupName = (g1: string, g2: string) => {
-        const s1 = String(g1 || '').replace(/distplay/g, 'display').toLowerCase().trim();
-        const s2 = String(g2 || '').replace(/distplay/g, 'display').toLowerCase().trim();
+        const s1 = String(g1 || '')
+            .replace(/distplay/g, 'display')
+            .toLowerCase()
+            .trim();
+        const s2 = String(g2 || '')
+            .replace(/distplay/g, 'display')
+            .toLowerCase()
+            .trim();
         return s1 === s2;
     };
 
@@ -172,7 +186,12 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             estmppsG_GroupObtGrade: subj.estmppsG_GroupObtGrade !== undefined ? subj.estmppsG_GroupObtGrade : subj.ESTMPPSG_GroupObtGrade,
             esG_Id: subj.esG_Id !== undefined ? subj.esG_Id : subj.ESG_Id,
             groupAVGMarks: subj.groupAVGMarks !== undefined ? subj.groupAVGMarks : subj.ESTMPPSG_GroupAVGMarks,
-            empS_AppToResultFlg: subj.empS_AppToResultFlg !== undefined ? subj.empS_AppToResultFlg : (subj.EMPS_AppToResultFlg !== undefined ? subj.EMPS_AppToResultFlg : true)
+            empS_AppToResultFlg:
+                subj.empS_AppToResultFlg !== undefined
+                    ? subj.empS_AppToResultFlg
+                    : subj.EMPS_AppToResultFlg !== undefined
+                      ? subj.EMPS_AppToResultFlg
+                      : true
         }));
 
         // Sort subjects by order
@@ -290,7 +309,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         const isScholastic = subj.empS_AppToResultFlg ?? true;
         const isAvgExam = examNameDisplay === 'Grade' || examNameDisplay === 'AVG';
 
-        let marksArray = report.studentmarks || [];
+        const marksArray = report.studentmarks || [];
         const mark = marksArray.find((m: any) => {
             const mSubId = m.ismS_Id;
             const mExamId = m.emE_Id;
@@ -329,19 +348,30 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
         if (studentTotal) {
             if (examNameDisplay === 'Grade' || examNameDisplay === 'AVG') {
-                const avg = studentTotal.estmppsG_GroupAvgMarks ?? studentTotal.ESTMPPSG_GroupAvgMarks ?? studentTotal.estmppsG_GroupAVGMarks ?? studentTotal.ESTMPPSG_GroupAVGMarks ?? studentTotal.totaver ?? studentTotal.TOTAVER ?? studentTotal.totAver;
+                const avg =
+                    studentTotal.estmppsG_GroupAvgMarks ??
+                    studentTotal.ESTMPPSG_GroupAvgMarks ??
+                    studentTotal.estmppsG_GroupAVGMarks ??
+                    studentTotal.ESTMPPSG_GroupAVGMarks ??
+                    studentTotal.totaver ??
+                    studentTotal.TOTAVER ??
+                    studentTotal.totAver;
                 if (avg !== undefined && avg !== null && avg !== '' && avg !== '-') {
                     return Number(avg).toFixed(0);
                 }
             } else {
-                const obt = studentTotal.estmppsG_GroupObtMarks ?? studentTotal.ESTMPPSG_GroupObtMarks ?? studentTotal.obtainedMarks ?? studentTotal.ObtainedMarks;
+                const obt =
+                    studentTotal.estmppsG_GroupObtMarks ??
+                    studentTotal.ESTMPPSG_GroupObtMarks ??
+                    studentTotal.obtainedMarks ??
+                    studentTotal.ObtainedMarks;
                 if (obt !== undefined && obt !== null && obt !== '' && obt !== '-') {
                     return Number(obt).toFixed(0);
                 }
             }
         }
 
-        let marksArray = report.student_marks || [];
+        const marksArray = report.student_marks || [];
         let mark = marksArray.find((m: any) => {
             const mExamId = m.emE_Id;
             const mGroupDispName = m.empsG_DisplayName ?? m.EMPSG_DisplayName;
@@ -386,7 +416,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             }
         }
 
-        let marksArray = report.student_marks || [];
+        const marksArray = report.student_marks || [];
         let mark = marksArray.find((m: any) => {
             const mExamId = m.emE_Id;
             const mGroupDispName = m.empsG_DisplayName ?? m.EMPSG_DisplayName;
@@ -425,11 +455,16 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         });
 
         if (studentTotal) {
-            const rVal = studentTotal.estmppS_SectionRank ?? studentTotal.ESTMPP_SectionRank ?? studentTotal.sectionrank ?? studentTotal.rank ?? studentTotal.Rank;
+            const rVal =
+                studentTotal.estmppS_SectionRank ??
+                studentTotal.ESTMPP_SectionRank ??
+                studentTotal.sectionrank ??
+                studentTotal.rank ??
+                studentTotal.Rank;
             if (rVal !== undefined && rVal !== null && rVal !== '' && rVal !== '-') return rVal;
         }
 
-        let marksArray = report.student_marks || [];
+        const marksArray = report.student_marks || [];
         let mark = marksArray.find((m: any) => {
             const mExamId = m.emE_Id;
             const mGroupDispName = m.empsG_DisplayName ?? m.EMPSG_DisplayName;
@@ -463,9 +498,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         const rawMarks = data.getstudentmarksdetails ?? data.studentmarks ?? [];
         const marksArray = rawMarks.filter((m: any) => Number(m.amsT_Id ?? m.AMST_Id) === Number(amsT_Id));
 
-        const subjMarks = marksArray.filter((m: any) =>
-            Number(m.ismS_Id ?? m.ISMS_Id) === Number(subj.ismS_Id)
-        );
+        const subjMarks = marksArray.filter((m: any) => Number(m.ismS_Id ?? m.ISMS_Id) === Number(subj.ismS_Id));
 
         const examMarks = subjMarks.filter((m: any) => {
             const mExamName = m.emE_ExamName ?? m.EME_ExamName ?? '';
@@ -489,9 +522,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         const rawMarks = data.getstudentmarksdetails ?? data.studentmarks ?? [];
         const marksArray = rawMarks.filter((m: any) => Number(m.amsT_Id ?? m.AMST_Id) === Number(amsT_Id));
 
-        const subjMarks = marksArray.filter((m: any) =>
-            Number(m.ismS_Id ?? m.ISMS_Id) === Number(subj.ismS_Id)
-        );
+        const subjMarks = marksArray.filter((m: any) => Number(m.ismS_Id ?? m.ISMS_Id) === Number(subj.ismS_Id));
 
         const examMarks = subjMarks.filter((m: any) => {
             const mExamName = m.emE_ExamName ?? m.EME_ExamName ?? '';
@@ -511,15 +542,35 @@ export const ReportList = ({ data, params }: ReportListProps) => {
     };
 
     const matchSkillName = (s1: string, s2: string) => {
-        return String(s1 || '').trim().toLowerCase() === String(s2 || '').trim().toLowerCase();
+        return (
+            String(s1 || '')
+                .trim()
+                .toLowerCase() ===
+            String(s2 || '')
+                .trim()
+                .toLowerCase()
+        );
     };
 
     const matchExamType = (examName: string, type: 'hy' | 'final') => {
         const name = String(examName || '').toUpperCase();
         if (type === 'hy') {
-            return name.includes('HALF') || name.includes('UNIT') || name.includes('FIRST') || name.includes('HY') || name.includes('TERM 1') || name.includes('TERM1');
+            return (
+                name.includes('HALF') ||
+                name.includes('UNIT') ||
+                name.includes('FIRST') ||
+                name.includes('HY') ||
+                name.includes('TERM 1') ||
+                name.includes('TERM1')
+            );
         } else {
-            return name.includes('FINAL') || name.includes('SECOND') || name.includes('ANNUAL') || name.includes('TERM 2') || name.includes('TERM2');
+            return (
+                name.includes('FINAL') ||
+                name.includes('SECOND') ||
+                name.includes('ANNUAL') ||
+                name.includes('TERM 2') ||
+                name.includes('TERM2')
+            );
         }
     };
 
@@ -536,12 +587,31 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         'ACCEPTS RESPONSIBILITY FOR LEARNING'
     ];
 
+    // Dynamic logo & watermark sources from institution
+    const logoSrc =
+        institution?.mI_Logo ||
+        institution?.MI_Logo ||
+        institution?.mI_Logo_Path ||
+        institution?.mI_LogoPath ||
+        'https://dcampusstrg.blob.core.windows.net/files/17/Trnsportdocuments/7115f492-3955-47e6-97d9-187413d0f3a5.jpg';
+
+    const headerLogo =
+        institution?.mI_Logo ||
+        institution?.MI_Logo ||
+        institution?.mI_Logo_Path ||
+        institution?.mI_LogoPath ||
+        'https://sthomashowrah.blob.core.windows.net/files/Logo Header stt.jpg';
+
+    const watermarkBg =
+        institution?.mI_BackgroundImage ||
+        institution?.MI_BackgroundImage ||
+        institution?.mI_Logo ||
+        institution?.MI_Logo ||
+        'https://sthomashowrah.blob.core.windows.net/files/4/stthomos.jpeg';
+
     // Watermark styling for the report card page
     const watermarkStyle = {
-        backgroundImage: "url('https://sthomashowrah.blob.core.windows.net/files/4/stthomos.jpeg')",
-        backgroundSize: '420px 417px',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
+        backgroundColor: 'transparent'
     };
 
     if (studentDetailsMapped.length === 0) {
@@ -579,9 +649,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                     const attendancePct = getAttendance(report.amsT_Id);
 
-                    const studentProcessTot = processtot.find(
-                        (t: any) => Number(t.AMST_Id ?? t.amsT_Id) === report.amsT_Id
-                    );
+                    const studentProcessTot = processtot.find((t: any) => Number(t.AMST_Id ?? t.amsT_Id) === report.amsT_Id);
 
                     const studentStThomosTotal = examWiseTotalDetails.find((t: any) => {
                         const tAmstId = t.amsT_Id ?? t.AMST_Id;
@@ -607,24 +675,37 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 <div className='mb-4 flex flex-row items-center justify-center px-4'>
                                     <div className='w-[15%] text-right'>
                                         <img
-                                            src='https://dcampusstrg.blob.core.windows.net/files/17/Trnsportdocuments/7115f492-3955-47e6-97d9-187413d0f3a5.jpg'
+                                            src={logoSrc}
                                             style={{ width: '100px', height: '100px' }}
                                             className='inline-block object-contain'
-                                            alt='Logo'
+                                            alt={institution?.mI_Name || 'School Logo'}
                                         />
                                     </div>
                                     <div className='flex w-[70%] flex-col items-center text-center'>
                                         <img
-                                            src='https://sthomashowrah.blob.core.windows.net/files/Logo Header stt.jpg'
+                                            src={headerLogo}
                                             className='mx-auto h-[70px] w-auto object-contain'
-                                            alt='St Thomos Header'
+                                            alt={institution?.mI_Name || 'Header Logo'}
                                         />
                                         <div className='mt-2 space-y-0.5 text-center font-semibold text-[13px] text-black leading-tight'>
-                                            <p>3, Church Road Howrah -711 101</p>
-                                            <p>(DIOCESE OF CALCUTA, CNI)</p>
+                                            <p className='font-bold uppercase'>{institution?.mI_Name || 'St. Thomas Church School'}</p>
                                             <p>
-                                                (Affiliated to the Council for the Indian School Certificate Examination,New Delhi WB
-                                                -079)
+                                                {institution?.mI_Address1
+                                                    ? [
+                                                          institution.mI_Address1,
+                                                          institution.mI_Address2,
+                                                          institution.mI_Address3,
+                                                          institution.mI_Pincode ? `Pin - ${institution.mI_Pincode}` : ''
+                                                      ]
+                                                          .filter(Boolean)
+                                                          .join(', ')
+                                                    : '3, Church Road Howrah -711 101'}
+                                            </p>
+                                            <p>{institution?.ivrmmcT_Name ? `(${institution.ivrmmcT_Name})` : '(DIOCESE OF CALCUTA, CNI)'}</p>
+                                            <p>
+                                                {institution?.mI_PhoneNo || institution?.mI_EmailId
+                                                    ? `Phone: ${institution.mI_PhoneNo || ''} | Email: ${institution.mI_EmailId || ''}`
+                                                    : '(Affiliated to the Council for the Indian School Certificate Examination,New Delhi WB -079)'}
                                             </p>
                                         </div>
                                     </div>
@@ -635,12 +716,26 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             )}
 
                             <div className='watermarked-container relative p-2' style={watermarkStyle}>
+                                {/* Semi-transparent Watermark Overlay */}
+                                {watermarkBg && (
+                                    <div
+                                        className='pointer-events-none absolute inset-0 z-0 flex items-center justify-center overflow-hidden'
+                                        aria-hidden='true'>
+                                        <img
+                                            src={watermarkBg}
+                                            alt=''
+                                            className='watermark-img h-[420px] w-[420px] max-h-[85%] max-w-[85%] object-contain select-none opacity-[0.10]'
+                                            style={{ opacity: 0.10 }}
+                                        />
+                                    </div>
+                                )}
+
                                 <div className='relative z-10'>
                                     {/* Exam Title */}
-                                    <table className='mb-2 w-full bg-transparent border-none'>
+                                    <table className='mb-2 w-full border-none bg-transparent'>
                                         <tbody>
                                             <tr>
-                                                <th className='w-full border-none text-center text-lg uppercase font-bold text-black'>
+                                                <th className='w-full border-none text-center font-bold text-black text-lg uppercase'>
                                                     <span>
                                                         {examName} REPORT CARD {params.academicYearName || params.Accdemic || ''}
                                                     </span>
@@ -661,7 +756,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     <div className='flex gap-2'>
                                                         <span className='font-bold'>CLASS :</span>
                                                         <span className='font-bold uppercase'>
-                                                            {(params.className || params.classs || '')} - {(params.sectionName || params.clasection || '')}
+                                                            {params.className || params.classs || ''} -{' '}
+                                                            {params.sectionName || params.clasection || ''}
                                                         </span>
                                                     </div>
                                                 </td>
@@ -672,7 +768,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 </td>
                                                 <td className='w-1/4 p-2 text-center align-middle'>
                                                     <b>
-                                                        ATTENDANCE: <span>{attendancePct !== null ? `${Number(attendancePct).toFixed(0)}%` : ''}</span>
+                                                        ATTENDANCE:{' '}
+                                                        <span>{attendancePct !== null ? `${Number(attendancePct).toFixed(0)}%` : ''}</span>
                                                     </b>
                                                 </td>
                                                 <td className='w-1/4 p-2 pr-4 text-right align-middle font-bold'>
@@ -680,9 +777,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 </td>
                                             </tr>
                                             <tr>
-                                                <th
-                                                    colSpan={4}
-                                                    className='pt-2 text-center font-bold text-[13px] uppercase'>
+                                                <th colSpan={4} className='pt-2 text-center font-bold text-[13px] uppercase'>
                                                     STATEMENT OF MARKS
                                                 </th>
                                             </tr>
@@ -702,18 +797,14 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         {grp.empG_DistplayName}
                                                     </th>
                                                 ))}
-                                                <th
-                                                    colSpan={groupDetailsMapped.length + 1}
-                                                    className='p-1 text-[13px] uppercase'>
+                                                <th colSpan={groupDetailsMapped.length + 1} className='p-1 text-[13px] uppercase'>
                                                     SUPER AVERAGE
                                                 </th>
                                             </tr>
                                             <tr>
                                                 <th className='p-1' />
                                                 {groupWiseExamListMapped.map((exa: any, i: number) => (
-                                                    <th
-                                                        key={i}
-                                                        className='w-[70px] p-1 text-center font-normal text-[13px]'>
+                                                    <th key={i} className='w-[70px] p-1 text-center font-normal text-[13px]'>
                                                         {exa.displayName !== 'Total' && exa.displayName !== 'Grade' && (
                                                             <span>{exa.maxMarks}</span>
                                                         )}
@@ -721,12 +812,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         {exa.displayName === 'Total' && <span>{exa.maxMarks}/50</span>}
                                                     </th>
                                                 ))}
-                                                <th className='w-[70px] p-1 text-center font-bold text-[13px]'>
-                                                    100/50
-                                                </th>
-                                                <th className='w-[70px] p-1 text-center font-bold text-[13px]'>
-                                                    GRADE
-                                                </th>
+                                                <th className='w-[70px] p-1 text-center font-bold text-[13px]'>100/50</th>
+                                                <th className='w-[70px] p-1 text-center font-bold text-[13px]'>GRADE</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -745,26 +832,26 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             {/* Scholastic Subjects Loop */}
                                             {scholasticSubjects.map((subj: any, i: number) => {
                                                 const subName = subj.ismS_SubjectName || '';
-                                                const isEnglishLangOrLit = subName.toUpperCase() === 'ENGLISH LANGUAGE' || subName.toUpperCase() === 'ENGLISH LITERATURE';
+                                                const isEnglishLangOrLit =
+                                                    subName.toUpperCase() === 'ENGLISH LANGUAGE' ||
+                                                    subName.toUpperCase() === 'ENGLISH LITERATURE';
 
                                                 return (
                                                     <tr key={i}>
-                                                        <td className='p-1 text-left text-[12px] break-words'>
+                                                        <td className='break-words p-1 text-left text-[12px]'>
                                                             {isEnglishLangOrLit ? (
-                                                                <span className='font-normal pl-8'>{subName}</span>
+                                                                <span className='pl-8 font-normal'>{subName}</span>
                                                             ) : (
-                                                                <span className='font-bold pl-4'>{subName}</span>
+                                                                <span className='pl-4 font-bold'>{subName}</span>
                                                             )}
                                                         </td>
                                                         {groupWiseExamListMapped.map((exa: any, j: number) => (
-                                                            <td
-                                                                key={j}
-                                                                className='w-[50px] p-1 text-center'>
+                                                            <td key={j} className='w-[50px] p-1 text-center'>
                                                                 {getMarkValue(report, subj, exa.examId, exa.groupName, exa.displayName)}
                                                             </td>
                                                         ))}
                                                         {/* Super Average Columns */}
-                                                        <td className='p-1 text-center text-[12px] font-bold'>
+                                                        <td className='p-1 text-center font-bold text-[12px]'>
                                                             {showSuperAverage && (subj.estmppsG_GroupObtMarks || '')}
                                                         </td>
                                                         <td className='p-1 text-center font-bold text-[12px]'>
@@ -776,9 +863,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                             {/* Total Row */}
                                             <tr className='font-bold'>
-                                                <td className='p-1 text-left'>
-                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TOTAL
-                                                </td>
+                                                <td className='p-1 text-left'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TOTAL</td>
                                                 {groupWiseExamListMapped.map((exa: any, i: number) => (
                                                     <td key={i} className='p-1 text-center font-bold'>
                                                         {getTotalMarkValue(report, exa.examId, exa.groupName, exa.displayName)}
@@ -786,25 +871,37 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 ))}
                                                 {/* Super Average Totals */}
                                                 <td className='p-1 text-center font-bold text-[12px]'>
-                                                    {showSuperAverage && (studentProcessTot?.ESTMPPSG_GroupObtMarks || studentProcessTot?.estmppsG_GroupObtMarks || '')}
+                                                    {showSuperAverage &&
+                                                        (studentProcessTot?.ESTMPPSG_GroupObtMarks ||
+                                                            studentProcessTot?.estmppsG_GroupObtMarks ||
+                                                            '')}
                                                 </td>
                                                 <td className='p-1 text-center font-bold text-[12px]'>
-                                                    {showSuperAverage && (studentProcessTot?.ESTMPPSG_GroupAVGMarks || studentProcessTot?.estmppsG_GroupAVGMarks || '')}
+                                                    {showSuperAverage &&
+                                                        (studentProcessTot?.ESTMPPSG_GroupAVGMarks ||
+                                                            studentProcessTot?.estmppsG_GroupAVGMarks ||
+                                                            '')}
                                                 </td>
                                             </tr>
 
                                             {/* Percentage Row */}
                                             <tr className='font-bold'>
-                                                <td className='p-1 text-left'>
-                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PERCENTAGE
-                                                </td>
+                                                <td className='p-1 text-left'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;PERCENTAGE</td>
                                                 {groupWiseExamListMapped.map((exa: any, i: number) => (
                                                     <td key={i} className='p-1 text-center font-bold'>
                                                         {getTotalPercentageValue(report, exa.examId, exa.groupName, exa.displayName)}
                                                     </td>
                                                 ))}
                                                 <td className='p-1 text-center font-bold text-[12px]'>
-                                                    {showSuperAverage && studentStThomosTotal && Math.round(Number(studentStThomosTotal.TotalPercentage || studentStThomosTotal.totalPercentage || 0))}
+                                                    {showSuperAverage &&
+                                                        studentStThomosTotal &&
+                                                        Math.round(
+                                                            Number(
+                                                                studentStThomosTotal.TotalPercentage ||
+                                                                    studentStThomosTotal.totalPercentage ||
+                                                                    0
+                                                            )
+                                                        )}
                                                 </td>
                                                 <td className='p-1 text-center font-bold text-[12px]'>
                                                     {showSuperAverage && (studentStThomosTotal?.totaver || '')}
@@ -813,9 +910,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                             {/* Rank Row */}
                                             <tr className='font-bold'>
-                                                <td className='p-1 text-left'>
-                                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RANK
-                                                </td>
+                                                <td className='p-1 text-left'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RANK</td>
                                                 {groupWiseExamListMapped.map((exa: any, i: number) => (
                                                     <td key={i} className='p-1 text-center font-bold'>
                                                         {getRankValue(report, exa.examId, exa.groupName)}
@@ -827,13 +922,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             {/* Non-scholastic Subjects Loop */}
                                             {nonScholasticSubjects.map((subj: any, i: number) => (
                                                 <tr key={i}>
-                                                    <td className='p-1 text-left text-[12px] break-words font-bold pl-4'>
+                                                    <td className='break-words p-1 pl-4 text-left font-bold text-[12px]'>
                                                         {subj.ismS_SubjectName}
                                                     </td>
                                                     {groupWiseExamListMapped.map((exa: any, j: number) => (
-                                                        <td
-                                                            key={j}
-                                                            className='w-[50px] p-1 text-center'>
+                                                        <td key={j} className='w-[50px] p-1 text-center'>
                                                             {getMarkValue(report, subj, exa.examId, exa.groupName, exa.displayName)}
                                                         </td>
                                                     ))}
@@ -849,20 +942,18 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     </table>
 
                                     {/* Bottom Section: Co-Scholastic & Personality */}
-                                    <div className='flex w-full border-[0.5px] border-t-0 border-[#727272]'>
+                                    <div className='flex w-full border-[#727272] border-[0.5px] border-t-0'>
                                         {/* Left Column: Graded Subjects & Personality */}
-                                        <div className='w-[50%] border-r border-[#727272]'>
+                                        <div className='w-[50%] border-[#727272] border-r'>
                                             {/* Graded Subjects */}
                                             <table className='st-thomas-table w-full border-collapse bg-transparent text-[11px]'>
                                                 <thead>
                                                     <tr>
-                                                        <th className='w-[180px] p-1 text-left text-[12px] border-t-0 border-l-0'>
+                                                        <th className='w-[180px] border-t-0 border-l-0 p-1 text-left text-[12px]'>
                                                             GRADED SUBJECTS
                                                         </th>
-                                                        <th className='w-[70px] p-1 text-center text-[11px] border-t-0'>
-                                                            HALF YEARLY
-                                                        </th>
-                                                        <th className='w-[70px] p-1 text-center text-[11px] border-t-0 border-r-0'>
+                                                        <th className='w-[70px] border-t-0 p-1 text-center text-[11px]'>HALF YEARLY</th>
+                                                        <th className='w-[70px] border-t-0 border-r-0 p-1 text-center text-[11px]'>
                                                             FINAL
                                                         </th>
                                                     </tr>
@@ -875,46 +966,54 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             const gAmstId = g.amsT_Id ?? g.AMST_Id;
                                                             const gSkill = getSkillName(g);
                                                             const gExam = g.emE_ExamName ?? g.eme_ExamName ?? '';
-                                                            return Number(gAmstId) === report.amsT_Id && matchSkillName(gSkill, sName) && matchExamType(gExam, 'hy');
+                                                            return (
+                                                                Number(gAmstId) === report.amsT_Id &&
+                                                                matchSkillName(gSkill, sName) &&
+                                                                matchExamType(gExam, 'hy')
+                                                            );
                                                         });
 
                                                         const finalGrades = gradeDetails.filter((g: any) => {
                                                             const gAmstId = g.amsT_Id ?? g.AMST_Id;
                                                             const gSkill = getSkillName(g);
                                                             const gExam = g.emE_ExamName ?? g.eme_ExamName ?? '';
-                                                            return Number(gAmstId) === report.amsT_Id && matchSkillName(gSkill, sName) && matchExamType(gExam, 'final');
+                                                            return (
+                                                                Number(gAmstId) === report.amsT_Id &&
+                                                                matchSkillName(gSkill, sName) &&
+                                                                matchExamType(gExam, 'final')
+                                                            );
                                                         });
 
-                                                        const hyGradeStr = hyGrades.map((g: any) => g.emgD_Name ?? g.EMGD_Name ?? '').join(', ');
-                                                        const finalGradeStr = finalGrades.map((g: any) => g.emgD_Name ?? g.EMGD_Name ?? '').join(', ');
+                                                        const hyGradeStr = hyGrades
+                                                            .map((g: any) => g.emgD_Name ?? g.EMGD_Name ?? '')
+                                                            .join(', ');
+                                                        const finalGradeStr = finalGrades
+                                                            .map((g: any) => g.emgD_Name ?? g.EMGD_Name ?? '')
+                                                            .join(', ');
 
                                                         return (
                                                             <tr key={i}>
-                                                                <td className='p-1 pl-4 text-left font-normal border-l-0 text-[10px]'>
+                                                                <td className='border-l-0 p-1 pl-4 text-left font-normal text-[10px]'>
                                                                     &nbsp;&nbsp;&nbsp;{sName}
                                                                 </td>
-                                                                <td className='p-1 text-center text-[11px]'>
-                                                                    {hyGradeStr}
-                                                                </td>
-                                                                <td className='p-1 text-center text-[11px] border-r-0'>
-                                                                    {finalGradeStr}
-                                                                </td>
+                                                                <td className='p-1 text-center text-[11px]'>{hyGradeStr}</td>
+                                                                <td className='border-r-0 p-1 text-center text-[11px]'>{finalGradeStr}</td>
                                                             </tr>
                                                         );
                                                     })}
 
                                                     {skillDetails.length <= 1 && (
-                                                        <tr className='border-b border-gray-400'>
-                                                            <td className='p-1 border-l-0 text-[11px]'>&nbsp;</td>
+                                                        <tr className='border-gray-400 border-b'>
+                                                            <td className='border-l-0 p-1 text-[11px]'>&nbsp;</td>
                                                             <td className='p-1'>&nbsp;</td>
-                                                            <td className='p-1 border-r-0'>&nbsp;</td>
+                                                            <td className='border-r-0 p-1'>&nbsp;</td>
                                                         </tr>
                                                     )}
                                                     {skillDetails.length === 0 && (
-                                                        <tr className='border-b border-gray-400'>
-                                                            <td className='p-1 border-l-0 text-[11px]'>&nbsp;</td>
+                                                        <tr className='border-gray-400 border-b'>
+                                                            <td className='border-l-0 p-1 text-[11px]'>&nbsp;</td>
                                                             <td className='p-1'>&nbsp;</td>
-                                                            <td className='p-1 border-r-0'>&nbsp;</td>
+                                                            <td className='border-r-0 p-1'>&nbsp;</td>
                                                         </tr>
                                                     )}
                                                 </tbody>
@@ -924,14 +1023,22 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             <table className='st-thomas-table w-full border-collapse bg-transparent text-[11px]'>
                                                 <thead>
                                                     <tr>
-                                                        <th className='w-[180px] p-1 text-left text-[10px] font-medium border-l-0'>
+                                                        <th className='w-[180px] border-l-0 p-1 text-left font-medium text-[10px]'>
                                                             &nbsp;&nbsp;&nbsp;PERSONALITY PROFILE
                                                         </th>
                                                         {groupDetailsMapped.map((grp: any, gIdx: number) => (
                                                             <th
                                                                 key={gIdx}
                                                                 className={`w-[70px] p-1 text-center text-[10px] uppercase ${gIdx === groupDetailsMapped.length - 1 ? 'border-r-0' : ''}`}>
-                                                                {matchGroupName(grp.empG_DistplayName || grp.empG_DisplayName || grp.empsG_DisplayName || '', 'HALF YEARLY EXAMINATION') ? 'HALF YEARLY' : 'FINAL'}
+                                                                {matchGroupName(
+                                                                    grp.empG_DistplayName ||
+                                                                        grp.empG_DisplayName ||
+                                                                        grp.empsG_DisplayName ||
+                                                                        '',
+                                                                    'HALF YEARLY EXAMINATION'
+                                                                )
+                                                                    ? 'HALF YEARLY'
+                                                                    : 'FINAL'}
                                                             </th>
                                                         ))}
                                                     </tr>
@@ -939,12 +1046,18 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                 <tbody>
                                                     {personalityQuestions.map((q, idx) => (
                                                         <tr key={idx}>
-                                                            <td className='p-0.5 pl-2 text-left text-[10px] leading-tight border-l-0'>
+                                                            <td className='border-l-0 p-0.5 pl-2 text-left text-[10px] leading-tight'>
                                                                 &middot; &nbsp;{q}
                                                             </td>
                                                             {groupDetailsMapped.map((_grp: any, gIdx: number) => (
-                                                                <td key={gIdx} className={`p-0.5 text-center ${gIdx === groupDetailsMapped.length - 1 ? 'border-r-0' : ''}`}>
-                                                                    <input type='checkbox' className='h-3 w-3 pointer-events-none' readOnly />
+                                                                <td
+                                                                    key={gIdx}
+                                                                    className={`p-0.5 text-center ${gIdx === groupDetailsMapped.length - 1 ? 'border-r-0' : ''}`}>
+                                                                    <input
+                                                                        type='checkbox'
+                                                                        className='pointer-events-none h-3 w-3'
+                                                                        readOnly
+                                                                    />
                                                                 </td>
                                                             ))}
                                                         </tr>
@@ -954,8 +1067,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         </div>
 
                                         {/* Right Column: Chart */}
-                                        <div className='w-[50%] p-2 flex flex-col justify-start items-center'>
-                                            <div className='w-full border-b border-[#727272] pb-1 mb-2 text-center text-[12px] font-bold'>
+                                        <div className='flex w-[50%] flex-col items-center justify-start p-2'>
+                                            <div className='mb-2 w-full border-[#727272] border-b pb-1 text-center font-bold text-[12px]'>
                                                 PERFORMANCE ANALYSIS(TOTAL)
                                             </div>
                                             {chartLabels.length > 0 ? (
@@ -1000,7 +1113,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     />
                                                 </div>
                                             ) : (
-                                                <div className='h-[200px] flex items-center justify-center text-gray-400 text-xs'>
+                                                <div className='flex h-[200px] items-center justify-center text-gray-400 text-xs'>
                                                     No chart data available
                                                 </div>
                                             )}
@@ -1011,10 +1124,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     <table className='st-thomas-table w-full border-collapse bg-transparent text-[11px]'>
                                         <tbody>
                                             <tr className='h-[60px]'>
-                                                <td className='w-[100px] p-2 align-top font-bold border-l-0 border-b-0'>
-                                                    REMARKS:
-                                                </td>
-                                                <td className='p-2 align-top border-r-0 border-b-0'>
+                                                <td className='w-[100px] border-b-0 border-l-0 p-2 align-top font-bold'>REMARKS:</td>
+                                                <td className='border-r-0 border-b-0 p-2 align-top'>
                                                     {promotionRemarks
                                                         .filter((r: any) => Number(r.amsT_Id ?? r.AMST_Id) === report.amsT_Id)
                                                         .map((r: any, idx: number) => (
@@ -1031,16 +1142,16 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     <table className='st-thomas-table w-full border-collapse bg-transparent text-[10px]'>
                                         <thead>
                                             <tr>
-                                                <th className='h-[70px] w-1/4 p-1 align-bottom text-center font-bold border-l-0 border-b-0'>
+                                                <th className='h-[70px] w-1/4 border-b-0 border-l-0 p-1 text-center align-bottom font-bold'>
                                                     DATE
                                                 </th>
-                                                <th className='h-[70px] w-1/4 p-1 align-bottom text-center font-bold border-b-0'>
+                                                <th className='h-[70px] w-1/4 border-b-0 p-1 text-center align-bottom font-bold'>
                                                     PRINCIPAL&apos;S SIGNATURE
                                                 </th>
-                                                <th className='h-[70px] w-1/4 p-1 align-bottom text-center font-bold border-b-0'>
+                                                <th className='h-[70px] w-1/4 border-b-0 p-1 text-center align-bottom font-bold'>
                                                     CLASS TEACHER&apos;S SIGNATURE
                                                 </th>
-                                                <th className='h-[70px] w-1/4 p-1 align-bottom text-center font-bold border-r-0 border-b-0'>
+                                                <th className='h-[70px] w-1/4 border-r-0 border-b-0 p-1 text-center align-bottom font-bold'>
                                                     PARENT&apos;S SIGNATURE
                                                 </th>
                                             </tr>
@@ -1080,6 +1191,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                     .watermarked-container {
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
+                    }
+                    .watermark-img {
+                        opacity: 0.10 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
                 }
             `}</style>

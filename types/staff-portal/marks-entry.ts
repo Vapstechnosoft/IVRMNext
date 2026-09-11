@@ -1,4 +1,3 @@
-
 export interface IAcademicYear {
     asmaY_Id: number;
     asmaY_Year: string;

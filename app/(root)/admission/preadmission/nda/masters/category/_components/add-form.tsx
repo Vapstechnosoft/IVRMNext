@@ -1,19 +1,16 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { FormError, Label } from '@/components/ui/extension/field';
+import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { InputTextarea } from '@/components/ui/extension/input-textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterCategory } from '@/hooks/admission/preadmission/useMasters';
-import { cn } from '@/lib/utils';
 import { masterCategorySchema } from '@/schemas/admission/preadmission/masters';
 import { addOrUpdateMasterCategory } from '@/server/admission/preadmission/masters/category';
 import { deleteDocument, uploadDocument } from '@/server/document_upload';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Check, Eye, Save, Trash } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { useState } from 'react';
-import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 

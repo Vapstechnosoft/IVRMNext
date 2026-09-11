@@ -1,4 +1,3 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     getHHSReport5to7ClassByYear,
     getHHSReport5to7Details,
@@ -6,6 +5,7 @@ import {
     getHHSReport5to7SectionByClass,
     getHHSReport5to7Student
 } from '@/server/exam/exam-module/reports/Hutching/hhs-report-5to7';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useHHSReport5to7Details = () => {
     return useQuery({

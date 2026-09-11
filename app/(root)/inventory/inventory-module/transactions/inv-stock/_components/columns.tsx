@@ -1,4 +1,3 @@
-
 'use client';
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
@@ -46,17 +45,17 @@ export const invStockColumns: ColumnDef<InvStock>[] = [
     {
         accessorKey: 'invstO_PurchaseRate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Purchase Rate' />,
-        cell: ({ row }) => <div className="text-right">{row.getValue('invstO_PurchaseRate')}</div>
+        cell: ({ row }) => <div className='text-right'>{row.getValue('invstO_PurchaseRate')}</div>
     },
     {
         accessorKey: 'invstO_SalesRate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Sales Rate' />,
-        cell: ({ row }) => <div className="text-right">{row.getValue('invstO_SalesRate')}</div>
+        cell: ({ row }) => <div className='text-right'>{row.getValue('invstO_SalesRate')}</div>
     },
     {
         accessorKey: 'invstO_AvaiableStock',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Available Stock' />,
-        cell: ({ row }) => <div className="text-right font-bold text-primary">{row.getValue('invstO_AvaiableStock')}</div>
+        cell: ({ row }) => <div className='text-right font-bold text-primary'>{row.getValue('invstO_AvaiableStock')}</div>
     },
     {
         id: 'actions',
@@ -74,11 +73,7 @@ function ActionButtonsClient({ rowData }: { rowData: InvStock }) {
 
     return (
         <div className='flex justify-center gap-2'>
-            <ActionButtons
-                rowData={rowData}
-                buttons={{ edit: true, delete: false, toggle: false }}
-                onEdit={handleEdit}
-            />
+            <ActionButtons rowData={rowData} buttons={{ edit: true, delete: false, toggle: false }} onEdit={handleEdit} />
         </div>
     );
 }

@@ -1,12 +1,12 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
     getNdaStudentProfileInitialData,
-    getNdaStudentProfileReport,
+    getNdaStudentProfileReport
 } from '@/server/admission/preadmission/reports/nda_student_profile_report';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const ndaStudentProfileReportKeys = {
     all: ['nda-student-profile-report'] as const,
-    initial: () => [...ndaStudentProfileReportKeys.all, 'initial'] as const,
+    initial: () => [...ndaStudentProfileReportKeys.all, 'initial'] as const
 };
 
 /**
@@ -16,7 +16,7 @@ export const useNdaStudentProfileInitialData = () => {
     return useQuery({
         queryKey: ndaStudentProfileReportKeys.initial(),
         queryFn: () => getNdaStudentProfileInitialData(),
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60 * 5 // 5 minutes
     });
 };
 
@@ -25,6 +25,6 @@ export const useNdaStudentProfileInitialData = () => {
  */
 export const useNdaStudentProfileReport = () => {
     return useMutation({
-        mutationFn: getNdaStudentProfileReport,
+        mutationFn: getNdaStudentProfileReport
     });
 };

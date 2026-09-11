@@ -14,7 +14,13 @@ import { getCategoryMappedSections } from '@/server/exam/exam-module/masters/cat
 import { getMasterExam, getMasterExamOrderData } from '@/server/exam/exam-module/masters/exam';
 import { getMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
 import { getGradeDetailsById, getMasterGrade, getMasterGradeDropdownList } from '@/server/exam/exam-module/masters/grade';
-import { getMasterLifeSkillAreas, getMasterLifeSkillAreasDropdown, getMasterLifeSkillDrpdownList, getMasterLifeSkillMappings, getMasterLifeSkills } from '@/server/exam/exam-module/masters/life-skills';
+import {
+    getMasterLifeSkillAreas,
+    getMasterLifeSkillAreasDropdown,
+    getMasterLifeSkillDrpdownList,
+    getMasterLifeSkillMappings,
+    getMasterLifeSkills
+} from '@/server/exam/exam-module/masters/life-skills';
 import { getMasterSubExam, getMasterSubExamDropdownList } from '@/server/exam/exam-module/masters/sub-exam';
 import { getMasterSubject, getMasterSubjectDropdownList } from '@/server/exam/exam-module/masters/subject';
 import {
@@ -189,11 +195,18 @@ export const useMasterGrade = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_EX, searchParams ?? {}],
             queryFn: async () => getMasterGrade(searchParams),
-            staleTime: 0
+            staleTime: 0,
+            refetchOnMount: 'always'
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_EX]
+            });
+            queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DROPDOWN_LIST]
+            });
+            queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DETAILS]
             });
         }
     };
@@ -206,11 +219,18 @@ export const useMasterGradeDropdownList = (searchParams?: ApiSearchparams) => {
         ...useQuery({
             queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DROPDOWN_LIST, searchParams ?? {}],
             queryFn: async () => getMasterGradeDropdownList(),
-            staleTime: 0
+            staleTime: 0,
+            refetchOnMount: 'always'
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+            queryClient.invalidateQueries({
                 queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DROPDOWN_LIST]
+            });
+            queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_EX]
+            });
+            queryClient.invalidateQueries({
+                queryKey: [EXAM_QUERY_KEYS.MASTER_GRADE_DETAILS]
             });
         }
     };

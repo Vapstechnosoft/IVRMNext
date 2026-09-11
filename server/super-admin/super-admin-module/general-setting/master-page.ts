@@ -17,6 +17,8 @@ export async function saveMasterPage(data: any) {
             };
         }
 
+        const browserUrl = data.ivrmP_BrowserUrl || data.ivrmP_BrowerUrl || data.IVRMP_BrowserUrl || data.ivrmP_PageDesc || "string";
+
         const payload = {
             createdDate: new Date().toISOString(),
             updatedDate: new Date().toISOString(),
@@ -29,7 +31,9 @@ export async function saveMasterPage(data: any) {
             ivrmP_MandatoryFlag: !!data.ivrmP_MandatoryFlag,
             ivrmP_PageDisplayName: data.ivrmP_PageDisplayName || data.ivrmmP_PageName || "string",
             userid: data.userid ?? 0,
-            ivrmP_BrowerUrl: data.ivrmP_BrowerUrl || "string"
+            ivrmP_BrowerUrl: browserUrl,
+            ivrmP_BrowserUrl: browserUrl,
+            IVRMP_BrowserUrl: browserUrl,
         };
 
         const response = await api.post<any>('sadmin', 'MasterPageFacade/master_map_save/1209', payload);
@@ -68,9 +72,18 @@ export async function getMasterPages(searchParams: any) {
     const response = await api.get<any>('sadmin', url);
 
     if (response.success && Array.isArray(response.data)) {
+        const mappedData = response.data.map((item: any) => ({
+            ...item,
+            ivrmP_Id: item.ivrmP_Id ?? item.IVRMP_Id ?? 0,
+            ivrmmP_PageName: item.ivrmmP_PageName ?? item.IVRMMP_PageName ?? item.ivrmP_PageName ?? item.IVRMP_PageName ?? '',
+            ivrmP_PageDisplayName: item.ivrmP_PageDisplayName ?? item.IVRMP_PageDisplayName ?? item.ivrmmP_PageName ?? item.IVRMMP_PageName ?? '',
+            ivrmP_PageDesc: item.ivrmP_PageDesc ?? item.IVRMP_PageDesc ?? item.ivrmP_PageURL ?? item.IVRMP_PageURL ?? '',
+            ivrmP_MandatoryFlag: item.ivrmP_MandatoryFlag ?? item.IVRMP_MandatoryFlag ?? 0
+        }));
+
         return {
             success: true,
-            data: response.data as IMasterPage[],
+            data: mappedData as IMasterPage[],
             message: response.message,
             total: response.total || response.data.length,
             page: response.page || 1,
@@ -118,9 +131,18 @@ export async function getMasterPageById(id: number) {
     const response = await api.get<any>('sadmin', url);
 
     if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+        const item = response.data[0];
+        const mappedItem: IMasterPage = {
+            ...item,
+            ivrmP_Id: item.ivrmP_Id ?? item.IVRMP_Id ?? id,
+            ivrmmP_PageName: item.ivrmmP_PageName ?? item.IVRMMP_PageName ?? item.ivrmP_PageName ?? item.IVRMP_PageName ?? '',
+            ivrmP_PageDisplayName: item.ivrmP_PageDisplayName ?? item.IVRMP_PageDisplayName ?? item.ivrmmP_PageName ?? item.IVRMMP_PageName ?? '',
+            ivrmP_PageDesc: item.ivrmP_PageDesc ?? item.IVRMP_PageDesc ?? item.ivrmP_PageURL ?? item.IVRMP_PageURL ?? '',
+            ivrmP_MandatoryFlag: item.ivrmP_MandatoryFlag ?? item.IVRMP_MandatoryFlag ?? 0
+        };
         return {
             success: true,
-            data: response.data[0] as IMasterPage,
+            data: mappedItem,
             message: response.message
         };
     }

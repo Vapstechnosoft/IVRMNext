@@ -10,18 +10,11 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-import {
-    StaffRepacementExistingToNewSchema,
-    type StaffReplacementExistingToNewValues
-} from '@/schemas/timetable/transactions';
+import { StaffRepacementExistingToNewSchema, type StaffReplacementExistingToNewValues } from '@/schemas/timetable/transactions';
 
-import { useState } from 'react';
-import {
-    useSectionDropdown,
-    useStaffReplacementExistingToNewMasters
-} from '@/hooks/timetable/useTransactions';
+import { useSectionDropdown, useStaffReplacementExistingToNewMasters } from '@/hooks/timetable/useTransactions';
 import { saveStaffReplacementExistingToNew } from '@/server/timetable/transactions/staffreplacementexistingtonew';
-
+import { useState } from 'react';
 
 const extractList = (data: any, preferredKey?: string) => {
     if (!data) return [];
@@ -108,14 +101,14 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
 
             const resData = response?.data || response;
             if (resData?.returnval === true || resData?.success === true || response?.success === true) {
-                toast.success(response?.message || "Staff replacement saved successfully!");
+                toast.success(response?.message || 'Staff replacement saved successfully!');
                 reset();
                 onFetch?.(data);
             } else {
-                toast.error(response?.message || "Failed to save staff replacement.");
+                toast.error(response?.message || 'Failed to save staff replacement.');
             }
         } catch (error: any) {
-            toast.error(error.message || "An error occurred while saving the replacement.");
+            toast.error(error.message || 'An error occurred while saving the replacement.');
         } finally {
             setIsReplacing(false);
         }
@@ -162,7 +155,6 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
             <div className='rounded-lg border bg-white p-6 shadow-sm'>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
-
                         <FormSelect
                             label='Category Name *'
                             name='ttmC_Id'
@@ -233,7 +225,7 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
 
                     <div className='flex items-center justify-center gap-4 border-t pt-4'>
                         <Button type='submit' disabled={isReplacing} className='flex min-w-[120px] items-center gap-2 font-semibold'>
-                            {isReplacing ? <RotateCcw className="h-4 w-4 animate-spin" /> : <Search className='h-4 w-4' />}
+                            {isReplacing ? <RotateCcw className='h-4 w-4 animate-spin' /> : <Search className='h-4 w-4' />}
                             Replace
                         </Button>
 
@@ -247,5 +239,3 @@ export default function StaffReplacementExistingToNewForm({ onFetch }: StaffRepl
         </CollapsibleSection>
     );
 }
-
-

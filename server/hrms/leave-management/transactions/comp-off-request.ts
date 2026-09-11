@@ -1,6 +1,6 @@
 'use server';
 import { createLocalCrud } from '@/lib/localdb';
-import type { CompOffRequest, CompOffRequestItem, EmployeeLeaveDetail } from '@/types/hrms/leave-management/comp-off-request';
+import type { CompOffRequestItem, EmployeeLeaveDetail } from '@/types/hrms/leave-management/comp-off-request';
 export async function getCompOffRequestData(employeeId?: number) {
     // In a real implementation, this would fetch from API
     // For now, using local storage as placeholder
@@ -18,8 +18,8 @@ export async function getCompOffRequestData(employeeId?: number) {
                 email: '',
                 phone: '0'
             },
-            compOffRequests: employeeId ? requests.filter(r => r.employeeId === employeeId) : requests,
-            leaveDetails: employeeId ? leaveDetails.filter(l => l.employeeId === employeeId) : leaveDetails
+            compOffRequests: employeeId ? requests.filter((r) => r.employeeId === employeeId) : requests,
+            leaveDetails: employeeId ? leaveDetails.filter((l) => l.employeeId === employeeId) : leaveDetails
         },
         message: 'Data fetched successfully'
     };
@@ -27,7 +27,7 @@ export async function getCompOffRequestData(employeeId?: number) {
 export async function submitCompOffRequest(selectedIds: number[]) {
     const db = createLocalCrud<CompOffRequestItem>('compOffRequest');
     // Update status of selected items to 'Pending'
-    selectedIds.forEach(id => {
+    selectedIds.forEach((id) => {
         const item = db.findById(id);
         if (item) {
             db.update(id, { ...item, status: 'Pending' });
@@ -41,7 +41,7 @@ export async function submitCompOffRequest(selectedIds: number[]) {
 export async function cancelCompOffRequest(selectedIds: number[]) {
     const db = createLocalCrud<CompOffRequestItem>('compOffRequest');
     // Update status of selected items to 'Cancelled'
-    selectedIds.forEach(id => {
+    selectedIds.forEach((id) => {
         const item = db.findById(id);
         if (item) {
             db.update(id, { ...item, status: 'Cancelled' });

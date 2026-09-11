@@ -16,13 +16,20 @@ function PerformanceChart({ studentId, chartData, onChartReady }: {
 
     useEffect(() => {
         if (!canvasRef.current || !chartData || chartData.subjects.length === 0) return;
-        const ctx = canvasRef.current.getContext('2d');
-        if (!ctx) return;
+        const canvas = canvasRef.current;
+        let chartInstance: any = null;
+        let isCancelled = false;
 
         const loadChart = async () => {
             const ChartJS = (await import('chart.js/auto')).default;
+            if (isCancelled) return;
 
-            const chart = new ChartJS(ctx, {
+            const existing = ChartJS.getChart(canvas);
+            if (existing) {
+                existing.destroy();
+            }
+
+            chartInstance = new ChartJS(canvas, {
                 type: 'bar',
                 data: {
                     labels: chartData.subjects,
@@ -52,19 +59,25 @@ function PerformanceChart({ studentId, chartData, onChartReady }: {
                         tooltip: { enabled: true }
                     },
                     animation: {
-                        duration: 500,
+                        duration: 300,
                         onComplete: () => {
-                            if (onChartReady && canvasRef.current) {
+                            if (onChartReady && canvasRef.current && !isCancelled) {
                                 onChartReady(studentId, canvasRef.current.toDataURL());
                             }
                         }
                     }
                 }
             });
-
-            return () => chart.destroy();
         };
+
         loadChart();
+
+        return () => {
+            isCancelled = true;
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+        };
     }, [chartData, studentId, onChartReady]);
 
     if (!chartData || chartData.subjects.length === 0) return null;
@@ -191,13 +204,17 @@ export default function MESProgressCardReport({
 
             <div id="mes-print-area" ref={printRef} className="mes-report-container">
                 {reportData.map((report, index) => {
-                    const studentMarks = saveList.filter(m => m.amsT_Id === report.amsT_Id);
-                    const scholasticMarks = studentMarks.filter(m => m.eyceS_AplResultFlg === true);
-                    const coScholasticMarks = studentMarks.filter(m => m.eyceS_AplResultFlg === false);
+                    const studentId = report.amsT_Id ?? report.AMST_Id;
+                    const studentMarks = saveList.filter(m => {
+                        const mStuId = m.amsT_Id ?? m.AMST_Id;
+                        return Boolean(mStuId && mStuId === studentId);
+                    });
+                    const scholasticMarks = studentMarks.filter(m => (m.eyceS_AplResultFlg ?? m.EYCES_AplResultFlg) !== false);
+                    const coScholasticMarks = studentMarks.filter(m => (m.eyceS_AplResultFlg ?? m.EYCES_AplResultFlg) === false);
 
                     const chartData = {
-                        subjects: scholasticMarks.map(m => m.ismS_SubjectName),
-                        marks: scholasticMarks.map(m => m.estmpS_ObtainedMarks || 0)
+                        subjects: scholasticMarks.map(m => m.ismS_SubjectName || m.ISMS_SubjectName || ''),
+                        marks: scholasticMarks.map(m => m.estmpS_ObtainedMarks ?? m.ESTMPS_ObtainedMarks ?? 0)
                     };
 
                     return (
@@ -225,28 +242,30 @@ export default function MESProgressCardReport({
                                 <tbody style={{ border: 'none' }}>
                                     <tr style={{ border: 'none' }}>
                                         <td style={{ border: 'none', textAlign: 'left', width: '33%' }}>
-                                            <span className="mes-info-label">Name :</span> {report.amsT_FirstName}
+                                            <span className="mes-info-label">Name :</span> {report.amsT_FirstName || report.AMST_FirstName}
                                         </td>
                                         <td style={{ border: 'none', textAlign: 'left', width: '33%' }}>
-                                            <span className="mes-info-label">Class :</span> {report.asmcL_ClassName}
+                                            <span className="mes-info-label">Class :</span> {report.asmcL_ClassName || report.ASMCL_ClassName}
                                         </td>
                                         <td style={{ border: 'none', textAlign: 'left', width: '33%' }}>
-                                            <span className="mes-info-label">Roll No :</span> {report.amaY_RollNo}
+                                            <span className="mes-info-label">Roll No :</span> {report.amaY_RollNo ?? report.AMAY_RollNo ?? '-'}
                                         </td>
                                     </tr>
                                     <tr style={{ border: 'none' }}>
                                         <td style={{ border: 'none', textAlign: 'left' }}>
-                                            <span className="mes-info-label">Adm No :</span> {report.amsT_AdmNo}
+                                            <span className="mes-info-label">Adm No :</span> {report.amsT_AdmNo || report.AMST_AdmNo}
                                         </td>
                                         <td style={{ border: 'none', textAlign: 'left' }}>
-                                            <span className="mes-info-label">Section :</span> {report.asmC_SectionName}
+                                            <span className="mes-info-label">Section :</span> {report.asmC_SectionName || report.ASMC_SectionName}
                                         </td>
                                         <td style={{ border: 'none', textAlign: 'left' }}>
                                             <span className="mes-info-label">Attendance :</span>
                                             {(() => {
-                                                const workAtt = workAttendance.find(att => att.AMST_Id === report.amsT_Id);
-                                                const presAtt = presentAttendance.find(att => att.AMST_Id === report.amsT_Id);
-                                                return workAtt && presAtt ? ` ${presAtt.TotalPresentDays} / ${workAtt.TotalWorkingDays}` : ' -';
+                                                const workAtt = workAttendance.find(att => (att.AMST_Id ?? att.amsT_Id) === report.amsT_Id);
+                                                const presAtt = presentAttendance.find(att => (att.AMST_Id ?? att.amsT_Id) === report.amsT_Id);
+                                                const presDays = presAtt ? (presAtt.TotalPresentDays ?? presAtt.totalPresentDays ?? presAtt.presentDays ?? 0) : null;
+                                                const workDays = workAtt ? (workAtt.TotalWorkingDays ?? workAtt.totalWorkingDays ?? workAtt.workingDays ?? 0) : null;
+                                                return presDays !== null && workDays !== null ? ` ${presDays} / ${workDays}` : ' -';
                                             })()}
                                         </td>
                                     </tr>
@@ -270,27 +289,33 @@ export default function MESProgressCardReport({
                                         {scholasticMarks.map((marks, mIndex) => (
                                             <tr key={mIndex}>
                                                 <td>{mIndex + 1}</td>
-                                                <td className="text-left px-4 font-medium">{marks.ismS_SubjectName}</td>
-                                                <td>{marks.eyceS_MaxMarks}</td>
-                                                <td>{marks.eyceS_MinMarks}</td>
+                                                <td className="text-left px-4 font-medium">{marks.ismS_SubjectName || marks.ISMS_SubjectName || marks.subjectName || '-'}</td>
+                                                <td>{marks.eyceS_MaxMarks ?? marks.EYCES_MaxMarks ?? marks.estmpS_MaxMarks ?? marks.ESTMPS_MaxMarks ?? 0}</td>
+                                                <td>{marks.eyceS_MinMarks ?? marks.EYCES_MinMarks ?? marks.estmpS_MinMarks ?? marks.ESTMPS_MinMarks ?? 0}</td>
                                                 <td className="font-bold">
-                                                    {marks.estmpS_PassFailFlg === 'AB' ? 'AB' : (marks.eyceS_MarksDisplayFlg ? marks.estmpS_ObtainedMarks : '-')}
+                                                    {marks.estmpS_PassFailFlg === 'AB' || marks.ESTMPS_PassFailFlg === 'AB'
+                                                        ? 'AB'
+                                                        : (marks.eyceS_MarksDisplayFlg !== false
+                                                            ? (marks.estmpS_ObtainedMarks ?? marks.ESTMPS_ObtainedMarks ?? '-')
+                                                            : '-')}
                                                 </td>
                                                 <td className="font-bold">
-                                                    {marks.estmpS_PassFailFlg === 'AB' ? 'AB' : marks.estmpS_ObtainedGrade}
+                                                    {marks.estmpS_PassFailFlg === 'AB' || marks.ESTMPS_PassFailFlg === 'AB'
+                                                        ? 'AB'
+                                                        : (marks.estmpS_ObtainedGrade || marks.ESTMPS_ObtainedGrade || '-')}
                                                 </td>
                                             </tr>
                                         ))}
                                         <tr className="mes-header-bg font-bold">
                                             <td colSpan={2} className="text-right px-4 uppercase">GRAND TOTAL</td>
-                                            <td>{report.estmP_TotalMaxMarks}</td>
-                                            <td>{report.estmP_MinMarks}</td>
-                                            <td>{report.estmP_TotalObtMarks}</td>
-                                            <td>{report.estmP_TotalGrade}</td>
+                                            <td>{report.estmP_TotalMaxMarks ?? report.ESTMP_TotalMaxMarks ?? 0}</td>
+                                            <td>{report.estmP_MinMarks ?? report.ESTMP_MinMarks ?? 0}</td>
+                                            <td>{report.estmP_TotalObtMarks ?? report.ESTMP_TotalObtMarks ?? 0}</td>
+                                            <td>{report.estmP_TotalGrade || report.ESTMP_TotalGrade || '-'}</td>
                                         </tr>
                                         <tr className="mes-header-bg font-bold">
                                             <td colSpan={2} className="text-right px-4 uppercase">PERCENTAGE</td>
-                                            <td colSpan={4} className="text-center">{report.estmP_Percentage}%</td>
+                                            <td colSpan={4} className="text-center">{report.estmP_Percentage ?? report.ESTMP_Percentage ?? 0}%</td>
                                         </tr>
                                     </tbody>
                                 </table>

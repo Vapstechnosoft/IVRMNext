@@ -10,7 +10,7 @@ import { addOrUpdateMasterCategory } from '@/server/library/masters/library_cate
 import type { IMasterCategoryList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { type SubmitHandler, useForm, Controller } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
@@ -34,12 +34,14 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
     } = useForm<FormFields>({
         resolver: zodResolver(masterCategorySchema.addOrUpdate),
         mode: 'onChange',
-        values: row ? {
-            lmC_Id: row.lmC_Id,
-            lmC_CategoryName: row.lmC_CategoryName,
-            lmC_CategoryCode: row.lmC_CategoryCode,
-            lmC_BNBFlg: row.lmC_BNBFlg
-        } : undefined
+        values: row
+            ? {
+                  lmC_Id: row.lmC_Id,
+                  lmC_CategoryName: row.lmC_CategoryName,
+                  lmC_CategoryCode: row.lmC_CategoryCode,
+                  lmC_BNBFlg: row.lmC_BNBFlg
+              }
+            : undefined
     });
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
@@ -104,7 +106,9 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
                         />
 
                         <div className='space-y-2'>
-                            <label className='text-sm font-medium'>Category Type <span className="text-red-500">*</span></label>
+                            <label className='font-medium text-sm'>
+                                Category Type <span className='text-red-500'>*</span>
+                            </label>
                             <Controller
                                 name='lmC_BNBFlg'
                                 control={control}
@@ -134,13 +138,13 @@ export default function UpdateMasterCategoryForm({ onSuccess, className = '', se
                         variant='outline'
                         onClick={handleReset}
                         disabled={isSubmitting}
-                        className='order-2 w-fit sm:order-1 transition-all duration-200 hover:scale-105'>
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Clear
                     </Button>
                     <Button
                         type='submit'
                         disabled={isSubmitting}
-                        className='order-1 w-fit sm:order-2 transition-all duration-200 hover:scale-105'
+                        className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting}
                         loadingText='Updating...'>
                         <div className='flex items-center'>

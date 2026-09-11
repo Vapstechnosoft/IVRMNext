@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { Separator } from '@/components/ui/separator';
+import { useEffect, useRef, useState } from 'react';
 import { ReportForm } from './_components/report-form';
 import { ReportList } from './_components/report-list';
-import { Separator } from '@/components/ui/separator';
 
 export default function NDSCoScholasticReportPage() {
     const [reportData, setReportData] = useState<any>(null);
@@ -31,24 +31,22 @@ export default function NDSCoScholasticReportPage() {
     }, [reportData]);
 
     return (
-        <div className="container mx-auto py-8 space-y-8 animate-in fade-in duration-700">
-            <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight text-primary">Exam Reports</h1>
-                <p className="text-muted-foreground">
-                    Generate and print Co-Scholastic area reports for students.
-                </p>
+        <div className='fade-in container mx-auto animate-in space-y-8 py-8 duration-700'>
+            <div className='space-y-2'>
+                <h1 className='font-bold text-3xl text-primary tracking-tight'>Exam Reports</h1>
+                <p className='text-muted-foreground'>Generate and print Co-Scholastic area reports for students.</p>
             </div>
-            
+
             <Separator />
 
-            <div className="grid grid-cols-1 gap-8">
-                <section className="transition-all duration-500">
+            <div className='grid grid-cols-1 gap-8'>
+                <section className='transition-all duration-500'>
                     <ReportForm onReportGenerated={handleReportGenerated} onReset={handleReset} />
                 </section>
 
-                <div ref={listRef} className="transition-all duration-500">
+                <div ref={listRef} className='transition-all duration-500'>
                     {reportData && (
-                        <section className="animate-in slide-in-from-bottom-4 duration-500">
+                        <section className='slide-in-from-bottom-4 animate-in duration-500'>
                             <ReportList data={reportData} academicYear={academicYear} />
                         </section>
                     )}

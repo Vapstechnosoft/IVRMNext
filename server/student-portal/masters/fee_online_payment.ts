@@ -1,18 +1,18 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IOnlinePaymentStudenyInformationList } from '@/types/student-portal/masters/fee_online_payment';
 
-export async function geStudentInformation(): Promise<IOnlinePaymentStudenyInformationList> {
-    const url = '/OnlinePayment/student-information';
-
-    const res = await api.get<any>('portal', url);
-
-    return res.data || ({} as IOnlinePaymentStudenyInformationList);
+export async function onlinepaymentdetails(data?: any) {
+    const url = '/FeeOnlinePaymentFacade/getdetails';
+    return await api.post<any>('fees', url, data);
 }
 
-export async function getGroupList() {
-    const url = '/OnlinePayment/group-list';
-    const response = await api.get<any>('portal', url);
-    return response.data?.data || [];
+export async function OnlinePaymentSeelctedTermDetails(data?: any) {
+    const url = '/FeeOnlinePaymentFacade/getamountdetails';
+    return await api.post<any>('fees', url, data);
+}
+
+export async function OpenOnlinePaymentGateway(data?: any) {
+    const url = '/FeeOnlinePaymentFacade/generatehashsequence';
+    return await api.post<any>('fees', url, data);
 }

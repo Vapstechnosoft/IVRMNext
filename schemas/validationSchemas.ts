@@ -510,3 +510,12 @@ export function createAllAllowedOptional(field: string, min: number, max: number
         .optional()
         .or(z.literal(''));
 }
+
+export function createAlphaNumericSpaceSchema(field: string, min: number, max: number) {
+    return z
+        .string({ message: `${field} Required` })
+        .trim()
+        .min(min, { message: min === 1 ? `${field} Required` : `Minimum ${min} characters required for ${field}` })
+        .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+        .regex(/^[A-Za-z0-9\s]+$/, { message: `${field} must contain only letters, numbers, and spaces` });
+}

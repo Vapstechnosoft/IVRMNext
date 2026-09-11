@@ -1,7 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import type { StaffUserCreationOnloadDTO, SearchGridDTO } from '@/types/super-admin/user-creation/staff-user-creation';
+import type { SearchGridDTO, StaffUserCreationOnloadDTO } from '@/types/super-admin/user-creation/staff-user-creation';
 
 const API_KEY = 'sadmin';
 
@@ -126,7 +126,7 @@ export async function getRoleTypeDropdown() {
             // Handle various data structures
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.fillroletype || response.data.$values || response.data);
+                : response.data.fillroletype || response.data.$values || response.data;
 
             if (Array.isArray(extractedData)) {
                 console.info(`✅ [SERVER] Extracted ${extractedData.length} roles`);
@@ -158,7 +158,7 @@ export async function getTrustDropdown() {
         if (response.success && response.data) {
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.fillorganisation || response.data.$values || response.data);
+                : response.data.fillorganisation || response.data.$values || response.data;
 
             if (Array.isArray(extractedData)) {
                 console.info(`✅ [SERVER] Extracted ${extractedData.length} trusts`);
@@ -188,7 +188,7 @@ export async function getInstitutionDropdown() {
         if (response.success && response.data) {
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.fillinstitution || response.data.$values || response.data);
+                : response.data.fillinstitution || response.data.$values || response.data;
 
             if (Array.isArray(extractedData)) {
                 console.info(`✅ [SERVER] Extracted ${extractedData.length} institutions`);
@@ -211,7 +211,7 @@ export async function getStaffDropdownByInstitution(mi_id: number) {
         if (response.success && response.data) {
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.fillstaff || response.data.$values || response.data);
+                : response.data.fillstaff || response.data.$values || response.data;
 
             if (Array.isArray(extractedData)) {
                 return { success: true, data: extractedData };
@@ -233,7 +233,7 @@ export async function getMultipleStaffUsers(mi_id: number) {
         if (response.success && response.data) {
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.fillstaff || response.data.$values || response.data);
+                : response.data.fillstaff || response.data.$values || response.data;
 
             if (Array.isArray(extractedData)) {
                 return { success: true, data: extractedData };
@@ -255,7 +255,7 @@ export async function getModuleDropdownByInstitution(mi_id: number) {
         if (response.success && response.data) {
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.fillmodule || response.data.$values || response.data);
+                : response.data.fillmodule || response.data.$values || response.data;
 
             if (Array.isArray(extractedData)) {
                 return { success: true, data: extractedData };
@@ -277,7 +277,7 @@ export async function getCategoryDropdownByInstitution(mi_id: number) {
         if (response.success && response.data) {
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.fillcategory || response.data.$values || response.data);
+                : response.data.fillcategory || response.data.$values || response.data;
 
             if (Array.isArray(extractedData)) {
                 return { success: true, data: extractedData };
@@ -310,12 +310,15 @@ export async function getSearchListGrid(payload: any) {
 export async function getAdminUserList(mi_id: number, flag: string, roleTypeId: number, roleName: string) {
     try {
         console.info('📡 [SERVER] Fetching Admin User List:', { mi_id, flag, roleTypeId, roleName });
-        const response = await api.get<any>(API_KEY, `StaffLogin/get_employeelistadmin_onchangeof_institution/${mi_id}/${flag}/${roleTypeId}/${roleName}`);
+        const response = await api.get<any>(
+            API_KEY,
+            `StaffLogin/get_employeelistadmin_onchangeof_institution/${mi_id}/${flag}/${roleTypeId}/${roleName}`
+        );
 
         if (response.success && response.data) {
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.studentDetails || response.data.employeelistadmin || response.data.$values || response.data);
+                : response.data.studentDetails || response.data.employeelistadmin || response.data.$values || response.data;
 
             return {
                 success: true,
@@ -328,7 +331,10 @@ export async function getAdminUserList(mi_id: number, flag: string, roleTypeId: 
         return { success: false, message: error.message || 'Failed to fetch admin list', data: [] };
     }
 }
-export async function getSearchListGridByInstituteName(mi_id: number, searchParams: any = {}): Promise<{
+export async function getSearchListGridByInstituteName(
+    mi_id: number,
+    searchParams: any = {}
+): Promise<{
     success: boolean;
     data: SearchGridDTO[];
     total: number;
@@ -345,7 +351,7 @@ export async function getSearchListGridByInstituteName(mi_id: number, searchPara
         if (response.success && response.data) {
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.searchfilter || response.data.$values || response.data);
+                : response.data.searchfilter || response.data.$values || response.data;
 
             return {
                 success: true,
@@ -365,12 +371,13 @@ export async function getSearchListGridByInstituteName(mi_id: number, searchPara
 export async function getUsernameOnStaffSelection(hrme_id: number, mi_id: number, ivrmrt_id: number) {
     try {
         console.info('📡 [SERVER] Fetching Username for Staff Selection:', { hrme_id, mi_id, ivrmrt_id });
-        const response = await api.get<any>(API_KEY, `StaffLogin/get_username_onchange_of_single_staff_selection/${hrme_id}/${mi_id}/${ivrmrt_id}`);
+        const response = await api.get<any>(
+            API_KEY,
+            `StaffLogin/get_username_onchange_of_single_staff_selection/${hrme_id}/${mi_id}/${ivrmrt_id}`
+        );
 
         if (response.success && response.data) {
-            let extractedData = Array.isArray(response.data)
-                ? response.data
-                : (response.data.$values || response.data);
+            let extractedData = Array.isArray(response.data) ? response.data : response.data.$values || response.data;
 
             // If it's still an object (not an array), wrap it in an array
             if (!Array.isArray(extractedData)) {
@@ -389,12 +396,7 @@ export async function getUsernameOnStaffSelection(hrme_id: number, mi_id: number
     }
 }
 
-export async function getMasterPageListGridOnChangeOfStaff(
-    hrme_id: number,
-    mi_id: number,
-    role_id: number,
-    searchParams: any = {}
-) {
+export async function getMasterPageListGridOnChangeOfStaff(hrme_id: number, mi_id: number, role_id: number, searchParams: any = {}) {
     try {
         console.info('📡 [SERVER] Fetching Master Page List Grid for Staff:', { hrme_id, mi_id, role_id, searchParams });
         const query = getSearchParamsUrl(searchParams);
@@ -404,7 +406,7 @@ export async function getMasterPageListGridOnChangeOfStaff(
         if (response.success && response.data) {
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.$values || response.data.gridview1 || response.data);
+                : response.data.$values || response.data.gridview1 || response.data;
 
             return {
                 success: true,
@@ -414,18 +416,20 @@ export async function getMasterPageListGridOnChangeOfStaff(
                 page_size: Number(response.page_size || 10)
             };
         }
-        return { success: false, message: response.message || 'Failed to fetch master page list', data: [], total: 0, page: 1, page_size: 10 };
+        return {
+            success: false,
+            message: response.message || 'Failed to fetch master page list',
+            data: [],
+            total: 0,
+            page: 1,
+            page_size: 10
+        };
     } catch (error: any) {
         console.error('❌ [SERVER] getMasterPageListGridOnChangeOfStaff error:', error);
         return { success: false, message: error.message || 'Failed to fetch master page list', data: [], total: 0, page: 1, page_size: 10 };
     }
 }
-export async function getMobileAppMasterPageListOnChangeOfStaff(
-    hrme_id: number,
-    mi_id: number,
-    role_id: number,
-    searchParams: any = {}
-) {
+export async function getMobileAppMasterPageListOnChangeOfStaff(hrme_id: number, mi_id: number, role_id: number, searchParams: any = {}) {
     try {
         console.info('📡 [SERVER] Fetching Mobile App Master Page List Grid for Staff:', { hrme_id, mi_id, role_id, searchParams });
         const query = getSearchParamsUrl(searchParams);
@@ -435,7 +439,7 @@ export async function getMobileAppMasterPageListOnChangeOfStaff(
         if (response.success && response.data) {
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.$values || response.data.data || response.data);
+                : response.data.$values || response.data.data || response.data;
 
             return {
                 success: true,
@@ -445,19 +449,28 @@ export async function getMobileAppMasterPageListOnChangeOfStaff(
                 page_size: Number(response.page_size || 10)
             };
         }
-        return { success: false, message: response.message || 'Failed to fetch mobile master page list', data: [], total: 0, page: 1, page_size: 10 };
+        return {
+            success: false,
+            message: response.message || 'Failed to fetch mobile master page list',
+            data: [],
+            total: 0,
+            page: 1,
+            page_size: 10
+        };
     } catch (error: any) {
         console.error('❌ [SERVER] getMobileAppMasterPageListOnChangeOfStaff error:', error);
-        return { success: false, message: error.message || 'Failed to fetch mobile master page list', data: [], total: 0, page: 1, page_size: 10 };
+        return {
+            success: false,
+            message: error.message || 'Failed to fetch mobile master page list',
+            data: [],
+            total: 0,
+            page: 1,
+            page_size: 10
+        };
     }
 }
 
-export async function getSavedMobileAppPageListOnChangeOfStaff(
-    hrme_id: number,
-    mi_id: number,
-    role_id: number,
-    searchParams: any = {}
-) {
+export async function getSavedMobileAppPageListOnChangeOfStaff(hrme_id: number, mi_id: number, role_id: number, searchParams: any = {}) {
     try {
         console.info('📡 [SERVER] Fetching Saved Mobile App Page List Grid for Staff:', { hrme_id, mi_id, role_id, searchParams });
         const query = getSearchParamsUrl(searchParams);
@@ -467,7 +480,7 @@ export async function getSavedMobileAppPageListOnChangeOfStaff(
         if (response.success && response.data) {
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.$values || response.data.data || response.data);
+                : response.data.$values || response.data.data || response.data;
 
             return {
                 success: true,
@@ -477,19 +490,28 @@ export async function getSavedMobileAppPageListOnChangeOfStaff(
                 page_size: Number(response.page_size || 10)
             };
         }
-        return { success: false, message: response.message || 'Failed to fetch saved mobile page list', data: [], total: 0, page: 1, page_size: 10 };
+        return {
+            success: false,
+            message: response.message || 'Failed to fetch saved mobile page list',
+            data: [],
+            total: 0,
+            page: 1,
+            page_size: 10
+        };
     } catch (error: any) {
         console.error('❌ [SERVER] getSavedMobileAppPageListOnChangeOfStaff error:', error);
-        return { success: false, message: error.message || 'Failed to fetch saved mobile page list', data: [], total: 0, page: 1, page_size: 10 };
+        return {
+            success: false,
+            message: error.message || 'Failed to fetch saved mobile page list',
+            data: [],
+            total: 0,
+            page: 1,
+            page_size: 10
+        };
     }
 }
 
-export async function getSavedListGridOnChangeOfStaff(
-    hrme_id: number,
-    mi_id: number,
-    role_id: number,
-    searchParams: any = {}
-) {
+export async function getSavedListGridOnChangeOfStaff(hrme_id: number, mi_id: number, role_id: number, searchParams: any = {}) {
     try {
         console.info('📡 [SERVER] Fetching Saved List Grid for Staff:', { hrme_id, mi_id, role_id, searchParams });
         const query = getSearchParamsUrl(searchParams);
@@ -499,7 +521,7 @@ export async function getSavedListGridOnChangeOfStaff(
         if (response.success && response.data) {
             const extractedData = Array.isArray(response.data)
                 ? response.data
-                : (response.data.$values || response.data.data || response.data);
+                : response.data.$values || response.data.data || response.data;
 
             return {
                 success: true,
@@ -515,7 +537,6 @@ export async function getSavedListGridOnChangeOfStaff(
         return { success: false, message: error.message || 'Failed to fetch saved list', data: [], total: 0, page: 1, page_size: 10 };
     }
 }
-
 
 export async function getMasterPageListGridOnChangeOfModule(
     User_Name: string,
@@ -538,8 +559,21 @@ export async function getMasterPageListGridOnChangeOfModule(
         const url = `StaffLogin/get_staff_page_privilege?${params.toString()}`;
         const response = await api.get<any>(API_KEY, url);
 
-        const showgrid1 = response.data && Array.isArray(response.data.showgrid1) ? response.data.showgrid1 : [];
-        const savedgrid = response.data && Array.isArray(response.data.savedgrid) ? response.data.savedgrid : [];
+        const responseData = response.data;
+        const showgrid1 = Array.isArray(responseData)
+            ? responseData
+            : responseData?.showgrid1?.$values ||
+              responseData?.showgrid1 ||
+              responseData?.data?.showgrid1?.$values ||
+              responseData?.data?.showgrid1 ||
+              responseData?.$values ||
+              [];
+        const savedgrid = response.savedGrid ||
+            responseData?.savedgrid?.$values ||
+            responseData?.savedgrid ||
+            responseData?.data?.savedgrid?.$values ||
+            responseData?.data?.savedgrid ||
+            [];
 
         return {
             success: true,

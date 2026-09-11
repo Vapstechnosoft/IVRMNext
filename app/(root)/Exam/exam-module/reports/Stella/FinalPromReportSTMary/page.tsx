@@ -1,11 +1,11 @@
 'use client';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { getNDS9Report } from '@/server/exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import FinalPromReportSTMaryForm from './_components/final-prom-report-stmary-form';
 import FinalPromReportSTMaryDisplay from './_components/final-prom-report-stmary-display';
-import { getNDS9Report } from '@/server/exam/exam-module/reports/NDS/NDS_9_ProgressNewCardReport';
+import FinalPromReportSTMaryForm from './_components/final-prom-report-stmary-form';
 
 export default function FinalPromReportSTMaryPage() {
     const [reportData, setReportData] = useState<any>(null);
@@ -17,7 +17,7 @@ export default function FinalPromReportSTMaryPage() {
         try {
             const res = await getNDS9Report(payload);
 
-            console.log("response data", res);
+            console.log('response data', res);
 
             const reportContent = res?.data || res;
 
@@ -54,11 +54,7 @@ export default function FinalPromReportSTMaryPage() {
 
             {isReportVisible && reportData && (
                 <CollapsibleSection title='Progress Cards Report' defaultOpen>
-                    <FinalPromReportSTMaryDisplay 
-                        data={reportData} 
-                        date={reportDate}
-                        remarks={remarks}
-                    />
+                    <FinalPromReportSTMaryDisplay data={reportData} date={reportDate} remarks={remarks} />
                 </CollapsibleSection>
             )}
         </div>

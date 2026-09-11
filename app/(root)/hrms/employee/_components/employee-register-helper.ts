@@ -160,15 +160,16 @@ export function mapFormDataToApiFormat(
     const bankRequest: any = {
         mI_Id: HRMS_MI_ID,
         hrmE_Id: employeeId,
-        bankDetails: (data.bankDetails && data.bankDetails.length > 0)
-            ? data.bankDetails.map((bank: any) => ({
-                hrmeB_Id: bank.hrmeB_Id || 0,
-                hrmE_Id: employeeId,
-                hrmbD_Id: Number(bank.employerBankName) || 0,
-                hrmeB_AccountNo: bank.bankAccountNo || '',
-                hrmeB_ActiveFlag: bank.isActive ?? true
-            }))
-            : []
+        bankDetails:
+            data.bankDetails && data.bankDetails.length > 0
+                ? data.bankDetails.map((bank: any) => ({
+                      hrmeB_Id: bank.hrmeB_Id || 0,
+                      hrmE_Id: employeeId,
+                      hrmbD_Id: Number(bank.employerBankName) || 0,
+                      hrmeB_AccountNo: bank.bankAccountNo || '',
+                      hrmeB_ActiveFlag: bank.isActive ?? true
+                  }))
+                : []
     };
 
     return { employee, bankRequest };
@@ -715,56 +716,56 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     const qualificationDetails =
         qualificationData.length > 0
             ? qualificationData.map((qual: any, qIndex: number) => {
-                if (qIndex === 0) {
-                    console.log('🔴 [HELPER DEBUG] First Qualification Item Keys:', Object.keys(qual));
-                }
-                // Use exact keys found in JSON
-                const courseVal =
-                    numToString(getValue(qual, 'hrmC_Id')) ||
-                    numToString(getValue(qual, 'hrmeQ_CourseId')) ||
-                    numToString(getValue(qual, 'hrmeQ_Course_Id')) ||
-                    '';
-                const countryVal = numToString(getValue(qual, 'hrmeQ_CountryId')) || numToString(getValue(qual, 'hrmE_Country_Id'));
-                const stateVal = numToString(getValue(qual, 'hrmeQ_StateId')) || numToString(getValue(qual, 'hrmE_State_Id'));
-                const yearVal = numToString(getValue(qual, 'hrmeQ_YearOfPassing')) || String(getValue(qual, 'hrmeQ_YearOfPassing') || '');
+                  if (qIndex === 0) {
+                      console.log('🔴 [HELPER DEBUG] First Qualification Item Keys:', Object.keys(qual));
+                  }
+                  // Use exact keys found in JSON
+                  const courseVal =
+                      numToString(getValue(qual, 'hrmC_Id')) ||
+                      numToString(getValue(qual, 'hrmeQ_CourseId')) ||
+                      numToString(getValue(qual, 'hrmeQ_Course_Id')) ||
+                      '';
+                  const countryVal = numToString(getValue(qual, 'hrmeQ_CountryId')) || numToString(getValue(qual, 'hrmE_Country_Id'));
+                  const stateVal = numToString(getValue(qual, 'hrmeQ_StateId')) || numToString(getValue(qual, 'hrmE_State_Id'));
+                  const yearVal = numToString(getValue(qual, 'hrmeQ_YearOfPassing')) || String(getValue(qual, 'hrmeQ_YearOfPassing') || '');
 
-                return {
-                    hrmeQ_Id: getValue(qual, 'hrmeQ_Id') || 0,
-                    qualification: getValue(qual, 'hrmE_QualificationName') || getValue(qual, 'hrmeQ_QualificationName') || '',
-                    course: courseVal,
-                    college: getValue(qual, 'hrmeQ_CollegeName') || '',
-                    university: getValue(qual, 'hrmeQ_UniversityName') || '',
-                    yearOfPassing: yearVal,
-                    qualificationCountry: countryVal,
-                    qualificationState: stateVal,
-                    registrationNo: getValue(qual, 'hrmeQ_RegistrationNo') || '',
-                    result: getValue(qual, 'hrmeQ_Result') || '',
-                    cgpaOrPercentage: getValue(qual, 'hrmeQ_CGPAOrPerFlag') || 'CGPA',
-                    cgpa: String(
-                        getValue(qual, 'hrmeQ_CGPAOrPerFlag') === 'Percentage'
-                            ? getValue(qual, 'hrmeQ_Percentage') || getValue(qual, 'hrmeQ_CGPA') || ''
-                            : getValue(qual, 'hrmeQ_CGPA') || getValue(qual, 'hrmeQ_Percentage') || ''
-                    ),
-                    percentage: String(getValue(qual, 'hrmeQ_Percentage') || ''),
-                    areaOfSpecialisation:
-                        numToString(getValue(qual, 'hrmeQ_AreaOfSpecialisation')) ||
-                        numToString(getValue(qual, 'hrmeQ_AreaOfSpecialization')) ||
-                        numToString(getValue(qual, 'specialisation')) ||
-                        numToString(getValue(qual, 'specialization')) ||
-                        numToString(getValue(qual, 'hrmeQ_SpecialisationId')) ||
-                        numToString(getValue(qual, 'hrmeQ_SpecializationId')) ||
-                        numToString(getValue(qual, 'hrmspL_Id')) ||
-                        numToString(getValue(qual, 'HRMSPL_Id')) ||
-                        '',
-                    phdFlag: getValue(qual, 'hrmeQ_PHDFlg') || false,
-                    thesisTitle: getValue(qual, 'hrmeQ_ThesisTitle') || '',
-                    registrationYear: numToString(getValue(qual, 'hrmeQ_RegistrationYear')),
-                    guideName: getValue(qual, 'hrmeQ_GuideName') || '',
-                    qualifiedDate: formatDate(getValue(qual, 'hrmeQ_Date')),
-                    medicalCouncil: getValue(qual, 'hrmeQ_MedicalCouncil') || '',
-                    hardcopy: getValue(qual, 'hrmeQ_Hardcopy') || ''
-                };
-            })
+                  return {
+                      hrmeQ_Id: getValue(qual, 'hrmeQ_Id') || 0,
+                      qualification: getValue(qual, 'hrmE_QualificationName') || getValue(qual, 'hrmeQ_QualificationName') || '',
+                      course: courseVal,
+                      college: getValue(qual, 'hrmeQ_CollegeName') || '',
+                      university: getValue(qual, 'hrmeQ_UniversityName') || '',
+                      yearOfPassing: yearVal,
+                      qualificationCountry: countryVal,
+                      qualificationState: stateVal,
+                      registrationNo: getValue(qual, 'hrmeQ_RegistrationNo') || '',
+                      result: getValue(qual, 'hrmeQ_Result') || '',
+                      cgpaOrPercentage: getValue(qual, 'hrmeQ_CGPAOrPerFlag') || 'CGPA',
+                      cgpa: String(
+                          getValue(qual, 'hrmeQ_CGPAOrPerFlag') === 'Percentage'
+                              ? getValue(qual, 'hrmeQ_Percentage') || getValue(qual, 'hrmeQ_CGPA') || ''
+                              : getValue(qual, 'hrmeQ_CGPA') || getValue(qual, 'hrmeQ_Percentage') || ''
+                      ),
+                      percentage: String(getValue(qual, 'hrmeQ_Percentage') || ''),
+                      areaOfSpecialisation:
+                          numToString(getValue(qual, 'hrmeQ_AreaOfSpecialisation')) ||
+                          numToString(getValue(qual, 'hrmeQ_AreaOfSpecialization')) ||
+                          numToString(getValue(qual, 'specialisation')) ||
+                          numToString(getValue(qual, 'specialization')) ||
+                          numToString(getValue(qual, 'hrmeQ_SpecialisationId')) ||
+                          numToString(getValue(qual, 'hrmeQ_SpecializationId')) ||
+                          numToString(getValue(qual, 'hrmspL_Id')) ||
+                          numToString(getValue(qual, 'HRMSPL_Id')) ||
+                          '',
+                      phdFlag: getValue(qual, 'hrmeQ_PHDFlg') || false,
+                      thesisTitle: getValue(qual, 'hrmeQ_ThesisTitle') || '',
+                      registrationYear: numToString(getValue(qual, 'hrmeQ_RegistrationYear')),
+                      guideName: getValue(qual, 'hrmeQ_GuideName') || '',
+                      qualifiedDate: formatDate(getValue(qual, 'hrmeQ_Date')),
+                      medicalCouncil: getValue(qual, 'hrmeQ_MedicalCouncil') || '',
+                      hardcopy: getValue(qual, 'hrmeQ_Hardcopy') || ''
+                  };
+              })
             : [];
 
     // Map experience details
@@ -838,45 +839,45 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     const experienceDetails =
         experienceData.length > 0
             ? experienceData.map((exp: any) => ({
-                hrmeE_Id: getValue(exp, 'hrmeE_Id') || getValue(exp, 'HRMEE_Id') || 0, // Preserve ID for updates
-                organisationName:
-                    getValue(exp, 'hrmeE_OrganisationName') ||
-                    getValue(exp, 'hrmE_OrganisationName') ||
-                    getValue(exp, 'organisationName') ||
-                    '',
-                organisationAddress:
-                    getValue(exp, 'hrmeE_OrganisationAddress') ||
-                    getValue(exp, 'hrmE_OrganisationAddress') ||
-                    getValue(exp, 'organisationAddress') ||
-                    '',
-                department: getValue(exp, 'hrmeE_Department') || getValue(exp, 'hrmE_Department') || getValue(exp, 'department') || '',
-                designation:
-                    getValue(exp, 'hrmeE_Designation') || getValue(exp, 'hrmE_Designation') || getValue(exp, 'designation') || '',
-                joinDate: formatDate(
-                    getValue(exp, 'hrmeE_JoinDate') ||
-                    getValue(exp, 'hrmE_JoinDate') ||
-                    getValue(exp, 'joinDate') ||
-                    getValue(exp, 'hrmE_DateOfJoining')
-                ),
-                exitDate: formatDate(
-                    getValue(exp, 'hrmeE_ExitDate') ||
-                    getValue(exp, 'hrmE_ExitDate') ||
-                    getValue(exp, 'exitDate') ||
-                    getValue(exp, 'hrmE_DateOfLeaving')
-                ),
-                noOfYears: numToString(getValue(exp, 'hrmeE_NoOfYears') || getValue(exp, 'hrmE_NoOfYears') || getValue(exp, 'noOfYears')),
-                noOfMonths: numToString(
-                    getValue(exp, 'hrmeE_NoOfMonths') || getValue(exp, 'hrmE_NoOfMonths') || getValue(exp, 'noOfMonths')
-                ),
-                annualSalary: numToString(
-                    getValue(exp, 'hrmeE_AnnualSalary') || getValue(exp, 'hrmE_AnnualSalary') || getValue(exp, 'annualSalary')
-                ),
-                reasonForLeaving:
-                    getValue(exp, 'hrmeE_ReasonForLeaving') ||
-                    getValue(exp, 'hrmE_ReasonForLeaving') ||
-                    getValue(exp, 'reasonForLeaving') ||
-                    ''
-            }))
+                  hrmeE_Id: getValue(exp, 'hrmeE_Id') || getValue(exp, 'HRMEE_Id') || 0, // Preserve ID for updates
+                  organisationName:
+                      getValue(exp, 'hrmeE_OrganisationName') ||
+                      getValue(exp, 'hrmE_OrganisationName') ||
+                      getValue(exp, 'organisationName') ||
+                      '',
+                  organisationAddress:
+                      getValue(exp, 'hrmeE_OrganisationAddress') ||
+                      getValue(exp, 'hrmE_OrganisationAddress') ||
+                      getValue(exp, 'organisationAddress') ||
+                      '',
+                  department: getValue(exp, 'hrmeE_Department') || getValue(exp, 'hrmE_Department') || getValue(exp, 'department') || '',
+                  designation:
+                      getValue(exp, 'hrmeE_Designation') || getValue(exp, 'hrmE_Designation') || getValue(exp, 'designation') || '',
+                  joinDate: formatDate(
+                      getValue(exp, 'hrmeE_JoinDate') ||
+                          getValue(exp, 'hrmE_JoinDate') ||
+                          getValue(exp, 'joinDate') ||
+                          getValue(exp, 'hrmE_DateOfJoining')
+                  ),
+                  exitDate: formatDate(
+                      getValue(exp, 'hrmeE_ExitDate') ||
+                          getValue(exp, 'hrmE_ExitDate') ||
+                          getValue(exp, 'exitDate') ||
+                          getValue(exp, 'hrmE_DateOfLeaving')
+                  ),
+                  noOfYears: numToString(getValue(exp, 'hrmeE_NoOfYears') || getValue(exp, 'hrmE_NoOfYears') || getValue(exp, 'noOfYears')),
+                  noOfMonths: numToString(
+                      getValue(exp, 'hrmeE_NoOfMonths') || getValue(exp, 'hrmE_NoOfMonths') || getValue(exp, 'noOfMonths')
+                  ),
+                  annualSalary: numToString(
+                      getValue(exp, 'hrmeE_AnnualSalary') || getValue(exp, 'hrmE_AnnualSalary') || getValue(exp, 'annualSalary')
+                  ),
+                  reasonForLeaving:
+                      getValue(exp, 'hrmeE_ReasonForLeaving') ||
+                      getValue(exp, 'hrmE_ReasonForLeaving') ||
+                      getValue(exp, 'reasonForLeaving') ||
+                      ''
+              }))
             : [];
 
     // Map document list
@@ -913,13 +914,13 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     const documentList =
         documentData.length > 0
             ? documentData.map((doc: any) => ({
-                hrmedS_Id: getValue(doc, 'hrmedS_Id') || 0,
-                documentName: getValue(doc, 'hrmedS_DocumentName') || '',
-                documentDescription: getValue(doc, 'hrmedS_DucumentDescription') || '',
-                document: null,
-                documentImageName: getValue(doc, 'hrmedS_DocumentImageName') || '', // Match key expected by update-form
-                imageName: getValue(doc, 'hrmedS_DocumentImageName') || '' // Keep alias for safety
-            }))
+                  hrmedS_Id: getValue(doc, 'hrmedS_Id') || 0,
+                  documentName: getValue(doc, 'hrmedS_DocumentName') || '',
+                  documentDescription: getValue(doc, 'hrmedS_DucumentDescription') || '',
+                  document: null,
+                  documentImageName: getValue(doc, 'hrmedS_DocumentImageName') || '', // Match key expected by update-form
+                  imageName: getValue(doc, 'hrmedS_DocumentImageName') || '' // Keep alias for safety
+              }))
             : [];
 
     // Map bank details
@@ -927,40 +928,47 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     const bankDetails =
         bankData.length > 0
             ? bankData.map((bank: any) => ({
-                hrmeB_Id: getValue(bank, 'hrmeB_Id') || 0, // Preserve ID for updates
-                employerBankName: numToString(bank.hrmbD_Id), // Changed to employerBankName from bank to match type
-                bankAccountNo: bank.hrmeB_AccountNo || '',
-                accountType: '', // Added missing required property
-                isActive: bank.hrmeB_ActiveFlag === 'Y' || bank.hrmeB_ActiveFlag === true
-            }))
+                  hrmeB_Id: getValue(bank, 'hrmeB_Id') || 0, // Preserve ID for updates
+                  employerBankName: numToString(bank.hrmbD_Id), // Changed to employerBankName from bank to match type
+                  bankAccountNo: bank.hrmeB_AccountNo || '',
+                  accountType: '', // Added missing required property
+                  isActive: bank.hrmeB_ActiveFlag === 'Y' || bank.hrmeB_ActiveFlag === true
+              }))
             : [];
 
-    const mobileData = getArrayFromResponse('hrmemno_MobileNo', 'selectedmobile_list_dto', 'mobileList', 'mobile', 'selectedMobileList', 'selectedmobile_list');
+    const mobileData = getArrayFromResponse(
+        'hrmemno_MobileNo',
+        'selectedmobile_list_dto',
+        'mobileList',
+        'mobile',
+        'selectedMobileList',
+        'selectedmobile_list'
+    );
     console.log('🔍 [DEBUG] hrmE_MobileNo from safeData:', v('hrmE_MobileNo'));
     console.log('🔍 [DEBUG] mobileData array from response:', mobileData);
     let mobileDetails =
         mobileData.length > 0
             ? mobileData.map((mobile: any, idx: number) => {
-                const rawFlag = getValue(mobile, 'hrmemnO_DeFaultFlag') || getValue(mobile, 'hrmemno_DeFaultFlag') || '';
-                const resolvedType = rawFlag === 'Y' ? 'Default' : (rawFlag || 'Default');
+                  const rawFlag = getValue(mobile, 'hrmemnO_DeFaultFlag') || getValue(mobile, 'hrmemno_DeFaultFlag') || '';
+                  const resolvedType = rawFlag === 'Y' ? 'Default' : rawFlag || 'Default';
 
-                const mapped = {
-                    hrmemnO_Id: getValue(mobile, 'hrmemnO_Id') || getValue(mobile, 'hrmemno_Id') || 0,
-                    mobileNo: numToString(
-                        getValue(mobile, 'hrmemno_MobileNo') ||
-                        getValue(mobile, 'hrmemnO_MobileNo') ||
-                        getValue(mobile, 'hrmem_MobileNo') ||
-                        getValue(mobile, 'hrmE_MobileNo')
-                    ),
-                    type: resolvedType
-                };
-                console.log(`  - mobile[${idx}] mapped to:`, mapped);
-                return mapped;
-            })
+                  const mapped = {
+                      hrmemnO_Id: getValue(mobile, 'hrmemnO_Id') || getValue(mobile, 'hrmemno_Id') || 0,
+                      mobileNo: numToString(
+                          getValue(mobile, 'hrmemno_MobileNo') ||
+                              getValue(mobile, 'hrmemnO_MobileNo') ||
+                              getValue(mobile, 'hrmem_MobileNo') ||
+                              getValue(mobile, 'hrmE_MobileNo')
+                      ),
+                      type: resolvedType
+                  };
+                  console.log(`  - mobile[${idx}] mapped to:`, mapped);
+                  return mapped;
+              })
             : [];
 
     // If mobileDetails is empty OR only contains a single empty item, try falling back to scalar hrmE_MobileNo
-    const hasActualData = mobileDetails.some(m => m.mobileNo && m.mobileNo.trim() !== '');
+    const hasActualData = mobileDetails.some((m) => m.mobileNo && m.mobileNo.trim() !== '');
 
     if (!hasActualData) {
         const primaryMobile = v('hrmE_MobileNo') || v('hrme_MobileNo') || v('MobileNo') || v('hrmE_Mobile_No') || v('hrmE_Phno');
@@ -973,20 +981,27 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     }
     console.log('🔍 [DEBUG] final mobileDetails mapped:', mobileDetails);
 
-    const emailData = getArrayFromResponse('hrmem_EmailId', 'selectedemail_list_dto', 'emailList', 'email', 'selectedEmailList', 'selectedemail_list');
+    const emailData = getArrayFromResponse(
+        'hrmem_EmailId',
+        'selectedemail_list_dto',
+        'emailList',
+        'email',
+        'selectedEmailList',
+        'selectedemail_list'
+    );
     const emailDetails =
         emailData.length > 0
             ? emailData.map((email: any) => {
-                const rawEmailFlag = getValue(email, 'hrmem_DeFaultFlag') || '';
-                return {
-                    hrmeeM_Id: getValue(email, 'hrmeeM_Id') || getValue(email, 'hrmeM_Id') || 0,
-                    emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
-                    type: rawEmailFlag === 'Y' ? 'Default' : (rawEmailFlag || 'Default')
-                };
-            })
-            : (v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId'))
-                ? [{ hrmeeM_Id: 0, emailId: v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId'), type: 'Default' }]
-                : [{ hrmeeM_Id: 0, emailId: '', type: 'Default' }];
+                  const rawEmailFlag = getValue(email, 'hrmem_DeFaultFlag') || '';
+                  return {
+                      hrmeeM_Id: getValue(email, 'hrmeeM_Id') || getValue(email, 'hrmeM_Id') || 0,
+                      emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
+                      type: rawEmailFlag === 'Y' ? 'Default' : rawEmailFlag || 'Default'
+                  };
+              })
+            : v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId')
+              ? [{ hrmeeM_Id: 0, emailId: v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId'), type: 'Default' }]
+              : [{ hrmeeM_Id: 0, emailId: '', type: 'Default' }];
 
     // Map spouse fields (if they exist in API)
     const spouseDetails = {
@@ -1008,14 +1023,14 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         employeeCode: v('hrmE_EmployeeCode') || '',
         typeOfEmployment: numToString(
             v('hrmeT_Id') ||
-            v('HRMET_Id') ||
-            v('employeeTypeId') ||
-            v('EmployeeTypeId') ||
-            v('hrmet_id') ||
-            // biome-ignore lint/complexity/useOptionalChain: <explanation>
-            (apiData && apiData.HRMET_Id) ||
-            // biome-ignore lint/complexity/useOptionalChain: <explanation>
-            (data && data.HRMET_Id)
+                v('HRMET_Id') ||
+                v('employeeTypeId') ||
+                v('EmployeeTypeId') ||
+                v('hrmet_id') ||
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
+                (apiData && apiData.HRMET_Id) ||
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
+                (data && data.HRMET_Id)
         ),
         employeeGroup: numToString(v('hrmgT_Id') || v('HRMGT_Id')),
         department: numToString(v('hrmD_Id') || v('HRMD_Id') || v('mI_Id') || v('MI_Id')),
@@ -1213,13 +1228,13 @@ export function extractListData(response: any): any[] {
         if (Array.isArray(response[key])) return response[key];
 
         // Case-insensitive match
-        const foundKey = Object.keys(response).find(k => k.toLowerCase() === key.toLowerCase());
+        const foundKey = Object.keys(response).find((k) => k.toLowerCase() === key.toLowerCase());
         if (foundKey && Array.isArray(response[foundKey])) return response[foundKey];
 
         // Check inside 'data' property
         if (response.data && typeof response.data === 'object' && !Array.isArray(response.data)) {
             if (Array.isArray(response.data[key])) return response.data[key];
-            const foundDataKey = Object.keys(response.data).find(k => k.toLowerCase() === key.toLowerCase());
+            const foundDataKey = Object.keys(response.data).find((k) => k.toLowerCase() === key.toLowerCase());
             if (foundDataKey && Array.isArray(response.data[foundDataKey])) return response.data[foundDataKey];
         }
     }
@@ -1249,7 +1264,6 @@ function extractDataObject(apiData: any, targetId?: number): any {
     return apiData;
 }
 
-
 /**
  * Helper to safely get value from data object with case-insensitive fallback
  */
@@ -1277,17 +1291,16 @@ export function getValue(data: any, key: string): any {
 
     // 3. Fallback: Search all keys case-insensitively
     const keys = Object.keys(data);
-    const foundKey = keys.find(k => k.toLowerCase() === lowerKey);
+    const foundKey = keys.find((k) => k.toLowerCase() === lowerKey);
     if (foundKey) return data[foundKey];
 
     // 4. Normalized search (remove underscores and case-insensitive)
     const normalizedTarget = lowerKey.replace(/_/g, '');
-    const matchedNormalized = keys.find(k => k.toLowerCase().replace(/_/g, '') === normalizedTarget);
+    const matchedNormalized = keys.find((k) => k.toLowerCase().replace(/_/g, '') === normalizedTarget);
     if (matchedNormalized) return data[matchedNormalized];
 
     return undefined;
 }
-
 
 /**
  * Map API response to form fields for Tab 1 (Employee Information) only
@@ -1334,13 +1347,13 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
     const mobileDetails =
         Array.isArray(mobileData) && mobileData.length > 0
             ? mobileData.map((mobile: any) => ({
-                hrmemnO_Id: getValue(mobile, 'hrmemnO_Id') || getValue(mobile, 'hrmemno_Id') || 0, // ADDED: ID preservation
-                mobileNo: numToString(getValue(mobile, 'hrmemno_MobileNo') || getValue(mobile, 'hrmemnO_MobileNo')),
-                type: getValue(mobile, 'hrmemno_DeFaultFlag') || 'Default'
-            }))
+                  hrmemnO_Id: getValue(mobile, 'hrmemnO_Id') || getValue(mobile, 'hrmemno_Id') || 0, // ADDED: ID preservation
+                  mobileNo: numToString(getValue(mobile, 'hrmemno_MobileNo') || getValue(mobile, 'hrmemnO_MobileNo')),
+                  type: getValue(mobile, 'hrmemno_DeFaultFlag') || 'Default'
+              }))
             : v('hrmE_MobileNo')
-                ? [{ hrmemnO_Id: 0, mobileNo: numToString(v('hrmE_MobileNo')), type: 'Default' }]
-                : [{ hrmemnO_Id: 0, mobileNo: '', type: 'Default' }];
+              ? [{ hrmemnO_Id: 0, mobileNo: numToString(v('hrmE_MobileNo')), type: 'Default' }]
+              : [{ hrmemnO_Id: 0, mobileNo: '', type: 'Default' }];
 
     // Map email details
     let emailData = v('selectedemail_list_dto');
@@ -1356,13 +1369,13 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
     const emailDetails =
         Array.isArray(emailData) && emailData.length > 0
             ? emailData.map((email: any) => ({
-                hrmeeM_Id: getValue(email, 'hrmeeM_Id') || getValue(email, 'hrmeM_Id') || 0, // ADDED: ID preservation
-                emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
-                type: getValue(email, 'hrmem_DeFaultFlag') || 'Default'
-            }))
+                  hrmeeM_Id: getValue(email, 'hrmeeM_Id') || getValue(email, 'hrmeM_Id') || 0, // ADDED: ID preservation
+                  emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
+                  type: getValue(email, 'hrmem_DeFaultFlag') || 'Default'
+              }))
             : v('hrmE_EmailId')
-                ? [{ hrmeeM_Id: 0, emailId: v('hrmE_EmailId'), type: 'Default' }]
-                : [{ hrmeeM_Id: 0, emailId: '', type: 'Default' }];
+              ? [{ hrmeeM_Id: 0, emailId: v('hrmE_EmailId'), type: 'Default' }]
+              : [{ hrmeeM_Id: 0, emailId: '', type: 'Default' }];
 
     // Return only Tab 1 fields (Employee Information)
     return {
@@ -1510,46 +1523,46 @@ export function mapApiResponseToTab3Fields(apiData: any): Partial<FormFields> {
     }
     const qualificationDetails = Array.isArray(qualificationData)
         ? qualificationData.map((qual: any) => {
-            console.log('🔍 [HELPER] Mapping Qualification Item:', qual);
-            return {
-                hrmeQ_Id: getValue(qual, 'hrmeQ_Id') || getValue(qual, 'HRMEQ_Id') || 0, // Preserve ID for updates - CRITICAL!
-                qualification:
-                    getValue(qual, 'hrmeQ_QualificationName') ||
-                    getValue(qual, 'HRMEQ_QualificationName') ||
-                    getValue(qual, 'hrmE_QualificationName') ||
-                    '',
-                course: numToString(getValue(qual, 'hrmeQ_CourseId') || getValue(qual, 'hrmC_Id') || getValue(qual, 'hrmeQ_Course_Id')),
-                college: getValue(qual, 'hrmeQ_CollegeName') || '',
-                university: getValue(qual, 'hrmeQ_UniversityName') || '',
-                yearOfPassing: numToString(getValue(qual, 'hrmeQ_YearOfPassing')),
-                qualificationCountry: numToString(getValue(qual, 'hrmeQ_CountryId')),
-                qualificationState: numToString(getValue(qual, 'hrmeQ_StateId')),
-                registrationNo: getValue(qual, 'hrmeQ_RegistrationNo') || '',
-                result: getValue(qual, 'hrmeQ_Result') || '',
-                cgpaOrPercentage: getValue(qual, 'hrmeQ_CGPAOrPerFlag') || 'CGPA',
-                cgpa:
-                    (getValue(qual, 'hrmeQ_CGPAOrPerFlag') === 'Percentage'
-                        ? getValue(qual, 'hrmeQ_Percentage') || ''
-                        : getValue(qual, 'hrmeQ_CGPA') || '') || '',
-                percentage: getValue(qual, 'hrmeQ_Percentage') || '',
-                areaOfSpecialisation: numToString(
-                    getValue(qual, 'hrmeQ_AreaOfSpecialisation') ||
-                    getValue(qual, 'hrmeQ_AreaOfSpecialization') ||
-                    getValue(qual, 'specialisation') ||
-                    getValue(qual, 'specialization') ||
-                    getValue(qual, 'hrmeQ_SpecialisationId') ||
-                    getValue(qual, 'hrmeQ_SpecializationId') ||
-                    getValue(qual, 'hrmspL_Id')
-                ),
-                phdFlag: getValue(qual, 'hrmeQ_PHDFlg') || false,
-                medicalCouncil: getValue(qual, 'hrmeQ_MedicalCouncil') || '',
-                thesisTitle: getValue(qual, 'hrmeQ_ThesisTitle') || '',
-                registrationYear: numToString(getValue(qual, 'hrmeQ_RegistrationYear')),
-                guideName: getValue(qual, 'hrmeQ_GuideName') || '',
-                qualifiedDate: formatDate(getValue(qual, 'hrmeQ_Date')),
-                hardcopy: getValue(qual, 'hrmeQ_Hardcopy') || ''
-            };
-        })
+              console.log('🔍 [HELPER] Mapping Qualification Item:', qual);
+              return {
+                  hrmeQ_Id: getValue(qual, 'hrmeQ_Id') || getValue(qual, 'HRMEQ_Id') || 0, // Preserve ID for updates - CRITICAL!
+                  qualification:
+                      getValue(qual, 'hrmeQ_QualificationName') ||
+                      getValue(qual, 'HRMEQ_QualificationName') ||
+                      getValue(qual, 'hrmE_QualificationName') ||
+                      '',
+                  course: numToString(getValue(qual, 'hrmeQ_CourseId') || getValue(qual, 'hrmC_Id') || getValue(qual, 'hrmeQ_Course_Id')),
+                  college: getValue(qual, 'hrmeQ_CollegeName') || '',
+                  university: getValue(qual, 'hrmeQ_UniversityName') || '',
+                  yearOfPassing: numToString(getValue(qual, 'hrmeQ_YearOfPassing')),
+                  qualificationCountry: numToString(getValue(qual, 'hrmeQ_CountryId')),
+                  qualificationState: numToString(getValue(qual, 'hrmeQ_StateId')),
+                  registrationNo: getValue(qual, 'hrmeQ_RegistrationNo') || '',
+                  result: getValue(qual, 'hrmeQ_Result') || '',
+                  cgpaOrPercentage: getValue(qual, 'hrmeQ_CGPAOrPerFlag') || 'CGPA',
+                  cgpa:
+                      (getValue(qual, 'hrmeQ_CGPAOrPerFlag') === 'Percentage'
+                          ? getValue(qual, 'hrmeQ_Percentage') || ''
+                          : getValue(qual, 'hrmeQ_CGPA') || '') || '',
+                  percentage: getValue(qual, 'hrmeQ_Percentage') || '',
+                  areaOfSpecialisation: numToString(
+                      getValue(qual, 'hrmeQ_AreaOfSpecialisation') ||
+                          getValue(qual, 'hrmeQ_AreaOfSpecialization') ||
+                          getValue(qual, 'specialisation') ||
+                          getValue(qual, 'specialization') ||
+                          getValue(qual, 'hrmeQ_SpecialisationId') ||
+                          getValue(qual, 'hrmeQ_SpecializationId') ||
+                          getValue(qual, 'hrmspL_Id')
+                  ),
+                  phdFlag: getValue(qual, 'hrmeQ_PHDFlg') || false,
+                  medicalCouncil: getValue(qual, 'hrmeQ_MedicalCouncil') || '',
+                  thesisTitle: getValue(qual, 'hrmeQ_ThesisTitle') || '',
+                  registrationYear: numToString(getValue(qual, 'hrmeQ_RegistrationYear')),
+                  guideName: getValue(qual, 'hrmeQ_GuideName') || '',
+                  qualifiedDate: formatDate(getValue(qual, 'hrmeQ_Date')),
+                  hardcopy: getValue(qual, 'hrmeQ_Hardcopy') || ''
+              };
+          })
         : [];
 
     return {
@@ -1614,42 +1627,42 @@ export function mapApiResponseToTab4Fields(apiData: any): Partial<FormFields> {
 
     const experienceDetails = Array.isArray(experienceData)
         ? experienceData.map((exp: any) => ({
-            hrmeE_Id: getValue(exp, 'hrmeE_Id') || getValue(exp, 'HRMEE_Id') || 0, // Preserve ID for updates
-            organisationName:
-                getValue(exp, 'hrmeE_OrganisationName') ||
-                getValue(exp, 'hrmE_OrganisationName') ||
-                getValue(exp, 'organisationName') ||
-                '',
-            organisationAddress:
-                getValue(exp, 'hrmeE_OrganisationAddress') ||
-                getValue(exp, 'hrmE_OrganisationAddress') ||
-                getValue(exp, 'organisationAddress') ||
-                '',
-            department: getValue(exp, 'hrmeE_Department') || getValue(exp, 'hrmE_Department') || getValue(exp, 'department') || '',
-            designation: getValue(exp, 'hrmeE_Designation') || getValue(exp, 'hrmE_Designation') || getValue(exp, 'designation') || '',
-            joinDate: formatDate(
-                getValue(exp, 'hrmeE_JoinDate') ||
-                getValue(exp, 'hrmE_JoinDate') ||
-                getValue(exp, 'joinDate') ||
-                getValue(exp, 'hrmE_DateOfJoining')
-            ),
-            exitDate: formatDate(
-                getValue(exp, 'hrmeE_ExitDate') ||
-                getValue(exp, 'hrmE_ExitDate') ||
-                getValue(exp, 'exitDate') ||
-                getValue(exp, 'hrmE_DateOfLeaving')
-            ),
-            noOfYears: numToString(getValue(exp, 'hrmeE_NoOfYears') || getValue(exp, 'hrmE_NoOfYears') || getValue(exp, 'noOfYears')),
-            noOfMonths: numToString(getValue(exp, 'hrmeE_NoOfMonths') || getValue(exp, 'hrmE_NoOfMonths') || getValue(exp, 'noOfMonths')),
-            annualSalary: numToString(
-                getValue(exp, 'hrmeE_AnnualSalary') || getValue(exp, 'hrmE_AnnualSalary') || getValue(exp, 'annualSalary')
-            ),
-            reasonForLeaving:
-                getValue(exp, 'hrmeE_ReasonForLeaving') ||
-                getValue(exp, 'hrmE_ReasonForLeaving') ||
-                getValue(exp, 'reasonForLeaving') ||
-                ''
-        }))
+              hrmeE_Id: getValue(exp, 'hrmeE_Id') || getValue(exp, 'HRMEE_Id') || 0, // Preserve ID for updates
+              organisationName:
+                  getValue(exp, 'hrmeE_OrganisationName') ||
+                  getValue(exp, 'hrmE_OrganisationName') ||
+                  getValue(exp, 'organisationName') ||
+                  '',
+              organisationAddress:
+                  getValue(exp, 'hrmeE_OrganisationAddress') ||
+                  getValue(exp, 'hrmE_OrganisationAddress') ||
+                  getValue(exp, 'organisationAddress') ||
+                  '',
+              department: getValue(exp, 'hrmeE_Department') || getValue(exp, 'hrmE_Department') || getValue(exp, 'department') || '',
+              designation: getValue(exp, 'hrmeE_Designation') || getValue(exp, 'hrmE_Designation') || getValue(exp, 'designation') || '',
+              joinDate: formatDate(
+                  getValue(exp, 'hrmeE_JoinDate') ||
+                      getValue(exp, 'hrmE_JoinDate') ||
+                      getValue(exp, 'joinDate') ||
+                      getValue(exp, 'hrmE_DateOfJoining')
+              ),
+              exitDate: formatDate(
+                  getValue(exp, 'hrmeE_ExitDate') ||
+                      getValue(exp, 'hrmE_ExitDate') ||
+                      getValue(exp, 'exitDate') ||
+                      getValue(exp, 'hrmE_DateOfLeaving')
+              ),
+              noOfYears: numToString(getValue(exp, 'hrmeE_NoOfYears') || getValue(exp, 'hrmE_NoOfYears') || getValue(exp, 'noOfYears')),
+              noOfMonths: numToString(getValue(exp, 'hrmeE_NoOfMonths') || getValue(exp, 'hrmE_NoOfMonths') || getValue(exp, 'noOfMonths')),
+              annualSalary: numToString(
+                  getValue(exp, 'hrmeE_AnnualSalary') || getValue(exp, 'hrmE_AnnualSalary') || getValue(exp, 'annualSalary')
+              ),
+              reasonForLeaving:
+                  getValue(exp, 'hrmeE_ReasonForLeaving') ||
+                  getValue(exp, 'hrmE_ReasonForLeaving') ||
+                  getValue(exp, 'reasonForLeaving') ||
+                  ''
+          }))
         : [];
 
     return {
@@ -1684,12 +1697,12 @@ export function mapApiResponseToTab5Fields(apiData: any): Partial<FormFields> {
     }
     const documentList = Array.isArray(docData)
         ? docData.map((doc: any) => ({
-            hrmedS_Id: getValue(doc, 'hrmedS_Id') || 0, // RE-ADDED: ID for re-sync
-            documentName: getValue(doc, 'hrmedS_DocumentName') || '',
-            documentDescription: getValue(doc, 'hrmedS_DucumentDescription') || '',
-            document: null, // File will be handled separately if needed
-            imageName: getValue(doc, 'hrmedS_DocumentImageName') || ''
-        }))
+              hrmedS_Id: getValue(doc, 'hrmedS_Id') || 0, // RE-ADDED: ID for re-sync
+              documentName: getValue(doc, 'hrmedS_DocumentName') || '',
+              documentDescription: getValue(doc, 'hrmedS_DucumentDescription') || '',
+              document: null, // File will be handled separately if needed
+              imageName: getValue(doc, 'hrmedS_DocumentImageName') || ''
+          }))
         : [];
 
     return {
@@ -1814,12 +1827,12 @@ export function mapApiResponseToTab8Fields(apiData: any): Partial<FormFields> {
     }
     const bankDetails = Array.isArray(bankData)
         ? bankData.map((bank: any) => ({
-            hrmeB_Id: getValue(bank, 'hrmeB_Id') || 0, // Preserve ID for updates
-            employerBankName: numToString(getValue(bank, 'hrmbD_Id')),
-            bankAccountNo: getValue(bank, 'hrmeB_AccountNo') || '',
-            accountType: '',
-            isActive: getValue(bank, 'hrmeB_ActiveFlag') === 'Y' || getValue(bank, 'hrmeB_ActiveFlag') === true
-        }))
+              hrmeB_Id: getValue(bank, 'hrmeB_Id') || 0, // Preserve ID for updates
+              employerBankName: numToString(getValue(bank, 'hrmbD_Id')),
+              bankAccountNo: getValue(bank, 'hrmeB_AccountNo') || '',
+              accountType: '',
+              isActive: getValue(bank, 'hrmeB_ActiveFlag') === 'Y' || getValue(bank, 'hrmeB_ActiveFlag') === true
+          }))
         : [];
 
     return {
@@ -1984,5 +1997,3 @@ export function normalizeEmployeeList(list: any[] | null | undefined): any[] {
     if (!list || !Array.isArray(list)) return [];
     return list.map((item) => normalizeEmployeeData(item));
 }
-
-

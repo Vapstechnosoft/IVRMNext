@@ -1,9 +1,11 @@
 export interface MasterLoanResponse {
     success?: boolean;
     message?: string;
-    data?: MasterLoanDetail[] | {
-        gmasterloanList: MasterLoanDetail[];
-    };
+    data?:
+        | MasterLoanDetail[]
+        | {
+              gmasterloanList: MasterLoanDetail[];
+          };
     gmasterloanList?: MasterLoanDetail[];
     total?: number | null;
     page?: number | null;

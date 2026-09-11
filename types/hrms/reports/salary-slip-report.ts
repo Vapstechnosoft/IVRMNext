@@ -171,4 +171,3 @@ export interface SalarySlipResponse {
 export type SalarySlipOnloadResponse = ApiResponse<SalarySlipResponse>;
 export type SalarySlipFilterResponse = ApiResponse<SalarySlipResponse>;
 export type SalarySlipGenerateResponse = ApiResponse<SalarySlipResponse>;
-

@@ -1,8 +1,8 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { revalidatePath } from 'next/cache';
 import type { ApiSearchparams } from '@/types';
+import { revalidatePath } from 'next/cache';
 
 export async function getMasterCompetitionCategories(searchParams?: ApiSearchparams) {
     const params = { ...searchParams };
@@ -10,7 +10,8 @@ export async function getMasterCompetitionCategories(searchParams?: ApiSearchpar
         params.search_query = String(params.search_query).trim();
         // If no columns selected, use default searchable columns
         if (!params.search_columns || params.search_columns === '') {
-            params.search_columns = 'SPCCMCC_CompitionCategory,SPCCMCC_CCDesc,SPCCMCC_CCAgeFlag,SPCCMCC_FromCCAgeYear,SPCCMCC_ToCCAgeYear,SPCCMCC_FromCCAgeMonth,SPCCMCC_ToCCAgeMonth,SPCCMCC_FromCCAgeDays,SPCCMCC_ToCCAgeDays,SPCCMCC_CCWeightFlag,SPCCMCC_CCWeight';
+            params.search_columns =
+                'SPCCMCC_CompitionCategory,SPCCMCC_CCDesc,SPCCMCC_CCAgeFlag,SPCCMCC_FromCCAgeYear,SPCCMCC_ToCCAgeYear,SPCCMCC_FromCCAgeMonth,SPCCMCC_ToCCAgeMonth,SPCCMCC_FromCCAgeDays,SPCCMCC_ToCCAgeDays,SPCCMCC_CCWeightFlag,SPCCMCC_CCWeight';
         }
     }
     const urlParams = getSearchParamsUrl(params);

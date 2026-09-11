@@ -10,17 +10,18 @@ interface LetterTemplateProps {
 
 export function TeachingStaffOfferLetter({ details, formData, setValue }: LetterTemplateProps) {
     if (!details || !details.employeeSalaryslipDetails) return null;
-    console.log("letter details", details);
-    console.log("formData", formData);
+    console.log('letter details', details);
+    console.log('formData', formData);
     const { employeeSalaryslipDetails, institutiondetails } = details;
     const { currentEmployeeDetails, designationName: apiDesignation, gender, maritalStatus } = employeeSalaryslipDetails;
     const { hrmeR_DOI, hrmeR_DOR, hrmE_DOJ, hrmeR_Current_Date, staffLevel, startingBasic, staffDesignation } = formData;
 
     const designationName = staffDesignation || apiDesignation;
 
-    const fullName = `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
+    const fullName =
+        `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
 
-    let displayName = fullName
+    let displayName = fullName;
 
     if (gender === 'MALE' || gender === 'male') {
         displayName = `Mr. ${fullName}`;
@@ -36,62 +37,69 @@ export function TeachingStaffOfferLetter({ details, formData, setValue }: Letter
     const logo = institutiondetails?.mI_Logo || employeeSalaryslipDetails?.salaryDetails?.mI_Logo;
 
     return (
-        <div className="p-8 font-serif leading-relaxed text-sm bg-white text-black min-h-[11in]">
+        <div className='min-h-[11in] bg-white p-8 font-serif text-black text-sm leading-relaxed'>
             {/* Header Logo */}
             {logo && (
-                <div className="text-center mb-6">
-                    <img src={logo} alt="Logo" className="h-32 mx-auto" />
+                <div className='mb-6 text-center'>
+                    <img src={logo} alt='Logo' className='mx-auto h-32' />
                 </div>
             )}
 
-            <div className="flex justify-between mb-8">
-                <div className="space-y-1">
-                    <p className="font-bold">{displayName},</p>
+            <div className='mb-8 flex justify-between'>
+                <div className='space-y-1'>
+                    <p className='font-bold'>{displayName},</p>
                     {/* <p>{currentEmployeeDetails?.hrmE_LocArea}, {currentEmployeeDetails?.hrmE_LocStreet}</p>
                     <p>{currentEmployeeDetails?.hrmE_LocCity}, {currentEmployeeDetails?.hrmE_LocStateId},</p>
                     <p>{currentEmployeeDetails?.hrmE_LocPincode}.</p> */}
                 </div>
                 <div>
-                    <p className="font-bold">Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
+                    <p className='font-bold'>Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
                 </div>
             </div>
 
-            <h3 className="text-center font-bold underline mb-6">OFFER LETTER</h3>
+            <h3 className='mb-6 text-center font-bold underline'>OFFER LETTER</h3>
 
-            <p className="mb-4">Dear {displayName},</p>
+            <p className='mb-4'>Dear {displayName},</p>
 
-            <p className="mb-4 text-justify">
-                Further to your interview held on {hrmeR_DOI ? format(hrmeR_DOI, 'dd-MM-yyyy') : ''}, I am pleased to inform you that you have been selected for appointment as {designationName} in this School w.e.f {hrmE_DOJ ? format(hrmE_DOJ, 'dd-MM-yyyy') : ''}.
+            <p className='mb-4 text-justify'>
+                Further to your interview held on {hrmeR_DOI ? format(hrmeR_DOI, 'dd-MM-yyyy') : ''}, I am pleased to inform you that you
+                have been selected for appointment as {designationName} in this School w.e.f{' '}
+                {hrmE_DOJ ? format(hrmE_DOJ, 'dd-MM-yyyy') : ''}.
             </p>
 
-            <p className="mb-4 text-justify  ">
-                As per our requirement for {designationName} for which we had advertised, you are being placed in the appropriate scale for {designationName}, as per the revised pay structure of <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School</span> formulated by <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School</span> the Managing Committee and the <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School</span> Educational Society and implemented with effect from 1st April 2022.
+            <p className='mb-4 text-justify '>
+                As per our requirement for {designationName} for which we had advertised, you are being placed in the appropriate scale for{' '}
+                {designationName}, as per the revised pay structure of{' '}
+                <span className='font-["Old_English_Text_MT",serif] font-bold'>Saraswathi Vidyaniketana School</span> formulated by{' '}
+                <span className='font-["Old_English_Text_MT",serif] font-bold'>Saraswathi Vidyaniketana School</span> the Managing Committee
+                and the <span className='font-["Old_English_Text_MT",serif] font-bold'>Saraswathi Vidyaniketana School</span> Educational
+                Society and implemented with effect from 1st April 2022.
             </p>
 
-            <table className="w-full border-collapse border border-black mb-6">
-                <thead className="bg-gray-100">
+            <table className='mb-6 w-full border-collapse border border-black'>
+                <thead className='bg-gray-100'>
                     <tr>
-                        <th className="border border-black p-2">Staff Category</th>
-                        <th className="border border-black p-2">Level</th>
-                        <th className="border border-black p-2">Starting Basic</th>
+                        <th className='border border-black p-2'>Staff Category</th>
+                        <th className='border border-black p-2'>Level</th>
+                        <th className='border border-black p-2'>Starting Basic</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td className="border border-black p-2 text-center">{designationName}</td>
-                        <td className="border border-black p-2 text-center">
+                        <td className='border border-black p-2 text-center'>{designationName}</td>
+                        <td className='border border-black p-2 text-center'>
                             <input
-                                className="w-full h-full text-center border-none outline-none focus:bg-gray-50 print:bg-transparent"
+                                className='h-full w-full border-none text-center outline-none focus:bg-gray-50 print:bg-transparent'
                                 value={staffLevel || ''}
-                                placeholder="[Enter Level]"
+                                placeholder='[Enter Level]'
                                 onChange={(e) => setValue?.('staffLevel', e.target.value)}
                             />
                         </td>
-                        <td className="border border-black p-2 text-center">
+                        <td className='border border-black p-2 text-center'>
                             <input
-                                className="w-full h-full text-center border-none outline-none focus:bg-gray-50 print:bg-transparent"
+                                className='h-full w-full border-none text-center outline-none focus:bg-gray-50 print:bg-transparent'
                                 value={startingBasic || ''}
-                                placeholder="[Enter Salary]"
+                                placeholder='[Enter Salary]'
                                 onChange={(e) => setValue?.('startingBasic', e.target.value)}
                             />
                         </td>
@@ -99,38 +107,45 @@ export function TeachingStaffOfferLetter({ details, formData, setValue }: Letter
                 </tbody>
             </table>
 
-            <p className="mb-4 text-justify">
+            <p className='mb-4 text-justify'>
                 Deductions will be made as per the Statuary Rules and as per the Service & Leave Rules of the School.
             </p>
 
-            <p className="mb-4 text-justify">
-                You will be governed by the Service & Leave Rules of the School. <strong className='italic'>A copy of the Service & Leave Rules of the School is being provided for you to read and understand prior to accepting this offer. If you accept this Offer, it will be deemed that you are willing to abide by the Service Rules & Regulations.</strong>
+            <p className='mb-4 text-justify'>
+                You will be governed by the Service & Leave Rules of the School.{' '}
+                <strong className='italic'>
+                    A copy of the Service & Leave Rules of the School is being provided for you to read and understand prior to accepting
+                    this offer. If you accept this Offer, it will be deemed that you are willing to abide by the Service Rules &
+                    Regulations.
+                </strong>
             </p>
 
-            <p className="mb-4 text-justify">
-                You will ordinarily be for a period of two years from the date of appointment. The Managing Committee will, however, have the right to shorten the period of probation at the recommendation of the Principal.
+            <p className='mb-4 text-justify'>
+                You will ordinarily be for a period of two years from the date of appointment. The Managing Committee will, however, have
+                the right to shorten the period of probation at the recommendation of the Principal.
             </p>
 
-            <p className="mb-4 text-justify">
-                On successful completion of the period of probation, if the Management is satisfied with your services then you will be confirmed in your services.
+            <p className='mb-4 text-justify'>
+                On successful completion of the period of probation, if the Management is satisfied with your services then you will be
+                confirmed in your services.
             </p>
 
-            <p className="mb-4 text-justify">
-                Generally, your duty hours will be from 7.55 a.m. to 2.00 p.m. unless otherwise intimated.
+            <p className='mb-4 text-justify'>Generally, your duty hours will be from 7.55 a.m. to 2.00 p.m. unless otherwise intimated.</p>
+
+            <p className='mb-6 text-justify'>
+                Kindly respond to this <strong>Letter of Offer</strong> in writing, explicitly stating your willingness to accept this offer
+                or otherwise. Your response should reach us latest by 1 p.m. on {hrmeR_DOR ? format(hrmeR_DOR, 'dd-MM-yyyy') : ''}
             </p>
 
-            <p className="mb-6 text-justify">
-                Kindly respond to this <strong>Letter of Offer</strong> in writing, explicitly stating your willingness to accept this offer or otherwise. Your response should reach us latest by 1 p.m. on {hrmeR_DOR ? format(hrmeR_DOR, 'dd-MM-yyyy') : ''}
+            <p className='mb-12'>
+                A Letter of Appointment will be issued to you on your joining{' '}
+                <span className='font-["Old_English_Text_MT",serif] font-bold'>Saraswathi Vidyaniketana School.</span>
             </p>
 
-            <p className="mb-12">
-                A Letter of Appointment will be issued to you on your joining <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School.</span>
-            </p>
-
-            <div className="space-y-1">
+            <div className='space-y-1'>
                 <p>Yours Sincerely,</p>
                 {/* <div className="h-12"></div> */}
-                <p className="font-bold">(Raja McGee)</p>
+                <p className='font-bold'>(Raja McGee)</p>
                 <p>Principal & Secretary</p>
             </div>
         </div>
@@ -141,14 +156,15 @@ export function NonTeachingStaffOfferLetter({ details, formData, setValue }: Let
     if (!details || !details.employeeSalaryslipDetails) return null;
 
     const { employeeSalaryslipDetails, institutiondetails } = details;
-    const { currentEmployeeDetails, designationName: apiDesignation,gender,maritalStatus } = employeeSalaryslipDetails;
+    const { currentEmployeeDetails, designationName: apiDesignation, gender, maritalStatus } = employeeSalaryslipDetails;
     const { hrmeR_DOI, hrmeR_DOR, hrmE_DOJ, hrmeR_Current_Date, staffLevel, startingBasic, staffDesignation } = formData;
 
     const designationName = staffDesignation || apiDesignation;
 
-    const fullName = `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
+    const fullName =
+        `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
 
-    let displayName = fullName
+    let displayName = fullName;
 
     if (gender === 'MALE' || gender === 'male') {
         displayName = `Mr. ${fullName}`;
@@ -160,66 +176,69 @@ export function NonTeachingStaffOfferLetter({ details, formData, setValue }: Let
         }
     }
 
-
     const logo = institutiondetails?.mI_Logo || employeeSalaryslipDetails?.salaryDetails?.mI_Logo;
 
     return (
-        <div className="p-8 font-serif leading-relaxed text-sm bg-white text-black min-h-[11in]">
+        <div className='min-h-[11in] bg-white p-8 font-serif text-black text-sm leading-relaxed'>
             {/* Header Logo */}
             {logo && (
-                <div className="text-center mb-6">
-                    <img src={logo} alt="Logo" className="h-32 mx-auto" />
+                <div className='mb-6 text-center'>
+                    <img src={logo} alt='Logo' className='mx-auto h-32' />
                 </div>
             )}
 
-            <div className="flex justify-between mb-8">
-                <div className="space-y-1">
-                    <p className="font-bold">{displayName},</p>
+            <div className='mb-8 flex justify-between'>
+                <div className='space-y-1'>
+                    <p className='font-bold'>{displayName},</p>
                     {/* <p>{currentEmployeeDetails?.hrmE_LocArea}, {currentEmployeeDetails?.hrmE_LocStreet}</p>
                     <p>{currentEmployeeDetails?.hrmE_LocCity}, {currentEmployeeDetails?.hrmE_LocStateId},</p>
                     <p>{currentEmployeeDetails?.hrmE_LocPincode}.</p> */}
                 </div>
                 <div>
-                    <p className="font-bold">Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
+                    <p className='font-bold'>Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
                 </div>
             </div>
 
-            <h3 className="text-center font-bold underline mb-6">OFFER LETTER</h3>
+            <h3 className='mb-6 text-center font-bold underline'>OFFER LETTER</h3>
 
-            <p className="mb-4">Dear {displayName},</p>
+            <p className='mb-4'>Dear {displayName},</p>
 
-            <p className="mb-4 text-justify">
-                Further to your interview held on {hrmeR_DOI ? format(hrmeR_DOI, 'dd-MM-yyyy') : ''}, I am pleased to inform you that you have been selected for appointment as {designationName} in this School w.e.f <span className="font-bold">{hrmE_DOJ ? format(hrmE_DOJ, 'dd-MM-yyyy') : ''}</span>.
+            <p className='mb-4 text-justify'>
+                Further to your interview held on {hrmeR_DOI ? format(hrmeR_DOI, 'dd-MM-yyyy') : ''}, I am pleased to inform you that you
+                have been selected for appointment as {designationName} in this School w.e.f{' '}
+                <span className='font-bold'>{hrmE_DOJ ? format(hrmE_DOJ, 'dd-MM-yyyy') : ''}</span>.
             </p>
 
-            <p className="mb-4 text-justify text-xs italic">
-                As per our requirement for {designationName} for which we had advertised, you are being placed in the appropriate scale for {designationName}, as per the revised pay structure of formulated by the Managing Committee and the Educational Society and implemented with effect from 1st April 2022.
+            <p className='mb-4 text-justify text-xs italic'>
+                As per our requirement for {designationName} for which we had advertised, you are being placed in the appropriate scale for{' '}
+                {designationName}, as per the revised pay structure of formulated by the Managing Committee and the Educational Society and
+                implemented with effect from 1st April 2022.
             </p>
 
-            <table className="w-full border-collapse border border-black mb-6">
-                <thead className="bg-gray-100">
+            <table className='mb-6 w-full border-collapse border border-black'>
+                <thead className='bg-gray-100'>
                     <tr>
-                        <th className="border border-black p-2">Staff Category</th>
-                        <th className="border border-black p-2">Level</th>
-                        <th className="border border-black p-2">Starting Basic</th>
+                        <th className='border border-black p-2'>Staff Category</th>
+                        <th className='border border-black p-2'>Level</th>
+                        <th className='border border-black p-2'>Starting Basic</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td className="border border-black p-2 text-center">{designationName}</td>
-                        <td className="border border-black p-2 text-center">
+                        <td className='border border-black p-2 text-center'>{designationName}</td>
+                        <td className='border border-black p-2 text-center'>
                             <input
-                                className="w-full h-full text-center border-none outline-none focus:bg-gray-50 print:bg-transparent"
+                                className='h-full w-full border-none text-center outline-none focus:bg-gray-50 print:bg-transparent'
                                 value={staffLevel || ''}
-                                placeholder="[Enter Level]"
+                                placeholder='[Enter Level]'
                                 onChange={(e) => setValue?.('staffLevel', e.target.value)}
                             />
                         </td>
-                        <td className="border border-black p-2 text-center">
+                        <td className='border border-black p-2 text-center'>
                             <input
-                                className="w-full h-full text-center border-none outline-none focus:bg-gray-50 print:bg-transparent"
+                                className='h-full w-full border-none text-center outline-none focus:bg-gray-50 print:bg-transparent'
                                 value={startingBasic || ''}
-                                placeholder="[Enter Salary]"
+                                placeholder='[Enter Salary]'
                                 onChange={(e) => setValue?.('startingBasic', e.target.value)}
                             />
                         </td>
@@ -228,26 +247,33 @@ export function NonTeachingStaffOfferLetter({ details, formData, setValue }: Let
             </table>
 
             {/* Same content as teaching for now, can be adjusted if legacy had unique text */}
-            <p className="mb-4 text-justify">
+            <p className='mb-4 text-justify'>
                 Deductions will be made as per the Statuary Rules and as per the Service & Leave Rules of the School.
             </p>
 
-            <p className="mb-4 text-justify">
-                You will be governed by the Service & Leave Rules of the School. <strong>A copy of the Service & Leave Rules of the School is being provided for you to read and understand prior to accepting this offer. If you accept this Offer, it will be deemed that you are willing to abide by the Service Rules & Regulations.</strong>
+            <p className='mb-4 text-justify'>
+                You will be governed by the Service & Leave Rules of the School.{' '}
+                <strong>
+                    A copy of the Service & Leave Rules of the School is being provided for you to read and understand prior to accepting
+                    this offer. If you accept this Offer, it will be deemed that you are willing to abide by the Service Rules &
+                    Regulations.
+                </strong>
             </p>
 
-            <p className="mb-6 text-justify">
-                Kindly respond to this <strong>Letter of Offer</strong> in writing, explicitly stating your willingness to accept this offer or otherwise. Your response should reach us latest by 1 p.m. on {hrmeR_DOR ? format(hrmeR_DOR, 'dd-MM-yyyy') : ''}
+            <p className='mb-6 text-justify'>
+                Kindly respond to this <strong>Letter of Offer</strong> in writing, explicitly stating your willingness to accept this offer
+                or otherwise. Your response should reach us latest by 1 p.m. on {hrmeR_DOR ? format(hrmeR_DOR, 'dd-MM-yyyy') : ''}
             </p>
 
-            <p className="mb-12">
-                A Letter of Appointment will be issued to you on your joining <span className="font-bold uppercase">{institutiondetails?.mI_Name}</span>.
+            <p className='mb-12'>
+                A Letter of Appointment will be issued to you on your joining{' '}
+                <span className='font-bold uppercase'>{institutiondetails?.mI_Name}</span>.
             </p>
 
-            <div className="space-y-1">
+            <div className='space-y-1'>
                 <p>Yours Sincerely,</p>
-                <div className="h-12"></div>
-                <p className="font-bold">(Raja McGee)</p>
+                <div className='h-12'></div>
+                <p className='font-bold'>(Raja McGee)</p>
                 <p>Principal & Secretary</p>
             </div>
         </div>
@@ -261,9 +287,10 @@ export function ExperienceLetter({ details, formData }: LetterTemplateProps) {
     const { currentEmployeeDetails, designationName, gender, maritalStatus } = employeeSalaryslipDetails;
     const { hrmeR_Current_Date } = formData;
 
-    const fullName = `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
+    const fullName =
+        `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
 
-    let displayName = fullName
+    let displayName = fullName;
 
     if (gender === 'MALE' || gender === 'male') {
         displayName = `Mr. ${fullName}`;
@@ -278,31 +305,42 @@ export function ExperienceLetter({ details, formData }: LetterTemplateProps) {
     const logo = institutiondetails?.mI_Logo || employeeSalaryslipDetails?.salaryDetails?.mI_Logo;
 
     return (
-        <div className="p-8 font-serif leading-relaxed text-sm bg-white text-black min-h-[11in]">
+        <div className='min-h-[11in] bg-white p-8 font-serif text-black text-sm leading-relaxed'>
             {/* Header Logo */}
             {logo && (
-                <div className="text-center mb-6">
-                    <img src={logo} alt="Logo" className="h-32 mx-auto" />
+                <div className='mb-6 text-center'>
+                    <img src={logo} alt='Logo' className='mx-auto h-32' />
                 </div>
             )}
-            <div className="text-center space-y-2 mb-8">
+            <div className='mb-8 space-y-2 text-center'>
                 {/* <h1 className="text-2xl font-bold uppercase">{institutiondetails?.mI_Name}</h1>
                 <p className="text-xs uppercase">{institutiondetails?.mI_Address1}, {institutiondetails?.mI_Address2}, {institutiondetails?.mI_Address3} - {institutiondetails?.mI_Pincode}</p>
                 <div className="h-4"></div> */}
-                <h2 className="text-lg font-bold border-y py-1 tracking-widest">EXPERIENCE CERTIFICATE</h2>
+                <h2 className='border-y py-1 font-bold text-lg tracking-widest'>EXPERIENCE CERTIFICATE</h2>
             </div>
 
-            <div className="flex justify-end mb-8">
-                <p>Date: <span className="font-bold">{hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</span></p>
+            <div className='mb-8 flex justify-end'>
+                <p>
+                    Date: <span className='font-bold'>{hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</span>
+                </p>
             </div>
 
-            <p className="text-justify leading-loose mb-16 px-4">
-                This is to certify that Mr/Ms. <span className="font-bold uppercase underline">{fullName}</span> has worked in this school as <span className="font-bold">{designationName}</span> with effect from <span className="font-bold">{currentEmployeeDetails?.hrmE_DOJ ? format(new Date(currentEmployeeDetails.hrmE_DOJ), 'dd-MM-yyyy') : ''}</span> to <span className="font-bold">{currentEmployeeDetails?.hrmE_DOL ? format(new Date(currentEmployeeDetails.hrmE_DOL), 'dd-MM-yyyy') : 'till date'}</span>.
-                His/Her conduct during this service was found <span className="italic">Good</span>. This certificate is being issued on request from the staff member.
+            <p className='mb-16 px-4 text-justify leading-loose'>
+                This is to certify that Mr/Ms. <span className='font-bold uppercase underline'>{fullName}</span> has worked in this school
+                as <span className='font-bold'>{designationName}</span> with effect from{' '}
+                <span className='font-bold'>
+                    {currentEmployeeDetails?.hrmE_DOJ ? format(new Date(currentEmployeeDetails.hrmE_DOJ), 'dd-MM-yyyy') : ''}
+                </span>{' '}
+                to{' '}
+                <span className='font-bold'>
+                    {currentEmployeeDetails?.hrmE_DOL ? format(new Date(currentEmployeeDetails.hrmE_DOL), 'dd-MM-yyyy') : 'till date'}
+                </span>
+                . His/Her conduct during this service was found <span className='italic'>Good</span>. This certificate is being issued on
+                request from the staff member.
             </p>
 
-            <div className="mt-20 px-4">
-                <p className="font-bold">Principal</p>
+            <div className='mt-20 px-4'>
+                <p className='font-bold'>Principal</p>
             </div>
         </div>
     );
@@ -315,9 +353,10 @@ export function ConfirmationLetter({ details, formData }: LetterTemplateProps) {
     const { currentEmployeeDetails, designationName, gender, maritalStatus } = employeeSalaryslipDetails;
     const { hrmeR_DOI, hrmE_DOJ, hrmeR_Current_Date } = formData;
 
-    const fullName = `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
+    const fullName =
+        `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
 
-    let displayName = fullName
+    let displayName = fullName;
 
     if (gender === 'MALE' || gender === 'male') {
         displayName = `Mr. ${fullName}`;
@@ -332,52 +371,61 @@ export function ConfirmationLetter({ details, formData }: LetterTemplateProps) {
     const logo = institutiondetails?.mI_Logo || employeeSalaryslipDetails?.salaryDetails?.mI_Logo;
 
     return (
-        <div className="p-8 font-serif leading-relaxed text-sm bg-white text-black min-h-[11in]">
+        <div className='min-h-[11in] bg-white p-8 font-serif text-black text-sm leading-relaxed'>
             {/* Header Logo */}
             {logo && (
-                <div className="text-center mb-6">
-                    <img src={logo} alt="Logo" className="h-32 mx-auto" />
+                <div className='mb-6 text-center'>
+                    <img src={logo} alt='Logo' className='mx-auto h-32' />
                 </div>
             )}
 
-            <div className="flex justify-between mb-8">
-                <div className="space-y-1">
-                    <p className="font-bold">{displayName},</p>
+            <div className='mb-8 flex justify-between'>
+                <div className='space-y-1'>
+                    <p className='font-bold'>{displayName},</p>
                     {/* <p>{currentEmployeeDetails?.hrmE_LocArea}, {currentEmployeeDetails?.hrmE_LocStreet}</p>
                     <p>{currentEmployeeDetails?.hrmE_LocCity}, {currentEmployeeDetails?.hrmE_LocStateId},</p>
                     <p>{currentEmployeeDetails?.hrmE_LocPincode}.</p> */}
                 </div>
                 <div>
-                    <p className="font-bold">Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
+                    <p className='font-bold'>Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
                 </div>
             </div>
 
-            <h3 className="text-center font-bold underline mb-6">SUB: CONFIRMATION</h3>
+            <h3 className='mb-6 text-center font-bold underline'>SUB: CONFIRMATION</h3>
 
-            <p className="mb-4">Dear {displayName},</p>
+            <p className='mb-4'>Dear {displayName},</p>
 
-            <div className="space-y-4 text-justify">
+            <div className='space-y-4 text-justify'>
                 <p>
-                    The Managing Committee of <span className="font-bold uppercase italic">{institutiondetails?.mI_Name}</span> at its meeting held on {hrmeR_DOI ? format(hrmeR_DOI, 'dd-MM-yyyy') : ''}, was pleased to confirm your appointment to the post of <span className="font-bold">{designationName}</span> with effect from <span className="font-bold">{hrmE_DOJ ? format(hrmE_DOJ, 'dd-MM-yyyy') : ''}</span>.
+                    The Managing Committee of <span className='font-bold uppercase italic'>{institutiondetails?.mI_Name}</span> at its
+                    meeting held on {hrmeR_DOI ? format(hrmeR_DOI, 'dd-MM-yyyy') : ''}, was pleased to confirm your appointment to the post
+                    of <span className='font-bold'>{designationName}</span> with effect from{' '}
+                    <span className='font-bold'>{hrmE_DOJ ? format(hrmE_DOJ, 'dd-MM-yyyy') : ''}</span>.
                 </p>
 
                 <p>
-                    We hereby reiterate (as mentioned in the Appointment Letter issued to you) that according to our requirements, we advertised for a Trained Post Graduate and as such, you were placed in the appropriate scale. You are hereby categorically informed that other than the qualifications recognized herein, no other qualifications that you may have at present or those that you may acquire in the future will be considered.
+                    We hereby reiterate (as mentioned in the Appointment Letter issued to you) that according to our requirements, we
+                    advertised for a Trained Post Graduate and as such, you were placed in the appropriate scale. You are hereby
+                    categorically informed that other than the qualifications recognized herein, no other qualifications that you may have
+                    at present or those that you may acquire in the future will be considered.
                 </p>
 
                 <p>
-                    Further, it is reiterated that you will be governed by the Service & Leave Rules of the School, duties and responsibilities as mentioned in your Appointment Letter and any other rules & regulations in force and those that may be introduced/modified/expunged from time to time.
+                    Further, it is reiterated that you will be governed by the Service & Leave Rules of the School, duties and
+                    responsibilities as mentioned in your Appointment Letter and any other rules & regulations in force and those that may
+                    be introduced/modified/expunged from time to time.
                 </p>
 
-                <p className="font-bold">
-                    Termination: Consequent to your Confirmation, your service may be terminated anytime, without assigning any reason, by giving 3 months notice or by payment of salary, in lieu thereof.
+                <p className='font-bold'>
+                    Termination: Consequent to your Confirmation, your service may be terminated anytime, without assigning any reason, by
+                    giving 3 months notice or by payment of salary, in lieu thereof.
                 </p>
             </div>
 
-            <div className="mt-12 space-y-1">
+            <div className='mt-12 space-y-1'>
                 <p>Yours Sincerely,</p>
-                <div className="h-12"></div>
-                <p className="font-bold">(Raja McGee)</p>
+                <div className='h-12'></div>
+                <p className='font-bold'>(Raja McGee)</p>
                 <p>Principal & Secretary</p>
             </div>
         </div>
@@ -391,9 +439,10 @@ export function ServiceCertificate({ details, formData }: LetterTemplateProps) {
     const { currentEmployeeDetails, designationName, gender, maritalStatus } = employeeSalaryslipDetails;
     const { hrmeR_Current_Date } = formData;
 
-    const fullName = `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
+    const fullName =
+        `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
 
-    let displayName = fullName
+    let displayName = fullName;
 
     if (gender === 'MALE' || gender === 'male') {
         displayName = `Mr. ${fullName}`;
@@ -408,46 +457,64 @@ export function ServiceCertificate({ details, formData }: LetterTemplateProps) {
     const logo = institutiondetails?.mI_Logo || employeeSalaryslipDetails?.salaryDetails?.mI_Logo;
 
     return (
-        <div className="p-8 font-serif leading-relaxed text-sm bg-white text-black min-h-[11in]">
+        <div className='min-h-[11in] bg-white p-8 font-serif text-black text-sm leading-relaxed'>
             {/* Header Logo */}
             {logo && (
-                <div className="text-center mb-6">
-                    <img src={logo} alt="Logo" className="h-32 mx-auto" />
+                <div className='mb-6 text-center'>
+                    <img src={logo} alt='Logo' className='mx-auto h-32' />
                 </div>
             )}
-            <div className="text-center space-y-2 mb-12">
+            <div className='mb-12 space-y-2 text-center'>
                 {/* <h1 className="text-2xl font-bold uppercase">{institutiondetails?.mI_Name}</h1>
                 <p className="text-xs">{institutiondetails?.mI_Address1}, {institutiondetails?.mI_Address2}, {institutiondetails?.mI_Address3} - {institutiondetails?.mI_Pincode}</p>
                 <div className="h-4"></div> */}
-                <h2 className="text-xl font-bold border-b-2 inline-block px-4">SERVICE CERTIFICATE</h2>
+                <h2 className='inline-block border-b-2 px-4 font-bold text-xl'>SERVICE CERTIFICATE</h2>
             </div>
 
-            <div className="flex justify-end mb-8">
-                <p>Date: <span className="font-bold">{hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</span></p>
-            </div>
-
-            <div className="space-y-6 px-4 text-justify">
+            <div className='mb-8 flex justify-end'>
                 <p>
-                    This is to certify that Mr./Ms. <span className="font-bold uppercase underline">{fullName}</span>, Date of Birth: <span className="font-bold">{currentEmployeeDetails?.hrmE_DOB ? format(new Date(currentEmployeeDetails.hrmE_DOB), 'dd/MM/yyyy') : ''}</span> is a bonafide employee of <span className="font-bold">{institutiondetails?.mI_Name}</span>, having its office at <span className="font-bold">{institutiondetails?.mI_Address1}, {institutiondetails?.mI_Address2}</span>.
-                </p>
-
-                <p>
-                    He/She has been working with us as a <span className="font-bold">{designationName}</span> since <span className="font-bold">{currentEmployeeDetails?.hrmE_DOJ ? format(new Date(currentEmployeeDetails.hrmE_DOJ), 'dd-MM-yyyy') : ''}</span> and is currently serving as a permanent employee of the organization.
-                </p>
-
-                <p>
-                    His/Her contact address as per our records is: <span className="font-bold">{currentEmployeeDetails?.hrmE_LocStreet}, {currentEmployeeDetails?.hrmE_LocArea}, {currentEmployeeDetails?.hrmE_LocCity}, {currentEmployeeDetails?.hrmE_LocStateId} - {currentEmployeeDetails?.hrmE_LocPincode}</span>.
-                </p>
-
-                <p>
-                    This certificate is issued upon request for official purpose.
+                    Date: <span className='font-bold'>{hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</span>
                 </p>
             </div>
 
-            <div className="mt-24 px-4 space-y-12">
+            <div className='space-y-6 px-4 text-justify'>
+                <p>
+                    This is to certify that Mr./Ms. <span className='font-bold uppercase underline'>{fullName}</span>, Date of Birth:{' '}
+                    <span className='font-bold'>
+                        {currentEmployeeDetails?.hrmE_DOB ? format(new Date(currentEmployeeDetails.hrmE_DOB), 'dd/MM/yyyy') : ''}
+                    </span>{' '}
+                    is a bonafide employee of <span className='font-bold'>{institutiondetails?.mI_Name}</span>, having its office at{' '}
+                    <span className='font-bold'>
+                        {institutiondetails?.mI_Address1}, {institutiondetails?.mI_Address2}
+                    </span>
+                    .
+                </p>
+
+                <p>
+                    He/She has been working with us as a <span className='font-bold'>{designationName}</span> since{' '}
+                    <span className='font-bold'>
+                        {currentEmployeeDetails?.hrmE_DOJ ? format(new Date(currentEmployeeDetails.hrmE_DOJ), 'dd-MM-yyyy') : ''}
+                    </span>{' '}
+                    and is currently serving as a permanent employee of the organization.
+                </p>
+
+                <p>
+                    His/Her contact address as per our records is:{' '}
+                    <span className='font-bold'>
+                        {currentEmployeeDetails?.hrmE_LocStreet}, {currentEmployeeDetails?.hrmE_LocArea},{' '}
+                        {currentEmployeeDetails?.hrmE_LocCity}, {currentEmployeeDetails?.hrmE_LocStateId} -{' '}
+                        {currentEmployeeDetails?.hrmE_LocPincode}
+                    </span>
+                    .
+                </p>
+
+                <p>This certificate is issued upon request for official purpose.</p>
+            </div>
+
+            <div className='mt-24 space-y-12 px-4'>
                 <p>Faithfully,</p>
                 <div>
-                    <p className="font-bold">Principal</p>
+                    <p className='font-bold'>Principal</p>
                 </div>
             </div>
         </div>
@@ -463,9 +530,10 @@ export function AppointmentLetter({ details, formData, isTeaching, setValue }: L
 
     const designationName = staffDesignation || apiDesignation;
 
-    const fullName = `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
+    const fullName =
+        `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
 
-    let displayName = fullName
+    let displayName = fullName;
 
     if (gender === 'MALE' || gender === 'male') {
         displayName = `Mr. ${fullName}`;
@@ -480,74 +548,94 @@ export function AppointmentLetter({ details, formData, isTeaching, setValue }: L
     const logo = institutiondetails?.mI_Logo || employeeSalaryslipDetails?.salaryDetails?.mI_Logo;
 
     return (
-        <div className="p-8 font-serif leading-relaxed text-sm bg-white text-black min-h-[11in]">
+        <div className='min-h-[11in] bg-white p-8 font-serif text-black text-sm leading-relaxed'>
             {/* Header Logo */}
             {logo && (
-                <div className="text-center mb-6">
-                    <img src={logo} alt="Logo" className="h-32 mx-auto" />
+                <div className='mb-6 text-center'>
+                    <img src={logo} alt='Logo' className='mx-auto h-32' />
                 </div>
             )}
 
-            <div className="flex justify-between mb-8">
-                <div className="space-y-1">
-                    <p className="font-bold">{displayName},</p>
+            <div className='mb-8 flex justify-between'>
+                <div className='space-y-1'>
+                    <p className='font-bold'>{displayName},</p>
                     {/* <p>{currentEmployeeDetails?.hrmE_LocArea}, {currentEmployeeDetails?.hrmE_LocStreet}</p>
                     <p>{currentEmployeeDetails?.hrmE_LocCity}, {currentEmployeeDetails?.hrmE_LocStateId},</p>
                     <p>{currentEmployeeDetails?.hrmE_LocPincode}.</p> */}
                 </div>
                 <div>
-                    <p className="font-bold">Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
+                    <p className='font-bold'>Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
                 </div>
             </div>
 
-            <div className="text-center mb-6">
-                <p className="font-bold">Date of Birth: {currentEmployeeDetails?.hrmE_DOB ? format(new Date(currentEmployeeDetails.hrmE_DOB), 'dd-MM-yyyy') : ''}</p>
-                {
-                    currentEmployeeDetails?.hrmE_QualificationName && (
-                        <p className="font-bold">Qualification: {currentEmployeeDetails?.hrmE_QualificationName ?? ''}</p>
-                    )
-                }
+            <div className='mb-6 text-center'>
+                <p className='font-bold'>
+                    Date of Birth: {currentEmployeeDetails?.hrmE_DOB ? format(new Date(currentEmployeeDetails.hrmE_DOB), 'dd-MM-yyyy') : ''}
+                </p>
+                {currentEmployeeDetails?.hrmE_QualificationName && (
+                    <p className='font-bold'>Qualification: {currentEmployeeDetails?.hrmE_QualificationName ?? ''}</p>
+                )}
             </div>
 
-            <p className="mb-4">Dear {displayName},</p>
+            <p className='mb-4'>Dear {displayName},</p>
 
-            <div className="space-y-4 text-justify">
+            <div className='space-y-4 text-justify'>
                 <p>
-                    Consequent to your application and interview, I, on behalf of the Managing Committee of <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School</span> hereby appointment as an Office Assistant of <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School</span>, 72, S N Banerjee Road, Kolkata - 700014 with effect from <span >{hrmE_DOJ ? format(hrmE_DOJ, 'dd-MM-yyyy') : ''}</span>.
+                    Consequent to your application and interview, I, on behalf of the Managing Committee of{' '}
+                    <span className='font-["Old_English_Text_MT",serif] font-bold'>Saraswathi Vidyaniketana School</span> hereby appointment
+                    as an Office Assistant of{' '}
+                    <span className='font-["Old_English_Text_MT",serif] font-bold'>Saraswathi Vidyaniketana School</span>, 72, S N Banerjee
+                    Road, Kolkata - 700014 with effect from <span>{hrmE_DOJ ? format(hrmE_DOJ, 'dd-MM-yyyy') : ''}</span>.
                 </p>
 
                 <p>
-                    <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School</span> is an English Medium Minority Christian Missionary School owned, controlled and managed by the <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School Educational Society</span> under the Bengal Regional Conference, Methodist Church in India. We naturally would expect you to respect the Christian Idealism of the School and sincerely co-operate with the Discipline that comes from that Idealism into our Educational Work, Principles, Policies and Practices and into the duties of a Staff member.
+                    <span className='font-["Old_English_Text_MT",serif] font-bold'>Saraswathi Vidyaniketana School</span> is an English
+                    Medium Minority Christian Missionary School owned, controlled and managed by the{' '}
+                    <span className='font-["Old_English_Text_MT",serif] font-bold'>
+                        Saraswathi Vidyaniketana School Educational Society
+                    </span>{' '}
+                    under the Bengal Regional Conference, Methodist Church in India. We naturally would expect you to respect the Christian
+                    Idealism of the School and sincerely co-operate with the Discipline that comes from that Idealism into our Educational
+                    Work, Principles, Policies and Practices and into the duties of a Staff member.
                 </p>
 
                 <p>
-                    As per our requirements, the qualifications called for were Enter Manually, no other qualifications that you may have at present or may acquire in future will be recognised. As such, you will be placed in the appropriate scale, as per the revised pay structure of <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School</span> formulated by the <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School Managing Committee</span> and the <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School Educational Society</span> and implemented with effect from 1st April 2022.
+                    As per our requirements, the qualifications called for were Enter Manually, no other qualifications that you may have at
+                    present or may acquire in future will be recognised. As such, you will be placed in the appropriate scale, as per the
+                    revised pay structure of{' '}
+                    <span className='font-["Old_English_Text_MT",serif] font-bold'>Saraswathi Vidyaniketana School</span> formulated by the{' '}
+                    <span className='font-["Old_English_Text_MT",serif] font-bold'>Saraswathi Vidyaniketana School Managing Committee</span>{' '}
+                    and the{' '}
+                    <span className='font-["Old_English_Text_MT",serif] font-bold'>
+                        Saraswathi Vidyaniketana School Educational Society
+                    </span>{' '}
+                    and implemented with effect from 1st April 2022.
                 </p>
 
-                <table className="w-full border-collapse border border-black my-4">
+                <table className='my-4 w-full border-collapse border border-black'>
                     <thead>
-                        <tr className="bg-gray-100">
-                            <th className="border border-black p-2 text-center">Staff Category</th>
-                            <th className="border border-black p-2 text-center">Level</th>
-                            <th className="border border-black p-2 text-center">Starting Basic</th>
+                        <tr className='bg-gray-100'>
+                            <th className='border border-black p-2 text-center'>Staff Category</th>
+                            <th className='border border-black p-2 text-center'>Level</th>
+                            <th className='border border-black p-2 text-center'>Starting Basic</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td className="border border-black p-2 text-center">{designationName}</td>
-                            <td className="border border-black p-2 text-center">
+                            <td className='border border-black p-2 text-center'>{designationName}</td>
+                            <td className='border border-black p-2 text-center'>
                                 <input
-                                    className="w-full h-full text-center border-none outline-none focus:bg-gray-50 print:bg-transparent underline"
+                                    className='h-full w-full border-none text-center underline outline-none focus:bg-gray-50 print:bg-transparent'
                                     value={staffLevel || ''}
-                                    placeholder="[Enter Level]"
+                                    placeholder='[Enter Level]'
                                     onChange={(e) => setValue?.('staffLevel', e.target.value)}
                                 />
                             </td>
-                            <td className="border border-black p-2 text-center">
+                            <td className='border border-black p-2 text-center'>
                                 <input
-                                    className="w-full h-full text-center border-none outline-none focus:bg-gray-50 print:bg-transparent underline"
+                                    className='h-full w-full border-none text-center underline outline-none focus:bg-gray-50 print:bg-transparent'
                                     value={startingBasic || ''}
-                                    placeholder="[Enter Salary]"
+                                    placeholder='[Enter Salary]'
                                     onChange={(e) => setValue?.('startingBasic', e.target.value)}
                                 />
                             </td>
@@ -556,39 +644,50 @@ export function AppointmentLetter({ details, formData, isTeaching, setValue }: L
                 </table>
 
                 <p>
-                    The terms and conditions of your service will be as per the Service & Leave Rules in force, formulated & circulated by the Saraswathi Vidyaniketana School Society and enforced with effect from 1st July 2010, and adopted by the <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School Educational Society</span> at its regular meeting on 8th March 2022. Rules & Regulations may be introduced / altered / expunged from time to time.
+                    The terms and conditions of your service will be as per the Service & Leave Rules in force, formulated & circulated by
+                    the Saraswathi Vidyaniketana School Society and enforced with effect from 1st July 2010, and adopted by the{' '}
+                    <span className='font-["Old_English_Text_MT",serif] font-bold'>
+                        Saraswathi Vidyaniketana School Educational Society
+                    </span>{' '}
+                    at its regular meeting on 8th March 2022. Rules & Regulations may be introduced / altered / expunged from time to time.
                 </p>
 
                 <p>
                     <b>Emoluments:</b> Your Pay & Allowances will be as per the Rules currently in force.
                 </p>
                 <p>
-                    <b>Deductions:</b>You will also be subject to all statutory deductions. You will also be subject to deductions as may be deemed necessary and as illustrated in the Service Rules and Regulations.
+                    <b>Deductions:</b>You will also be subject to all statutory deductions. You will also be subject to deductions as may be
+                    deemed necessary and as illustrated in the Service Rules and Regulations.
                 </p>
                 <p>
-                    <b>Duty Hours:</b>School hours will be from 8:00 a.m. a.m. to 4:00 p.m. with a one hour lunch break, unless otherwise intimated. Generally, your duty hours will be from the time School commences till thirty minutes after school closes, unless otherwise intimated.
+                    <b>Duty Hours:</b>School hours will be from 8:00 a.m. a.m. to 4:00 p.m. with a one hour lunch break, unless otherwise
+                    intimated. Generally, your duty hours will be from the time School commences till thirty minutes after school closes,
+                    unless otherwise intimated.
                 </p>
                 <p>
-                    In appointing you as a colleague, we welcome you to our fellowship & friendship and assure you of all the help, encouragement and appreciation as lies within our power to enable you to give your best for the development of the pupils and your own satisfaction and happiness.
+                    In appointing you as a colleague, we welcome you to our fellowship & friendship and assure you of all the help,
+                    encouragement and appreciation as lies within our power to enable you to give your best for the development of the
+                    pupils and your own satisfaction and happiness.
                 </p>
 
-                <div className="space-y-1">
+                <div className='space-y-1'>
                     <p>Yours Sincerely,</p>
                     {/* <div className="h-12"></div> */}
-                    <p className="font-bold">(Raja McGee)</p>
+                    <p className='font-bold'>(Raja McGee)</p>
                     <p>Principal & Secretary</p>
                 </div>
 
-                <div className="pt-8 mt-8">
-                    <h4 className="text-center font-bold mb-4 py-1">STATEMENT OF ACCEPTANCE</h4>
-                    <p className="text-xs">
-                        I, {displayName}, accept all the terms and conditions of service as stated in your letter of appointment to me dated {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''} and promise to abide by them.
+                <div className='mt-8 pt-8'>
+                    <h4 className='mb-4 py-1 text-center font-bold'>STATEMENT OF ACCEPTANCE</h4>
+                    <p className='text-xs'>
+                        I, {displayName}, accept all the terms and conditions of service as stated in your letter of appointment to me dated{' '}
+                        {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''} and promise to abide by them.
                     </p>
-                    <div className="flex justify-between mt-3">
+                    <div className='mt-3 flex justify-between'>
                         <p>Signature: ________________</p>
                         <p>Date: ________________</p>
                     </div>
-                    <div className="mt-8">
+                    <div className='mt-8'>
                         <p>WITNESSES:</p>
                     </div>
                 </div>
@@ -604,9 +703,10 @@ export function TerminationLetter({ details, formData }: LetterTemplateProps) {
     const { currentEmployeeDetails, gender, maritalStatus } = employeeSalaryslipDetails;
     const { hrmeR_Current_Date, hrmeR_DOd, hrmeR_DOter, hrmeR_DOp } = formData;
 
-    const fullName = `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
-    
-    let displayName = fullName
+    const fullName =
+        `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
+
+    let displayName = fullName;
 
     if (gender === 'MALE' || gender === 'male') {
         displayName = `Mr. ${fullName}`;
@@ -621,51 +721,62 @@ export function TerminationLetter({ details, formData }: LetterTemplateProps) {
     const logo = institutiondetails?.mI_Logo || employeeSalaryslipDetails?.salaryDetails?.mI_Logo;
 
     return (
-        <div className="p-8 font-serif leading-relaxed text-sm bg-white text-black min-h-[11in]">
+        <div className='min-h-[11in] bg-white p-8 font-serif text-black text-sm leading-relaxed'>
             {/* Header Logo */}
             {logo && (
-                <div className="text-center mb-6">
-                    <img src={logo} alt="Logo" className="h-32 mx-auto" />
+                <div className='mb-6 text-center'>
+                    <img src={logo} alt='Logo' className='mx-auto h-32' />
                 </div>
             )}
 
-            <div className="flex justify-between mb-8">
-                <div className="space-y-1">
-                    <p className="font-bold">{displayName},</p>
+            <div className='mb-8 flex justify-between'>
+                <div className='space-y-1'>
+                    <p className='font-bold'>{displayName},</p>
                     {/* <p>{currentEmployeeDetails?.hrmE_LocArea}, {currentEmployeeDetails?.hrmE_LocStreet}</p>
                     <p>{currentEmployeeDetails?.hrmE_LocCity}, {currentEmployeeDetails?.hrmE_LocStateId},</p>
                     <p>{currentEmployeeDetails?.hrmE_LocPincode}.</p> */}
                 </div>
                 <div>
-                    <p className="font-bold">Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
+                    <p className='font-bold'>Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
                 </div>
             </div>
 
-            <p className="mb-4">Dear {displayName},</p>
+            <p className='mb-4'>Dear {displayName},</p>
 
-            <div className="space-y-4 text-justify">
-                <p className="font-bold italic">Ref: Your Letter of Appointment on Probation dated {hrmeR_DOp ? format(hrmeR_DOp, 'dd-MM-yyyy') : ''}.</p>
-
-                <p>
-                    You were 'appointed on probation' as an Assistant Teacher with effect from . Your services have not been found to be satisfactory and the Managing Committee of <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School</span> has decided to terminate your appointment on probation in <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School</span>
+            <div className='space-y-4 text-justify'>
+                <p className='font-bold italic'>
+                    Ref: Your Letter of Appointment on Probation dated {hrmeR_DOp ? format(hrmeR_DOp, 'dd-MM-yyyy') : ''}.
                 </p>
 
                 <p>
-                    As per rules governing appointment on probation, you are being served one month&apos;s notice and will be paid your dues till <span className="font-bold">{hrmeR_DOd ? format(hrmeR_DOd, 'dd-MM-yyyy') : ''}</span>. However, your last working day will be <span className="font-bold">{hrmeR_DOter ? format(hrmeR_DOter, 'dd-MM-yyyy') : ''}</span>.
+                    You were 'appointed on probation' as an Assistant Teacher with effect from . Your services have not been found to be
+                    satisfactory and the Managing Committee of{' '}
+                    <span className='font-["Old_English_Text_MT",serif] font-bold'>Saraswathi Vidyaniketana School</span> has decided to
+                    terminate your appointment on probation in{' '}
+                    <span className='font-["Old_English_Text_MT",serif] font-bold'>Saraswathi Vidyaniketana School</span>
                 </p>
 
                 <p>
-                    You are to handover all material related to <span className='font-bold font-["Old_English_Text_MT",serif]'>Saraswathi Vidyaniketana School</span>. to the School Office including student attendance records, student exercise books, teacher's Record book, locker keys and contents.
+                    As per rules governing appointment on probation, you are being served one month&apos;s notice and will be paid your dues
+                    till <span className='font-bold'>{hrmeR_DOd ? format(hrmeR_DOd, 'dd-MM-yyyy') : ''}</span>. However, your last working
+                    day will be <span className='font-bold'>{hrmeR_DOter ? format(hrmeR_DOter, 'dd-MM-yyyy') : ''}</span>.
                 </p>
 
                 <p>
-                    You are to return all books issued by the library to you including text books and obtain a 'No Dues Certificate' which you will submit to this Office.
+                    You are to handover all material related to{' '}
+                    <span className='font-["Old_English_Text_MT",serif] font-bold'>Saraswathi Vidyaniketana School</span>. to the School
+                    Office including student attendance records, student exercise books, teacher's Record book, locker keys and contents.
                 </p>
 
-                <div className="mt-12 space-y-1">
+                <p>
+                    You are to return all books issued by the library to you including text books and obtain a 'No Dues Certificate' which
+                    you will submit to this Office.
+                </p>
+
+                <div className='mt-12 space-y-1'>
                     <p>Yours Sincerely,</p>
-                    <div className="h-6"></div>
-                    <p className="font-bold">(Raja McGee)</p>
+                    <div className='h-6'></div>
+                    <p className='font-bold'>(Raja McGee)</p>
                     <p>Principal & Secretary</p>
                 </div>
             </div>
@@ -680,9 +791,10 @@ export function RelievingLetter({ details, formData }: LetterTemplateProps) {
     const { currentEmployeeDetails, gender, maritalStatus } = employeeSalaryslipDetails;
     const { hrmeR_Current_Date, DoResignation } = formData;
 
-    const fullName = `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
+    const fullName =
+        `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
 
-    let displayName = fullName
+    let displayName = fullName;
 
     if (gender === 'MALE' || gender === 'male') {
         displayName = `Mr. ${fullName}`;
@@ -697,39 +809,55 @@ export function RelievingLetter({ details, formData }: LetterTemplateProps) {
     const logo = institutiondetails?.mI_Logo || employeeSalaryslipDetails?.salaryDetails?.mI_Logo;
 
     return (
-        <div className="p-8 font-serif leading-relaxed text-sm bg-white text-black min-h-[11in]">
+        <div className='min-h-[11in] bg-white p-8 font-serif text-black text-sm leading-relaxed'>
             {/* Header Logo */}
             {logo && (
-                <div className="text-center mb-6">
-                    <img src={logo} alt="Logo" className="h-32 mx-auto" />
+                <div className='mb-6 text-center'>
+                    <img src={logo} alt='Logo' className='mx-auto h-32' />
                 </div>
             )}
 
-            <div className="flex justify-between mb-8">
-                <div className="space-y-1">
-                    <p className="font-bold font-xs uppercase underline">TO</p>
-                    <p className="font-bold uppercase">{displayName}</p>
-                    <p>{currentEmployeeDetails?.hrmE_LocStreet}, {currentEmployeeDetails?.hrmE_LocArea}</p>
+            <div className='mb-8 flex justify-between'>
+                <div className='space-y-1'>
+                    <p className='font-bold font-xs uppercase underline'>TO</p>
+                    <p className='font-bold uppercase'>{displayName}</p>
+                    <p>
+                        {currentEmployeeDetails?.hrmE_LocStreet}, {currentEmployeeDetails?.hrmE_LocArea}
+                    </p>
                 </div>
                 <div>
-                    <p className="font-bold underline underline-offset-4">Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
+                    <p className='font-bold underline underline-offset-4'>
+                        Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}
+                    </p>
                 </div>
             </div>
 
-            <h2 className="text-center text-3xl font-bold mb-12">Relieving Letter</h2>
+            <h2 className='mb-12 text-center font-bold text-3xl'>Relieving Letter</h2>
 
-            <div className="space-y-6 text-justify">
-                <p>Dear <span className="font-bold uppercase">{displayName}</span>,</p>
+            <div className='space-y-6 text-justify'>
+                <p>
+                    Dear <span className='font-bold uppercase'>{displayName}</span>,
+                </p>
 
-                <p className="leading-relaxed">
-                    This has reference to your resignation letter received through email dated <span className="font-bold">{DoResignation ? format(DoResignation, 'dd-MM-yyyy') : '[Resignation Date]'}</span>. This is to inform you that your resignation has been accepted and you are relieved from the services of <span className="font-bold uppercase">{institutiondetails?.mI_Name}</span>, {institutiondetails?.mI_Address1}, on the close of working hours on <span className="font-bold">{currentEmployeeDetails?.hrmE_DOL ? format(new Date(currentEmployeeDetails.hrmE_DOL), 'dd-MM-yyyy') : '[Date of Leaving]'}</span>.
+                <p className='leading-relaxed'>
+                    This has reference to your resignation letter received through email dated{' '}
+                    <span className='font-bold'>{DoResignation ? format(DoResignation, 'dd-MM-yyyy') : '[Resignation Date]'}</span>. This is
+                    to inform you that your resignation has been accepted and you are relieved from the services of{' '}
+                    <span className='font-bold uppercase'>{institutiondetails?.mI_Name}</span>, {institutiondetails?.mI_Address1}, on the
+                    close of working hours on{' '}
+                    <span className='font-bold'>
+                        {currentEmployeeDetails?.hrmE_DOL
+                            ? format(new Date(currentEmployeeDetails.hrmE_DOL), 'dd-MM-yyyy')
+                            : '[Date of Leaving]'}
+                    </span>
+                    .
                 </p>
 
                 <p>We wish you all success in your future endeavors.</p>
             </div>
 
-            <div className="mt-32">
-                <p className="font-bold">Principal</p>
+            <div className='mt-32'>
+                <p className='font-bold'>Principal</p>
             </div>
         </div>
     );
@@ -742,45 +870,49 @@ export function AccountOpeningLetter({ details, formData }: LetterTemplateProps)
     const { currentEmployeeDetails } = employeeSalaryslipDetails;
     const { hrmeR_Current_Date, bankaddress } = formData;
 
-    const fullName = `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
+    const fullName =
+        `${currentEmployeeDetails?.hrmE_EmployeeFirstName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeMiddleName ?? ''} ${currentEmployeeDetails?.hrmE_EmployeeLastName ?? ''}`.trim();
 
     const logo = institutiondetails?.mI_Logo || employeeSalaryslipDetails?.salaryDetails?.mI_Logo;
 
     return (
-        <div className="p-8 font-serif leading-relaxed text-sm bg-white text-black min-h-[11in]">
+        <div className='min-h-[11in] bg-white p-8 font-serif text-black text-sm leading-relaxed'>
             {/* Header Logo */}
             {logo && (
-                <div className="text-center mb-6">
-                    <img src={logo} alt="Logo" className="h-32 mx-auto" />
+                <div className='mb-6 text-center'>
+                    <img src={logo} alt='Logo' className='mx-auto h-32' />
                 </div>
             )}
 
-            <div className="flex justify-between mb-8">
-                <div className="space-y-1">
-                    <p className="font-bold font-xs uppercase underline">TO</p>
-                    <p className="font-bold uppercase">{fullName}</p>
-                    <p>{currentEmployeeDetails?.hrmE_LocStreet}, {currentEmployeeDetails?.hrmE_LocArea}</p>
+            <div className='mb-8 flex justify-between'>
+                <div className='space-y-1'>
+                    <p className='font-bold font-xs uppercase underline'>TO</p>
+                    <p className='font-bold uppercase'>{fullName}</p>
+                    <p>
+                        {currentEmployeeDetails?.hrmE_LocStreet}, {currentEmployeeDetails?.hrmE_LocArea}
+                    </p>
                 </div>
                 <div>
-                    <p className="font-bold">Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
+                    <p className='font-bold'>Date: {hrmeR_Current_Date ? format(hrmeR_Current_Date, 'dd-MM-yyyy') : ''}</p>
                 </div>
             </div>
 
-            <h2 className="text-center text-3xl font-bold mb-12">Account Opening Form</h2>
+            <h2 className='mb-12 text-center font-bold text-3xl'>Account Opening Form</h2>
 
-            <div className="space-y-8 text-justify">
-                <p className="leading-loose">
-                    This is to certify that <span className="font-bold uppercase underline underline-offset-2">{fullName}</span> is working as staff in our institution. Please open a salary account in your bank.
-                    As per our office record his residential address is as given below:
+            <div className='space-y-8 text-justify'>
+                <p className='leading-loose'>
+                    This is to certify that <span className='font-bold uppercase underline underline-offset-2'>{fullName}</span> is working
+                    as staff in our institution. Please open a salary account in your bank. As per our office record his residential address
+                    is as given below:
                 </p>
 
-                <p className="font-bold bg-gray-50 p-4 border rounded">
+                <p className='rounded border bg-gray-50 p-4 font-bold'>
                     {currentEmployeeDetails?.hrmE_LocStreet}, {currentEmployeeDetails?.hrmE_LocArea}, {currentEmployeeDetails?.hrmE_LocCity}
                 </p>
 
-                <div className="mt-16 pt-8">
-                    <p className="font-bold underline underline-offset-4">Bank Details/Address:</p>
-                    <p className="italic whitespace-pre-wrap">{bankaddress || '[Bank Address Not Provided]'}</p>
+                <div className='mt-16 pt-8'>
+                    <p className='font-bold underline underline-offset-4'>Bank Details/Address:</p>
+                    <p className='whitespace-pre-wrap italic'>{bankaddress || '[Bank Address Not Provided]'}</p>
                 </div>
             </div>
         </div>
@@ -812,6 +944,10 @@ export function LetterRenderer({ details, formData, setValue }: LetterTemplatePr
         case 'accountopening':
             return <AccountOpeningLetter details={details} formData={formData} />;
         default:
-            return <div className="p-8">Selected letter type "{formData.letterType}" template not fully implemented. Please contact support.</div>;
+            return (
+                <div className='p-8'>
+                    Selected letter type "{formData.letterType}" template not fully implemented. Please contact support.
+                </div>
+            );
     }
 }

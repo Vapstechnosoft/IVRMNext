@@ -7,10 +7,9 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown, useMasterMonthDropDownList, useMasterSectionHeld } from '@/hooks/admission/preadmission/useMasters';
-import { useAdmissionClassDropdown } from '@/hooks/admission/preadmission/useTransactions';
+import { useMasterClassHeldAllDetails } from '@/hooks/admission/preadmission/useMasters';
 import { masterClassHeldSchema } from '@/schemas/admission/preadmission/masters';
-import { addOrUpdateMasterClassHeld } from '@/server/admission/preadmission/masters/class_held';
+import { addOrUpdateMasterClassHeld, getClassHeldData } from '@/server/admission/preadmission/masters/class_held';
 import type { IAcademicYearDropDown } from '@/types/admission/preadmission/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -46,18 +45,21 @@ export default function MasterClassHeldPage() {
     const [classHeldData, setClassHeldData] = useState<ClassHeldRow[]>([]);
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<IAcademicYearDropDown | null>(null);
 
-    const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
-    const { data: masterClass, isLoading: preadmissionClassLoading, isError: preadmissionClassError } = useAdmissionClassDropdown();
-    const {
-        data: masterSection,
-        isLoading: preadmissionSectionLoading,
-        isError: preadmissionSectionError
-    } = useMasterSectionHeld(Number(classId));
-    const {
-        data: masterMonthDropDown,
-        isLoading: preadmissionMonthLoading,
-        isError: preadmissionMonthError
-    } = useMasterMonthDropDownList();
+    const { data: allDetails, isLoading: isAllDetailsLoading, isError: isAllDetailsError } = useMasterClassHeldAllDetails();
+
+    const academicYear = useMemo(() => ({ data: allDetails?.data?.allyear || [] }), [allDetails?.data?.allyear]);
+    const masterClass = useMemo(() => ({ data: allDetails?.data?.classDrpDwn || [] }), [allDetails?.data?.classDrpDwn]);
+    const masterSection = useMemo(() => ({ data: allDetails?.data?.sectionDrpDwn || [] }), [allDetails?.data?.sectionDrpDwn]);
+    const masterMonthDropDown = useMemo(() => ({ data: allDetails?.data?.monthList || [] }), [allDetails?.data?.monthList]);
+
+    const ayLoading = isAllDetailsLoading;
+    const preadmissionClassLoading = isAllDetailsLoading;
+    const preadmissionSectionLoading = isAllDetailsLoading;
+    const preadmissionMonthLoading = isAllDetailsLoading;
+
+    const preadmissionClassError = isAllDetailsError;
+    const preadmissionSectionError = isAllDetailsError;
+    const preadmissionMonthError = isAllDetailsError;
     console.log('sectionId', sectionId);
     const {
         control,
@@ -75,6 +77,17 @@ export default function MasterClassHeldPage() {
         },
         mode: 'onChange'
     });
+
+    useEffect(() => {
+        if (allDetails?.data?.currentYear && allDetails?.data?.currentYear.length > 0) {
+            const currentYearId = allDetails.data.currentYear[0].asmaY_Id;
+            const selectedYear = allDetails.data.allyear?.find((item: any) => item.asmaY_Id === currentYearId);
+            if (selectedYear) {
+                setValue('asmaY_Id', currentYearId);
+                setSelectedAcademicYear(selectedYear);
+            }
+        }
+    }, [allDetails, setValue]);
 
     const filteredMonths = useMemo(() => {
         if (!masterMonthDropDown?.data || !Array.isArray(masterMonthDropDown.data) || !selectedAcademicYear) {
@@ -98,8 +111,8 @@ export default function MasterClassHeldPage() {
                 const displayName = `${monthShortName}-${year}`;
 
                 // Handle Leap Year for February
-                const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
-                const maxDays = (monthNum === 2 && isLeapYear) ? 29 : monthData.ivrM_Month_Max_Days;
+                const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+                const maxDays = monthNum === 2 && isLeapYear ? 29 : monthData.ivrM_Month_Max_Days;
 
                 result.push({
                     ivrM_Month_Id: monthData.ivrM_Month_Id,
@@ -149,15 +162,57 @@ export default function MasterClassHeldPage() {
         setValue('classHeldData', selectedRows as any, { shouldValidate: true });
     }, [classHeldData, setValue]);
 
+    const fetchClassHeldData = async (selectedMonths: any[], indices: number[]) => {
+        if (!selectedAcademicYear || !classId || !sectionId || selectedMonths.length === 0) return;
+        try {
+            const payload = {
+                amaY_Id: selectedAcademicYear.asmaY_Id,
+                asmcL_Id: classId,
+                asmS_Id: Number(sectionId),
+                selectedmonthList: selectedMonths.map((m: any) => ({
+                    ivrM_Month_Id: m.ivrM_Month_Id,
+                    ivrM_Month_Name: m.ivrM_Month_Name,
+                    is_Active: m.is_Active,
+                    ivrM_Month_Max_Days: m.ivrM_Month_Max_Days,
+                    ascH_ClassHeld: Number.parseInt(m.ascH_ClassHeld) || 0
+                }))
+            };
+            const response = await getClassHeldData(payload);
+            // Assuming response contains noOfClassHeldCount array matching selected months
+            if (response.success || response.noOfClassHeldCount || response.data?.noOfClassHeldCount) {
+                const counts: number[] = response.noOfClassHeldCount || response.data?.noOfClassHeldCount || [];
+                setClassHeldData((prev) => {
+                    const newData = [...prev];
+                    if (Array.isArray(counts)) {
+                        counts.forEach((count: number, i: number) => {
+                            const targetIndex = indices[i];
+                            if (targetIndex !== undefined) {
+                                if (count >= 0) {
+                                    newData[targetIndex] = { ...newData[targetIndex], ascH_ClassHeld: count.toString() };
+                                }
+                            }
+                        });
+                    }
+                    return newData;
+                });
+            }
+        } catch (error) {
+            console.error('Failed to fetch class held data', error);
+        }
+    };
+
     const handleSelectAll = (checked: boolean) => {
         setSelectAll(checked);
-        setClassHeldData((prev) =>
-            prev.map((row) => ({
-                ...row,
-                selected: checked,
-                ascH_ClassHeld: checked ? '0' : ''
-            }))
-        );
+        const newData = classHeldData.map((row) => ({
+            ...row,
+            selected: checked,
+            ascH_ClassHeld: checked ? '0' : ''
+        }));
+        setClassHeldData(newData);
+
+        if (checked) {
+            fetchClassHeldData(newData, newData.map((_, i) => i));
+        }
     };
 
     const handleRowSelect = (index: number, checked: boolean) => {
@@ -168,11 +223,18 @@ export default function MasterClassHeldPage() {
                 selected: checked,
                 ascH_ClassHeld: checked ? '0' : ''
             };
+
+            const allSelected = newData.every((row) => row.selected);
+            setSelectAll(allSelected);
+
+            if (checked) {
+                const selectedRows = newData.filter(r => r.selected);
+                const indices = newData.map((r, i) => r.selected ? i : -1).filter(i => i !== -1);
+                fetchClassHeldData(selectedRows, indices);
+            }
+
             return newData;
         });
-
-        const allSelected = classHeldData.every((row, i) => (i === index ? checked : row.selected));
-        setSelectAll(allSelected);
     };
 
     const handleClassHeldChange = (index: number, value: string) => {
@@ -221,15 +283,12 @@ export default function MasterClassHeldPage() {
             }
 
             const payload = {
-                asmaY_Id: data.asmaY_Id,
+                amaY_Id: data.asmaY_Id,
                 asmcL_Id: Number(data.classCategory),
                 asmS_Id: Number(data.section),
-                class_helds: data.classHeldData.map((item: any) => ({
+                selectedmList: data.classHeldData.map((item: any) => ({
                     ivrM_Month_Id: item.ivrM_Month_Id,
-                    ivrM_Month_Name: item.ivrM_Month_Name,
-                    is_Active: item.is_Active,
-                    ivrM_Month_Max_Days: item.ivrM_Month_Max_Days,
-                    ascH_ClassHeld: item.ascH_ClassHeld
+                    ascH_ClassHeld: Number.parseInt(item.ascH_ClassHeld) || 0
                 }))
             };
 
@@ -298,7 +357,7 @@ export default function MasterClassHeldPage() {
                                                     const numValue = Number(value);
                                                     field.onChange(numValue);
 
-                                                    const selectedYear = academicYear?.data?.find((item) => item.asmaY_Id === numValue);
+                                                    const selectedYear = academicYear?.data?.find((item: any) => item.asmaY_Id === numValue);
                                                     setSelectedAcademicYear(selectedYear || null);
 
                                                     setClassId(null);
@@ -316,7 +375,7 @@ export default function MasterClassHeldPage() {
                                                             Loading...
                                                         </SelectItem>
                                                     ) : (
-                                                        academicYear?.data?.map((item) => (
+                                                        academicYear?.data?.map((item: any) => (
                                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                                 {item.asmaY_Year}
                                                             </SelectItem>
@@ -360,7 +419,7 @@ export default function MasterClassHeldPage() {
                                                             Error loading
                                                         </SelectItem>
                                                     ) : (
-                                                        masterClass?.data?.map((item) => (
+                                                        masterClass?.data?.map((item: any) => (
                                                             <SelectItem key={item.asmcL_Id} value={item.asmcL_Id.toString()}>
                                                                 {item.asmcL_ClassName}
                                                             </SelectItem>
@@ -470,12 +529,13 @@ export default function MasterClassHeldPage() {
                                                             value={row.ascH_ClassHeld}
                                                             onChange={(e) => handleClassHeldChange(index, e.target.value)}
                                                             disabled={!row.selected}
-                                                            className={`w-full ${row.selected &&
-                                                                    row.ascH_ClassHeld !== '' &&
-                                                                    Number.parseInt(row.ascH_ClassHeld) > row.ivrM_Month_Max_Days
+                                                            className={`w-full ${
+                                                                row.selected &&
+                                                                row.ascH_ClassHeld !== '' &&
+                                                                Number.parseInt(row.ascH_ClassHeld) > row.ivrM_Month_Max_Days
                                                                     ? 'border-red-500'
                                                                     : ''
-                                                                }`}
+                                                            }`}
                                                         />
                                                     </div>
                                                 </div>
@@ -491,11 +551,11 @@ export default function MasterClassHeldPage() {
                                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                                     <Button
                                         type='button'
-                                        variant='outline'
-                                        onClick={handleTableReset}
+                                        variant='destructive'
+                                        onClick={handleReset}
                                         disabled={isSubmitting}
                                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                                        Reset
+                                        Clear
                                     </Button>
                                     <Button
                                         type='button'

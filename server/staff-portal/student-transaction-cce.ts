@@ -1,19 +1,18 @@
-
 'use server';
 
-import { api, ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
-    IStudentTransactionInitialData,
-    IClass,
-    ISection,
-    IExamTerm,
-    IExamMaster,
-    ISkill,
     IActivity,
     IArea,
+    IClass,
+    IExamMaster,
+    IExamTerm,
+    ISection,
+    ISkill,
+    IStudentTransactionInitialData,
+    IStudentTransactionSaveRequest,
     IStudentTransactionSearchRequest,
-    IStudentTransactionSearchResponse,
-    IStudentTransactionSaveRequest
+    IStudentTransactionSearchResponse
 } from '@/types/staff-portal/student-transaction-cce';
 
 const BASE_URL = '/StudentTransaction';
@@ -30,12 +29,34 @@ export async function getSections(asmaY_Id: number, asmcL_Id: number, flag: stri
     return await api.post('portal', `${BASE_URL}/onchangeclass`, { ASMAY_Id: asmaY_Id, ASMCL_Id: asmcL_Id, exam_termwise_flag: flag });
 }
 
-export async function getTermsOrExams(asmaY_Id: number, asmcL_Id: number, asmS_Id: number, flag: string): Promise<ApiResponse<{ examTerms: IExamTerm[], exammaster: IExamMaster[] }>> {
-    return await api.post('portal', `${BASE_URL}/onchangesection`, { ASMAY_Id: asmaY_Id, ASMCL_Id: asmcL_Id, ASMS_Id: asmS_Id, exam_termwise_flag: flag });
+export async function getTermsOrExams(
+    asmaY_Id: number,
+    asmcL_Id: number,
+    asmS_Id: number,
+    flag: string
+): Promise<ApiResponse<{ examTerms: IExamTerm[]; exammaster: IExamMaster[] }>> {
+    return await api.post('portal', `${BASE_URL}/onchangesection`, {
+        ASMAY_Id: asmaY_Id,
+        ASMCL_Id: asmcL_Id,
+        ASMS_Id: asmS_Id,
+        exam_termwise_flag: flag
+    });
 }
 
-export async function getSkillsOrActivities(skills: string, asmaY_Id: number, asmcL_Id: number, asmS_Id: number, flag: string): Promise<ApiResponse<{ skillsList: ISkill[], activitiesList: IActivity[] }>> {
-    return await api.post('portal', `${BASE_URL}/onchangeactivitesskillflag`, { Skills: skills, ASMAY_Id: asmaY_Id, ASMCL_Id: asmcL_Id, ASMS_Id: asmS_Id, exam_termwise_flag: flag });
+export async function getSkillsOrActivities(
+    skills: string,
+    asmaY_Id: number,
+    asmcL_Id: number,
+    asmS_Id: number,
+    flag: string
+): Promise<ApiResponse<{ skillsList: ISkill[]; activitiesList: IActivity[] }>> {
+    return await api.post('portal', `${BASE_URL}/onchangeactivitesskillflag`, {
+        Skills: skills,
+        ASMAY_Id: asmaY_Id,
+        ASMCL_Id: asmcL_Id,
+        ASMS_Id: asmS_Id,
+        exam_termwise_flag: flag
+    });
 }
 
 export async function getActivitiesAreas(data: any): Promise<ApiResponse<{ areasList: IArea[] }>> {

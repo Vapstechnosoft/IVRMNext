@@ -1,6 +1,4 @@
 'use client';
-
-import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,23 +11,18 @@ interface SubjectWiseRemarksModalProps {
     remarksList: ISubjectWiseRemark[];
 }
 
-export default function SubjectWiseRemarksModal({
-    open,
-    onOpenChange,
-    studentName,
-    remarksList
-}: SubjectWiseRemarksModalProps) {
+export default function SubjectWiseRemarksModal({ open, onOpenChange, studentName, remarksList }: SubjectWiseRemarksModalProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl">
+            <DialogContent className='max-w-3xl'>
                 <DialogHeader>
                     <DialogTitle>{studentName} : Subject Wise Remarks Details</DialogTitle>
                 </DialogHeader>
-                <div className="max-h-[60vh] overflow-y-auto">
+                <div className='max-h-[60vh] overflow-y-auto'>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-[50px]">Sl.No</TableHead>
+                                <TableHead className='w-[50px]'>Sl.No</TableHead>
                                 <TableHead>Subject Name</TableHead>
                                 <TableHead>Remarks</TableHead>
                             </TableRow>
@@ -38,7 +31,7 @@ export default function SubjectWiseRemarksModal({
                             {remarksList.length > 0 ? (
                                 remarksList.map((r, i) => (
                                     <TableRow key={i}>
-                                        <TableCell className="text-center">{i + 1}</TableCell>
+                                        <TableCell className='text-center'>{i + 1}</TableCell>
                                         <TableCell>{r.ismS_SubjectName}</TableCell>
                                         <TableCell>
                                             <Textarea value={r.espcsR_Remarks} disabled rows={3} />
@@ -47,7 +40,9 @@ export default function SubjectWiseRemarksModal({
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={3} className="text-center">No remarks found.</TableCell>
+                                    <TableCell colSpan={3} className='text-center'>
+                                        No remarks found.
+                                    </TableCell>
                                 </TableRow>
                             )}
                         </TableBody>

@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, ComposedChart } from 'recharts';
+import { Bar, CartesianGrid, Cell, ComposedChart, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 const strengthData = [
     { class: 'Pre-Nur', sections: 3, strength: 70 },
@@ -15,7 +15,7 @@ const strengthData = [
     { class: 'VII', sections: 2, strength: 78 },
     { class: 'VIII', sections: 4, strength: 80 },
     { class: 'IX', sections: 4, strength: 95 },
-    { class: 'X', sections: 2, strength: 85 },
+    { class: 'X', sections: 2, strength: 85 }
 ];
 
 const pieData = [
@@ -32,51 +32,67 @@ const pieData = [
     { name: 'VII', value: 78, fill: '#778899' },
     { name: 'VIII', value: 80, fill: '#708090' },
     { name: 'IX', value: 95, fill: '#6D7B8D' },
-    { name: 'X', value: 85, fill: '#36454F' },
+    { name: 'X', value: 85, fill: '#36454F' }
 ];
 
 export function StrengthStats() {
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="col-span-1 lg:col-span-2">
+        <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+            <Card className='col-span-1 lg:col-span-2'>
                 <CardHeader>
                     <CardTitle>Class Wise Total Strength vs Sections</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="h-[400px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className='h-[400px] w-full'>
+                        <ResponsiveContainer width='100%' height='100%'>
                             <ComposedChart data={strengthData}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="class" />
-                                <YAxis yAxisId="left" orientation="left" stroke="#F3A00E" label={{ value: 'Strength', angle: -90, position: 'insideLeft' }} />
-                                <YAxis yAxisId="right" orientation="right" stroke="#2874A6" label={{ value: 'Sections', angle: 90, position: 'insideRight' }} />
+                                <CartesianGrid strokeDasharray='3 3' vertical={false} />
+                                <XAxis dataKey='class' />
+                                <YAxis
+                                    yAxisId='left'
+                                    orientation='left'
+                                    stroke='#F3A00E'
+                                    label={{ value: 'Strength', angle: -90, position: 'insideLeft' }}
+                                />
+                                <YAxis
+                                    yAxisId='right'
+                                    orientation='right'
+                                    stroke='#2874A6'
+                                    label={{ value: 'Sections', angle: 90, position: 'insideRight' }}
+                                />
                                 <Tooltip />
                                 <Legend />
-                                <Bar yAxisId="right" dataKey="sections" name="Total Sections" fill="#2874A6" barSize={20} radius={[4, 4, 0, 0]} />
-                                <Bar yAxisId="left" dataKey="strength" name="Total Class Strength" fill="#F3A00E" barSize={20} radius={[4, 4, 0, 0]} />
+                                <Bar
+                                    yAxisId='right'
+                                    dataKey='sections'
+                                    name='Total Sections'
+                                    fill='#2874A6'
+                                    barSize={20}
+                                    radius={[4, 4, 0, 0]}
+                                />
+                                <Bar
+                                    yAxisId='left'
+                                    dataKey='strength'
+                                    name='Total Class Strength'
+                                    fill='#F3A00E'
+                                    barSize={20}
+                                    radius={[4, 4, 0, 0]}
+                                />
                             </ComposedChart>
                         </ResponsiveContainer>
                     </div>
                 </CardContent>
             </Card>
 
-            <Card className="col-span-1 lg:col-span-2">
+            <Card className='col-span-1 lg:col-span-2'>
                 <CardHeader>
                     <CardTitle>Strength Distribution</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="h-[400px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
+                    <div className='h-[400px] w-full'>
+                        <ResponsiveContainer width='100%' height='100%'>
                             <PieChart>
-                                <Pie
-                                    data={pieData}
-                                    dataKey="value"
-                                    nameKey="name"
-                                    cx="50%"
-                                    cy="50%"
-                                    outerRadius={120}
-                                    label
-                                >
+                                <Pie data={pieData} dataKey='value' nameKey='name' cx='50%' cy='50%' outerRadius={120} label>
                                     {pieData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={entry.fill} />
                                     ))}

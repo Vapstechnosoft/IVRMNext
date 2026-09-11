@@ -107,10 +107,10 @@ export default function MESProgressCardForm({
         (async () => {
             try {
                 setLoadingSections(true);
-                console.log("selectedYear", selectedYear);
-                console.log("selectedClass", selectedClass);
+                console.log('selectedYear', selectedYear);
+                console.log('selectedClass', selectedClass);
                 const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
-                console.log("data", data);
+                console.log('data', data);
                 if (!data || (Array.isArray(data) && data.length === 0)) {
                     toast.info('No sections found');
                 }
@@ -146,7 +146,11 @@ export default function MESProgressCardForm({
                 const mappedStudents = valid.map((s) => ({
                     amsT_Id: s.amsT_Id,
                     amsT_AdmNo: s.amsT_AdmNo,
-                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+                    studentName: s.studentName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim(),
+                    amsT_FirstName: s.amsT_FirstName || s.studentName || '',
+                    amsT_FatherName: s.amsT_FatherName || s.fatherName || '',
+                    amsT_DOB: s.amsT_DOB || s.dob || null,
+                    amaY_RollNo: s.amaY_RollNo || s.rollNo || null
                 }));
                 setStudents(mappedStudents);
                 setValue('studentList', []);
@@ -186,13 +190,44 @@ export default function MESProgressCardForm({
             toast.error('Please select at least one student');
             return;
         }
+        const selectedClassObj = classes.find((c) => c.asmcL_Id === data.asmcL_Id);
+        const selectedSectionObj = sections.find((s) => s.asmS_Id === data.asmS_Id);
+        const selectedExamObj = exams.find((e) => e.emE_Id === data.emE_Id);
+        const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
+
+        const selectedStudentObjects = (data.studentList || []).map((item: any) => {
+            const found = students.find((s: any) => String(s.amsT_Id) === String(item.amsT_Id));
+            return found || item;
+        });
+
         const currentDateTime = new Date().toISOString();
+        const studentIdsJoined = data.studentList.map((s) => s.amsT_Id).join(',');
+        const studentIdsArray = data.studentList.map((s) => Number(s.amsT_Id));
+        const studentArr = data.studentList.map((s) => ({
+            AMST_Id: Number(s.amsT_Id),
+            amsT_Id: Number(s.amsT_Id)
+        }));
         const payload: any = {
-            asmaY_Id: data.asmaY_Id,
-            asmcL_Id: data.asmcL_Id,
-            asmS_Id: data.asmS_Id,
-            emE_Id: data.emE_Id,
-            amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
+            asmaY_Id: Number(data.asmaY_Id),
+            ASMAY_Id: Number(data.asmaY_Id),
+            asmcL_Id: Number(data.asmcL_Id),
+            ASMCL_Id: Number(data.asmcL_Id),
+            asmS_Id: Number(data.asmS_Id),
+            ASMS_Id: Number(data.asmS_Id),
+            emE_Id: Number(data.emE_Id),
+            EME_Id: Number(data.emE_Id),
+            selectedClassName: selectedClassObj?.asmcL_ClassName,
+            selectedSectionName: selectedSectionObj?.asmC_SectionName,
+            selectedExamName: selectedExamObj?.emE_ExamName,
+            selectedYearName: selectedYearObj?.asmaY_Year,
+            selectedStudents: selectedStudentObjects,
+            amsT_Ids: studentIdsJoined,
+            AMST_Ids: studentIdsJoined,
+            amst_ids: studentIdsArray,
+            temp_AmstIds: studentArr,
+            Temp_AmstIds: studentArr,
+            studentlist: studentArr,
+            studentList: selectedStudentObjects,
             fromDate: currentDateTime,
             toDate: currentDateTime
         };
@@ -243,9 +278,13 @@ export default function MESProgressCardForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {academicYearLoading ? (
-                                                            <SelectItem value='0' disabled>Academic Year is loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Academic Year is loading...
+                                                            </SelectItem>
                                                         ) : academicYears.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Academic Year found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Academic Year found
+                                                            </SelectItem>
                                                         ) : (
                                                             academicYears.map((y) => (
                                                                 <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
@@ -280,9 +319,13 @@ export default function MESProgressCardForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingClasses ? (
-                                                            <SelectItem value='0' disabled>Classes are loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Classes are loading...
+                                                            </SelectItem>
                                                         ) : classes.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Classes found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Classes found
+                                                            </SelectItem>
                                                         ) : (
                                                             classes.map((c) => (
                                                                 <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
@@ -317,9 +360,13 @@ export default function MESProgressCardForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingSections ? (
-                                                            <SelectItem value='0' disabled>Sections are loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Sections are loading...
+                                                            </SelectItem>
                                                         ) : sections.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Sections found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Sections found
+                                                            </SelectItem>
                                                         ) : (
                                                             sections.map((s) => (
                                                                 <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
@@ -354,9 +401,13 @@ export default function MESProgressCardForm({
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingExams ? (
-                                                            <SelectItem value='0' disabled>Exams are loading...</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                Exams are loading...
+                                                            </SelectItem>
                                                         ) : exams.length === 0 ? (
-                                                            <SelectItem value='0' disabled>No Exams found</SelectItem>
+                                                            <SelectItem value='0' disabled>
+                                                                No Exams found
+                                                            </SelectItem>
                                                         ) : (
                                                             exams.map((e) => (
                                                                 <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>

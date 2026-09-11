@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArcElement, BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, Title, Tooltip } from 'chart.js';
 import { format } from 'date-fns';
 import { Printer } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { Bar } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
@@ -39,8 +39,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
         const list: any[] = [];
         if (groupDetails.length > 0) {
             groupDetails.forEach((group: any) => {
-                const exams = groupExamDetails.filter((ge: any) =>
-                    (ge.empG_DistplayName || ge.EMPG_DistplayName) === (group.empG_DistplayName || group.EMPG_DistplayName)
+                const exams = groupExamDetails.filter(
+                    (ge: any) => (ge.empG_DistplayName || ge.EMPG_DistplayName) === (group.empG_DistplayName || group.EMPG_DistplayName)
                 );
                 exams.forEach((exam: any) => {
                     list.push({
@@ -56,8 +56,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
             });
         }
         // Add Total and Grade columns
-        list.push({ EME_Id: 9800000, EMPG_DistplayName: "Total", EME_ExamName: "MARKS SCORED(100)", isTotal: true, isGrade: false });
-        list.push({ EME_Id: 9800001, EMPG_DistplayName: "Grade", EME_ExamName: "GRADE", isTotal: false, isGrade: true });
+        list.push({ EME_Id: 9800000, EMPG_DistplayName: 'Total', EME_ExamName: 'MARKS SCORED(100)', isTotal: true, isGrade: false });
+        list.push({ EME_Id: 9800001, EMPG_DistplayName: 'Grade', EME_ExamName: 'GRADE', isTotal: false, isGrade: true });
         return list;
     }, [groupDetails, groupExamDetails]);
 
@@ -76,18 +76,27 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                         const studentID = report.amsT_Id || report.AMST_Id || report.studentId;
 
                         // Extract subjects for this student
-                        const studentSubjects = Array.from(new Set(studentWiseSubjects
-                            .filter((s: any) => String(s.amsT_Id ?? s.AMST_Id ?? s.studentId) === String(studentID))
-                            .map((s: any) => s.subjectName || s.ISMS_SubjectName || s.ismS_SubjectName)))
-                            .map(name => {
-                                const subjObj = studentWiseSubjects.find((s: any) =>
-                                    String(s.amsT_Id ?? s.AMST_Id ?? s.studentId) === String(studentID) &&
-                                    (s.subjectName === name || s.ISMS_SubjectName === name || s.ismS_SubjectName === name)
+                        const studentSubjects = Array.from(
+                            new Set(
+                                studentWiseSubjects
+                                    .filter((s: any) => String(s.amsT_Id ?? s.AMST_Id ?? s.studentId) === String(studentID))
+                                    .map((s: any) => s.subjectName || s.ISMS_SubjectName || s.ismS_SubjectName)
+                            )
+                        )
+                            .map((name) => {
+                                const subjObj = studentWiseSubjects.find(
+                                    (s: any) =>
+                                        String(s.amsT_Id ?? s.AMST_Id ?? s.studentId) === String(studentID) &&
+                                        (s.subjectName === name || s.ISMS_SubjectName === name || s.ismS_SubjectName === name)
                                 );
-                                const appToResultVal = subjObj?.appToResultFlg ?? subjObj?.EMPS_AppToResultFlg ?? subjObj?.emps_AppToResultFlg;
-                                const isAppToResult = appToResultVal !== undefined && appToResultVal !== null
-                                    ? (typeof appToResultVal === 'string' ? appToResultVal.trim().toLowerCase() === 'true' : !!appToResultVal)
-                                    : true;
+                                const appToResultVal =
+                                    subjObj?.appToResultFlg ?? subjObj?.EMPS_AppToResultFlg ?? subjObj?.emps_AppToResultFlg;
+                                const isAppToResult =
+                                    appToResultVal !== undefined && appToResultVal !== null
+                                        ? typeof appToResultVal === 'string'
+                                            ? appToResultVal.trim().toLowerCase() === 'true'
+                                            : !!appToResultVal
+                                        : true;
                                 return {
                                     subjectName: name,
                                     ismS_Id: subjObj?.ismS_Id || subjObj?.ISMS_Id || subjObj?.isms_Id || 0,
@@ -95,28 +104,46 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                     amsT_Id: subjObj?.amsT_Id || subjObj?.AMST_Id
                                 };
                             })
-                            .filter(subj => subj.EMPS_AppToResultFlg);
+                            .filter((subj) => subj.EMPS_AppToResultFlg);
 
-                        const studentMarks = studentMarksDetails.filter((m: any) => String(m.amsT_Id ?? m.AMST_Id ?? m.studentId) === String(studentID));
-                        const studentSummary = examMaxMarks.find((emm: any) => String(emm.amsT_Id ?? emm.AMST_Id ?? emm.studentId) === String(studentID)) || {};
-                        const remarksObj = promotionRemarks.find((rem: any) => String(rem.amsT_Id ?? rem.AMST_Id ?? rem.studentId) === String(studentID)) || {};
+                        const studentMarks = studentMarksDetails.filter(
+                            (m: any) => String(m.amsT_Id ?? m.AMST_Id ?? m.studentId) === String(studentID)
+                        );
+                        const studentSummary =
+                            examMaxMarks.find((emm: any) => String(emm.amsT_Id ?? emm.AMST_Id ?? emm.studentId) === String(studentID)) ||
+                            {};
+                        const remarksObj =
+                            promotionRemarks.find(
+                                (rem: any) => String(rem.amsT_Id ?? rem.AMST_Id ?? rem.studentId) === String(studentID)
+                            ) || {};
 
-                        const workAtt = (data.work_attendence || []).find((a: any) => String(a.AMST_Id ?? a.amsT_Id ?? a.studentId ?? a.StudentId) === String(studentID)) || {};
-                        const presentAtt = (data.present_attendence || []).find((a: any) => String(a.AMST_Id ?? a.amsT_Id ?? a.studentId ?? a.StudentId) === String(studentID)) || {};
+                        const workAtt =
+                            (data.work_attendence || []).find(
+                                (a: any) => String(a.AMST_Id ?? a.amsT_Id ?? a.studentId ?? a.StudentId) === String(studentID)
+                            ) || {};
+                        const presentAtt =
+                            (data.present_attendence || []).find(
+                                (a: any) => String(a.AMST_Id ?? a.amsT_Id ?? a.studentId ?? a.StudentId) === String(studentID)
+                            ) || {};
                         console.log('present Attendence', presentAtt);
 
                         // Graph data (Filter by appToResultFlg exactly like legacy code)
                         const graphSubjects = studentWiseSubjects.filter((s: any) => {
                             const matchStudent = String(s.amsT_Id ?? s.AMST_Id ?? s.studentId) === String(studentID);
                             const appToResultVal = s.appToResultFlg ?? s.EMPS_AppToResultFlg ?? s.emps_AppToResultFlg;
-                            const isAppToResult = appToResultVal !== undefined && appToResultVal !== null
-                                ? (typeof appToResultVal === 'string' ? appToResultVal.trim().toLowerCase() === 'true' : !!appToResultVal)
-                                : true;
+                            const isAppToResult =
+                                appToResultVal !== undefined && appToResultVal !== null
+                                    ? typeof appToResultVal === 'string'
+                                        ? appToResultVal.trim().toLowerCase() === 'true'
+                                        : !!appToResultVal
+                                    : true;
                             return matchStudent && isAppToResult;
                         });
                         const graphLabels = graphSubjects.map((s: any) => s.subjectName || s.ISMS_SubjectName || s.ismS_SubjectName);
                         const graphScores = graphSubjects.map((s: any) => Number(s.subjectPercentage ?? s.TotalPercentage ?? 0));
-                        const graphAverages = graphSubjects.map((s: any) => Number(s.classAverage ?? s.ESTMPPS_ClassAverage ?? s.estmpps_ClassAverage ?? 0));
+                        const graphAverages = graphSubjects.map((s: any) =>
+                            Number(s.classAverage ?? s.ESTMPPS_ClassAverage ?? s.estmpps_ClassAverage ?? 0)
+                        );
                         const hasAverage = graphSubjects.some((s: any) => {
                             const avgVal = s.classAverage ?? s.ESTMPPS_ClassAverage ?? s.estmpps_ClassAverage;
                             return avgVal !== undefined && avgVal !== null;
@@ -195,18 +222,15 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                             <div
                                 key={index}
                                 className='page-break-before-always mx-auto mb-8 w-full max-w-5xl border border-gray-300 bg-white p-4 shadow-sm print:m-0 print:border-none print:p-0 print:shadow-none'>
-
                                 <div className='mb-4 w-full'>
                                     <img
-                                        src="https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/35f336e8-28d7-4fbe-94f6-4fdfd733ecf6.jpg"
-                                        alt="Report Header"
+                                        src='https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/35f336e8-28d7-4fbe-94f6-4fdfd733ecf6.jpg'
+                                        alt='Report Header'
                                         className='w-full object-contain'
                                     />
                                 </div>
 
-                                <h3 className='mb-6 text-center text-xl font-bold uppercase'>
-                                    ACHIEVEMENT RECORD {data.asmaY_Year}
-                                </h3>
+                                <h3 className='mb-6 text-center font-bold text-xl uppercase'>ACHIEVEMENT RECORD {data.asmaY_Year}</h3>
 
                                 {/* Student Profile */}
                                 <div className='relative mb-8 flex flex-row px-4'>
@@ -214,10 +238,13 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         {[
                                             { label: 'Name of the Student', value: report.studentName || report.studentname },
                                             { label: 'Admission Number', value: report.admissionNo || report.admno },
-                                            { label: 'Class & Section', value: `${report.className || report.classname} - ${report.sectionName || report.sectionname}` },
+                                            {
+                                                label: 'Class & Section',
+                                                value: `${report.className || report.classname} - ${report.sectionName || report.sectionname}`
+                                            },
                                             { label: 'Date of Birth', value: report.dob },
-                                            { label: 'Mother\'s Name', value: report.motherName || report.mothername },
-                                            { label: 'Father\'s Name', value: report.fatherName || report.fathername }
+                                            { label: "Mother's Name", value: report.motherName || report.mothername },
+                                            { label: "Father's Name", value: report.fatherName || report.fathername }
                                         ].map((item, i) => (
                                             <div key={i} className='flex'>
                                                 <div className='w-48 font-bold'>{item.label}</div>
@@ -226,11 +253,11 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             </div>
                                         ))}
                                     </div>
-                                    <div className='absolute right-4 top-[-20px]'>
+                                    <div className='absolute top-[-20px] right-4'>
                                         {(report.studentPhoto || report.photo || report.AMST_Photoname) && (
                                             <img
                                                 src={report.studentPhoto || report.photo || report.AMST_Photoname}
-                                                alt="Student"
+                                                alt='Student'
                                                 className='h-[150px] w-[150px] border border-black object-cover'
                                             />
                                         )}
@@ -238,41 +265,60 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 </div>
 
                                 {/* Scholastic Section */}
-                                <h3 className='mb-2 text-center text-lg font-bold uppercase'>SCHOLASTIC REPORT</h3>
+                                <h3 className='mb-2 text-center font-bold text-lg uppercase'>SCHOLASTIC REPORT</h3>
                                 <div className='overflow-x-auto px-4'>
                                     <table className='mb-6 w-full border-collapse border border-gray-400 text-xs'>
                                         <thead>
                                             <tr>
-                                                <th rowSpan={2} className='w-40 border border-gray-400 bg-[#BABABA] p-2 text-left text-black uppercase'><b>SUBJECT</b></th>
+                                                <th
+                                                    rowSpan={2}
+                                                    className='w-40 border border-gray-400 bg-[#BABABA] p-2 text-left text-black uppercase'>
+                                                    <b>SUBJECT</b>
+                                                </th>
                                                 {groupDetails.map((group: any, gi: number) => {
-                                                    const examsInGroup = groupExamDetails.filter((ge: any) =>
-                                                        (ge.empG_DistplayName || ge.EMPG_DistplayName) === (group.empG_DistplayName || group.EMPG_DistplayName)
+                                                    const examsInGroup = groupExamDetails.filter(
+                                                        (ge: any) =>
+                                                            (ge.empG_DistplayName || ge.EMPG_DistplayName) ===
+                                                            (group.empG_DistplayName || group.EMPG_DistplayName)
                                                     );
                                                     return (
-                                                        <th key={gi} colSpan={examsInGroup.length} className='border border-gray-400 bg-[#BABABA] p-1 text-center text-black font-bold uppercase'>
+                                                        <th
+                                                            key={gi}
+                                                            colSpan={examsInGroup.length}
+                                                            className='border border-gray-400 bg-[#BABABA] p-1 text-center font-bold text-black uppercase'>
                                                             {group.empG_GroupName || group.EMPG_GroupName}
                                                         </th>
                                                     );
                                                 })}
-                                                <th rowSpan={2} className='border border-gray-400 bg-[#BABABA] p-1 text-center text-black min-w-[100px] font-bold uppercase'>
+                                                <th
+                                                    rowSpan={2}
+                                                    className='min-w-[100px] border border-gray-400 bg-[#BABABA] p-1 text-center font-bold text-black uppercase'>
                                                     MARKS SCORED(100)
                                                 </th>
-                                                <th rowSpan={2} className='border border-gray-400 bg-[#BABABA] p-1 text-center text-black min-w-[100px] font-bold uppercase'>
+                                                <th
+                                                    rowSpan={2}
+                                                    className='min-w-[100px] border border-gray-400 bg-[#BABABA] p-1 text-center font-bold text-black uppercase'>
                                                     GRADE
                                                 </th>
                                             </tr>
                                             <tr>
-                                                {groupWiseExamList.filter((e: any) => !e.isTotal && !e.isGrade).map((exam: any, i: number) => (
-                                                    <th key={i} className='border border-gray-400 bg-[#BABABA] p-1 text-center text-black min-w-[60px]'>
-                                                        <div className='font-bold uppercase'>{exam.EME_ExamName}</div>
-                                                    </th>
-                                                ))}
+                                                {groupWiseExamList
+                                                    .filter((e: any) => !e.isTotal && !e.isGrade)
+                                                    .map((exam: any, i: number) => (
+                                                        <th
+                                                            key={i}
+                                                            className='min-w-[60px] border border-gray-400 bg-[#BABABA] p-1 text-center text-black'>
+                                                            <div className='font-bold uppercase'>{exam.EME_ExamName}</div>
+                                                        </th>
+                                                    ))}
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {studentSubjects.map((subj: any, sIdx: number) => (
                                                 <tr key={sIdx}>
-                                                    <td className='border border-gray-400 p-2 text-left font-semibold uppercase'>{subj.subjectName}</td>
+                                                    <td className='border border-gray-400 p-2 text-left font-semibold uppercase'>
+                                                        {subj.subjectName}
+                                                    </td>
                                                     {groupWiseExamList.map((exam: any, eIdx: number) => {
                                                         const mark = studentMarks.find((m: any) => {
                                                             const mSubjId = m.ISMS_Id ?? m.ismS_Id ?? m.isms_Id;
@@ -285,12 +331,28 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             const mExamName = m.emE_ExamName ?? m.EME_ExamName ?? m.eme_ExamName;
                                                             const examName = exam.EME_ExamName;
 
-                                                            const subjIdMatch = mSubjId && subjId && Number(mSubjId) !== 0 && Number(subjId) !== 0 && Number(mSubjId) === Number(subjId);
-                                                            const subjNameMatch = mSubjName && subjName && mSubjName.trim().toLowerCase() === subjName.trim().toLowerCase();
+                                                            const subjIdMatch =
+                                                                mSubjId &&
+                                                                subjId &&
+                                                                Number(mSubjId) !== 0 &&
+                                                                Number(subjId) !== 0 &&
+                                                                Number(mSubjId) === Number(subjId);
+                                                            const subjNameMatch =
+                                                                mSubjName &&
+                                                                subjName &&
+                                                                mSubjName.trim().toLowerCase() === subjName.trim().toLowerCase();
                                                             const subjMatch = subjIdMatch || subjNameMatch;
 
-                                                            const examIdMatch = mExamId && examId && Number(mExamId) !== 0 && Number(examId) !== 0 && Number(mExamId) === Number(examId);
-                                                            const examNameMatch = mExamName && examName && mExamName.trim().toLowerCase() === examName.trim().toLowerCase();
+                                                            const examIdMatch =
+                                                                mExamId &&
+                                                                examId &&
+                                                                Number(mExamId) !== 0 &&
+                                                                Number(examId) !== 0 &&
+                                                                Number(mExamId) === Number(examId);
+                                                            const examNameMatch =
+                                                                mExamName &&
+                                                                examName &&
+                                                                mExamName.trim().toLowerCase() === examName.trim().toLowerCase();
                                                             const examMatch = examIdMatch || examNameMatch;
 
                                                             return !!(subjMatch && examMatch);
@@ -302,21 +364,42 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                             const gsSubjName = gs.subjectName ?? gs.ismS_SubjectName ?? gs.ISMS_SubjectName;
                                                             const subjName = subj.subjectName;
 
-                                                            const idMatch = gsSubjId && subjId && Number(gsSubjId) !== 0 && Number(subjId) !== 0 && Number(gsSubjId) === Number(subjId);
-                                                            const nameMatch = gsSubjName && subjName && gsSubjName.trim().toLowerCase() === subjName.trim().toLowerCase();
+                                                            const idMatch =
+                                                                gsSubjId &&
+                                                                subjId &&
+                                                                Number(gsSubjId) !== 0 &&
+                                                                Number(subjId) !== 0 &&
+                                                                Number(gsSubjId) === Number(subjId);
+                                                            const nameMatch =
+                                                                gsSubjName &&
+                                                                subjName &&
+                                                                gsSubjName.trim().toLowerCase() === subjName.trim().toLowerCase();
 
                                                             return !!(idMatch || nameMatch);
                                                         });
                                                         let displayValue = '';
                                                         if (exam.isTotal) {
-                                                            displayValue = summaryMark?.subjectObtainedMarks ?? summaryMark?.TotalMarks ?? summaryMark?.ObtainedMarks ?? mark?.ObtainedMarks ?? mark?.obtainedMarks ?? '';
+                                                            displayValue =
+                                                                summaryMark?.subjectObtainedMarks ??
+                                                                summaryMark?.TotalMarks ??
+                                                                summaryMark?.ObtainedMarks ??
+                                                                mark?.ObtainedMarks ??
+                                                                mark?.obtainedMarks ??
+                                                                '';
                                                         } else if (exam.isGrade) {
-                                                            displayValue = summaryMark?.subjectGrade ?? summaryMark?.TotalGrade ?? summaryMark?.ObtainedGrade ?? mark?.ObtainedGrade ?? mark?.obtainedGrade ?? '';
+                                                            displayValue =
+                                                                summaryMark?.subjectGrade ??
+                                                                summaryMark?.TotalGrade ??
+                                                                summaryMark?.ObtainedGrade ??
+                                                                mark?.ObtainedGrade ??
+                                                                mark?.obtainedGrade ??
+                                                                '';
                                                         } else if (mark) {
                                                             const passFail = mark.PassFailFlag ?? mark.passFailFlag;
-                                                            displayValue = passFail === 'AB' || passFail === 'M' || passFail === 'L'
-                                                                ? passFail
-                                                                : String(mark.ObtainedMarks ?? mark.obtainedMarks ?? '');
+                                                            displayValue =
+                                                                passFail === 'AB' || passFail === 'M' || passFail === 'L'
+                                                                    ? passFail
+                                                                    : String(mark.ObtainedMarks ?? mark.obtainedMarks ?? '');
                                                         }
 
                                                         return (
@@ -333,19 +416,23 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                 {/* Grading Scale */}
                                 <div className='mb-6 px-4'>
-                                    <h3 className='mb-2 text-center text-lg font-bold underline uppercase'>SCHOLASTIC GRADING SCALE</h3>
+                                    <h3 className='mb-2 text-center font-bold text-lg uppercase underline'>SCHOLASTIC GRADING SCALE</h3>
                                     <table className='mx-auto w-3/4 border-collapse border border-gray-400 text-center text-sm'>
                                         <tbody>
                                             <tr>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 uppercase'>Grade</th>
-                                                {['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'D', 'E'].map(g => (
-                                                    <td key={g} className='border border-gray-400 p-2 font-bold'>{g}</td>
+                                                {['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'D', 'E'].map((g) => (
+                                                    <td key={g} className='border border-gray-400 p-2 font-bold'>
+                                                        {g}
+                                                    </td>
                                                 ))}
                                             </tr>
                                             <tr>
                                                 <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Mark</th>
-                                                {['91-100', '81-90', '71-80', '61-70', '51-60', '41-50', '33-40', '0-32'].map(m => (
-                                                    <td key={m} className='border border-gray-400 p-2'>{m}</td>
+                                                {['91-100', '81-90', '71-80', '61-70', '51-60', '41-50', '33-40', '0-32'].map((m) => (
+                                                    <td key={m} className='border border-gray-400 p-2'>
+                                                        {m}
+                                                    </td>
                                                 ))}
                                             </tr>
                                         </tbody>
@@ -353,8 +440,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 </div>
 
                                 {/* Graph */}
-                                <div className='mb-12 mt-10 w-full px-4'>
-                                    <h4 className='mb-4 text-center text-lg font-bold uppercase'>STUDENT PERFORMANCE INDEX</h4>
+                                <div className='mt-10 mb-12 w-full px-4'>
+                                    <h4 className='mb-4 text-center font-bold text-lg uppercase'>STUDENT PERFORMANCE INDEX</h4>
                                     <div className='mx-auto h-[400px] w-full max-w-4xl'>
                                         <Bar
                                             key={`chart-${studentID}`}
@@ -369,13 +456,17 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                         borderColor: 'black',
                                                         borderWidth: 1
                                                     },
-                                                    ...(hasAverage ? [{
-                                                        label: 'Class Average',
-                                                        data: graphAverages,
-                                                        backgroundColor: '#00c1e4',
-                                                        borderColor: 'black',
-                                                        borderWidth: 1
-                                                    }] : [])
+                                                    ...(hasAverage
+                                                        ? [
+                                                              {
+                                                                  label: 'Class Average',
+                                                                  data: graphAverages,
+                                                                  backgroundColor: '#00c1e4',
+                                                                  borderColor: 'black',
+                                                                  borderWidth: 1
+                                                              }
+                                                          ]
+                                                        : [])
                                                 ]
                                             }}
                                             options={{
@@ -392,7 +483,7 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 {/* Co-Scholastic activities */}
                                 {activity_main_list_area.length > 0 && (
                                     <div className='mt-8 px-4'>
-                                        <h4 className='mb-4 text-center text-lg font-bold underline uppercase'>Co-Scholastic Activities</h4>
+                                        <h4 className='mb-4 text-center font-bold text-lg uppercase underline'>Co-Scholastic Activities</h4>
                                         <div className='mx-auto w-full max-w-4xl'>
                                             {activity_main_list_area.map((acti: any, idx: number) => {
                                                 const actiId = acti.ecacT_Id ?? acti.ECACT_Id;
@@ -401,26 +492,42 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                                     return subjcoId === actiId;
                                                 });
                                                 return (
-                                                    <div key={idx} className="mb-6">
-                                                        <h5 className="text-center font-bold mb-2 uppercase">{acti.activityName ?? acti.ECACT_SkillName}</h5>
-                                                        <table className="w-full border-collapse border border-gray-400 text-xs text-center">
-                                                            <thead className="bg-[#BABABA]">
+                                                    <div key={idx} className='mb-6'>
+                                                        <h5 className='mb-2 text-center font-bold uppercase'>
+                                                            {acti.activityName ?? acti.ECACT_SkillName}
+                                                        </h5>
+                                                        <table className='w-full border-collapse border border-gray-400 text-center text-xs'>
+                                                            <thead className='bg-[#BABABA]'>
                                                                 <tr>
-                                                                    <th className="border border-gray-400 p-2 text-left font-bold uppercase">Particulars</th>
+                                                                    <th className='border border-gray-400 p-2 text-left font-bold uppercase'>
+                                                                        Particulars
+                                                                    </th>
                                                                     {termDetails.map((term: any, ti: number) => (
-                                                                        <th key={ti} className="border border-gray-400 p-2 font-bold uppercase">Grade</th>
+                                                                        <th
+                                                                            key={ti}
+                                                                            className='border border-gray-400 p-2 font-bold uppercase'>
+                                                                            Grade
+                                                                        </th>
                                                                     ))}
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
                                                                 {subActivities.map((subjco: any, ai: number) => (
                                                                     <tr key={ai}>
-                                                                        <td className="border border-gray-400 p-2 text-left font-medium uppercase">{subjco.activityArea ?? subjco.ECACTA_SkillArea}</td>
+                                                                        <td className='border border-gray-400 p-2 text-left font-medium uppercase'>
+                                                                            {subjco.activityArea ?? subjco.ECACTA_SkillArea}
+                                                                        </td>
                                                                         {termDetails.map((term: any, ti: number) => {
                                                                             const termId = term.ecT_Id ?? term.ect_Id ?? term.ECT_Id;
-                                                                            const score = (subjco.activity_score_details || []).find((s: any) => String(s.ecT_Id) === String(termId));
+                                                                            const score = (subjco.activity_score_details || []).find(
+                                                                                (s: any) => String(s.ecT_Id) === String(termId)
+                                                                            );
                                                                             return (
-                                                                                <td key={ti} className="border border-gray-400 p-2 font-bold">{score?.activityGrade ?? score?.EMGD_Name ?? ''}</td>
+                                                                                <td
+                                                                                    key={ti}
+                                                                                    className='border border-gray-400 p-2 font-bold'>
+                                                                                    {score?.activityGrade ?? score?.EMGD_Name ?? ''}
+                                                                                </td>
                                                                             );
                                                                         })}
                                                                     </tr>
@@ -436,8 +543,8 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                 {/* Health Status */}
                                 <div className='mt-8 px-4'>
-                                    <h4 className='mb-4 text-center text-lg font-bold underline uppercase'>Health Status</h4>
-                                    <table className='w-full border-collapse border border-gray-400 text-xs text-center'>
+                                    <h4 className='mb-4 text-center font-bold text-lg uppercase underline'>Health Status</h4>
+                                    <table className='w-full border-collapse border border-gray-400 text-center text-xs'>
                                         <thead className='bg-[#BABABA]'>
                                             <tr>
                                                 <th className='border border-gray-400 p-2 font-bold uppercase'>Height (in cm)</th>
@@ -451,9 +558,15 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             <tr>
                                                 <td className='border border-gray-400 p-2 font-bold uppercase'>{report.height || '-'}</td>
                                                 <td className='border border-gray-400 p-2 font-bold uppercase'>{report.weight || '-'}</td>
-                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.bloodGroup || '-'}</td>
-                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.dentalHygiene || '-'}</td>
-                                                <td className='border border-gray-400 p-2 font-bold uppercase'>{report.visionHygiene || '-'}</td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>
+                                                    {report.bloodGroup || '-'}
+                                                </td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>
+                                                    {report.dentalHygiene || '-'}
+                                                </td>
+                                                <td className='border border-gray-400 p-2 font-bold uppercase'>
+                                                    {report.visionHygiene || '-'}
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -461,16 +574,28 @@ export const ReportList = ({ data, params }: ReportListProps) => {
 
                                 {/* Attendance */}
                                 <div className='mt-8 px-4'>
-                                    <h4 className='mb-4 text-center text-lg font-bold underline uppercase'>Attendance Details</h4>
-                                    <table className='w-full border-collapse border border-gray-400 text-xs text-center'>
+                                    <h4 className='mb-4 text-center font-bold text-lg uppercase underline'>Attendance Details</h4>
+                                    <table className='w-full border-collapse border border-gray-400 text-center text-xs'>
                                         <tbody>
                                             <tr>
-                                                <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Total number of working days</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.totalSchoolDays ?? ''}</td>
-                                                <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Number of days attended</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.totalWorkingDays ?? ''}</td>
-                                                <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>Attendance Percentage</th>
-                                                <td className='border border-gray-400 p-2 font-bold w-32'>{presentAtt.total_Percentage ?? ''}</td>
+                                                <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>
+                                                    Total number of working days
+                                                </th>
+                                                <td className='w-32 border border-gray-400 p-2 font-bold'>
+                                                    {presentAtt.totalSchoolDays ?? ''}
+                                                </td>
+                                                <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>
+                                                    Number of days attended
+                                                </th>
+                                                <td className='w-32 border border-gray-400 p-2 font-bold'>
+                                                    {presentAtt.totalWorkingDays ?? ''}
+                                                </td>
+                                                <th className='border border-gray-400 bg-[#BABABA] p-2 font-bold uppercase'>
+                                                    Attendance Percentage
+                                                </th>
+                                                <td className='w-32 border border-gray-400 p-2 font-bold'>
+                                                    {presentAtt.total_Percentage ?? ''}
+                                                </td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -479,9 +604,13 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                 {/* Results & Signatures */}
                                 <div className='mt-12 px-4'>
                                     <div className='mb-8 border border-gray-400 text-sm'>
-                                        <div className='flex border-b border-gray-400'>
-                                            <div className='w-32 bg-[#BABABA] p-2 font-bold border-r border-gray-400 text-center uppercase'>Results</div>
-                                            <div className='flex-1 p-2 font-bold uppercase'>{remarksObj.eprD_PromotionName || studentSummary.overallResult || '-'}</div>
+                                        <div className='flex border-gray-400 border-b'>
+                                            <div className='w-32 border-gray-400 border-r bg-[#BABABA] p-2 text-center font-bold uppercase'>
+                                                Results
+                                            </div>
+                                            <div className='flex-1 p-2 font-bold uppercase'>
+                                                {remarksObj.eprD_PromotionName || studentSummary.overallResult || '-'}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -489,9 +618,9 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                         <div className='flex flex-col items-start'>
                                             <img
                                                 style={{ width: '150px' }}
-                                                src="https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/7ca4aa81-6797-481d-aa9e-c2ae85080ed8.jpg"
-                                                alt="Principal Sign"
-                                                className="mb-2"
+                                                src='https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/7ca4aa81-6797-481d-aa9e-c2ae85080ed8.jpg'
+                                                alt='Principal Sign'
+                                                className='mb-2'
                                             />
                                             <p className='font-bold text-sm uppercase'>Principal Signature</p>
                                         </div>
@@ -499,11 +628,13 @@ export const ReportList = ({ data, params }: ReportListProps) => {
                                             <p className='font-bold text-sm uppercase'>Institution Seal</p>
                                         </div>
                                         <div className='flex flex-col items-end justify-end pb-1'>
-                                            <p className='italic font-bold text-sm underline mb-1 uppercase'>
-                                                {classTeachers?.[index]?.hrmE_EmployeeFirstName || classTeachers?.[0]?.hrmE_EmployeeFirstName || ''}
+                                            <p className='mb-1 font-bold text-sm uppercase italic underline'>
+                                                {classTeachers?.[index]?.hrmE_EmployeeFirstName ||
+                                                    classTeachers?.[0]?.hrmE_EmployeeFirstName ||
+                                                    ''}
                                             </p>
                                             <p className='font-bold text-sm uppercase'>Class Teacher Signature</p>
-                                            <p className='font-bold text-sm mt-1 uppercase'>Date: {reportDate}</p>
+                                            <p className='mt-1 font-bold text-sm uppercase'>Date: {reportDate}</p>
                                         </div>
                                     </div>
                                 </div>

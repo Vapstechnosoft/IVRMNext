@@ -1,6 +1,6 @@
 'use server';
 
-import { type ApiResponse, api, getSearchParamsUrl } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 
 function cleanJson<T>(obj: T): T {
@@ -45,10 +45,14 @@ export async function getTBSReportSchool(data: any, apiSearchParams?: ApiSearchp
             flag: String(data.flag ?? ''),
             emE_Id: Number(data.emE_Id ?? 0),
             reporttype: String(data.reporttype ?? 'REPORT'),
-            temp_Amstids: Array.isArray(data.temp_Amstids) ? data.temp_Amstids : (data.Temp_AmstIds || data.studentList || []).map((s: any) => ({ amsT_Id: Number(s.amsT_Id ?? s.AMST_Id ?? s) })),
+            temp_Amstids: Array.isArray(data.temp_Amstids)
+                ? data.temp_Amstids
+                : (data.Temp_AmstIds || data.studentList || []).map((s: any) => ({ amsT_Id: Number(s.amsT_Id ?? s.AMST_Id ?? s) })),
             empG_GroupName: String(data.empG_GroupName ?? ''),
             emgR_Id: Number(data.emgR_Id ?? 0),
-            examlist: Array.isArray(data.examlist) ? data.examlist : (data.examList || []).map((e: any) => ({ emE_Id: Number(e.emE_Id ?? e.EME_Id ?? e) })),
+            examlist: Array.isArray(data.examlist)
+                ? data.examlist
+                : (data.examList || []).map((e: any) => ({ emE_Id: Number(e.emE_Id ?? e.EME_Id ?? e) })),
             ecteX_NotApplToTotalFlg: Boolean(data.ecteX_NotApplToTotalFlg ?? true)
         };
         const response = await api.post<any>('exam', url, payload);
@@ -94,10 +98,13 @@ export async function getClassDropDownByAcademicYearlist(asmaY_Id: number) {
             const cleaned: any = cleanJson(resJSHS);
             if (cleaned) {
                 const prePrimary = ['pre nursery', 'lower nursery', 'upper nursery', 'lkg', 'ukg', 'nursery', 'playgroup'];
-                const filterClasses = (arr: any[]) => arr.filter((c: any) => {
-                    const name = String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? '').toLowerCase().trim();
-                    return !prePrimary.some(p => name === p || name.startsWith(p));
-                });
+                const filterClasses = (arr: any[]) =>
+                    arr.filter((c: any) => {
+                        const name = String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? '')
+                            .toLowerCase()
+                            .trim();
+                        return !prePrimary.some((p) => name === p || name.startsWith(p));
+                    });
 
                 if (Array.isArray(cleaned.classlist)) cleaned.classlist = filterClasses(cleaned.classlist);
                 if (cleaned.data && Array.isArray(cleaned.data.classlist)) cleaned.data.classlist = filterClasses(cleaned.data.classlist);
@@ -177,7 +184,12 @@ export async function getExamsDropDownByAcademicYearandClassandSectionlist(asmaY
 }
 
 // 🔹 Student Dropdown (Uses /JSHSExamReports/get_Exam_grade & /JSHSExamReports/GetStudentDetails from MultipleExamCumulativeReportController.ts)
-export async function getStudentsDropDownByAcademicYearandClassandSectionlist(asmaY_Id: number, asmcL_Id: number, asmS_Id: number, examIds?: number[]) {
+export async function getStudentsDropDownByAcademicYearandClassandSectionlist(
+    asmaY_Id: number,
+    asmcL_Id: number,
+    asmS_Id: number,
+    examIds?: number[]
+) {
     try {
         const payload = {
             ASMAY_Id: asmaY_Id,
@@ -196,10 +208,11 @@ export async function getStudentsDropDownByAcademicYearandClassandSectionlist(as
     } catch (error) {
         console.error('getStudentsDropDownByAcademicYearandClassandSectionlist error:', error);
     }
-    
+
     // Class and Exam level student pool (12 students across classes and exams)
     const classStudentPool: Record<number, { idx: number; name: string; examId: number }[]> = {
-        10: [ // Class 5
+        10: [
+            // Class 5
             { idx: 1, name: 'Rohan Sharma', examId: 1 },
             { idx: 2, name: 'Ananya Verma', examId: 1 },
             { idx: 3, name: 'Arjun Patel', examId: 2 },
@@ -207,7 +220,8 @@ export async function getStudentsDropDownByAcademicYearandClassandSectionlist(as
             { idx: 5, name: 'Karthik Rao', examId: 3 },
             { idx: 6, name: 'Priya Singh', examId: 3 }
         ],
-        11: [ // Class 6
+        11: [
+            // Class 6
             { idx: 1, name: 'Vikram Das', examId: 1 },
             { idx: 2, name: 'Divya Nair', examId: 1 },
             { idx: 3, name: 'Aarav Mehta', examId: 2 },
@@ -215,7 +229,8 @@ export async function getStudentsDropDownByAcademicYearandClassandSectionlist(as
             { idx: 5, name: 'Aditya Kapoor', examId: 3 },
             { idx: 6, name: 'Meera Iyer', examId: 3 }
         ],
-        12: [ // Class 7
+        12: [
+            // Class 7
             { idx: 1, name: 'Siddharth Roy', examId: 1 },
             { idx: 2, name: 'Tanya Gupta', examId: 1 },
             { idx: 3, name: 'Kabir Malhotra', examId: 2 },

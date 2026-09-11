@@ -1,4 +1,3 @@
-
 export interface IMasterSubMenu {
     ivrmmM_Id: number; // In grid response this acts as ID
     ivrmmS_Id?: number; // Optional for compatibility

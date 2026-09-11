@@ -1,6 +1,7 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type {
     IStudentFeeEnablePartialPaymentInitialData,
     IStudentFeeEnablePartialPaymentSavePayload,
@@ -9,8 +10,13 @@ import type {
     IStudentFeeEnablePartialPaymentYear
 } from '@/types/fees/transactions/transactions';
 
-export async function getStudentFeeEnablePartialPaymentDetails(pageId: number = 2) {
-    const url = `/StudentFeeEnablePartialPaymentFacade/GetYearList/${pageId}`;
+export async function getStudentFeeEnablePartialPaymentDetails(searchParams?: ApiSearchparams) {
+    const urlParams = getSearchParamsUrl(
+        searchParams ?? {},
+        'amsT_FirstName,fsepP_RemarksDate,asmaY_Year,fsepP_Remarks,fsepP_ActiveFlag,fsepP_Id'
+    );
+    const url = `/StudentFeeEnablePartialPaymentFacade/GetYearList?${urlParams}`;
+    console.info('StudentFeeEnablePartialPaymentFacade', url);
     return await api.get<IStudentFeeEnablePartialPaymentInitialData>('fees', url);
 }
 

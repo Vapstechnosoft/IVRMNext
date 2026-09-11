@@ -1,21 +1,21 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogCancel,
-    AlertDialogAction
+    AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { deactivateInvMasterSupplier } from '@/server/inventory/masters/inv-master-supplier';
+import { Button } from '@/components/ui/button';
 import { useInvMasterSupplier } from '@/hooks/inventory/masters/use-inv-master-supplier';
+import { deactivateInvMasterSupplier } from '@/server/inventory/masters/inv-master-supplier';
 import type { IInvMasterSupplier } from '@/types/inventory/masters/inv-master-supplier';
-import { toast } from 'sonner';
 import { useCallback } from 'react';
+import { toast } from 'sonner';
 
 interface ToggleInvMasterSupplierFormProps {
     rowData: IInvMasterSupplier;
@@ -29,7 +29,11 @@ export default function ToggleInvMasterSupplierForm({ rowData, onClose }: Toggle
         try {
             const result = await deactivateInvMasterSupplier(rowData);
             if (result.success || result.returnval) {
-                toast.success(result.message || 'Record status updated successfully');
+                if (rowData.invmS_ActiveFlg) {
+                    toast.error('Deactivated Successfully');
+                } else {
+                    toast.success('Activated Successfully');
+                }
                 refetchAll();
                 onClose();
             } else {
@@ -44,22 +48,17 @@ export default function ToggleInvMasterSupplierForm({ rowData, onClose }: Toggle
         <AlertDialog open={true} onOpenChange={onClose}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>
-                        {rowData.invmS_ActiveFlg ? 'Deactivate Record' : 'Activate Record'}
-                    </AlertDialogTitle>
+                    <AlertDialogTitle>{rowData.invmS_ActiveFlg ? 'Deactivate Record' : 'Activate Record'}</AlertDialogTitle>
                     <AlertDialogDescription>
                         Are you sure you want to {rowData.invmS_ActiveFlg ? 'deactivate' : 'activate'} this supplier record?
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
-                <AlertDialogFooter className="flex gap-2">
-                    <AlertDialogCancel className="text-black dark:text-white hover:bg-transparent">Cancel</AlertDialogCancel>
+                <AlertDialogFooter className='flex gap-2'>
+                    <AlertDialogCancel className='text-black hover:bg-transparent dark:text-white'>Cancel</AlertDialogCancel>
 
                     <AlertDialogAction asChild>
-                        <Button
-                            variant={rowData.invmS_ActiveFlg ? 'destructive' : 'default'}
-                            onClick={handleToggle}
-                        >
+                        <Button variant={rowData.invmS_ActiveFlg ? 'destructive' : 'default'} onClick={handleToggle}>
                             Yes, {rowData.invmS_ActiveFlg ? 'Deactivate' : 'Activate'} it
                         </Button>
                     </AlertDialogAction>

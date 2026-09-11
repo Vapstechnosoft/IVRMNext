@@ -28,11 +28,11 @@ export default function LeaveConfigurationPage() {
 
     if (error) {
         return (
-            <div className='container mx-auto p-6'>
-                <Card className='border-destructive'>
-                    <CardHeader>
-                        <CardTitle className='text-destructive'>Error Loading Configuration</CardTitle>
-                        <CardDescription>{error.message || 'Failed to load leave configuration'}</CardDescription>
+            <div className='min-h-screen bg-gradient-to-br from-background to-muted/20 my-10'>
+                <Card className='container mx-auto space-y-6 p-6'>
+                    <CardHeader className='flex items-center justify-between'>
+                        <CardTitle className='text-violet-400'>No Configuration Found</CardTitle>
+                        {/* <CardDescription>{error.message }</CardDescription> */}
                     </CardHeader>
                 </Card>
             </div>
@@ -43,8 +43,7 @@ export default function LeaveConfigurationPage() {
         <div className='min-h-screen bg-gradient-to-br from-background to-muted/20'>
             <div className='container mx-auto space-y-6 p-6'>
                 <div className='flex items-center justify-between'>
-                    <div>
-                    </div>
+                    <div></div>
                 </div>
 
                 <Card className='shadow-lg'>
@@ -53,7 +52,12 @@ export default function LeaveConfigurationPage() {
                         <CardDescription>Manage late-in, early-out, and cumulative time settings</CardDescription>
                     </CardHeader>
                     <CardContent className='pt-6'>
-                        <LeaveConfigurationForm initialData={configData?.data || null} onSubmit={handleSubmit} onCancel={handleCancel} isPending={isPending} />
+                        <LeaveConfigurationForm
+                            initialData={configData?.data || null}
+                            onSubmit={handleSubmit}
+                            onCancel={handleCancel}
+                            isPending={isPending}
+                        />
                     </CardContent>
                 </Card>
             </div>

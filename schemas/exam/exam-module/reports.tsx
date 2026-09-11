@@ -733,6 +733,15 @@ export const finalNdasReportCardSchema = z.object({
 
 export type FinalNdasReportCardSchema = z.infer<typeof finalNdasReportCardSchema>;
 
+export const ndasReportCardTermSchema = z.object({
+    ASMAY_Id: z.string().min(1, 'Academic Year is required'),
+    ASMCL_Id: z.string().min(1, 'Class is required'),
+    ASMS_Id: z.string().min(1, 'Section is required'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
+});
+
+export type NdasReportCardTermSchema = z.infer<typeof ndasReportCardTermSchema>;
+
 export const promotionReportCardSophiaSchema = z.object({
     mI_Id: z.number().optional(),
     asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select Academic Year' }),
@@ -826,7 +835,8 @@ export const rainbowProgressCardReportSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),
     ASMCL_Id: z.string().min(1, 'Class is required'),
     ASMS_Id: z.string().min(1, 'Section is required'),
-    empsG_PercentValue: z.string()
+    empsG_PercentValue: z
+        .string()
         .min(1, 'Percentage is required')
         .regex(/^(100|[1-9]?[0-9])$/, 'Please enter a value between 0 and 100'),
     selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
@@ -866,7 +876,6 @@ export const gmvpsPromotionReportCardSchema = z.object({
 });
 
 export type GmvpsPromotionReportCardSchema = z.infer<typeof gmvpsPromotionReportCardSchema>;
-
 
 export const calcuttaPromotionReportItoIXSchema = z
     .object({
@@ -939,17 +948,19 @@ export const multipleExamCumulativeReportCalcuttaSchema = z.object({
     asmcL_Id: z.number({ required_error: 'Class is required' }).min(1, { message: 'Please select Class' }),
     asmS_Id: z.number({ required_error: 'Section is required' }).min(1, { message: 'Please select Section' }),
     emgR_Id: z.number({ required_error: 'Grade is required' }).min(1, { message: 'Please select Grade' }),
-    examlist: z.array(z.object({
-        emE_Id: z.number()
-    })).min(1, { message: 'Please select at least one Exam' }),
+    examlist: z
+        .array(
+            z.object({
+                emE_Id: z.number()
+            })
+        )
+        .min(1, { message: 'Please select at least one Exam' }),
     empsG_PercentValue: z.number().optional().default(0),
-    flag: z.string().optional().default("4"),
+    flag: z.string().optional().default('4'),
     emE_Id: z.number().optional().default(0),
-    reporttype: z.string().optional().default(""),
-    empG_GroupName: z.string().optional().default("")
+    reporttype: z.string().optional().default(''),
+    empG_GroupName: z.string().optional().default('')
 });
-
-
 
 export type MultipleExamCumulativeReportCalcuttaValues = z.infer<typeof multipleExamCumulativeReportCalcuttaSchema>;
 
@@ -995,7 +1006,7 @@ export const tbs_reportIXtoXSchema = z.object({
     ASMAY_Id: z.string().min(1, 'Select Academic Year'),
     ASMCL_Id: z.string().min(1, 'Select Class'),
     ASMS_Id: z.string().min(1, 'Select Section'),
-    selectedStudents: z.array(z.string()).min(1, 'Select at least one student'),
+    selectedStudents: z.array(z.string()).min(1, 'Select at least one student')
 });
 
 export type TBSReportIXtoXSchema = z.infer<typeof tbs_reportIXtoXSchema>;
@@ -1005,11 +1016,10 @@ export const multipleProgressCardReportSchema = z.object({
     ASMCL_Id: z.string().min(1, 'Select Class'),
     ASMS_Id: z.string().min(1, 'Select Section'),
     selectedExams: z.array(z.string()).min(1, 'Select at least one exam'),
-    showAttendance: z.boolean().default(true),
+    showAttendance: z.boolean().default(true)
 });
 
 export type MultipleProgressCardReportSchema = z.infer<typeof multipleProgressCardReportSchema>;
-
 
 export const hhsReport5to7Schema = z.object({
     ASMAY_Id: z.string().min(1, 'Academic Year is required'),

@@ -3,7 +3,7 @@
 import { auth } from '@/lib/auth';
 
 import { api } from '@/lib/apiService';
-import { ComplaintLoadDataResponse, ComplaintReportResponse } from '../../../../../../../../constants/types';
+import type { ComplaintLoadDataResponse, ComplaintReportResponse } from '../../../../../../../../constants/types';
 
 const CONTROLLER = 'StudentCompliantsView';
 
@@ -23,7 +23,7 @@ export async function getStudentComplaintsLoadData() {
 
         // Ensure we have necessary IDs
         if (!mi_id || !amst_id) {
-            console.warn("Missing MI_Id or AMST_Id in session");
+            console.warn('Missing MI_Id or AMST_Id in session');
             // Return empty or mock? Let's return mock to be safe for UI testing
             return { yearlist: MOCK_ACADEMIC_YEARS, studentdivlist: [], asmaY_Id: MOCK_ACADEMIC_YEARS[0].asmaY_Id };
         }
@@ -35,7 +35,7 @@ export async function getStudentComplaintsLoadData() {
         const response = await api.get<ComplaintLoadDataResponse>('portal', url);
 
         const responseBody = response?.data;
-        console.log("DEBUG: Load Data Response Body:", JSON.stringify(responseBody, null, 2));
+        console.log('DEBUG: Load Data Response Body:', JSON.stringify(responseBody, null, 2));
 
         if (responseBody && responseBody.data) {
             // Mapping: Prioritize 'complaintsData' as per latest JSON, fallback to 'studetiallist'
@@ -57,7 +57,7 @@ export async function getStudentComplaintsLoadData() {
                     return y;
                 });
             } else {
-                console.warn("DEBUG: API returned empty year list. Falling back to MOCK data.");
+                console.warn('DEBUG: API returned empty year list. Falling back to MOCK data.');
                 mappedYears = MOCK_ACADEMIC_YEARS;
             }
 
@@ -71,11 +71,10 @@ export async function getStudentComplaintsLoadData() {
             };
         }
 
-        console.warn("DEBUG: Invalid response body. Using mock.");
+        console.warn('DEBUG: Invalid response body. Using mock.');
         return { yearlist: MOCK_ACADEMIC_YEARS, studentdivlist: [], asmaY_Id: MOCK_ACADEMIC_YEARS[0].asmaY_Id };
-
     } catch (error) {
-        console.warn("Error fetching complaints load data:", JSON.stringify(error, null, 2));
+        console.warn('Error fetching complaints load data:', JSON.stringify(error, null, 2));
         return { yearlist: MOCK_ACADEMIC_YEARS, studentdivlist: [], asmaY_Id: MOCK_ACADEMIC_YEARS[0].asmaY_Id };
     }
 }
@@ -95,7 +94,7 @@ export async function getExamReportLoadData() {
         const response = await api.get<any>('portal', url);
 
         const responseBody = response?.data;
-        console.log("DEBUG: Exam Report Load Data Response:", JSON.stringify(responseBody, null, 2));
+        console.log('DEBUG: Exam Report Load Data Response:', JSON.stringify(responseBody, null, 2));
 
         if (responseBody && responseBody.data && Array.isArray(responseBody.data)) {
             // Map the response data to extract unique academic years
@@ -127,15 +126,14 @@ export async function getExamReportLoadData() {
             };
         }
 
-        console.warn("DEBUG: Invalid Exam Report response. Using mock data.");
+        console.warn('DEBUG: Invalid Exam Report response. Using mock data.');
         return {
             yearlist: MOCK_ACADEMIC_YEARS,
             studentdivlist: [],
             asmaY_Id: MOCK_ACADEMIC_YEARS[0].asmaY_Id
         };
-
     } catch (error: any) {
-        console.error("Error fetching Exam Report load data:", error);
+        console.error('Error fetching Exam Report load data:', error);
         return {
             yearlist: MOCK_ACADEMIC_YEARS,
             studentdivlist: [],
@@ -172,11 +170,11 @@ const MOCK_COMPLAINTS_DATA: any[] = [
     }
 ];
 
-export async function getStudentComplaintsReport(payload: { ASMAY_Id: number, ASMCL_Id?: number, ASMS_Id?: number }) {
-    console.log("SERVER ACTION: getStudentComplaintsReport called with payload:", JSON.stringify(payload));
+export async function getStudentComplaintsReport(payload: { ASMAY_Id: number; ASMCL_Id?: number; ASMS_Id?: number }) {
+    console.log('SERVER ACTION: getStudentComplaintsReport called with payload:', JSON.stringify(payload));
     try {
         const session = await auth();
-        console.log("SERVER ACTION: Session retrieved:", session ? "Session Exists" : "No Session");
+        console.log('SERVER ACTION: Session retrieved:', session ? 'Session Exists' : 'No Session');
 
         // Allow mock data even if session is missing for development
         const mi_id = session?.user?.mi_id || 15536;
@@ -192,11 +190,11 @@ export async function getStudentComplaintsReport(payload: { ASMAY_Id: number, AS
 
         let response;
         try {
-            console.log("DEBUG: Calling api.post...");
+            console.log('DEBUG: Calling api.post...');
             response = await api.post<ComplaintReportResponse>('portal', `${CONTROLLER}/get-report`, requestPayload);
-            console.log("DEBUG: api.post returned success.");
+            console.log('DEBUG: api.post returned success.');
         } catch (e: any) {
-            console.warn("DEBUG: API Failed with error. Returning empty list to prevent crash.", e.message);
+            console.warn('DEBUG: API Failed with error. Returning empty list to prevent crash.', e.message);
             // In case of API failure, we might want to return mock data for testing, or just empty.
             // Let's return empty to avoid confusion unless explicitly testing mock.
             return { studentdivlist: [] };
@@ -204,7 +202,7 @@ export async function getStudentComplaintsReport(payload: { ASMAY_Id: number, AS
 
         // response is ApiResponse<T>, so response.data contains the actual data payload
         const dataPayload = response?.data;
-        console.log("DEBUG: Report Response Data Payload:", JSON.stringify(dataPayload, null, 2));
+        console.log('DEBUG: Report Response Data Payload:', JSON.stringify(dataPayload, null, 2));
 
         let studentdivlist: any[] = [];
 
@@ -256,13 +254,13 @@ export async function getStudentComplaintsReport(payload: { ASMAY_Id: number, AS
         console.log(`DEBUG: Processed ${studentdivlist.length} records from complaints report.`);
 
         return {
-            studentdivlist: studentdivlist,
+            studentdivlist: studentdivlist
         };
     } catch (error: any) {
-        console.error("CRITICAL ERROR in getStudentComplaintsReport:", error);
+        console.error('CRITICAL ERROR in getStudentComplaintsReport:', error);
         // Ensure we always return a valid object, never throw, to avoid 'Failed to fetch' generic errors on client if possible (though network errors will still occur)
         return {
-            studentdivlist: [],
+            studentdivlist: []
         };
     }
 }

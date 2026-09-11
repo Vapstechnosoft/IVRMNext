@@ -2,26 +2,24 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useGetBasicDataJobListVMS } from '@/hooks/hrms/recruitment/transactions/useTransactions';
 import { Plus, X } from 'lucide-react';
-import { useCallback, useMemo, useState, useEffect } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import AddJobPostingForm from './_components/add-form';
 import { jobPostingListColumns } from './_components/columns';
-import { useGetBasicDataJobListVMS } from '@/hooks/hrms/recruitment/transactions/useTransactions';
 
 export default function JobPostingListPage() {
-    
     const { data: response, isLoading, error, refetchAll } = useGetBasicDataJobListVMS();
-    console.log("response ", response);
+    console.log('response ', response);
     const [formOpen, setFormOpen] = useState(false);
 
     const openAddForm = () => {
         setFormOpen(true);
-    }
+    };
 
     const handleCloseForm = () => {
         setFormOpen(false);
-    }
+    };
 
     const gridResponse = useMemo(() => {
         return response?.data?.vmsmrfList ?? [];
@@ -88,7 +86,6 @@ function FormSections({
     isLoadingBasicData: boolean;
     onClose: () => void;
 }) {
-
     const handleSuccess = useCallback(() => {
         onClose();
         refetch();

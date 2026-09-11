@@ -1,7 +1,6 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { AcademicYear, FeeReceipt, ReceiptDetailsResponse } from './types';
 
 export async function getPortalFeeReceiptLoadData() {
     const url = '/fee_class_category/academicyearlist';
@@ -17,7 +16,7 @@ export async function getReceipts(yearId: number) {
 
     try {
         const response = await api.get<any>('portal', url);
-        console.log("Response from get-Receipt-Drop:", response);
+        console.log('Response from get-Receipt-Drop:', response);
 
         let receiptsArray = [];
 
@@ -36,7 +35,7 @@ export async function getReceipts(yearId: number) {
             recnolist: receiptsArray
         };
     } catch (error) {
-        console.error("Error in getReceipts:", error);
+        console.error('Error in getReceipts:', error);
         return { recnolist: [] };
     }
 }
@@ -50,7 +49,7 @@ export async function getReceiptDetails(yearId: number, fypId: number) {
             fyP_Id: fypId
         };
         const response = await api.post<any>('portal', url, requestBody);
-        console.log("Response from print-Receipt-details:", response);
+        console.log('Response from print-Receipt-details:', response);
 
         let data = response?.data;
 
@@ -67,9 +66,8 @@ export async function getReceiptDetails(yearId: number, fypId: number) {
         }
 
         return data || null;
-
     } catch (error) {
-        console.error("Error in getReceiptDetails:", error);
+        console.error('Error in getReceiptDetails:', error);
         return null;
     }
 }

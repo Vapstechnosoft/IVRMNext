@@ -1,9 +1,9 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
 import {
+    getNdaStudyCertDetails,
     getNdaStudyCertLoadData,
-    getNdaStudyCertSearchFilter,
-    getNdaStudyCertDetails
+    getNdaStudyCertSearchFilter
 } from '@/server/admission/preadmission/reports/nda_study_certificate';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export function useNdaStudyCertLoadData() {
     return useQuery({
@@ -11,7 +11,7 @@ export function useNdaStudyCertLoadData() {
         queryFn: async () => {
             const response = await getNdaStudyCertLoadData();
             return response;
-        },
+        }
     });
 }
 
@@ -28,7 +28,7 @@ export function useNdaStudyCertSearchFilter() {
         }) => {
             const response = await getNdaStudyCertSearchFilter(data);
             return response;
-        },
+        }
     });
 }
 
@@ -42,6 +42,6 @@ export function useNdaStudyCertDetails() {
         }) => {
             const response = await getNdaStudyCertDetails(data);
             return response;
-        },
+        }
     });
 }

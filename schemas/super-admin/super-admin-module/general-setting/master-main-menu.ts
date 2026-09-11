@@ -7,7 +7,7 @@ export const masterMainMenuSchema = z.object({
         .string({ required_error: 'Main Menu Name is required' })
         .min(1, 'Enter the field Main Menu Name')
         .max(20, 'The field should not exceed more than 20 Characters')
-        .regex(/^[a-zA-Z\s]+$/, 'The field contains only alphabets'),
+        .regex(/^[a-zA-Z\s]+$/, 'The field contains only alphabets')
 });
 
 export type MasterMainMenuSchema = z.infer<typeof masterMainMenuSchema>;

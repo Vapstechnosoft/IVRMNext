@@ -15,18 +15,28 @@ export const institutionMasterSchema = {
         mI_Pincode: z.string().min(6, 'Pincode must be 6 digits').max(6, 'Pincode must be 6 digits').regex(/^\d+$/, 'Only numbers allowed'),
 
         // Arrays (Strictly matching user snippet: no flags, just number/email)
-        mobiles: z.array(z.object({
-            mimN_MobileNo: z.string().length(10, '10 digits').regex(/^\d+$/, 'Numbers only')
-        })),
-        emails: z.array(z.object({
-            miE_EmailId: z.string().email('Invalid Email')
-        })),
-        phones: z.array(z.object({
-            mipN_PhoneNo: z.string().length(10, '10 digits').regex(/^\d+$/, 'Numbers only')
-        })),
-        emails1: z.array(z.object({
-            mI_SMSAlertToemailids: z.string().email('Invalid Email')
-        })).optional(),
+        mobiles: z.array(
+            z.object({
+                mimN_MobileNo: z.string().length(10, '10 digits').regex(/^\d+$/, 'Numbers only')
+            })
+        ),
+        emails: z.array(
+            z.object({
+                miE_EmailId: z.string().email('Invalid Email')
+            })
+        ),
+        phones: z.array(
+            z.object({
+                mipN_PhoneNo: z.string().length(10, '10 digits').regex(/^\d+$/, 'Numbers only')
+            })
+        ),
+        emails1: z
+            .array(
+                z.object({
+                    mI_SMSAlertToemailids: z.string().email('Invalid Email')
+                })
+            )
+            .optional(),
 
         // Configuration
         mI_FontColor: z.string().optional(),
@@ -65,11 +75,15 @@ export const institutionMasterSchema = {
         mI_EntityId: z.string().min(1, 'Entity Id Required'),
 
         // VC
-        vcDetails: z.array(z.object({
-            mvidcoN_Id: z.number(),
-            checkedvalue: z.boolean().optional(),
-            mvidconinT_HostedURL: z.string().optional()
-        })).optional(),
+        vcDetails: z
+            .array(
+                z.object({
+                    mvidcoN_Id: z.number(),
+                    checkedvalue: z.boolean().optional(),
+                    mvidconinT_HostedURL: z.string().optional()
+                })
+            )
+            .optional(),
         mI_VCStudentFlag: z.string().optional(),
         mI_VCOthersFlag: z.string().optional(),
 

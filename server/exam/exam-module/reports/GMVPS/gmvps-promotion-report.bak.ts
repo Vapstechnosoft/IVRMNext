@@ -1,8 +1,8 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { IMasterClassYearlyList } from '@/types/exam/exam-module/masters';
-import { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
+import type { IMasterClassYearlyList } from '@/types/exam/exam-module/masters';
+import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
 
 /**
  * Get Academic Year Dropdown

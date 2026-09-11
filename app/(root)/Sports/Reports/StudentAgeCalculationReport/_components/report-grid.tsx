@@ -1,15 +1,11 @@
 'use client';
-import { Printer, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { FileSpreadsheet, Printer } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
-import { IStudentAgeReport } from '@/types/sports/reports/student-age-calculation';
-import { DataTable } from '@/components/ui/data-table/data-table';
-import { ColumnDef } from '@tanstack/react-table';
-import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import type { IStudentAgeReport } from '@/types/sports/reports/student-age-calculation';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useRef } from 'react';
-import { useReactToPrint } from 'react-to-print';
 
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 
@@ -22,7 +18,7 @@ const columns: ColumnDef<IStudentAgeReport>[] = [
     {
         accessorKey: 'index',
         header: 'SL.No.',
-        cell: ({ row }) => row.index + 1,
+        cell: ({ row }) => row.index + 1
     },
     {
         accessorKey: 'amsT_Admno',
@@ -77,40 +73,66 @@ const columns: ColumnDef<IStudentAgeReport>[] = [
         accessorKey: 'spccmcL_compitionLevel',
         header: 'Competition Category',
         cell: ({ row }) => row.original.spccmcL_compitionLevel || '-'
-    },
+    }
 ];
 
 // Column header labels for print table
 const printHeaders = [
-    'SL.No.', 'Adm. No.', 'Student Name', 'Class', 'Section', 'House Name', 'DOB', 'Age Months', 'Years', 'Months', 'Competition Category'
+    'SL.No.',
+    'Adm. No.',
+    'Student Name',
+    'Class',
+    'Section',
+    'House Name',
+    'DOB',
+    'Age Months',
+    'Years',
+    'Months',
+    'Competition Category'
 ];
 
 // Accessor keys matching columns order
 const printAccessors: (keyof IStudentAgeReport)[] = [
-    'amsT_Id', 'amsT_Admno', 'amsT_Name', 'asmcL_Classname', 'asmC_Sectionname', 'spccmH_Housename', 'amsT_DOb', 'months', 'years', 'monthsd', 'spccmcL_compitionLevel'
+    'amsT_Id',
+    'amsT_Admno',
+    'amsT_Name',
+    'asmcL_Classname',
+    'asmC_Sectionname',
+    'spccmH_Housename',
+    'amsT_DOb',
+    'months',
+    'years',
+    'monthsd',
+    'spccmcL_compitionLevel'
 ];
 
 function buildPrintHtml(data: IStudentAgeReport[]): string {
-    const rows = data.map((row, idx) => {
-        const cells = printAccessors.map((key, colIdx) => {
-            // SL. No. column
-            if (colIdx === 0) return `<td style="border:1px solid #000;padding:6px 10px;text-align:center;">${idx + 1}</td>`;
-            
-            let val: any = row[key];
-            if (key === 'amsT_DOb' && val) {
-                const date = new Date(val);
-                val = isNaN(date.getTime()) ? '-' : date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-            }
-            
-            const displayVal = (val !== null && val !== undefined ? String(val) : '-');
-            return `<td style="border:1px solid #000;padding:6px 10px;text-align:center;">${displayVal}</td>`;
-        }).join('');
-        return `<tr>${cells}</tr>`;
-    }).join('');
+    const rows = data
+        .map((row, idx) => {
+            const cells = printAccessors
+                .map((key, colIdx) => {
+                    // SL. No. column
+                    if (colIdx === 0) return `<td style="border:1px solid #000;padding:6px 10px;text-align:center;">${idx + 1}</td>`;
 
-    const headerCells = printHeaders.map(h =>
-        `<th style="border:1px solid #000;padding:6px 10px;background:#f3f4f6;text-align:center;font-weight:bold;">${h}</th>`
-    ).join('');
+                    let val: any = row[key];
+                    if (key === 'amsT_DOb' && val) {
+                        const date = new Date(val);
+                        val = isNaN(date.getTime())
+                            ? '-'
+                            : date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                    }
+
+                    const displayVal = val !== null && val !== undefined ? String(val) : '-';
+                    return `<td style="border:1px solid #000;padding:6px 10px;text-align:center;">${displayVal}</td>`;
+                })
+                .join('');
+            return `<tr>${cells}</tr>`;
+        })
+        .join('');
+
+    const headerCells = printHeaders
+        .map((h) => `<th style="border:1px solid #000;padding:6px 10px;background:#f3f4f6;text-align:center;font-weight:bold;">${h}</th>`)
+        .join('');
 
     return `
         <!DOCTYPE html>
@@ -162,33 +184,33 @@ export default function ReportGrid({ data, isLoading }: ReportGridProps) {
     const exportToExcel = () => {
         const worksheet = XLSX.utils.json_to_sheet(data);
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-        XLSX.writeFile(workbook, "StudentAgeCalculationReport.xlsx");
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Report');
+        XLSX.writeFile(workbook, 'StudentAgeCalculationReport.xlsx');
     };
 
     return (
-        <div className="space-y-4">
-            <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border">
-                <div className="flex items-center gap-4">
-                    <div className="text-sm font-medium">
-                        Total Grid Records: <span className="bg-primary/10 text-primary px-2 py-1 rounded">{data.length}</span>
+        <div className='space-y-4'>
+            <div className='flex items-center justify-between rounded-lg border bg-white p-4 shadow-sm'>
+                <div className='flex items-center gap-4'>
+                    <div className='font-medium text-sm'>
+                        Total Grid Records: <span className='rounded bg-primary/10 px-2 py-1 text-primary'>{data.length}</span>
                     </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => handlePrint()} className="hover:bg-primary/5 border-2">
-                            <Printer className="h-4 w-4 mr-2 text-primary" />
+                    <div className='flex gap-2'>
+                        <Button variant='outline' size='sm' onClick={() => handlePrint()} className='border-2 hover:bg-primary/5'>
+                            <Printer className='mr-2 h-4 w-4 text-primary' />
                             Print
                         </Button>
-                        <Button variant="outline" size="sm" onClick={exportToExcel} className="hover:bg-primary/5 border-2">
-                            <FileSpreadsheet className="h-4 w-4 mr-2 text-success" />
+                        <Button variant='outline' size='sm' onClick={exportToExcel} className='border-2 hover:bg-primary/5'>
+                            <FileSpreadsheet className='mr-2 h-4 w-4 text-success' />
                             Excel
                         </Button>
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white p-6 rounded-lg shadow-sm border min-h-[400px]">
-                <div className="mb-6 text-center">
-                    <h1 className="text-2xl font-bold uppercase underline text-primary">Student Age Calculation Report</h1>
+            <div className='min-h-[400px] rounded-lg border bg-white p-6 shadow-sm'>
+                <div className='mb-6 text-center'>
+                    <h1 className='font-bold text-2xl text-primary uppercase underline'>Student Age Calculation Report</h1>
                 </div>
 
                 <div>
@@ -198,7 +220,7 @@ export default function ReportGrid({ data, isLoading }: ReportGridProps) {
                         isLoading={!!isLoading}
                         totalItems={data.length}
                         showSearchColumns={true}
-                        loadingMessage="Generating report..."
+                        loadingMessage='Generating report...'
                     />
                 </div>
             </div>

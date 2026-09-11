@@ -11,8 +11,7 @@ import {
     getClassDropDownByAcademicYearlist,
     getExamsDropDownByAcademicYearandClassandSectionlist,
     getSectionsDropDownByAcademicYearandClasslist,
-    getStudentsDropDownByAcademicYearandClassandSectionlist,
-    getGradeList
+    getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/tbschoolprimary';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
@@ -57,7 +56,7 @@ export default function ProgressCardReportForm({
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
     const [students, setStudents] = useState<{ amsT_AdmNo: number; amsT_Id: number; studentName?: string | null }[]>([]);
-    
+
     const [allStudentsSelected, setAllStudentsSelected] = useState(false);
     const [allExamsSelected, setAllExamsSelected] = useState(false);
 
@@ -89,8 +88,6 @@ export default function ProgressCardReportForm({
             setAcademicYears(formatted);
         }
     }, [academicData, academicError]);
-
-
 
     useEffect(() => {
         if (!selectedYear) return;
@@ -210,12 +207,12 @@ export default function ProgressCardReportForm({
             examlist: data.examList.map((e) => ({ emE_Id: e.emE_Id })),
             EMGR_Id: 0
         };
-        
+
         if (onSuccess) {
             await onSuccess(payload);
         }
     };
-    
+
     const handleAllStudents = (checked: boolean) => {
         if (checked && students.length) {
             setValue('studentList', [...students], { shouldValidate: true });
@@ -430,30 +427,30 @@ export default function ProgressCardReportForm({
                                         />
                                     </div>
                                 </div>
-                                
+
                                 <div className='flex justify-center pt-4'>
                                     <Controller
                                         control={control}
                                         name='reporttype'
                                         render={({ field }) => (
                                             <div className='flex items-center gap-8'>
-                                                <label className='flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700'>
+                                                <label className='flex cursor-pointer items-center gap-2 font-medium text-gray-700 text-sm'>
                                                     <input
                                                         type='radio'
                                                         value='Report'
                                                         checked={field.value === 'Report'}
                                                         onChange={() => field.onChange('Report')}
-                                                        className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300'
+                                                        className='h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500'
                                                     />
                                                     REPORT
                                                 </label>
-                                                <label className='flex items-center gap-2 cursor-pointer font-medium text-sm text-gray-700'>
+                                                <label className='flex cursor-pointer items-center gap-2 font-medium text-gray-700 text-sm'>
                                                     <input
                                                         type='radio'
                                                         value='Template'
                                                         checked={field.value === 'Template'}
                                                         onChange={() => field.onChange('Template')}
-                                                        className='h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300'
+                                                        className='h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500'
                                                     />
                                                     TEMPLATE
                                                 </label>
@@ -471,7 +468,7 @@ export default function ProgressCardReportForm({
                                 type='submit'
                                 isLoading={isSubmitting}
                                 disabled={isSubmitting}
-                                className='min-w-[120px] bg-blue-600 hover:bg-blue-700 text-white'>
+                                className='min-w-[120px] bg-blue-600 text-white hover:bg-blue-700'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
                             <Button
@@ -481,13 +478,13 @@ export default function ProgressCardReportForm({
                                     setStudents([]);
                                     setExams([]);
                                 }}
-                                className='min-w-[120px] bg-orange-500 hover:bg-orange-600 text-white'>
+                                className='min-w-[120px] bg-orange-500 text-white hover:bg-orange-600'>
                                 Cancel
                             </Button>
                             <Button
                                 type='button'
                                 onClick={() => window.print()}
-                                className='min-w-[120px] bg-blue-600 hover:bg-blue-700 text-white'>
+                                className='min-w-[120px] bg-blue-600 text-white hover:bg-blue-700'>
                                 Print
                             </Button>
                         </div>

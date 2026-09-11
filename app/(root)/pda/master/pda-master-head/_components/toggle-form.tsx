@@ -30,24 +30,18 @@ export default function TogglePDAMasterHeadForm({ rowData, onClose, onSuccess }:
             const response = await togglePDAMasterHead(rowData);
 
             if (response.returnval === true || (response as any).success === true) {
-
-                const statusMessage = rowData.pdamH_ActiveFlag
-                    ? 'Deactivated Successfully'
-                    : 'Activated Successfully';
+                const statusMessage = rowData.pdamH_ActiveFlag ? 'Deactivated Successfully' : 'Activated Successfully';
 
                 toast.success(statusMessage);
 
                 onSuccess();
-            }
-            else {
+            } else {
                 toast.error(response.message || 'Failed to update record status');
             }
-        }
-        catch (error: any) {
+        } catch (error: any) {
             console.error('Toggle error:', error);
             toast.error(error.message || 'Error updating record status');
-        }
-        finally {
+        } finally {
             setIsSubmitting(false);
         }
     };
@@ -57,8 +51,7 @@ export default function TogglePDAMasterHeadForm({ rowData, onClose, onSuccess }:
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Do you want to {rowData.pdamH_ActiveFlag ? 'Deactivate' : 'Activate'} the record for "
-                        {rowData.pdamH_HeadName}"?
+                        Do you want to {rowData.pdamH_ActiveFlag ? 'Deactivate' : 'Activate'} the record for "{rowData.pdamH_HeadName}"?
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

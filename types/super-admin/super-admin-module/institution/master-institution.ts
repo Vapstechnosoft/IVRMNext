@@ -44,7 +44,7 @@ export interface IMasterInstitution {
     // VC
     mI_VCStudentFlag?: string;
     mI_VCOthersFlag?: string;
-    // Note: vcDetails usually not part of the main master object in list view, but might be needed for form handling type. 
+    // Note: vcDetails usually not part of the main master object in list view, but might be needed for form handling type.
     // We'll exclude it here if this type is strictly for the listing/grid, but safe to add if needed.
 
     // MS Teams

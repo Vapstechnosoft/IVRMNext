@@ -1,20 +1,23 @@
 'use client';
 
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useOralTestScheduleDetails } from '@/hooks/admission/preadmission/transactions/use-oral-test-schedule';
-import { IOralTestSchedule } from '@/types/admission/preadmission/transactions/oral-test-schedule';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { oralTestScheduleColumns } from './_components/columns';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Button } from '@/components/ui/button';
-import { Printer, FileSpreadsheet, Search, Loader2, Plus, X } from 'lucide-react';
-import OralTestScheduleForm from './_components/add-form';
-import StudentListModal from './_components/student-list-modal';
-import ParticipantsModal from './_components/participants-modal';
 import { Checkbox } from '@/components/ui/checkbox';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Input } from '@/components/ui/input';
+import { useOralTestScheduleDetails } from '@/hooks/admission/preadmission/transactions/use-oral-test-schedule';
+import type { IOralTestSchedule } from '@/types/admission/preadmission/transactions/oral-test-schedule';
+import { FileSpreadsheet, Plus, Printer, Search, X } from 'lucide-react';
+import OralTestScheduleForm from './_components/add-form';
+import { oralTestScheduleColumns } from './_components/columns';
+import ParticipantsModal from './_components/participants-modal';
+import StudentListModal from './_components/student-list-modal';
+import { parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
+import React from 'react';
 
 export default function OralTestSchedulePage() {
     return (
@@ -27,28 +30,63 @@ export default function OralTestSchedulePage() {
 function OralTestScheduleContent() {
     const { data: response, isLoading, error, refetch } = useOralTestScheduleDetails() as any;
     const {
-        openAddForm, isAddFormOpen, closeAddForm, addFormRef,
-        isEditFormOpen, closeEditForm, editFormRef, selectedRow,
-        isDetailsViewOpen, closeDetailsView,
-        isMappedviewOpen, closeMappedview,
-        isToggleFormOpen, closeToggleForm
+        openAddForm,
+        isAddFormOpen,
+        closeAddForm,
+        addFormRef,
+        isEditFormOpen,
+        closeEditForm,
+        editFormRef,
+        selectedRow,
+        isDetailsViewOpen,
+        closeDetailsView,
+        isMappedviewOpen,
+        closeMappedview,
+        isToggleFormOpen,
+        closeToggleForm
     } = useFormContext<IOralTestSchedule>();
 
-    const tableProps = useDataTableProps(response, { dataKey: 'oralTestSchedule' });
+    const [searchQuery, setSearchQuery] = useQueryState(
+        tableSearchVariables.search,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [localSearch, setLocalSearch] = React.useState(searchQuery || '');
+
+    React.useEffect(() => {
+        const timer = setTimeout(() => setSearchQuery(localSearch || null), 300);
+        return () => clearTimeout(timer);
+    }, [localSearch, setSearchQuery]);
+
+    const filteredData = React.useMemo(() => {
+        if (!response?.oralTestSchedule) return [];
+        if (!searchQuery) return response.oralTestSchedule;
+        
+        const lowerQuery = searchQuery.toLowerCase();
+        return response.oralTestSchedule.filter((item: any) => {
+            // Filter by the visible columns in the grid
+            return (
+                (item.paotS_ScheduleName && String(item.paotS_ScheduleName).toLowerCase().includes(lowerQuery)) ||
+                (item.paotS_ScheduleDate && String(item.paotS_ScheduleDate).toLowerCase().includes(lowerQuery)) ||
+                (item.paotS_ScheduleTime && String(item.paotS_ScheduleTime).toLowerCase().includes(lowerQuery)) ||
+                (item.paotS_ScheduleTimeTo && String(item.paotS_ScheduleTimeTo).toLowerCase().includes(lowerQuery))
+            );
+        });
+    }, [response?.oralTestSchedule, searchQuery]);
+
+    const tableProps = useDataTableProps({ oralTestSchedule: filteredData }, { dataKey: 'oralTestSchedule' });
 
     return (
-        <div className="container space-y-4 py-6">
-            <div className="flex items-center justify-between no-print">
-                <div className="space-y-1">
-                    <h1 className="text-3xl font-bold tracking-tight text-blue-800">Oral Test/Interaction Schedule</h1>
-                    <p className="text-muted-foreground">Manage and schedule oral tests for preadmission students.</p>
+        <div className='container space-y-4 py-6'>
+            <div className='no-print flex items-center justify-between'>
+                <div className='space-y-1'>
+                    <h1 className='font-bold text-3xl text-blue-800 tracking-tight'>Oral Test/Interaction Schedule</h1>
+                    <p className='text-muted-foreground'>Manage and schedule oral tests for preadmission students.</p>
                 </div>
                 <Button
                     onClick={openAddForm}
                     disabled={isAddFormOpen || isEditFormOpen}
-                    className="shadow-lg hover:shadow-xl transition-all"
-                >
-                    <Plus className="mr-2 h-4 w-4" /> Add Schedule
+                    className='shadow-lg transition-all hover:shadow-xl'>
+                    <Plus className='mr-2 h-4 w-4' /> Add Schedule
                 </Button>
             </div>
 
@@ -56,16 +94,15 @@ function OralTestScheduleContent() {
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title="Add New Schedule"
-                        description="Define a new oral test schedule and assign students."
+                        title='Add New Schedule'
+                        description='Define a new oral test schedule and assign students.'
                         defaultOpen={true}
-                        variant="outline"
+                        variant='outline'
                         rightElement={
-                            <Button variant="ghost" size="sm" onClick={closeAddForm}>
-                                <X className="h-4 w-4 mr-1" /> Close
+                            <Button variant='ghost' size='sm' onClick={closeAddForm}>
+                                <X className='mr-1 h-4 w-4' /> Close
                             </Button>
-                        }
-                    >
+                        }>
                         <OralTestScheduleForm
                             onSuccess={() => {
                                 closeAddForm();
@@ -79,16 +116,15 @@ function OralTestScheduleContent() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title="Edit Schedule"
+                        title='Edit Schedule'
                         description={`Updating schedule: ${selectedRow.paotS_ScheduleName}`}
                         defaultOpen={true}
-                        variant="outline"
+                        variant='outline'
                         rightElement={
-                            <Button variant="ghost" size="sm" onClick={closeEditForm}>
-                                <X className="h-4 w-4 mr-1" /> Close
+                            <Button variant='ghost' size='sm' onClick={closeEditForm}>
+                                <X className='mr-1 h-4 w-4' /> Close
                             </Button>
-                        }
-                    >
+                        }>
                         <OralTestScheduleForm
                             onSuccess={() => {
                                 closeEditForm();
@@ -101,77 +137,89 @@ function OralTestScheduleContent() {
             )}
 
             {/* Data Table Section */}
-            <CollapsibleSection
-                title="Existing Schedules"
-                defaultOpen={true}
-                className="shadow-md"
-            >
-                <div className="flex flex-col">
+            <CollapsibleSection title='Existing Schedules' defaultOpen={true} className='shadow-md'>
+                <div className='flex flex-col'>
                     {/* Toolbar Row 1 */}
-                    <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b no-print">
-                        <span className="text-blue-800 font-bold text-xs uppercase">Oral Test\Interaction Scheduled List</span>
-                        <div className="flex items-center gap-6">
-                            <div className="flex items-center space-x-2">
-                                <Checkbox id="onlyScheduled" />
-                                <Label htmlFor="onlyScheduled" className="text-[10px] font-bold">Only Scheduled List</Label>
+                    <div className='no-print flex items-center justify-between border-b bg-slate-50 px-4 py-2'>
+                        <span className='font-bold text-blue-800 text-xs uppercase'>Oral Test\Interaction Scheduled List</span>
+                        <div className='flex items-center gap-6'>
+                            <div className='flex items-center space-x-2'>
+                                <Checkbox id='onlyScheduled' />
+                                <Label htmlFor='onlyScheduled' className='font-bold text-[10px]'>
+                                    Only Scheduled List
+                                </Label>
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <Checkbox id="printBrake" defaultChecked />
-                                <Label htmlFor="printBrake" className="text-[10px] font-bold">Print Page Brake</Label>
+                            <div className='flex items-center space-x-2'>
+                                <Checkbox id='printBrake' defaultChecked />
+                                <Label htmlFor='printBrake' className='font-bold text-[10px]'>
+                                    Print Page Brake
+                                </Label>
                             </div>
-                            <div className="flex items-center gap-2 border-l pl-4">
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-700">
-                                    <Printer className="h-4 w-4" />
+                            <div className='flex items-center gap-2 border-l pl-4'>
+                                <Button variant='ghost' size='icon' className='h-6 w-6 text-slate-700'>
+                                    <Printer className='h-4 w-4' />
                                 </Button>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-green-700">
-                                    <FileSpreadsheet className="h-4 w-4" />
+                                <Button variant='ghost' size='icon' className='h-6 w-6 text-green-700'>
+                                    <FileSpreadsheet className='h-4 w-4' />
                                 </Button>
                             </div>
                         </div>
                     </div>
 
                     {/* Toolbar Row 2 */}
-                    <div className="flex items-center justify-between px-4 py-2 bg-white border-b no-print">
-                        <div className="flex items-center gap-12">
-                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase">
-                                Grid Records : <span className="bg-slate-500 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{response?.oralTestSchedule?.length || 0}</span>
+                    <div className='no-print flex items-center justify-between border-b bg-white px-4 py-2'>
+                        <div className='flex items-center gap-12'>
+                            <div className='flex items-center gap-2 font-bold text-[10px] uppercase'>
+                                Grid Records :{' '}
+                                <span className='flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-slate-500 px-1 text-white'>
+                                    {filteredData?.length || 0}
+                                </span>
                             </div>
-                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase">
-                                Scheduled Students: <span className="bg-slate-500 text-white rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">{response?.oralTestSchedule?.length || 0}</span>
+                            <div className='flex items-center gap-2 font-bold text-[10px] uppercase'>
+                                Scheduled Students:{' '}
+                                <span className='flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-slate-500 px-1 text-white'>
+                                    {filteredData?.reduce((acc: number, curr: any) => acc + (curr.ocount || 0), 0) || 0}
+                                </span>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-8">
-                            <RadioGroup defaultValue="12" className="flex items-center gap-4">
-                                <div className="flex items-center space-x-1.5">
-                                    <RadioGroupItem value="12" id="r1" className="h-3 w-3" />
-                                    <Label htmlFor="r1" className="text-[10px] font-bold">12 Hours</Label>
+                        <div className='flex items-center gap-8'>
+                            <RadioGroup defaultValue='12' className='flex items-center gap-4'>
+                                <div className='flex items-center space-x-1.5'>
+                                    <RadioGroupItem value='12' id='r1' className='h-3 w-3' />
+                                    <Label htmlFor='r1' className='font-bold text-[10px]'>
+                                        12 Hours
+                                    </Label>
                                 </div>
-                                <div className="flex items-center space-x-1.5">
-                                    <RadioGroupItem value="24" id="r2" className="h-3 w-3" />
-                                    <Label htmlFor="r2" className="text-[10px] font-bold">24 Hours</Label>
+                                <div className='flex items-center space-x-1.5'>
+                                    <RadioGroupItem value='24' id='r2' className='h-3 w-3' />
+                                    <Label htmlFor='r2' className='font-bold text-[10px]'>
+                                        24 Hours
+                                    </Label>
                                 </div>
                             </RadioGroup>
 
-                            <div className="relative">
-                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
-                                <Input
-                                    placeholder="search here..."
-                                    className="h-7 w-48 pl-8 text-[10px] bg-slate-50 border-slate-300"
+                            <div className='relative'>
+                                <Search className='-translate-y-1/2 absolute top-1/2 left-2.5 h-3 w-3 text-slate-400' />
+                                <Input 
+                                    placeholder='search here...' 
+                                    className='h-7 w-48 border-slate-300 bg-slate-50 pl-8 text-[10px]' 
+                                    value={localSearch}
+                                    onChange={(e) => setLocalSearch(e.target.value)}
                                 />
                             </div>
                         </div>
                     </div>
 
-                    <div className="[&_thead_tr_th]:text-black [&_thead_tr_th]:font-bold [&_thead_tr_th]:py-3 [&_thead_tr_th]:border-r [&_thead_tr_th]:border-slate-200 [&_thead_tr_th:last-child]:border-r-0 [&_thead_tr_th_button]:hover:bg-transparent [&_thead_tr_th_button]:hover:text-black [&_tbody_tr:nth-child(even)]:bg-slate-50/50">
+                    <div className='[&_tbody_tr:nth-child(even)]:bg-slate-50/50 [&_thead_tr_th:last-child]:border-r-0 [&_thead_tr_th]:border-slate-200 [&_thead_tr_th]:border-r [&_thead_tr_th]:py-3 [&_thead_tr_th]:font-bold [&_thead_tr_th]:text-black [&_thead_tr_th_button]:hover:bg-transparent [&_thead_tr_th_button]:hover:text-black'>
                         <GenericDataTable<IOralTestSchedule>
                             {...tableProps}
                             columns={oralTestScheduleColumns}
                             isLoading={isLoading}
                             error={error}
                             isSearchRequired={false}
-                            noDataTitle="No Schedules Found"
-                            noDataDescription="Create your first oral test schedule to see it here."
+                            noDataTitle='No Schedules Found'
+                            noDataDescription='Create your first oral test schedule to see it here.'
                         />
                     </div>
                 </div>
@@ -179,29 +227,16 @@ function OralTestScheduleContent() {
 
             {/* Modals */}
             {isDetailsViewOpen && selectedRow && (
-                <StudentListModal
-                    rowData={selectedRow}
-                    isOpen={isDetailsViewOpen}
-                    onClose={closeDetailsView}
-                />
+                <StudentListModal rowData={selectedRow} isOpen={isDetailsViewOpen} onClose={closeDetailsView} />
             )}
 
             {isMappedviewOpen && selectedRow && (
-                <ParticipantsModal
-                    rowData={selectedRow}
-                    isOpen={isMappedviewOpen}
-                    onClose={closeMappedview}
-                />
+                <ParticipantsModal rowData={selectedRow} isOpen={isMappedviewOpen} onClose={closeMappedview} />
             )}
 
             {/* Remarks Modal - reused ToggleForm for this */}
             {isToggleFormOpen && selectedRow && (
-                <StudentListModal
-                    rowData={selectedRow}
-                    isOpen={isToggleFormOpen}
-                    onClose={closeToggleForm}
-                    isRemarks={true}
-                />
+                <StudentListModal rowData={selectedRow} isOpen={isToggleFormOpen} onClose={closeToggleForm} isRemarks={true} />
             )}
         </div>
     );

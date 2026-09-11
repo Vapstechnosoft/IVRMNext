@@ -3,32 +3,26 @@
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError } from '@/components/ui/extension/field';
-import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-    useReportGroupTypes,
+    useEmployeeOfferAndExperienceReport,
     useReportDepartments,
     useReportDesignations,
     useReportEmployeesByGroupTypeDeptAndDesignation,
-    useEmployeeOfferAndExperienceReport
+    useReportGroupTypes
 } from '@/hooks/hrms/useReports';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Printer, RefreshCw, Search } from 'lucide-react';
+import { CalendarIcon, RefreshCw, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
-
-import { EmployeeOfferLaterFields, EmployeeOfferLaterSchema } from './schemas';
-import { RadioItem } from '@radix-ui/react-dropdown-menu';
-
-
+import { type EmployeeOfferLaterFields, EmployeeOfferLaterSchema } from './schemas';
 
 export default function SalaryCertificatePage() {
     const [isSearching, setIsSearching] = useState(false);
@@ -36,7 +30,6 @@ export default function SalaryCertificatePage() {
     const [currentDate, setCurrentDate] = useState<string>('');
     const [fullName, setFullName] = useState<string>('');
     const [resetKey, setResetKey] = useState<number>(0);
-
 
     const {
         control,
@@ -64,57 +57,55 @@ export default function SalaryCertificatePage() {
     const watchEmployee = watch('employee');
 
     // Mapped ID arrays for hook dependencies
-    const groupTypeIds = useMemo(
-        () => [watchedGroupType].map(Number).filter(Boolean),
-        [watchedGroupType],
-    );
-    const deptIds = useMemo(
-        () => [watchedDepartment].map(Number).filter(Boolean),
-        [watchedDepartment],
-    );
-    const desigIds = useMemo(
-        () => [watchedDesignation].map(Number).filter(Boolean),
-        [watchedDesignation],
-    );
+    const groupTypeIds = useMemo(() => [watchedGroupType].map(Number).filter(Boolean), [watchedGroupType]);
+    const deptIds = useMemo(() => [watchedDepartment].map(Number).filter(Boolean), [watchedDepartment]);
+    const desigIds = useMemo(() => [watchedDesignation].map(Number).filter(Boolean), [watchedDesignation]);
 
     // Data Hooks
-    const { data: groupTypesData, isLoading: groupTypesLoading, error: groupTypesError, isError: groupTypesisError } = useReportGroupTypes();
-    const { data: departmentsData, isLoading: departmentsLoading, error: departmentsError, isError: departmentsisError } = useReportDepartments(
-        groupTypeIds.toString(),
-    );
-    const { data: designationsData, isLoading: designationsLoading, error: designationsError, isError: designationsisError } = useReportDesignations(
-        groupTypeIds.toString(),
-        deptIds.toString(),
-    );
-    const { data: employeesData, isLoading: employeesLoading, error: employeesError, isError: employeesisError } =
-        useReportEmployeesByGroupTypeDeptAndDesignation(
-            groupTypeIds,
-            deptIds,
-            desigIds,
-        );
+    const {
+        data: groupTypesData,
+        isLoading: groupTypesLoading,
+        error: groupTypesError,
+        isError: groupTypesisError
+    } = useReportGroupTypes();
+    const {
+        data: departmentsData,
+        isLoading: departmentsLoading,
+        error: departmentsError,
+        isError: departmentsisError
+    } = useReportDepartments(groupTypeIds.toString());
+    const {
+        data: designationsData,
+        isLoading: designationsLoading,
+        error: designationsError,
+        isError: designationsisError
+    } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
+    const {
+        data: employeesData,
+        isLoading: employeesLoading,
+        error: employeesError,
+        isError: employeesisError
+    } = useReportEmployeesByGroupTypeDeptAndDesignation(groupTypeIds, deptIds, desigIds);
 
     const { mutateAsync: generateReport } = useEmployeeOfferAndExperienceReport();
 
     //   console.log("employeesData", watchedEmployee);
-
 
     // Transforms
     const groupTypesDataTransformed = useMemo(() => {
         return (
             groupTypesData?.data?.map((gt: any) => ({
                 id: gt.key || gt.hrmgT_Id,
-                name: gt.value || gt.hrmgT_EmployeeGroupType,
+                name: gt.value || gt.hrmgT_EmployeeGroupType
             })) || []
         ).filter((d: any) => d.id != null);
     }, [groupTypesData]);
-
 
     const departmentsDataTransformed = useMemo(() => {
         return (
             departmentsData?.data?.map((d: any) => ({
                 id: d.hrmD_Id || d.hrmd_id || d.key || d.id,
-                name:
-                    d.hrmD_DepartmentName || d.hrmd_departmentName || d.value || d.name,
+                name: d.hrmD_DepartmentName || d.hrmd_departmentName || d.value || d.name
             })) || []
         ).filter((d: any) => d.id != null);
     }, [departmentsData]);
@@ -123,11 +114,7 @@ export default function SalaryCertificatePage() {
         return (
             designationsData?.data?.map((d: any) => ({
                 id: d.hrmdeS_Id || d.hrmdes_id || d.key || d.id,
-                name:
-                    d.hrmdeS_DesignationName ||
-                    d.hrmdes_designationName ||
-                    d.value ||
-                    d.name,
+                name: d.hrmdeS_DesignationName || d.hrmdes_designationName || d.value || d.name
             })) || []
         ).filter((d: any) => d.id != null);
     }, [designationsData]);
@@ -143,8 +130,8 @@ export default function SalaryCertificatePage() {
 
                 return {
                     id: Number(id),
-                    employeeName: emp.employeeFullName || "Unknown Employee",
-                    employeeCode: emp.hrmE_EmployeeCode || id.toString(),
+                    employeeName: emp.employeeFullName || 'Unknown Employee',
+                    employeeCode: emp.hrmE_EmployeeCode || id.toString()
                 };
             })
             .filter(Boolean);
@@ -162,19 +149,17 @@ export default function SalaryCertificatePage() {
                 HRME_Id: Number(data?.employee),
                 HRMGT_Id: Number(data?.groupType),
                 HRMD_Id: Number(data?.department),
-                HRMDES_Id: Number(data?.designation),
+                HRMDES_Id: Number(data?.designation)
             };
-            console.log("payload", payload);
+            console.log('payload', payload);
             const response = await generateReport(payload);
-            console.log("response", response);
+            console.log('response', response);
             if (response.success) {
                 toast.success(response.message || 'Report generated successfully!');
                 const name = response.data.currentemployeeDetails;
-                const nameParts = [
-                    name?.hrmE_EmployeeFirstName,
-                    name?.hrmE_EmployeeMiddleName,
-                    name?.hrmE_EmployeeLastName
-                ].map(s => s?.trim()).filter(Boolean);
+                const nameParts = [name?.hrmE_EmployeeFirstName, name?.hrmE_EmployeeMiddleName, name?.hrmE_EmployeeLastName]
+                    .map((s) => s?.trim())
+                    .filter(Boolean);
                 setFullName(nameParts.join(' '));
                 setReportData(response.data);
             } else {
@@ -237,7 +222,7 @@ export default function SalaryCertificatePage() {
     const totalDeductions = calculateTotalDeductions();
     const netSalary = calculateNetSalary();
 
-    const certificateHandler = () => { }
+    const certificateHandler = () => {};
 
     return (
         <div className='min-h-screen p-8'>
@@ -257,22 +242,20 @@ export default function SalaryCertificatePage() {
                                             Group Type: <span className='text-red-500'>*</span>
                                         </Label>
                                         <Controller
-                                        key={resetKey}
+                                            key={resetKey}
                                             name='groupType'
                                             control={control}
                                             render={({ field }) => (
                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                     <SelectTrigger className='w-full' disabled={groupTypesLoading}>
-                                                        <SelectValue placeholder={groupTypesLoading ? "Loading..." : "Select GroupType"} />
+                                                        <SelectValue placeholder={groupTypesLoading ? 'Loading...' : 'Select GroupType'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-
                                                         {groupTypesDataTransformed?.map((opt: any) => (
                                                             <SelectItem key={opt.id} value={String(opt.id)}>
                                                                 {opt.name}
                                                             </SelectItem>
                                                         ))}
-
                                                     </SelectContent>
                                                 </Select>
                                             )}
@@ -285,13 +268,15 @@ export default function SalaryCertificatePage() {
                                             Department: <span className='text-red-500'>*</span>
                                         </Label>
                                         <Controller
-                                        key={resetKey}
+                                            key={resetKey}
                                             name='department'
                                             control={control}
                                             render={({ field }) => (
                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                     <SelectTrigger className='w-full' disabled={!watchedGroupType || departmentsLoading}>
-                                                        <SelectValue placeholder={departmentsLoading ? "Loading..." : "Select department"} />
+                                                        <SelectValue
+                                                            placeholder={departmentsLoading ? 'Loading...' : 'Select department'}
+                                                        />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {departmentsDataTransformed?.map((opt: any) => (
@@ -310,13 +295,15 @@ export default function SalaryCertificatePage() {
                                             Designation: <span className='text-red-500'>*</span>
                                         </Label>
                                         <Controller
-                                        key={resetKey}
+                                            key={resetKey}
                                             name='designation'
                                             control={control}
                                             render={({ field }) => (
                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                     <SelectTrigger className='w-full' disabled={!watchedDepartment || designationsLoading}>
-                                                        <SelectValue placeholder={designationsLoading ? "Loading..." : "Select designation"} />
+                                                        <SelectValue
+                                                            placeholder={designationsLoading ? 'Loading...' : 'Select designation'}
+                                                        />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {designationsDataTransformed?.map((opt: any) => (
@@ -336,13 +323,13 @@ export default function SalaryCertificatePage() {
                                             Employee: <span className='text-red-500'>*</span>
                                         </Label>
                                         <Controller
-                                        key={resetKey}
+                                            key={resetKey}
                                             name='employee'
                                             control={control}
                                             render={({ field }) => (
                                                 <Select onValueChange={field.onChange} value={field.value}>
                                                     <SelectTrigger className='w-full' disabled={!watchedDepartment || employeesLoading}>
-                                                        <SelectValue placeholder={employeesLoading ? "Loading..." : "Select Employee"} />
+                                                        <SelectValue placeholder={employeesLoading ? 'Loading...' : 'Select Employee'} />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {employeesDataTransformed?.map((opt: any) => (
@@ -406,8 +393,15 @@ export default function SalaryCertificatePage() {
                                             </PopoverContent>
                                         </Popover>
                                     </div>
-                                    <div className="flex flex-row items-center gap-4">
-                                        <input type="radio" name="reportType" className="w-5 h-5" id="experienceCertificate" checked onChange={certificateHandler} />
+                                    <div className='flex flex-row items-center gap-4'>
+                                        <input
+                                            type='radio'
+                                            name='reportType'
+                                            className='h-5 w-5'
+                                            id='experienceCertificate'
+                                            checked
+                                            onChange={certificateHandler}
+                                        />
                                         <Label className='font-medium text-sm text-white-900' htmlFor='experienceCertificate'>
                                             Experience Certificate<span className='text-red-600'>*</span>
                                         </Label>
@@ -900,34 +894,27 @@ export default function SalaryCertificatePage() {
                     </CollapsibleSection>
                 )} */}
 
-                {
-                    reportData && (
-
-                        <CollapsibleSection
-                            title="Employee service Report"
-                            defaultOpen={true}
-                        >
-                            <div className='flex justify-end gap-2 text-sm mt-20'>
-                                <p className='font-semibold text-gray-600'>Date : {getTodayDate()}</p>
-                            </div>
-                            <div className='flex justify-center flex-col mt-8'>
-                                <p className='text-center text-lg font-semibold leading-relaxed text-blue-900'>
-                                    TO WHOMSOEVER IT MAY CONCERN
-                                </p>
-                                <p className='text-center mt-6 text-base leading-relaxed'>
-                                    This is to certify that {reportData.empgender === 'Female' ? (reportData.maritalstate === 'Married' ? 'Mrs. ' : 'Ms. ') : 'Mr. '} <span className='text-md font-semibold'>{fullName}</span> is a Permanent/Probationary employee of <br />
-
-                                    Our Institution working as a <span className='text-md font-semibold'>{reportData.designationName}</span> since {reportData?.currentemployeeDetails?.hrmE_DOJ?.split('T')[0]}.
-                                </p>
-                            </div>
-                            <div className='flex justify-between mt-20'>
-                                <p>{ }</p>
-                                <p>MANAGER</p>
-                            </div>
-
-                        </CollapsibleSection>
-                    )
-                }
+                {reportData && (
+                    <CollapsibleSection title='Employee service Report' defaultOpen={true}>
+                        <div className='mt-20 flex justify-end gap-2 text-sm'>
+                            <p className='font-semibold text-gray-600'>Date : {getTodayDate()}</p>
+                        </div>
+                        <div className='mt-8 flex flex-col justify-center'>
+                            <p className='text-center font-semibold text-blue-900 text-lg leading-relaxed'>TO WHOMSOEVER IT MAY CONCERN</p>
+                            <p className='mt-6 text-center text-base leading-relaxed'>
+                                This is to certify that{' '}
+                                {reportData.empgender === 'Female' ? (reportData.maritalstate === 'Married' ? 'Mrs. ' : 'Ms. ') : 'Mr. '}{' '}
+                                <span className='font-semibold text-md'>{fullName}</span> is a Permanent/Probationary employee of <br />
+                                Our Institution working as a <span className='font-semibold text-md'>{reportData.designationName}</span>{' '}
+                                since {reportData?.currentemployeeDetails?.hrmE_DOJ?.split('T')[0]}.
+                            </p>
+                        </div>
+                        <div className='mt-20 flex justify-between'>
+                            <p>{}</p>
+                            <p>MANAGER</p>
+                        </div>
+                    </CollapsibleSection>
+                )}
             </div>
         </div>
     );

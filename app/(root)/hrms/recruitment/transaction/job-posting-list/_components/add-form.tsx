@@ -5,12 +5,12 @@ import { FormError } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSaveOrUpdateJobListVMS } from '@/hooks/hrms/recruitment/transactions/useTransactions';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, Upload, X, Loader2 } from 'lucide-react';
+import { Loader2, Save, Upload, X } from 'lucide-react';
+import { memo, useCallback, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { useSaveOrUpdateJobListVMS } from '@/hooks/hrms/recruitment/transactions/useTransactions';
-import { memo, useCallback, useMemo, useEffect } from 'react';
 
 const jobPostingSchema = z.object({
     position: z.string().min(1, 'Position is required'),
@@ -58,10 +58,9 @@ const AddJobPostingForm = memo(function AddJobPostingForm({
     const priorityList = useMemo(() => basicData.masterPriorityList || [], [basicData]);
     const qualificationList = useMemo(() => basicData.masterQualification || [], [basicData]);
     const genderList = useMemo(() => basicData.masterGender || [], [basicData]);
-    const locationList = useMemo(() =>
-        Array.from(
-            new Map((basicData.masterLocation || []).map((item: any) => [item.hrmlO_LocationName, item])).values()
-        ), [basicData]
+    const locationList = useMemo(
+        () => Array.from(new Map((basicData.masterLocation || []).map((item: any) => [item.hrmlO_LocationName, item])).values()),
+        [basicData]
     );
     const departmentList = useMemo(() => basicData.masterDepartmentList || [], [basicData]);
     const positionTypeList = useMemo(() => basicData.masterPosTypeList || [], [basicData]);
@@ -83,45 +82,48 @@ const AddJobPostingForm = memo(function AddJobPostingForm({
         }
     });
 
-    const onSubmit: SubmitHandler<FormFields> = useCallback(async (data) => {
-        const payload = {
-            hrmrfr_Id: 0,
-            hrmP_Id: Number(data.position),
-            hrmD_Id: Number(data.department),
-            hrmpR_Id: Number(data.priority),
-            hrmpT_Id: Number(data.positionType),
-            hrmC_Id: Number(data.qualification),
-            ivrmmG_Id: Number(data.gender),
-            hrmrfr_NoofPosition: Number(data.noOfPosition),
-            hrmrfr_Skills: data.skill,
-            hrmrfr_JobDesc: data.jobDescription,
-            hrmrfr_EXPFrom: Number(data.experienceFrom),
-            hrmrfr_EXPTo: Number(data.experienceTo),
-            hrmrfr_Age: Number(data.age),
-            hrmrfr_MRFNO: data.mrfNo,
-            hrmrfr_WrittenTestFlg: !!data.writtenTest,
-            hrmrfr_OnlineTestFlg: !!data.onlineTest,
-            hrmrfr_TechnicalInterviewFlg: !!data.technicalInterview,
-            hrmrfr_Reason: data.reason,
-            hrmrfr_Remark: data.remark || '',
-            hrmrfr_Attachment: '',
-            hrmrfr_JobLocation: data.location,
-            hrmrfr_Status: 'Pending',
-            hrmrfr_HRComment: 'Pending',
-            hrmrfr_MDComment: 'Pending'
-        };
+    const onSubmit: SubmitHandler<FormFields> = useCallback(
+        async (data) => {
+            const payload = {
+                hrmrfr_Id: 0,
+                hrmP_Id: Number(data.position),
+                hrmD_Id: Number(data.department),
+                hrmpR_Id: Number(data.priority),
+                hrmpT_Id: Number(data.positionType),
+                hrmC_Id: Number(data.qualification),
+                ivrmmG_Id: Number(data.gender),
+                hrmrfr_NoofPosition: Number(data.noOfPosition),
+                hrmrfr_Skills: data.skill,
+                hrmrfr_JobDesc: data.jobDescription,
+                hrmrfr_EXPFrom: Number(data.experienceFrom),
+                hrmrfr_EXPTo: Number(data.experienceTo),
+                hrmrfr_Age: Number(data.age),
+                hrmrfr_MRFNO: data.mrfNo,
+                hrmrfr_WrittenTestFlg: !!data.writtenTest,
+                hrmrfr_OnlineTestFlg: !!data.onlineTest,
+                hrmrfr_TechnicalInterviewFlg: !!data.technicalInterview,
+                hrmrfr_Reason: data.reason,
+                hrmrfr_Remark: data.remark || '',
+                hrmrfr_Attachment: '',
+                hrmrfr_JobLocation: data.location,
+                hrmrfr_Status: 'Pending',
+                hrmrfr_HRComment: 'Pending',
+                hrmrfr_MDComment: 'Pending'
+            };
 
-        console.log('payload', payload);
+            console.log('payload', payload);
 
-        saveJobPosting(payload, {
-            onSuccess: (res) => {
-                if (res.success) {
-                    reset();
-                    onSuccess?.();
+            saveJobPosting(payload, {
+                onSuccess: (res) => {
+                    if (res.success) {
+                        reset();
+                        onSuccess?.();
+                    }
                 }
-            }
-        });
-    }, [saveJobPosting, reset, onSuccess]);
+            });
+        },
+        [saveJobPosting, reset, onSuccess]
+    );
 
     const handleReset = useCallback(() => {
         reset();

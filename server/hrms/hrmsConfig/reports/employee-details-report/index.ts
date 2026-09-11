@@ -1,5 +1,5 @@
 'use server';
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
     EmployeeDetailsReportFilterRequest,
     EmployeeDetailsReportFilterResponse,
@@ -75,11 +75,7 @@ export async function filterEmployeeDetailsReport(
     }
     console.log('📤 [EMPLOYEE DETAILS REPORT - BACKEND] Request body prepared:', JSON.stringify(apiRequestBody, null, 2));
     try {
-        const response = await api.post<EmployeeDetailsReportFilterResponse>(
-            'hrms',
-            url,
-            apiRequestBody
-        );
+        const response = await api.post<EmployeeDetailsReportFilterResponse>('hrms', url, apiRequestBody);
         // The backend returns raw data, not wrapped in ApiResponse format
         // Wrap it to match the expected ApiResponse structure
         if (response && typeof response === 'object' && 'success' in response && 'data' in response) {

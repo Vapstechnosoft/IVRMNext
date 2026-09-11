@@ -288,7 +288,7 @@ export default function CumulativeReportPrintView({
                                         {columnFlags.gradecolm && <th>Grade</th>}
                                         {columnFlags.sectionrank && <th>Section Rank</th>}
                                         {columnFlags.classrank && <th>Class Rank</th>}
-                                        {!columnFlags.attendancedispaly && (
+                                        {columnFlags.attendancedispaly && (
                                             <>
                                                 <th>Class Held</th>
                                                 <th>Attendance</th>
@@ -330,11 +330,13 @@ export default function CumulativeReportPrintView({
                                             <>
                                                 <td>{isAbsent ? '' : (student.estmP_TotalMaxMarks ?? '-')}</td>
                                                 <td>{isAbsent ? '' : (student.estmP_TotalObtMarks ?? '-')}</td>
-                                                {columnFlags.readmit && <td>{isAbsent ? '' : `${Number(student.estmP_Percentage ?? 0).toFixed(1)}%`}</td>}
+                                                {columnFlags.readmit && (
+                                                    <td>{isAbsent ? '' : `${Number(student.estmP_Percentage ?? 0).toFixed(1)}%`}</td>
+                                                )}
                                                 {columnFlags.gradecolm && <td>{isAbsent ? '' : (student.estmP_TotalGrade ?? '-')}</td>}
-                                                {columnFlags.sectionrank && <td>{isAbsent || student.estmP_SectionRank === '0' ? '' : (student.estmP_SectionRank ?? '-')}</td>}
-                                                {columnFlags.classrank && <td>{isAbsent || student.estmP_ClassRank === '0' ? '' : (student.estmP_ClassRank ?? '-')}</td>}
-                                                {!columnFlags.attendancedispaly && (
+                                                {columnFlags.sectionrank && <td>{isAbsent || student.estmP_SectionRank === '0' || student.estmP_SectionRank === 0 ? '' : (student.estmP_SectionRank ?? '-')}</td>}
+                                                {columnFlags.classrank && <td>{isAbsent || student.estmP_ClassRank === '0' || student.estmP_ClassRank === 0 ? '' : (student.estmP_ClassRank ?? '-')}</td>}
+                                                {columnFlags.attendancedispaly && (
                                                     <>
                                                         <td>{student.classheld ?? '-'}</td>
                                                         <td>{student.classatt ?? '-'}</td>

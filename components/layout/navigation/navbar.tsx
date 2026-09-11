@@ -1,8 +1,8 @@
 import { ROUTES } from '@/constants/routes';
 import { auth } from '@/lib/auth';
 import { UserNav } from '../user-nav';
-import UserNotificationPage from '../user-notification';
 import { AIAgentHeader } from './ai-agent-header';
+import { ContactUs } from './contact-us';
 import { HeaderSearch } from './header-search';
 import { IntelligentAppsMenu } from './intelligent-apps-menu';
 import Logo from './logo';
@@ -18,7 +18,9 @@ export default async function Navbar() {
                 <div className='flex w-full items-center gap-2'>
                     <Logo size='icon' herf={ROUTES.DASHBOARD} />
                     {session?.mi_name && (
-                        <span className='ml-2 text-sm font-semibold text-foreground/80 hidden md:inline-block border-l pl-3 py-1 max-w-[250px] truncate' title={session.mi_name}>
+                        <span
+                            className='ml-2 hidden max-w-[250px] truncate border-l py-1 pl-3 font-semibold text-foreground/80 text-sm md:inline-block'
+                            title={session.mi_name}>
                             {session.mi_name}
                         </span>
                     )}
@@ -26,10 +28,11 @@ export default async function Navbar() {
                     <div className='flex items-center gap-4'>
                         <HeaderSearch />
                         <OperationTools />
+                        <ContactUs />
                         <IntelligentAppsMenu />
                         <AIAgentHeader />
 
-                        <UserNotificationPage />
+                        {/* <UserNotificationPage /> */}
                         <UserNav session={session} />
                     </div>
                 </div>

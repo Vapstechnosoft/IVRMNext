@@ -1,4 +1,3 @@
-
 export interface ISportHouseReportLoadData {
     yearlist: IYear[];
 }

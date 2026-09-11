@@ -1,6 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getPDAHeadWiseInitialData, getPDAHeadWiseReportData, IPDAHeadWiseReportParams } from "@/server/pettycash/report/PDAHeadWiseReport";
-import { TIMETABLE_QUERY_KEYS } from "@/constants/Timetable-query-keys";
+import { TIMETABLE_QUERY_KEYS } from '@/constants/Timetable-query-keys';
+import {
+    type IPDAHeadWiseReportParams,
+    getPDAHeadWiseInitialData,
+    getPDAHeadWiseReportData
+} from '@/server/pettycash/report/PDAHeadWiseReport';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const usePDAHeadWiseInitialData = () => {
     const queryClient = useQueryClient();
@@ -22,6 +26,6 @@ export const usePDAHeadWiseInitialData = () => {
 
 export const usePDAHeadWiseReportMutation = () => {
     return useMutation({
-        mutationFn: (data: IPDAHeadWiseReportParams) => getPDAHeadWiseReportData(data),
+        mutationFn: (data: IPDAHeadWiseReportParams) => getPDAHeadWiseReportData(data)
     });
 };

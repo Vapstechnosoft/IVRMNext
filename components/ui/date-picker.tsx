@@ -1,12 +1,12 @@
 'use client';
 
-import * as React from 'react';
+import { Button } from '@/components/ui/button';
+import { DatePickerWithYear } from '@/components/ui/date-picker-year';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { DatePickerWithYear } from '@/components/ui/date-picker-year';
+import * as React from 'react';
 
 import type { DayPicker } from 'react-day-picker';
 
@@ -24,20 +24,15 @@ export function DatePicker({ date, setDate, placeholder = 'Pick a date', classNa
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
-                    variant={"outline"}
-                    className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !date && "text-muted-foreground",
-                        className
-                    )}
-                >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>{placeholder}</span>}
+                    variant={'outline'}
+                    className={cn('w-full justify-start text-left font-normal', !date && 'text-muted-foreground', className)}>
+                    <CalendarIcon className='mr-2 h-4 w-4' />
+                    {date ? format(date, 'PPP') : <span>{placeholder}</span>}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className='w-auto p-0' align='start'>
                 <DatePickerWithYear
-                    mode="single"
+                    mode='single'
                     {...props}
                     selected={date}
                     onDayClick={(day) => {

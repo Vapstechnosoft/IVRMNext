@@ -33,7 +33,7 @@ export default function TotalStrengthPage() {
     const printRef = useRef<HTMLDivElement>(null);
     const { data: academicYear, isLoading: ayLoading } = useAcademicYearDropdown();
     const [showReport, setShowReport] = useState(false);
-    const [selectAll, setSelectAll] = useState(false);
+    const [selectAll, setSelectAll] = useState(true);
     const [classId, setClassId] = useState<number>(0);
     const [reportParams, setReportParams] = useState<{
         asmay_Id: number;
@@ -140,36 +140,114 @@ export default function TotalStrengthPage() {
         window.location.reload();
     };
 
-    const groupedData = () => {
-        if (!response?.data || !Array.isArray((response.data as any).studentlist)) return {};
+    const selectedAcademicYearName = academicYear?.data?.find((y) => y.asmaY_Id === reportParams?.asmay_Id)?.asmaY_Year;
 
-        const grouped: Record<number, any[]> = {};
-        ((response.data as any).studentlist as any[]).forEach((item: any) => {
-            const rowNum = item.RowNumber || item.rowNumber || 0;
-            if (!grouped[rowNum]) {
-                grouped[rowNum] = [];
+    const getMasterCompanyInfo = () => {
+        if (!response) return { schoolName: '', logoUrl: '', schoolAddress: '', schoolPhone: '' };
+
+        let logoUrl = '';
+        const schoolName = '';
+        const schoolAddress = '';
+        const schoolPhone = '';
+
+        // Foolproof recursive search for logo URL
+        const findLogo = (obj: any): string => {
+            if (!obj || typeof obj !== 'object') return '';
+
+            // Check direct properties
+            const potentialLogos = [obj.logo, obj.mI_Logo, obj.amC_logo];
+            for (const logo of potentialLogos) {
+                if (typeof logo === 'string' && logo.startsWith('http')) {
+                    return logo;
+                }
             }
-            grouped[rowNum].push(item);
+
+            // Search arrays
+            if (Array.isArray(obj)) {
+                for (const item of obj) {
+                    const found = findLogo(item);
+                    if (found) return found;
+                }
+            } else {
+                // Search object keys
+                for (const key in obj) {
+                    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                        const found = findLogo(obj[key]);
+                        if (found) return found;
+                    }
+                }
+            }
+            return '';
+        };
+
+        const data = (response as any).data ?? response;
+        const responseData = data?.responseData ?? data;
+        const masterComp = responseData?.masterCompany?.[0] ?? data?.masterCompany?.[0] ?? (response as any)?.masterCompany?.[0];
+
+        logoUrl = findLogo(response) || '';
+        // schoolName = masterComp?.miname || masterComp?.companyname || '';
+        // schoolAddress = masterComp?.companyaddress || masterComp?.address || '';
+        // schoolPhone = masterComp?.companyphone || masterComp?.phNo || '';
+
+        return { schoolName, logoUrl, schoolAddress, schoolPhone };
+    };
+
+    const getStudentList = (): any[] => {
+        if (!response) return [];
+        const data = (response as any).data ?? response;
+        const responseData = data?.responseData ?? data;
+        const list = responseData?.studentlist ?? data?.studentlist ?? (response as any)?.studentlist;
+        return Array.isArray(list) ? list : [];
+    };
+
+    const groupedData = () => {
+        const studentlist = getStudentList();
+        if (studentlist.length === 0) return {};
+
+        const grouped: Record<string, any[]> = {};
+        studentlist.forEach((item: any) => {
+            const key = item.classname || (item.ASMCL_Order !== undefined && item.ASMCL_Order !== null ? String(item.ASMCL_Order) : '0');
+            if (!grouped[key]) {
+                grouped[key] = [];
+            }
+            grouped[key].push(item);
         });
+
+        Object.keys(grouped).forEach((key) => {
+            grouped[key].sort((a, b) => (a.ASMC_Order || 0) - (b.ASMC_Order || 0));
+        });
+
         return grouped;
     };
 
-    const calculateClassTotal = (rowNumber: number) => {
-        const items = groupedData()[rowNumber] || [];
+    const calculateClassBoysTotal = (groupKey: string) => {
+        const items = groupedData()[groupKey] || [];
+        return items.reduce((sum, item) => sum + (item.boys || 0), 0);
+    };
+
+    const calculateClassGirlsTotal = (groupKey: string) => {
+        const items = groupedData()[groupKey] || [];
+        return items.reduce((sum, item) => sum + (item.girls || 0), 0);
+    };
+
+    const calculateClassTotal = (groupKey: string) => {
+        const items = groupedData()[groupKey] || [];
         return items.reduce((sum, item) => sum + (item.totalstudents || 0), 0);
     };
 
     const calculateGrandTotal = () => {
-        if (!response?.data || !Array.isArray((response.data as any).studentlist)) return 0;
-        return ((response.data as any).studentlist as any[]).reduce((sum: number, item: any) => sum + (item.totalstudents || 0), 0);
+        const studentlist = getStudentList();
+        return studentlist.reduce((sum: number, item: any) => sum + (item.totalstudents || 0), 0);
     };
+
     const calculateBoysGrandTotal = () => {
-        if (!response?.data || !Array.isArray((response.data as any).studentlist)) return 0;
-        return ((response.data as any).studentlist as any[]).reduce((sum: number, item: any) => sum + (item.boys || 0), 0);
+        const studentlist = getStudentList();
+        return studentlist.reduce((sum: number, item: any) => sum + (item.boys || 0), 0);
     };
+
     const calculateGirlsGrandTotal = () => {
-        if (!response?.data || !Array.isArray((response.data as any).studentlist)) return 0;
-        return ((response.data as any).studentlist as any[]).reduce((sum: number, item: any) => sum + (item.girls || 0), 0);
+        const studentlist = getStudentList();
+        return studentlist.reduce((sum: number, item: any) => sum + (item.girls || 0), 0);
     };
 
     const downloadExcel = async () => {
@@ -181,11 +259,13 @@ export default function TotalStrengthPage() {
             }
 
             const excelData: any[] = [];
+            let grandBoys = 0;
+            let grandGirls = 0;
             let grandTotal = 0;
 
             Object.entries(data)
-                .sort(([a], [b]) => Number(a) - Number(b))
-                .forEach(([rowNumber, sections], index) => {
+                .sort(([, aSec], [, bSec]) => (aSec[0]?.ASMCL_Order || 0) - (bSec[0]?.ASMCL_Order || 0))
+                .forEach(([groupKey, sections], index) => {
                     sections.forEach((item: any, sectionIndex) => {
                         excelData.push({
                             'Sl.No': sectionIndex === 0 ? index + 1 : '',
@@ -197,15 +277,20 @@ export default function TotalStrengthPage() {
                         });
                     });
 
-                    const classTotal = calculateClassTotal(Number(rowNumber));
+                    const classBoys = calculateClassBoysTotal(groupKey);
+                    const classGirls = calculateClassGirlsTotal(groupKey);
+                    const classTotal = calculateClassTotal(groupKey);
+
+                    grandBoys += classBoys;
+                    grandGirls += classGirls;
                     grandTotal += classTotal;
 
                     excelData.push({
                         'Sl.No': '',
-                        Class: 'Total',
+                        Class: `Total for ${sections[0]?.classname || groupKey}`,
                         Section: '',
-                        Boys: '',
-                        Girls: '',
+                        Boys: classBoys,
+                        Girls: classGirls,
                         Total: classTotal
                     });
                 });
@@ -214,8 +299,8 @@ export default function TotalStrengthPage() {
                 'Sl.No': '',
                 Class: 'Grand Total',
                 Section: '',
-                Boys: '',
-                Girls: '',
+                Boys: grandBoys,
+                Girls: grandGirls,
                 Total: grandTotal
             });
 
@@ -536,7 +621,11 @@ export default function TotalStrengthPage() {
                                 defaultOpen={true}
                                 variant='default'
                                 size='lg'
-                                title='Total Strength Report'
+                                title={
+                                    selectedAcademicYearName
+                                        ? `Total Strength Report (${selectedAcademicYearName})`
+                                        : 'Total Strength Report'
+                                }
                                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
                                 <div className='space-y-4 p-4'>
                                     {isLoading ? (
@@ -548,81 +637,132 @@ export default function TotalStrengthPage() {
                                             <p className='text-red-500'>Error loading report data</p>
                                         </div>
                                     ) : (
-                                        <div className='overflow-x-auto'>
-                                            <table className='w-full border-collapse border border-gray-300'>
-                                                <thead>
-                                                    <tr className='bg-gray-100'>
-                                                        <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Sl.No</th>
-                                                        <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Class</th>
-                                                        <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Section</th>
-                                                        <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Boys</th>
-                                                        <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Girls</th>
+                                        <div className='space-y-4'>
+                                            {(() => {
+                                                const { schoolName, logoUrl } = getMasterCompanyInfo();
+                                                if (!schoolName && !logoUrl) return null;
+                                                return (
+                                                    <div className='mb-2 flex flex-col items-center justify-center gap-3 border-b pb-4 text-center sm:flex-row sm:text-left'>
+                                                        {logoUrl && (
+                                                            <img
+                                                                src={logoUrl}
+                                                                alt={schoolName || 'Institution Logo'}
+                                                                style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
+                                                                className='w-full'
+                                                            />
+                                                        )}
+                                                        {schoolName && (
+                                                            <div>
+                                                                <h2 className='font-bold text-gray-900 text-lg uppercase'>{schoolName}</h2>
+                                                                {selectedAcademicYearName && (
+                                                                    <p className='font-medium text-gray-500 text-xs'>
+                                                                        Total Strength Report - {selectedAcademicYearName}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
+                                            <div className='overflow-x-auto'>
+                                                <table className='w-full border-collapse border border-gray-300'>
+                                                    <thead>
+                                                        <tr className='bg-gray-100'>
+                                                            <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Sl.No</th>
+                                                            <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Class</th>
+                                                            <th className='border border-gray-300 px-4 py-2 text-left font-bold'>
+                                                                Section
+                                                            </th>
+                                                            <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Boys</th>
+                                                            <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Girls</th>
 
-                                                        <th className='border border-gray-300 px-4 py-2 text-right font-bold'>Total</th>
-                                                        {/* <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>
-                                                            New Admission
-                                                        </th> */}
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {Object.entries(groupedData())
-                                                        .sort(([a], [b]) => Number(a) - Number(b))
-                                                        .map(([rowNumber, sections], index) => (
-                                                            <Fragment key={rowNumber}>
-                                                                {sections.map((item: any, sectionIndex) => (
-                                                                    <tr
-                                                                        key={`${rowNumber}-${item.sectionname}-${sectionIndex}`}
-                                                                        className='hover:bg-gray-50'>
-                                                                        <td className='border border-gray-300 px-4 py-2'>
-                                                                            {sectionIndex === 0 ? index + 1 : ''}
-                                                                        </td>
-                                                                        <td className='border border-gray-300 px-4 py-2'>
-                                                                            {sectionIndex === 0 ? item.classname : ''}
-                                                                        </td>
-                                                                        <td className='border border-gray-300 px-4 py-2'>
-                                                                            {item.sectionname}
-                                                                        </td>
+                                                            <th className='border border-gray-300 px-4 py-2 text-right font-bold'>Total</th>
+                                                            {/* <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>
+                                                                New Admission
+                                                            </th> */}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {Object.keys(groupedData()).length === 0 ? (
+                                                            <tr>
+                                                                <td
+                                                                    colSpan={6}
+                                                                    className='border border-gray-300 px-4 py-8 text-center text-gray-500'>
+                                                                    No student strength data found.
+                                                                </td>
+                                                            </tr>
+                                                        ) : (
+                                                            Object.entries(groupedData())
+                                                                .sort(
+                                                                    ([, aSec], [, bSec]) =>
+                                                                        (aSec[0]?.ASMCL_Order || 0) - (bSec[0]?.ASMCL_Order || 0)
+                                                                )
+                                                                .map(([groupKey, sections], index) => (
+                                                                    <Fragment key={groupKey}>
+                                                                        {sections.map((item: any, sectionIndex: number) => (
+                                                                            <tr
+                                                                                key={`${groupKey}-${item.sectionname}-${sectionIndex}`}
+                                                                                className='hover:bg-gray-50'>
+                                                                                <td className='border border-gray-300 px-4 py-2 text-center'>
+                                                                                    {sectionIndex === 0 ? index + 1 : ''}
+                                                                                </td>
+                                                                                <td className='border border-gray-300 px-4 py-2 font-medium'>
+                                                                                    {sectionIndex === 0 ? item.classname : ''}
+                                                                                </td>
+                                                                                <td className='border border-gray-300 px-4 py-2'>
+                                                                                    {item.sectionname}
+                                                                                </td>
 
-                                                                        <td className='border border-gray-300 px-4 py-2'>{item.boys}</td>
-                                                                        <td className='border border-gray-300 px-4 py-2'>{item.girls}</td>
+                                                                                <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                                    {item.boys}
+                                                                                </td>
+                                                                                <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                                    {item.girls}
+                                                                                </td>
 
-                                                                        <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                                            {item.totalstudents}
-                                                                        </td>
-                                                                        {/* <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                                            {item.newAdmission || ''}
-                                                                        </td> */}
-                                                                    </tr>
-                                                                ))}
-                                                                <tr key={`total-${rowNumber}`} className='bg-white font-semibold'>
-                                                                    <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
-                                                                        Total {/* Total {sections[0]?.classname} */}
-                                                                    </td>
-                                                                    <td className='border border-gray-300 px-4 py-2 text-right'> </td>
-                                                                    <td className='border border-gray-300 px-4 py-2 text-right'> </td>
-                                                                    <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                                        {calculateClassTotal(Number(rowNumber))}
-                                                                    </td>
-                                                                    {/* <td className='border border-gray-300 px-4 py-2 text-right' /> */}
-                                                                </tr>
-                                                            </Fragment>
-                                                        ))}
-                                                    <tr className='bg-green-100 font-bold'>
-                                                        <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
-                                                            Grand Total
-                                                        </td>
-                                                        <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                            {calculateBoysGrandTotal()}
-                                                        </td>
-                                                        <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                            {calculateGirlsGrandTotal()}
-                                                        </td>
-                                                        <td className='border border-gray-300 px-4 py-2 text-right'>
-                                                            {calculateGrandTotal()}
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
+                                                                                <td className='border border-gray-300 px-4 py-2 text-right font-medium'>
+                                                                                    {item.totalstudents}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))}
+                                                                        <tr key={`total-${groupKey}`} className='bg-gray-50 font-semibold'>
+                                                                            <td
+                                                                                colSpan={3}
+                                                                                className='border border-gray-300 px-4 py-2 text-right'>
+                                                                                Total for {sections[0]?.classname || groupKey}
+                                                                            </td>
+                                                                            <td className='border border-gray-300 px-4 py-2 text-right font-semibold'>
+                                                                                {calculateClassBoysTotal(groupKey)}
+                                                                            </td>
+                                                                            <td className='border border-gray-300 px-4 py-2 text-right font-semibold'>
+                                                                                {calculateClassGirlsTotal(groupKey)}
+                                                                            </td>
+                                                                            <td className='border border-gray-300 px-4 py-2 text-right font-bold'>
+                                                                                {calculateClassTotal(groupKey)}
+                                                                            </td>
+                                                                        </tr>
+                                                                    </Fragment>
+                                                                ))
+                                                        )}
+                                                        {Object.keys(groupedData()).length > 0 && (
+                                                            <tr className='bg-green-100 font-bold'>
+                                                                <td colSpan={3} className='border border-gray-300 px-4 py-2 text-right'>
+                                                                    Grand Total
+                                                                </td>
+                                                                <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                    {calculateBoysGrandTotal()}
+                                                                </td>
+                                                                <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                    {calculateGirlsGrandTotal()}
+                                                                </td>
+                                                                <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                    {calculateGrandTotal()}
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -631,7 +771,23 @@ export default function TotalStrengthPage() {
                     )}
 
                     <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '210mm' }}>
-                        <TotalStrengthPrint ref={printRef} groupedData={groupedData()} totalGrand={calculateGrandTotal()} />
+                        {(() => {
+                            const { schoolName, logoUrl, schoolAddress, schoolPhone } = getMasterCompanyInfo();
+                            return (
+                                <TotalStrengthPrint
+                                    ref={printRef}
+                                    groupedData={groupedData()}
+                                    totalGrand={calculateGrandTotal()}
+                                    totalBoysGrand={calculateBoysGrandTotal()}
+                                    totalGirlsGrand={calculateGirlsGrandTotal()}
+                                    academicYearName={selectedAcademicYearName}
+                                    schoolName={schoolName}
+                                    schoolAddress={schoolAddress}
+                                    schoolPhone={schoolPhone}
+                                    logoUrl={logoUrl}
+                                />
+                            );
+                        })()}
                     </div>
                 </div>
             </div>

@@ -37,6 +37,7 @@ export const ADMISSION_QUERY_KEYS = {
     MASTER_CASTE: 'master_caste',
     MASTER_CASTE_CATEGORY_DROPDOWN: 'master_caste_category_dropdown',
     MASTER_DOCUMENT: 'master_document',
+    MASTER_INST_DOCUMENT: 'master_inst_document',
     MASTER_REFERENCE: 'master_reference',
     MASTER_SOURCE: 'master_source',
     MASTER_ACTIVITY: 'master_activity',
@@ -132,6 +133,7 @@ export const PREADMISSION_QUERY_KEYS = {
 };
 
 export const FEES_QUERY_KEYS = {
+    FEE_CHALLAN_REPORT: 'fee_challan_report',
     FEE_HEADS: 'fee_head',
     FEE_MODEOFPAYMENT: 'fee_modeofpayment',
     MASTER_CLASS_CATEGORY: 'master_class_category',
@@ -262,6 +264,7 @@ export const FEES_QUERY_KEYS = {
     FEE_REFUNDABLE_LIST: 'fee_refundable_list',
     FEE_CONCESSION_ON_LOAD: 'fee_concession_on_load',
     FEE_STUDENT_TRANSACTIONSTTHOMAS: 'fee_student_transactionstthomas',
+    STUDENT_PORTAL_ACADEMIC: 'student_portal_academic',
 
     FEE_CONCESSION_CLASS_DROPDOWN: 'fee_concession_class_dropdown',
     FEE_CONCESSION_HEAD_LIST: 'fee_concession_head_list',
@@ -376,7 +379,8 @@ export const EXAM_QUERY_KEYS = {
     PROMOTIONAL_GROUP_DETAILS: 'promotional-group-details',
     PROMOTIONAL_GROUP_MAPPED_EXAMS_DETAILS: 'promotional-group-mapped-exams-details',
     EXAM_TT_SESSION_MASTER: 'exam_tt_session_master',
-    EXAM_TT_TRANS_SETTINGS: 'exam_tt_trans_settings'
+    EXAM_TT_TRANS_SETTINGS: 'exam_tt_trans_settings',
+    COUNT_STATUS_REPORT: 'exam_count_status_report'
 };
 
 export const HRMS_QUERY_KEYS = {
@@ -605,7 +609,8 @@ export const PORTAL_QUERY_KEYS = {
     GET_GROUPS_FOR_NOTICE_BOARD: 'get_groups_for_notice_board',
     GET_TERMS_FOR_NOTICE_BOARD: 'get_terms_for_notice_board',
     EXAM_STUDENT_REPORT_YEAR_DROP_DOWN: 'exam_student_report_year_drop_down',
-    EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN: 'exam_student_compliants_year_drop_down'
+    EXAM_STUDENT_COMPLIANTS_YEAR_DROP_DOWN: 'exam_student_compliants_year_drop_down',
+    ONLINE_PAYMENT_DETAILS: 'online_payment_details'
 };
 
 export const STAFF_PORTAL_QUERY_KEYS = {
@@ -675,3 +680,46 @@ export const RECRUITMENT_QUERY_KEYS = {
     TRANSACTION_JOB_LIST_VMS: 'transaction_job_list_vms'
 };
 export const PRE_LIVE_MEETING_SCHEDULE = { DETAILS: () => ['PRE_LIVE_MEETING_SCHEDULE_DETAILS'] };
+
+export const COLLEGE_QUERY_KEYS = {
+    MASTER_CASTE_CATEGORY: 'college_master_caste_category',
+    MASTER_COURSE_CATEGORY_MAP: 'college_master_course_category_map',
+    MASTER_COURSE_BRANCH_MAP: 'college_master_course_branch_map',
+    MASTER_BATCH: 'college_master_batch',
+    MASTER_BRANCH: 'college_master_branch',
+    MASTER_CATEGORY: 'college_master_category',
+    MASTER_COURSE: 'college_master_course',
+    MASTER_QUOTA: 'college_master_quota',
+    MASTER_SECTION: 'college_master_section',
+    MASTER_SEMESTER: 'college_master_semester',
+    MASTER_SCHEME_TYPE: 'college_master_scheme_type',
+    MASTER_SCHEME_NAME: 'college_master_scheme_name',
+    MASTER_COMBINATION: 'college_master_combination',
+    REGISTER_REPORT: 'college_register_report',
+    REGISTER_REPORT_YEAR_LIST: 'college_register_report_year_list',
+    TRANSACTION_ADMISSION_FORM: 'college_transaction_admission_form',
+    TRANSACTION_PREADMISSION_STATUS: 'college_transaction_preadmission_status',
+    TRANSACTION_TRANSFER_LOAD_DATA: 'college_transaction_transfer_load_data',
+    COLLEGE_FEE_PREVILEGE_LIST: 'college_fee_previlege_list',
+    COLLEGE_FEE_PREVILEGE_ACADEMIC_YEARS: 'college_fee_previlege_academic_years',
+    COLLEGE_FEE_PREVILEGE_ROLES: 'college_fee_previlege_roles',
+    COLLEGE_FEE_PREVILEGE_GROUPS: 'college_fee_previlege_groups',
+    COLLEGE_FEE_PREVILEGE_HEADS: 'college_fee_previlege_heads',
+    COLLEGE_FEE_PREVILEGE_USERS_BY_ROLE: 'college_fee_previlege_users_by_role',
+    COLLEGE_FEE_PREVILEGE_EDIT: 'college_fee_previlege_edit'
+};
+export const ONLINE_EXAM_QUERY_KEYS = {
+    MASTER_QUESTION: 'online_exam_master_question',
+    MASTER_QUESTION_INITIAL_DATA: 'online_exam_master_question_initial_data',
+    MASTER_QUESTION_OPTIONS: 'online_exam_master_question_options',
+    MASTER_QUESTION_COLLEGE: 'online_exam_master_question_college',
+    MASTER_QUESTION_COLLEGE_INITIAL_DATA: 'online_exam_master_question_college_initial_data',
+    ANSWER_PAPER_CORRECTION: 'online_exam_answer_paper_correction',
+    ANSWER_PAPER_CORRECTION_STUDENTS: 'online_exam_answer_paper_correction_students',
+    ANSWER_PAPER_STUDENT_ANSWERS: 'online_exam_answer_paper_student_answers',
+    PUBLISH_TO_STUDENT: 'online_exam_publish_to_student',
+    PUBLISH_TO_STUDENT_LIST: 'online_exam_publish_to_student_list',
+    ONLINE_EXAM_REPORT: 'online_exam_report',
+    STAFF_WISE_REPORT: 'online_exam_staff_wise_report',
+    NOT_SUBMITTED_REPORT: 'online_exam_not_submitted_report'
+};

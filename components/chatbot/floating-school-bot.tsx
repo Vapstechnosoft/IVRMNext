@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { usePathname, useParams } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { useParams, usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { SchoolAssistantBot } from './school-assistant-bot';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export function FloatingSchoolBot() {
     const [isOpen, setIsOpen] = useState(false);
@@ -17,29 +17,23 @@ export function FloatingSchoolBot() {
     const params = useParams();
     const sub_domain = params?.sub_domain;
 
-    const isAuthPage = pathname?.toLowerCase().includes('login') ||
-        pathname?.toLowerCase().includes('sign-in') ||
-        pathname === `/${sub_domain}`;
+    const isAuthPage =
+        pathname?.toLowerCase().includes('login') || pathname?.toLowerCase().includes('sign-in') || pathname === `/${sub_domain}`;
 
     if (!mounted || isAuthPage) return null;
 
     return (
         <>
-            <div className="fixed bottom-1 right-20 z-[2147483647] flex flex-col items-center gap-1 group">
+            <div className='group fixed right-20 bottom-1 z-[2147483647] flex flex-col items-center gap-1'>
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => setIsOpen(true)}
-                    className="flex h-[42px] w-[42px] items-center justify-center rounded-full bg-white shadow-xl hover:bg-slate-50 transition-all ring-2 ring-indigo-600 p-1.5 overflow-hidden"
-                >
-                    <img
-                        src="/chatbot/standing-robot-black.png"
-                        alt="School Assistant"
-                        className="w-full h-full object-contain"
-                    />
+                    className='flex h-[42px] w-[42px] items-center justify-center overflow-hidden rounded-full bg-white p-1.5 shadow-xl ring-2 ring-indigo-600 transition-all hover:bg-slate-50'>
+                    <img src='/chatbot/standing-robot-black.png' alt='School Assistant' className='h-full w-full object-contain' />
                 </motion.button>
-                <div className="bg-white/50 backdrop-blur-sm px-1.5 h-[12px] flex items-center justify-center rounded-full shadow-sm border border-black/5">
-                    <span className="text-[7.5px] font-bold text-black/80 whitespace-nowrap uppercase tracking-wider leading-none translate-y-[0px]">
+                <div className='flex h-[12px] items-center justify-center rounded-full border border-black/5 bg-white/50 px-1.5 shadow-sm backdrop-blur-sm'>
+                    <span className='translate-y-[0px] whitespace-nowrap font-bold text-[7.5px] text-black/80 uppercase leading-none tracking-wider'>
                         School Assistant
                     </span>
                 </div>

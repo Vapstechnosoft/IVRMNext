@@ -1,10 +1,9 @@
 'use client';
 
-import * as React from 'react';
-import { ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils'; // Assuming cn utility exists
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import * as React from 'react';
 
 interface TimePickerProps {
     value?: string; // "HH:mm" in 24h format
@@ -80,87 +79,71 @@ export function TimePicker({ value, onChange, disabled, className, min }: TimePi
     };
 
     return (
-        <div className={cn("flex items-center gap-1", className)}>
+        <div className={cn('flex items-center gap-1', className)}>
             {/* Hours */}
-            <div className="flex flex-col items-center gap-1">
+            <div className='flex flex-col items-center gap-1'>
                 <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    className='h-6 w-6'
                     onClick={() => handleHourChange(1)}
-                    disabled={disabled}
-                >
-                    <ChevronUp className="h-4 w-4" />
+                    disabled={disabled}>
+                    <ChevronUp className='h-4 w-4' />
                 </Button>
-                <div className="flex items-center justify-center border rounded-md h-8 w-10 bg-background">
-                    <span className="text-sm font-medium">{hours.toString().padStart(2, '0')}</span>
+                <div className='flex h-8 w-10 items-center justify-center rounded-md border bg-background'>
+                    <span className='font-medium text-sm'>{hours.toString().padStart(2, '0')}</span>
                 </div>
                 <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    className='h-6 w-6'
                     onClick={() => handleHourChange(-1)}
-                    disabled={disabled}
-                >
-                    <ChevronDown className="h-4 w-4" />
+                    disabled={disabled}>
+                    <ChevronDown className='h-4 w-4' />
                 </Button>
             </div>
 
-            <span className="pb-1 font-bold text-lg">:</span>
+            <span className='pb-1 font-bold text-lg'>:</span>
 
             {/* Minutes */}
-            <div className="flex flex-col items-center gap-1">
+            <div className='flex flex-col items-center gap-1'>
                 <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    className='h-6 w-6'
                     onClick={() => handleMinuteChange(1)}
-                    disabled={disabled}
-                >
-                    <ChevronUp className="h-4 w-4" />
+                    disabled={disabled}>
+                    <ChevronUp className='h-4 w-4' />
                 </Button>
-                <div className="flex items-center justify-center border rounded-md h-8 w-10 bg-background">
-                    <span className="text-sm font-medium">{minutes.toString().padStart(2, '0')}</span>
+                <div className='flex h-8 w-10 items-center justify-center rounded-md border bg-background'>
+                    <span className='font-medium text-sm'>{minutes.toString().padStart(2, '0')}</span>
                 </div>
                 <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    className='h-6 w-6'
                     onClick={() => handleMinuteChange(-1)}
-                    disabled={disabled}
-                >
-                    <ChevronDown className="h-4 w-4" />
+                    disabled={disabled}>
+                    <ChevronDown className='h-4 w-4' />
                 </Button>
             </div>
 
             {/* Period */}
-            <div className="flex flex-col items-center gap-1 ml-2">
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={togglePeriod}
-                    disabled={disabled}
-                >
-                    <ChevronUp className="h-4 w-4" />
+            <div className='ml-2 flex flex-col items-center gap-1'>
+                <Button type='button' variant='ghost' size='icon' className='h-6 w-6' onClick={togglePeriod} disabled={disabled}>
+                    <ChevronUp className='h-4 w-4' />
                 </Button>
-                <div className="flex items-center justify-center border rounded-md h-8 w-10 bg-background cursor-pointer" onClick={togglePeriod}>
-                    <span className="text-sm font-medium">{period}</span>
+                <div
+                    className='flex h-8 w-10 cursor-pointer items-center justify-center rounded-md border bg-background'
+                    onClick={togglePeriod}>
+                    <span className='font-medium text-sm'>{period}</span>
                 </div>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={togglePeriod}
-                    disabled={disabled}
-                >
-                    <ChevronDown className="h-4 w-4" />
+                <Button type='button' variant='ghost' size='icon' className='h-6 w-6' onClick={togglePeriod} disabled={disabled}>
+                    <ChevronDown className='h-4 w-4' />
                 </Button>
             </div>
         </div>

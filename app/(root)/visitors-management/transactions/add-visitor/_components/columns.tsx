@@ -1,10 +1,10 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, Edit, Trash2 } from 'lucide-react';
+import type { VisitorTransactionData } from '@/types/visitors-management/transactions';
+import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-import { VisitorTransactionData } from '@/types/visitors-management/transactions';
+import { ArrowUpDown } from 'lucide-react';
 
 export const visitorColumns: ColumnDef<VisitorTransactionData>[] = [
     {
@@ -17,7 +17,7 @@ export const visitorColumns: ColumnDef<VisitorTransactionData>[] = [
                 </Button>
             );
         },
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>
     },
     {
         accessorKey: 'vmmV_VisitorName',
@@ -28,15 +28,15 @@ export const visitorColumns: ColumnDef<VisitorTransactionData>[] = [
                     <ArrowUpDown className='ml-2 h-4 w-4' />
                 </Button>
             );
-        },
+        }
     },
     {
         accessorKey: 'vmmV_VisitorContactNo',
-        header: 'Mobile No',
+        header: 'Mobile No'
     },
     {
         accessorKey: 'vmmV_VisitorEmailid',
-        header: 'Email',
+        header: 'Email'
     },
     {
         accessorKey: 'vmmV_MeetingDateTime',
@@ -48,18 +48,18 @@ export const visitorColumns: ColumnDef<VisitorTransactionData>[] = [
     },
     {
         accessorKey: 'vmmV_EntryDateTime',
-        header: 'Time',
+        header: 'Time'
     },
     {
         accessorKey: 'empname',
-        header: 'To Meet',
+        header: 'To Meet'
     },
     {
         accessorKey: 'vmmV_MeetingPurpose',
-        header: 'Purpose',
+        header: 'Purpose'
     },
     {
         accessorKey: 'vmmV_MeetingLocation',
-        header: 'Location',
+        header: 'Location'
     }
 ];

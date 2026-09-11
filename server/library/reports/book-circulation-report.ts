@@ -133,13 +133,13 @@ export async function getBookCirculationReportData(data: IBookCirculationReportR
         const responseData = response.data || response;
 
         const rawList = extractList(
-            responseData.reportlist || 
-            responseData.reportList || 
-            responseData.gridList || 
-            responseData.gridlist || 
-            responseData.alldata || 
-            responseData.data || 
-            responseData
+            responseData.reportlist ||
+                responseData.reportList ||
+                responseData.gridList ||
+                responseData.gridlist ||
+                responseData.alldata ||
+                responseData.data ||
+                responseData
         );
 
         // Normalize keys to uppercase and handle common variations
@@ -190,7 +190,8 @@ export async function getBookCirculationReportData(data: IBookCirculationReportR
 
             // Handle common variations for Subject
             if (!normalizedItem.ISMS_SUBJECTNAME) {
-                normalizedItem.ISMS_SUBJECTNAME = normalizedItem.SUBJECTNAME || normalizedItem.SUBJECT_NAME || normalizedItem.ISM_SUBJECTNAME;
+                normalizedItem.ISMS_SUBJECTNAME =
+                    normalizedItem.SUBJECTNAME || normalizedItem.SUBJECT_NAME || normalizedItem.ISM_SUBJECTNAME;
             }
 
             // Handle common variations for Sub-Subject

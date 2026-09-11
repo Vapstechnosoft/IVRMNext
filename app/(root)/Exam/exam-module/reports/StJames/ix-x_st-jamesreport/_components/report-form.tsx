@@ -121,7 +121,7 @@ export default function StJamesIXXReportForm({
                     asmaY_Id: selectedYear,
                     asmcL_Id: selectedClass,
                     asmS_Id: selectedSection,
-                    reporttype: "indi",
+                    reporttype: 'indi'
                 };
                 setLoadingExams(true);
                 const { data } = await getExamsStjames(payload);
@@ -137,8 +137,8 @@ export default function StJamesIXXReportForm({
 
     // on submit
     const onSubmit = async (data: StJamesIX_XReportSchema) => {
-        const selectedYearObj = academicYears.find(y => y.asmaY_Id === data.asmaY_Id);
-        let payload: any = {
+        const selectedYearObj = academicYears.find((y) => y.asmaY_Id === data.asmaY_Id);
+        const payload: any = {
             asmaY_Id: data.asmaY_Id,
             asmaY_Year: selectedYearObj?.asmaY_Year || '',
             asmcL_Id: data.asmcL_Id,
@@ -360,7 +360,8 @@ export default function StJamesIXXReportForm({
                                                                 <div className='flex flex-col gap-3'>
                                                                     {exams.map((e) => {
                                                                         const isChecked =
-                                                                            field.value?.some((val: any) => val.emE_Id === e.emE_Id) || false;
+                                                                            field.value?.some((val: any) => val.emE_Id === e.emE_Id) ||
+                                                                            false;
                                                                         return (
                                                                             <div key={e.emE_Id} className='flex items-center space-x-2'>
                                                                                 <Checkbox

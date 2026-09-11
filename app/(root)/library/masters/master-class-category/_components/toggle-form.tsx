@@ -1,12 +1,12 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { useMasterClassCategory } from '@/hooks/library/useMasters';
 import { deactivateMasterClassCategory } from '@/server/library/masters/class-category';
 import type { IMasterClassCategory } from '@/types/library/masters/class-category';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 
 interface ToggleClassCategoryFormProps {
     rowData: IMasterClassCategory;
@@ -60,8 +60,8 @@ export default function ToggleClassCategoryForm({ rowData, onClose }: ToggleClas
                                 ? 'Deactivating...'
                                 : 'Activating...'
                             : rowData.lmcC_ActiveFlag
-                                ? 'Yes, Deactivate'
-                                : 'Yes, Activate'}
+                              ? 'Yes, Deactivate'
+                              : 'Yes, Activate'}
                     </Button>
                 </div>
             </div>

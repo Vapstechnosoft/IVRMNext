@@ -51,10 +51,12 @@ export default function ToggleEmployeeForm({ rowData, onClose }: ToggleEmployeeF
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('hrmE_Id')} defaultValue={rowData.hrmE_Id} />
-                    <p className="text-sm text-muted-foreground">
+                    <p className='text-muted-foreground text-sm'>
                         Are you sure you want to {isActive ? 'deactivate' : 'activate'}{' '}
-                        <span className="font-semibold text-foreground">{employeeName || rowData.hrmE_EmployeeCode}</span>?
-                        {isActive ? ' This employee will no longer be able to log in or be included in payroll.' : ' This employee will be able to log in and be included in payroll.'}
+                        <span className='font-semibold text-foreground'>{employeeName || rowData.hrmE_EmployeeCode}</span>?
+                        {isActive
+                            ? ' This employee will no longer be able to log in or be included in payroll.'
+                            : ' This employee will be able to log in and be included in payroll.'}
                     </p>
                     <FormError>{errors.hrmE_Id?.message}</FormError>
                     <FormError>{errors.root?.message}</FormError>

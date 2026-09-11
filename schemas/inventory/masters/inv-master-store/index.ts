@@ -7,7 +7,7 @@ export const invMasterStoreSchema = z.object({
     invmS_ContactPerson: z.string().optional(),
     invmS_ContactNo: z.coerce.string().min(1, 'Contact Number is required'),
     hrmE_Id: z.coerce.number().min(1, 'Store Incharge is required'),
-    invmS_ActiveFlg: z.boolean().optional(),
+    invmS_ActiveFlg: z.boolean().optional()
 });
 
 export type TInvMasterStore = z.infer<typeof invMasterStoreSchema>;

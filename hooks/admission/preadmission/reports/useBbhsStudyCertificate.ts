@@ -1,32 +1,32 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
 import {
-    getStudyCertificateLoadData,
+    getStudyCertificateAcademicYearChange,
     getStudyCertificateDetails,
-    getStudyCertificateSearchFilter,
-    getStudyCertificateAcademicYearChange
+    getStudyCertificateLoadData,
+    getStudyCertificateSearchFilter
 } from '@/server/admission/preadmission/reports/study_certificate';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 export const useBbhsStudyCertLoadData = () => {
     return useQuery({
         queryKey: ['bbhs-study-cert-load-data'],
-        queryFn: () => getStudyCertificateLoadData(),
+        queryFn: () => getStudyCertificateLoadData()
     });
 };
 
 export const useBbhsStudyCertAcademicYearChange = () => {
     return useMutation({
-        mutationFn: (data: { AMST_SOL: string; ASMAY_Id: number }) => getStudyCertificateAcademicYearChange(data),
+        mutationFn: (data: { AMST_SOL: string; ASMAY_Id: number }) => getStudyCertificateAcademicYearChange(data)
     });
 };
 
 export const useBbhsStudyCertSearchFilter = () => {
     return useMutation({
-        mutationFn: getStudyCertificateSearchFilter,
+        mutationFn: getStudyCertificateSearchFilter
     });
 };
 
 export const useBbhsStudyCertDetails = () => {
     return useMutation({
-        mutationFn: getStudyCertificateDetails,
+        mutationFn: getStudyCertificateDetails
     });
 };

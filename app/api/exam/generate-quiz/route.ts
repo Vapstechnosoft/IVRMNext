@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { Readable } from 'node:stream';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
@@ -53,9 +53,9 @@ export async function POST(req: NextRequest) {
         const uploadRes = await fetch(`${BASE_URL}/upload-pdf`, {
             method: 'POST',
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json'
             },
-            body: formData,
+            body: formData
         });
 
         const uploadContentType = uploadRes.headers.get('content-type');
@@ -73,14 +73,14 @@ export async function POST(req: NextRequest) {
         console.log('Step 2: Generating questions...');
         const genRes = await fetch(`${BASE_URL}/generate-questions`, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                Accept: 'application/json'
             },
             body: JSON.stringify({
                 extracted_text: extractedText,
-                topics: topic ? [topic] : ["General Knowledge"],
-                question_count: parseInt(questionCount) || 5,
+                topics: topic ? [topic] : ['General Knowledge'],
+                question_count: Number.parseInt(questionCount) || 5,
                 difficulty: difficulty.toLowerCase()
             }),
             signal: AbortSignal.timeout(60000)
@@ -106,13 +106,16 @@ export async function POST(req: NextRequest) {
         }));
 
         // Derive a topic/title from content or filename
-        const derivedTitle = extractedText?.split('\n').filter((l: string) => l.trim().length > 5)[0]?.substring(0, 40) || fileName.replace('.pdf', '');
+        const derivedTitle =
+            extractedText
+                ?.split('\n')
+                .filter((l: string) => l.trim().length > 5)[0]
+                ?.substring(0, 40) || fileName.replace('.pdf', '');
 
         return NextResponse.json({
-            title: derivedTitle || "General Assessment",
+            title: derivedTitle || 'General Assessment',
             questions: mappedQuestions
         });
-
     } catch (error: any) {
         console.error('Quiz Generation CRITICAL Error:', error);
         return NextResponse.json({ error: error.message || 'Generation failed' }, { status: 500 });

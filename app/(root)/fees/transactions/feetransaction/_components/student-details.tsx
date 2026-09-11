@@ -2,7 +2,8 @@
 import { Button } from '@/components/ui/button';
 import { useFeeStudentCurrentAcademicDetails } from '@/hooks/fees/useTrasactions';
 import { X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 
 interface StudentProfileModalProps {
     isOpen: boolean;
@@ -25,6 +26,9 @@ interface StudentDetailsFromFeeTransaction {
     amsT_Date: string;
     amsT_DOB: string;
     amsT_Id: number;
+    amsT_MobileNo: number;
+    amsT_emailId: string;
+    amsT_Tpin: string;
 }
 interface AcademicDetailsFromFeeTransaction {
     asysT_Id: number;
@@ -331,10 +335,10 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
                                             <strong>Name:</strong> {parentDetails[0].amsT_FatherName}
                                         </p>
                                         <p>
-                                            <strong>Mobile:</strong> 0
+                                            <strong>Mobile:</strong> {parentDetails[0].amsT_FatherMobleNo}
                                         </p>
                                         <p>
-                                            <strong>Email:</strong> {}
+                                            <strong>Email:</strong> {parentDetails[0].amsT_FatheremailId}
                                         </p>
                                         <p>
                                             <strong>Occupation:</strong>
@@ -368,7 +372,7 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
                                             <strong>Email:</strong> {parentDetails[0].amsT_MotherEmailId}
                                         </p>
                                         <p>
-                                            <strong>Occupation:</strong> {parentDetails[0].amsT_FatherSurname}
+                                            <strong>Occupation:</strong>
                                         </p>
                                     </div>
                                     <div className='flex-shrink-0'>
@@ -597,15 +601,15 @@ export default function StudentProfileModal({ isOpen, onClose, asmay_Id, amst_Id
                                     </p>
                                     <p>
                                         <strong>Mobile:</strong>
-                                        <span>{''}</span>
+                                        <span>{firstStudent?.amsT_MobileNo}</span>
                                     </p>
                                     <p>
                                         <strong>Email:</strong>
-                                        <span>{''}</span>
+                                        <span>{firstStudent?.amsT_emailId}</span>
                                     </p>
                                     <p>
                                         <strong>Tpln:</strong>
-                                        <span>{''}</span>
+                                        <span>{firstStudent?.amsT_Tpin}</span>
                                     </p>
 
                                     {/* Show warning if no student data */}

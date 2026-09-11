@@ -1,36 +1,29 @@
 'use client';
 
-import { useState } from 'react';
-import { format } from 'date-fns';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import {
-    FormLabel
-} from '@/components/ui/form';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { useStaffNoticeBoard, useStaffEvents, useStaffAssets, useStaffMedicalRecords, useStaffNoticeAttachments, changeProfile } from '@/hooks/staff-portal/useStaffDashboard';
-import { noticeColumns, assetColumns, purchaseColumns, coeColumns } from './columns';
-import type { IEmployeeBasicDetails, IEmployeeProfile, INoticeBoard } from '@/types/staff-portal/dashboard';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { User, FileText, Download, Eye, Ban, Upload, Loader2 } from 'lucide-react';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { STAFF_PORTAL_QUERY_KEYS } from '@/constants/query-keys';
+import {
+    changeProfile,
+    useStaffAssets,
+    useStaffEvents,
+    useStaffMedicalRecords,
+    useStaffNoticeAttachments,
+    useStaffNoticeBoard
+} from '@/hooks/staff-portal/useStaffDashboard';
+import type { IEmployeeBasicDetails, IEmployeeProfile, INoticeBoard } from '@/types/staff-portal/dashboard';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { Ban, Download, Eye, FileText, Loader2, Upload, User } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { assetColumns, coeColumns, noticeColumns, purchaseColumns } from './columns';
 
 interface BaseModalProps {
     open: boolean;
@@ -44,26 +37,22 @@ export function FilePreviewModal({ open, onOpenChange, fileUrl }: BaseModalProps
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-5xl h-[80vh] flex flex-col">
+            <DialogContent className='flex h-[80vh] max-w-5xl flex-col'>
                 <DialogHeader>
                     <DialogTitle>File Preview</DialogTitle>
                 </DialogHeader>
-                <div className="flex-1 bg-muted rounded-md overflow-hidden flex items-center justify-center">
-                    {isPdf && (
-                        <iframe src={`${fileUrl}#toolbar=0`} className="w-full h-full" title="PDF Preview" />
-                    )}
-                    {isImage && (
-                        <img src={fileUrl} alt="Preview" className="max-w-full max-h-full object-contain" />
-                    )}
-                    {isVideo && (
-                        <video src={fileUrl} controls className="max-w-full max-h-full" />
-                    )}
+                <div className='flex flex-1 items-center justify-center overflow-hidden rounded-md bg-muted'>
+                    {isPdf && <iframe src={`${fileUrl}#toolbar=0`} className='h-full w-full' title='PDF Preview' />}
+                    {isImage && <img src={fileUrl} alt='Preview' className='max-h-full max-w-full object-contain' />}
+                    {isVideo && <video src={fileUrl} controls className='max-h-full max-w-full' />}
                     {!isPdf && !isImage && !isVideo && (
-                        <div className="text-center p-8">
-                            <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                        <div className='p-8 text-center'>
+                            <FileText className='mx-auto mb-4 h-16 w-16 text-muted-foreground' />
                             <p>Preview not available for this file type.</p>
-                            <Button asChild className="mt-4">
-                                <a href={fileUrl} download>Download to View</a>
+                            <Button asChild className='mt-4'>
+                                <a href={fileUrl} download>
+                                    Download to View
+                                </a>
                             </Button>
                         </div>
                     )}
@@ -73,55 +62,69 @@ export function FilePreviewModal({ open, onOpenChange, fileUrl }: BaseModalProps
     );
 }
 
-export function ProfileModal({ open, onOpenChange, empData, profileStatus }: BaseModalProps & { empData?: IEmployeeBasicDetails, profileStatus?: IEmployeeProfile }) {
+export function ProfileModal({
+    open,
+    onOpenChange,
+    empData,
+    profileStatus
+}: BaseModalProps & { empData?: IEmployeeBasicDetails; profileStatus?: IEmployeeProfile }) {
     if (!empData) return null;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl">
+            <DialogContent className='max-w-3xl'>
                 <DialogHeader>
                     <DialogTitle>Employee Profile</DialogTitle>
                 </DialogHeader>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
-                    <div className="md:col-span-1 flex flex-col items-center space-y-4">
-                        <div className="w-48 h-56 border rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                <div className='grid grid-cols-1 gap-6 py-4 md:grid-cols-3'>
+                    <div className='flex flex-col items-center space-y-4 md:col-span-1'>
+                        <div className='flex h-56 w-48 items-center justify-center overflow-hidden rounded-lg border bg-muted'>
                             {empData.hrmE_PhotoNo ? (
-                                <img src={empData.hrmE_PhotoNo} alt="Profile" className="w-full h-full object-cover" />
+                                <img src={empData.hrmE_PhotoNo} alt='Profile' className='h-full w-full object-cover' />
                             ) : (
-                                <User className="w-24 h-24 text-muted-foreground" />
+                                <User className='h-24 w-24 text-muted-foreground' />
                             )}
                         </div>
-                        <div className="text-center">
-                            <Badge variant={profileStatus?.hrmereqreQ_ConformFlg === 1 ? "success" : profileStatus?.hrmereqreQ_ConformFlg === 0 ? "destructive" : "secondary"}>
+                        <div className='text-center'>
+                            <Badge
+                                variant={
+                                    profileStatus?.hrmereqreQ_ConformFlg === 1
+                                        ? 'success'
+                                        : profileStatus?.hrmereqreQ_ConformFlg === 0
+                                          ? 'destructive'
+                                          : 'secondary'
+                                }>
                                 Status: {profileStatus?.hrmereqreQ_ReqStatus || 'Pending'}
                             </Badge>
                         </div>
                     </div>
-                    <div className="md:col-span-2 space-y-4">
+                    <div className='space-y-4 md:col-span-2'>
                         {[
                             { label: 'Name', value: empData.hrmE_EmployeeFirstName },
                             { label: 'DOB', value: empData.hrmE_DOB ? format(new Date(empData.hrmE_DOB), 'dd/MM/yyyy') : '' },
                             { label: 'Emp. Code', value: empData.hrmE_EmployeeCode },
                             { label: 'Designation', value: empData.hrmdeS_DesignationName },
                             { label: 'DOJ', value: empData.hrmE_DOJ ? format(new Date(empData.hrmE_DOJ), 'dd/MM/yyyy') : '' },
-                            { label: 'Department', value: empData.hrmD_DepartmentName },
+                            { label: 'Department', value: empData.hrmD_DepartmentName }
                         ].map((item) => (
-                            <div key={item.label} className="grid grid-cols-12 gap-2 border-b pb-2">
-                                <span className="col-span-4 font-semibold text-muted-foreground">{item.label}</span>
-                                <span className="col-span-8">: {item.value}</span>
+                            <div key={item.label} className='grid grid-cols-12 gap-2 border-b pb-2'>
+                                <span className='col-span-4 font-semibold text-muted-foreground'>{item.label}</span>
+                                <span className='col-span-8'>: {item.value}</span>
                             </div>
                         ))}
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+                    <Button variant='outline' onClick={() => onOpenChange(false)}>
+                        Close
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
     );
 }
 
-export function NoticeBoardModal({ open, onOpenChange, years, initialYear }: BaseModalProps & { years: any[], initialYear: number }) {
+export function NoticeBoardModal({ open, onOpenChange, years, initialYear }: BaseModalProps & { years: any[]; initialYear: number }) {
     const [selectedYear, setSelectedYear] = useState(initialYear);
     const { data, isLoading } = useStaffNoticeBoard({ flag: 'noticeboard', OnClickOrOnChange: 'OnChange', ASMAY_Id: selectedYear });
     const [viewingNotice, setViewingNotice] = useState<INoticeBoard | null>(null);
@@ -129,26 +132,28 @@ export function NoticeBoardModal({ open, onOpenChange, years, initialYear }: Bas
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col">
+                <DialogContent className='flex max-h-[90vh] max-w-5xl flex-col'>
                     <DialogHeader>
                         <DialogTitle>Notice Board</DialogTitle>
                     </DialogHeader>
-                    <div className="flex gap-4 py-4 items-end">
-                        <div className="w-1/3">
+                    <div className='flex items-end gap-4 py-4'>
+                        <div className='w-1/3'>
                             <FormLabel>Academic Year</FormLabel>
                             <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(Number(v))}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Year" />
+                                    <SelectValue placeholder='Select Year' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {years.map(y => (
-                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>{y.asmaY_Year}</SelectItem>
+                                    {years.map((y) => (
+                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
+                                            {y.asmaY_Year}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
-                    <div className="flex-1 overflow-auto">
+                    <div className='flex-1 overflow-auto'>
                         <GenericDataTable
                             columns={[
                                 ...noticeColumns,
@@ -158,14 +163,14 @@ export function NoticeBoardModal({ open, onOpenChange, years, initialYear }: Bas
                                     cell: ({ row }) => {
                                         const hasFiles = row.original.Filecount > 0;
                                         return hasFiles ? (
-                                            <Button variant="ghost" size="sm" onClick={() => setViewingNotice(row.original)}>
-                                                <Eye className="h-4 w-4 text-primary" />
+                                            <Button variant='ghost' size='sm' onClick={() => setViewingNotice(row.original)}>
+                                                <Eye className='h-4 w-4 text-primary' />
                                             </Button>
                                         ) : (
-                                            <Ban className="h-4 w-4 text-muted-foreground" />
+                                            <Ban className='h-4 w-4 text-muted-foreground' />
                                         );
-                                    },
-                                },
+                                    }
+                                }
                             ]}
                             data={data?.noticeboard || []}
                             isLoading={isLoading}
@@ -192,7 +197,7 @@ export function NoticeAttachmentModal({ open, onOpenChange, noticeId }: BaseModa
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="max-w-4xl">
+                <DialogContent className='max-w-4xl'>
                     <DialogHeader>
                         <DialogTitle>Notice Attachments</DialogTitle>
                     </DialogHeader>
@@ -206,15 +211,19 @@ export function NoticeAttachmentModal({ open, onOpenChange, noticeId }: BaseModa
                                 cell: ({ row }) => {
                                     const isHyperlink = row.original.INTB_Attachment === 'HyperLink';
                                     return isHyperlink ? (
-                                        <a href={row.original.INTBFL_FilePath} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                                        <a
+                                            href={row.original.INTBFL_FilePath}
+                                            target='_blank'
+                                            rel='noreferrer'
+                                            className='text-primary hover:underline'>
                                             Click Here
                                         </a>
                                     ) : (
-                                        <Button variant="ghost" size="sm" onClick={() => setPreviewUrl(row.original.INTBFL_FilePath)}>
-                                            <Eye className="h-4 w-4 text-primary" />
+                                        <Button variant='ghost' size='sm' onClick={() => setPreviewUrl(row.original.INTBFL_FilePath)}>
+                                            <Eye className='h-4 w-4 text-primary' />
                                         </Button>
                                     );
-                                },
+                                }
                             },
                             {
                                 id: 'download',
@@ -222,30 +231,24 @@ export function NoticeAttachmentModal({ open, onOpenChange, noticeId }: BaseModa
                                 cell: ({ row }) => {
                                     const isHyperlink = row.original.INTB_Attachment === 'HyperLink';
                                     return isHyperlink ? (
-                                        <Ban className="h-4 w-4 text-muted-foreground" />
+                                        <Ban className='h-4 w-4 text-muted-foreground' />
                                     ) : (
                                         <a href={row.original.INTBFL_FilePath} download>
-                                            <Download className="h-4 w-4 text-primary" />
+                                            <Download className='h-4 w-4 text-primary' />
                                         </a>
                                     );
-                                },
-                            },
+                                }
+                            }
                         ]}
                         data={data?.attachementlist || []}
                         isLoading={isLoading}
                     />
-                    <div className="text-xs text-destructive italic mt-2">
-                        Note: Excel, ppt and Document Can&apos;t View. only Download
-                    </div>
+                    <div className='mt-2 text-destructive text-xs italic'>Note: Excel, ppt and Document Can&apos;t View. only Download</div>
                 </DialogContent>
             </Dialog>
 
             {previewUrl && (
-                <FilePreviewModal
-                    open={!!previewUrl}
-                    onOpenChange={(open) => !open && setPreviewUrl(null)}
-                    fileUrl={previewUrl}
-                />
+                <FilePreviewModal open={!!previewUrl} onOpenChange={(open) => !open && setPreviewUrl(null)} fileUrl={previewUrl} />
             )}
         </>
     );
@@ -256,7 +259,7 @@ export function EventsModal({ open, onOpenChange }: BaseModalProps) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl">
+            <DialogContent className='max-w-4xl'>
                 <DialogHeader>
                     <DialogTitle>Calendar of Events</DialogTitle>
                 </DialogHeader>
@@ -271,7 +274,7 @@ export function AssetListModal({ open, onOpenChange }: BaseModalProps) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-4xl">
+            <DialogContent className='max-w-4xl'>
                 <DialogHeader>
                     <DialogTitle>Asset List</DialogTitle>
                 </DialogHeader>
@@ -286,7 +289,7 @@ export function PurchaseListModal({ open, onOpenChange }: BaseModalProps) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-5xl">
+            <DialogContent className='max-w-5xl'>
                 <DialogHeader>
                     <DialogTitle>Purchase List</DialogTitle>
                 </DialogHeader>
@@ -304,20 +307,22 @@ export function BookListModal({ open, onOpenChange, books }: BaseModalProps & { 
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="max-w-4xl">
+                <DialogContent className='max-w-4xl'>
                     <DialogHeader>
                         <DialogTitle>Book List</DialogTitle>
                     </DialogHeader>
-                    <div className="py-4 space-y-4">
-                        <div className="w-1/2">
+                    <div className='space-y-4 py-4'>
+                        <div className='w-1/2'>
                             <FormLabel>Book Title</FormLabel>
                             <Select onValueChange={(v) => setSelectedBook(Number(v))}>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select Book Title" />
+                                    <SelectValue placeholder='Select Book Title' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {books.map(b => (
-                                        <SelectItem key={b.lmB_Id} value={b.lmB_Id.toString()}>{b.lmB_BookTitle}</SelectItem>
+                                    {books.map((b) => (
+                                        <SelectItem key={b.lmB_Id} value={b.lmB_Id.toString()}>
+                                            {b.lmB_BookTitle}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -331,11 +336,11 @@ export function BookListModal({ open, onOpenChange, books }: BaseModalProps & { 
                                     id: 'view',
                                     header: 'View',
                                     cell: ({ row }) => (
-                                        <Button variant="ghost" size="sm" onClick={() => setPreviewUrl(row.original.LMBFILE_FilePath)}>
-                                            <Eye className="h-4 w-4 text-primary" />
+                                        <Button variant='ghost' size='sm' onClick={() => setPreviewUrl(row.original.LMBFILE_FilePath)}>
+                                            <Eye className='h-4 w-4 text-primary' />
                                         </Button>
-                                    ),
-                                },
+                                    )
+                                }
                             ]}
                             data={files?.bookFillist || []}
                             isLoading={isLoading}
@@ -345,11 +350,7 @@ export function BookListModal({ open, onOpenChange, books }: BaseModalProps & { 
             </Dialog>
 
             {previewUrl && (
-                <FilePreviewModal
-                    open={!!previewUrl}
-                    onOpenChange={(open) => !open && setPreviewUrl(null)}
-                    fileUrl={previewUrl}
-                />
+                <FilePreviewModal open={!!previewUrl} onOpenChange={(open) => !open && setPreviewUrl(null)} fileUrl={previewUrl} />
             )}
         </>
     );
@@ -362,27 +363,29 @@ export function MedicalRecordModal({ open, onOpenChange, empId }: BaseModalProps
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="max-w-4xl">
+                <DialogContent className='max-w-4xl'>
                     <DialogHeader>
                         <DialogTitle>Employee Medical Records</DialogTitle>
                     </DialogHeader>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 py-4">
+                    <div className='grid grid-cols-1 gap-4 py-4 sm:grid-cols-2 lg:grid-cols-3'>
                         {data?.attachementlist?.map((file: any, idx: number) => (
-                            <Card key={idx} className="overflow-hidden">
-                                <CardContent className="p-4 flex flex-col items-center space-y-3">
-                                    <div className="p-3 bg-primary/10 rounded-full">
-                                        <FileText className="h-8 w-8 text-primary" />
+                            <Card key={idx} className='overflow-hidden'>
+                                <CardContent className='flex flex-col items-center space-y-3 p-4'>
+                                    <div className='rounded-full bg-primary/10 p-3'>
+                                        <FileText className='h-8 w-8 text-primary' />
                                     </div>
-                                    <span className="text-xs font-medium text-center line-clamp-2 h-8">
-                                        {file.INTBFL_FileName}
-                                    </span>
-                                    <div className="flex w-full gap-2">
-                                        <Button size="xs" variant="outline" className="flex-1 gap-1" onClick={() => setPreviewUrl(file.INTBFL_FilePath)}>
-                                            <Eye className="h-3 w-3" /> View
+                                    <span className='line-clamp-2 h-8 text-center font-medium text-xs'>{file.INTBFL_FileName}</span>
+                                    <div className='flex w-full gap-2'>
+                                        <Button
+                                            size='xs'
+                                            variant='outline'
+                                            className='flex-1 gap-1'
+                                            onClick={() => setPreviewUrl(file.INTBFL_FilePath)}>
+                                            <Eye className='h-3 w-3' /> View
                                         </Button>
-                                        <Button size="xs" variant="outline" className="flex-1 gap-1" asChild>
+                                        <Button size='xs' variant='outline' className='flex-1 gap-1' asChild>
                                             <a href={file.INTBFL_FilePath} download>
-                                                <Download className="h-3 w-3" /> Save
+                                                <Download className='h-3 w-3' /> Save
                                             </a>
                                         </Button>
                                     </div>
@@ -390,67 +393,71 @@ export function MedicalRecordModal({ open, onOpenChange, empId }: BaseModalProps
                             </Card>
                         ))}
                         {!isLoading && (!data?.attachementlist || data.attachementlist.length === 0) && (
-                            <div className="col-span-full py-12 text-center text-muted-foreground">
-                                No medical records found.
-                            </div>
+                            <div className='col-span-full py-12 text-center text-muted-foreground'>No medical records found.</div>
                         )}
                     </div>
                 </DialogContent>
             </Dialog>
 
             {previewUrl && (
-                <FilePreviewModal
-                    open={!!previewUrl}
-                    onOpenChange={(open) => !open && setPreviewUrl(null)}
-                    fileUrl={previewUrl}
-                />
+                <FilePreviewModal open={!!previewUrl} onOpenChange={(open) => !open && setPreviewUrl(null)} fileUrl={previewUrl} />
             )}
         </>
     );
 }
 
-export function TimeTableModal({ open, onOpenChange, timetable, days }: BaseModalProps & { timetable: any[], days: any[] }) {
+export function TimeTableModal({ open, onOpenChange, timetable, days }: BaseModalProps & { timetable: any[]; days: any[] }) {
     // Group periods by day
-    const groupedTT = days?.reduce((acc, day) => {
-        acc[day.ttmD_DayName] = timetable?.filter(item => item.dayName === day.ttmD_DayName) || [];
-        return acc;
-    }, {} as Record<string, any[]>) || {};
+    const groupedTT =
+        days?.reduce(
+            (acc, day) => {
+                acc[day.ttmD_DayName] = timetable?.filter((item) => item.dayName === day.ttmD_DayName) || [];
+                return acc;
+            },
+            {} as Record<string, any[]>
+        ) || {};
 
     if (!days) return null;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-6xl max-h-[90vh] overflow-auto">
+            <DialogContent className='max-h-[90vh] max-w-6xl overflow-auto'>
                 <DialogHeader>
                     <DialogTitle>Weekly Time Table</DialogTitle>
                 </DialogHeader>
-                <div className="py-4">
-                    <div className="overflow-x-auto border rounded-lg shadow-sm">
-                        <table className="w-full text-sm border-collapse">
-                            <thead className="bg-muted">
+                <div className='py-4'>
+                    <div className='overflow-x-auto rounded-lg border shadow-sm'>
+                        <table className='w-full border-collapse text-sm'>
+                            <thead className='bg-muted'>
                                 <tr>
-                                    <th className="p-3 border text-left bg-muted/50 sticky left-0 z-10 w-32">Day / Period</th>
+                                    <th className='sticky left-0 z-10 w-32 border bg-muted/50 p-3 text-left'>Day / Period</th>
                                     {Array.from({ length: 9 }).map((_, i) => (
-                                        <th key={i} className="p-3 border text-center min-w-[120px]">Period {i + 1}</th>
+                                        <th key={i} className='min-w-[120px] border p-3 text-center'>
+                                            Period {i + 1}
+                                        </th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {days.map((day) => (
-                                    <tr key={day.ttmD_DayCode} className="hover:bg-muted/30 transition-colors">
-                                        <td className="p-3 border font-semibold bg-muted/20 sticky left-0 z-10">{day.ttmD_DayName}</td>
+                                    <tr key={day.ttmD_DayCode} className='transition-colors hover:bg-muted/30'>
+                                        <td className='sticky left-0 z-10 border bg-muted/20 p-3 font-semibold'>{day.ttmD_DayName}</td>
                                         {Array.from({ length: 9 }).map((_, i) => {
                                             const period = groupedTT[day.ttmD_DayName]?.find((p: any) => p.periodCount === i + 1);
                                             return (
-                                                <td key={i} className="p-3 border text-center">
+                                                <td key={i} className='border p-3 text-center'>
                                                     {period ? (
-                                                        <div className="flex flex-col gap-1 p-2 bg-primary/5 rounded border border-primary/10">
-                                                            <span className="font-bold text-primary">{period.asmcL_ClassName}</span>
-                                                            <span className="text-[10px] text-muted-foreground">{period.asmC_SectionName}</span>
-                                                            <span className="text-[10px] font-medium text-amber-600 italic">({period.ismS_SubjectName})</span>
+                                                        <div className='flex flex-col gap-1 rounded border border-primary/10 bg-primary/5 p-2'>
+                                                            <span className='font-bold text-primary'>{period.asmcL_ClassName}</span>
+                                                            <span className='text-[10px] text-muted-foreground'>
+                                                                {period.asmC_SectionName}
+                                                            </span>
+                                                            <span className='font-medium text-[10px] text-amber-600 italic'>
+                                                                ({period.ismS_SubjectName})
+                                                            </span>
                                                         </div>
                                                     ) : (
-                                                        <span className="text-muted-foreground/30">-</span>
+                                                        <span className='text-muted-foreground/30'>-</span>
                                                     )}
                                                 </td>
                                             );
@@ -475,7 +482,7 @@ export function PhotoUploadModal({ open, onOpenChange, empId }: BaseModalProps &
         mutationFn: async (formData: FormData) => {
             // In a real app, you'd upload the file to a storage service first or send it as multipart
             // For this implementation, we'll assume the API handles the file or a base64 string
-            // Let's assume we send the file to a dedicated upload endpoint first if needed, 
+            // Let's assume we send the file to a dedicated upload endpoint first if needed,
             // but here we'll use the changeProfile action.
 
             // To simplify for this task, let's convert to base64 for the changeProfile action
@@ -522,29 +529,29 @@ export function PhotoUploadModal({ open, onOpenChange, empId }: BaseModalProps &
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
+            <DialogContent className='max-w-md'>
                 <DialogHeader>
                     <DialogTitle>Update Profile Picture</DialogTitle>
                 </DialogHeader>
-                <div className="flex flex-col items-center space-y-6 py-6">
-                    <div className="w-40 h-48 border-2 border-dashed rounded-lg overflow-hidden flex items-center justify-center bg-muted">
+                <div className='flex flex-col items-center space-y-6 py-6'>
+                    <div className='flex h-48 w-40 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed bg-muted'>
                         {preview ? (
-                            <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                            <img src={preview} alt='Preview' className='h-full w-full object-cover' />
                         ) : (
-                            <Upload className="h-10 w-10 text-muted-foreground" />
+                            <Upload className='h-10 w-10 text-muted-foreground' />
                         )}
                     </div>
-                    <div className="w-full">
-                        <Input type="file" accept="image/*" onChange={handleFileChange} />
-                        <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                            Supported formats: JPG, PNG. Max size: 2MB.
-                        </p>
+                    <div className='w-full'>
+                        <Input type='file' accept='image/*' onChange={handleFileChange} />
+                        <p className='mt-2 text-center text-[10px] text-muted-foreground'>Supported formats: JPG, PNG. Max size: 2MB.</p>
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                    <Button onClick={handleUpload} disabled={!file || mutation.isPending} className="gap-2">
-                        {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    <Button variant='outline' onClick={() => onOpenChange(false)}>
+                        Cancel
+                    </Button>
+                    <Button onClick={handleUpload} disabled={!file || mutation.isPending} className='gap-2'>
+                        {mutation.isPending ? <Loader2 className='h-4 w-4 animate-spin' /> : <Upload className='h-4 w-4' />}
                         Upload photo
                     </Button>
                 </DialogFooter>

@@ -1,12 +1,12 @@
 'use client';
 
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { getExamReportCard } from '@/server/exam/exam-module/reports/cumulative-report';
+import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import BBIIReportForm from './_components/add-form';
 import BBIIReportView from './_components/report-view';
-import { getExamReportCard } from '@/server/exam/exam-module/reports/cumulative-report';
-import { toast } from 'sonner';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { Loader2 } from 'lucide-react';
 
 export default function BBIIReportPage() {
     const [reportData, setReportData] = useState<any[]>([]);
@@ -19,7 +19,7 @@ export default function BBIIReportPage() {
     const [selectedSection, setSelectedSection] = useState('');
     const [classTeacher, setClassTeacher] = useState('');
     const [showRemarks, setShowRemarks] = useState(true);
-    const [showRank, setShowRank] = useState(false);
+    const [showRankInSection, setShowRankInSection] = useState(false);
     const [isReportVisible, setIsReportVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -30,6 +30,9 @@ export default function BBIIReportPage() {
             setIsReportVisible(false);
             setSelectedClass(payload.selectedClassName || '');
             setSelectedSection(payload.selectedSectionName || '');
+            setShowRemarks(payload.showRemarks ?? true);
+            setShowRankInSection(payload.showRankInSection ?? payload.showRank ?? false);
+
             const res = await getExamReportCard(payload);
 
             const apiData = res?.data;
@@ -44,7 +47,8 @@ export default function BBIIReportPage() {
                 const studentMap = new Map<number, any>();
 
                 flatRows.forEach((row: any) => {
-                    const studentId = row.amsT_Id ?? row.AMST_Id ?? row.AMST_ID ?? row.amst_Id ?? row.student_id ?? row.studentId ?? row.StudentId;
+                    const studentId =
+                        row.amsT_Id ?? row.AMST_Id ?? row.AMST_ID ?? row.amst_Id ?? row.student_id ?? row.studentId ?? row.StudentId;
                     if (!studentId) return;
 
                     if (!studentMap.has(studentId)) {
@@ -72,7 +76,10 @@ export default function BBIIReportPage() {
                         });
                     } else {
                         const existing = studentMap.get(studentId);
-                        if (row.estmP_TotalGradeRemark && (!existing.estmP_TotalGradeRemark || existing.estmP_TotalGradeRemark.trim() === '')) {
+                        if (
+                            row.estmP_TotalGradeRemark &&
+                            (!existing.estmP_TotalGradeRemark || existing.estmP_TotalGradeRemark.trim() === '')
+                        ) {
                             existing.estmP_TotalGradeRemark = row.estmP_TotalGradeRemark;
                         }
                         if (row.estmP_TotalMaxMarks && !existing.estmP_TotalMaxMarks) {
@@ -121,7 +128,7 @@ export default function BBIIReportPage() {
                             emgR_Id: row.emgR_Id,
                             EYCES_MarksDisplayFlg: row.EYCES_MarksDisplayFlg || row.eyceS_MarksDisplayFlg,
                             EYCES_GradeDisplayFlg: row.EYCES_GradeDisplayFlg || row.eyceS_GradeDisplayFlg,
-                            emgD_Remarks: row.emgD_Remarks,
+                            emgD_Remarks: row.emgD_Remarks
                         });
                     }
                 });
@@ -133,10 +140,16 @@ export default function BBIIReportPage() {
                 setExamName(flatRows[0].emE_ExamName || 'Progress Card');
                 setAcademicYear(flatRows[0].asmaY_Year || flatRows[0].amaY_Year || '');
                 setClassTeacher(clstchname?.[0]?.hrmE_EmployeeFirstName || clstchname?.[0]?.clstchname || '');
-                setShowRemarks(true);
-                setShowRank(false);
+                setShowRemarks(payload.showRemarks ?? true);
+                setShowRankInSection(payload.showRankInSection ?? payload.showRank ?? false);
                 setIsReportVisible(true);
                 toast.success('Report generated successfully');
+
+                if (payload.isPrint) {
+                    setTimeout(() => {
+                        window.print();
+                    }, 400);
+                }
             } else {
                 toast.error('No record found');
                 setIsReportVisible(false);
@@ -152,27 +165,34 @@ export default function BBIIReportPage() {
 
     const handleReset = () => {
         setReportData([]);
+        setGradeRemarks([]);
+        setAttendanceWork([]);
+        setAttendancePresent([]);
+        setExamName('');
+        setAcademicYear('');
+        setSelectedClass('');
+        setSelectedSection('');
+        setClassTeacher('');
+        setShowRemarks(true);
+        setShowRankInSection(false);
         setIsReportVisible(false);
     };
 
     return (
-        <div className="flex flex-col gap-6 p-4">
-            <CollapsibleSection title="BBII Report Criteria" defaultOpen>
-                <BBIIReportForm
-                    onSuccess={handleFormSuccess}
-                    onReset={handleReset}
-                />
+        <div className='flex flex-col gap-6 p-4'>
+            <CollapsibleSection title='BBII Report Criteria' defaultOpen>
+                <BBIIReportForm onSuccess={handleFormSuccess} onReset={handleReset} />
             </CollapsibleSection>
 
             {isLoading && (
-                <div className="flex flex-col items-center justify-center p-12 gap-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-muted-foreground animate-pulse">Generating BBII Reports...</p>
+                <div className='flex flex-col items-center justify-center gap-4 p-12'>
+                    <Loader2 className='h-8 w-8 animate-spin text-primary' />
+                    <p className='animate-pulse text-muted-foreground'>Generating BBII Reports...</p>
                 </div>
             )}
 
             {isReportVisible && !isLoading && (
-                <CollapsibleSection title="Report Preview" defaultOpen>
+                <CollapsibleSection title='Report Preview' defaultOpen>
                     <BBIIReportView
                         reportData={reportData}
                         gradeRemarks={gradeRemarks}
@@ -184,7 +204,8 @@ export default function BBIIReportPage() {
                         selectedSection={selectedSection}
                         classTeacher={classTeacher}
                         showRemarks={showRemarks}
-                        showRank={showRank}
+                        showRank={showRankInSection}
+                        showRankInSection={showRankInSection}
                     />
                 </CollapsibleSection>
             )}

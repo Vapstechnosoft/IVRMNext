@@ -1,8 +1,8 @@
 'use client';
 
-import { ColumnDef } from '@tanstack/react-table';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { IScheduleReportList } from '@/types/admission/preadmission/reports';
+import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 
 /**
@@ -19,11 +19,7 @@ export const getScheduleReportColumns = (): ColumnDef<IScheduleReportList>[] => 
             />
         ),
         cell: ({ row }) => (
-            <Checkbox
-                checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
-                aria-label='Select row'
-            />
+            <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label='Select row' />
         ),
         enableSorting: false,
         enableHiding: false
@@ -35,19 +31,19 @@ export const getScheduleReportColumns = (): ColumnDef<IScheduleReportList>[] => 
     },
     {
         accessorKey: 'name',
-        header: () => <div className='font-bold text-black uppercase'>Name</div>,
+        header: () => <div className='font-bold text-black uppercase'>Name</div>
     },
     {
         accessorKey: 'regno',
-        header: () => <div className='font-bold text-black uppercase'>RegNo</div>,
+        header: () => <div className='font-bold text-black uppercase'>RegNo</div>
     },
     {
         accessorKey: 'class',
-        header: () => <div className='font-bold text-black uppercase'>Class</div>,
+        header: () => <div className='font-bold text-black uppercase'>Class</div>
     },
     {
         accessorKey: 'gender',
-        header: () => <div className='font-bold text-black uppercase'>Gender</div>,
+        header: () => <div className='font-bold text-black uppercase'>Gender</div>
     },
     {
         id: 'scheduledate',

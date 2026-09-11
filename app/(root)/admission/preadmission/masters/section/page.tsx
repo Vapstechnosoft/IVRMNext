@@ -49,8 +49,8 @@ function MasterSectionPageContent({
 
     // Client-side filtering and pagination state
     const searchQuery = searchParams?.search_query?.toString().toLowerCase() || '';
-    const currentPage = parseInt(searchParams?.page?.toString() || '1', 10);
-    const pageSize = parseInt(searchParams?.page_size?.toString() || '10', 10);
+    const currentPage = Number.parseInt(searchParams?.page?.toString() || '1', 10);
+    const pageSize = Number.parseInt(searchParams?.page_size?.toString() || '10', 10);
 
     // Normalize response so that data is always an array
     let normalizedResponse = response;
@@ -69,10 +69,18 @@ function MasterSectionPageContent({
         if (searchQuery) {
             filteredData = dataArray.filter((item: any) => {
                 return (
-                    String(item.asmC_SectionCode || '').toLowerCase().includes(searchQuery) ||
-                    String(item.asmC_SectionName || '').toLowerCase().includes(searchQuery) ||
-                    String(item.asmC_Order || '').toLowerCase().includes(searchQuery) ||
-                    String(item.asmC_MaxCapacity || '').toLowerCase().includes(searchQuery)
+                    String(item.asmC_SectionCode || '')
+                        .toLowerCase()
+                        .includes(searchQuery) ||
+                    String(item.asmC_SectionName || '')
+                        .toLowerCase()
+                        .includes(searchQuery) ||
+                    String(item.asmC_Order || '')
+                        .toLowerCase()
+                        .includes(searchQuery) ||
+                    String(item.asmC_MaxCapacity || '')
+                        .toLowerCase()
+                        .includes(searchQuery)
                 );
             });
         }
@@ -89,10 +97,18 @@ function MasterSectionPageContent({
         if (searchQuery) {
             filteredData = normalizedResponse.filter((item: any) => {
                 return (
-                    String(item.asmC_SectionCode || '').toLowerCase().includes(searchQuery) ||
-                    String(item.asmC_SectionName || '').toLowerCase().includes(searchQuery) ||
-                    String(item.asmC_Order || '').toLowerCase().includes(searchQuery) ||
-                    String(item.asmC_MaxCapacity || '').toLowerCase().includes(searchQuery)
+                    String(item.asmC_SectionCode || '')
+                        .toLowerCase()
+                        .includes(searchQuery) ||
+                    String(item.asmC_SectionName || '')
+                        .toLowerCase()
+                        .includes(searchQuery) ||
+                    String(item.asmC_Order || '')
+                        .toLowerCase()
+                        .includes(searchQuery) ||
+                    String(item.asmC_MaxCapacity || '')
+                        .toLowerCase()
+                        .includes(searchQuery)
                 );
             });
         }
@@ -196,7 +212,7 @@ function FormSections() {
             {isEditFormOpen && selectedRow && (
                 <div ref={editFormRef}>
                     <CollapsibleSection
-                        title='Edit Master Section'
+                        title='Update Master Section'
                         defaultOpen={true}
                         variant='outline'
                         size='md'

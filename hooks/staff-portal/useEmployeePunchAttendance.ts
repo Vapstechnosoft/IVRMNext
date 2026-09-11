@@ -1,18 +1,12 @@
-import { useState, useEffect } from 'react';
 import {
     getEmployeePunchAttendanceInitialData,
-    getEmployeePunchAttendanceReport,
+    getEmployeePunchAttendanceReport
 } from '@/server/staff-portal/biometric-report/employee-punch-attendance.actions';
-import {
-    IEmployeeDetails,
-} from '@/types/staff-portal/biometric-report/employee-punch-attendance.types';
-
-
+import type { IEmployeeDetails } from '@/types/staff-portal/biometric-report/employee-punch-attendance.types';
+import { useEffect, useState } from 'react';
 
 export const useEmployeePunchAttendanceOnload = () => {
-    const [employeeDetails, setEmployeeDetails] = useState<IEmployeeDetails | null>(
-        null
-    );
+    const [employeeDetails, setEmployeeDetails] = useState<IEmployeeDetails | null>(null);
 
     useEffect(() => {
         const fetchInitialData = async () => {
@@ -49,6 +43,6 @@ export const useEmployeePunchAttendanceReport = () => {
 
     return {
         getReport,
-        isLoading,
+        isLoading
     };
 };

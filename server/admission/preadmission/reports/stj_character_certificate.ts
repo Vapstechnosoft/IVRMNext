@@ -3,13 +3,11 @@
 import { api } from '@/lib/apiService';
 
 export async function getCharacterLoadData() {
-
     try {
         const res = await api.get<any>('admission', '/StudyCertificate/get_loaddata');
 
         return res;
     } catch (e: any) {
-
         throw e;
     }
 }
@@ -30,7 +28,6 @@ export async function getCharacterSearchFilter(data: {
 
         return res;
     } catch (e: any) {
-
         throw e;
     }
 }
@@ -51,7 +48,6 @@ export async function getCharacterStudDetails(data: {
 
         return res;
     } catch (e: any) {
-
         throw e;
     }
 }

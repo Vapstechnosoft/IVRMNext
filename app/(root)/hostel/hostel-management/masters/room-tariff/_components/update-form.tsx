@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { FormInput } from '@/components/ui/form/form-input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { IRoomTariffForm, roomTariffSchema } from '@/schemas/hostel/room-tariff.schema';
+import { type IRoomTariffForm, roomTariffSchema } from '@/schemas/hostel/room-tariff.schema';
+import { type IRoomTariff, saveRoomTariff } from '@/server/hostel/hostel-management/masters/room-tariff';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { IRoomTariff, saveRoomTariff } from '@/server/hostel/hostel-management/masters/room-tariff';
 
 interface UpdateRoomTariffFormProps {
     initialData: IRoomTariff;
@@ -18,13 +18,7 @@ interface UpdateRoomTariffFormProps {
     roomList: any[];
 }
 
-export default function UpdateRoomTariffForm({
-    initialData,
-    onSuccess,
-    onCancel,
-    yearList,
-    roomList,
-}: UpdateRoomTariffFormProps) {
+export default function UpdateRoomTariffForm({ initialData, onSuccess, onCancel, yearList, roomList }: UpdateRoomTariffFormProps) {
     const methods = useForm<IRoomTariffForm>({
         resolver: zodResolver(roomTariffSchema),
         mode: 'onChange',
@@ -33,8 +27,8 @@ export default function UpdateRoomTariffForm({
             asmaY_Id: initialData.asmaY_Id.toString(),
             hrmrM_Id: initialData.hrmrM_Id.toString(),
             hlmrtF_SORate: initialData.hlmrtF_SORate.toString(),
-            hlmrtF_RoomRate: initialData.hlmrtF_RoomRate.toString(),
-        },
+            hlmrtF_RoomRate: initialData.hlmrtF_RoomRate.toString()
+        }
     });
 
     const {
@@ -50,7 +44,7 @@ export default function UpdateRoomTariffForm({
                 asmaY_Id: Number(data.asmaY_Id),
                 hrmrM_Id: Number(data.hrmrM_Id),
                 hlmrtF_SORate: Number(data.hlmrtF_SORate),
-                hlmrtF_RoomRate: Number(data.hlmrtF_RoomRate),
+                hlmrtF_RoomRate: Number(data.hlmrtF_RoomRate)
             };
 
             const result = await saveRoomTariff(payload);
@@ -72,7 +66,9 @@ export default function UpdateRoomTariffForm({
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     {/* Academic Year */}
                     <div>
-                        <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Academic Year <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='asmaY_Id'
@@ -80,7 +76,7 @@ export default function UpdateRoomTariffForm({
                                 <>
                                     <Select value={field.value} onValueChange={field.onChange}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Academic Year" />
+                                            <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {yearList.map((year: any) => (
@@ -98,7 +94,9 @@ export default function UpdateRoomTariffForm({
 
                     {/* Room */}
                     <div>
-                        <Label>Room <span className='text-red-500'>*</span></Label>
+                        <Label>
+                            Room <span className='text-red-500'>*</span>
+                        </Label>
                         <Controller
                             control={control}
                             name='hrmrM_Id'
@@ -106,7 +104,7 @@ export default function UpdateRoomTariffForm({
                                 <>
                                     <Select value={field.value} onValueChange={field.onChange}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select Room" />
+                                            <SelectValue placeholder='Select Room' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {roomList.map((room: any) => (
@@ -126,20 +124,20 @@ export default function UpdateRoomTariffForm({
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <FormInput
                         control={control}
-                        name="hlmrtF_SORate"
-                        label="Single Bed Rate"
+                        name='hlmrtF_SORate'
+                        label='Single Bed Rate'
                         required
-                        placeholder="Enter Rate"
-                        type="number"
+                        placeholder='Enter Rate'
+                        type='number'
                     />
 
                     <FormInput
                         control={control}
-                        name="hlmrtF_RoomRate"
-                        label="Entire Room Rate"
+                        name='hlmrtF_RoomRate'
+                        label='Entire Room Rate'
                         required
-                        placeholder="Enter Rate"
-                        type="number"
+                        placeholder='Enter Rate'
+                        type='number'
                     />
                 </div>
 

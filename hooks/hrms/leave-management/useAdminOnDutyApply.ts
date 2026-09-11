@@ -1,17 +1,16 @@
 import {
     deleteLeaveById,
+    getAdminOnDutyEmployeeDropdown,
     getEmployeeOnDutyDetails,
     getEmployeeOnDutyLeaveApply,
     getLeaveDetailsById,
     saveOnDutyLeaveRequest,
-    viewOnDutyLeaveDetailsById,
     toggleActiveStatusOnDuty,
-    getAdminOnDutyEmployeeDropdown
+    viewOnDutyLeaveDetailsById
 } from '@/server/hrms/leave-management/transaction/admin-on-duty-apply';
 import type { ApiSearchparams } from '@/types';
 import type {
     AdminOnDutyApply,
-    AdminOnDutyApplyApiData,
     EmployeeDetails,
     EmployeeOnDutyDetailsResponse,
     OnDutyLeaveSaveRequest
@@ -58,9 +57,7 @@ function mapApiDataToAdminOnDutyApply(
     };
 }
 
-function mapApiEmployeeToEmployeeDetails(
-    apiData: EmployeeOnDutyDetailsResponse['employeeDetails']
-): EmployeeDetails {
+function mapApiEmployeeToEmployeeDetails(apiData: EmployeeOnDutyDetailsResponse['employeeDetails']): EmployeeDetails {
     return {
         id: apiData.hrmE_Id,
         name: apiData.employeeName,

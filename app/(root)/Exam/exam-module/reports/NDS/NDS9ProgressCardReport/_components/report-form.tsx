@@ -22,7 +22,7 @@ const schema = z.object({
     asmaY_Id: z.number().min(1, 'Select Academic Year'),
     asmcL_Id: z.number().min(1, 'Select Class'),
     asmS_Id: z.number().min(1, 'Select Section'),
-    studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one student'),
+    studentList: z.array(z.object({ amsT_Id: z.number() })).min(1, 'Select at least one student')
 });
 type Schema = z.infer<typeof schema>;
 
@@ -30,9 +30,15 @@ export default function NDS9ProgressCardForm({ onSuccess }: { onSuccess?: (data:
     const methods = useForm<Schema>({
         resolver: zodResolver(schema),
         mode: 'all',
-        defaultValues: { asmaY_Id: 0, asmcL_Id: 0, asmS_Id: 0, studentList: [] } as any,
+        defaultValues: { asmaY_Id: 0, asmcL_Id: 0, asmS_Id: 0, studentList: [] } as any
     });
-    const { control, handleSubmit, reset, setValue, formState: { isSubmitting } } = methods;
+    const {
+        control,
+        handleSubmit,
+        reset,
+        setValue,
+        formState: { isSubmitting }
+    } = methods;
 
     const [academicYears, setAcademicYears] = useState<any[]>([]);
     const [classes, setClasses] = useState<any[]>([]);
@@ -56,51 +62,105 @@ export default function NDS9ProgressCardForm({ onSuccess }: { onSuccess?: (data:
         if (!selectedYear) return;
         (async () => {
             setLoadingCls(true);
-            try { const { data } = await getClassDropDownByAcademicYearlist(selectedYear); setClasses(Array.isArray(data) ? data : []); } catch { toast.error('Failed to load classes'); }
-            setValue('asmcL_Id', 0); setValue('asmS_Id', 0); setValue('studentList', []); setStudents([]);
-            setLoadingCls(false);
+            try {
+                const res: any = await getClassDropDownByAcademicYearlist(selectedYear);
+                const list = Array.isArray(res)
+                    ? res
+                    : Array.isArray(res?.data)
+                      ? res.data
+                      : Array.isArray(res?.$values)
+                        ? res.$values
+                        : [];
+                setClasses(list);
+            } catch {
+                toast.error('Failed to load classes');
+            } finally {
+                setValue('asmcL_Id', 0);
+                setValue('asmS_Id', 0);
+                setValue('studentList', []);
+                setStudents([]);
+                setLoadingCls(false);
+            }
         })();
-    }, [selectedYear]);
+    }, [selectedYear, setValue]);
 
     useEffect(() => {
         if (!selectedYear || !selectedClass) return;
         (async () => {
             setLoadingSec(true);
-            try { const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass); setSections(Array.isArray(data) ? data : []); } catch { toast.error('Failed to load sections'); }
-            setValue('asmS_Id', 0); setValue('studentList', []); setStudents([]);
-            setLoadingSec(false);
+            try {
+                const res: any = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
+                const list = Array.isArray(res)
+                    ? res
+                    : Array.isArray(res?.data)
+                      ? res.data
+                      : Array.isArray(res?.$values)
+                        ? res.$values
+                        : [];
+                setSections(list);
+            } catch {
+                toast.error('Failed to load sections');
+            } finally {
+                setValue('asmS_Id', 0);
+                setValue('studentList', []);
+                setStudents([]);
+                setLoadingSec(false);
+            }
         })();
-    }, [selectedYear, selectedClass]);
+    }, [selectedYear, selectedClass, setValue]);
 
     useEffect(() => {
         if (!selectedYear || !selectedClass || !selectedSection) return;
         (async () => {
             setLoadingStu(true);
             try {
-                const { data } = await getStudentsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
-                setStudents(Array.isArray(data) ? data.map((item: any) => ({
-                    amsT_Id: item.amsT_Id,
-                    studentName: item.studentName || `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim(),
-                    amsT_AdmNo: item.amsT_AdmNo || ''
-                })) : []);
+                const res: any = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                    selectedYear,
+                    selectedClass,
+                    selectedSection
+                );
+                const list = Array.isArray(res)
+                    ? res
+                    : Array.isArray(res?.data)
+                      ? res.data
+                      : Array.isArray(res?.$values)
+                        ? res.$values
+                        : [];
+                setStudents(
+                    list.map((item: any) => ({
+                        amsT_Id: item.amsT_Id,
+                        studentName:
+                            item.studentName ||
+                            item.studentname ||
+                            `${item.amsT_FirstName || ''} ${item.amsT_MiddleName || ''} ${item.amsT_LastName || ''}`.trim(),
+                        amsT_AdmNo: item.amsT_AdmNo || ''
+                    }))
+                );
+            } catch {
+                toast.error('Failed to load students');
+            } finally {
                 setValue('studentList', []);
-            } catch { toast.error('Failed to load students'); }
-            setLoadingStu(false);
+                setLoadingStu(false);
+            }
         })();
-    }, [selectedYear, selectedClass, selectedSection]);
+    }, [selectedYear, selectedClass, selectedSection, setValue]);
 
     const onSubmit = async (data: Schema) => {
         try {
             const payload = {
-                asmaY_Id: data.asmaY_Id,
-                asmcL_Id: data.asmcL_Id,
-                asmS_Id: data.asmS_Id,
-                temp_AmstIds: data.studentList,
+                ASMAY_Id: data.asmaY_Id,
+                ASMCL_Id: data.asmcL_Id,
+                ASMS_Id: data.asmS_Id,
+                Temp_AmstIds: data.studentList.map((s) => ({
+                    amsT_Id: s.amsT_Id,
+                    AMST_Id: s.amsT_Id
+                }))
             };
-            const response: any = await getNDS9ProgressCardReport(payload);
+            const response: any = await getNDS9ProgressCardReport(payload as any);
             console.log('nds9 progressCardReport', response);
-            if (response?.success && response?.data) {
-                if (onSuccess) onSuccess({ apiData: response.data, payload });
+            const reportData = response?.data || response;
+            if (reportData && (reportData.getstudentdetails || reportData.getstudentdetails?.$values)) {
+                if (onSuccess) onSuccess({ apiData: reportData, payload });
             } else {
                 toast.error(response?.message || 'Failed to fetch report data');
             }
@@ -117,50 +177,92 @@ export default function NDS9ProgressCardForm({ onSuccess }: { onSuccess?: (data:
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             <div className='space-y-6'>
                                 {/* Academic Year */}
-                                <Controller control={control} name='asmaY_Id' render={({ field, fieldState }) => (
-                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-32'>Academic Year <span className='text-red-500'>*</span></Label>
-                                        <div className='flex-1'>
-                                            <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''}>
-                                                <SelectTrigger className='w-full'><SelectValue placeholder='Select Academic Year' /></SelectTrigger>
-                                                <SelectContent>
-                                                    {academicYears.map((y) => <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>{y.asmaY_Year}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                <Controller
+                                    control={control}
+                                    name='asmaY_Id'
+                                    render={({ field, fieldState }) => (
+                                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Academic Year <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <div className='flex-1'>
+                                                <Select
+                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    value={field.value ? String(field.value) : ''}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder='Select Academic Year' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {academicYears.map((y) => (
+                                                            <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                                                {y.asmaY_Year}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            </div>
                                         </div>
-                                    </div>
-                                )} />
+                                    )}
+                                />
                                 {/* Class */}
-                                <Controller control={control} name='asmcL_Id' render={({ field, fieldState }) => (
-                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-32'>Class <span className='text-red-500'>*</span></Label>
-                                        <div className='flex-1'>
-                                            <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''}>
-                                                <SelectTrigger className='w-full'><SelectValue placeholder={loadingCls ? 'Loading...' : 'Select Class'} /></SelectTrigger>
-                                                <SelectContent>
-                                                    {classes.map((c) => <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>{c.asmcL_ClassName}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                <Controller
+                                    control={control}
+                                    name='asmcL_Id'
+                                    render={({ field, fieldState }) => (
+                                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Class <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <div className='flex-1'>
+                                                <Select
+                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    value={field.value ? String(field.value) : ''}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder={loadingCls ? 'Loading...' : 'Select Class'} />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {classes.map((c) => (
+                                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                                                {c.asmcL_ClassName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            </div>
                                         </div>
-                                    </div>
-                                )} />
+                                    )}
+                                />
                                 {/* Section */}
-                                <Controller control={control} name='asmS_Id' render={({ field, fieldState }) => (
-                                    <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
-                                        <Label className='font-medium text-sm sm:w-32'>Section <span className='text-red-500'>*</span></Label>
-                                        <div className='flex-1'>
-                                            <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value ? String(field.value) : ''}>
-                                                <SelectTrigger className='w-full'><SelectValue placeholder={loadingSec ? 'Loading...' : 'Select Section'} /></SelectTrigger>
-                                                <SelectContent>
-                                                    {sections.map((s) => <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>{s.asmC_SectionName}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                            {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                <Controller
+                                    control={control}
+                                    name='asmS_Id'
+                                    render={({ field, fieldState }) => (
+                                        <div className='flex flex-col gap-2 sm:flex-row sm:items-center'>
+                                            <Label className='font-medium text-sm sm:w-32'>
+                                                Section <span className='text-red-500'>*</span>
+                                            </Label>
+                                            <div className='flex-1'>
+                                                <Select
+                                                    onValueChange={(v) => field.onChange(Number(v))}
+                                                    value={field.value ? String(field.value) : ''}>
+                                                    <SelectTrigger className='w-full'>
+                                                        <SelectValue placeholder={loadingSec ? 'Loading...' : 'Select Section'} />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {sections.map((s) => (
+                                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                                {s.asmC_SectionName}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                            </div>
                                         </div>
-                                    </div>
-                                )} />
+                                    )}
+                                />
                             </div>
 
                             {/* Students */}
@@ -169,35 +271,63 @@ export default function NDS9ProgressCardForm({ onSuccess }: { onSuccess?: (data:
                                     <Label className='flex items-center gap-2 font-medium text-sm sm:w-32'>
                                         <Checkbox
                                             checked={selectedStudentsList?.length === students.length && students.length > 0}
-                                            onCheckedChange={(checked) => setValue('studentList', checked ? students.map((e) => ({ amsT_Id: e.amsT_Id })) : [], { shouldValidate: true })}
+                                            onCheckedChange={(checked) =>
+                                                setValue('studentList', checked ? students.map((e) => ({ amsT_Id: e.amsT_Id })) : [], {
+                                                    shouldValidate: true
+                                                })
+                                            }
                                         />
                                         Students <span className='text-red-500'>*</span>
                                     </Label>
                                     <div className='flex-1'>
-                                        <Controller control={control} name='studentList' render={({ field, fieldState }) => (
-                                            <div className='flex flex-col gap-2'>
-                                                <div className='flex max-h-[280px] flex-col gap-3 overflow-y-auto rounded-md border p-4'>
-                                                    {loadingStu ? <span className='text-muted-foreground text-sm'>Loading...</span>
-                                                        : students.length === 0 ? <span className='text-muted-foreground text-sm'>No Students found</span>
-                                                            : students.map((e) => {
-                                                                const isChecked = field.value?.some((v) => v.amsT_Id === e.amsT_Id) || false;
+                                        <Controller
+                                            control={control}
+                                            name='studentList'
+                                            render={({ field, fieldState }) => (
+                                                <div className='flex flex-col gap-2'>
+                                                    <div className='flex max-h-[280px] flex-col gap-3 overflow-y-auto rounded-md border p-4'>
+                                                        {loadingStu ? (
+                                                            <span className='text-muted-foreground text-sm'>Loading...</span>
+                                                        ) : students.length === 0 ? (
+                                                            <span className='text-muted-foreground text-sm'>No Students found</span>
+                                                        ) : (
+                                                            students.map((e) => {
+                                                                const isChecked =
+                                                                    field.value?.some((v) => v.amsT_Id === e.amsT_Id) || false;
                                                                 return (
                                                                     <div key={e.amsT_Id} className='flex items-center space-x-2'>
-                                                                        <Checkbox id={`nds9-stu-${e.amsT_Id}`} checked={isChecked}
+                                                                        <Checkbox
+                                                                            id={`nds9-stu-${e.amsT_Id}`}
+                                                                            checked={isChecked}
                                                                             onCheckedChange={(checked) => {
-                                                                                if (checked) field.onChange([...(field.value || []), { amsT_Id: e.amsT_Id }]);
-                                                                                else field.onChange((field.value || []).filter((v) => v.amsT_Id !== e.amsT_Id));
-                                                                            }} />
-                                                                        <Label htmlFor={`nds9-stu-${e.amsT_Id}`} className='text-sm leading-none'>
-                                                                            {e.studentName}{e.amsT_AdmNo ? ` / ${e.amsT_AdmNo}` : ''}
+                                                                                if (checked)
+                                                                                    field.onChange([
+                                                                                        ...(field.value || []),
+                                                                                        { amsT_Id: e.amsT_Id }
+                                                                                    ]);
+                                                                                else
+                                                                                    field.onChange(
+                                                                                        (field.value || []).filter(
+                                                                                            (v) => v.amsT_Id !== e.amsT_Id
+                                                                                        )
+                                                                                    );
+                                                                            }}
+                                                                        />
+                                                                        <Label
+                                                                            htmlFor={`nds9-stu-${e.amsT_Id}`}
+                                                                            className='text-sm leading-none'>
+                                                                            {e.studentName}
+                                                                            {e.amsT_AdmNo ? ` / ${e.amsT_AdmNo}` : ''}
                                                                         </Label>
                                                                     </div>
                                                                 );
-                                                            })}
+                                                            })
+                                                        )}
+                                                    </div>
+                                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                                                 </div>
-                                                {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
-                                            </div>
-                                        )} />
+                                            )}
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -205,10 +335,16 @@ export default function NDS9ProgressCardForm({ onSuccess }: { onSuccess?: (data:
 
                         <hr className='my-4 border-gray-300' />
                         <div className='flex justify-center gap-3'>
-                            <Button type='submit' isLoading={isSubmitting} disabled={isSubmitting || !selectedStudentsList?.length} className='min-w-[140px]'>
+                            <Button
+                                type='submit'
+                                isLoading={isSubmitting}
+                                disabled={isSubmitting || !selectedStudentsList?.length}
+                                className='min-w-[140px]'>
                                 {isSubmitting ? 'Generating...' : 'Report'}
                             </Button>
-                            <Button type='button' variant='outline' onClick={() => reset()} className='min-w-[100px]'>Clear</Button>
+                            <Button type='button' variant='outline' onClick={() => reset()} className='min-w-[100px]'>
+                                Clear
+                            </Button>
                         </div>
                     </form>
                 </FormProvider>

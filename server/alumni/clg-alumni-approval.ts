@@ -6,8 +6,8 @@ import type {
     IApproveClgAlumniResponse,
     ICheckStudentAlumniResponse,
     IClgAlumniSaveData,
-    ISaveClgAlumniResponse,
     IClgAlumniSearchFilter,
+    ISaveClgAlumniResponse,
     ISearchFilterClgAlumniResponse
 } from '@/types/alumni/clg-alumni-approval';
 

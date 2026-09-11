@@ -1,24 +1,23 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { Save, X, Loader2 } from 'lucide-react';
-import { useForm, Controller } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2, Save, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { ColumnDef } from '@tanstack/react-table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { ColumnDef } from '@tanstack/react-table';
 
 import {
-    useReadmitStudentDetails,
-    useStudentListByYearAndClass,
     useNewJoinList,
-    useSaveReadmitStudent
+    useReadmitStudentDetails,
+    useSaveReadmitStudent,
+    useStudentListByYearAndClass
 } from '@/hooks/admission/oldsharehost/masters/useReadmitStudent';
 
 const formSchema = z.object({
@@ -29,7 +28,7 @@ const formSchema = z.object({
     AMAY_Id_New: z.string().min(1, 'Select New Academic Year'),
     ASMCL_Id_New: z.string().min(1, 'Select Class'),
     ASMS_Id_New: z.string().min(1, 'Select Section'),
-    AMST_Id_New: z.string().min(1, 'Select New Student Name'),
+    AMST_Id_New: z.string().min(1, 'Select New Student Name')
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -176,72 +175,69 @@ export default function ReadmitStudentPage() {
     const columns: ColumnDef<any>[] = [
         {
             accessorKey: 'asmaY_Id_OLd',
-            header: () => <div className="text-center font-bold text-black">Left Academic Year ID</div>,
-            cell: ({ row }) => <div className="text-center">{row.getValue('asmaY_Id_OLd')}</div>,
+            header: () => <div className='text-center font-bold text-black'>Left Academic Year ID</div>,
+            cell: ({ row }) => <div className='text-center'>{row.getValue('asmaY_Id_OLd')}</div>
         },
         {
             accessorKey: 'asmcL_Id_Old',
-            header: () => <div className="text-center font-bold text-black">Class Admitted ID</div>,
-            cell: ({ row }) => <div className="text-center">{row.getValue('asmcL_Id_Old')}</div>,
+            header: () => <div className='text-center font-bold text-black'>Class Admitted ID</div>,
+            cell: ({ row }) => <div className='text-center'>{row.getValue('asmcL_Id_Old')}</div>
         },
         {
             accessorKey: 'amsT_Id_OLd',
-            header: () => <div className="text-center font-bold text-black">Left Student ID</div>,
-            cell: ({ row }) => <div className="text-center">{row.getValue('amsT_Id_OLd')}</div>,
+            header: () => <div className='text-center font-bold text-black'>Left Student ID</div>,
+            cell: ({ row }) => <div className='text-center'>{row.getValue('amsT_Id_OLd')}</div>
         },
         {
             accessorKey: 'asmaY_Id_New',
-            header: () => <div className="text-center font-bold text-black">New Academic Year ID</div>,
-            cell: ({ row }) => <div className="text-center">{row.getValue('asmaY_Id_New')}</div>,
+            header: () => <div className='text-center font-bold text-black'>New Academic Year ID</div>,
+            cell: ({ row }) => <div className='text-center'>{row.getValue('asmaY_Id_New')}</div>
         },
         {
             accessorKey: 'asmcL_Id_New',
-            header: () => <div className="text-center font-bold text-black">New Class ID</div>,
-            cell: ({ row }) => <div className="text-center">{row.getValue('asmcL_Id_New')}</div>,
+            header: () => <div className='text-center font-bold text-black'>New Class ID</div>,
+            cell: ({ row }) => <div className='text-center'>{row.getValue('asmcL_Id_New')}</div>
         },
         {
             accessorKey: 'amsT_Id_New',
-            header: () => <div className="text-center font-bold text-black">New Student ID</div>,
-            cell: ({ row }) => <div className="text-center">{row.getValue('amsT_Id_New')}</div>,
+            header: () => <div className='text-center font-bold text-black'>New Student ID</div>,
+            cell: ({ row }) => <div className='text-center'>{row.getValue('amsT_Id_New')}</div>
         },
         {
             accessorKey: 'createdDate',
-            header: () => <div className="text-center font-bold text-black">Created Date</div>,
+            header: () => <div className='text-center font-bold text-black'>Created Date</div>,
             cell: ({ row }) => {
                 const date = row.getValue('createdDate') as string;
-                return <div className="text-center">{date ? new Date(date).toLocaleDateString() : ''}</div>;
-            },
+                return <div className='text-center'>{date ? new Date(date).toLocaleDateString() : ''}</div>;
+            }
         }
     ];
 
     return (
-        <div className="min-h-screen p-4 space-y-6 bg-gray-50">
-            <CollapsibleSection
-                title="Re-Admit Student"
-                defaultOpen={true}
-                variant="outline"
-                className="shadow-md"
-            >
+        <div className='min-h-screen space-y-6 bg-gray-50 p-4'>
+            <CollapsibleSection title='Re-Admit Student' defaultOpen={true} variant='outline' className='shadow-md'>
                 {isInitialLoading ? (
-                    <div className="flex justify-center p-8">
-                        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+                    <div className='flex justify-center p-8'>
+                        <Loader2 className='h-8 w-8 animate-spin text-indigo-600' />
                     </div>
                 ) : (
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-white p-6 rounded-lg">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 rounded-lg bg-white p-6'>
+                        <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
                             {/* Left Side */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-indigo-700 border-b pb-2">Left Details</h3>
+                            <div className='space-y-4'>
+                                <h3 className='border-b pb-2 font-semibold text-indigo-700 text-lg'>Left Details</h3>
 
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-bold">Left Academic Year:<span className="text-red-500">*</span></Label>
+                                <div className='space-y-2'>
+                                    <Label className='font-bold text-sm'>
+                                        Left Academic Year:<span className='text-red-500'>*</span>
+                                    </Label>
                                     <Controller
-                                        name="AMAY_ID_OLD"
+                                        name='AMAY_ID_OLD'
                                         control={form.control}
                                         render={({ field }) => (
                                             <Select value={field.value} onValueChange={field.onChange}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="-Select-" />
+                                                    <SelectValue placeholder='-Select-' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {yearList.map((item: any) => (
@@ -253,18 +249,22 @@ export default function ReadmitStudentPage() {
                                             </Select>
                                         )}
                                     />
-                                    {form.formState.errors.AMAY_ID_OLD && <span className="text-red-500 text-sm">{form.formState.errors.AMAY_ID_OLD.message}</span>}
+                                    {form.formState.errors.AMAY_ID_OLD && (
+                                        <span className='text-red-500 text-sm'>{form.formState.errors.AMAY_ID_OLD.message}</span>
+                                    )}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-bold">Class Admitted:<span className="text-red-500">*</span></Label>
+                                <div className='space-y-2'>
+                                    <Label className='font-bold text-sm'>
+                                        Class Admitted:<span className='text-red-500'>*</span>
+                                    </Label>
                                     <Controller
-                                        name="ASMCL_Id"
+                                        name='ASMCL_Id'
                                         control={form.control}
                                         render={({ field }) => (
                                             <Select value={field.value} onValueChange={field.onChange}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="-Select-" />
+                                                    <SelectValue placeholder='-Select-' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {classList.map((item: any) => (
@@ -276,18 +276,22 @@ export default function ReadmitStudentPage() {
                                             </Select>
                                         )}
                                     />
-                                    {form.formState.errors.ASMCL_Id && <span className="text-red-500 text-sm">{form.formState.errors.ASMCL_Id.message}</span>}
+                                    {form.formState.errors.ASMCL_Id && (
+                                        <span className='text-red-500 text-sm'>{form.formState.errors.ASMCL_Id.message}</span>
+                                    )}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-bold">Section Admitted:<span className="text-red-500">*</span></Label>
+                                <div className='space-y-2'>
+                                    <Label className='font-bold text-sm'>
+                                        Section Admitted:<span className='text-red-500'>*</span>
+                                    </Label>
                                     <Controller
-                                        name="ASMS_Id"
+                                        name='ASMS_Id'
                                         control={form.control}
                                         render={({ field }) => (
                                             <Select value={field.value} onValueChange={field.onChange}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="-Select-" />
+                                                    <SelectValue placeholder='-Select-' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {sectionList.map((item: any) => (
@@ -299,18 +303,25 @@ export default function ReadmitStudentPage() {
                                             </Select>
                                         )}
                                     />
-                                    {form.formState.errors.ASMS_Id && <span className="text-red-500 text-sm">{form.formState.errors.ASMS_Id.message}</span>}
+                                    {form.formState.errors.ASMS_Id && (
+                                        <span className='text-red-500 text-sm'>{form.formState.errors.ASMS_Id.message}</span>
+                                    )}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-bold">Left Student Name:<span className="text-red-500">*</span></Label>
+                                <div className='space-y-2'>
+                                    <Label className='font-bold text-sm'>
+                                        Left Student Name:<span className='text-red-500'>*</span>
+                                    </Label>
                                     <Controller
-                                        name="AMST_Id"
+                                        name='AMST_Id'
                                         control={form.control}
                                         render={({ field }) => (
-                                            <Select value={field.value} onValueChange={field.onChange} disabled={studentListMutation.isPending}>
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                disabled={studentListMutation.isPending}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="-Select-" />
+                                                    <SelectValue placeholder='-Select-' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {oldStudentList.map((item: any) => (
@@ -322,23 +333,27 @@ export default function ReadmitStudentPage() {
                                             </Select>
                                         )}
                                     />
-                                    {form.formState.errors.AMST_Id && <span className="text-red-500 text-sm">{form.formState.errors.AMST_Id.message}</span>}
+                                    {form.formState.errors.AMST_Id && (
+                                        <span className='text-red-500 text-sm'>{form.formState.errors.AMST_Id.message}</span>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Right Side */}
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold text-green-700 border-b pb-2">New Details</h3>
+                            <div className='space-y-4'>
+                                <h3 className='border-b pb-2 font-semibold text-green-700 text-lg'>New Details</h3>
 
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-bold">New Academic Year:<span className="text-red-500">*</span></Label>
+                                <div className='space-y-2'>
+                                    <Label className='font-bold text-sm'>
+                                        New Academic Year:<span className='text-red-500'>*</span>
+                                    </Label>
                                     <Controller
-                                        name="AMAY_Id_New"
+                                        name='AMAY_Id_New'
                                         control={form.control}
                                         render={({ field }) => (
                                             <Select value={field.value} onValueChange={field.onChange}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="-Select-" />
+                                                    <SelectValue placeholder='-Select-' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {yearList.map((item: any) => (
@@ -350,18 +365,22 @@ export default function ReadmitStudentPage() {
                                             </Select>
                                         )}
                                     />
-                                    {form.formState.errors.AMAY_Id_New && <span className="text-red-500 text-sm">{form.formState.errors.AMAY_Id_New.message}</span>}
+                                    {form.formState.errors.AMAY_Id_New && (
+                                        <span className='text-red-500 text-sm'>{form.formState.errors.AMAY_Id_New.message}</span>
+                                    )}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-bold">Class:<span className="text-red-500">*</span></Label>
+                                <div className='space-y-2'>
+                                    <Label className='font-bold text-sm'>
+                                        Class:<span className='text-red-500'>*</span>
+                                    </Label>
                                     <Controller
-                                        name="ASMCL_Id_New"
+                                        name='ASMCL_Id_New'
                                         control={form.control}
                                         render={({ field }) => (
                                             <Select value={field.value} onValueChange={field.onChange}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="-Select-" />
+                                                    <SelectValue placeholder='-Select-' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {classList.map((item: any) => (
@@ -373,18 +392,22 @@ export default function ReadmitStudentPage() {
                                             </Select>
                                         )}
                                     />
-                                    {form.formState.errors.ASMCL_Id_New && <span className="text-red-500 text-sm">{form.formState.errors.ASMCL_Id_New.message}</span>}
+                                    {form.formState.errors.ASMCL_Id_New && (
+                                        <span className='text-red-500 text-sm'>{form.formState.errors.ASMCL_Id_New.message}</span>
+                                    )}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-bold">Section:<span className="text-red-500">*</span></Label>
+                                <div className='space-y-2'>
+                                    <Label className='font-bold text-sm'>
+                                        Section:<span className='text-red-500'>*</span>
+                                    </Label>
                                     <Controller
-                                        name="ASMS_Id_New"
+                                        name='ASMS_Id_New'
                                         control={form.control}
                                         render={({ field }) => (
                                             <Select value={field.value} onValueChange={field.onChange}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="-Select-" />
+                                                    <SelectValue placeholder='-Select-' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {sectionList.map((item: any) => (
@@ -396,18 +419,25 @@ export default function ReadmitStudentPage() {
                                             </Select>
                                         )}
                                     />
-                                    {form.formState.errors.ASMS_Id_New && <span className="text-red-500 text-sm">{form.formState.errors.ASMS_Id_New.message}</span>}
+                                    {form.formState.errors.ASMS_Id_New && (
+                                        <span className='text-red-500 text-sm'>{form.formState.errors.ASMS_Id_New.message}</span>
+                                    )}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-bold">Student Name:<span className="text-red-500">*</span></Label>
+                                <div className='space-y-2'>
+                                    <Label className='font-bold text-sm'>
+                                        Student Name:<span className='text-red-500'>*</span>
+                                    </Label>
                                     <Controller
-                                        name="AMST_Id_New"
+                                        name='AMST_Id_New'
                                         control={form.control}
                                         render={({ field }) => (
-                                            <Select value={field.value} onValueChange={field.onChange} disabled={newJoinListMutation.isPending}>
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                disabled={newJoinListMutation.isPending}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="-Select-" />
+                                                    <SelectValue placeholder='-Select-' />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     {newStudentList.map((item: any) => (
@@ -419,28 +449,24 @@ export default function ReadmitStudentPage() {
                                             </Select>
                                         )}
                                     />
-                                    {form.formState.errors.AMST_Id_New && <span className="text-red-500 text-sm">{form.formState.errors.AMST_Id_New.message}</span>}
+                                    {form.formState.errors.AMST_Id_New && (
+                                        <span className='text-red-500 text-sm'>{form.formState.errors.AMST_Id_New.message}</span>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex justify-center gap-4 pt-4 border-t">
+                        <div className='flex justify-center gap-4 border-t pt-4'>
                             <Button
-                                type="submit"
+                                type='submit'
                                 disabled={isSaving}
-                                className="min-w-[120px] bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
-                            >
-                                {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                                className='min-w-[120px] bg-indigo-600 font-bold text-white hover:bg-indigo-700'>
+                                {isSaving ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Save className='mr-2 h-4 w-4' />}
                                 Save
                             </Button>
 
-                            <Button
-                                type="button"
-                                onClick={handleClear}
-                                variant="destructive"
-                                className="min-w-[120px] font-bold"
-                            >
-                                <X className="mr-2 h-4 w-4" />
+                            <Button type='button' onClick={handleClear} variant='destructive' className='min-w-[120px] font-bold'>
+                                <X className='mr-2 h-4 w-4' />
                                 Clear
                             </Button>
                         </div>

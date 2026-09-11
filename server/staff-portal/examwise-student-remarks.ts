@@ -1,17 +1,16 @@
 'use server';
 
-import { api, type ApiResponse } from '@/lib/apiService';
+import { type ApiResponse, api } from '@/lib/apiService';
 import type {
-    IExamwiseRemarksInitialData,
     IClass,
-    ISection,
     IExam,
-    IStudentExamRemarks,
-    ISubjectWiseRemark,
-    IExamwiseRemarksSave,
     IExamConfig,
+    IExamwiseRemarksSave,
     ISavedExammkDetail,
-    IStudentMarkExammk
+    ISection,
+    IStudentExamRemarks,
+    IStudentMarkExammk,
+    ISubjectWiseRemark
 } from '@/types/staff-portal/examwise-student-remarks.d';
 
 const BASE_URL = '/exammasterRemak';
@@ -28,7 +27,9 @@ export async function onChangeClass(data: { ASMAY_Id: number; ASMCL_Id: number }
     return await api.post('portal', `${BASE_URL}/onchangeclass`, data);
 }
 
-export async function onChangeSection(data: { ASMAY_Id: number; ASMCL_Id: number; ASMS_Id: number }): Promise<ApiResponse<{ examlist: IExam[] }>> {
+export async function onChangeSection(data: { ASMAY_Id: number; ASMCL_Id: number; ASMS_Id: number }): Promise<
+    ApiResponse<{ examlist: IExam[] }>
+> {
     return await api.post('portal', `${BASE_URL}/onchangesection`, data);
 }
 
@@ -38,13 +39,15 @@ export async function searchData(data: {
     ASMS_Id: number;
     EME_Id: number;
     Ep_Id?: number; // Seems unused in UI but present in payload
-}): Promise<ApiResponse<{
-    studentList: IStudentExamRemarks[];
-    configuration: IExamConfig[];
-    savedata: ISavedExammkDetail[];
-    getstudentmarks: IStudentMarkExammk[];
-    get_subjectwiseremarks: { amsT_Id: number }[]; // Just to check flag
-}>> {
+}): Promise<
+    ApiResponse<{
+        studentList: IStudentExamRemarks[];
+        configuration: IExamConfig[];
+        savedata: ISavedExammkDetail[];
+        getstudentmarks: IStudentMarkExammk[];
+        get_subjectwiseremarks: { amsT_Id: number }[]; // Just to check flag
+    }>
+> {
     return await api.post('portal', `${BASE_URL}/searchdata`, data);
 }
 
@@ -57,7 +60,7 @@ export async function viewSubjectWiseRemarks(data: {
     ASMAY_Id: number;
     ASMCL_Id: number;
     ASMS_Id: number;
-    EME_Id: number
+    EME_Id: number;
 }): Promise<ApiResponse<{ get_viewsubjectwiseremarks: ISubjectWiseRemark[] }>> {
     return await api.post('portal', `${BASE_URL}/ViewSubjectWiseRemarks`, data);
 }

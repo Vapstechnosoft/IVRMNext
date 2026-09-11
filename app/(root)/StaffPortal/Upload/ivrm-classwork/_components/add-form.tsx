@@ -12,21 +12,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { classWorkSchema } from '@/schemas/upload/transactions/ivrm-classwork.schema';
+import { uploadDocument } from '@/server/fees/trasactions/waived_off';
 import {
-    fetchInitialData,
     fetchClasses,
+    fetchInitialData,
     fetchSections,
     fetchSubjects,
     saveClassWork
 } from '@/server/upload/transactions/ivrm-classwork/server-action';
-import { uploadDocument } from '@/server/fees/trasactions/waived_off';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload, X } from 'lucide-react';
+import { CalendarIcon, Eye, Loader2, Minus, Plus, Save, Upload } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-import { z } from 'zod';
+import type { z } from 'zod';
 
 type IClassWorkFormValues = z.infer<typeof classWorkSchema.addOrUpdate>;
 
@@ -211,7 +211,7 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                 throw new Error(response.message || 'Upload failed');
             }
         } catch (error: any) {
-             updateFile(index, { icW_FilePath: '', fileName: '', isUploading: false } as any);
+            updateFile(index, { icW_FilePath: '', fileName: '', isUploading: false } as any);
             toast.error(`Upload failed: ${error.message}`);
         }
     };
@@ -239,7 +239,7 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                 icW_Attachment: data.icW_Attachment || '',
                 hm_section_list: data.hm_section_list.map((s: any) => ({
                     asmS_Id: s.asmS_Id,
-                    asmC_SectionName: sections.find(sec => sec.asmS_Id === s.asmS_Id)?.asmC_SectionName || ''
+                    asmC_SectionName: sections.find((sec) => sec.asmS_Id === s.asmS_Id)?.asmC_SectionName || ''
                 })),
                 icW_FilePath_Array: mergedAttachments.map((f: any) => ({
                     icW_FilePath: f.icW_FilePath,
@@ -264,7 +264,7 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
         return (
             <div className='flex items-center justify-center p-12'>
                 <Loader2 className='h-8 w-8 animate-spin text-blue-600' />
-                <span className='ml-3 text-lg font-medium'>Loading form details...</span>
+                <span className='ml-3 font-medium text-lg'>Loading form details...</span>
             </div>
         );
     }
@@ -277,12 +277,18 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                     name='asmaY_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Academic Year <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Academic Year <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger><SelectValue placeholder='Select Year' /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Year' />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {years.map((year: any) => (
-                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>{year.asmaY_Year}</SelectItem>
+                                        <SelectItem key={year.asmaY_Id} value={year.asmaY_Id.toString()}>
+                                            {year.asmaY_Year}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -296,12 +302,18 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                     name='asmcL_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Class <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Class <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger><SelectValue placeholder='Select Class' /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Class' />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {classes.map((cls: any) => (
-                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>{cls.asmcL_ClassName}</SelectItem>
+                                        <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
+                                            {cls.asmcL_ClassName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -333,12 +345,18 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                     name='ismS_Id'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Subject <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Subject <span className='text-red-500'>*</span>
+                            </Label>
                             <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                <SelectTrigger><SelectValue placeholder='Select Subject' /></SelectTrigger>
+                                <SelectTrigger>
+                                    <SelectValue placeholder='Select Subject' />
+                                </SelectTrigger>
                                 <SelectContent>
                                     {subjects.map((sub: any) => (
-                                        <SelectItem key={sub.ismS_Id} value={sub.ismS_Id.toString()}>{sub.ismS_SubjectName}</SelectItem>
+                                        <SelectItem key={sub.ismS_Id} value={sub.ismS_Id.toString()}>
+                                            {sub.ismS_SubjectName}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -352,7 +370,9 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                     name='icW_Topic'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Topic <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Topic <span className='text-red-500'>*</span>
+                            </Label>
                             <Input {...field} placeholder='Enter Topic' />
                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                         </div>
@@ -364,7 +384,9 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                     name='icW_SubTopic'
                     render={({ field, fieldState }) => (
                         <div>
-                            <Label>Sub Topic <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Sub Topic <span className='text-red-500'>*</span>
+                            </Label>
                             <Input {...field} placeholder='Enter Sub Topic' />
                             {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
                         </div>
@@ -376,12 +398,14 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                     name='icW_TeachingAid'
                     render={({ field }) => (
                         <div className='flex items-center gap-3 pt-8'>
-                            <Checkbox 
-                                id='teaching-aid' 
-                                checked={field.value === 1} 
-                                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)} 
+                            <Checkbox
+                                id='teaching-aid'
+                                checked={field.value === 1}
+                                onCheckedChange={(checked) => field.onChange(checked ? 1 : 0)}
                             />
-                            <Label htmlFor='teaching-aid' className='cursor-pointer text-sm font-bold uppercase'>Teaching Aid</Label>
+                            <Label htmlFor='teaching-aid' className='cursor-pointer font-bold text-sm uppercase'>
+                                Teaching Aid
+                            </Label>
                         </div>
                     )}
                 />
@@ -416,10 +440,14 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                     name='icW_FromDate'
                     render={({ field, fieldState }) => (
                         <div className='flex flex-col'>
-                            <Label>Start Date <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                Start Date <span className='text-red-500'>*</span>
+                            </Label>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant='outline' className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                    <Button
+                                        variant='outline'
+                                        className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
                                         <CalendarIcon className='mr-2 h-4 w-4 opacity-50' />
                                         {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                     </Button>
@@ -438,20 +466,28 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                     name='icW_ToDate'
                     render={({ field, fieldState }) => (
                         <div className='flex flex-col'>
-                            <Label>End Date <span className='text-red-500'>*</span></Label>
+                            <Label>
+                                End Date <span className='text-red-500'>*</span>
+                            </Label>
                             <Popover>
                                 <PopoverTrigger asChild>
-                                    <Button variant='outline' className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
+                                    <Button
+                                        variant='outline'
+                                        className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
                                         <CalendarIcon className='mr-2 h-4 w-4 opacity-50' />
                                         {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className='w-auto p-0' align='start'>
-                                    <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus 
-                                         disabled={(date) => {
+                                    <Calendar
+                                        mode='single'
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        initialFocus
+                                        disabled={(date) => {
                                             const startDate = methods.getValues('icW_FromDate');
                                             return startDate ? date < startDate : false;
-                                         }}
+                                        }}
                                     />
                                 </PopoverContent>
                             </Popover>
@@ -462,7 +498,9 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
             </div>
 
             <div>
-                <Label>Content <span className='text-red-500'>*</span></Label>
+                <Label>
+                    Content <span className='text-red-500'>*</span>
+                </Label>
                 <Controller
                     control={control}
                     name='icW_Content'
@@ -476,7 +514,7 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
             </div>
 
             <div className='space-y-4 rounded-md border p-4'>
-                <h3 className='font-semibold text-lg text-blue-700'>Attachments</h3>
+                <h3 className='font-semibold text-blue-700 text-lg'>Attachments</h3>
                 <div className='overflow-x-auto'>
                     <table className='w-full table-auto border-collapse border text-sm'>
                         <thead className='bg-blue-50'>
@@ -495,7 +533,9 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                                     <td className='border p-2'>
                                         <div className='flex justify-center'>
                                             <input
-                                                ref={(el) => { fileInputRefs.current[index] = el; }}
+                                                ref={(el) => {
+                                                    fileInputRefs.current[index] = el;
+                                                }}
                                                 type='file'
                                                 className='hidden'
                                                 onChange={(e) => handleFileUpload(e, index)}
@@ -509,7 +549,11 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                                                 disabled={item.isUploading}
                                             >
                                                 {/* @ts-ignore */}
-                                                {item.isUploading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Upload className='mr-2 h-4 w-4 text-blue-600' />} 
+                                                {item.isUploading ? (
+                                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                ) : (
+                                                    <Upload className='mr-2 h-4 w-4 text-blue-600' />
+                                                )}
                                                 Choose File
                                             </Button>
                                         </div>
@@ -523,15 +567,32 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                                             variant='ghost'
                                             size='sm'
                                             onClick={() => item.icW_FilePath && window.open(item.icW_FilePath, '_blank')}
-                                            disabled={!item.icW_FilePath}
-                                        >
+                                            disabled={!item.icW_FilePath}>
                                             <Eye className='h-4 w-4 text-blue-600' />
                                         </Button>
                                     </td>
                                     <td className='border p-2 text-center'>
                                         <div className='flex justify-center gap-1'>
-                                            {fileFields.length > 1 && <Button type='button' size='icon' variant='destructive' className='h-8 w-8' onClick={() => removeFile(index)}><Minus className='h-4 w-4' /></Button>}
-                                            {index === fileFields.length - 1 && <Button type='button' size='icon' variant='outline' className='h-8 w-8 text-blue-600' onClick={() => appendFile({ icW_FilePath: '', fileName: '' })}><Plus className='h-4 w-4' /></Button>}
+                                            {fileFields.length > 1 && (
+                                                <Button
+                                                    type='button'
+                                                    size='icon'
+                                                    variant='destructive'
+                                                    className='h-8 w-8'
+                                                    onClick={() => removeFile(index)}>
+                                                    <Minus className='h-4 w-4' />
+                                                </Button>
+                                            )}
+                                            {index === fileFields.length - 1 && (
+                                                <Button
+                                                    type='button'
+                                                    size='icon'
+                                                    variant='outline'
+                                                    className='h-8 w-8 text-blue-600'
+                                                    onClick={() => appendFile({ icW_FilePath: '', fileName: '' })}>
+                                                    <Plus className='h-4 w-4' />
+                                                </Button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -539,7 +600,9 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                         </tbody>
                     </table>
                 </div>
-                <p className='text-xs text-blue-600 italic'>Accepted Formats: jpg, jpeg, png, doc, ppt, excel, mp3, mp4, wmv, pdf (Max 30MB)</p>
+                <p className='text-blue-600 text-xs italic'>
+                    Accepted Formats: jpg, jpeg, png, doc, ppt, excel, mp3, mp4, wmv, pdf (Max 30MB)
+                </p>
             </div>
 
             <div className='flex items-center space-x-2'>
@@ -549,7 +612,7 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
 
             {showUrlSection && (
                 <div className='space-y-4 rounded-md border p-4'>
-                    <h3 className='font-semibold text-lg text-blue-700'>URL Details</h3>
+                    <h3 className='font-semibold text-blue-700 text-lg'>URL Details</h3>
                     <div className='overflow-x-auto'>
                         <table className='w-full table-auto border-collapse border text-sm'>
                             <thead className='bg-blue-50'>
@@ -572,12 +635,37 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                                             />
                                         </td>
                                         <td className='border p-2 text-center'>
-                                            <Button type='button' variant='ghost' size='sm' onClick={() => item.icW_FilePath && window.open(item.icW_FilePath, '_blank')} disabled={!item.icW_FilePath}><Eye className='h-4 w-4 text-blue-600' /></Button>
+                                            <Button
+                                                type='button'
+                                                variant='ghost'
+                                                size='sm'
+                                                onClick={() => item.icW_FilePath && window.open(item.icW_FilePath, '_blank')}
+                                                disabled={!item.icW_FilePath}>
+                                                <Eye className='h-4 w-4 text-blue-600' />
+                                            </Button>
                                         </td>
                                         <td className='border p-2 text-center'>
                                             <div className='flex justify-center gap-1'>
-                                                {index === urlFields.length - 1 && <Button type='button' size='icon' variant='outline' className='h-8 w-8 text-blue-600' onClick={() => appendUrl({ icW_FilePath: '', fileName: '' })}><Plus className='h-4 w-4' /></Button>}
-                                                {urlFields.length > 1 && <Button type='button' size='icon' variant='destructive' className='h-8 w-8' onClick={() => removeUrl(index)}><Minus className='h-4 w-4' /></Button>}
+                                                {index === urlFields.length - 1 && (
+                                                    <Button
+                                                        type='button'
+                                                        size='icon'
+                                                        variant='outline'
+                                                        className='h-8 w-8 text-blue-600'
+                                                        onClick={() => appendUrl({ icW_FilePath: '', fileName: '' })}>
+                                                        <Plus className='h-4 w-4' />
+                                                    </Button>
+                                                )}
+                                                {urlFields.length > 1 && (
+                                                    <Button
+                                                        type='button'
+                                                        size='icon'
+                                                        variant='destructive'
+                                                        className='h-8 w-8'
+                                                        onClick={() => removeUrl(index)}>
+                                                        <Minus className='h-4 w-4' />
+                                                    </Button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -588,10 +676,18 @@ export default function AddClassWorkForm({ onSuccess, initialData }: AddClassWor
                 </div>
             )}
 
-            <div className='flex justify-center gap-4 pt-4 border-t'>
-                <Button type='button' variant='outline' size='lg' onClick={() => reset()} className='min-w-[120px]'>Reset</Button>
-                <Button type='submit' className='bg-blue-600 hover:bg-blue-700 min-w-[150px]' size='lg' isLoading={isSubmitting}>
-                    {isSubmitting ? 'Saving...' : <><Save className='h-4 w-4 mr-2' /> Save ClassWork</>}
+            <div className='flex justify-center gap-4 border-t pt-4'>
+                <Button type='button' variant='outline' size='lg' onClick={() => reset()} className='min-w-[120px]'>
+                    Reset
+                </Button>
+                <Button type='submit' className='min-w-[150px] bg-blue-600 hover:bg-blue-700' size='lg' isLoading={isSubmitting}>
+                    {isSubmitting ? (
+                        'Saving...'
+                    ) : (
+                        <>
+                            <Save className='mr-2 h-4 w-4' /> Save ClassWork
+                        </>
+                    )}
                 </Button>
             </div>
         </form>

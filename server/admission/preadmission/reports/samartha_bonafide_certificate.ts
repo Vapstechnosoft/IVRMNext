@@ -8,7 +8,6 @@ export async function getSamarthaBonafideCertLoadData() {
     return await api.get<any>('admission', url);
 }
 
-
 export async function getSamarthaBonafideCertSearchFilter(data: {
     searchfilter: string;
     ASMAY_Id: number;
@@ -17,7 +16,6 @@ export async function getSamarthaBonafideCertSearchFilter(data: {
     ASMC_Id: number;
     allorindid: string;
 }) {
-
     const url = `/StudyCertificate/searchfilter?ASMAY_Id=${data.ASMAY_Id}&AMST_SOL=${data.AMST_SOL}&ASMCL_Id=${data.ASMCL_Id}&ASMC_Id=${data.ASMC_Id}&searchfilter=${encodeURIComponent(data.searchfilter)}&allorindid=${data.allorindid}`;
     return await api.post<any>('admission', url, data);
 }

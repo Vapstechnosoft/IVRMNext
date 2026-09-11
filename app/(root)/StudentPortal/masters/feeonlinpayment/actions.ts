@@ -1,5 +1,8 @@
 'use server';
 
+import { api } from '@/lib/apiService';
+import type { IFeeAcademicYearDropdownList } from '@/types/fees/reports/reports';
+
 // Mock data to ensure UI renders if backend is not available
 const MOCK_INITIAL_DATA = {
     pagelist: [{ ivrmimP_DisplayContent: 'Online Payment Charges apply.' }],
@@ -111,4 +114,9 @@ export async function savePayment(data: any) {
             ]
         }
     };
+}
+
+export async function studentPortalAcademci() {
+    const url = '/FeesCommon/academic-year-list';
+    return await api.get<IFeeAcademicYearDropdownList[]>('fees', url);
 }

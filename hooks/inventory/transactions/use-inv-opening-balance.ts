@@ -1,23 +1,21 @@
-
+import {
+    deactiveInvOpeningBalance,
+    getInvOpeningBalanceItems,
+    getInvOpeningBalanceLoadData,
+    getInvOpeningBalanceStores,
+    getOpeningBalanceDetails,
+    getSelectionItemDetails,
+    saveInvOpeningBalance
+} from '@/server/inventory/transactions/inv-opening-balance';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-    getInvOpeningBalanceLoadData,
-    saveInvOpeningBalance,
-    deactiveInvOpeningBalance,
-    getSelectionItemDetails,
-    getOpeningBalanceDetails,
-    getInvOpeningBalanceStores,
-    getInvOpeningBalanceItems
-} from '@/server/inventory/transactions/inv-opening-balance';
-import type { IInvOpeningBalance } from '@/types/inventory/transactions/inv-opening-balance';
 
 export const useInvOpeningBalance = (searchParams?: any) => {
     const queryClient = useQueryClient();
 
     const { data, isLoading, error, refetch } = useQuery({
         queryKey: ['inv-opening-balance', searchParams],
-        queryFn: () => getInvOpeningBalanceLoadData(searchParams),
+        queryFn: () => getInvOpeningBalanceLoadData(searchParams)
     });
 
     const refetchAll = () => {
@@ -36,7 +34,7 @@ export const useInvOpeningBalance = (searchParams?: any) => {
         },
         onError: (error: any) => {
             toast.error(error.message || 'An error occurred while saving');
-        },
+        }
     });
 
     const toggleActiveMutation = useMutation({
@@ -51,13 +49,13 @@ export const useInvOpeningBalance = (searchParams?: any) => {
         },
         onError: (error: any) => {
             toast.error(error.message || 'An error occurred while updating status');
-        },
+        }
     });
 
     const storesQuery = useQuery({
         queryKey: ['inv-opening-balance-stores'],
         queryFn: () => getInvOpeningBalanceStores(),
-        staleTime: 5 * 60 * 1000, // 5 minutes cache
+        staleTime: 5 * 60 * 1000 // 5 minutes cache
     });
 
     const getStoresMutation = useMutation({
@@ -81,7 +79,6 @@ export const useInvOpeningBalance = (searchParams?: any) => {
         storesQuery
     };
 };
-
 
 export const useInvOpeningBalanceItemDetails = () => {
     return useMutation({

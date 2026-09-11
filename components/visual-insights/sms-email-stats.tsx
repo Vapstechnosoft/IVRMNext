@@ -15,7 +15,7 @@ const emailSmsData = [
     { month: 'Sep', email: 62, sms: 64 },
     { month: 'Oct', email: 43, sms: 47 },
     { month: 'Nov', email: 44, sms: 49 },
-    { month: 'Dec', email: 56, sms: 47 },
+    { month: 'Dec', email: 56, sms: 47 }
 ];
 
 export function SmsEmailStats() {
@@ -25,16 +25,16 @@ export function SmsEmailStats() {
                 <CardTitle>Birthday Communication: Email vs SMS</CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="h-[400px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
+                <div className='h-[400px] w-full'>
+                    <ResponsiveContainer width='100%' height='100%'>
                         <BarChart data={emailSmsData}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                            <XAxis dataKey="month" />
+                            <CartesianGrid strokeDasharray='3 3' vertical={false} />
+                            <XAxis dataKey='month' />
                             <YAxis />
                             <Tooltip cursor={{ fill: 'transparent' }} />
                             <Legend />
-                            <Bar dataKey="email" name="Email Count" fill="#2874A6" radius={[4, 4, 0, 0]} />
-                            <Bar dataKey="sms" name="SMS Count" fill="#F3A00E" radius={[4, 4, 0, 0]} />
+                            <Bar dataKey='email' name='Email Count' fill='#2874A6' radius={[4, 4, 0, 0]} />
+                            <Bar dataKey='sms' name='SMS Count' fill='#F3A00E' radius={[4, 4, 0, 0]} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>

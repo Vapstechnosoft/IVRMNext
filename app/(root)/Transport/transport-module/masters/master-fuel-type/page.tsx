@@ -23,12 +23,7 @@ export default function MasterFuelTypePage(props: { searchParams: SearchParams }
         <FormProvider<IMasterFuelType>>
             <div className='min-h-screen'>
                 <div className='container space-y-4 p-1'>
-                    <MasterFuelTypePageContent
-                        response={response}
-                        isLoading={isLoading}
-                        error={error}
-                        refetchAll={refetchAll}
-                    />
+                    <MasterFuelTypePageContent response={response} isLoading={isLoading} error={error} refetchAll={refetchAll} />
                 </div>
             </div>
         </FormProvider>

@@ -1,27 +1,61 @@
 'use client';
 
-import { useDeputationMasters } from '@/hooks/timetable/useTransactions';
+import { usePeriodAlloted } from '@/hooks/timetable/useTransactions';
+import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import DeputationAssignmentTable from './_components/deputationAssignmentTable';
-import DeputationForm from './_components/deputationForm';
-import DeputationReport from './_components/deputationReport';
+import DeputationForm, { type IDeputationFormSelection } from './_components/deputationForm';
 
 export default function DeputationPage() {
-    const [reportData, setReportData] = useState<any>(null);
-    const { data: masters } = useDeputationMasters();
+    const [selection, setSelection] = useState<IDeputationFormSelection | null>(null);
+
+    // Fetch period allotments when absent staff, day, date, and academic year are selected
+    const {
+        data: periodData,
+        isLoading: periodsLoading,
+        refetch: refetchPeriods
+    } = usePeriodAlloted(
+        {
+            ASMAY_Id: selection?.asmaY_Id || 0,
+            TTMD_Id: selection?.dayId || 0,
+            HRME_Id: selection?.absentStaffId || 0,
+            TTSD_Date: selection?.dateStr || ''
+        },
+        !!selection?.absentStaffId && !!selection?.dateStr && !!selection?.asmaY_Id
+    );
+
+    const handleSaveSuccess = () => {
+        refetchPeriods();
+    };
+
+    const handleCancel = () => {
+        setSelection(null);
+    };
 
     return (
         <div className='container mx-auto max-w-7xl space-y-8 p-4'>
-            <DeputationForm onFetch={setReportData} />
+            {/* Main Deputation Form */}
+            <DeputationForm onFetch={setSelection} onResetParent={handleCancel} />
 
-            {reportData && (
+            {/* Loading Indicator */}
+            {selection && periodsLoading && (
+                <div className='flex items-center justify-center gap-3 rounded-2xl border border-purple-100 bg-white p-8 font-semibold text-purple-700 shadow-md'>
+                    <Loader2 className='h-5 w-5 animate-spin text-purple-600' />
+                    <span>Loading allotted periods and substitute staff availability...</span>
+                </div>
+            )}
+
+            {/* Period Assignment & Substitution Table */}
+            {selection && !periodsLoading && periodData && (
                 <div className='fade-in slide-in-from-bottom-4 animate-in space-y-8 duration-500'>
-                    <DeputationReport data={reportData} />
-                    <DeputationAssignmentTable data={reportData} masters={masters} />
+                    <DeputationAssignmentTable
+                        periodsData={periodData}
+                        selection={selection}
+                        onSaveSuccess={handleSaveSuccess}
+                        onCancel={handleCancel}
+                    />
                 </div>
             )}
         </div>
     );
 }
-
-
