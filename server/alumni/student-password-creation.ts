@@ -37,7 +37,10 @@ export async function sendSMS(filterdata: string, selectedStudents: ICredentialS
     const url = '/SMSEmailSend/smssend';
     const data = {
         filterdata,
-        data_array: selectedStudents
+        data_array: selectedStudents.map(student => ({
+            AMST_MobileNo: Number(student.amsT_MobileNo),
+            AMST_Id: student.amsT_Id
+        }))
     };
     return await api.post<ICommonResponse>('alumni', url, data);
 }
@@ -46,7 +49,10 @@ export async function sendEmail(filterdata: string, selectedStudents: ICredentia
     const url = '/SMSEmailSend/emailsend';
     const data = {
         filterdata,
-        data_array: selectedStudents
+        data_array: selectedStudents.map(student => ({
+            AMST_Id: student.amsT_Id,
+            AMST_emailId: student.amsT_emailId
+        }))
     };
     return await api.post<ICommonResponse>('alumni', url, data);
 }
@@ -55,7 +61,10 @@ export async function sendWhatsApp(filterdata: string, selectedStudents: ICreden
     const url = '/SMSEmailSend/whatsapp';
     const data = {
         filterdata,
-        data_array: selectedStudents
+        data_array: selectedStudents.map(student => ({
+            AMST_Id: student.amsT_Id,
+            AMST_MobileNo: Number(student.amsT_MobileNo)
+        }))
     };
     return await api.post<ICommonResponse>('alumni', url, data);
 }

@@ -195,3 +195,22 @@ export function useToggleMasterComplexity() {
         }
     };
 }
+
+// Hook to Delete Master Complexity
+export function useDeleteMasterComplexity() {
+    const queryClient = useQueryClient();
+    return {
+        mutateAsync: async (complexityId: number) => {
+            const res = await fetch('/api/exam/master-complexity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', LPMCOMP_Id: complexityId, MI_Id: 30 })
+            });
+            const json = await res.json();
+            await queryClient.invalidateQueries({
+                queryKey: ['MASTER_COMPLEXITY']
+            });
+            return json;
+        }
+    };
+}

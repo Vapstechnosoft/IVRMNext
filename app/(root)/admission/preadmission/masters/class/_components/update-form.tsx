@@ -92,7 +92,16 @@ export default function UpdateMasterClassForm({ onSuccess, className = '', selec
             const response = await addOrUpdateMasterClass(payload);
 
             if (response.success) {
-                toast.success('Record Updated Successfully');
+                const Swal = (await import('sweetalert2')).default;
+                Swal.fire({
+                    title: 'Success',
+                    text: 'Record Updated Successfully',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    allowOutsideClick: true
+                }).then(() => {
+                    window.location.reload();
+                });
                 reset();
                 refetchAll();
                 onSuccess?.();
