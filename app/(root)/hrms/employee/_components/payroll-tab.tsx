@@ -284,10 +284,10 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
 
         // Skip auto-save if this row hasn't been saved to the DB yet (no valid ID)
         const hreedId = Number(item.HREED_Id || 0);
-        if (!hreedId || hreedId <= 0) {
-            console.log('[PAYROLL AUTO-SAVE] Skipping: HREED_Id is 0 or missing (unsaved row)');
-            return;
-        }
+        // if (!hreedId || hreedId <= 0) {
+        //     console.log('[PAYROLL AUTO-SAVE] Skipping: HREED_Id is 0 or missing (unsaved row)');
+        //     return;
+        // }
 
         // Construct payload matching the user's requested structure
         const payload = {
