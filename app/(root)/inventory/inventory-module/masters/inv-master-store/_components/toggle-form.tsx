@@ -24,54 +24,39 @@ interface ToggleInvMasterStoreFormProps {
 
 export default function ToggleInvMasterStoreForm({ rowData, onClose }: ToggleInvMasterStoreFormProps) {
     const { refetchAll } = useInvMasterStore();
-
-    const handleToggle = useCallback(
-        async (e: React.MouseEvent<HTMLButtonElement>) => {
-            // Prevent dialog from closing immediately if we want to wait for success
-            // But inv-master-tax doesn't prevent default. I will stick to the logic requested.
-            // Actually, if I prevent default, I must manually close.
-            // inv-master-tax code:
-            /*
-            const handleToggle = useCallback(async () => {
-                try {
-                    const result = await deactivateInvMasterTax(rowData);
-                    if (result.success || result.returnval) {
-                        toast.success(result.message || 'Record status updated successfully');
-                        refetchAll();
-                        onClose();
-                    } else {
-                        toast.error(result.message || 'Failed to update status');
-                    }
-                } catch (error: any) {
-                    toast.error(error.message || 'An error occurred');
-                }
-            }, [rowData, refetchAll, onClose]);
-        */
-
-            // I will perform the exact same Update.
-            try {
-                const result = await deactivateInvMasterStore(rowData);
-                if (result.success || result.returnval) {
-                    toast.success(result.message || 'Record status updated successfully');
-                    refetchAll();
-                    onClose();
-                } else {
-                    toast.error(result.message || 'Failed to update status');
-                }
-            } catch (error: any) {
-                toast.error(error.message || 'An error occurred');
-            }
-        },
-        [rowData, refetchAll, onClose]
+    const isActive = Boolean(
+        rowData.invmS_ActiveFlg ??
+        (rowData as any).invmsT_ActiveFlg ??
+        (rowData as any).INVMST_ActiveFlg ??
+        (rowData as any).INVMS_ActiveFlg
     );
+
+    const handleToggle = useCallback(async () => {
+        try {
+            const result = await deactivateInvMasterStore(rowData);
+            if (result.success || result.returnval) {
+                if (isActive) {
+                    toast.error('Deactivated Successfully');
+                } else {
+                    toast.success('Activated Successfully');
+                }
+                refetchAll();
+                onClose();
+            } else {
+                toast.error(result.message || 'Failed to update status');
+            }
+        } catch (error: any) {
+            toast.error(error.message || 'An error occurred');
+        }
+    }, [rowData, isActive, refetchAll, onClose]);
 
     return (
         <AlertDialog open={true} onOpenChange={onClose}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>{rowData.invmS_ActiveFlg ? 'Deactivate Record' : 'Activate Record'}</AlertDialogTitle>
+                    <AlertDialogTitle>{isActive ? 'Deactivate Record' : 'Activate Record'}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Are you sure you want to {rowData.invmS_ActiveFlg ? 'deactivate' : 'activate'} this store record?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} this store record?
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
@@ -79,8 +64,8 @@ export default function ToggleInvMasterStoreForm({ rowData, onClose }: ToggleInv
                     <AlertDialogCancel className='text-black hover:bg-transparent dark:text-white'>Cancel</AlertDialogCancel>
 
                     <AlertDialogAction asChild>
-                        <Button variant={rowData.invmS_ActiveFlg ? 'destructive' : 'default'} onClick={handleToggle}>
-                            Yes, {rowData.invmS_ActiveFlg ? 'Deactivate' : 'Activate'} it
+                        <Button variant={isActive ? 'destructive' : 'default'} onClick={handleToggle}>
+                            Yes, {isActive ? 'Deactivate' : 'Activate'} it
                         </Button>
                     </AlertDialogAction>
                 </AlertDialogFooter>
