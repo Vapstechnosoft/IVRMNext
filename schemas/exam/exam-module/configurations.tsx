@@ -19,22 +19,18 @@ export const examStandardSchema = {
                 required_error: 'Select Remarks Type'
             }),
 
-            ExmConfig_PassFailRankFlag: z.enum(['0', '1'], {
-                required_error: 'Select Condition'
-            }),
+            ExmConfig_PassFailRankFlag: z.union([z.enum(['0', '1']), z.boolean(), z.string()]),
 
-            ExmConfig_AdmNoRegNoRollNo_DefaultFlag: z.enum(['Admno', 'Regno', 'Rollno'], {
-                required_error: 'Select Default Column Display'
-            }),
+            ExmConfig_AdmNoRegNoRollNo_DefaultFlag: z.string().min(1, 'Select Default Column Display'),
 
             ExmConfig_Recordsearchtype: z.string().min(1, 'Select Search Type'),
 
             // NUMERIC + FLAG RULES
             ExmConfig_EnableFractionFlg: z.boolean(),
-            ExmConfig_NoOfDecimal: z.union([z.literal(''), z.enum(['1', '2', '3']), z.number()]).optional(),
+            ExmConfig_NoOfDecimal: z.union([z.literal(''), z.string(), z.number()]).optional(),
 
             ExmConfig_RoundoffFlag: z.boolean(),
-            ExmConfig_NoOfDecimalValues: z.union([z.literal(''), z.enum(['1', '2', '3']), z.number()]).optional(),
+            ExmConfig_NoOfDecimalValues: z.union([z.literal(''), z.string(), z.number()]).optional(),
 
             // ================================
             // ⭐ NEW FIELD (Missing earlier)
@@ -80,7 +76,7 @@ export const examStandardSchema = {
         .superRefine((data, ctx) => {
             // FRACTION VALIDATION
             if (data.ExmConfig_EnableFractionFlg) {
-                if (!data.ExmConfig_NoOfDecimal) {
+                if (data.ExmConfig_NoOfDecimal === '' || data.ExmConfig_NoOfDecimal === undefined || data.ExmConfig_NoOfDecimal === null) {
                     ctx.addIssue({
                         code: z.ZodIssueCode.custom,
                         message: 'Select No Of Decimal (Fraction)',
@@ -91,7 +87,7 @@ export const examStandardSchema = {
 
             // ROUNDING VALIDATION
             if (data.ExmConfig_RoundoffFlag) {
-                if (!data.ExmConfig_NoOfDecimalValues) {
+                if (data.ExmConfig_NoOfDecimalValues === '' || data.ExmConfig_NoOfDecimalValues === undefined || data.ExmConfig_NoOfDecimalValues === null) {
                     ctx.addIssue({
                         code: z.ZodIssueCode.custom,
                         message: 'Select No Of Decimal For Round',
@@ -101,8 +97,8 @@ export const examStandardSchema = {
             }
 
             // SEARCH TYPE VALIDATION
-            const allowedSearch = ['Name', 'AdmNo', 'RollNo', 'RegNo'];
-            if (!allowedSearch.includes(data.ExmConfig_Recordsearchtype)) {
+            const allowedSearch = ['Name', 'AdmNo', 'RollNo', 'RegNo', 'Admno', 'Rollno', 'Regno'];
+            if (data.ExmConfig_Recordsearchtype && !allowedSearch.some(s => s.toLowerCase() === data.ExmConfig_Recordsearchtype.toLowerCase())) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: 'Invalid Search Type',
