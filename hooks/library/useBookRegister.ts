@@ -1,6 +1,13 @@
 'use client';
 
-import { deactivateBookRegister, getBookRegisterList, getInitialData, saveBookRegister } from '@/server/library/masters/bookRegister';
+import {
+    deactivateBookRegister,
+    getBookRegisterList,
+    getInitialData,
+    saveBookRegister,
+    saveBookRegisterTable1,
+    saveBookRegisterTable2
+} from '@/server/library/masters/bookRegister';
 import type { ApiSearchparams } from '@/types';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,7 +23,7 @@ export function useBookRegister(searchParams?: ApiSearchparams) {
     return {
         ...useQuery({
             queryKey: [LIBRARY_QUERY_KEYS.BOOK_REGISTER, searchParams ?? {}],
-            queryFn: async () => getBookRegisterList({ IVRMUL_Id: 1, searchParams }),
+            queryFn: async () => getBookRegisterList({ IVRMUL_Id: 21602, searchParams }),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -32,8 +39,24 @@ export function useBookRegister(searchParams?: ApiSearchparams) {
                 });
             }
         }),
+        saveTable1Mutation: useMutation({
+            mutationFn: (data: BookRegisterPayload) => saveBookRegisterTable1(data),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [LIBRARY_QUERY_KEYS.BOOK_REGISTER]
+                });
+            }
+        }),
+        saveTable2Mutation: useMutation({
+            mutationFn: (data: BookRegisterPayload) => saveBookRegisterTable2(data),
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: [LIBRARY_QUERY_KEYS.BOOK_REGISTER]
+                });
+            }
+        }),
         deactivateMutation: useMutation({
-            mutationFn: (data: { LMB_Id: number; LMB_BookTitle?: string }) => deactivateBookRegister(data),
+            mutationFn: (data: { LMBANO_Id?: number; LMB_Id?: number; LMB_BookTitle?: string }) => deactivateBookRegister(data),
             onSuccess: () => {
                 queryClient.invalidateQueries({
                     queryKey: [LIBRARY_QUERY_KEYS.BOOK_REGISTER]
@@ -47,6 +70,6 @@ export function useBookRegisterInitialData() {
     return useQuery({
         queryKey: [LIBRARY_QUERY_KEYS.BOOK_REGISTER_INITIAL],
         queryFn: async () => getInitialData(),
-        staleTime: 1000 * 60 * 5 // 5 minutes
+        staleTime: 0
     });
 }

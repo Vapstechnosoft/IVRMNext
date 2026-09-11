@@ -1,15 +1,36 @@
 import {
     calculateDueDateWithHolidays,
+    getBookDetailsOnLoad,
     getBookTransactionDetails,
     getDepartmentDetails,
     getStaffDetails,
+    getStudentDetails1,
     getStudentDetailsById,
+    getStudentsByClassSection,
     issueBook,
     loadAvailableBooks
 } from '@/server/library/transactions/book-return';
 import type { BookCategory, BookType, IIssueBookRequest, MemberType } from '@/types/library/transactions/book-transaction';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+
+export const useBookDetailsOnLoad = () => {
+    return useQuery({
+        queryKey: ['book-details-on-load'],
+        queryFn: () => getBookDetailsOnLoad(),
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false
+    });
+};
+
+export const useStudentDetails1 = () => {
+    return useQuery({
+        queryKey: ['student-details-1'],
+        queryFn: () => getBookDetailsOnLoad(),
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false
+    });
+};
 
 export const useBookIssueInitialData = (params: {
     booktype: BookType;
@@ -24,6 +45,7 @@ export const useBookIssueInitialData = (params: {
     });
 };
 
+
 export const useIssueBook = () => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -31,11 +53,12 @@ export const useIssueBook = () => {
         onSuccess: (data) => {
             if (data.returnval) {
                 toast.success('Book issued successfully');
+                queryClient.invalidateQueries({ queryKey: ['book-details-on-load'] });
                 queryClient.invalidateQueries({ queryKey: ['book-issue-initial'] });
             } else if (data.duplicate) {
                 toast.warning('Book already issued or duplicate transaction');
             } else if (data.maxmsg) {
-                toast.warning('data.maxmsg');
+                toast.warning(data.maxmsg);
             } else {
                 toast.error('Failed to issue book');
             }
@@ -61,8 +84,16 @@ export const useStudentDetails = () => {
     return useMutation({
         mutationFn: getStudentDetailsById,
         onError: (error) => {
-            console.error('Error fetching student details:', error);
-            toast.error('Failed to fetch student details');
+            console.warn('Error fetching student details:', error);
+        }
+    });
+};
+
+export const useStudentsByClassSection = () => {
+    return useMutation({
+        mutationFn: getStudentsByClassSection,
+        onError: (error) => {
+            console.warn('Error fetching students by class/section:', error);
         }
     });
 };

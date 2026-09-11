@@ -25,3 +25,10 @@ export interface ILibTransactionReportInitialData {
         lmaL_LibraryName: string;
     }>;
 }
+
+export interface ILibTransactionReportYearListData {
+    departmentList: Array<{
+        asmaY_Id: number;
+        asmaY_Year: string;
+    }>;
+}

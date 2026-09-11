@@ -37,40 +37,35 @@ export const masterVendorSchema = {
         lmV_VendorName: z
             .string({ required_error: 'Vendor Name is required' })
             .trim()
-            .min(2, 'Vendor Name must be at least 2 characters')
+            .min(3, 'Vendor Name must be at least 3 characters')
             .max(100, 'Vendor Name cannot exceed 100 characters')
-            .regex(/^[A-Za-z\s.&]+$/, 'Only letters, spaces, . and & allowed'),
+            .regex(/^[A-Za-z\s]+$/, 'Only letters and spaces allowed'),
 
         lmV_MobileNo: z
-            .string()
+            .string({ required_error: 'Mobile Number is required' })
             .trim()
-            .regex(/^[6-9]\d{9}$/, 'Invalid Indian mobile number'),
+            .regex(/^\d{10}$/, 'Mobile Number must be exactly 10 digits'),
 
         lmV_Address: z
             .string()
             .trim()
+            .optional()
+            .nullable()
+            .or(z.literal(''))
             .refine(
-                (val) => val === '' || (val.length >= 5 && val.length <= 200 && /^[A-Za-z0-9\s#]+$/.test(val)),
-                'Address must be 5–200 characters and can contain letters, numbers, spaces and # only'
+                (val) => !val || (val.length >= 3 && val.length <= 200 && /^[A-Za-z0-9\s,.-]+$/.test(val)),
+                'Address must be at least 3 characters, max 200 characters, and can only contain letters, numbers, spaces, and basic punctuation'
             ),
 
         lmV_EMailId: z
             .string()
             .trim()
-            .refine((val) => val === '' || z.string().email().safeParse(val).success, 'Invalid email address'),
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine((val) => !val || z.string().email().safeParse(val).success, 'Invalid email address'),
 
-        lmV_PhoneNo: z
-            .string()
-            .trim()
-            .refine(
-                (val) =>
-                    val === '' ||
-                    z
-                        .string()
-                        .regex(/^\d{10,15}$/)
-                        .safeParse(val).success,
-                'Phone Number must contain 10–15 digits'
-            )
+        lmV_PhoneNo: z.string().trim().optional().nullable().or(z.literal(''))
     }),
 
     delete: z.object({
@@ -92,12 +87,42 @@ export const masterCategorySchema = {
 
 export const masterPublisherSchema = {
     addOrUpdate: z.object({
-        lmP_Id: z.number().nonnegative().optional(), // optional when creating new record
-        lmP_PublisherName: z.string({ message: 'Publisher Name is required' }).min(2).max(100),
-        lmP_MobileNo: z.string({ message: 'Mobile No is required' }).min(10).max(15),
-        lmP_Address: z.string({ message: 'Address is required' }).min(2).max(200),
-        lmP_EMailId: z.string({ message: 'Email is required' }).email(),
-        lmP_PhoneNo: z.string({ message: 'Phone No is required' }).min(10).max(15)
+        lmP_Id: z.number().nonnegative().optional(),
+        lmP_PublisherName: z
+            .string({ required_error: 'Publisher Name is required' })
+            .trim()
+            .min(3, 'Publisher Name must be at least 3 characters')
+            .max(100, 'Publisher Name cannot exceed 100 characters')
+            .regex(/^[A-Za-z\s]+$/, 'Only letters and spaces allowed'),
+
+        lmP_MobileNo: z
+            .string()
+            .trim()
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine((val) => !val || /^\d{10}$/.test(val), 'Mobile Number must be exactly 10 digits'),
+
+        lmP_Address: z
+            .string()
+            .trim()
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine(
+                (val) => !val || (val.length >= 3 && val.length <= 200 && /^[A-Za-z0-9\s,.-]+$/.test(val)),
+                'Address must be at least 3 characters, max 200 characters, and can only contain letters, numbers, spaces, and basic punctuation'
+            ),
+
+        lmP_EMailId: z
+            .string()
+            .trim()
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine((val) => !val || z.string().email().safeParse(val).success, 'Invalid email address'),
+
+        lmP_PhoneNo: z.string().trim().optional().or(z.literal(''))
     }),
     delete: z.object({
         lmP_Id: deleteIdSchema('lmP_Id')
@@ -108,33 +133,43 @@ export const masterAuthorSchema = {
     addOrUpdate: z.object({
         lmaU_Id: z.number().nonnegative().optional(),
 
-        lmaU_AuthorFirstName: z.string({ message: 'Author Name is required' }).min(2).max(100),
+        lmaU_AuthorFirstName: z
+            .string({ required_error: 'Author Name is required' })
+            .trim()
+            .min(2, 'Author Name must be at least 2 characters')
+            .max(100),
 
-        lmaU_AuthorMiddleName: z.string().optional(),
-        lmaU_AuthorLastName: z.string().optional(),
+        lmaU_AuthorMiddleName: z.string().trim().optional().nullable().or(z.literal('')),
+        lmaU_AuthorLastName: z.string().trim().optional().nullable().or(z.literal('')),
 
         lmaU_MobileNo: z
             .string()
             .trim()
-            .refine((val) => val === '' || /^[6-9]\d{9}$/.test(val), 'Invalid Indian mobile number'),
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine((val) => !val || /^\d{10}$/.test(val), 'Mobile Number must be exactly 10 digits'),
 
         lmaU_Address: z
             .string()
             .trim()
+            .optional()
+            .nullable()
+            .or(z.literal(''))
             .refine(
-                (val) => val === '' || (val.length >= 5 && val.length <= 200 && /^[A-Za-z0-9\s#]+$/.test(val)),
-                'Address must be 5–200 characters and can contain letters, numbers, spaces and # only'
+                (val) => !val || (val.length >= 3 && val.length <= 200 && /^[A-Za-z0-9\s,.-]+$/.test(val)),
+                'Address must be 3–200 characters and can contain letters, numbers, spaces, and basic punctuation'
             ),
 
         lmaU_EmailId: z
             .string()
             .trim()
-            .refine((val) => val === '' || z.string().email().safeParse(val).success, 'Invalid email address'),
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine((val) => !val || z.string().email().safeParse(val).success, 'Invalid email address'),
 
-        lmaU_PhoneNo: z
-            .string()
-            .trim()
-            .refine((val) => val === '' || /^\d{10,15}$/.test(val), 'Phone Number must contain 10–15 digits'),
+        lmaU_PhoneNo: z.string().trim().optional().nullable().or(z.literal('')),
 
         lmaU_ActiveFlg: z.boolean().optional()
     }),
@@ -147,7 +182,12 @@ export const masterAuthorSchema = {
 export const masterLanguageSchema = {
     addOrUpdate: z.object({
         lmL_Id: z.number().nonnegative().optional(), // optional when creating new record
-        lmL_LanguageName: z.string({ message: 'Language Name is required' }).min(2).max(100)
+        lmL_LanguageName: z
+            .string({ required_error: 'Language Name is required' })
+            .trim()
+            .min(2, 'Language Name must be at least 2 characters')
+            .max(100, 'Language Name cannot exceed 100 characters')
+            .regex(/^[a-zA-Z0-9\s]+$/, 'Special characters are not allowed')
     }),
     delete: z.object({
         lmL_Id: deleteIdSchema('lmL_Id')
@@ -159,11 +199,11 @@ export const masterDepartmentSchema = {
         lmD_Id: z.number().optional(),
         mI_Id: z.number().optional(),
         lmD_DepartmentName: z.string().min(1, 'Department Name is required'),
-        lmD_DepartmentCode: z.string().min(1, 'Department Code is required'),
+        lmD_DepartmentCode: z.string().optional().or(z.literal('')),
         lmD_ActiveFlg: z.boolean().optional()
     }),
     delete: z.object({
-        lmD_Id: z.number()
+        lmD_Id: z.coerce.number()
     })
 };
 
@@ -176,7 +216,7 @@ export const masterAccessoriesSchema = {
         lmaC_ActiveFlg: z.boolean().optional()
     }),
     delete: z.object({
-        lmaC_Id: z.number()
+        lmaC_Id: z.coerce.number()
     })
 };
 
@@ -187,7 +227,7 @@ export const masterTimeSlabSchema = {
             mI_Id: z.number().optional(),
             lfsE_UserType: z.string().min(1, 'User Type is required'),
             lfsE_SlabTypeFlg: z.string().min(1, 'Slab Type is required'),
-            lfsE_PerDayFlg: z.number().optional().default(0),
+            lfsE_PerDayFlg: z.coerce.number().optional().default(0),
             lfsE_FromDay: z.coerce.number().min(0, 'From Day must be at least 0'),
             lfsE_ToDay: z.coerce.number().optional(),
             lfsE_Amount: z.coerce.number().min(0, 'Amount must be at least 0'),
@@ -206,7 +246,7 @@ export const masterTimeSlabSchema = {
             }
         ),
     delete: z.object({
-        lfsE_Id: z.number()
+        lfsE_Id: z.coerce.number()
     })
 };
 
@@ -224,7 +264,7 @@ export const masterRackDetailsSchema = {
         lmrA_ActiveFlag: z.boolean().optional()
     }),
     delete: z.object({
-        lmrA_Id: z.number()
+        lmrA_Id: z.coerce.number()
     })
 };
 
@@ -236,32 +276,43 @@ export const masterClassCategorySchema = {
         lmcC_ActiveFlag: z.boolean().optional()
     }),
     delete: z.object({
-        lmcC_Id: z.number()
+        lmcC_Id: z.coerce.number()
     })
 };
 
 export const masterSubjectSchema = {
     addOrUpdate: z.object({
         lmS_SubjectName: z.string().optional(),
-        ismS_Id: z.string().min(1, 'Please Select Parent Subject'),
-        lmS_Level: z.string().regex(/^\d{1,25}$/, 'Enter only numeric value'),
+        lmS_ParentId: z.preprocess(
+            (val) => (val === undefined || val === '' ? undefined : Number(val)),
+            z
+                .number({ required_error: 'Please Select Parent Subject', invalid_type_error: 'Please Select Parent Subject' })
+                .min(1, 'Please Select Parent Subject')
+        ),
+        lmS_Level: z
+            .string()
+            .regex(/^\d{0,25}$/, 'Enter only numeric value')
+            .optional()
+            .or(z.literal('')),
         lmS_ClassNo: z
             .string()
             .max(27, 'Maximum 27 characters')
-            .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Class No'),
+            .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Class No')
+            .optional()
+            .or(z.literal('')),
         ismS_SubjectName: z
             .string()
             .min(1, 'Enter the Subject Name')
             .max(50)
-            .regex(/^[a-zA-Z\s]*$/, 'Only letters allowed'),
+            .regex(/^[a-zA-Z0-9\s\-&(),\.\/\+\*#_\[\]:]*$/, 'Only letters, numbers, spaces and standard characters allowed'),
         lmS_SubjectNo: z
             .string()
             .max(50)
-            .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Subject No'),
+            .regex(/^[a-zA-Z0-9\s-]*$/, 'Invalid Subject No')
+            .optional()
+            .or(z.literal('')),
         lmS_Id: z.number().nonnegative().optional(), // optional when creating new record
-        lmS_ParentId: z.number().optional(),
         lmS_ActiveFlg: z.boolean().optional()
-        // lmS_SubjectName: z.string()
     }),
     delete: z.object({
         lmS_Id: deleteIdSchema('lmS_Id')

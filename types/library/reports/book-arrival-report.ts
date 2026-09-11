@@ -10,30 +10,36 @@ export interface IBookArrivalReportInitialData {
 }
 
 export interface IBookArrivalReportRequest {
-    Type: string;
-    Type2: string;
-    LMD_Id: number;
-    Fromdate?: string;
-    ToDate?: string;
-    LMAL_Id: number;
+    p_type: string;
+    p_type2: string;
+    p_lmd_id: string | number;
+    p_fromdate?: string;
+    p_todate?: string;
+    p_lmal_id: number;
+    p_lms_id?: string | number;
+    subjectsthomos?: boolean;
+    stthomosSubject?: Array<{ lmS_Id: number }>;
 }
 
 export interface IBookArrivalReportGridData {
-    lmbano_AccessionNo: string;
-    lmb_BookTitle: string;
-    lmb_ISBNNo: string;
-    lmb_CallNo: string;
-    lmb_ClassNo: string;
-    lmb_BookType: string;
-    lmd_DepartmentName: string;
+    lmbanO_AccessionNo: string;
+    lmB_BookTitle: string;
+    lmB_ISBNNo?: string;
+    lmB_CallNo: string;
+    lmB_ClassNo?: string;
+    lmB_BookType: string;
+    lmD_DepartmentName: string;
     authorName: string;
-    lmp_PublisherName: string;
-    lml_LanguageName: string;
-    lmb_PurOrDonated: string;
-    lmb_EntryDate: string;
-    lmb_PurchaseDate: string;
+    lmP_PublisherName: string;
+    lmL_LanguageName: string;
+    lmB_PurOrDonated: string;
+    lmB_EntryDate: string;
+    lmB_PurchaseDate: string;
 }
 
 export interface IBookArrivalReportResponse {
-    reportlist: IBookArrivalReportGridData[];
+    success: boolean;
+    message: string;
+    data: IBookArrivalReportGridData[];
+    reportlist?: IBookArrivalReportGridData[];
 }
