@@ -302,6 +302,7 @@ export default function PeriodStaffUpdate({
         setSelectedClass(classId);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
+        setSubSubjectList([]);
 
         const filtered = masterSections.filter(
             (s) =>
@@ -311,23 +312,32 @@ export default function PeriodStaffUpdate({
         );
 
         setSectionList(filterData(filtered.length > 0 ? filtered : masterSections, 'asmC_SectionName'));
-        setSubSubjectList([]);
     };
 
     const handleSectionChange = (sectionId: number) => {
         setSelectedSection(sectionId);
+        setSelectedSubject(undefined);
 
-        const filtered = masterSubjects.filter(
-            (sub) =>
-                (sub.asmS_Id !== undefined && Number(sub.asmS_Id) === sectionId) ||
-                (sub.asms_id !== undefined && Number(sub.asms_id) === sectionId) ||
-                (sub.ASMS_Id !== undefined && Number(sub.ASMS_Id) === sectionId)
-        );
+        const filtered = masterSubjects.filter((sub) => {
+            const sid = sub.asmS_Id ?? sub.ASMS_Id ?? sub.asms_id;
+            const cid = sub.asmcL_Id ?? sub.ASMCL_Id ?? sub.asmcl_id;
+            const matchesSec = Number(sid) === sectionId;
+            const matchesCls = selectedClass ? Number(cid) === selectedClass : true;
+            return matchesSec && matchesCls;
+        });
 
         if (filtered.length > 0) {
             setSubSubjectList(filterData(filtered, 'ismS_SubjectName'));
         } else {
-            setSubSubjectList(filterData(masterSubjects, 'ismS_SubjectName'));
+            const filteredBySecOnly = masterSubjects.filter((sub) => {
+                const sid = sub.asmS_Id ?? sub.ASMS_Id ?? sub.asms_id;
+                return Number(sid) === sectionId;
+            });
+            if (filteredBySecOnly.length > 0) {
+                setSubSubjectList(filterData(filteredBySecOnly, 'ismS_SubjectName'));
+            } else {
+                setSubSubjectList(filterData(masterSubjects, 'ismS_SubjectName'));
+            }
         }
     };
 
@@ -372,16 +382,22 @@ export default function PeriodStaffUpdate({
                     setMasterSections(sections);
                     setMasterSubjects(subjects);
 
-                    if (classes && classes.length > 0) {
+                    if (classes && classes.length > 0 && subjects && subjects.length > 0) {
                         setClassList(filterData(classes, 'asmcL_ClassName'));
-                    }
-                    if (sections && sections.length > 0) {
-                        setSectionList(filterData(sections, 'asmC_SectionName'));
-                    }
-                    if (subjects && subjects.length > 0) {
-                        setSubSubjectList(filterData(subjects, 'ismS_SubjectName'));
+                        setSectionList([]);
+                        setSubSubjectList([]);
+                    } else {
+                        setClassList([]);
+                        setSectionList([]);
+                        setSubSubjectList([]);
+                        toast.warning('no subjects are mapped for selected staff in period staff');
                     }
                     return { classes, sections, subjects };
+                } else {
+                    setClassList([]);
+                    setSectionList([]);
+                    setSubSubjectList([]);
+                    toast.warning('no subjects are mapped for selected staff in period staff');
                 }
             } catch (e) {
                 console.error(e);
