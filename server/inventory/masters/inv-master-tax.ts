@@ -36,6 +36,7 @@ export async function saveInvMasterTaxLedger(data: any) {
 }
 
 export async function deactivateInvMasterTax(data: any) {
-    const url = `/INV_MasterTaxFacade/deactive?id=${data.invmT_Id}`;
+    const id = data?.invmT_Id ?? data?.INVMT_Id ?? data?.id ?? data;
+    const url = `/INV_MasterTaxFacade/deactive?id=${id}`;
     return await api.post<any>('inventory', url, {});
 }

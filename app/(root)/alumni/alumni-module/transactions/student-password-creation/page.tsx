@@ -15,7 +15,7 @@ import {
     sendWhatsApp
 } from '@/server/alumni/student-password-creation';
 import type { IClass, ICredentialStudent, ISection, IYear } from '@/types/alumni/student-password-creation';
-import { FileSpreadsheet, Loader2, Printer } from 'lucide-react';
+import { FileSpreadsheet, Loader2, Mail, MessageSquare, Phone, Printer } from 'lucide-react';
 import { useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { getStudentPasswordCreationColumns } from './_components/columns';
@@ -231,7 +231,7 @@ export default function StudentPasswordCreationPage() {
                                 />
 
                                 <div className='flex flex-wrap items-center justify-center gap-4 border-t pt-6'>
-                                    {/* <Button
+                                    <Button
                                         onClick={handleSendSMS}
                                         className="w-32 bg-blue-600 hover:bg-blue-700"
                                         disabled={selectedStudents.length === 0}
@@ -251,7 +251,7 @@ export default function StudentPasswordCreationPage() {
                                         disabled={selectedStudents.length === 0}
                                     >
                                         <MessageSquare className="mr-2 h-4 w-4" /> WHATSAPP
-                                    </Button> */}
+                                    </Button>
                                     <Button
                                         variant='outline'
                                         className='w-32'

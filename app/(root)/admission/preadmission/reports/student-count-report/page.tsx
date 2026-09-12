@@ -6,9 +6,12 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useStudentCountReport } from '@/hooks/admission/preadmission/useReports';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { addOrUpdateStudentCountReport } from '@/server/admission/preadmission/reports/student_count_report';
 import type { IMasterStudentCountReportList } from '@/types/admission/preadmission/reports';
 import { FileDown, Printer } from 'lucide-react';
+import { parseAsInteger, parseAsString, parseAsStringLiteral } from 'nuqs';
+import { useQueryState } from 'nuqs';
 import React, { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
@@ -186,7 +189,46 @@ function StudentCountReportPageContent({
         }
     };
 
+    // Use nuqs to reactively read URL search params (these update when toolbar changes them)
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [sortCol] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [sortDir] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsStringLiteral(['asc', 'desc'] as const).withOptions({ shallow: false }).withDefault('asc')
+    );
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+
     const tableProps = useDataTableProps(response);
+
+    // The API returns all records at once, so we handle filtering, sorting, and pagination client-side
+    if (tableProps.data && Array.isArray(tableProps.data)) {
+        let processedData = [...tableProps.data];
+
+        // 1. Search Filter — uses reactive nuqs value so it updates on every keystroke
+        const search = searchQuery?.toLowerCase();
+        if (search) {
+            processedData = processedData.filter((item: any) =>
+                Object.values(item).some((val) => String(val).toLowerCase().includes(search))
+            );
+        }
+        tableProps.totalItems = processedData.length;
+
+        // 2. Sort
+        if (sortCol) {
+            processedData.sort((a, b) => {
+                const aVal = a[sortCol] ?? '';
+                const bVal = b[sortCol] ?? '';
+                if (aVal === bVal) return 0;
+                const comparison = aVal > bVal ? 1 : -1;
+                return sortDir === 'desc' ? -comparison : comparison;
+            });
+        }
+
+        // 3. Paginate
+        tableProps.data = processedData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    }
+
     const columns = getStudentCountReportColumns();
 
     return (

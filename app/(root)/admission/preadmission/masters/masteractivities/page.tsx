@@ -19,7 +19,9 @@ import { useMasterActivity } from '@/hooks/admission/preadmission/useMasters';
 import type { IMasterActivityList } from '@/schemas/admission/preadmission/master_activity';
 import { deleteMasterActivityData } from '@/server/admission/preadmission/masters/master_activity';
 import { Plus, Trash2, X } from 'lucide-react';
-import { use, useState } from 'react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { use, useMemo, useState } from 'react';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { toast } from 'sonner';
 import AddMasterActivityForm from './_components/add-form';
 import { masterActivityColumns } from './_components/columns';
@@ -51,7 +53,35 @@ function MasterActivityPageContent({
     onRefresh: () => void;
 }) {
     const { openAddForm } = useFormContext<IMasterActivityList>();
-    const tableProps = useDataTableProps(response);
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+
+    const filteredData = useMemo(() => {
+        let result = response?.data || [];
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase();
+            result = result.filter((row: any) =>
+                Object.values(row).some(
+                    (val) => val !== null && val !== undefined && String(val).toLowerCase().includes(query)
+                )
+            );
+        }
+        return result;
+    }, [response, searchQuery]);
+
+    const paginatedData = useMemo(() => {
+        const page = currentPage || 1;
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+        return filteredData.slice(start, end);
+    }, [filteredData, currentPage, pageSize]);
+
+    const tableProps = useDataTableProps(
+        response?.data 
+            ? { ...response, data: paginatedData, total: filteredData.length }
+            : response
+    );
 
     return (
         <div className='min-h-screen'>
