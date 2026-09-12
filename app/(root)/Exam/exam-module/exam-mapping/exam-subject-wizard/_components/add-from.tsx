@@ -151,8 +151,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             const rawGrades = Array.isArray(gradeData?.data)
                 ? gradeData.data
                 : Array.isArray(gradeData)
-                  ? gradeData
-                  : [];
+                    ? gradeData
+                    : [];
             if (rawGrades.length > 0) {
                 const formattedGrades: IMasterGrade[] = rawGrades.map((item: any) => ({
                     emgR_Id: item.emgR_Id?.toString() ?? '',

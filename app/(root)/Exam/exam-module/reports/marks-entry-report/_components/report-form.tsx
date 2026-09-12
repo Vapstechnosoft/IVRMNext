@@ -55,9 +55,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         } else if (academicData?.data) {
             const formatted = Array.isArray(academicData.data)
                 ? academicData.data.map((i: any) => ({
-                      asmaY_Id: i.asmaY_Id ?? 0,
-                      asmaY_Year: i.asmaY_Year ?? ''
-                  }))
+                    asmaY_Id: i.asmaY_Id ?? 0,
+                    asmaY_Year: i.asmaY_Year ?? ''
+                }))
                 : [];
             setYears(formatted);
             if (!formatted || formatted.length === 0) {
