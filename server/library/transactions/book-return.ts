@@ -1,6 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
 import type {
     BookCategory,
     BookType,
@@ -15,7 +16,7 @@ import type {
     MemberType
 } from '@/types/library/transactions/book-transaction';
 
-const FACADE = 'BookTransactionFacade';
+const FACADE = 'BookTransaction';
 
 // Get initial data for the page
 export async function getBookTransactionDetails(data: {
@@ -27,26 +28,89 @@ export async function getBookTransactionDetails(data: {
     ASMCL_Id?: number;
     ASMS_Id?: number;
 }) {
-    const url = `BookTransaction/Get_Student_Details1`;
-    return await api.post<IBookTransactionInitialData>('library', url, data);
+    try {
+        const url = `${FACADE}/Get_Student_Details1`;
+        return await api.post<IBookTransactionInitialData>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/Get_Student_Details1 failed:`, err?.message || err);
+        return {} as IBookTransactionInitialData;
+    }
 }
 
 // Issue a book
 export async function issueBook(data: IIssueBookRequest) {
-    const url = `${FACADE}/Savedata`;
-    return await api.post<{ returnval: boolean; duplicate: boolean; maxmsg: string }>('library', url, data);
+    try {
+        const url = `${FACADE}/Savedata`;
+        return await api.post<{ returnval: boolean; duplicate: boolean; maxmsg: string }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/Savedata failed:`, err?.message || err);
+        return { returnval: false, duplicate: false, maxmsg: 'Failed to issue book' };
+    }
 }
 
 // Return a book
 export async function returnBook(data: IReturnBookRequest) {
-    const url = `${FACADE}/returndata`;
-    return await api.post<{ returnval: boolean }>('library', url, data);
+    const session = await auth();
+    const miId = (data as any)?.MI_Id || (data as any)?.mI_Id || (session?.mi_id ? Number(session.mi_id) : 0);
+
+    const payload = {
+        book_Trans_Id: Number(data?.book_Trans_Id ?? data?.Book_Trans_Id ?? 0),
+        Book_Trans_Id: Number(data?.Book_Trans_Id ?? data?.book_Trans_Id ?? 0),
+        lmbanO_Id: Number(data?.lmbanO_Id ?? data?.LMBANO_Id ?? 0),
+        LMBANO_Id: Number(data?.LMBANO_Id ?? data?.lmbanO_Id ?? 0),
+        lmB_Id: Number(data?.lmB_Id ?? data?.LMB_Id ?? 0),
+        LMB_Id: Number(data?.LMB_Id ?? data?.lmB_Id ?? 0),
+        due_Date: data?.due_Date || data?.Due_Date || new Date().toISOString(),
+        Due_Date: data?.Due_Date || data?.due_Date || new Date().toISOString(),
+        return_Date: data?.return_Date || data?.Return_Date || new Date().toISOString(),
+        Return_Date: data?.Return_Date || data?.return_Date || new Date().toISOString(),
+        booktype: data?.booktype || 'issue',
+        issuertype: data?.issuertype || 'std',
+        bookcat_type: data?.bookcat_type || 'book',
+        lbtR_FineCollected: Number(data?.lbtR_FineCollected ?? data?.LBTR_FineCollected ?? 0),
+        LBTR_FineCollected: Number(data?.LBTR_FineCollected ?? data?.lbtR_FineCollected ?? 0),
+        fodM_Id: Number(data?.fodM_Id ?? data?.FODM_Id ?? 0),
+        FODM_Id: Number(data?.FODM_Id ?? data?.fodM_Id ?? 0),
+        returnval: data?.returnval !== undefined ? Boolean(data.returnval) : true,
+        totalFine: Number(data?.totalFine ?? 0),
+        msg: data?.msg || '',
+        MI_Id: miId,
+        mI_Id: miId
+    };
+
+    try {
+        const url = `${FACADE}/Book_returndata`;
+        const res = await api.post<any>('library', url, payload);
+        return {
+            returnval: res?.returnval !== undefined ? res.returnval : true,
+            msg: res?.msg || res?.message || 'Returned successfully',
+            ...res
+        };
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/Book_returndata failed:`, err?.message || err);
+        try {
+            const fallbackUrl = `${FACADE}/returndata`;
+            const res = await api.post<any>('library', fallbackUrl, payload);
+            return {
+                returnval: res?.returnval !== undefined ? res.returnval : true,
+                msg: res?.msg || res?.message || 'Returned successfully',
+                ...res
+            };
+        } catch {
+            return { returnval: false, msg: 'Failed to return book' };
+        }
+    }
 }
 
 // Renew a book
 export async function renewBook(data: IRenewalBookRequest) {
-    const url = `${FACADE}/renewaldata`;
-    return await api.post<{ returnval: boolean; duplicate: boolean; renew: boolean }>('library', url, data);
+    try {
+        const url = `${FACADE}/renewaldata`;
+        return await api.post<{ returnval: boolean; duplicate: boolean; renew: boolean }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/renewaldata failed:`, err?.message || err);
+        return { returnval: false, duplicate: false, renew: false };
+    }
 }
 
 // Get student details
@@ -60,16 +124,21 @@ export async function getStudentDetailsById(data: {
     bookcat_type: BookCategory;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/studentdetails`;
-    return await api.post<{
-        studentdata: IStudentDetails[];
-        alldata: any[]; // Contains issued books
-        circularparamdetails: Array<{
-            max_Issue_Days: number;
-            max_No_Renewals: number;
-            max_Issue_Items: number;
-        }>;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/studentdetails`;
+        return await api.post<{
+            studentdata: IStudentDetails[];
+            alldata: any[];
+            circularparamdetails: Array<{
+                max_Issue_Days: number;
+                max_No_Renewals: number;
+                max_Issue_Items: number;
+            }>;
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/studentdetails failed:`, err?.message || err);
+        return { studentdata: [], alldata: [], circularparamdetails: [] };
+    }
 }
 
 // Get staff details
@@ -82,19 +151,24 @@ export async function getStaffDetails(data: {
     bookcat_type: BookCategory;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/studentdetails`;
-    return await api.post<{
-        selctstaffdata: IStaffDetails[];
-        alldata: any[]; // Contains issued books
-        circularparamdetails: Array<{
-            max_Issue_Days: number;
-            max_No_Renewals: number;
-            max_Issue_Items: number;
-        }>;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/studentdetails`;
+        return await api.post<{
+            selctstaffdata: IStaffDetails[];
+            alldata: any[];
+            circularparamdetails: Array<{
+                max_Issue_Days: number;
+                max_No_Renewals: number;
+                max_Issue_Items: number;
+            }>;
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/studentdetails failed:`, err?.message || err);
+        return { selctstaffdata: [], alldata: [], circularparamdetails: [] };
+    }
 }
 
-// Get department details (circular parameters)
+// Get department details
 export async function getDepartmentDetails(data: {
     LMBANO_Id?: number;
     HRMD_Id: number;
@@ -104,14 +178,19 @@ export async function getDepartmentDetails(data: {
     bookcat_type: BookCategory;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/studentdetails`;
-    return await api.post<{
-        circularparamdetails: Array<{
-            max_Issue_Days: number;
-            max_No_Renewals: number;
-            max_Issue_Items: number;
-        }>;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/studentdetails`;
+        return await api.post<{
+            circularparamdetails: Array<{
+                max_Issue_Days: number;
+                max_No_Renewals: number;
+                max_Issue_Items: number;
+            }>;
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/studentdetails failed:`, err?.message || err);
+        return { circularparamdetails: [] };
+    }
 }
 
 // Get book details
@@ -123,15 +202,20 @@ export async function getBookDetails(data: {
     bookcat_type: BookCategory;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/get_bookdetails`;
-    return await api.post<{
-        bookdetails: IBookDetails[];
-        circularparamdetails: Array<{
-            max_Issue_Days: number;
-            max_No_Renewals: number;
-            max_Issue_Items: number;
-        }>;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/get_bookdetails`;
+        return await api.post<{
+            bookdetails: IBookDetails[];
+            circularparamdetails: Array<{
+                max_Issue_Days: number;
+                max_No_Renewals: number;
+                max_Issue_Items: number;
+            }>;
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/get_bookdetails failed:`, err?.message || err);
+        return { bookdetails: [], circularparamdetails: [] };
+    }
 }
 
 // Show fine details
@@ -140,11 +224,16 @@ export async function showFine(data: {
     issuertype: MemberType;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/showfine`;
-    return await api.post<{
-        fine_Amount: number;
-        finecollected: number;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/showfine`;
+        return await api.post<{
+            fine_Amount: number;
+            finecollected: number;
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/showfine failed:`, err?.message || err);
+        return { fine_Amount: 0, finecollected: 0 };
+    }
 }
 
 // Calculate due date considering holidays
@@ -153,10 +242,15 @@ export async function calculateDueDateWithHolidays(data: {
     Issue_Date: string;
     difftotaldays: number;
 }) {
-    const url = `${FACADE}/ShowDiffrentDays`;
-    return await api.post<{
-        configdata: Array<{ Holidays: string }>;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/ShowDiffrentDays`;
+        return await api.post<{
+            configdata: Array<{ Holidays: string }>;
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/ShowDiffrentDays failed:`, err?.message || err);
+        return { configdata: [] };
+    }
 }
 
 // Search books
@@ -168,16 +262,21 @@ export async function searchBooks(data: {
     LMAL_Id?: number;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/searchfilter`;
-    return await api.post<{
-        booktitle: Array<{
-            lmB_Id: number;
-            lmbanO_Id: number;
-            lmB_BookTitle: string;
-            lmbanO_AccessionNo: string;
-            amsT_FirstName?: string;
-        }>;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/searchfilter`;
+        return await api.post<{
+            booktitle: Array<{
+                lmB_Id: number;
+                lmbanO_Id: number;
+                lmB_BookTitle: string;
+                lmbanO_AccessionNo: string;
+                amsT_FirstName?: string;
+            }>;
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/searchfilter failed:`, err?.message || err);
+        return { booktitle: [] };
+    }
 }
 
 // Barcode search for issue
@@ -189,15 +288,20 @@ export async function searchByBarcode(data: {
     LMAL_Id?: number;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/searchfilterbarcode`;
-    return await api.post<{
-        booktitle: Array<{
-            lmB_Id: number;
-            lmbanO_Id: number;
-            lmB_BookTitle: string;
-            lmbanO_AccessionNo: string;
-        }>;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/searchfilterbarcode`;
+        return await api.post<{
+            booktitle: Array<{
+                lmB_Id: number;
+                lmbanO_Id: number;
+                lmB_BookTitle: string;
+                lmbanO_AccessionNo: string;
+            }>;
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/searchfilterbarcode failed:`, err?.message || err);
+        return { booktitle: [] };
+    }
 }
 
 // Barcode search for return/renewal
@@ -209,28 +313,40 @@ export async function searchByBarcodeForReturn(data: {
     LMAL_Id?: number;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/searchfilterbarcode1`;
-    return await api.post<{
-        getalldata: any[];
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/searchfilterbarcode1`;
+        return await api.post<{
+            getalldata: any[];
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/searchfilterbarcode1 failed:`, err?.message || err);
+        return { getalldata: [] };
+    }
 }
 
 // Get students by class/section
 export async function getStudentsByClassSection(data: {
-    ASMAY_Id: number;
-    ASMCL_Id: number;
-    ASMS_Id: number;
+    ASMAY_Id?: number;
+    ASMCL_Id?: number;
+    ASMS_Id?: number;
+    LMAL_Id?: number;
+    booktype?: BookType;
+    issuertype?: MemberType;
+    bookcat_type?: BookCategory;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/GetStudentDetails1`;
-    return await api.post<{
-        studentCount: number;
-        studentlist: Array<{
-            amsT_Id: number;
-            amsT_FirstName: string;
-            amsT_AdmNo: string;
-        }>;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/Get_Student_Details1`;
+        return await api.post<any>('library', url, {
+            booktype: data.booktype || 'issue',
+            issuertype: data.issuertype || 'std',
+            bookcat_type: data.bookcat_type || 'book',
+            ...data
+        });
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/Get_Student_Details1 failed:`, err?.message || err);
+        return { data: [] };
+    }
 }
 
 // Get staff by department/designation
@@ -239,13 +355,18 @@ export async function getStaffByDepartment(data: {
     HRMD_Id: number;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/get_staff1`;
-    return await api.post<{
-        stafftlist: Array<{
-            hrmE_Id: number;
-            hrmE_EmployeeFirstName: string;
-        }>;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/get_staff1`;
+        return await api.post<{
+            stafftlist: Array<{
+                hrmE_Id: number;
+                hrmE_EmployeeFirstName: string;
+            }>;
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/get_staff1 failed:`, err?.message || err);
+        return { stafftlist: [] };
+    }
 }
 
 // Get designations by department
@@ -253,13 +374,18 @@ export async function getDesignationsByDepartment(data: {
     HRMD_Id: number;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/getdepchange`;
-    return await api.post<{
-        filldesignation: Array<{
-            hrmdeS_Id: number;
-            hrmdeS_DesignationName: string;
-        }>;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/getdepchange`;
+        return await api.post<{
+            filldesignation: Array<{
+                hrmdeS_Id: number;
+                hrmdeS_DesignationName: string;
+            }>;
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/getdepchange failed:`, err?.message || err);
+        return { filldesignation: [] };
+    }
 }
 
 // Search in transaction grid
@@ -275,10 +401,15 @@ export async function searchTransactionGrid(data: {
     Issue_Date?: string;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/stdSearch_Grid`;
-    return await api.post<{
-        getalldata: any[];
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/stdSearch_Grid`;
+        return await api.post<{
+            getalldata: any[];
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/stdSearch_Grid failed:`, err?.message || err);
+        return { getalldata: [] };
+    }
 }
 
 // Load available books
@@ -286,15 +417,20 @@ export async function loadAvailableBooks(data: {
     LMAL_Id?: number;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/loadbookavail`;
-    return await api.post<{
-        avilbooktitle: Array<{
-            lmB_Id: number;
-            lmbanO_Id: number;
-            lmB_BookTitle: string;
-            lmbanO_AccessionNo: string;
-        }>;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/loadbookavail`;
+        return await api.post<{
+            avilbooktitle: Array<{
+                lmB_Id: number;
+                lmbanO_Id: number;
+                lmB_BookTitle: string;
+                lmbanO_AccessionNo: string;
+            }>;
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/loadbookavail failed:`, err?.message || err);
+        return { avilbooktitle: [] };
+    }
 }
 
 // Get book availability details
@@ -303,10 +439,15 @@ export async function getBookAvailabilityDetails(data: {
     LMB_Id: number;
     FODM_Id?: number;
 }) {
-    const url = `${FACADE}/availget_bookdetails`;
-    return await api.post<{
-        avilbookdetails: IBookAvailability[];
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/availget_bookdetails`;
+        return await api.post<{
+            avilbookdetails: IBookAvailability[];
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/availget_bookdetails failed:`, err?.message || err);
+        return { avilbookdetails: [] };
+    }
 }
 
 // Edit transaction data (for return/renewal)
@@ -321,18 +462,23 @@ export async function editTransactionData(data: {
     booktype: BookType;
     bookcat_type: BookCategory;
 }) {
-    const url = `${FACADE}/Editdata`;
-    return await api.post<{
-        booktitle: any[];
-        editlist: any[];
-        circularparamdetails: Array<{
-            max_Issue_Days: number;
-            max_No_Renewals: number;
-            max_Issue_Items: number;
-        }>;
-        fine_Amount: number;
-        finecollected: number;
-    }>('library', url, data);
+    try {
+        const url = `${FACADE}/Editdata`;
+        return await api.post<{
+            booktitle: any[];
+            editlist: any[];
+            circularparamdetails: Array<{
+                max_Issue_Days: number;
+                max_No_Renewals: number;
+                max_Issue_Items: number;
+            }>;
+            fine_Amount: number;
+            finecollected: number;
+        }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/Editdata failed:`, err?.message || err);
+        return { booktitle: [], editlist: [], circularparamdetails: [], fine_Amount: 0, finecollected: 0 };
+    }
 }
 
 // Lost Book
@@ -346,23 +492,227 @@ export async function lostBook(data: {
     LBTR_FineCollected: number;
     LBTR_TotalFine: number;
 }) {
-    const url = `${FACADE}/LostBook`;
-    return await api.post<{ returnval: boolean }>('library', url, data);
-}
-
-// Get Book Details on Load (No Payload)
-export async function getBookDetailsOnLoad() {
     try {
-        const url = 'BookTransaction/get-book-details';
-        const response = await api.get<any>('library', url);
-        return response;
-    } catch (error: any) {
-        console.error('Error fetching book details on load:', error);
-        return {
-            success: false,
-            message: error?.message || 'Failed to fetch book details',
-            data: null
-        };
+        const url = `${FACADE}/LostBook`;
+        return await api.post<{ returnval: boolean }>('library', url, data);
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/LostBook failed:`, err?.message || err);
+        return { returnval: false };
     }
 }
+
+// Get Book Details on Load (for book title, class, section, years, libraries)
+export async function getBookDetailsOnLoad(data?: any) {
+    try {
+        let miId = Number(data?.mI_Id ?? data?.MI_Id ?? 0);
+        let userId = Number(data?.IVRMUL_Id ?? data?.ivrmuL_Id ?? 0);
+        let asmayId = Number(data?.ASMAY_Id ?? data?.asmaY_Id ?? 0);
+
+        try {
+            const session = await auth();
+            if (!miId && session?.mi_id) miId = Number(session.mi_id);
+            if (!userId && session?.ivrmuL_Id) userId = Number(session.ivrmuL_Id);
+            else if (!userId && session?.user_id) userId = Number(session.user_id);
+            if (!asmayId && session?.asmaY_Id) asmayId = Number(session.asmaY_Id);
+        } catch (authErr) {
+            console.warn('Session reading note in getBookDetailsOnLoad:', authErr);
+        }
+
+        const payload = {
+            MI_Id: miId,
+            mI_Id: miId,
+            ASMAY_Id: asmayId,
+            asmaY_Id: asmayId,
+            IVRMUL_Id: userId,
+            ivrmuL_Id: userId,
+            booktype: data?.booktype || 'issue',
+            issuertype: data?.issuertype || 'std',
+            bookcat_type: data?.bookcat_type || 'book',
+            ...data
+        };
+
+        const [bookDetailsRes, studentDetailsRes] = await Promise.allSettled([
+            api.post<any>('library', `${FACADE}/get-book-details`, payload),
+            api.post<any>('library', `${FACADE}/Get_Student_Details1`, payload)
+        ]);
+
+        const bookDetails = bookDetailsRes.status === 'fulfilled' ? bookDetailsRes.value : {};
+        const studentDetails = studentDetailsRes.status === 'fulfilled' ? studentDetailsRes.value : {};
+
+        const bookData =
+            bookDetails?.data && typeof bookDetails.data === 'object' && !Array.isArray(bookDetails.data)
+                ? bookDetails.data
+                : bookDetails?.result && typeof bookDetails.result === 'object' && !Array.isArray(bookDetails.result)
+                ? bookDetails.result
+                : bookDetails || {};
+
+        const studentData =
+            studentDetails?.data && typeof studentDetails.data === 'object' && !Array.isArray(studentDetails.data)
+                ? studentDetails.data
+                : studentDetails?.result && typeof studentDetails.result === 'object' && !Array.isArray(studentDetails.result)
+                ? studentDetails.result
+                : studentDetails || {};
+
+        const extract = (list: any): any[] => {
+            if (!list) return [];
+            if (Array.isArray(list)) return list;
+            if (list && typeof list === 'object') {
+                if (Array.isArray(list.$values)) return list.$values;
+                if (Array.isArray(list.data)) return list.data;
+                if (Array.isArray(list.values)) return list.values;
+                if (Array.isArray(list.items)) return list.items;
+                if (Array.isArray(list.result)) return list.result;
+            }
+            return [];
+        };
+
+        const pickFirst = (...candidates: any[]): any[] => {
+            for (const c of candidates) {
+                const list = extract(c);
+                if (list.length > 0) return list;
+            }
+            return [];
+        };
+
+        const yearsList = pickFirst(
+            bookData?.years,
+            studentData?.years,
+            bookData?.currentYear,
+            studentData?.currentYear,
+            bookData?.yearlist,
+            studentData?.yearlist,
+            bookData?.masterData?.years,
+            studentData?.masterData?.years
+        );
+
+        const classesList = pickFirst(
+            bookData?.classes,
+            studentData?.classes,
+            bookData?.classlist,
+            studentData?.classlist,
+            bookData?.classList,
+            studentData?.classList,
+            bookData?.msterclslist,
+            studentData?.msterclslist,
+            bookData?.fillclass,
+            studentData?.fillclass,
+            bookData?.masterData?.classes,
+            studentData?.masterData?.classes
+        );
+
+        const sectionsList = pickFirst(
+            bookData?.sections,
+            studentData?.sections,
+            bookData?.sectionlist,
+            studentData?.sectionlist,
+            bookData?.sectionList,
+            studentData?.sectionList,
+            bookData?.msterseclist,
+            studentData?.msterseclist,
+            bookData?.fillsection,
+            studentData?.fillsection,
+            bookData?.masterData?.sections,
+            studentData?.masterData?.sections
+        );
+
+        const studentsList = pickFirst(
+            bookData?.students,
+            studentData?.students,
+            bookData?.studentlist,
+            studentData?.studentlist,
+            bookData?.studentList,
+            studentData?.studentList,
+            bookData?.studentdata,
+            studentData?.studentdata,
+            bookData?.fillstudent,
+            studentData?.fillstudent,
+            bookData?.masterData?.students,
+            studentData?.masterData?.students
+        );
+
+        const booksList = pickFirst(
+            bookData?.books,
+            studentData?.books,
+            bookData?.booktitle,
+            studentData?.booktitle,
+            bookData?.bookTitle,
+            studentData?.bookTitle,
+            bookData?.avilbooktitle,
+            studentData?.avilbooktitle,
+            bookData?.booklist,
+            studentData?.booklist,
+            bookData?.bookdetails,
+            studentData?.bookdetails,
+            bookData?.masterData?.books,
+            studentData?.masterData?.books
+        );
+
+        const librariesList = pickFirst(
+            bookData?.masterData?.libraries,
+            studentData?.masterData?.libraries,
+            bookData?.libraries,
+            studentData?.libraries,
+            bookData?.msterliblist,
+            studentData?.msterliblist,
+            bookData?.liblist,
+            studentData?.liblist
+        );
+
+        const combinedAlldata = pickFirst(
+            bookData?.alldata,
+            studentData?.alldata,
+            bookData?.saveddata,
+            studentData?.saveddata,
+            bookData?.getalldata,
+            studentData?.getalldata,
+            bookData?.transactionlist,
+            studentData?.transactionlist,
+            bookData?.griddata,
+            studentData?.griddata,
+            studentsList
+        );
+
+        return {
+            ...studentData,
+            ...bookData,
+            years: yearsList,
+            classes: classesList,
+            sections: sectionsList,
+            students: studentsList,
+            books: booksList,
+            libraries: librariesList,
+            alldata: combinedAlldata,
+            getalldata: combinedAlldata,
+            masterData: {
+                ...(studentData?.masterData || {}),
+                ...(bookData?.masterData || {}),
+                years: yearsList,
+                classes: classesList,
+                sections: sectionsList,
+                students: studentsList,
+                books: booksList,
+                libraries: librariesList
+            }
+        };
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/get-book-details failed:`, err?.message || err);
+        return { success: false, data: null };
+    }
+}
+
+// Get Student Details via GET (for student name, admission no, and student list)
+export async function getStudentDetails1() {
+    try {
+        const session = await auth();
+        const miId = session?.mi_id ? Number(session.mi_id) : 0;
+        const url = `${FACADE}/Get_Student_Details1`;
+        return await api.post<any>('library', url, { MI_Id: miId, mI_Id: miId });
+    } catch (err: any) {
+        console.warn(`POST ${FACADE}/Get_Student_Details1 failed:`, err?.message || err);
+        return { success: false, data: null };
+    }
+}
+
+
+
 
