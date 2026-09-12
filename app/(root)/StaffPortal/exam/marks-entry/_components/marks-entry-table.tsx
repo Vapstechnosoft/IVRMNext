@@ -73,11 +73,13 @@ export default function MarksEntryTable({ data, onSave, onCancel }: MarksEntryTa
         setLocalStudents((prev) =>
             prev.map((s) => {
                 if (s.amsT_Id === studentId) {
+                    const isSelected = s.selected_s || s.selected_ssse || s.selected_ss || s.selected_se;
+                    if (!isSelected) return s;
                     if (subSubjectId !== undefined && subExamId !== undefined) {
                         // Case SSSE
                         const newMarks = { ...(s.ESTMSS_Marks || {}) };
                         if (!newMarks[subSubjectId]) newMarks[subSubjectId] = {};
-                        newMarks[subSubjectId][subExamId] = { [studentId]: value }; // Mirroring Angular's weird structure if needed, but let's try flatter first if possible
+                        newMarks[subSubjectId][subExamId] = { [studentId]: value };
                         return { ...s, ESTMSS_Marks: newMarks };
                     } else if (subSubjectId !== undefined) {
                         // Case SS
@@ -116,10 +118,12 @@ export default function MarksEntryTable({ data, onSave, onCancel }: MarksEntryTa
         if (eyceS_MarksGradeEntryFlg === 'M') {
             return (
                 <Input
-                    className='mx-auto h-8 w-24 text-center'
+                    className='mx-auto h-8 w-24 text-center disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-gray-100 disabled:opacity-60'
                     value={value}
                     onChange={(e) => handleMarkChange(student.amsT_Id, e.target.value, subSubjectId, subExamId)}
                     disabled={!isSelected}
+                    readOnly={!isSelected}
+                    tabIndex={isSelected ? 0 : -1}
                     placeholder='Marks'
                 />
             );

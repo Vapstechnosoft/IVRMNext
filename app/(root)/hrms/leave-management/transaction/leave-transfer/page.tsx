@@ -160,6 +160,8 @@ function FormSections() {
         }));
     }, [leavesData]);
 
+    console.log("leavesData", leaveNames);
+
     // --- Mapped Data ---
     const types = useMemo(() => {
         return (groupTypesData?.data || [])

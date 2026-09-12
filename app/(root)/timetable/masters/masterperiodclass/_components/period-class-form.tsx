@@ -80,6 +80,9 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
     // Fetch Classes based on Category and Academic Year
     useEffect(() => {
         const fetchClasses = async () => {
+            setValue('calssids', undefined as any);
+            setClassSearch('');
+
             if (watchedAcademicYear && watchedCategory) {
                 setIsLoadingClasses(true);
                 setClassList([]);
@@ -106,8 +109,6 @@ export default function MasterPeriodClassForm({ onSuccess }: MasterPeriodClassFo
                 }
             } else {
                 setClassList([]);
-                // Reset class selection when category/year changes
-                setValue('calssids', undefined as any);
             }
         };
         fetchClasses();
