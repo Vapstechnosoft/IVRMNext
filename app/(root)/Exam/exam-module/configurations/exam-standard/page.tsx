@@ -147,8 +147,12 @@ function ExamStandardPageContent({
         try {
             const payload = {
                 ...data,
-                ExmConfig_NoOfDecimalValues: data.ExmConfig_NoOfDecimalValues ? Number(data.ExmConfig_NoOfDecimalValues) : 0,
-                ExmConfig_NoOfDecimal: data.ExmConfig_NoOfDecimal ? Number(data.ExmConfig_NoOfDecimal) : 0,
+                ExmConfig_NoOfDecimalValues: data.ExmConfig_RoundoffFlag
+                    ? (data.ExmConfig_NoOfDecimalValues ? Number(data.ExmConfig_NoOfDecimalValues) : 2)
+                    : 0,
+                ExmConfig_NoOfDecimal: data.ExmConfig_EnableFractionFlg
+                    ? (data.ExmConfig_NoOfDecimal ? Number(data.ExmConfig_NoOfDecimal) : 2)
+                    : 0,
                 ExmConfig_PassFailRankFlag: data.ExmConfig_PassFailRankFlag === '1' || data.ExmConfig_PassFailRankFlag === true
             };
             const res = await UpdateExamStandard(payload);
@@ -167,8 +171,8 @@ function ExamStandardPageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 <CollapsibleSection
-                    title='Add Configuration'
-                    description='Add a new configuration'
+                    title='Exam Standard'
+                    description='General Configuration'
                     defaultOpen={true}
                     variant='outline'
                     size='md'

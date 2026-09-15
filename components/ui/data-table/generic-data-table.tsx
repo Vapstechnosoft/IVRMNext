@@ -52,6 +52,8 @@ interface GenericDataTableProps<T> {
     maxHeight?: string;
     getRowId?: (row: T) => string;
     onPageChange?: (page: number) => void;
+    pageSizeOptions?: number[];
+    defaultPageSize?: number;
     // Bento-Glass Props
 }
 
@@ -82,13 +84,17 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         scrollable = false,
         maxHeight = '600px',
         getRowId,
-        onPageChange
+        onPageChange,
+        pageSizeOptions,
+        defaultPageSize
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
     // Loading state
     if (isLoading) {
-        if (LoadingComponent) return <LoadingComponent />;
+        if (LoadingComponent) {
+            return <LoadingComponent />;
+        }
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
                 <LoadingIcon className='h-8 w-8 animate-spin text-secondary' />
@@ -98,31 +104,16 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
     }
 
     // Error state
-    if (error) {
-        if (ErrorComponent) return <ErrorComponent error={error} message={error.message} />;
+    if (error || !success) {
+        if (ErrorComponent) {
+            return <ErrorComponent error={error || new Error(errorMessage || 'Unknown error')} message={errorMessage || error?.message || 'Failed to load data'} />;
+        }
         return (
             <div className='flex flex-col items-center justify-center space-y-4 py-12'>
-                <div className='rounded-full bg-destructive/10 p-3'>
-                    <ErrorIcon className='h-6 w-6 text-destructive' />
-                </div>
-                <div className='space-y-2 text-center'>
+                <ErrorIcon className='h-8 w-8 text-destructive' />
+                <div className='text-center'>
                     <h3 className='font-semibold text-destructive'>{errorTitle}</h3>
-                    <p className='text-muted-foreground text-sm'>{error.message || errorMessage || 'Failed to load data'}</p>
-                </div>
-            </div>
-        );
-    }
-
-    // Request failed state
-    if (!success) {
-        return (
-            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
-                <div className='rounded-full bg-destructive/10 p-3'>
-                    <ErrorIcon className='h-6 w-6 text-destructive' />
-                </div>
-                <div className='space-y-2 text-center'>
-                    <h3 className='font-semibold text-destructive'>{requestFailedTitle}</h3>
-                    <p className='text-muted-foreground text-sm'>{errorMessage || 'Failed to fetch data'}</p>
+                    <p className='text-muted-foreground text-sm'>{errorMessage || error?.message || 'Failed to load data'}</p>
                 </div>
             </div>
         );
@@ -146,6 +137,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     showSearchColumns={showSearchColumns}
                     showExportOptions={showExportOptions}
                     maxSelectableRows={maxSelectableRows}
+                    pageSizeOptions={pageSizeOptions}
+                    defaultPageSize={defaultPageSize}
                     onRowSelectionChange={(selectedRows) => {
                         if (onRowSelectionChange) {
                             onRowSelectionChange(selectedRows);
@@ -174,6 +167,8 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 showSearchColumns={showSearchColumns}
                 scrollable={scrollable}
                 maxHeight={maxHeight}
+                pageSizeOptions={pageSizeOptions}
+                defaultPageSize={defaultPageSize}
                 onRowSelectionChange={(selectedRows) => {
                     if (onRowSelectionChange) {
                         onRowSelectionChange(selectedRows);

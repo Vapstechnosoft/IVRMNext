@@ -74,31 +74,9 @@ export const examStandardSchema = {
         // ⭐ CUSTOM VALIDATIONS
         // ============================
         .superRefine((data, ctx) => {
-            // FRACTION VALIDATION
-            if (data.ExmConfig_EnableFractionFlg) {
-                if (data.ExmConfig_NoOfDecimal === '' || data.ExmConfig_NoOfDecimal === undefined || data.ExmConfig_NoOfDecimal === null) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: 'Select No Of Decimal (Fraction)',
-                        path: ['ExmConfig_NoOfDecimal']
-                    });
-                }
-            }
-
-            // ROUNDING VALIDATION
-            if (data.ExmConfig_RoundoffFlag) {
-                if (data.ExmConfig_NoOfDecimalValues === '' || data.ExmConfig_NoOfDecimalValues === undefined || data.ExmConfig_NoOfDecimalValues === null) {
-                    ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        message: 'Select No Of Decimal For Round',
-                        path: ['ExmConfig_NoOfDecimalValues']
-                    });
-                }
-            }
-
             // SEARCH TYPE VALIDATION
             const allowedSearch = ['Name', 'AdmNo', 'RollNo', 'RegNo', 'Admno', 'Rollno', 'Regno'];
-            if (data.ExmConfig_Recordsearchtype && !allowedSearch.some(s => s.toLowerCase() === data.ExmConfig_Recordsearchtype.toLowerCase())) {
+            if (data.ExmConfig_Recordsearchtype && !allowedSearch.some((s) => s.toLowerCase() === data.ExmConfig_Recordsearchtype.toLowerCase())) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: 'Invalid Search Type',
