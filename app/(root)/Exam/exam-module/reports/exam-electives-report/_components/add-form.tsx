@@ -85,32 +85,54 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
     // Field casing normalizers for local vs live ASP.NET response compatibility
     const normalizeCategories = (list: any[]) =>
         (Array.isArray(list) ? list : []).map((item) => ({
-            emcA_Id: Number(item?.emcA_Id ?? item?.EMCA_Id ?? item?.emcA_ID ?? item?.id ?? 0),
-            emcA_CategoryName: String(item?.emcA_CategoryName ?? item?.EMCA_CategoryName ?? item?.categoryName ?? '')
+            emcA_Id: Number(item?.emcA_Id ?? item?.EMCA_Id ?? item?.emcA_ID ?? item?.emca_id ?? item?.id ?? 0),
+            emcA_CategoryName: String(item?.emcA_CategoryName ?? item?.EMCA_CategoryName ?? item?.categoryName ?? item?.category_name ?? item?.name ?? '')
         })).filter((c) => c.emcA_Id > 0 || c.emcA_CategoryName);
 
     const normalizeGroups = (list: any[]) =>
         (Array.isArray(list) ? list : []).map((item) => ({
-            emG_Id: Number(item?.emG_Id ?? item?.EMG_Id ?? item?.emg_Id ?? item?.id ?? 0),
-            emG_GroupName: String(item?.emG_GroupName ?? item?.EMG_GroupName ?? item?.groupName ?? '')
+            emG_Id: Number(item?.emG_Id ?? item?.EMG_Id ?? item?.emg_Id ?? item?.emg_id ?? item?.id ?? item?.esG_Id ?? item?.ESG_Id ?? 0),
+            emG_GroupName: String(item?.emG_GroupName ?? item?.EMG_GroupName ?? item?.groupName ?? item?.group_Name ?? item?.groupname ?? item?.emG_Name ?? item?.esG_GroupName ?? item?.name ?? '')
         })).filter((g) => g.emG_Id > 0 || g.emG_GroupName);
 
     const normalizeSubjects = (list: any[]) =>
         (Array.isArray(list) ? list : []).map((item) => ({
-            ismS_Id: Number(item?.ismS_Id ?? item?.ISMS_Id ?? item?.isms_Id ?? item?.id ?? 0),
-            ismS_SubjectName: String(item?.ismS_SubjectName ?? item?.ISMS_SubjectName ?? item?.subjectName ?? '')
+            ismS_Id: Number(
+                item?.ismS_Id ??
+                item?.ISMS_Id ??
+                item?.isms_Id ??
+                item?.isms_id ??
+                item?.sub_Id ??
+                item?.sub_id ??
+                item?.subject_id ??
+                item?.subjectId ??
+                item?.id ??
+                0
+            ),
+            ismS_SubjectName: String(
+                item?.ismS_SubjectName ??
+                item?.ISMS_SubjectName ??
+                item?.subjectName ??
+                item?.subject_Name ??
+                item?.sub_name ??
+                item?.subject ??
+                item?.name ??
+                item?.ismS_SubjectCode ??
+                item?.ISMS_SubjectCode ??
+                ''
+            )
         })).filter((s) => s.ismS_Id > 0 || s.ismS_SubjectName);
 
     const normalizeClasses = (list: any[]) =>
         (Array.isArray(list) ? list : []).map((item) => ({
-            asmcL_Id: Number(item?.asmcL_Id ?? item?.ASMCL_Id ?? item?.asmcl_Id ?? item?.id ?? 0),
-            asmcL_ClassName: String(item?.asmcL_ClassName ?? item?.ASMCL_ClassName ?? item?.className ?? '')
+            asmcL_Id: Number(item?.asmcL_Id ?? item?.ASMCL_Id ?? item?.asmcl_Id ?? item?.asmcl_id ?? item?.id ?? 0),
+            asmcL_ClassName: String(item?.asmcL_ClassName ?? item?.ASMCL_ClassName ?? item?.className ?? item?.class_Name ?? item?.name ?? '')
         })).filter((c) => c.asmcL_Id > 0 || c.asmcL_ClassName);
 
     const normalizeSections = (list: any[]) =>
         (Array.isArray(list) ? list : []).map((item) => ({
-            asmS_Id: Number(item?.asmS_Id ?? item?.ASMS_Id ?? item?.asms_Id ?? item?.id ?? 0),
-            asmC_SectionName: String(item?.asmC_SectionName ?? item?.ASMC_SectionName ?? item?.sectionName ?? '')
+            asmS_Id: Number(item?.asmS_Id ?? item?.ASMS_Id ?? item?.asms_Id ?? item?.asms_id ?? item?.id ?? 0),
+            asmC_SectionName: String(item?.asmC_SectionName ?? item?.ASMC_SectionName ?? item?.sectionName ?? item?.section_Name ?? item?.name ?? '')
         })).filter((s) => s.asmS_Id > 0 || s.asmC_SectionName);
 
     // Reset dependent fields when Type changes
@@ -182,18 +204,23 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
 
     // Load Subjects when Group changes
     useEffect(() => {
-        if (type !== 'subj' || !asmaY_Id || !emcA_Id || !emG_Id) {
+        if (type !== 'subj' || !asmaY_Id || emcA_Id === undefined || !emG_Id) {
             setSubjects([]);
             return;
         }
         const fetchSubjects = async () => {
             try {
                 setLoadingSubjects(true);
-                const categoryId = emcA_Id === 'All' ? 'All' : emcA_Id;
-                const res = await getSubjectDropDownByYearCategorySubjectGroupList(asmaY_Id, categoryId, emG_Id);
-                setSubjects(normalizeSubjects(res));
+                const categoryId = emcA_Id === 'All' ? 'All' : Number(emcA_Id || 0);
+                const res = await getSubjectDropDownByYearCategorySubjectGroupList(asmaY_Id, categoryId, Number(emG_Id));
+                const normalized = normalizeSubjects(res);
+                setSubjects(normalized);
+                if (normalized.length === 0) {
+                    toast.info('No Subjects found for this group');
+                }
             } catch {
                 toast.error('Failed to load subjects');
+                setSubjects([]);
             } finally {
                 setLoadingSubjects(false);
             }
@@ -457,7 +484,10 @@ export default function ElectiveSubjectsReportForm({ onSuccess }: Props = {}) {
                                                 <Select
                                                     key={field.value}
                                                     value={field.value && field.value !== 0 ? String(field.value) : ''}
-                                                    onValueChange={(v) => field.onChange(Number(v))}>
+                                                    onValueChange={(v) => {
+                                                        field.onChange(Number(v));
+                                                        setValue('ismS_Id', 0);
+                                                    }}>
                                                     <SelectTrigger>
                                                         <SelectValue placeholder='Select Subject Group' />
                                                     </SelectTrigger>

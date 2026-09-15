@@ -113,31 +113,20 @@ export const useSaveMasterComplexity = () => {
 
 export const useToggleMasterComplexity = () => {
     const queryClient = useQueryClient();
-    return {
-        mutateAsync: async (complexityId: number) => {
-            const res = await fetch('/api/exam/master-complexity', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'toggle', LPMCOMP_Id: complexityId, MI_Id: 30 })
-            });
-            const json = await res.json();
-            await queryClient.invalidateQueries({
-                queryKey: ['MASTER_COMPLEXITY']
-            });
-            return json;
-        }
-    };
+    return useMutation({
+        mutationFn: (complexityId: number) => toggleMasterComplexity(complexityId),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['MASTER_COMPLEXITY'] })
+    });
 };
 
-// Hook to Delete Master Complexity
-export function useDeleteMasterComplexity() {
+export const useDeleteMasterComplexity = () => {
     const queryClient = useQueryClient();
     return {
         mutateAsync: async (complexityId: number) => {
             const res = await fetch('/api/exam/master-complexity', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'delete', LPMCOMP_Id: complexityId, MI_Id: 30 })
+                body: JSON.stringify({ action: 'toggle', LPMCOMP_Id: complexityId, MI_Id: 30 })
             });
             const json = await res.json();
             await queryClient.invalidateQueries({
