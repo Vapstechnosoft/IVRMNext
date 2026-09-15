@@ -23,3 +23,8 @@ export async function deleteCasteCategory(id: number) {
     const url = `/master_caste_category/delete/${id}`;
     return await api.delete<any>('admission', url);
 }
+
+export async function getMasterCasteCategorySelectedRowDetails(id: number) {
+    const url = `/master_caste_category/GetSelectedRowDetails?IMCC_Id=${id}`;
+    return await api.post<any>('admission', url);
+}

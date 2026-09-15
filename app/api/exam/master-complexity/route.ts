@@ -37,6 +37,8 @@ export async function POST(req: NextRequest) {
 
         if (action === 'toggle') {
             targetUrl = `${BACKEND_BASE}/DeactivateActivateComplexities`;
+        } else if (action === 'delete') {
+            targetUrl = `${BACKEND_BASE}/DeleteComplexity`;
         } else if (action === 'load') {
             targetUrl = `${BACKEND_BASE}/getmastercompliexities`;
         }

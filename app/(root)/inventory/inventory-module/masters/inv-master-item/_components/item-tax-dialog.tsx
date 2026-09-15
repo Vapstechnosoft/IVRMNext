@@ -38,12 +38,17 @@ export default function ItemTaxDialog({ item, onClose }: ItemTaxDialogProps) {
 
     const handleToggleTax = async (taxRecord: any) => {
         try {
+            const isTaxActive = Boolean(taxRecord.invmiT_ActiveFlg ?? taxRecord.invmit_activeflg ?? taxRecord.INVMIT_ActiveFlg);
             const res = await deactivateItemTax(taxRecord);
             if ((res as any).returnval || res.success) {
-                toast.success('Tax status updated');
+                if (isTaxActive) {
+                    toast.error('Tax Deactivated Successfully');
+                } else {
+                    toast.success('Tax Activated Successfully');
+                }
                 fetchItemTaxes();
             } else {
-                toast.error('Failed to update tax status');
+                toast.error(res?.message || 'Failed to update tax status');
             }
         } catch (error) {
             toast.error('Error toggling tax status');

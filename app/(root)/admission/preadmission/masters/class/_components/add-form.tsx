@@ -74,7 +74,16 @@ export default function AddMasterClassForm({ onSuccess, className = '' }: AddMas
             const response = await addOrUpdateMasterClass(payload);
 
             if (response.success) {
-                toast.success('Record Saved Successfully');
+                const Swal = (await import('sweetalert2')).default;
+                Swal.fire({
+                    title: 'Success',
+                    text: 'Record Saved Successfully',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    allowOutsideClick: true
+                }).then(() => {
+                    window.location.reload();
+                });
                 reset();
                 refetchAll();
                 onSuccess?.();

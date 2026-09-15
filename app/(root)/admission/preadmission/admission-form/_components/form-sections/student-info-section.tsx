@@ -514,7 +514,7 @@ export function StudentInfoSection({
                         control={control}
                         render={({ field }) => (
                             <Select value={field.value?.toString() || ''} onValueChange={(val) => field.onChange(Number(val))} disabled>
-                                <SelectTrigger>
+                                <SelectTrigger className="!font-bold !text-black !opacity-100 disabled:!opacity-100 disabled:!text-black" style={{ color: '#000', opacity: 1, fontWeight: 'bold' }}>
                                     <SelectValue
                                         placeholder={
                                             !categoryByClass || categoryByClass.length === 0 ? 'No category found' : 'Select Category'
@@ -523,7 +523,7 @@ export function StudentInfoSection({
                                 </SelectTrigger>
                                 <SelectContent>
                                     {categoryByClass?.map((item: any) => (
-                                        <SelectItem key={item.asmcC_Id} value={item.asmcC_Id.toString()}>
+                                        <SelectItem key={item.asmcC_Id} value={item.asmcC_Id.toString()} className="!font-bold !text-black" style={{ color: '#000', fontWeight: 'bold' }}>
                                             {item.amC_Name || item.asmcC_CategoryName}
                                         </SelectItem>
                                     ))}

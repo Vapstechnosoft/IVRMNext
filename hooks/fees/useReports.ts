@@ -8,6 +8,7 @@ import {
     getTaxReport
 } from '@/server/fees/reports/FeeIncomeTax_Report';
 import { getClassDropDown } from '@/server/fees/reports/daily_fee_collection_report';
+import { getFeeChallanReport } from '@/server/fees/reports/fee_challan_report';
 import {
     FeesTermDropDownForReports,
     getAcademicYeardropdown,
@@ -630,4 +631,10 @@ export const useStudentPortalAcademic = () => {
             });
         }
     };
+};
+
+export const useFeeChallanReport = () => {
+    return useMutation({
+        mutationFn: (data: any) => getFeeChallanReport(data)
+    });
 };
