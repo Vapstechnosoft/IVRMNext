@@ -119,6 +119,28 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         );
     }
 
+    // Request failed state
+    const isNoRecordsFound =
+        typeof errorMessage === 'string' &&
+        (errorMessage.toLowerCase().includes('no ') ||
+            errorMessage.toLowerCase().includes('not found') ||
+            errorMessage.toLowerCase().includes('no record') ||
+            errorMessage.toLowerCase().includes('empty'));
+
+    if (!success && !isNoRecordsFound) {
+        return (
+            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                <div className='rounded-full bg-destructive/10 p-3'>
+                    <ErrorIcon className='h-6 w-6 text-destructive' />
+                </div>
+                <div className='space-y-2 text-center'>
+                    <h3 className='font-semibold text-destructive'>{requestFailedTitle}</h3>
+                    <p className='text-muted-foreground text-sm'>{errorMessage || 'Failed to fetch data'}</p>
+                </div>
+            </div>
+        );
+    }
+
     // No data state - but still render DataTable to show toolbar
     if (data.length === 0) {
         return (
@@ -202,12 +224,22 @@ export function useDataTableProps(
 
     const { dataKey = 'data', totalKey = 'total', successKey = 'success', messageKey = 'message' } = options || {};
 
-    const extractedData = response?.[dataKey] || [];
+    const rawData = response?.[dataKey];
+    const extractedData = Array.isArray(rawData) ? rawData : (Array.isArray(response) ? response : []);
+    const message = response?.[messageKey];
+    const isNoRecordsFound =
+        typeof message === 'string' &&
+        (message.toLowerCase().includes('no ') ||
+            message.toLowerCase().includes('not found') ||
+            message.toLowerCase().includes('no record') ||
+            message.toLowerCase().includes('empty'));
+
+    const isSuccess = response?.[successKey] === false && !isNoRecordsFound ? false : true;
 
     return {
         data: extractedData,
         totalItems: response?.[totalKey] || extractedData.length || 0,
-        success: response?.[successKey],
-        errorMessage: response?.[messageKey]
+        success: isSuccess,
+        errorMessage: isNoRecordsFound ? undefined : message
     };
 }

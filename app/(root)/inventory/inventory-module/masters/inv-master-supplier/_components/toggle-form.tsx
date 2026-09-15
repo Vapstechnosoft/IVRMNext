@@ -29,7 +29,11 @@ export default function ToggleInvMasterSupplierForm({ rowData, onClose }: Toggle
         try {
             const result = await deactivateInvMasterSupplier(rowData);
             if (result.success || result.returnval) {
-                toast.success(result.message || 'Record status updated successfully');
+                if (rowData.invmS_ActiveFlg) {
+                    toast.error('Deactivated Successfully');
+                } else {
+                    toast.success('Activated Successfully');
+                }
                 refetchAll();
                 onClose();
             } else {

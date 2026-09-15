@@ -2,14 +2,17 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import type { DataTableRef } from '@/components/ui/data-table/data-table';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { tableSearchVariables } from '@/lib/data-table.config';
 import { createUsername, getInitialData } from '@/server/alumni/user-password-creation';
 import type { IClass, ISection, IStudent, IYear } from '@/types/alumni/user-password-creation';
 import { KeyRound, Loader2, RefreshCcw } from 'lucide-react';
-import { parseAsInteger, useQueryState } from 'nuqs';
-import { useCallback, useEffect, useState } from 'react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 import { userPasswordCreationColumns } from './_components/columns';
 import FilterForm from './_components/filter-form';
 
@@ -24,11 +27,24 @@ export default function UserPasswordCreationPage() {
     const [selectedStudents, setSelectedStudents] = useState<IStudent[]>([]);
     const [filterData, setFilterData] = useState<string>('');
     const [totalItems, setTotalItems] = useState<number>(0);
+    const tableRef = useRef<DataTableRef>(null);
 
     const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
     const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
-    const paginatedStudents = students.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const filteredStudents = students.filter((student) => {
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        return (
+            (student.studentname?.toLowerCase() || '').includes(query) ||
+            (student.amst_admno?.toString().toLowerCase() || '').includes(query) ||
+            (student.asmcl_classname?.toLowerCase() || '').includes(query) ||
+            (student.asmc_sectionname?.toLowerCase() || '').includes(query)
+        );
+    });
+
+    const paginatedStudents = filteredStudents.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
     const fetchInitialData = useCallback(async () => {
         setIsLoading(true);
@@ -65,6 +81,7 @@ export default function UserPasswordCreationPage() {
         setSelectedStudents([]);
         setFilterData('');
         setTotalItems(0);
+        tableRef.current?.resetSelection();
     };
 
     const handleCreateUsername = async () => {
@@ -83,10 +100,11 @@ export default function UserPasswordCreationPage() {
             };
             const res = await createUsername(payload);
             if (res.success) {
-                toast.success('Usernames created successfully');
-                handleReset();
+                await Swal.fire('Success', 'Username created successfully', 'success');
+                window.location.reload();
             } else {
-                toast.error(res.message || 'Failed to create usernames');
+                await Swal.fire('Error', res.message || 'Not created', 'error');
+                window.location.reload();
             }
         } catch (error: any) {
             console.error('handleCreateUsername error:', error);
@@ -123,16 +141,44 @@ export default function UserPasswordCreationPage() {
             {students.length > 0 && (
                 <Card className='w-full border-t-4 border-t-primary shadow-lg'>
                     <CardHeader className='flex flex-row items-center justify-between pb-2'>
-                        <CardTitle className='font-bold text-primary text-xl'>Student List ({totalItems})</CardTitle>
+                        <CardTitle className='font-bold text-primary text-xl'>Student List ({searchQuery ? filteredStudents.length : totalItems})</CardTitle>
+                        {filteredStudents.length > 0 && (
+                            <div className='flex items-center space-x-2'>
+                                <Checkbox
+                                    id='selectTotal'
+                                    checked={selectedStudents.length === filteredStudents.length}
+                                    onCheckedChange={(checked) => {
+                                        if (checked) {
+                                            setSelectedStudents(filteredStudents);
+                                        } else {
+                                            setSelectedStudents([]);
+                                            tableRef.current?.resetSelection();
+                                        }
+                                    }}
+                                />
+                                <label
+                                    htmlFor='selectTotal'
+                                    className='cursor-pointer text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+                                    Select Total Records ({filteredStudents.length})
+                                </label>
+                            </div>
+                        )}
                     </CardHeader>
                     <CardContent className='space-y-6 pt-2'>
                         <GenericDataTable<IStudent>
+                            ref={tableRef}
                             data={paginatedStudents}
                             columns={userPasswordCreationColumns}
                             isLoading={isTableLoading}
                             showExportOptions={true}
-                            onRowSelectionChange={setSelectedStudents}
-                            totalItems={totalItems}
+                            onRowSelectionChange={(selected) => {
+                                if (selectedStudents.length === filteredStudents.length && selected.length < paginatedStudents.length) {
+                                    setSelectedStudents(selected);
+                                } else if (selectedStudents.length !== filteredStudents.length) {
+                                    setSelectedStudents(selected);
+                                }
+                            }}
+                            totalItems={searchQuery ? filteredStudents.length : totalItems}
                             isPaginationRequired={true}
                             getRowId={(row) => row.amst_id.toString()}
                         />

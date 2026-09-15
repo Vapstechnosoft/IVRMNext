@@ -15,6 +15,8 @@ import { useMemo, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { extractList, filterData } from '../dayperiod/utils';
+
 interface PeriodStaffAddFormProps {
     academicList: any[];
     periodList: any[];
@@ -22,65 +24,6 @@ interface PeriodStaffAddFormProps {
     onSuccess: () => void;
     onCancel: () => void;
 }
-
-const extractList = (data: any, preferredKey?: string) => {
-    if (!data) return [];
-    if (Array.isArray(data)) return data;
-
-    let target = data?.data !== undefined ? data.data : data;
-    if (target && !Array.isArray(target) && typeof target === 'object' && target.data !== undefined) {
-        target = target.data;
-    }
-
-    if (Array.isArray(target)) return target;
-    if (!target || typeof target !== 'object') return [];
-
-    if (preferredKey) {
-        const foundKey = Object.keys(target).find((k) => k.toLowerCase() === preferredKey.toLowerCase());
-        const result = foundKey ? target[foundKey] : undefined;
-        if (Array.isArray(result)) return result;
-    }
-
-    const keys = [
-        'classlist',
-        'clssbystaff',
-        'clsbystaff',
-        'sectionlist',
-        'secsbystaff',
-        'sectionlistbystaff',
-        'subjectlist',
-        'subsbystaff',
-        'subjectlistbystaff',
-        'subsbyall',
-        'stafflist',
-        'staffbyall',
-        'subjectbystaff',
-        'sectionbyclass',
-        'classbycategory'
-    ];
-
-    for (const key of keys) {
-        const foundKey = Object.keys(target).find((k) => k.toLowerCase() === key.toLowerCase());
-        const result = foundKey ? target[foundKey] : undefined;
-        if (Array.isArray(result)) return result;
-    }
-
-    const firstArray = Object.values(target).find((v) => Array.isArray(v));
-    return Array.isArray(firstArray) ? (firstArray as any[]) : [];
-};
-
-const uniqueById = (list: any[], idKey: string) => {
-    const seen = new Set();
-    return (list || []).filter((item: any) => {
-        if (!item) return false;
-        const actualKey = Object.keys(item).find((k) => k.toLowerCase() === idKey.toLowerCase());
-        const id = actualKey ? item[actualKey] : undefined;
-        if (id === undefined || id === null) return false;
-        if (seen.has(id)) return false;
-        seen.add(id);
-        return true;
-    });
-};
 
 export default function PeriodStaffAddForm({ academicList, periodList, staffList, onSuccess, onCancel }: PeriodStaffAddFormProps) {
     const [classList, setClassList] = useState<any[]>([]);
@@ -132,6 +75,9 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
+        setClassList([]);
+        setSectionList([]);
+        setSubSubjectList([]);
 
         const currentStaffId = form.getValues('hrmE_Id');
         if (yearId && currentStaffId) {
@@ -143,11 +89,43 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
         setSelectedClass(classId);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
+        setSubSubjectList([]);
+
+        const filtered = masterSections.filter(
+            (s) =>
+                (s.asmcL_Id !== undefined && Number(s.asmcL_Id) === classId) ||
+                (s.asmcl_id !== undefined && Number(s.asmcl_id) === classId) ||
+                (s.ASMCL_Id !== undefined && Number(s.ASMCL_Id) === classId)
+        );
+
+        setSectionList(filterData(filtered.length > 0 ? filtered : masterSections, 'asmC_SectionName'));
     };
 
-    const handleSectionChange = (sectionId: number) => {
+    const handleSectionChange = async (sectionId: number) => {
         setSelectedSection(sectionId);
         setSelectedSubject(undefined);
+
+        const filtered = masterSubjects.filter((sub) => {
+            const sid = sub.asmS_Id ?? sub.ASMS_Id ?? sub.asms_id;
+            const cid = sub.asmcL_Id ?? sub.ASMCL_Id ?? sub.asmcl_id;
+            const matchesSec = Number(sid) === sectionId;
+            const matchesCls = selectedClass ? Number(cid) === selectedClass : true;
+            return matchesSec && matchesCls;
+        });
+
+        if (filtered.length > 0) {
+            setSubSubjectList(filterData(filtered, 'ismS_SubjectName'));
+        } else {
+            const filteredBySecOnly = masterSubjects.filter((sub) => {
+                const sid = sub.asmS_Id ?? sub.ASMS_Id ?? sub.asms_id;
+                return Number(sid) === sectionId;
+            });
+            if (filteredBySecOnly.length > 0) {
+                setSubSubjectList(filterData(filteredBySecOnly, 'ismS_SubjectName'));
+            } else {
+                setSubSubjectList(filterData(masterSubjects, 'ismS_SubjectName'));
+            }
+        }
     };
 
     const handleStaffChange = async (staffId: number, yearId?: number) => {
@@ -155,6 +133,9 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
         setSelectedClass(undefined);
         setSelectedSection(undefined);
         setSelectedSubject(undefined);
+        setClassList([]);
+        setSectionList([]);
+        setSubSubjectList([]);
 
         const effectiveYearId = yearId ?? form.getValues('asmaY_Id');
 
@@ -163,19 +144,45 @@ export default function PeriodStaffAddForm({ academicList, periodList, staffList
                 const res = await getFixingClassSectionSubjectByStaff(effectiveYearId, staffId);
                 if (res && (res.success || res.success === undefined)) {
                     const classes =
-                        extractList(res, 'clsbystaff').length > 0 ? extractList(res, 'clsbystaff') : extractList(res, 'classlist');
+                        extractList(res, 'classlist').length > 0
+                            ? extractList(res, 'classlist')
+                            : extractList(res, 'clssbystaff').length > 0
+                              ? extractList(res, 'clssbystaff')
+                              : extractList(res, 'clsbystaff');
+
                     const sections =
-                        extractList(res, 'secsbystaff').length > 0 ? extractList(res, 'secsbystaff') : extractList(res, 'sectionlist');
+                        extractList(res, 'sectionlist').length > 0
+                            ? extractList(res, 'sectionlist')
+                            : extractList(res, 'secsbystaff').length > 0
+                              ? extractList(res, 'secsbystaff')
+                              : extractList(res, 'sectionlistbystaff');
+
                     const subjects =
-                        extractList(res, 'subsbystaff').length > 0 ? extractList(res, 'subsbystaff') : extractList(res, 'subjectlist');
+                        extractList(res, 'subjectlist').length > 0
+                            ? extractList(res, 'subjectlist')
+                            : extractList(res, 'subsbystaff').length > 0
+                              ? extractList(res, 'subsbystaff')
+                              : extractList(res, 'subjectlistbystaff');
 
                     setMasterClasses(classes);
                     setMasterSections(sections);
                     setMasterSubjects(subjects);
 
-                    setClassList(uniqueById(classes, 'asmcL_Id'));
-                    setSectionList(uniqueById(sections, 'asmS_Id'));
-                    setSubSubjectList(uniqueById(subjects, 'ismS_Id'));
+                    if (classes && classes.length > 0 && subjects && subjects.length > 0) {
+                        setClassList(filterData(classes, 'asmcL_ClassName'));
+                        setSectionList([]);
+                        setSubSubjectList([]);
+                    } else {
+                        setClassList([]);
+                        setSectionList([]);
+                        setSubSubjectList([]);
+                        toast.warning('no subjects are mapped for selected staff in period staff');
+                    }
+                } else {
+                    setClassList([]);
+                    setSectionList([]);
+                    setSubSubjectList([]);
+                    toast.warning('no subjects are mapped for selected staff in period staff');
                 }
             } catch (e) {
                 console.error(e);

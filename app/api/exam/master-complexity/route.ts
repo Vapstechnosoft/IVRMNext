@@ -28,19 +28,17 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { action, ...payload } = body;
         
-        let res: any;
-        const config = { headers: { Authorization: `Bearer ${token}` } };
+        let targetUrl = `${BACKEND_BASE}/SaveMasterComplexity`;
 
-        if (action === 'save') {
-            res = await axios.post(`${BACKEND_BASE}/MasterComplexityFacade`, payload, config);
-        } else if (action === 'toggle') {
-            res = await axios.put(`${BACKEND_BASE}/MasterComplexityFacade/toggle/${payload.LPMCOMP_Id}`, payload, config);
+        if (action === 'toggle') {
+            targetUrl = `${BACKEND_BASE}/DeactivateActivateComplexities`;
         } else if (action === 'delete') {
-            res = await axios.delete(`${BACKEND_BASE}/MasterComplexityFacade/delete/${payload.LPMCOMP_Id}`, config);
-        } else {
-            // load action via post fallback
-            res = await axios.get(`${BACKEND_BASE}/MasterComplexityFacade?MI_Id=${payload.MI_Id || 30}`, config);
+            targetUrl = `${BACKEND_BASE}/DeleteComplexity`;
+        } else if (action === 'load') {
+            targetUrl = `${BACKEND_BASE}/getmastercompliexities`;
         }
+
+        const res = await axios.post(targetUrl, payload, config);
 
         const dto = res.data || {};
         return NextResponse.json({
