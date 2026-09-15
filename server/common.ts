@@ -760,22 +760,52 @@ export async function getUserAccessibleModules() {
             } as any;
         }
 
-        // Fetch data from APIs
+        // Debug: verify session token is available for API calls
+        const debugSession = await auth();
+        console.info('[menu] session role:', debugSession?.role);
+        console.info('[menu] session token exists:', !!debugSession?.token);
+        console.info('[menu] session token length:', debugSession?.token?.length || 0);
+
+        // Fetch data from APIs - each wrapped individually to avoid one failure killing everything
+
         const [mainModulesRes, subModulesRes, pageListRes] = await Promise.all([
-            api.get<any>('preadmission', '/configuration/get_main_module_list'),
-            api.get<any>('preadmission', '/configuration/get_submodule_list'),
-            api.get<any>('preadmission', '/configuration/get_page_list')
+            api.get<any>('preadmission', '/configuration/get_main_module_list').catch((err) => {
+                console.error('[menu] get_main_module_list FAILED:', err);
+                return null;
+            }),
+            api.get<any>('preadmission', '/configuration/get_submodule_list').catch((err) => {
+                console.error('[menu] get_submodule_list FAILED:', err);
+                return null;
+            }),
+            api.get<any>('preadmission', '/configuration/get_page_list').catch((err) => {
+                console.error('[menu] get_page_list FAILED:', err);
+                return null;
+            })
         ]);
+
+        // Log raw responses for debugging
+        console.info('[menu] RAW mainModulesRes keys:', mainModulesRes ? Object.keys(mainModulesRes) : 'null');
+        console.info('[menu] RAW mainModulesRes type:', Array.isArray(mainModulesRes) ? 'ARRAY' : typeof mainModulesRes);
+        console.info('[menu] RAW mainModulesRes.success:', (mainModulesRes as any)?.success);
+        console.info('[menu] RAW mainModulesRes.data type:', Array.isArray((mainModulesRes as any)?.data) ? 'ARRAY' : typeof (mainModulesRes as any)?.data);
+        console.info('[menu] RAW mainModulesRes.data length:', Array.isArray((mainModulesRes as any)?.data) ? (mainModulesRes as any).data.length : 'N/A');
+        if ((mainModulesRes as any)?.data?.[0]) {
+            console.info('[menu] RAW mainModulesRes.data[0] keys:', Object.keys((mainModulesRes as any).data[0]));
+            console.info('[menu] RAW mainModulesRes.data[0] sample:', JSON.stringify((mainModulesRes as any).data[0]));
+        }
 
         // Safe extraction helper to handle raw arrays, wrapped objects, or $values metadata
         const extractArray = (res: any): any[] => {
             if (!res) return [];
             if (Array.isArray(res)) return res;
-            if (res.data) {
+            // Handle { success, data: [...] } shape from the backend
+            if (res.data !== undefined && res.data !== null) {
                 if (Array.isArray(res.data)) return res.data;
                 if (res.data.$values && Array.isArray(res.data.$values)) return res.data.$values;
             }
             if (res.$values && Array.isArray(res.$values)) return res.$values;
+            // Handle case where the entire response IS the data array wrapped differently
+            // e.g. { menuId, ivrmM_ModuleName, ... } at top level
             return [];
         };
 
@@ -783,97 +813,111 @@ export async function getUserAccessibleModules() {
         const subModules = extractArray(subModulesRes);
         const pages = extractArray(pageListRes);
 
-        // console.info('main Modules', mainModules);
-        // console.info('subModules', subModules);
-        // console.info('pages', pages);
+        console.info('[menu] mainModules count:', mainModules.length);
+        console.info('[menu] subModules count:', subModules.length);
+        console.info('[menu] pages count:', pages.length);
+        if (mainModules[0]) console.info('[menu] mainModules[0]:', JSON.stringify(mainModules[0]));
+        if (subModules[0]) console.info('[menu] subModules[0]:', JSON.stringify(subModules[0]));
 
-        // Build maps for quick lookup
+
+        // Build map: parentId → list of submodules whose parentId equals that value
+        // The backend returns submodules with parentId = the parent menu's menuId.
+        // e.g. submodule "Configuration" has parentId=10773 which is Admission's menuId.
         const subByParent = new Map<number, any[]>();
         subModules.forEach((sub: any) => {
-            const parentId = sub.parentId;
+            // Field names from .NET camelCase JSON serialization:
+            // menuId, ivrmM_ModuleName, moduleId, parentId, pagenonpageflag, order, ivrmmmI_Color, ivrmmmI_Icon
+            const parentId = Number(sub.parentId);
             if (!subByParent.has(parentId)) {
                 subByParent.set(parentId, []);
             }
             subByParent.get(parentId)!.push(sub);
         });
 
-        // Filter pages: only keep those whose URL starts with "app."
+        // Build map: menuId → list of pages mapped under that menu
+        // Pages from GetPageList have menuId = the institutionwisemenupagemapp.IVRMMMI_Id
+        // which corresponds to the submenu's menuId in subModules.
         const pagesByMenuId = new Map<number, any[]>();
         pages.forEach((page: any) => {
-            const url = page.ivrmP_PageURL || '';
-            // if (!url.startsWith('app.')) {
-            const menuId = page.menuId;
+            const menuId = Number(page.menuId);
+            if (menuId === 0) return; // skip unmapped pages
             if (!pagesByMenuId.has(menuId)) {
                 pagesByMenuId.set(menuId, []);
             }
             pagesByMenuId.get(menuId)!.push({
                 id: page.pageId,
-                name: page.ivrmmP_PageName,
+                name: page.ivrmmP_PageName || page.ivrmmp_PageName || '',
                 icon: 'Settings',
-                url: page.ivrmP_PageURL,
-                title: page.ivrmmP_PageName,
-                description: page.ivrmmP_PageName
+                url: page.ivrmP_PageURL || page.ivrmp_PageURL || '',
+                title: page.ivrmmP_PageName || page.ivrmmp_PageName || '',
+                description: page.ivrmmP_PageName || page.ivrmmp_PageName || ''
             });
-            // }
         });
 
         // Sort helper
         const sortByOrder = (a: any, b: any) => (a.order || 0) - (b.order || 0);
 
-        // Recursive function to build submenu structure, returns only non-empty submenus
+        // Recursively build sub_menu structure starting from parentId.
+        // Returns an array of submenu objects, each with pages or nested sub_menu.
         function buildSubMenu(parentId: number): any[] {
             const children = (subByParent.get(parentId) || []).sort(sortByOrder);
             const validChildren: any[] = [];
 
             for (const sub of children) {
-                const hasGrandChildren = subByParent.has(sub.menuId);
-                const itemPages = pagesByMenuId.get(sub.menuId) || [];
+                const subMenuId = Number(sub.menuId);
+                const hasGrandChildren = subByParent.has(subMenuId);
+                const itemPages = pagesByMenuId.get(subMenuId) || [];
 
-                let subMenuItems: any[] = [];
+                let nestedSubMenus: any[] = [];
                 if (hasGrandChildren) {
-                    subMenuItems = buildSubMenu(sub.menuId);
+                    nestedSubMenus = buildSubMenu(subMenuId);
                 }
 
-                // Include this submenu only if it has pages (directly) OR has non-empty submenus
-                if (itemPages.length > 0 || subMenuItems.length > 0) {
-                    const menuItem: any = {
-                        id: sub.menuId,
+                // Include this node if it has direct pages OR nested submenus with pages
+                if (itemPages.length > 0 || nestedSubMenus.length > 0) {
+                    validChildren.push({
+                        id: subMenuId,
                         name: sub.ivrmM_ModuleName,
                         icon: mapIcon(sub.ivrmmmI_Icon),
-                        sub_menu: subMenuItems,
-                        pages: hasGrandChildren ? [] : itemPages.sort(sortByOrder)
-                    };
-                    validChildren.push(menuItem);
+                        sub_menu: nestedSubMenus,
+                        pages: itemPages.sort(sortByOrder)
+                    });
+                } else {
+                    // Even if no pages found in pagesByMenuId, include submenu so the
+                    // module is not hidden. Pages may be loaded lazily on click.
+                    validChildren.push({
+                        id: subMenuId,
+                        name: sub.ivrmM_ModuleName,
+                        icon: mapIcon(sub.ivrmmmI_Icon),
+                        sub_menu: nestedSubMenus,
+                        pages: []
+                    });
                 }
             }
             return validChildren;
         }
 
-        // Build top-level modules (parentId === 0)
+        // Build top-level modules (parentId === 0) and attach their sub-menu tree.
         const topModules = mainModules
-            .filter((m: any) => m.parentId === 0)
+            .filter((m: any) => Number(m.parentId) === 0)
             .sort(sortByOrder)
             .map((m: any) => {
-                const subMenuStructure = buildSubMenu(m.menuId);
-                // Only include the top module if it has at least one valid submenu (with pages)
-                if (subMenuStructure.length === 0) {
-                    return null;
-                }
+                const moduleMenuId = Number(m.menuId);
+                const subMenuStructure = buildSubMenu(moduleMenuId);
                 return {
-                    id: m.menuId,
+                    id: moduleMenuId,
                     name: m.ivrmM_ModuleName,
                     icon: mapIcon(m.ivrmmmI_Icon),
                     menu: [
                         {
-                            id: 1,
+                            id: moduleMenuId,
                             name: m.ivrmM_ModuleName,
                             icon: mapIcon(m.ivrmmmI_Icon),
                             sub_menu: subMenuStructure
                         }
                     ]
                 };
-            })
-            .filter((module: any) => module !== null);
+            });
 
         console.log('topModules', topModules);
 

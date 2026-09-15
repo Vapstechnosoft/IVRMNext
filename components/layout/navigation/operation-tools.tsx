@@ -12,6 +12,32 @@ import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import { setNavigationContext } from './navigation-context';
 
+interface PageItem {
+    id: number;
+    name: string;
+    icon: string;
+    url: string;
+    title?: string;
+    description?: string;
+}
+
+interface SubMenuItem {
+    name: string;
+    pages: PageItem[];
+}
+
+interface MenuItem {
+    name: string;
+    sub_menu: SubMenuItem[];
+}
+
+interface ModuleItem {
+    id: number;
+    name: string;
+    icon: string;
+    menu: MenuItem[];
+}
+
 export function OperationTools() {
     const [isOpen, setIsOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
@@ -26,10 +52,10 @@ export function OperationTools() {
     }, [pathname]);
 
     const filteredModules = React.useMemo(() => {
-        if (!accessibleModules?.data) return [];
-        console.log('accessibleModules', accessibleModules);
-        return accessibleModules.data.filter(
-            (module) => module.name.toLowerCase().includes(searchQuery.toLowerCase())
+        const modules = accessibleModules?.data as ModuleItem[] | undefined;
+        if (!modules) return [];
+        return modules.filter((module) =>
+            module.name.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [accessibleModules, searchQuery]);
 
@@ -41,11 +67,11 @@ export function OperationTools() {
     }, [filteredModules, selectedModuleId]);
 
     const selectedModule = React.useMemo(
-        () => accessibleModules?.data?.find((m) => m.id === selectedModuleId),
+        () => (accessibleModules?.data as ModuleItem[] | undefined)?.find((m) => m.id === selectedModuleId),
         [accessibleModules, selectedModuleId]
     );
 
-    const handlePageClick = (page: any, menu: any, subMenu: any) => {
+    const handlePageClick = (page: PageItem, menu: MenuItem, subMenu: SubMenuItem) => {
         const navData = {
             module: selectedModule?.name || '',
             menu: menu.name,
@@ -112,8 +138,6 @@ export function OperationTools() {
                     <div
                         className='relative flex h-full w-full cursor-default gap-0 overflow-hidden bg-white shadow-[0_80px_160px_-30px_rgba(0,0,0,0.3)]'
                         onClick={(e) => e.stopPropagation()}>
-                        {/* Custom content remains the same */}
-                        {/* ... (rest of the content handled by replace range) */}
                         {/* Left Pane: Module Sidebar */}
                         <div className='flex w-full flex-col border-slate-100 border-r bg-slate-50/50 md:w-[320px] lg:w-[380px]'>
                             {/* Sidebar Header */}

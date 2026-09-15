@@ -176,12 +176,17 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
             if (asmaY_Id === 0 || emcA_Id === 0) return;
             try {
                 if (esG_ExamPromotionFlag === 'IE') {
-                    if (!emE_Id) return;
+                    if (!emE_Id) {
+                        setSubjects([]);
+                        return;
+                    }
                     const response = await getSubjectsForIndividualExam(emE_Id, asmaY_Id, emcA_Id);
-                    setSubjects((response?.data || []) as IESubject[]);
+                    const list = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
+                    setSubjects(list as IESubject[]);
                 } else {
                     const response_ = await getSubjectsForPromotionalExam(asmaY_Id, emcA_Id);
-                    setSubjects((response_?.data || []) as IESubject[]);
+                    const list = Array.isArray(response_?.data) ? response_.data : Array.isArray(response_) ? response_ : [];
+                    setSubjects(list as IESubject[]);
                 }
             } catch (_err: any) {
                 toast.error('Failed to load subjects');
@@ -361,7 +366,15 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                         render={({ field, fieldState }) => (
                                             <CustomMultiSelectBox
                                                 label='Subjects'
-                                                options={subjects.map((s) => ({ label: s.ismS_SubjectName, value: String(s.ismS_Id) }))}
+                                                options={subjects.map((s) => ({
+                                                    label:
+                                                        s.ismS_SubjectName ||
+                                                        (s as any).ISMS_SubjectName ||
+                                                        (s as any).subjectName ||
+                                                        (s as any).name ||
+                                                        '',
+                                                    value: String(s.ismS_Id || (s as any).ISMS_Id || (s as any).id || '')
+                                                }))}
                                                 value={field.value?.map((s: { ismS_Id: any }) => String(s.ismS_Id)) || []}
                                                 onChange={(vals) => field.onChange(vals.map((id) => ({ ismS_Id: Number(id) })))}
                                                 isSearchRequired
@@ -507,7 +520,15 @@ export default function UpdateExamSubjectGroup({ mI_Id = 30, selectedRow, onSucc
                                         render={({ field, fieldState }) => (
                                             <CustomMultiSelectBox
                                                 label='Subjects'
-                                                options={subjects.map((s) => ({ label: s.ismS_SubjectName, value: String(s.ismS_Id) }))}
+                                                options={subjects.map((s) => ({
+                                                    label:
+                                                        s.ismS_SubjectName ||
+                                                        (s as any).ISMS_SubjectName ||
+                                                        (s as any).subjectName ||
+                                                        (s as any).name ||
+                                                        '',
+                                                    value: String(s.ismS_Id || (s as any).ISMS_Id || (s as any).id || '')
+                                                }))}
                                                 value={field.value?.map((s: { ismS_Id: any }) => String(s.ismS_Id)) || []}
                                                 onChange={(vals) => field.onChange(vals.map((id) => ({ ismS_Id: Number(id) })))}
                                                 isSearchRequired
