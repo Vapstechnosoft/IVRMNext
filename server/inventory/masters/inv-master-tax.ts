@@ -4,7 +4,7 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 
 export async function getInvMasterTax(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'invmT_TaxName,invmT_TaxAliasName');
     const url = `/INV_MasterTaxFacade/loadtaxlist?${urlParams}`;
     return await api.get<any>('inventory', url);
 }

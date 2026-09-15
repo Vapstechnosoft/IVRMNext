@@ -143,9 +143,21 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
                     setMasterSections(sections);
                     setMasterSubjects(subjects);
 
-                    if (classes.length > 0) setClassList(filterData(classes, 'asmcL_ClassName'));
-                    if (sections.length > 0) setSectionList(filterData(sections, 'asmC_SectionName'));
-                    if (subjects.length > 0) setSubSubjectList(filterData(subjects, 'ismS_SubjectName'));
+                    if (classes && classes.length > 0 && subjects && subjects.length > 0) {
+                        setClassList(filterData(classes, 'asmcL_ClassName'));
+                        setSectionList([]);
+                        setSubSubjectList([]);
+                    } else {
+                        setClassList([]);
+                        setSectionList([]);
+                        setSubSubjectList([]);
+                        toast.warning('no subjects are mapped to selected staff');
+                    }
+                } else {
+                    setClassList([]);
+                    setSectionList([]);
+                    setSubSubjectList([]);
+                    toast.warning('no subjects are mapped to selected staff');
                 }
             } catch (e) {
                 console.error(e);
@@ -157,15 +169,38 @@ export default function DayStaffAddForm({ academicList, dayList, staffList, onSu
     const handleClassChange = (classId: number) => {
         setSelectedClass(classId);
         setSelectedSection(undefined);
-        const filtered = masterSections.filter((s) => Number(s.asmcL_Id || s.ASMCL_Id) === classId);
+        setSelectedSubject(undefined);
+        setSubSubjectList([]);
+
+        const filtered = masterSections.filter((s) => Number(s.asmcL_Id || s.ASMCL_Id || s.asmcl_id) === classId);
         setSectionList(filterData(filtered.length > 0 ? filtered : masterSections, 'asmC_SectionName'));
     };
 
     const handleSectionChange = async (sectionId: number) => {
         setSelectedSection(sectionId);
         setSelectedSubject(undefined);
-        const filtered = masterSubjects.filter((sub) => Number(sub.asmS_Id || sub.ASMS_Id) === sectionId);
-        setSubSubjectList(filterData(filtered.length > 0 ? filtered : masterSubjects, 'ismS_SubjectName'));
+
+        const filtered = masterSubjects.filter((sub) => {
+            const sid = sub.asmS_Id ?? sub.ASMS_Id ?? sub.asms_id;
+            const cid = sub.asmcL_Id ?? sub.ASMCL_Id ?? sub.asmcl_id;
+            const matchesSec = Number(sid) === sectionId;
+            const matchesCls = selectedClass ? Number(cid) === selectedClass : true;
+            return matchesSec && matchesCls;
+        });
+
+        if (filtered.length > 0) {
+            setSubSubjectList(filterData(filtered, 'ismS_SubjectName'));
+        } else {
+            const filteredBySecOnly = masterSubjects.filter((sub) => {
+                const sid = sub.asmS_Id ?? sub.ASMS_Id ?? sub.asms_id;
+                return Number(sid) === sectionId;
+            });
+            if (filteredBySecOnly.length > 0) {
+                setSubSubjectList(filterData(filteredBySecOnly, 'ismS_SubjectName'));
+            } else {
+                setSubSubjectList(filterData(masterSubjects, 'ismS_SubjectName'));
+            }
+        }
     };
 
     const addToGrid = () => {
