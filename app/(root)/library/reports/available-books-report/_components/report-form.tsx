@@ -235,7 +235,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                             <SelectValue placeholder='Select' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value='0'>Select</SelectItem>
+                                            <SelectItem value='0'>ALL</SelectItem>
                                             {Array.isArray(departments) &&
                                                 departments.map((dept) => (
                                                     <SelectItem key={dept.lmD_Id} value={dept.lmD_Id.toString()}>
