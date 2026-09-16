@@ -17,7 +17,6 @@ import { Spinner } from '@/components/ui/spinner';
 import {
     useConcessionDropdown,
     useMasterDocument,
-    useMasterSectionHeld,
     useStudentCategoryByClass
 } from '@/hooks/admission/preadmission/useMasters';
 
@@ -598,7 +597,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const motherAlive = watch('motherAliveFlag') || watch('MotherAliveFlag') || false;
 
     const classId = watch('asmcL_Id');
-    const { data: sectionData } = useMasterSectionHeld(Number(classId));
+    const sectionData = useMemo(() => ({ data: (admissionDetails as any)?.mastersection || [] }), [admissionDetails]);
 
     const conStateId = watch('amsT_ConState');
     const { data: conDistrict } = useDistrictDropdown(Number(conStateId));
@@ -1340,12 +1339,14 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 const regNo = getValues('amsT_RegistrationNo');
                 const isRegDuplicate = await handleCheckDuplicateRegNo(String(regNo ?? ''));
                 if (isRegDuplicate) {
+                    setIsSavingStep(false);
                     return;
                 }
 
                 const admissionNo = getValues('amsT_AdmissionNo');
                 const isAdmDuplicate = await handleCheckDuplicateAdmissionNo(String(admissionNo ?? ''));
                 if (isAdmDuplicate) {
+                    setIsSavingStep(false);
                     return;
                 }
             }
@@ -3439,9 +3440,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={String(field.value || 'empty-cc')}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || ''}>
+                                                                    value={field.value && field.value !== 0 ? field.value.toString() : ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select caste category' />
                                                                     </SelectTrigger>
@@ -3890,6 +3890,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         label='Aadhaar No.'
                                                         id='amsT_AadharNo'
                                                         placeholder='Enter 12 digit number'
+                                                        maxLength={12}
                                                         {...register('amsT_AadharNo')}
                                                         error={errors.amsT_AadharNo?.message}
                                                     />
@@ -3949,7 +3950,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 onValueChange={(value) => field.onChange(Number(value))}
                                                                 value={field.value?.toString() || ''}
                                                                 disabled>
-                                                                <SelectTrigger>
+                                                                <SelectTrigger className='!opacity-100 !text-black disabled:!opacity-100 disabled:!text-black'>
                                                                     <SelectValue placeholder='Select category' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
@@ -8355,18 +8356,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             type='button'
                                             onClick={(e) => {
                                                 e.preventDefault();
-                                                if (!isCurrentStepValid) {
-                                                    toast.error('Please fill all mandatory fields before proceeding');
-                                                    return;
-                                                }
                                                 nextStep();
                                             }}
-                                            disabled={!isCurrentStepValid || isSavingStep || isSubmitting}
+                                            disabled={isSavingStep || isSubmitting}
                                             className={cn(
-                                                'min-w-[120px] transition-all duration-200',
-                                                !isCurrentStepValid
-                                                    ? 'cursor-not-allowed opacity-50 grayscale'
-                                                    : 'shadow-md hover:scale-105 hover:shadow-lg',
+                                                'min-w-[120px] transition-all duration-200 shadow-md hover:scale-105 hover:shadow-lg',
                                                 hasUnsavedGuardian ? 'opacity-60' : ''
                                             )}>
                                             {isSavingStep ? (

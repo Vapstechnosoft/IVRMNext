@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IStudent, IUserPasswordCreationInitialData, IUserPasswordCreationReportResponse } from '@/types/alumni/user-password-creation';
+import type { IUserPasswordCreationInitialData, IUserPasswordCreationReportResponse } from '@/types/alumni/user-password-creation';
 
 export async function getInitialData() {
     const url = '/UsrPwd/getdata';

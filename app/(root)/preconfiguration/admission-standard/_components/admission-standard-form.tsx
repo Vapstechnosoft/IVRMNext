@@ -596,7 +596,7 @@ export default function AdmissionStandardForm() {
                                 type='button'
                                 variant='outline'
                                 className='w-32'
-                                onClick={handleClear}
+                                onClick={() => window.location.reload()}
                                 disabled={saveMutation.isPending}>
                                 <X className='mr-2 h-4 w-4' />
                                 Clear
@@ -605,7 +605,7 @@ export default function AdmissionStandardForm() {
                                 type='button'
                                 variant='secondary'
                                 className='w-32'
-                                onClick={handleReset}
+                                onClick={() => window.location.reload()}
                                 disabled={saveMutation.isPending}>
                                 <RefreshCw className='mr-2 h-4 w-4' />
                                 Reset

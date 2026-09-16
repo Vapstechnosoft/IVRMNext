@@ -379,7 +379,10 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId, asmayYear }
                                 </div>
 
                                 <div className='mb-4 text-xs'>
-                                    <strong>Note:</strong> This receipt is valid subject to realisation of Cheque
+                                    <strong>Note: </strong>
+                                    {rowData.mI_Id === 78
+                                        ? 'Fees Once Paid will not be Refunded.'
+                                        : 'This receipt is valid subject to realisation of Cheque.'}
                                 </div>
 
                                 <div className='mt-8 text-right'>
@@ -481,7 +484,10 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId, asmayYear }
                                 </div>
 
                                 <div className='mb-4 text-xs'>
-                                    <strong>Note:</strong> This receipt is valid subject to realisation of Cheque
+                                    <strong>Note: </strong>
+                                    {rowData.mI_Id === 78
+                                        ? 'Fees Once Paid will not be Refunded.'
+                                        : 'This receipt is valid subject to realisation of Cheque.'}
                                 </div>
 
                                 <div className='mt-8 text-right'>

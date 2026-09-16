@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import ProductQtyTab from './_components/product-qty-tab';
 import ProductTab from './_components/product-tab';
 import ToggleProductForm from './_components/toggle-form';
@@ -13,17 +13,22 @@ import ToggleProductForm from './_components/toggle-form';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 
-export default function InvMasterProductPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default function InvMasterProductPage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+
     return (
         <FormProvider<any>>
-            <InvMasterProductContent />
+            <InvMasterProductContent searchParams={searchParams} />
         </FormProvider>
     );
 }
 
-function InvMasterProductContent() {
+function InvMasterProductContent({ searchParams }: { searchParams: any }) {
     const [, setPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
     const [, setPageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [, setSearchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
     const [activeTab, setActiveTab] = useState('product');
     const { isToggleFormOpen, selectedRow, closeToggleForm, openAddForm, closeAddForm, closeEditForm } = useFormContext<any>();
@@ -32,6 +37,7 @@ function InvMasterProductContent() {
         setActiveTab(value);
         setPage(1);
         setPageSize(10);
+        setSearchQuery(null);
         closeAddForm();
         closeEditForm();
     };
@@ -55,10 +61,10 @@ function InvMasterProductContent() {
                             </Button>
                         </div>
                         <TabsContent value='product' className='space-y-4'>
-                            <ProductTab />
+                            <ProductTab searchParams={searchParams} />
                         </TabsContent>
                         <TabsContent value='productQty' className='space-y-4'>
-                            {activeTab === 'productQty' && <ProductQtyTab />}
+                            {activeTab === 'productQty' && <ProductQtyTab searchParams={searchParams} />}
                         </TabsContent>
                     </Tabs>
                 </div>

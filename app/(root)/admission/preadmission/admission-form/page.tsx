@@ -9,7 +9,8 @@ import type { IadmissionStudentApplicationList } from '@/types/admission/admissi
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { useQueryState } from 'nuqs';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import React, { useEffect, useState } from 'react';
 import AddStudentAdmissionForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
@@ -64,21 +65,20 @@ function StudentApplicationPageContent({
 }) {
     const { openAddForm } = useFormContext();
 
-    const searchQuery = (searchParams?.search_query as string) || '';
-    const page = Number.parseInt(searchParams?.page as string) || 1;
-    const pageSize = Number.parseInt(searchParams?.page_size as string) || 10;
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    
+    const page = currentPage || 1;
 
     const filteredData = React.useMemo(() => {
         let result = response?.data?.studentList || [];
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             result = result.filter((row: any) =>
-                String(row.studentName || '').toLowerCase().includes(query) ||
-                String(row.className || '').toLowerCase().includes(query) ||
-                String(row.sectionName || '').toLowerCase().includes(query) ||
-                String(row.admissionNo || '').toLowerCase().includes(query) ||
-                String(row.emailId || '').toLowerCase().includes(query) ||
-                String(row.mobileNo || '').toLowerCase().includes(query)
+                Object.values(row).some(
+                    (val) => val !== null && val !== undefined && String(val).toLowerCase().includes(query)
+                )
             );
         }
         return result;

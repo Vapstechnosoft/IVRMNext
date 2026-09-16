@@ -344,6 +344,25 @@ export default function StaffUserCreationPage() {
                     if (usernameResult.success && usernameResult.data && usernameResult.data.length > 0) {
                         const userData = usernameResult.data[0];
                         const staffUsername = userData.user_Name || userData.userName;
+                        
+                        // Check if we have pre-checked modules in the response
+                        if (userData.moduleexistid) {
+                            const allModulesData = Array.isArray(userData.moduleexistid) 
+                                ? userData.moduleexistid 
+                                : (userData.moduleexistid.$values || []);
+                                
+                            if (allModulesData.length > 0) {
+                                setModules((prevModules) => 
+                                    prevModules.map((mod) => {
+                                        if (allModulesData.some((m: any) => m.ivrmM_Id === mod.ivrmM_Id)) {
+                                            return { ...mod, model: true };
+                                        }
+                                        return mod;
+                                    })
+                                );
+                            }
+                        }
+
                         if (staffUsername) {
                             methods.setValue('userName', staffUsername);
                             setUserId(userData.userId || userData.ivrmu_Id || null);
@@ -432,17 +451,17 @@ export default function StaffUserCreationPage() {
             if (result.success && result.data) {
                 const mappedPages = Array.isArray(result.data)
                     ? result.data.map((item: any) => ({
-                          pageMappingId: item.pageMappingId || item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
-                          pageName: item.pageName || item.pageName,
-                          moduleName: item.moduleName || item.ivrmM_ModuleName || item.moduleName || '',
-                          institutionName: item.institutionName || item.instituteName || item.institutionName || '',
-                          addFlag: Boolean(item.ivrmrP_AddFlag ?? item.addFlag),
-                          deleteFlag: Boolean(item.ivrmrP_DeleteFlag ?? item.deleteFlag),
-                          updateFlag: Boolean(item.ivrmrP_UpdateFlag ?? item.updateFlag),
-                          processFlag: Boolean(item.ivrmrP_ProcessFlag ?? item.processFlag),
-                          reportFlag: Boolean(item.ivrmrP_ReportFlag ?? item.reportFlag),
-                          checked: stagedWebPages.some((s) => s.pageMappingId === (item.ivrmmP_Id || item.pageMappingId))
-                      }))
+                        pageMappingId: item.pageMappingId || item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
+                        pageName: item.pageName || item.pageName,
+                        moduleName: item.moduleName || item.ivrmM_ModuleName || item.moduleName || '',
+                        institutionName: item.institutionName || item.instituteName || item.institutionName || '',
+                        addFlag: Boolean(item.ivrmrP_AddFlag ?? item.addFlag),
+                        deleteFlag: Boolean(item.ivrmrP_DeleteFlag ?? item.deleteFlag),
+                        updateFlag: Boolean(item.ivrmrP_UpdateFlag ?? item.updateFlag),
+                        processFlag: Boolean(item.ivrmrP_ProcessFlag ?? item.processFlag),
+                        reportFlag: Boolean(item.ivrmrP_ReportFlag ?? item.reportFlag),
+                        checked: stagedWebPages.some((s) => s.pageMappingId === (item.ivrmmP_Id || item.pageMappingId))
+                    }))
                     : [];
 
                 setWebPages(mappedPages);
@@ -770,17 +789,17 @@ export default function StaffUserCreationPage() {
             if (result.success) {
                 const mappedPages = Array.isArray(result.data)
                     ? result.data.map((item: any) => ({
-                          pageMappingId: item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
-                          pageName: item.ivrmmP_PageName,
-                          moduleName: item.ivrmm_ModuleName || item.ivrmM_ModuleName || '',
-                          institutionName: item.intname || item.instituteName || '',
-                          addFlag: Boolean(item.ivrmrP_AddFlag),
-                          deleteFlag: Boolean(item.ivrmrP_DeleteFlag),
-                          updateFlag: Boolean(item.ivrmrP_UpdateFlag),
-                          processFlag: Boolean(item.ivrmrP_ProcessFlag),
-                          reportFlag: Boolean(item.ivrmrP_ReportFlag),
-                          checked: false
-                      }))
+                        pageMappingId: item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
+                        pageName: item.ivrmmP_PageName,
+                        moduleName: item.ivrmm_ModuleName || item.ivrmM_ModuleName || '',
+                        institutionName: item.intname || item.instituteName || '',
+                        addFlag: Boolean(item.ivrmrP_AddFlag),
+                        deleteFlag: Boolean(item.ivrmrP_DeleteFlag),
+                        updateFlag: Boolean(item.ivrmrP_UpdateFlag),
+                        processFlag: Boolean(item.ivrmrP_ProcessFlag),
+                        reportFlag: Boolean(item.ivrmrP_ReportFlag),
+                        checked: false
+                    }))
                     : [];
 
                 setWebPages(mappedPages);
@@ -863,7 +882,9 @@ export default function StaffUserCreationPage() {
                                         />
 
                                         {/* Conditional Rendering of Mapping Grids */}
-                                        {(watchFilterData === 'Single' ? isUserNameDisabled : staffList.some((s) => s.Selected)) && (
+                                        {(watchFilterData === 'Single'
+                                            ? isUserNameDisabled || modules.some((module) => module.model) || webPages.length > 0 || savedGrid.length > 0
+                                            : staffList.some((s) => s.Selected) || modules.some((module) => module.model) || webPages.length > 0 || savedGrid.length > 0) && (
                                             <PageMappingGrids
                                                 webPages={webPages}
                                                 onWebPageUpdate={setWebPages}

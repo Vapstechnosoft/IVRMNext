@@ -28,28 +28,41 @@ function HomeworkMarksUpdateContent() {
     const [verifiedRecords, setVerifiedRecords] = useState<any[]>([]);
     const [searchResults, setSearchResults] = useState<any[]>([]);
     const [topics, setTopics] = useState<any[]>([]);
+    const [hasSearched, setHasSearched] = useState(false);
 
     return (
         <div className='container min-h-screen space-y-4 p-1'>
             <CollapsibleSection title='HOMEWORK MARKS UPDATE' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                 <div className='space-y-4'>
                     <SearchForm
-                        onSearchResults={(results, topicsList) => setSearchResults(results)}
+                        onSearchResults={(results, topicsList) => {
+                            setSearchResults(results);
+                            setHasSearched(true);
+                        }}
                         onVerifiedList={(list) => setVerifiedRecords(list)}
                         onTopicsLoaded={(topics) => setTopics(topics)}
                     />
                 </div>
             </CollapsibleSection>
 
-            <MarksEntrySection searchResults={searchResults} topics={topics} />
+            <MarksEntrySection searchResults={searchResults} topics={topics} hasSearched={hasSearched} />
 
             <VerifiedRecordsSection records={verifiedRecords} />
         </div>
     );
 }
 
-function MarksEntrySection({ searchResults, topics }: { searchResults: any[]; topics: any[] }) {
-    if (searchResults.length === 0 && topics.length === 0) return null;
+function MarksEntrySection({ searchResults, topics, hasSearched }: { searchResults: any[]; topics: any[]; hasSearched: boolean }) {
+    if (searchResults.length === 0 && topics.length === 0) {
+        if (hasSearched) {
+            return (
+                <div className='flex items-center justify-center rounded-xl border border-red-200 bg-red-50 p-8 shadow-sm'>
+                    <span className='font-bold text-lg text-red-500 uppercase tracking-wider'>No records found</span>
+                </div>
+            );
+        }
+        return null;
+    }
 
     return (
         <CollapsibleSection

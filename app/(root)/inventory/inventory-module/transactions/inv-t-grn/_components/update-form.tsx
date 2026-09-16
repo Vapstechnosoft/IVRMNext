@@ -24,7 +24,7 @@ interface UpdateGRNFormProps {
 }
 
 export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormProps) {
-    const { data: loadData, saveMutation } = useInvTGRN();
+    const { data: loadData, suppliers, stores, items, saveMutation } = useInvTGRN();
     const [discountType, setDiscountType] = useState<'A' | 'P'>('A');
     const [isLoadingDetails, setIsLoadingDetails] = useState(true);
 
@@ -160,7 +160,7 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
     }, [watchedItems, setValue, isLoadingDetails]);
 
     const handleItemChange = async (index: number, itemId: number) => {
-        const item = loadData?.data?.get_item.find((i: any) => i.invmI_Id === itemId);
+        const item = items?.find((i: any) => i.invmI_Id === itemId) || loadData?.data?.get_item?.find((i: any) => i.invmI_Id === itemId);
         if (item) {
             try {
                 const res = await getInvItemDetail(item.invmI_Id);
@@ -255,7 +255,9 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                 className='border-primary/10 shadow-sm'>
                 <div className='grid grid-cols-1 gap-6 p-1 md:grid-cols-3'>
                     <div className='space-y-2'>
-                        <Label>Purchase Date</Label>
+                        <Label>
+                            Purchase Date <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='invmgrN_PurchaseDate'
                             control={control}
@@ -272,7 +274,9 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                     </div>
 
                     <div className='space-y-2'>
-                        <Label>Supplier</Label>
+                        <Label>
+                            Supplier <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='invmS_Id'
                             control={control}
@@ -282,7 +286,7 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                                         <SelectValue placeholder='Select Supplier' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {loadData?.data?.get_supplier.map((s: any) => (
+                                        {(suppliers?.length > 0 ? suppliers : loadData?.data?.get_supplier || [])?.map((s: any) => (
                                             <SelectItem key={s.invmS_Id} value={s.invmS_Id.toString()}>
                                                 {s.invmS_SupplierName}
                                             </SelectItem>
@@ -295,7 +299,9 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                     </div>
 
                     <div className='space-y-2'>
-                        <Label>Store</Label>
+                        <Label>
+                            Store <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='invmsT_Id'
                             control={control}
@@ -305,9 +311,9 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                                         <SelectValue placeholder='Select Store' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {loadData?.data?.get_Store.map((s: any) => (
+                                        {(stores?.length > 0 ? stores : loadData?.data?.get_Store || [])?.map((s: any) => (
                                             <SelectItem key={s.invmsT_Id} value={s.invmsT_Id.toString()}>
-                                                {s.invmS_StoreName}
+                                                {s.invmS_StoreName || s.invmsT_StoreName}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -363,7 +369,7 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                                                         <SelectValue placeholder='Select Item' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {loadData?.data?.get_item.map((i: any) => (
+                                                        {(items?.length > 0 ? items : loadData?.data?.get_item || [])?.map((i: any) => (
                                                             <SelectItem key={i.invmI_Id} value={i.invmI_Id.toString()}>
                                                                 {i.invmI_ItemName}
                                                             </SelectItem>
@@ -380,7 +386,8 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                                         <div className='flex h-8 items-center justify-center rounded border border-dashed bg-muted/30 font-semibold text-[11px] text-muted-foreground'>
                                             {watch(`GRNItem.${index}.invmuoM_UOMName`) ||
                                                 (watch(`GRNItem.${index}.invmI_Id`)
-                                                    ? loadData?.data?.get_item.find(
+                                                    ? items?.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName ||
+                                                      loadData?.data?.get_item?.find(
                                                           (i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`)
                                                       )?.invmuoM_UOMName
                                                     : '-')}

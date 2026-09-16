@@ -5,6 +5,9 @@ export async function getUserByEmail(username: string, password: string) {
     const url = `${baseUrl}/configuration/login?username=${username}&password=${password}`;
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
+    // Disable TLS unauthorized rejection for self-signed certs
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
     try {
         const response = await fetch(url, {
             method: 'POST',

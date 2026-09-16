@@ -110,6 +110,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
 
     // Rounding Type dropdown
     const { data: roundingTypeDropdownResponse, isLoading: isLoadingRoundingTypes } = useRoundingTypeDropdown();
+    console.log("rounding types", roundingTypeDropdownResponse)
     const roundingTypeDropdown: IRoundingTypeDropdown[] = useMemo(() => {
         return mapToDropdownItems(roundingTypeDropdownResponse);
     }, [roundingTypeDropdownResponse]);
@@ -155,6 +156,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                 hrmeD_ReviseFlg: data.HRMED_ReviseFlg ?? true,
                 hrmeD_Order: data.HRMED_Order || 0
             };
+            console.log("Payload earcn deduction", payload);
             const response = await saveMasterEarningsDeductions(payload);
 
             if (response?.success) {
@@ -227,7 +229,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                                     const value = item.value || String(key);
                                                     if (!key || key === '') return null;
                                                     return (
-                                                        <SafeSelectItem key={key} value={key}>
+                                                        <SafeSelectItem key={key} value={value}>
                                                             {value}
                                                         </SafeSelectItem>
                                                     );

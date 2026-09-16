@@ -18,15 +18,15 @@ export const useInvMasterProduct = (searchParams?: any, itemSearchParams?: any) 
     const queryClient = useQueryClient();
 
     const { data: loadData, isLoading: isLoadDataLoading } = useQuery({
-        queryKey: ['invMasterProductLoadData', searchParams],
+        queryKey: ['invMasterProductLoadData', searchParams ?? {}],
         queryFn: () => getInvMasterProductLoadData(searchParams),
-        enabled: !!searchParams
+        enabled: searchParams !== undefined
     });
 
     const { data: productItemData, isLoading: isProductItemLoading } = useQuery({
-        queryKey: ['invMasterProductItemData', itemSearchParams],
+        queryKey: ['invMasterProductItemData', itemSearchParams ?? {}],
         queryFn: () => getInvMasterProductItemList(itemSearchParams),
-        enabled: !!itemSearchParams
+        enabled: itemSearchParams !== undefined
     });
 
     const refreshAll = async () => {

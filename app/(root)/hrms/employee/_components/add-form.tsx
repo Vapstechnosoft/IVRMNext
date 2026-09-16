@@ -965,10 +965,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             setCurrentStep(2);
                         } else {
                             console.error('❌ [DEBUG] Tab 1 - Failed to extract employee ID from response');
-                            toast.error('Failed to get employee ID from response');
+                            toast.error(response?.message || 'Failed to get employee ID from response');
                         }
                     } else {
-                        console.warn('⚠️ [DEBUG] Tab 1 - API returned success: false');
+                        console.warn('⚠️ [DEBUG] Tab 1 - API returned success: false, message:', response?.message);
+                        toast.error(response?.message || 'Failed to save employee details. Please try again.');
                     }
                 },
                 onError: (error: any) => {
@@ -1608,8 +1609,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const permanentCountryId = permanentCountry ? (Number.isNaN(Number(permanentCountry)) ? null : Number(permanentCountry)) : null;
 
     // Fetch states for contact country
+    console.log('contactCountryId', contactCountryId);
     const { data: contactStates = [], isLoading: isLoadingContactStates } = useStateDropdown(contactCountryId);
     // Fetch states for permanent country
+    console.log('permanentCountryId', permanentCountryId);
     const { data: permanentStates = [], isLoading: isLoadingPermanentStates } = useStateDropdown(permanentCountryId);
 
     // Clear state when country changes
@@ -2091,7 +2094,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     <InputText
                                                         label='Last Name'
                                                         placeholder='Enter Last Name'
-                                                        required
+                                                        
                                                         id='lastName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2122,8 +2125,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                        {...register('lastName')}
-                                                        error={errors.lastName?.message as string | undefined}
+                                                        // {...register('lastName')}
+                                                        // error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Employee Code'
@@ -3918,7 +3921,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                             <Label>
                                                                                 State <span className='text-red-500'>*</span>
                                                                             </Label>
-                                                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                                            <Select key={isLoadingContactStates ? 'loading' : 'loaded'} onValueChange={field.onChange} value={field.value || ''}>
                                                                                 <SelectTrigger
                                                                                     className={cn(
                                                                                         fieldState.error
@@ -4128,8 +4131,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                 )}
                                                                             </Label>
                                                                             <Select
+                                                                                key={isLoadingPermanentStates ? 'loading' : 'loaded'}
                                                                                 onValueChange={field.onChange}
-                                                                                value={field.value}
+                                                                                value={field.value || ''}
                                                                                 disabled={sameAsCommunicationAddress}>
                                                                                 <SelectTrigger
                                                                                     className={cn(

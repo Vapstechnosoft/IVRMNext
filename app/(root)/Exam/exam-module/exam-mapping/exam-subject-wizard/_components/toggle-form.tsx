@@ -46,17 +46,29 @@ export default function ToggleSubjectWizardForm({ rowData, onClose }: ToggleSubj
 
     const onSubmit = async (values: ToggleFormFields) => {
         try {
-            const response = await toggleExamSubjectWizard(values.EYCE_Id);
+            const response: any = await toggleExamSubjectWizard(values.EYCE_Id);
+            const isSuccess =
+                response?.success === true ||
+                response?.returnval === true ||
+                response?.returnval === 'true' ||
+                response?.returnVal === true ||
+                response?.returnVal === 'true' ||
+                (response &&
+                    typeof response === 'object' &&
+                    response?.success !== false &&
+                    response?.returnval !== false &&
+                    response?.returnVal !== false &&
+                    !response?.error);
 
-            if (response.success) {
-                toast.success(response.message || 'Status updated successfully');
+            if (isSuccess) {
+                toast.success(response?.message || 'Status updated successfully');
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message || 'Failed to update status');
+                toast.error(response?.message || 'Failed to update status');
             }
         } catch (error: any) {
-            toast.error(error.message || 'An error occurred while updating status');
+            toast.error(error?.message || 'An error occurred while updating status');
         }
     };
 

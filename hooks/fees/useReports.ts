@@ -1,3 +1,4 @@
+import { studentPortalAcademci } from '@/app/(root)/StudentPortal/masters/feeonlinpayment/actions';
 import { FEES_QUERY_KEYS } from '@/constants/query-keys';
 import {
     getAcademicDropDownDetails,
@@ -7,6 +8,7 @@ import {
     getTaxReport
 } from '@/server/fees/reports/FeeIncomeTax_Report';
 import { getClassDropDown } from '@/server/fees/reports/daily_fee_collection_report';
+import { getFeeChallanReport } from '@/server/fees/reports/fee_challan_report';
 import {
     FeesTermDropDownForReports,
     getAcademicYeardropdown,
@@ -611,5 +613,28 @@ export const useFeeTaxReport = () => {
 export const useUserWiseDailyCollectionReport = () => {
     return useMutation({
         mutationFn: (data: any) => getUserWiseDailyCollectionReport(data) // Using any or specific interface as needed
+    });
+};
+
+export const useStudentPortalAcademic = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.STUDENT_PORTAL_ACADEMIC],
+            queryFn: async () => studentPortalAcademci(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.STUDENT_PORTAL_ACADEMIC]
+            });
+        }
+    };
+};
+
+export const useFeeChallanReport = () => {
+    return useMutation({
+        mutationFn: (data: any) => getFeeChallanReport(data)
     });
 };

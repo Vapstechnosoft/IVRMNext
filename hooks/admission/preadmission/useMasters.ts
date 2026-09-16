@@ -104,7 +104,10 @@ export const useAcademicYearDropdown = () => {
     return {
         ...useQuery({
             queryKey: [ADMISSION_QUERY_KEYS.ACADEMIC_DROPDOWN],
-            queryFn: async () => getAcademicYearDropdown(),
+            queryFn: async () => {
+                const res = await getAcademicYearDropdown();
+                return res ?? null;
+            },
             staleTime: 0
         }),
         refetchAll: () => {
@@ -615,6 +618,26 @@ export const useMasterActivity = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.MASTER_ACTIVITY]
+            });
+        }
+    };
+};
+
+export const useMasterClassHeldAllDetails = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: ['master_class_held_all_details'],
+            queryFn: async () => {
+                const { getMasterClassHeldAllDetails } = await import('@/server/admission/preadmission/masters/class_held');
+                return await getMasterClassHeldAllDetails();
+            },
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: ['master_class_held_all_details']
             });
         }
     };

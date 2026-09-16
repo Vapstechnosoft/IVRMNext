@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createStringOnlySchema } from '../validationSchemas';
+import { createAlphaNumericSpaceSchema, createStringOnlySchema } from '../validationSchemas';
 
 /**
  * HRMS Masters Zod Schemas
@@ -14,8 +14,8 @@ export const bankMasterSchema = z.object({
         .string({ message: 'Bank Name is required' })
         .min(3, { message: 'Bank Name must be at least 3 characters' })
         .max(50, { message: 'Bank Name must not exceed 50 characters' })
-        .regex(/^[A-Za-z0-9\s.]+$/, {
-            message: 'Bank Name must contain only alphabets, numbers, spaces, and periods (.)'
+        .regex(/^[A-Za-z\s.]+$/, {
+            message: 'Bank Name must contain only alphabets'
         })
         .refine((value) => value.trim() === value, {
             message: 'Bank Name cannot have leading or trailing spaces'
@@ -198,6 +198,88 @@ export const gradeMasterSchema = z
             },
             {
                 message: 'Grade Display Name must contain at least one alphabet character'
+            }
+        ),
+        hrmG_PayScaleFrom: z
+            .union([
+                z.number({ invalid_type_error: 'Pay Scale From is required', required_error: 'Pay Scale From is required' }),
+                z.string().transform((val) => {
+                    const parsed = Number.parseFloat(val);
+                    return Number.isNaN(parsed) ? undefined : parsed;
+                })
+            ])
+            .transform((val) => val)
+            .refine((val) => val !== undefined && val !== null && !Number.isNaN(val), {
+                message: 'Pay Scale From is required'
+            })
+            .refine((val) => (val as number) >= 0 && (val as number) <= 999999, {
+                message: 'Pay Scale From must be between 0 and 999999'
+            }),
+        hrmG_PayScaleTo: z
+            .union([
+                z.number({ invalid_type_error: 'Pay Scale To is required', required_error: 'Pay Scale To is required' }),
+                z.string().transform((val) => {
+                    const parsed = Number.parseFloat(val);
+                    return Number.isNaN(parsed) ? undefined : parsed;
+                })
+            ])
+            .transform((val) => val)
+            .refine((val) => val !== undefined && val !== null && !Number.isNaN(val), {
+                message: 'Pay Scale To is required'
+            })
+            .refine((val) => (val as number) >= 0 && (val as number) <= 999999, {
+                message: 'Pay Scale To must be between 0 and 999999'
+            }),
+        hrmG_IncrementOf: z
+            .union([
+                z.number({ invalid_type_error: 'Increment is required', required_error: 'Increment is required' }),
+                z.string().transform((val) => {
+                    const parsed = Number.parseFloat(val);
+                    return Number.isNaN(parsed) ? undefined : parsed;
+                })
+            ])
+            .transform((val) => val)
+            .refine((val) => val !== undefined && val !== null && !Number.isNaN(val), {
+                message: 'Increment is required'
+            })
+            .refine((val) => (val as number) >= 0 && (val as number) <= 999999, {
+                message: 'Increment must be between 0 and 999999'
+            }),
+        hrmG_Order: z.number().optional()
+    })
+    .refine(
+        (data) => {
+            // Pay Scale To must be greater than Pay Scale From
+            // Handle edge cases where values might be undefined
+            if (data.hrmG_PayScaleFrom === undefined || data.hrmG_PayScaleTo === undefined) return true;
+            return data.hrmG_PayScaleTo > data.hrmG_PayScaleFrom;
+        },
+        {
+            message: 'Pay Scale To must be greater than Pay Scale From',
+            path: ['hrmG_PayScaleTo']
+        }
+    );
+
+// Grade Master Schema (Alphanumeric with Spaces - accepts letters, numbers, and spaces)
+export const gradeMasterAlphanumericSchema = z
+    .object({
+        hrmG_Id: z.number().optional(),
+        hrmG_GradeName: createAlphaNumericSpaceSchema('Grade Name', 1, 50).refine(
+            (value) => {
+                const trimmed = value.trim();
+                return trimmed.length > 0;
+            },
+            {
+                message: 'Grade Name cannot be empty or contain only spaces'
+            }
+        ),
+        hrmG_GradeDisplayName: createAlphaNumericSpaceSchema('Grade Display Name', 1, 50).refine(
+            (value) => {
+                const trimmed = value.trim();
+                return trimmed.length > 0;
+            },
+            {
+                message: 'Grade Display Name cannot be empty or contain only spaces'
             }
         ),
         hrmG_PayScaleFrom: z
@@ -581,8 +663,8 @@ export const hrmsMasterSchemas = {
         update: groupTypeMasterSchema
     },
     grade: {
-        add: gradeMasterSchema,
-        update: gradeMasterSchema
+        add: gradeMasterAlphanumericSchema,
+        update: gradeMasterAlphanumericSchema
     },
     gender: {
         add: genderMasterSchema,

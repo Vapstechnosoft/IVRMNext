@@ -194,7 +194,11 @@ export const studentAdmissionFormSchema = {
         amsT_MotherTongue: z.string().optional().nullable(),
 
         // Other Details
-        amsT_AadharNo: z.string().optional().nullable(),
+        amsT_AadharNo: z
+            .string()
+            .optional()
+            .nullable()
+            .refine((val) => !val || /^\d{12}$/.test(val), { message: 'Aadhar number must be exactly 12 digits' }),
         amsT_ApparNo: z.string().regex(/^\d*$/, 'APAAR ID must contain only numbers').optional().nullable(),
         amsT_LanguageSpoken: z.string().optional().nullable(),
 

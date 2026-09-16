@@ -559,8 +559,21 @@ export async function getMasterPageListGridOnChangeOfModule(
         const url = `StaffLogin/get_staff_page_privilege?${params.toString()}`;
         const response = await api.get<any>(API_KEY, url);
 
-        const showgrid1 = response.data && Array.isArray(response.data.showgrid1) ? response.data.showgrid1 : [];
-        const savedgrid = response.data && Array.isArray(response.data.savedgrid) ? response.data.savedgrid : [];
+        const responseData = response.data;
+        const showgrid1 = Array.isArray(responseData)
+            ? responseData
+            : responseData?.showgrid1?.$values ||
+              responseData?.showgrid1 ||
+              responseData?.data?.showgrid1?.$values ||
+              responseData?.data?.showgrid1 ||
+              responseData?.$values ||
+              [];
+        const savedgrid = response.savedGrid ||
+            responseData?.savedgrid?.$values ||
+            responseData?.savedgrid ||
+            responseData?.data?.savedgrid?.$values ||
+            responseData?.data?.savedgrid ||
+            [];
 
         return {
             success: true,
