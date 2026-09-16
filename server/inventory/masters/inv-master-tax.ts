@@ -4,7 +4,7 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type { ApiSearchparams } from '@/types';
 
 export async function getInvMasterTax(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'invmT_TaxName,invmT_TaxAliasName');
     const url = `/INV_MasterTaxFacade/loadtaxlist?${urlParams}`;
     return await api.get<any>('inventory', url);
 }
@@ -36,6 +36,7 @@ export async function saveInvMasterTaxLedger(data: any) {
 }
 
 export async function deactivateInvMasterTax(data: any) {
-    const url = `/INV_MasterTaxFacade/deactive?id=${data.invmT_Id}`;
+    const id = data?.invmT_Id ?? data?.INVMT_Id ?? data?.id ?? data;
+    const url = `/INV_MasterTaxFacade/deactive?id=${id}`;
     return await api.post<any>('inventory', url, {});
 }
