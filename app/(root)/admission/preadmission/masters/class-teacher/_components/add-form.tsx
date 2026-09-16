@@ -7,7 +7,8 @@ import {
     useAcademicYearDropdown,
     useClassTeacherEmployee, // Add this import
     useMasterClassDropdown,
-    useMasterSectionDropdown
+    useMasterSectionDropdown,
+    useClassTeacher
 } from '@/hooks/admission/preadmission/useMasters';
 import { masterClassTeacherSchema } from '@/schemas/admission/preadmission/masters';
 import { addOrUpdateMasterClassTeacher } from '@/server/admission/preadmission/masters/class_teacher';
@@ -66,6 +67,7 @@ export default function AddMasterClassTeacherForm({ onSuccess, className = '' }:
         error: employeeError,
         refetchAll: refetchEmployee
     } = useClassTeacherEmployee(watch('asmaY_Id'));
+    const { refetchAll: refetchClassTeacher } = useClassTeacher();
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -86,6 +88,7 @@ export default function AddMasterClassTeacherForm({ onSuccess, className = '' }:
                 refetchMasterSection();
                 refetchAcademicYear();
                 refetchEmployee();
+                refetchClassTeacher();
                 onSuccess?.();
             } else {
                 toast.error(response.message);
