@@ -211,7 +211,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
     const session = await auth();
     const sessionAsmayId =
         session?.asmay_id || (session as any)?.ASMAY_Id || (session as any)?.user?.asmay_id || (session as any)?.user?.ASMAY_Id || 0;
-    const sessionMiId = session?.mi_id || (session as any)?.user?.mi_id || 2;
+    const sessionMiId = session?.mi_id || (session as any)?.user?.mi_id || 0;
 
     // Dynamically retrieve active academic year from API if not in session
     let activeAsmayId = sessionAsmayId;
@@ -222,16 +222,12 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
             if (Array.isArray(years)) {
                 const activeYear = years.find((y: any) => y.selected || y.Selected || y.activeFlag === 1 || y.asmaY_ActiveFlag === 1);
                 if (activeYear) {
-                    activeAsmayId = activeYear.asmaY_Id || activeYear.asmay_id || activeYear.ASMAY_Id || 231;
+                    activeAsmayId = activeYear.asmaY_Id || activeYear.asmay_id || activeYear.ASMAY_Id;
                 }
             }
         } catch (e) {
             console.error('Error fetching academic years list in principal assistant', e);
         }
-    }
-
-    if (!activeAsmayId || activeAsmayId === 0) {
-        activeAsmayId = 231;
     }
 
     const validIds = [

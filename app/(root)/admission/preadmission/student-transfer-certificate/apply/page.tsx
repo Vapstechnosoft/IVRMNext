@@ -423,13 +423,16 @@ export default function StudentTCApplyPage() {
                     const studentInfo = actualData.studentList?.[0];
                     const joinedInfo = actualData.getjoineddetails?.[0];
                     const electiveSub = ensureArray(actualData.get_elective_subjects_common)
-                        .map((sub: any) => sub.ismS_SubjectName)
+                        .map((sub: any) => sub.subjectname || sub.ismS_SubjectName)
+                        .filter(Boolean)
                         .join(', ');
-                    const langSub = ensureArray(actualData.get_lang_subjects_common)
-                        .map((sub: any) => sub.ismS_SubjectName)
+                    const langSub = ensureArray(actualData.get_elective_subjects_language)
+                        .map((sub: any) => sub.subjectname || sub.ismS_SubjectName)
+                        .filter(Boolean)
                         .join(', ');
-                    const subjects = ensureArray(actualData.get_subjects_common)
-                        .map((sub: any) => sub.ismS_SubjectName)
+                    const subjects = ensureArray(actualData.get_subjects_common || actualData.get_elective_subjects_common)
+                        .map((sub: any) => sub.subjectname || sub.ismS_SubjectName)
+                        .filter(Boolean)
                         .join(', ');
 
                     if (studentInfo) {
@@ -464,8 +467,8 @@ export default function StudentTCApplyPage() {
 
                             // Other Details
                             scholarship: joinedInfo?.astC_Scholarship || '',
-                            electives_stud: joinedInfo?.astC_ElectivesStudied || '',
-                            language_stud: joinedInfo?.astC_LanguageStudied || '',
+                            electives_stud: electiveSub || joinedInfo?.astC_ElectivesStudied || '',
+                            language_stud: langSub || joinedInfo?.astC_LanguageStudied || '',
                             extracurricular: joinedInfo?.astC_ExtraActivities || '',
                             subjects_stud: subjects || joinedInfo?.astC_SubjectsStudied || '',
                             games_played: joinedInfo?.astC_ExtraActivities || '', // Mapping extra activities to games played as fallback or check specific field

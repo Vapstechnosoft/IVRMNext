@@ -50,7 +50,7 @@ import { SubjectGroupTable } from './subject-group-table';
 type FormFields = z.infer<typeof studentAdmissionFormSchema.add>;
 
 interface AddStudentApplicationFormProps {
-    onSuccess?: () => void;
+    onSuccess?: (response?: any) => void;
     className?: string;
     // When editing, FormProvider will pass the selected row as `rowData`
     rowData?: any;
@@ -4462,7 +4462,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 reset();
                 setCurrentStep(1);
                 setUploadedDocuments([]);
-                onSuccess?.();
+                onSuccess?.(response);
             } else {
                 toast.error(response?.message || 'Failed to submit application');
             }

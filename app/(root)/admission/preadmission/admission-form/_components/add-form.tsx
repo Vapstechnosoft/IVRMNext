@@ -50,7 +50,7 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof studentAdmissionFormSchema.add>;
 
 interface AddStudentApplicationFormProps {
-    onSuccess?: () => void;
+    onSuccess?: (response?: any) => void;
     className?: string;
 }
 
@@ -910,7 +910,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 adm_M_Student_EmailIdDTO: formData.adm_M_Student_EmailIdDTO && formData.adm_M_Student_EmailIdDTO.length > 0 ? formData.adm_M_Student_EmailIdDTO : (getValues('adm_M_Student_EmailIdDTO') || []),
                 mobileCountryCode: (() => {
                     const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
-                    return Array.isArray(mobileNos) && mobileNos.length > 0 ? String(mobileNos[0]?.amstsmS_CountryCode ?? '') : '';
+                    let code = Array.isArray(mobileNos) && mobileNos.length > 0 ? String(mobileNos[0]?.amstsmS_CountryCode ?? '') : '';
+                    if (!code) code = '91';
+                    return code;
                 })(),
                 mobileNumber: (() => {
                     const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
@@ -1612,13 +1614,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const res = await saveFirstTab({
                         ...formData,
                         amsT_Photoname: studentPhoto?.amsT_Photoname,
-                        mobileNos: (formData.mobileNos || []).map((m: any) => ({
-                            mobileCountryCode: m.amstsmS_CountryCode?.replace('+', '') || '91',
-                            mobileNumber: m.amsT_MobileNo || m.amstsmS_MobileNo || m.mobileNumber
-                        })),
-                        adm_M_Student_EmailIdDTO: (formData.adm_M_Student_EmailIdDTO || []).map((e: any) => ({
-                            emailId: e.amsT_emailId || e.amstE_EmailId || e.emailId
-                        }))
+                        mobileNos: formData.mobileNos,
+                        adm_M_Student_EmailIdDTO: formData.adm_M_Student_EmailIdDTO
                     });
                     console.debug('[Admission] saveFirstTab response (auto):', res);
                     if (!res?.success) {
@@ -1823,7 +1820,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                     EmailId: (() => {
                                         const e = (formData.adm_M_Student_EmailIdDTO || [])[0] as any;
                                         return String(e?.amsT_emailId || e?.amstE_EmailId || '').trim();
-                                    })()
+                                    })(),
+                                    mobileNos: formData.mobileNos,
+                                    adm_M_Student_EmailIdDTO: formData.adm_M_Student_EmailIdDTO
                                 });
                                 console.debug('[Admission] saveFirstTab result (forced):', saveRes);
                                 if (saveRes?.success) {
@@ -3060,7 +3059,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 reset();
                 setCurrentStep(1);
                 setUploadedDocuments([]);
-                onSuccess?.();
+                onSuccess?.(response);
             } else {
                 toast.error(response?.message || 'Failed to submit application');
             }
@@ -8467,3 +8466,4 @@ if (typeof document !== 'undefined') {
     styleSheet.innerText = styles;
     document.head.appendChild(styleSheet);
 }
+

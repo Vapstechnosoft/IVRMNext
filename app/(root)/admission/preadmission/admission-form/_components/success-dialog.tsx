@@ -7,7 +7,8 @@ export default function ApplicationFormSuccessDialog({
     isOpen,
     onClose,
     title = 'Application Submitted Successfully',
-    message = 'Successfully submitted application form'
+    message = 'Successfully submitted application form',
+    aiInsight
 }: {
     isOpen: boolean;
     onClose: () => void;
@@ -41,6 +42,8 @@ export default function ApplicationFormSuccessDialog({
                             </h2>
                             {!title.includes('Updated') && <p className='max-w-sm text-slate-600 text-sm md:text-base'>{message}</p>}
                         </div>
+
+
 
                         {/* Info Cards */}
 
