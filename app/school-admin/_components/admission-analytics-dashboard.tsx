@@ -233,11 +233,7 @@ export function AdmissionAnalyticsDashboard() {
                                 <span>{data.total_admissions.toLocaleString()}</span>
                             </div>
                         </div>
-                        <div className='mt-4 w-full'>
-                            <button className='font-bold text-[11px] text-indigo-500 hover:underline'>
-                                View all {data.class_wise.length} classes &rarr;
-                            </button>
-                        </div>
+
                     </div>
                 </Card>
             </div>

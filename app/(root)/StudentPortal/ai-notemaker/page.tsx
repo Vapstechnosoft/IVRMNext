@@ -6,13 +6,30 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, BookOpen, Check, Clipboard, Download, FileText, Layout, Loader2, StickyNote, Upload } from 'lucide-react';
+import { AlertCircle, BookOpen, Check, Clipboard, Download, FileText, Languages, Layout, Loader2, StickyNote, Upload } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
+
+const LANGUAGES = [
+    { code: 'English', label: 'English (Original)' },
+    { code: 'Hindi', label: 'Hindi (हिंदी)' },
+    { code: 'Kannada', label: 'Kannada (ಕನ್ನಡ)' },
+    { code: 'Tamil', label: 'Tamil (தமிழ்)' },
+    { code: 'Telugu', label: 'Telugu (తెలుగు)' },
+    { code: 'Malayalam', label: 'Malayalam (മലയാളം)' },
+    { code: 'Marathi', label: 'Marathi (मराठी)' },
+    { code: 'Gujarati', label: 'Gujarati (ગુજરાતી)' },
+    { code: 'Bengali', label: 'Bengali (বাংলা)' },
+    { code: 'Punjabi', label: 'Punjabi (ਪੰਜਾਬੀ)' },
+    { code: 'Spanish', label: 'Spanish (Español)' },
+    { code: 'French', label: 'French (Français)' },
+    { code: 'German', label: 'German (Deutsch)' },
+    { code: 'Arabic', label: 'Arabic (العربية)' }
+];
 
 export default function AINotemaker() {
     // State
@@ -23,6 +40,9 @@ export default function AINotemaker() {
     const [generateNotes, setGenerateNotes] = useState<boolean>(true);
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState<{ summary?: string; notes?: string; chapter?: string } | null>(null);
+    const [originalResult, setOriginalResult] = useState<{ summary?: string; notes?: string; chapter?: string } | null>(null);
+    const [selectedLanguage, setSelectedLanguage] = useState<string>('English');
+    const [isTranslating, setIsTranslating] = useState<boolean>(false);
     const [errorLog, setErrorLog] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -53,6 +73,8 @@ export default function AINotemaker() {
 
         setIsLoading(true);
         setResult(null);
+        setOriginalResult(null);
+        setSelectedLanguage('English');
         setErrorLog(null);
         setErrorMessage(null);
 
@@ -79,6 +101,7 @@ export default function AINotemaker() {
 
             const data = await response.json();
             setResult(data);
+            setOriginalResult(data);
             setActiveTab('preview');
 
             let successMsg = 'Content generated successfully';
@@ -94,6 +117,52 @@ export default function AINotemaker() {
             toast.error(displayMessage);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handleTranslate = async (targetLang: string) => {
+        setSelectedLanguage(targetLang);
+        if (targetLang === 'English') {
+            if (originalResult) {
+                setResult(originalResult);
+                toast.success('Restored original English notes');
+            }
+            return;
+        }
+
+        if (!originalResult) return;
+
+        setIsTranslating(true);
+        toast.loading(`Translating notes to ${targetLang}...`, { id: 'translate-notemaker' });
+
+        try {
+            const response = await fetch('/api/exam/translate-notes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    summary: originalResult.summary,
+                    notes: originalResult.notes,
+                    targetLanguage: targetLang
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || 'Translation failed');
+            }
+
+            const translatedData = await response.json();
+            setResult((prev) => ({
+                ...prev,
+                summary: translatedData.summary || prev?.summary,
+                notes: translatedData.notes || prev?.notes
+            }));
+            toast.success(`Notes translated to ${targetLang}`, { id: 'translate-notemaker' });
+        } catch (err: any) {
+            console.error('Translation Error:', err);
+            toast.error(err.message || 'Failed to translate notes', { id: 'translate-notemaker' });
+        } finally {
+            setIsTranslating(false);
         }
     };
 
@@ -368,8 +437,32 @@ export default function AINotemaker() {
 
                     <TabsContent value='preview' className='space-y-6'>
                         {result && (
-                            <div className='mb-4 flex justify-end gap-2'>
-                                <Button onClick={handleDownloadPDF} variant='outline'>
+                            <div className='mb-4 flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-card p-3 shadow-sm'>
+                                <div className='flex items-center gap-3'>
+                                    <div className='flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-1.5'>
+                                        <Languages className='h-4 w-4 text-primary' />
+                                        <span className='font-semibold text-muted-foreground text-xs uppercase tracking-wider'>
+                                            Translate Notes:
+                                        </span>
+                                        <select
+                                            value={selectedLanguage}
+                                            onChange={(e) => handleTranslate(e.target.value)}
+                                            disabled={isTranslating}
+                                            className='cursor-pointer rounded-md bg-transparent font-medium text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50'>
+                                            {LANGUAGES.map((lang) => (
+                                                <option key={lang.code} value={lang.code}>
+                                                    {lang.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {isTranslating && (
+                                        <span className='flex items-center gap-1.5 font-medium text-primary text-xs'>
+                                            <Loader2 className='h-3.5 w-3.5 animate-spin' /> Translating...
+                                        </span>
+                                    )}
+                                </div>
+                                <Button onClick={handleDownloadPDF} variant='outline' className='font-medium'>
                                     <Download className='mr-2 h-4 w-4' /> Download PDF
                                 </Button>
                             </div>

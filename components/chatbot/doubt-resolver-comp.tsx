@@ -115,8 +115,8 @@ export default function DoubtResolverComp() {
         const text = (textToSend || query).trim();
         if (!text) return;
 
-        // Reset query if sending from input
-        if (!textToSend) setQuery('');
+        // Reset query
+        setQuery('');
 
         const userMsg: Message = {
             id: Math.random().toString(36).substring(7),
@@ -397,8 +397,16 @@ export default function DoubtResolverComp() {
     }, [query]);
 
     const suggestedPrompts = [
-        { title: 'Explain photosynthesis', desc: 'in simple biological terms' },
-        { title: 'Solve for x', desc: 'in 3x + 7 = 19 with step details' }
+        {
+            title: 'Explain photosynthesis',
+            desc: 'in simple biological terms',
+            query: 'Explain photosynthesis in simple biological terms'
+        },
+        {
+            title: 'Solve for x',
+            desc: 'in 3x + 7 = 19 with step details',
+            query: 'Solve for x in 3x + 7 = 19 with step details'
+        }
     ];
 
     const hasStartedChat = messages.length > 0;
@@ -603,7 +611,7 @@ export default function DoubtResolverComp() {
                                     {suggestedPrompts.map((prompt, idx) => (
                                         <button
                                             key={idx}
-                                            onClick={() => handleSend(prompt.title)}
+                                            onClick={() => handleSend(prompt.query || `${prompt.title} ${prompt.desc}`)}
                                             className="text-left p-4 rounded-2xl bg-card border border-border hover:border-primary/30 transition-all hover:bg-slate-50 group"
                                         >
                                             <p className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">

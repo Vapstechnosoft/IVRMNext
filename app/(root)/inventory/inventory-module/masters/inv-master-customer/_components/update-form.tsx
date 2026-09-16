@@ -79,6 +79,9 @@ export default function UpdateCustomerForm({ selectedRow, onSuccess, onCancel }:
                     {...register('invmC_CustomerName')}
                     error={errors.invmC_CustomerName?.message}
                     required
+                    onInput={(e) => {
+                        e.currentTarget.value = e.currentTarget.value.replace(/[^a-zA-Z\s]/g, '');
+                    }}
                 />
 
                 <InputText

@@ -2127,12 +2127,12 @@ export default function FeeDefaulterReport() {
                                                         </div>
                                                         <div>
                                                             {/* Search */}
-                                                            <input
+                                                            {/* <input
                                                                 value={search}
                                                                 onChange={(e) => setSearch(e.target.value)}
                                                                 placeholder='Search...'
                                                                 className='w-72 rounded border px-3 py-2'
-                                                            />
+                                                            /> */}
 
                                                             {/* Table */}
                                                             {studentGroupreportData.length > 0 && (
