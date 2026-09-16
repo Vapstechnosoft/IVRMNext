@@ -81,7 +81,6 @@ function InvMasterTaxPageContent({
                     icon={<Percent className='h-5 w-5' />}>
                     <GenericDataTable<IInvMasterTax>
                         {...tableProps}
-                        data={response?.data || []}
                         columns={columns}
                         isLoading={isLoading}
                         error={error}

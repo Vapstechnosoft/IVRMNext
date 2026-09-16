@@ -202,7 +202,7 @@ function FrontOfficeAddLogsContent() {
                     {/* Filters Section */}
                     <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                         <div className='space-y-2'>
-                            <Label>Group Type</Label>
+                            <Label>Group Type<span className='text-destructive'>*</span></Label>
                             <Controller
                                 name='groupType'
                                 control={control}
@@ -221,7 +221,7 @@ function FrontOfficeAddLogsContent() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Department</Label>
+                            <Label>Department<span className='text-destructive'>*</span></Label>
                             <Controller
                                 name='department'
                                 control={control}
@@ -240,7 +240,7 @@ function FrontOfficeAddLogsContent() {
                         </div>
 
                         <div className='space-y-2'>
-                            <Label>Designation</Label>
+                            <Label>Designation<span className='text-destructive'>*</span></Label>
                             <Controller
                                 name='designation'
                                 control={control}
@@ -410,8 +410,9 @@ function FrontOfficeAddLogsContent() {
                         <Button
                             type='submit'
                             disabled={isPending || !watchedEmployee}
-                            className='h-11 w-40 bg-blue-800 font-bold text-base text-white shadow-md transition-all hover:bg-blue-900 active:scale-95'>
+                            className='h-11 w-40 bg-orange-600 font-bold text-base text-white shadow-md transition-all hover:bg-orange-700 active:scale-95'>
                             {isPending ? <Loader2 className='mr-2 h-5 w-5 animate-spin' /> : <Save className='mr-2 h-5 w-5' />}
+                            
                             SAVE
                         </Button>
                         <Button

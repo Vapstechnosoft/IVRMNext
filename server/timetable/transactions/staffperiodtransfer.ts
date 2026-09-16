@@ -1,7 +1,15 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { AcademicYear, Class, Subject } from '@/types/timetable/Transaction/staffperiodtransfer';
+import type {
+    AcademicYear,
+    Class,
+    SaveStaffPeriodTransferPayload,
+    Section,
+    StaffPeriodTransferMasters,
+    StaffPeriodTransferReportData,
+    Subject
+} from '@/types/timetable/Transaction/staffperiodtransfer';
 import { revalidatePath } from 'next/cache';
 
 export async function getAcademicYearData() {
@@ -28,7 +36,7 @@ export async function getSubjectDetails() {
     return await api.get<Subject[]>('timetable', url);
 }
 
-export async function getStaffPeriodTransferMasters() {
+export async function getStaffPeriodTransferMasters(): Promise<StaffPeriodTransferMasters> {
     const [years, classes, staff, subjects] = await Promise.all([
         getAcademicYearData(),
         getClassData(),
@@ -53,9 +61,22 @@ export async function getStaffPeriodTransferMasters() {
     };
 }
 
-export async function saveStaffPeriodTransfer(payload: any) {
-    const url = '/StaffPeriodTransferFacade/SaveTransfer';
-    console.info('StaffPeriodTransferFacade', url);
+export async function getStaffPeriodTransferReport(payload: {
+    asmaY_Id: number | string;
+    hrmE_Id: number | string;
+}) {
+    const url = '/StaffPeriodTransformFacade/getrpt';
+    console.info('StaffPeriodTransformFacade', url, payload);
+    const requestData = {
+        asmaY_Id: Number(payload.asmaY_Id),
+        hrmE_Id: Number(payload.hrmE_Id)
+    };
+    return await api.post<StaffPeriodTransferReportData>('timetable', url, requestData);
+}
+
+export async function saveStaffPeriodTransfer(payload: SaveStaffPeriodTransferPayload | any) {
+    const url = '/StaffPeriodTransformFacade/savedetailreplacement';
+    console.info('StaffPeriodTransformFacade', url, payload);
     const response = await api.post<any>('timetable', url, payload);
     revalidatePath('/timetable/transactions/staffperiodtransfer');
     return response;
@@ -71,13 +92,17 @@ export async function getStaffPeriodDetails(payload: any) {
 export async function getSectionsByClass(asmcL_Id: number) {
     const url = '/TimeTableCommon/section-details';
     console.info('TimeTableCommon', url);
-    return await api.get<any>('timetable', url);
+    return await api.get<Section[]>('timetable', url);
 }
 
 export async function deleteStaffPeriodTransfer(payload: any) {
-    const url = '/StaffPeriodTransferFacade/DeleteTransfer';
-    console.info('StaffPeriodTransferFacade', url);
+    const url = '/StaffPeriodTransformFacade/DeleteTransfer';
+    console.info('StaffPeriodTransformFacade', url);
     const response = await api.post<any>('timetable', url, payload);
     revalidatePath('/timetable/transactions/staffperiodtransfer');
     return response;
 }
+
+
+
+

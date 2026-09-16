@@ -15,6 +15,7 @@ export async function saveInvMasterCustomer(data: any) {
 }
 
 export async function deactivateInvMasterCustomer(data: any) {
-    const url = `/INV_MasterCustomerFacade/deactive?id=${data.invmC_Id}`;
+    const id = data?.invmC_Id ?? data?.INVMC_Id ?? (typeof data === 'number' ? data : data?.id);
+    const url = `/INV_MasterCustomerFacade/deactive?id=${id}`;
     return await api.get<any>('inventory', url);
 }

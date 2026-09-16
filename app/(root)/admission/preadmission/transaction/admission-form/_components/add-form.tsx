@@ -900,7 +900,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_BPLCardNo: formData.amsT_BPLCardNo ?? '',
                 mobileCountryCode: (() => {
                     const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
-                    return Array.isArray(mobileNos) && mobileNos.length > 0 ? String(mobileNos[0]?.amstsmS_CountryCode ?? '') : '';
+                    let code = Array.isArray(mobileNos) && mobileNos.length > 0 ? String(mobileNos[0]?.amstsmS_CountryCode ?? '') : '';
+                    if (!code) code = '91';
+                    return code;
                 })(),
                 mobileNumber: (() => {
                     const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
@@ -8410,3 +8412,4 @@ if (typeof document !== 'undefined') {
     styleSheet.innerText = styles;
     document.head.appendChild(styleSheet);
 }
+

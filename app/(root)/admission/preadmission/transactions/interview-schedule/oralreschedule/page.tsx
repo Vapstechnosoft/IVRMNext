@@ -9,7 +9,7 @@ import { useDeleteOralReSchedule, useOralReScheduleDetails } from '@/hooks/admis
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { HelpCircle, Plus } from 'lucide-react';
-import { parseAsString, parseAsStringLiteral, useQueryState } from 'nuqs';
+import { parseAsString, parseAsStringLiteral, parseAsInteger, useQueryState } from 'nuqs';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import OralReScheduleForm from './components/re-add-form';
@@ -31,6 +31,9 @@ export default function OralReSchedulePage() {
             .withDefault('asc')
     );
     const [searchQuery] = useQueryState('search_query', parseAsString.withOptions({ shallow: false }).withDefault(''));
+    
+    const [currentPage] = useQueryState('page', parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState('page_size', parseAsInteger.withOptions({ shallow: false }).withDefault(10));
 
     const filteredAndSortedData = useMemo(() => {
         const scheduleData = details?.oralTestSchedule || details?.data?.oralTestSchedule || [];
@@ -76,13 +79,18 @@ export default function OralReSchedulePage() {
         });
     }, [details?.oralTestSchedule, details?.data?.oralTestSchedule, searchQuery, sortBy, order]);
 
+    const paginatedData = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        return filteredAndSortedData.slice(startIndex, startIndex + pageSize);
+    }, [filteredAndSortedData, currentPage, pageSize]);
+
     const methods = useForm();
 
     const columns: ColumnDef<any>[] = [
         {
             id: 'slno',
             header: () => <div className='text-center'>SL.NO</div>,
-            cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>
+            cell: ({ row }) => <div className='text-center'>{(currentPage - 1) * pageSize + row.index + 1}</div>
         },
         {
             accessorKey: 'paotS_ScheduleName',
@@ -202,7 +210,7 @@ export default function OralReSchedulePage() {
                 <CardContent className='p-0'>
                     <div className='[&_th]:font-bold [&_th]:text-[13px] [&_th]:text-black'>
                         <GenericDataTable
-                            data={filteredAndSortedData}
+                            data={paginatedData}
                             columns={columns}
                             isLoading={isLoading}
                             isSearchRequired={true}

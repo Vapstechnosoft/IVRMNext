@@ -258,7 +258,7 @@ function LeaveDetailsPageContent() {
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                         <div className='space-y-2'>
-                            <Label>Type</Label>
+                            <Label>Type<span className='text-destructive'>*</span></Label>
                             <Controller
                                 name='selectedTypes'
                                 control={control}
@@ -276,7 +276,7 @@ function LeaveDetailsPageContent() {
                             {errors.selectedTypes && <p className='mt-1 text-destructive text-xs'>{errors.selectedTypes.message}</p>}
                         </div>
                         <div className='space-y-2'>
-                            <Label>Department</Label>
+                            <Label>Department<span className='text-destructive'>*</span></Label>
                             <Controller
                                 name='selectedDepartments'
                                 control={control}
@@ -296,7 +296,7 @@ function LeaveDetailsPageContent() {
                             )}
                         </div>
                         <div className='space-y-2'>
-                            <Label>Designation</Label>
+                            <Label>Designation<span className='text-destructive'>*</span></Label>
                             <Controller
                                 name='selectedDesignations'
                                 control={control}
@@ -316,7 +316,7 @@ function LeaveDetailsPageContent() {
                             )}
                         </div>
                         <div className='space-y-2'>
-                            <Label>Grade</Label>
+                            <Label>Grade<span className='text-destructive'>*</span></Label>
                             <Controller
                                 name='grades'
                                 control={control}

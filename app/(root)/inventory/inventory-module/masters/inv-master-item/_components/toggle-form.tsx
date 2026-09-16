@@ -24,12 +24,21 @@ interface ToggleInvMasterItemFormProps {
 
 export default function ToggleInvMasterItemForm({ rowData, onClose }: ToggleInvMasterItemFormProps) {
     const { refetchAll } = useInvMasterItem();
+    const isActive = Boolean(
+        rowData.invmI_ActiveFlg ??
+        (rowData as any).invmi_activeflg ??
+        (rowData as any).INVMI_ActiveFlg
+    );
 
     const handleToggle = useCallback(async () => {
         try {
             const result = await deactivateInvMasterItem(rowData);
             if (result.success || result.returnval) {
-                toast.success(result.message || 'Record status updated successfully');
+                if (isActive) {
+                    toast.error('Deactivated Successfully');
+                } else {
+                    toast.success('Activated Successfully');
+                }
                 refetchAll();
                 onClose();
             } else {
@@ -38,15 +47,15 @@ export default function ToggleInvMasterItemForm({ rowData, onClose }: ToggleInvM
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
         }
-    }, [rowData, refetchAll, onClose]);
+    }, [rowData, isActive, refetchAll, onClose]);
 
     return (
         <AlertDialog open={true} onOpenChange={onClose}>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>{rowData.invmI_ActiveFlg ? 'Deactivate Record' : 'Activate Record'}</AlertDialogTitle>
+                    <AlertDialogTitle>{isActive ? 'Deactivate Record' : 'Activate Record'}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Are you sure you want to {rowData.invmI_ActiveFlg ? 'deactivate' : 'activate'} this item record?
+                        Are you sure you want to {isActive ? 'deactivate' : 'activate'} this item record?
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
@@ -54,8 +63,8 @@ export default function ToggleInvMasterItemForm({ rowData, onClose }: ToggleInvM
                     <AlertDialogCancel className='text-black hover:bg-transparent dark:text-white'>Cancel</AlertDialogCancel>
 
                     <AlertDialogAction asChild>
-                        <Button variant={rowData.invmI_ActiveFlg ? 'destructive' : 'default'} onClick={handleToggle}>
-                            Yes, {rowData.invmI_ActiveFlg ? 'Deactivate' : 'Activate'} it
+                        <Button variant={isActive ? 'destructive' : 'default'} onClick={handleToggle}>
+                            Yes, {isActive ? 'Deactivate' : 'Activate'} it
                         </Button>
                     </AlertDialogAction>
                 </AlertDialogFooter>

@@ -17,7 +17,6 @@ import { Spinner } from '@/components/ui/spinner';
 import {
     useConcessionDropdown,
     useMasterDocument,
-    useMasterSectionHeld,
     useStudentCategoryByClass
 } from '@/hooks/admission/preadmission/useMasters';
 
@@ -50,7 +49,7 @@ import type { z } from 'zod';
 type FormFields = z.infer<typeof studentAdmissionFormSchema.add>;
 
 interface AddStudentApplicationFormProps {
-    onSuccess?: () => void;
+    onSuccess?: (response?: any) => void;
     className?: string;
 }
 
@@ -598,7 +597,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const motherAlive = watch('motherAliveFlag') || watch('MotherAliveFlag') || false;
 
     const classId = watch('asmcL_Id');
-    const { data: sectionData } = useMasterSectionHeld(Number(classId));
+    const sectionData = useMemo(() => ({ data: (admissionDetails as any)?.mastersection || [] }), [admissionDetails]);
 
     const conStateId = watch('amsT_ConState');
     const { data: conDistrict } = useDistrictDropdown(Number(conStateId));
@@ -910,7 +909,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 adm_M_Student_EmailIdDTO: formData.adm_M_Student_EmailIdDTO && formData.adm_M_Student_EmailIdDTO.length > 0 ? formData.adm_M_Student_EmailIdDTO : (getValues('adm_M_Student_EmailIdDTO') || []),
                 mobileCountryCode: (() => {
                     const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
-                    return Array.isArray(mobileNos) && mobileNos.length > 0 ? String(mobileNos[0]?.amstsmS_CountryCode ?? '') : '';
+                    let code = Array.isArray(mobileNos) && mobileNos.length > 0 ? String(mobileNos[0]?.amstsmS_CountryCode ?? '') : '';
+                    if (!code) code = '91';
+                    return code;
                 })(),
                 mobileNumber: (() => {
                     const mobileNos = (formData.mobileNos ?? getValues('mobileNos')) as any[];
@@ -1614,13 +1615,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     const res = await saveFirstTab({
                         ...formData,
                         amsT_Photoname: studentPhoto?.amsT_Photoname,
-                        mobileNos: (formData.mobileNos || []).map((m: any) => ({
-                            mobileCountryCode: m.amstsmS_CountryCode?.replace('+', '') || '91',
-                            mobileNumber: m.amsT_MobileNo || m.amstsmS_MobileNo || m.mobileNumber
-                        })),
-                        adm_M_Student_EmailIdDTO: (formData.adm_M_Student_EmailIdDTO || []).map((e: any) => ({
-                            emailId: e.amsT_emailId || e.amstE_EmailId || e.emailId
-                        }))
+                        mobileNos: formData.mobileNos,
+                        adm_M_Student_EmailIdDTO: formData.adm_M_Student_EmailIdDTO
                     });
                     console.debug('[Admission] saveFirstTab response (auto):', res);
                     if (!res?.success) {
@@ -1825,7 +1821,9 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                     EmailId: (() => {
                                         const e = (formData.adm_M_Student_EmailIdDTO || [])[0] as any;
                                         return String(e?.amsT_emailId || e?.amstE_EmailId || '').trim();
-                                    })()
+                                    })(),
+                                    mobileNos: formData.mobileNos,
+                                    adm_M_Student_EmailIdDTO: formData.adm_M_Student_EmailIdDTO
                                 });
                                 console.debug('[Admission] saveFirstTab result (forced):', saveRes);
                                 if (saveRes?.success) {
@@ -3062,7 +3060,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 reset();
                 setCurrentStep(1);
                 setUploadedDocuments([]);
-                onSuccess?.();
+                onSuccess?.(response);
             } else {
                 toast.error(response?.message || 'Failed to submit application');
             }
@@ -3442,9 +3440,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={String(field.value || 'empty-cc')}
                                                                     onValueChange={(value) => field.onChange(Number(value))}
-                                                                    value={field.value?.toString() || ''}>
+                                                                    value={field.value && field.value !== 0 ? field.value.toString() : ''}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder='Select caste category' />
                                                                     </SelectTrigger>
@@ -3893,6 +3890,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         label='Aadhaar No.'
                                                         id='amsT_AadharNo'
                                                         placeholder='Enter 12 digit number'
+                                                        maxLength={12}
                                                         {...register('amsT_AadharNo')}
                                                         error={errors.amsT_AadharNo?.message}
                                                     />
@@ -3952,7 +3950,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 onValueChange={(value) => field.onChange(Number(value))}
                                                                 value={field.value?.toString() || ''}
                                                                 disabled>
-                                                                <SelectTrigger>
+                                                                <SelectTrigger className='!opacity-100 !text-black disabled:!opacity-100 disabled:!text-black'>
                                                                     <SelectValue placeholder='Select category' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
@@ -8358,18 +8356,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             type='button'
                                             onClick={(e) => {
                                                 e.preventDefault();
-                                                if (!isCurrentStepValid) {
-                                                    toast.error('Please fill all mandatory fields before proceeding');
-                                                    return;
-                                                }
                                                 nextStep();
                                             }}
-                                            disabled={!isCurrentStepValid || isSavingStep || isSubmitting}
+                                            disabled={isSavingStep || isSubmitting}
                                             className={cn(
-                                                'min-w-[120px] transition-all duration-200',
-                                                !isCurrentStepValid
-                                                    ? 'cursor-not-allowed opacity-50 grayscale'
-                                                    : 'shadow-md hover:scale-105 hover:shadow-lg',
+                                                'min-w-[120px] transition-all duration-200 shadow-md hover:scale-105 hover:shadow-lg',
                                                 hasUnsavedGuardian ? 'opacity-60' : ''
                                             )}>
                                             {isSavingStep ? (
@@ -8469,3 +8460,4 @@ if (typeof document !== 'undefined') {
     styleSheet.innerText = styles;
     document.head.appendChild(styleSheet);
 }
+

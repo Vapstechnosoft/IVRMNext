@@ -16,3 +16,13 @@ export async function getMasterMonthDropDownList() {
     const url = '/master_class_held/month_drop_down_list';
     return await api.get('admission', url);
 }
+
+export async function getClassHeldData(data: any) {
+    const url = '/master_class_held/getNoOfClassHeld';
+    return await api.post<any>('admission', url, data);
+}
+
+export async function getMasterClassHeldAllDetails() {
+    const url = '/master_class_held/getAllDetails';
+    return await api.get<any>('admission', url);
+}

@@ -178,6 +178,7 @@ function FrontOfficeAddLogsContent() {
                 remarks: log.remarks
             }))
         };
+        console.log("Payload",payload)
 
         try {
             await savePunch(payload);
@@ -242,7 +243,7 @@ function FrontOfficeAddLogsContent() {
             <CollapsibleSection defaultOpen={true} title='Employee Logs Insertion' variant='outline' className='bg-white shadow-sm'>
                 <div className='mb-8 grid grid-cols-1 gap-6 p-4 md:grid-cols-3'>
                     <div className='space-y-2'>
-                        <Label className='font-semibold'>Group Type</Label>
+                        <Label className='font-semibold'>Group Type<span className='text-destructive'>*</span></Label>
                         <Controller
                             key={resetkey}
                             name='groupType'
@@ -263,7 +264,7 @@ function FrontOfficeAddLogsContent() {
                     </div>
 
                     <div className='space-y-2'>
-                        <Label className='font-semibold'>Department</Label>
+                        <Label className='font-semibold'>Department<span className='text-destructive'>*</span></Label>
                         <Controller
                             key={resetkey}
                             name='department'
@@ -284,7 +285,7 @@ function FrontOfficeAddLogsContent() {
                     </div>
 
                     <div className='space-y-2'>
-                        <Label className='font-semibold'>Designation</Label>
+                        <Label className='font-semibold'>Designation<span className='text-destructive'>*</span></Label>
                         <Controller
                             key={resetkey}
                             name='designation'

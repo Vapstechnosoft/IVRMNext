@@ -344,6 +344,25 @@ export default function StaffUserCreationPage() {
                     if (usernameResult.success && usernameResult.data && usernameResult.data.length > 0) {
                         const userData = usernameResult.data[0];
                         const staffUsername = userData.user_Name || userData.userName;
+                        
+                        // Check if we have pre-checked modules in the response
+                        if (userData.moduleexistid) {
+                            const allModulesData = Array.isArray(userData.moduleexistid) 
+                                ? userData.moduleexistid 
+                                : (userData.moduleexistid.$values || []);
+                                
+                            if (allModulesData.length > 0) {
+                                setModules((prevModules) => 
+                                    prevModules.map((mod) => {
+                                        if (allModulesData.some((m: any) => m.ivrmM_Id === mod.ivrmM_Id)) {
+                                            return { ...mod, model: true };
+                                        }
+                                        return mod;
+                                    })
+                                );
+                            }
+                        }
+
                         if (staffUsername) {
                             methods.setValue('userName', staffUsername);
                             setUserId(userData.userId || userData.ivrmu_Id || null);
@@ -863,7 +882,9 @@ export default function StaffUserCreationPage() {
                                         />
 
                                         {/* Conditional Rendering of Mapping Grids */}
-                                        {(watchFilterData === 'Single' ? isUserNameDisabled : staffList.some((s) => s.Selected)) && (
+                                        {(watchFilterData === 'Single'
+                                            ? isUserNameDisabled || modules.some((module) => module.model) || webPages.length > 0 || savedGrid.length > 0
+                                            : staffList.some((s) => s.Selected) || modules.some((module) => module.model) || webPages.length > 0 || savedGrid.length > 0) && (
                                             <PageMappingGrids
                                                 webPages={webPages}
                                                 onWebPageUpdate={setWebPages}

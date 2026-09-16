@@ -9,11 +9,13 @@ import type { IadmissionStudentApplicationList } from '@/types/admission/admissi
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { useQueryState } from 'nuqs';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import React, { useEffect, useState } from 'react';
 import AddStudentAdmissionForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
 import ApplicationFormSuccessDialog from './_components/success-dialog';
+import AiInsightDialog from './_components/ai-insight-dialog';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StudentApplicationPage(props: {
@@ -63,21 +65,20 @@ function StudentApplicationPageContent({
 }) {
     const { openAddForm } = useFormContext();
 
-    const searchQuery = (searchParams?.search_query as string) || '';
-    const page = Number.parseInt(searchParams?.page as string) || 1;
-    const pageSize = Number.parseInt(searchParams?.page_size as string) || 10;
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    
+    const page = currentPage || 1;
 
     const filteredData = React.useMemo(() => {
         let result = response?.data?.studentList || [];
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             result = result.filter((row: any) =>
-                String(row.studentName || '').toLowerCase().includes(query) ||
-                String(row.className || '').toLowerCase().includes(query) ||
-                String(row.sectionName || '').toLowerCase().includes(query) ||
-                String(row.admissionNo || '').toLowerCase().includes(query) ||
-                String(row.emailId || '').toLowerCase().includes(query) ||
-                String(row.mobileNo || '').toLowerCase().includes(query)
+                Object.values(row).some(
+                    (val) => val !== null && val !== undefined && String(val).toLowerCase().includes(query)
+                )
             );
         }
         return result;
@@ -95,7 +96,10 @@ function StudentApplicationPageContent({
             : response
     );
     const [isSuccessOpen, setSuccessOpen] = useState(false);
+    const [isAiInsightOpen, setAiInsightOpen] = useState(false);
     const [successType, setSuccessType] = useState<'create' | 'update'>('create');
+    const [aiInsightMsg, setAiInsightMsg] = useState<string | undefined>(undefined);
+    const [aiSeatStatusMsg, setAiSeatStatusMsg] = useState<string | undefined>(undefined);
     const session = useSession();
 
     useEffect(() => {
@@ -112,8 +116,11 @@ function StudentApplicationPageContent({
 
     const onCloseSuccessDialog = () => {
         setSuccessOpen(false);
-        // Instead of a full reload, refetch the table data
-        refetch();
+        if (aiInsightMsg) {
+            setAiInsightOpen(true);
+        } else {
+            refetch();
+        }
     };
 
     const [selectedYear, setSelectedYear] = useQueryState('asmay_id', { defaultValue: '' });
@@ -150,16 +157,26 @@ function StudentApplicationPageContent({
                         isOpen={isSuccessOpen}
                         title={successType === 'update' ? 'Application Updated Successfully' : 'Application Submitted Successfully'}
                         message={successType === 'update' ? 'Application updated successfully' : 'Successfully submitted application form'}
+                        onClose={onCloseSuccessDialog}
+                    />
+                )}
+                {isAiInsightOpen && aiInsightMsg && (
+                    <AiInsightDialog
+                        isOpen={isAiInsightOpen}
+                        insight={aiInsightMsg}
+                        seatStatus={aiSeatStatusMsg}
                         onClose={() => {
-                            onCloseSuccessDialog();
+                            setAiInsightOpen(false);
                             refetch();
                         }}
                     />
                 )}
                 {/* Forms */}
                 <FormSections
-                    setSuccess={(type: 'create' | 'update') => {
+                    setSuccess={(type: 'create' | 'update', insight?: string, seatStatus?: string) => {
                         setSuccessType(type);
+                        setAiInsightMsg(insight);
+                        setAiSeatStatusMsg(seatStatus);
                         setSuccessOpen(true);
                     }}
                     refetch={refetch}
@@ -198,7 +215,7 @@ function FormSections({
     setSuccess,
     refetch
 }: {
-    setSuccess: (type: 'create' | 'update') => void;
+    setSuccess: (type: 'create' | 'update', insight?: string, seatStatus?: string) => void;
     refetch: () => void;
 }) {
     const { isAddFormOpen, closeAddForm, addFormRef, isEditFormOpen, closeEditForm, editFormRef, selectedRow } = useFormContext();
@@ -225,9 +242,12 @@ function FormSections({
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddStudentAdmissionForm
-                                onSuccess={() => {
+                                onSuccess={(res) => {
                                     closeAddForm();
-                                    setSuccess('create');
+                                    // Extract the AI insight from whatever property the backend decides to use
+                                    const insight = res?.data?.aiInsight || res?.aiInsight || res?.ai_message || res?.insight;
+                                    const seatStatus = res?.data?.aiSeatStatus;
+                                    setSuccess('create', insight && typeof insight === 'string' ? insight : undefined, seatStatus);
                                     refetch();
                                 }}
                             />
@@ -257,9 +277,11 @@ function FormSections({
                             </Button>
                             <UpdateStudentAdmissionForm
                                 rowData={selectedRow}
-                                onSuccess={() => {
+                                onSuccess={(res) => {
                                     closeEditForm();
-                                    setSuccess('update');
+                                    const insight = res?.data?.aiInsight || res?.aiInsight || res?.ai_message || res?.insight;
+                                    const seatStatus = res?.data?.aiSeatStatus;
+                                    setSuccess('update', insight && typeof insight === 'string' ? insight : undefined, seatStatus);
                                     refetch();
                                 }}
                                 onClose={closeEditForm}
