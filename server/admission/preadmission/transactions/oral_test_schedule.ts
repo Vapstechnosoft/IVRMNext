@@ -1,9 +1,8 @@
 'use server';
 import { api } from '@/lib/apiService';
-import type { IOralTestScheduleDetails } from '@/types/admission/preadmission/transactions/oral-test-schedule';
 
 export async function getOralTestScheduleDetails() {
-    const response = await api.get<IOralTestScheduleDetails>('preadmission', '/OralTestSchedule/Getdata');
+    const response = await api.get<any>('preadmission', '/OralTestSchedule/Getdata');
     return response.data;
 }
 

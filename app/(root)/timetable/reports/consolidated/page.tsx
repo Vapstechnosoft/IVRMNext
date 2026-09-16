@@ -34,7 +34,57 @@ export default function ConsolidatedReportPage() {
 
     const handlePrint = useReactToPrint({
         contentRef: componentRef,
-        documentTitle: `Consolidated_Report_${reportType}`
+        documentTitle: `Consolidated_Report_${reportType || 'Report'}`,
+        pageStyle: `
+            @page {
+                size: landscape;
+                margin: 8mm;
+            }
+            @media print {
+                html, body {
+                    visibility: visible !important;
+                    background: #fff !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                .printable-content,
+                .printable-content * {
+                    visibility: visible !important;
+                }
+                .no-print {
+                    display: none !important;
+                }
+                .overflow-x-auto {
+                    overflow: visible !important;
+                }
+                .sticky {
+                    position: static !important;
+                }
+                table {
+                    width: 100% !important;
+                    border-collapse: collapse !important;
+                    page-break-inside: auto;
+                }
+                thead {
+                    display: table-header-group !important;
+                }
+                tr {
+                    page-break-inside: avoid !important;
+                    page-break-after: auto !important;
+                }
+                th, td {
+                    border: 1px solid #666 !important;
+                    padding: 4px 6px !important;
+                    font-size: 8pt !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                th {
+                    background-color: #6b21a8 !important;
+                    color: #fff !important;
+                }
+            }
+        `
     });
 
     const handleFormSubmit = async (payload: any) => {
@@ -92,7 +142,7 @@ export default function ConsolidatedReportPage() {
 
             {reportData.length > 0 && !loading && (
                 <CollapsibleSection title={`${reportType.replace('_', ' ')} Consolidated Report`} defaultOpen={true}>
-                    <div className='p-2' ref={componentRef}>
+                    <div className='printable-content p-2 print:p-4' ref={componentRef}>
                         <ConsolidatedReportGrid
                             reportData={reportData}
                             fullResponse={fullReportResponse}

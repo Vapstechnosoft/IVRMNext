@@ -75,7 +75,7 @@ function MasterAcademicYearPageContent({
                     <div className='mb-2 flex flex-col items-start justify-between gap-2 md:flex-row md:items-end md:gap-0'>
                         <p className='font-semibold text-destructive text-sm'>Note: Only one preadmission flag should be activated.</p>
                         <div className='flex items-center gap-2'>
-                            <ViewDetailsForm data={tableData} institution={institutionList[0]} />
+                            <ViewDetailsForm data={nestedData?.academicList ?? tableData} institution={institutionList[0]} />
                             <ReorderAcademicYearForm />
                         </div>
                     </div>

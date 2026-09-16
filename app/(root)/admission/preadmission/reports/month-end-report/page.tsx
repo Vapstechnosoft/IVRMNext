@@ -3,6 +3,7 @@ import { FileSpreadsheet, Printer, RotateCcw, Save } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
+import * as XLSX from 'xlsx';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
@@ -11,7 +12,6 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown, useMasterCategoryDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useMonthEndReport } from '@/hooks/admission/preadmission/useReports';
-import { getExcelMonthEndReport } from '@/server/admission/preadmission/reports/month_end_report';
 import AdmissionMonthEndReport from './_components/columns';
 export default function MonthendreportPage() {
     const [academicYearId, setAcademicYearId] = useState<number>(0);
@@ -145,36 +145,35 @@ export default function MonthendreportPage() {
         }
     };
 
-    const downloadExcel = async () => {
+    const downloadExcel = () => {
         try {
             if (!academicYearId || !categoryId || !selectedMonth || !selectedYear) {
                 toast.error('Please fill all required fields!');
                 return;
             }
 
-            const response = await getExcelMonthEndReport(requestData);
+            if (!reportData || reportData.length === 0) {
+                toast.error('No data available to download!');
+                return;
+            }
 
-            // Ensure we have a Blob
-            const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+            const excelData = reportData.map((item: any, index: number) => ({
+                'SL.No': index + 1,
+                'Name': item.name,
+                'Count': item.count ?? '-',
+                'SMS': item.sms ?? '-',
+                'Email Id': item.emailId ?? '-',
+                'Missing Photo': item.missingphoto ?? '-',
+                'Missing Email': item.missingemail ?? '-',
+                'Missing Contact No.': item.missingphone ?? '-'
+            }));
 
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `MonthEndReport_${selectedMonth}_${selectedYear}.xlsx`;
-            document.body.appendChild(link);
-            link.click();
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'MonthEndReport');
 
-            // Cleanup
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
+            const monthName = new Date(0, Number(selectedMonth) - 1).toLocaleString('en-US', { month: 'long' });
+            XLSX.writeFile(workbook, `MonthEndReport_${monthName}_${selectedYear}.xlsx`);
 
             toast.success('Excel downloaded successfully');
         } catch (error) {

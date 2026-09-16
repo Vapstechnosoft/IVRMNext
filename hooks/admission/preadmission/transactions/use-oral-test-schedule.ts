@@ -19,10 +19,35 @@ export function useOralTestScheduleDetails() {
     return useQuery({
         queryKey: [PREADMISSION_QUERY_KEYS.ORAL_TEST_SCHEDULE_DETAILS],
         queryFn: () => getOralTestScheduleDetails(),
-        select: (data: any) => ({
-            ...data,
-            classlist: data?.classlist || data?.admissioncatdrpall || []
-        })
+        select: (data: any) => {
+            let scheduleArray = data?.oralTestSchedule;
+            if (scheduleArray && !Array.isArray(scheduleArray) && scheduleArray.$values) {
+                scheduleArray = scheduleArray.$values;
+            }
+            if (!Array.isArray(scheduleArray)) scheduleArray = [];
+
+            let studentList1Array = data?.studentList1;
+            if (studentList1Array && !Array.isArray(studentList1Array) && studentList1Array.$values) {
+                studentList1Array = studentList1Array.$values;
+            }
+            if (!Array.isArray(studentList1Array)) studentList1Array = [];
+
+            const mappedSchedule = scheduleArray.map((schedule: any) => {
+                const countMatch = studentList1Array.find(
+                    (s: any) => s.PAOTS_Id === schedule.paotS_Id || s.paotS_Id === schedule.paotS_Id
+                );
+                return {
+                    ...schedule,
+                    ocount: countMatch?.ocount || 0
+                };
+            });
+
+            return {
+                ...data,
+                classlist: data?.classlist?.$values || data?.classlist || data?.admissioncatdrpall?.$values || data?.admissioncatdrpall || [],
+                oralTestSchedule: mappedSchedule
+            };
+        }
     });
 }
 
