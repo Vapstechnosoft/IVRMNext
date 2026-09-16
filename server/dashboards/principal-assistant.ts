@@ -64,6 +64,93 @@ ${JSON.stringify(defaultResponse, null, 2)}
     }
 }
 
+function isGreetingOrConversational(query: string): boolean {
+    const q = query.trim().toLowerCase();
+    if (!q) return true;
+
+    const greetings = [
+        'hi',
+        'hello',
+        'hey',
+        'heya',
+        'howdy',
+        'hola',
+        'namaste',
+        'vanakkam',
+        'pranam',
+        'good morning',
+        'good afternoon',
+        'good evening',
+        'good day',
+        'how are you',
+        'who are you',
+        'what are you',
+        'what can you do',
+        'help',
+        'help me',
+        'what do you do',
+        'introduce yourself',
+        'what is this',
+        'commands',
+        'menu',
+        'options',
+        'queries',
+        'list',
+        'thank you',
+        'thanks',
+        'bye',
+        'goodbye',
+        'welcome',
+        'test'
+    ];
+
+    const metricKeywords = [
+        'fail',
+        'failing',
+        'grade',
+        'marks',
+        'attendance',
+        'absent',
+        'bunk',
+        'fee',
+        'collect',
+        'receivable',
+        'teacher',
+        'overload',
+        'workload',
+        'period',
+        'dropout',
+        'admission',
+        'pass rate',
+        'pass percentage',
+        'top student',
+        'topper',
+        'remedial',
+        'bus',
+        'route',
+        'transport',
+        'hostel',
+        'library',
+        'overdue',
+        'supply',
+        'supplies',
+        'inventory',
+        'shortage',
+        'late',
+        'punch',
+        'money',
+        'financial',
+        'health score',
+        'health card',
+        'kpi'
+    ];
+
+    const hasMetricKeyword = metricKeywords.some((kw) => q.includes(kw));
+    if (hasMetricKeyword) return false;
+
+    return greetings.some((g) => q === g || q.startsWith(`${g} `) || q.endsWith(` ${g}`) || q.includes(g));
+}
+
 export interface AssistantResponse {
     questionId: string;
     matchedQuestion: string;
@@ -71,9 +158,15 @@ export interface AssistantResponse {
     chartType: 'bar' | 'line' | 'pie' | 'area' | 'radar';
     chartData: any[];
     recommendations: string[];
+    isGreeting?: boolean;
+    greetingMessage?: string;
 }
 
 async function classifyQueryWithLLM(query: string): Promise<string> {
+    if (isGreetingOrConversational(query)) {
+        return 'greeting';
+    }
+
     const apiKey = process.env.assistant_groq_key || '';
     const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
@@ -93,14 +186,15 @@ async function classifyQueryWithLLM(query: string): Promise<string> {
         'inventory_shortage',
         'staff_lateness',
         'financial_summary',
-        'school_health'
+        'school_health',
+        'greeting'
     ];
 
     try {
         const prompt = `
 You are an intent classifier for a school ERP principal dashboard.
 Your job is to match the user's question to the closest query category ID from the list below.
-Return ONLY the raw ID string from the list (e.g., "teacher_load") with NO other explanation, intro, markdown, or text.
+Return ONLY the raw ID string from the list (e.g., "teacher_load" or "greeting") with NO other explanation, intro, markdown, or text.
 
 Allowed IDs and their meanings:
 1. fail_risk: Which students might fail this term?
@@ -119,6 +213,7 @@ Allowed IDs and their meanings:
 14. staff_lateness: Which staff come late often?
 15. financial_summary: Today's money summary?
 16. school_health: Overall school health score?
+17. greeting: The user is greeting (e.g. "hello", "hi", "good morning"), making small talk, introducing themselves, asking what you can do, or didn't ask a specific school performance metric.
 
 User's Question: "${query}"
 
@@ -155,7 +250,7 @@ Matched ID:`;
 
 function findBestMatchLocal(query: string): string {
     const q = query.toLowerCase().trim();
-    if (!q) return 'school_health';
+    if (!q || isGreetingOrConversational(q)) return 'greeting';
 
     const questions = [
         { id: 'fail_risk', text: 'Which students might fail this term?' },
@@ -204,7 +299,7 @@ function findBestMatchLocal(query: string): string {
         }
     }
 
-    return 'school_health';
+    return 'greeting';
 }
 
 export async function getPrincipalAssistantResponse(queryOrId: string): Promise<AssistantResponse> {
@@ -257,7 +352,8 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
         'inventory_shortage',
         'staff_lateness',
         'financial_summary',
-        'school_health'
+        'school_health',
+        'greeting'
     ];
 
     let questionId = queryOrId;
@@ -267,6 +363,24 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
 
     try {
         switch (questionId) {
+            case 'greeting': {
+                return {
+                    questionId: 'greeting',
+                    matchedQuestion: 'Hello! How can I assist you today?',
+                    isGreeting: true,
+                    greetingMessage:
+                        "Hello Principal! I am your AI Administrative Assistant. I'm ready to provide real-time analysis on your institution's academics, student attendance, fee collections, teacher workloads, and overall school health. Please select a query from the list below to get started!",
+                    numbers: [],
+                    chartType: 'bar',
+                    chartData: [],
+                    recommendations: [
+                        'Select any administrative query from the list below to get instant insights, charts, and recommendations.',
+                        'You can query student failure risks, attendance alerts, fee projections, and teacher workloads.',
+                        'All data is synchronized in real-time with your ERP databases.'
+                    ]
+                };
+            }
+
             case 'fail_risk': {
                 let examDetails: any = null;
                 try {
