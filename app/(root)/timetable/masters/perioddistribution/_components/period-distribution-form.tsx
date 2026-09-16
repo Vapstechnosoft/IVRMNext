@@ -219,25 +219,25 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
         const data = watch();
         // Validation for sub-distribution fields
         if (!data.ttmC_Id || !data.asmcL_Id || !data.asmS_Id || !data.ismS_Id || !data.nop2) {
-            toast.warning('Please Select Fields Class, Section, Subject And Enter Period (Not Zero)!');
+            toast.error('Please Select Fields Class, Section, Subject And Enter Period (Not Zero)!');
             return;
         }
         const nop2Val = Number(data.nop2);
         if (nop2Val === 0) {
-            toast.warning('Period cannot be zero!');
+            toast.error('Period cannot be zero!');
             return;
         }
 
         const totalPeriods = Number(data.nop1);
         if (totalPeriods < nop2Val) {
-            toast.warning("Period Distribution Can't exceed the Total for only single class !!!");
+            toast.error("Period Distribution Can't exceed the Total for only single class !!!");
             return;
         }
 
         // Check if addition exceeds total
         const used = tempList.reduce((acc, curr) => acc + Number(curr.pedDisplay), 0);
         if (used + nop2Val > totalPeriods) {
-            toast.warning('Total distributed periods cannot exceed Total Weekly Periods!');
+            toast.error('Total distributed periods cannot exceed Total Weekly Periods!');
             return;
         }
 
@@ -257,7 +257,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
         );
 
         if (isDuplicate) {
-            toast.warning('Record Already Selected!');
+            toast.error('Record Already Selected!');
             return;
         }
 
@@ -307,12 +307,12 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
 
     const onSubmit = async (data: FormFields) => {
         if (!data.hrmE_Id) {
-            toast.warning('Select Staff');
+            toast.error('Select Staff');
             return;
         }
 
         if (tempList.length === 0) {
-            toast.warning('Need To Distribute Atleast One Period');
+            toast.error('Need To Distribute Atleast One Period');
             return;
         }
 

@@ -38,7 +38,9 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
         closeAllForms,
         isToggleFormOpen,
         closeToggleForm,
-        selectedRow
+        selectedRow,
+        addFormRef,
+        editFormRef
     } = useFormContext();
 
     const { data: academicData } = usebifurcationAcademicYear();
@@ -99,24 +101,24 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
 
             {isToggleFormOpen && selectedRow && <DayStaffToggle rowData={selectedRow} onClose={closeToggleForm} />}
 
-            {(isAddFormOpen || isEditFormOpen) && (
-                <CollapsibleSection
-                    title={isEditFormOpen ? 'Edit Day Staff Constraint' : 'Add New Day Staff Constraint'}
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={isEditFormOpen ? closeEditForm : closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add New Day Staff Constraint'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
 
-                        {isAddFormOpen && (
                             <DayStaffAddForm
                                 academicList={academicList}
                                 dayList={dayList}
@@ -124,9 +126,29 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                                 onSuccess={onFormSuccess}
                                 onCancel={closeAddForm}
                             />
-                        )}
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
 
-                        {isEditFormOpen && selectedRow && (
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Day Staff Constraint'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+
                             <DayStaffUpdate
                                 academicList={academicList}
                                 dayList={dayList}
@@ -135,9 +157,9 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
                                 onSuccess={onFormSuccess}
                                 onCancel={closeEditForm}
                             />
-                        )}
-                    </div>
-                </CollapsibleSection>
+                        </div>
+                    </CollapsibleSection>
+                </div>
             )}
         </div>
     );
