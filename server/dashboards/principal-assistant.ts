@@ -237,10 +237,6 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
         }
     }
 
-    if (!activeAsmayId || activeAsmayId === 0) {
-        activeAsmayId = 231;
-    }
-
     const validIds = [
         'fail_risk',
         'attendance_alert',
@@ -406,8 +402,8 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     chartData,
                     recommendations: [
                         'Outstanding fees stand at ' +
-                            (100 - Number.parseFloat(collectionRate)).toFixed(1) +
-                            '%. Send friendly automated payment links via WhatsApp before the upcoming term exams.',
+                        (100 - Number.parseFloat(collectionRate)).toFixed(1) +
+                        '%. Send friendly automated payment links via WhatsApp before the upcoming term exams.',
                         'Establish installment payment plans for families with long-standing dues to ease collection.',
                         'Focus recovery drives on the classes with highest pending balances.'
                     ]
@@ -495,7 +491,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     if (countData?.applicationsCount) {
                         totalAdmissions = Number(countData.applicationsCount) || totalAdmissions;
                     }
-                } catch (e) {}
+                } catch (e) { }
 
                 const defaultResponse = {
                     numbers: [
@@ -621,29 +617,29 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                         dynamicNumbers.length > 0
                             ? dynamicNumbers
                             : [
-                                  { label: 'Lowest Pass Subject', value: 'Math (68%)', change: '-4% drop', isPositive: false },
-                                  { label: 'Second Lowest', value: 'Chemistry (71%)', change: 'Flat', isPositive: false },
-                                  { label: 'Target School Avg', value: '85%', change: 'Current: 81%', isPositive: false }
-                              ],
+                                { label: 'Lowest Pass Subject', value: 'Math (68%)', change: '-4% drop', isPositive: false },
+                                { label: 'Second Lowest', value: 'Chemistry (71%)', change: 'Flat', isPositive: false },
+                                { label: 'Target School Avg', value: '85%', change: 'Current: 81%', isPositive: false }
+                            ],
                     chartData:
                         dynamicChartData.length > 0
                             ? dynamicChartData
                             : [
-                                  { name: 'English', rate: 96 },
-                                  { name: 'Math', rate: 68 },
-                                  { name: 'Physics', rate: 75 },
-                                  { name: 'Chemistry', rate: 71 },
-                                  { name: 'Biology', rate: 89 },
-                                  { name: 'History', rate: 90 }
-                              ],
+                                { name: 'English', rate: 96 },
+                                { name: 'Math', rate: 68 },
+                                { name: 'Physics', rate: 75 },
+                                { name: 'Chemistry', rate: 71 },
+                                { name: 'Biology', rate: 89 },
+                                { name: 'History', rate: 90 }
+                            ],
                     recommendations:
                         dynamicRecommendations.length > 0
                             ? dynamicRecommendations
                             : [
-                                  'Math pass rates are significantly low. Break down students into ability groups and assign weekly practice modules.',
-                                  'Increase lab practice hours for Physics and Chemistry to aid practical retention.',
-                                  'Hold extra doubt-clearing sessions on Saturdays.'
-                              ]
+                                'Math pass rates are significantly low. Break down students into ability groups and assign weekly practice modules.',
+                                'Increase lab practice hours for Physics and Chemistry to aid practical retention.',
+                                'Hold extra doubt-clearing sessions on Saturdays.'
+                            ]
                 };
 
                 const llmResponse = await queryAssistantLLM(
@@ -1067,7 +1063,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     if (lateEmps.length > 0) {
                         lateCount = lateEmps.length;
                     }
-                } catch (e) {}
+                } catch (e) { }
 
                 const defaultResponse = {
                     numbers: [
@@ -1116,7 +1112,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                         // Mock daily fee based on total collected ratio
                         dailyFeeCollection = Math.round(totalFeeCollected / 150);
                     }
-                } catch (e) {}
+                } catch (e) { }
 
                 const defaultResponse = {
                     numbers: [
@@ -1169,7 +1165,7 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                         totalReceivable = feesDataArray.reduce((acc: number, curr: any) => acc + (curr.receivable || 0), 0);
                         collectionPercent = Math.round((totalCollected / totalReceivable) * 100);
                     }
-                } catch (e) {}
+                } catch (e) { }
 
                 const defaultResponse = {
                     numbers: [
@@ -1188,8 +1184,8 @@ export async function getPrincipalAssistantResponse(queryOrId: string): Promise<
                     recommendations: [
                         'The overall school health index stands strong at 87/100, driven by excellent academic scores.',
                         'The primary bottleneck remains Fee Recovery at ' +
-                            collectionPercent +
-                            '%. Focus collections to exceed the 90% benchmark.',
+                        collectionPercent +
+                        '%. Focus collections to exceed the 90% benchmark.',
                         'Infrastructure and Parent satisfaction rating can be boosted by addressing minor campus repairs.'
                     ]
                 };

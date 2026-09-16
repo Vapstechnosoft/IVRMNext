@@ -17,6 +17,7 @@ import { CalendarIcon, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof PreAdmissionAcademicYearSchema.addOrUpdate>;
@@ -158,12 +159,28 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
             const response = await addOrUpdatePreAdmissionYear(payload);
 
             if (response.success) {
-                toast.success(response.message || 'Academic year saved successfully!');
+                Swal.fire({
+                    title: 'Success!',
+                    text: 'Academic year saved successfully',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+                    allowOutsideClick: true
+                }).then(() => {
+                    window.location.reload();
+                });
                 reset();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to save academic year.');
+                Swal.fire({
+                    title: 'Error!',
+                    text: response.message || 'Not saved successfully',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+                    allowOutsideClick: true
+                }).then(() => {
+                    window.location.reload();
+                });
             }
         } catch (error: any) {
             toast.error(typeof error === 'string' ? error : error?.message || 'An unexpected error occurred.');

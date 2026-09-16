@@ -21,7 +21,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
-import { ReadOnlyMultiSelect } from './read-only-multi-select';
+import { CustomMultiSelect } from './custom-multi-select';
 
 type MasterClassCategoryFormValues = z.infer<typeof masterClassCategorySchema.add>;
 
@@ -248,24 +248,20 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
         updateClassCategory(payload);
     };
 
-    // Disable all options for readonly display
     const sectionOptions =
         sections?.data
             ?.filter((item) => item.asmS_Id && Number(item.asmS_Id) > 0)
             ?.map((item) => ({
                 label: item.asmC_SectionName,
-                value: String(item.asmS_Id),
-                disabled: true // Disable interaction
+                value: String(item.asmS_Id)
             })) || [];
 
-    // Disable all classes
     const classOptions =
         classes?.data
             ?.filter((item) => item.asmcL_Id && Number(item.asmcL_Id) > 0)
             ?.map((item) => ({
                 label: item.asmcL_ClassName,
-                value: String(item.asmcL_Id),
-                disabled: true // Disable interaction
+                value: String(item.asmcL_Id)
             })) || [];
 
     return (
@@ -313,7 +309,7 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                 </div>
 
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                    {/* Class - READ ONLY (MultiSelect with disabled options) */}
+                    {/* Class - MultiSelect */}
                     <FormField
                         control={form.control}
                         name='category_classes'
@@ -321,7 +317,7 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                             <FormItem>
                                 <FormLabel>Select Class</FormLabel>
                                 <FormControl>
-                                    <ReadOnlyMultiSelect
+                                    <CustomMultiSelect
                                         key={`class-${rowData.asmcC_Id}`}
                                         options={classOptions}
                                         onValueChange={field.onChange}
@@ -336,7 +332,7 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                         )}
                     />
 
-                    {/* Sections - READ ONLY (MultiSelect with disabled options) */}
+                    {/* Sections - MultiSelect */}
                     <FormField
                         control={form.control}
                         name='category_class_sections'
@@ -344,7 +340,7 @@ export default function UpdateMasterClassCategoryForm({ rowData, onSuccess }: Up
                             <FormItem>
                                 <FormLabel>Select Sections</FormLabel>
                                 <FormControl>
-                                    <ReadOnlyMultiSelect
+                                    <CustomMultiSelect
                                         key={`sections-${rowData.asmcC_Id}`}
                                         options={sectionOptions}
                                         onValueChange={field.onChange}
