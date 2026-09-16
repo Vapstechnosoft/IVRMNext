@@ -24,6 +24,7 @@ export const bifurcationConstraintsSchema = {
             combinationlist: z
                 .array(
                     z.object({
+                        ttbD_Id: z.number().optional().default(0),
                         ASMCL_Id: z.number(),
                         ASMS_Id: z.number(),
                         HRME_Id: z.number(),
