@@ -4652,10 +4652,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                             <InputText
                                                                                 label='Registration No. *'
                                                                                 id={`qualificationDetails.${index}.registrationNo`}
-                                                                                maxLength={50}
+                                                                               
                                                                                 {...register(
                                                                                     `qualificationDetails.${index}.registrationNo`
                                                                                 )}
+                                                                                maxLength={30}
                                                                                 error={
                                                                                     (errors.qualificationDetails as any)?.[index]
                                                                                         ?.registrationNo?.message

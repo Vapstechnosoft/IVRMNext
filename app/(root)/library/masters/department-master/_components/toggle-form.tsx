@@ -52,11 +52,11 @@ export default function ToggleDepartmentForm({ rowData, onClose }: ToggleDepartm
             const response = await deactivateMasterDepartment(rowData.lmD_Id);
 
             if (response.success) {
-                toast.success(response.message || 'Record Status Updated Successfully!!!');
+                toast.success(`Record ${isActive ? 'Deactivated' : 'Activated'} Successfully`);
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message || 'Failed to update status');
+                toast.error(response.message || `Failed to ${isActive ? 'deactivate' : 'activate'}`);
             }
         } catch (error: any) {
             toast.error(error.message);

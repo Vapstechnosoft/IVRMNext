@@ -43,7 +43,12 @@ export function useInvMasterCustomer(searchParams?: ApiSearchparams) {
                     backendMsg &&
                     (backendMsg.toLowerCase().includes('activat') || backendMsg.toLowerCase().includes('deactivat'));
 
-                toast.success(hasSpecificMessage ? backendMsg : actionMsg);
+                const message = hasSpecificMessage ? backendMsg : actionMsg;
+                if (wasActive) {
+                    toast.error(message);
+                } else {
+                    toast.success(message);
+                }
                 queryClient.invalidateQueries({ queryKey: [INV_MASTER_CUSTOMER_QUERY_KEY] });
             } else {
                 toast.error(response?.message || 'Failed to update status');

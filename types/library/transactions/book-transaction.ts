@@ -178,16 +178,26 @@ export interface IIssueBookRequest {
 
 // Return Book Request
 export interface IReturnBookRequest {
-    Book_Trans_Id: number;
-    LMBANO_Id: number;
-    LMB_Id: number;
-    Due_Date: string | Date;
-    Return_Date: string | Date;
-    booktype: BookType;
-    issuertype: MemberType;
-    bookcat_type: BookCategory;
-    LBTR_FineCollected: number;
+    book_Trans_Id?: number;
+    Book_Trans_Id?: number;
+    lmbanO_Id?: number;
+    LMBANO_Id?: number;
+    lmB_Id?: number;
+    LMB_Id?: number;
+    due_Date?: string | Date;
+    Due_Date?: string | Date;
+    return_Date?: string | Date;
+    Return_Date?: string | Date;
+    booktype: string;
+    issuertype: string;
+    bookcat_type: string;
+    lbtR_FineCollected?: number;
+    LBTR_FineCollected?: number;
+    fodM_Id?: number;
     FODM_Id?: number;
+    returnval?: boolean;
+    totalFine?: number;
+    msg?: string;
 }
 
 // Renewal Book Request

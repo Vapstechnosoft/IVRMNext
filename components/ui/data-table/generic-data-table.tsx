@@ -52,8 +52,9 @@ interface GenericDataTableProps<T> {
     maxHeight?: string;
     getRowId?: (row: T) => string;
     onPageChange?: (page: number) => void;
-    pageSizeOptions?: number[];
-    defaultPageSize?: number;
+    manualPagination?: boolean;
+    manualSorting?: boolean;
+    manualFiltering?: boolean;
     // Bento-Glass Props
 }
 
@@ -85,8 +86,9 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         maxHeight = '600px',
         getRowId,
         onPageChange,
-        pageSizeOptions,
-        defaultPageSize
+        manualPagination = true,
+        manualSorting = true,
+        manualFiltering = true
     }: GenericDataTableProps<T>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -159,8 +161,9 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     showSearchColumns={showSearchColumns}
                     showExportOptions={showExportOptions}
                     maxSelectableRows={maxSelectableRows}
-                    pageSizeOptions={pageSizeOptions}
-                    defaultPageSize={defaultPageSize}
+                    manualPagination={manualPagination}
+                    manualSorting={manualSorting}
+                    manualFiltering={manualFiltering}
                     onRowSelectionChange={(selectedRows) => {
                         if (onRowSelectionChange) {
                             onRowSelectionChange(selectedRows);
@@ -186,11 +189,12 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 isPaginationRequired={isPaginationRequired}
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
+                manualPagination={manualPagination}
+                manualSorting={manualSorting}
+                manualFiltering={manualFiltering}
                 showSearchColumns={showSearchColumns}
                 scrollable={scrollable}
                 maxHeight={maxHeight}
-                pageSizeOptions={pageSizeOptions}
-                defaultPageSize={defaultPageSize}
                 onRowSelectionChange={(selectedRows) => {
                     if (onRowSelectionChange) {
                         onRowSelectionChange(selectedRows);

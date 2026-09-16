@@ -226,17 +226,20 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, in
                             control={control}
                             name='p_lmd_id'
                             render={({ field }) => (
-                                <Select onValueChange={field.onChange} value={field.value === '0' ? undefined : field.value}>
+                                <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                     <SelectTrigger className='w-full border-muted-foreground/30'>
                                         <SelectValue placeholder='Select' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {Array.isArray(initialData?.deptlist) &&
-                                            initialData?.deptlist?.map((dept: any) => (
-                                                <SelectItem key={dept.lmD_Id} value={dept.lmD_Id.toString()}>
-                                                    {dept.lmD_DepartmentName}
-                                                </SelectItem>
-                                            ))}
+                                        <SelectItem value='0'>ALL</SelectItem>
+                                        {(Array.isArray(initialData?.deptlist)
+                                            ? initialData.deptlist
+                                            : (initialData?.deptlist as any)?.$values || []
+                                        ).map((dept: any) => (
+                                            <SelectItem key={dept.lmD_Id} value={dept.lmD_Id.toString()}>
+                                                {dept.lmD_DepartmentName}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             )}

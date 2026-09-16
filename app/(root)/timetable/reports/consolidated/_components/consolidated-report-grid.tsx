@@ -702,6 +702,13 @@ export default function ConsolidatedReportGrid({
 
     return (
         <div className='space-y-6'>
+            <div className='hidden text-center print:block print:mb-4'>
+                <h1 className='text-lg font-bold uppercase text-purple-900'>
+                    {reportType.replace(/_/g, ' ')} CONSOLIDATED REPORT
+                </h1>
+                <p className='text-xs text-gray-500'>Generated on: {new Date().toLocaleString()}</p>
+            </div>
+
             <div className='no-print flex items-center justify-between border-b bg-white px-4 py-3 shadow-sm'>
                 <div className='flex items-center gap-2'>
                     {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}

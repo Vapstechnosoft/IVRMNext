@@ -241,21 +241,21 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
     const addToTempList = () => {
         const data = watch();
         if (!data.ttmC_Id || !data.asmcL_Id || !data.asmS_Id || !data.ismS_Id || !data.nop2) {
-            toast.warning('Please select Category, Class, Section, Subject and enter Period (not zero)!');
+            toast.error('Please select Category, Class, Section, Subject and enter Period (not zero)!');
             return;
         }
         const nop2Val = Number(data.nop2);
         if (nop2Val === 0) {
-            toast.warning('Period cannot be zero!');
+            toast.error('Period cannot be zero!');
             return;
         }
         if (Number(data.nop1) < nop2Val) {
-            toast.warning("Period distribution can't exceed Total Weekly Periods for a single class!");
+            toast.error("Period distribution can't exceed Total Weekly Periods for a single class!");
             return;
         }
         const used = tempList.reduce((acc, curr) => acc + Number(curr.pedDisplay), 0);
         if (used + nop2Val > Number(data.nop1)) {
-            toast.warning('Total distributed periods cannot exceed Total Weekly Periods!');
+            toast.error('Total distributed periods cannot exceed Total Weekly Periods!');
             return;
         }
 
@@ -272,7 +272,7 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
                 item.ismS_Id === data.ismS_Id
         );
         if (isDuplicate) {
-            toast.warning('Record already selected!');
+            toast.error('Record already selected!');
             return;
         }
 
@@ -306,11 +306,11 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
 
     const onSubmit = async (data: FormFields) => {
         if (!data.hrmE_Id) {
-            toast.warning('Select Staff');
+            toast.error('Select Staff');
             return;
         }
         if (tempList.length === 0) {
-            toast.warning('Need to distribute at least one period');
+            toast.error('Need to distribute at least one period');
             return;
         }
 
