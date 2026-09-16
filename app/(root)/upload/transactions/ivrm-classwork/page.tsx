@@ -203,7 +203,7 @@ export default function ClassWorkPage() {
                     </div>
                 </div>
 
-                <div className='[&_tbody_tr:hover_td]:!bg-blue-50/50 p-1 [&_tbody_tr]:cursor-pointer'>
+                <div className='[&_tbody_tr:hover_td]:!bg-blue-50/50 p-1 [&_tbody_tr]:cursor-pointer' style={{ fontFamily: '"Times New Roman", Times, serif' }}>
                     <DataTable<IClassWorkDetails, any>
                         columns={columns}
                         data={processedGrid}

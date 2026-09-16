@@ -3891,6 +3891,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                         label='Aadhaar No.'
                                                         id='amsT_AadharNo'
                                                         placeholder='Enter 12 digit number'
+                                                        maxLength={12}
                                                         {...register('amsT_AadharNo')}
                                                         error={errors.amsT_AadharNo?.message}
                                                     />
@@ -3950,7 +3951,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                 onValueChange={(value) => field.onChange(Number(value))}
                                                                 value={field.value?.toString() || ''}
                                                                 disabled>
-                                                                <SelectTrigger>
+                                                                <SelectTrigger className='!opacity-100 !text-black disabled:!opacity-100 disabled:!text-black'>
                                                                     <SelectValue placeholder='Select category' />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
