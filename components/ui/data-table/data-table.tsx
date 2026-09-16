@@ -44,6 +44,9 @@ interface DataTableProps<TData, TValue> {
     showPaginationInfo?: boolean;
     showRowsPerPage?: boolean;
     onPageChange?: (page: number) => void;
+    manualPagination?: boolean;
+    manualSorting?: boolean;
+    manualFiltering?: boolean;
 }
 
 export interface DataTableRef {
@@ -70,7 +73,10 @@ function DataTableInner<TData, TValue>(
         getRowId,
         showPaginationInfo = true,
         showRowsPerPage = true,
-        onPageChange
+        onPageChange,
+        manualPagination = true,
+        manualSorting = true,
+        manualFiltering = true
     }: DataTableProps<TData, TValue>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -217,9 +223,9 @@ function DataTableInner<TData, TValue>(
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        manualPagination: true,
-        manualSorting: true,
-        manualFiltering: true,
+        manualPagination,
+        manualSorting,
+        manualFiltering,
         initialState: {
             columnPinning: columnPinning || { right: ['actions'] }
         }

@@ -12,6 +12,7 @@ import {
     usePreadmissionClassDropdown1,
     useadmissionSectionDropdown
 } from '@/hooks/admission/preadmission/useTransactions';
+import { useSession } from 'next-auth/react';
 
 import type { IStudentYearlyAttendenceReportList } from '@/types/admission/preadmission/reports';
 import { FileText, Printer, X } from 'lucide-react';
@@ -110,11 +111,16 @@ export default function StudentsYearlyAttendenceReport(props: {
     const [printMonthList, setPrintMonthList] = useState<any[]>([]);
     const [isAllRecordsSelected, setIsAllRecordsSelected] = useState(false);
 
+    const { data: session } = useSession();
+    console.log('Session Data (MI_ID):', session?.mi_id, session);
+
     const {
         data: admissionSection,
         isLoading: admissionSectionLoading,
         isError: admissionSectionError
     } = useadmissionSectionDropdown(Number(classId));
+
+    console.log('Admission Section Data:', admissionSection);
 
     const {
         data: response,

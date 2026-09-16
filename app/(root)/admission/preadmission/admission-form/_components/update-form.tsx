@@ -50,7 +50,7 @@ import { SubjectGroupTable } from './subject-group-table';
 type FormFields = z.infer<typeof studentAdmissionFormSchema.add>;
 
 interface AddStudentApplicationFormProps {
-    onSuccess?: () => void;
+    onSuccess?: (response?: any) => void;
     className?: string;
     // When editing, FormProvider will pass the selected row as `rowData`
     rowData?: any;
@@ -4462,7 +4462,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 reset();
                 setCurrentStep(1);
                 setUploadedDocuments([]);
-                onSuccess?.();
+                onSuccess?.(response);
             } else {
                 toast.error(response?.message || 'Failed to submit application');
             }
@@ -4489,7 +4489,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
     return (
         <>
-            <div className={cn('mx-auto w-full max-w-7xl px-4 py-2', className)}>
+            <div className={cn('mx-auto w-full max-w-7xl px-4 py-2 [&_input::placeholder]:text-black [&_textarea::placeholder]:text-black [&_.select-placeholder]:text-black', className)}>
                 {/* Main Layout: Vertical Stepper + Form */}
                 <div className='flex flex-col gap-6 lg:flex-row'>
                     {/* Stepper - Vertical on desktop, horizontal on mobile */}
@@ -5422,8 +5422,12 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                     label='Aadhaar No.'
                                                                     placeholder='Enter Aadhaar No'
                                                                     id='amsT_AadharNo'
+                                                                    maxLength={12}
                                                                     value={field.value ?? ''}
-                                                                    onChange={(value) => field.onChange(value)}
+                                                                    onChange={(value) => {
+                                                                        if (value && String(value).length > 12) return;
+                                                                        field.onChange(value);
+                                                                    }}
                                                                     type='number'
                                                                     showSpinner={false}
                                                                 />
@@ -5466,7 +5470,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                     }}
                                                                     value={field.value?.toString() || ''}
                                                                     disabled>
-                                                                    <SelectTrigger>
+                                                                    <SelectTrigger className='!opacity-100 !text-black disabled:!opacity-100 disabled:!text-black'>
                                                                         <SelectValue placeholder='Select category' />
                                                                     </SelectTrigger>
                                                                     <SelectContent>

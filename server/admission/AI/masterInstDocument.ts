@@ -23,3 +23,8 @@ export async function deleteMasterInstDocument(id: number) {
     const url = `/AI/documents/delete/${id}`;
     return await api.delete<any>('admission', url);
 }
+
+export async function getAIDashboardData(data: any) {
+    const url = '/AI/dashboard'; 
+    return await api.post<any>('admission', url, data);
+}
