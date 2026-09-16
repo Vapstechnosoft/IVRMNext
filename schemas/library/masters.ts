@@ -47,17 +47,23 @@ export const masterVendorSchema = {
             .regex(/^\d{10}$/, 'Mobile Number must be exactly 10 digits'),
 
         lmV_Address: z
-            .string({ required_error: 'Address is required' })
+            .string()
             .trim()
-            .min(3, 'Address must be at least 3 characters')
-            .max(200, 'Address cannot exceed 200 characters')
-            .regex(/^[A-Za-z0-9\s]+$/, 'Only letters, numbers, and spaces allowed'),
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine(
+                (val) => !val || (val.length >= 3 && val.length <= 200 && /^[A-Za-z0-9\s,.-]+$/.test(val)),
+                'Address must be at least 3 characters, max 200 characters, and can only contain letters, numbers, spaces, and basic punctuation'
+            ),
 
         lmV_EMailId: z
-            .string({ required_error: 'Email is required' })
+            .string()
             .trim()
-            .min(5, 'Email must be at least 5 characters')
-            .email('Invalid email address'),
+            .optional()
+            .nullable()
+            .or(z.literal(''))
+            .refine((val) => !val || z.string().email().safeParse(val).success, 'Invalid email address'),
 
         lmV_PhoneNo: z.string().trim().optional().nullable().or(z.literal(''))
     }),
