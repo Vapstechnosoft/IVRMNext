@@ -36,7 +36,9 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
         closeAllForms,
         isToggleFormOpen,
         closeToggleForm,
-        selectedRow
+        selectedRow,
+        addFormRef,
+        editFormRef
     } = useFormContext();
 
     const [periodList, setPeriodList] = useState<any[]>([]);
@@ -93,23 +95,23 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
 
             {isToggleFormOpen && selectedRow && <PeriodStaffToggle rowData={selectedRow} onClose={closeToggleForm} />}
 
-            {(isAddFormOpen || isEditFormOpen) && (
-                <CollapsibleSection
-                    title={isEditFormOpen ? 'Edit Period Staff Constraint' : 'Add New Period Staff Constraint'}
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='shadow-lg'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={isEditFormOpen ? closeEditForm : closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
-                        {isAddFormOpen && (
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add New Period Staff Constraint'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
                             <PeriodStaffAddForm
                                 academicList={academicList}
                                 periodList={periodList}
@@ -117,8 +119,28 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                 onSuccess={onFormSuccess}
                                 onCancel={closeAddForm}
                             />
-                        )}
-                        {isEditFormOpen && selectedRow && (
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Period Staff Constraint'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
                             <PeriodStaffUpdate
                                 academicList={academicList}
                                 periodList={periodList}
@@ -127,9 +149,9 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
                                 onSuccess={onFormSuccess}
                                 onCancel={closeEditForm}
                             />
-                        )}
-                    </div>
-                </CollapsibleSection>
+                        </div>
+                    </CollapsibleSection>
+                </div>
             )}
         </div>
     );

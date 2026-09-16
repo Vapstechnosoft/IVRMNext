@@ -282,9 +282,12 @@ export default function Forms({ onFetch }: FormsProps) {
         XLSX.writeFile(workbook, 'Workload_Pending_Periods.xlsx');
     };
 
-    const FormSelect = ({ label, name, control, options, valueKey, labelKey, placeholder, error, isLoading, showAllOption }: any) => (
+    const FormSelect = ({ label, name, control, options, valueKey, labelKey, placeholder, error, isLoading, showAllOption, required }: any) => (
         <div className='space-y-2'>
-            <Label className='font-medium text-sm'>{label}</Label>
+            <Label className='font-medium text-sm'>
+                {label}
+                {required && <span className='text-red-500'> *</span>}
+            </Label>
             <Controller
                 name={name}
                 control={control}
@@ -316,9 +319,12 @@ export default function Forms({ onFetch }: FormsProps) {
         </div>
     );
 
-    const FormInput = ({ label, name, control, error, readOnly }: any) => (
+    const FormInput = ({ label, name, control, error, readOnly, required }: any) => (
         <div className='space-y-2'>
-            <Label className='font-medium text-sm'>{label}</Label>
+            <Label className='font-medium text-sm'>
+                {label}
+                {required && <span className='text-red-500'> *</span>}
+            </Label>
             <Controller
                 name={name}
                 control={control}
@@ -341,7 +347,8 @@ export default function Forms({ onFetch }: FormsProps) {
                     <form onSubmit={handleSubmit(handleGenerate)} className='space-y-8'>
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
                             <FormSelect
-                                label='Academic Year *'
+                                label='Academic Year'
+                                required
                                 name='asmaY_Id'
                                 placeholder='Select Academic Year'
                                 control={control}
@@ -353,7 +360,8 @@ export default function Forms({ onFetch }: FormsProps) {
                             />
 
                             <FormSelect
-                                label='Category Name *'
+                                label='Category Name'
+                                required
                                 name='ttmC_Id'
                                 placeholder='Select Category'
                                 control={control}
