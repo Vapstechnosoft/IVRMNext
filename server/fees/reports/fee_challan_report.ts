@@ -3,33 +3,38 @@
 import { api } from '@/lib/apiService';
 import type { IFeeChallanReportItem, IFeeChallanReportRequest, IFeeChallanReportResponse } from '@/types/fees/reports/reports';
 
-export async function getFeeChallanReport(data: IFeeChallanReportRequest): Promise<IFeeChallanReportResponse> {
+export async function getFeeChallanReport(
+    data: IFeeChallanReportRequest
+): Promise<IFeeChallanReportResponse> {
     const url = '/FeeChallanReportFacade/getreport';
     try {
         const response = await api.post<any>('fees', url, data);
-        if (response && response.data && Array.isArray(response.data)) {
+
+        // ✅ API returns { success, message, data: { reportdatelist: [...] } }
+        if (response?.data?.reportdatelist) {
             return {
                 success: response.success ?? true,
                 message: response.message || 'Report fetched successfully',
-                data: response.data
+                data: response.data  // ✅ data is the object with reportdatelist
             };
         }
-        if (Array.isArray(response)) {
-            return {
-                success: true,
-                data: response
-            };
-        }
+
+        // ✅ Fallback if response itself has reportdatelist
+        
+
+        // ✅ Empty fallback
         return {
             success: true,
-            data: response?.reportlist || response?.data || []
+            message: 'No data found',
+            data: { reportdatelist: [] }
         };
+
     } catch (error: any) {
         console.error('[server] getFeeChallanReport error:', error);
         return {
             success: false,
             message: error?.message || 'Failed to fetch Fee Challan Report',
-            data: []
+            data: { reportdatelist: [] }  // ✅ match the correct type
         };
     }
 }

@@ -27,24 +27,24 @@ export const classWorkColumns = ({ onEdit, onToggle, onView }: ClassWorkColumnPr
     },
     {
         accessorKey: 'isms_SubjectName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' className='justify-left font-bold text-black' />,
-        cell: ({ row }) => <div className='text-[11px] uppercase'>{row.getValue('isms_SubjectName')}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Subject' className='justify-center font-bold text-black' />,
+        cell: ({ row }) => <div className='text-center text-[11px] uppercase'>{row.getValue('isms_SubjectName')}</div>
     },
     {
         accessorKey: 'icW_Topic',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Topic' className='justify-left font-bold text-black' />,
-        cell: ({ row }) => <div className='font-medium text-[11px] text-black'>{row.getValue('icW_Topic')}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Topic' className='justify-center font-bold text-black' />,
+        cell: ({ row }) => <div className='text-center font-medium text-[11px] text-black'>{row.getValue('icW_Topic')}</div>
     },
     {
         accessorKey: 'icW_SubTopic',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sub Topic' className='justify-left font-bold text-black' />,
-        cell: ({ row }) => <div className='font-medium text-[11px] text-black italic'>{row.getValue('icW_SubTopic')}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sub Topic' className='justify-center font-bold text-black' />,
+        cell: ({ row }) => <div className='text-center font-medium text-[11px] text-black italic'>{row.getValue('icW_SubTopic')}</div>
     },
     {
         accessorKey: 'icW_Content',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Content' className='justify-left font-bold text-black' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Content' className='justify-center font-bold text-black' />,
         cell: ({ row }) => (
-            <div className='max-w-[200px] truncate text-[11px] text-black' title={row.getValue('icW_Content')}>
+            <div className='mx-auto max-w-[200px] truncate text-center text-[11px] text-black' title={row.getValue('icW_Content')}>
                 {row.getValue('icW_Content')}
             </div>
         )

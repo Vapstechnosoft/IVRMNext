@@ -26,8 +26,13 @@ export default function StudentApplicationPage(props: {
 }) {
     const searchParams = (React as any).use(props.searchParams);
     const { data: activePreadmission } = useActivePreadmissionDetails();
-    const { data: response, isLoading, error, refetch } = useStudentApplicationList(activePreadmission?.data?.asmaY_Id ?? 0, searchParams);
-    const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
+    
+    const asmayId = Array.isArray(activePreadmission?.data) 
+        ? activePreadmission?.data[0]?.asmaY_Id 
+        : (activePreadmission?.data as any)?.asmaY_Id ?? 0;
+
+    const { data: response, isLoading, error, refetch } = useStudentApplicationList(asmayId, searchParams);
+    const { data: masterConfig } = useAcademicYearMasterConfiguration(asmayId);
 
     return (
         <FormProvider<IPreadmissionStudentApplicationList>>

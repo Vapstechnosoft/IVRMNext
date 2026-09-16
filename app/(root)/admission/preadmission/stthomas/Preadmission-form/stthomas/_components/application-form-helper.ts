@@ -6,7 +6,17 @@ export const validateAgeForClass = (
     classData: IPreadmissionClassDropdown,
     config: any
 ): { isValid: boolean; reason?: string } => {
-    const cutOffDate = config.ispaC_ApplCutOffDateFlag === 1 ? new Date(config.asmaY_Cut_Of_Date) : new Date();
+    const activeConfig = Array.isArray(config) 
+        ? config[0] 
+        : (config && config.$values && Array.isArray(config.$values)) 
+            ? config.$values[0] 
+            : config;
+
+    if (!activeConfig) {
+        return { isValid: true };
+    }
+
+    const cutOffDate = activeConfig.ispaC_ApplCutOffDateFlag === 1 ? new Date(activeConfig.asmaY_Cut_Of_Date) : new Date();
 
     // Validate that DOB is not after cutoff date
     if (dob > cutOffDate) {
@@ -27,7 +37,7 @@ export const validateAgeForClass = (
     const age = calculateAge(dob, cutOffDate);
 
     // Check minimum age if flag is enabled
-    if (config.ispaC_DOBMinAgeFlag === 1) {
+    if (activeConfig.ispaC_DOBMinAgeFlag === 1) {
         const minAgeInMonths = classData.asmcL_MinAgeYear * 12 + classData.asmcL_MinAgeMonth;
         const currentAgeInMonths = age.years * 12 + age.months;
 
@@ -47,7 +57,7 @@ export const validateAgeForClass = (
     }
 
     // Check maximum age if flag is enabled
-    if (config.ispaC_DOBMaxAgeFlag === 1) {
+    if (activeConfig.ispaC_DOBMaxAgeFlag === 1) {
         const maxAgeInMonths = classData.asmcL_MaxAgeYear * 12 + classData.asmcL_MaxAgeMonth;
         const currentAgeInMonths = age.years * 12 + age.months;
 

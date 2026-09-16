@@ -949,3 +949,10 @@ export const feeChallanReportSchema = z.object({
     toDate: z.string().min(1, { message: 'To Date is required' }),
     receiptsGenerated: z.boolean().default(false)
 });
+
+export const hutchingsBankChallanSchema = z.object({
+    ASMAY_Id: z.number().min(1, { message: 'Academic Year is required' }),
+    AMST_Id: z.number().min(1, { message: 'Search Student is required' }),
+    termIds: z.array(z.number()).min(1, { message: 'Select at least one Term' })
+});
+
