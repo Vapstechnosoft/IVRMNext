@@ -33,16 +33,24 @@ export function useInvMasterCustomer(searchParams?: ApiSearchparams) {
 
     const deleteMutation = useMutation({
         mutationFn: deactivateInvMasterCustomer,
-        onSuccess: (response: any) => {
-            if (response.success) {
-                toast.success('Status updated successfully');
+        onSuccess: (response: any, variables: any) => {
+            if (response.success || response.returnval) {
+                const wasActive = variables?.wasActive ?? Boolean(variables?.invmC_ActiveFlg);
+                const actionMsg = wasActive ? 'Deactivated successfully' : 'Activated successfully';
+
+                const backendMsg = response?.message;
+                const hasSpecificMessage =
+                    backendMsg &&
+                    (backendMsg.toLowerCase().includes('activat') || backendMsg.toLowerCase().includes('deactivat'));
+
+                toast.success(hasSpecificMessage ? backendMsg : actionMsg);
                 queryClient.invalidateQueries({ queryKey: [INV_MASTER_CUSTOMER_QUERY_KEY] });
             } else {
-                toast.error(response.message || 'Failed to update status');
+                toast.error(response?.message || 'Failed to update status');
             }
         },
-        onError: (error) => {
-            toast.error('An error occurred while updating status');
+        onError: (error: any) => {
+            toast.error(error?.message || 'An error occurred while updating status');
             console.error(error);
         }
     });

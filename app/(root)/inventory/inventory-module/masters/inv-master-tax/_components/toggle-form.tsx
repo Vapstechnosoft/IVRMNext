@@ -28,9 +28,12 @@ export default function ToggleInvMasterTaxForm({ rowData, onClose }: ToggleInvMa
     const handleToggle = useCallback(async () => {
         try {
             const result = await deactivateInvMasterTax(rowData);
-            // API returns { success: true, message: "Status updated successfully" }
             if (result.success || result.returnval) {
-                toast.success(result.message || 'Record status updated successfully');
+                if (rowData.invmT_ActiveFlg) {
+                    toast.error('Deactivated Successfully');
+                } else {
+                    toast.success('Activated Successfully');
+                }
                 refetchAll(); // call the hook's refetch function
                 onClose();
             } else {

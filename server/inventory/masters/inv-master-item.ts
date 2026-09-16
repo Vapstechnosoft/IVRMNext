@@ -20,12 +20,14 @@ export async function saveInvMasterItem(data: any) {
 }
 
 export async function deactivateInvMasterItem(data: any) {
-    const url = `/INV_MasterItemFacade/deactive?id=${data.invmI_Id}`;
+    const id = data?.invmI_Id ?? data?.INVMI_Id ?? data?.id ?? data;
+    const url = `/INV_MasterItemFacade/deactive?id=${id}`;
     return await api.post<any>('inventory', url, {});
 }
 
 export async function deactivateItemTax(tax: any) {
-    const url = `/INV_MasterItemFacade/deactiveitax?id=${tax.invmiT_Id}`;
+    const id = tax?.invmiT_Id ?? tax?.INVMIT_Id ?? tax?.id ?? tax;
+    const url = `/INV_MasterItemFacade/deactiveitax?id=${id}`;
     return await api.post<any>('inventory', url, {});
 }
 

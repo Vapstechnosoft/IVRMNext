@@ -8,6 +8,20 @@ export const printDepartmentSalaryReport = (reportData: any, month: string, year
     const departmentDetails = reportData.departmentSalaryDetails || [];
     const currentDate = new Date();
 
+    // Dynamic institution details from API response (same as on-screen preview)
+    const institutionDetails = reportData.institutionDetails || {};
+    const institutionName = institutionDetails.mI_Name || '';
+    const institutionAddress = [
+        institutionDetails.mI_Address1,
+        institutionDetails.mI_Address2,
+        institutionDetails.mI_Address3
+    ]
+        .filter(Boolean)
+        .join(', ');
+    const institutionPinLine = institutionDetails.ivrmmcT_Name
+        ? `${institutionDetails.ivrmmcT_Name} - ${institutionDetails.mI_Pincode || ''}`
+        : (institutionDetails.mI_Pincode || '');
+
     // Determine dynamic headers (union of all rows)
     const earningMap = new Map<number, { id: number; name: string; order: number; index: number }>();
     const deductionMap = new Map<number, { id: number; name: string; order: number; index: number }>();
@@ -182,9 +196,9 @@ export const printDepartmentSalaryReport = (reportData: any, month: string, year
       </head>
       <body>
           <div class="header-container">
-               <img src="/assets/tunbridge_logo.png" class="logo" alt="Logo" onerror="this.style.display='none'"/>
-              <h1 class="institution-name">Tunbridge High School</h1>
-              <p>86/2 Infantry Road, Bangalore</p>
+              <h1 class="institution-name">${institutionName}</h1>
+              ${institutionAddress ? `<p>${institutionAddress}</p>` : ''}
+              ${institutionPinLine ? `<p>${institutionPinLine}</p>` : ''}
           </div>
 
           <div class="report-title">

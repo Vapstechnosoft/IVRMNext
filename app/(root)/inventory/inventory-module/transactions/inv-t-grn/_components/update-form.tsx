@@ -255,7 +255,9 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                 className='border-primary/10 shadow-sm'>
                 <div className='grid grid-cols-1 gap-6 p-1 md:grid-cols-3'>
                     <div className='space-y-2'>
-                        <Label>Purchase Date</Label>
+                        <Label>
+                            Purchase Date <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='invmgrN_PurchaseDate'
                             control={control}
@@ -272,7 +274,9 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                     </div>
 
                     <div className='space-y-2'>
-                        <Label>Supplier</Label>
+                        <Label>
+                            Supplier <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='invmS_Id'
                             control={control}
@@ -295,7 +299,9 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                     </div>
 
                     <div className='space-y-2'>
-                        <Label>Store</Label>
+                        <Label>
+                            Store <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='invmsT_Id'
                             control={control}
