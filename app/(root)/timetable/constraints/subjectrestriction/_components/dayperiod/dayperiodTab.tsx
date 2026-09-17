@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import {
@@ -20,17 +20,18 @@ import DayPeriodUpdate from './dayperiodUpdate';
 
 interface DayPeriodTabProps {
     initialData?: any;
+    searchParams?: any;
 }
 
-export default function DayPeriodTab({ initialData }: DayPeriodTabProps) {
+export default function DayPeriodTab({ initialData, searchParams }: DayPeriodTabProps) {
     return (
         <FormProvider>
-            <DayPeriodTabContent />
+            <DayPeriodTabContent initialData={initialData} searchParams={searchParams} />
         </FormProvider>
     );
 }
 
-function DayPeriodTabContent() {
+function DayPeriodTabContent({ initialData, searchParams }: DayPeriodTabProps) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -54,13 +55,13 @@ function DayPeriodTabContent() {
     const categoryList = extractList(categoryData);
 
     const {
-        data: gridData,
+        data: gridResponse,
         isLoading: gridLoading,
-        refetch
-    } = useSubjectRestrictionDayPeriodGridData({
-        ASMAY_Id: 0,
-        TTMC_Id: 0
-    });
+        error,
+        refetchAll
+    } = useSubjectRestrictionDayPeriodGridData(searchParams);
+
+    const tableProps = useDataTableProps(gridResponse);
 
     useEffect(() => {
         const loadDropdowns = async () => {
@@ -78,11 +79,9 @@ function DayPeriodTabContent() {
     }, []);
 
     const onFormSuccess = () => {
-        refetch();
+        refetchAll();
         closeAllForms();
     };
-
-    const dataArray = (gridData as any)?.data || (gridData as any)?.dayperiodlist || (Array.isArray(gridData) ? gridData : []);
 
     return (
         <div className='space-y-4'>
@@ -96,7 +95,17 @@ function DayPeriodTabContent() {
             </div>
 
             <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                <GenericDataTable data={dataArray} columns={dayPeriodColumns} isLoading={gridLoading} />
+                <GenericDataTable
+                    {...tableProps}
+                    columns={dayPeriodColumns}
+                    isLoading={gridLoading}
+                    error={error}
+                    columnPinning={{ right: ['actions'] }}
+                    loadingMessage='Loading day period constraint data...'
+                    noDataTitle='No Day Period Constraints Found'
+                    noDataDescription='Add a new day period constraint to get started'
+                    errorTitle='Error Loading Data'
+                />
             </CollapsibleSection>
 
             {isToggleFormOpen && selectedRow && <DayPeriodToggle rowData={selectedRow} onClose={closeToggleForm} />}

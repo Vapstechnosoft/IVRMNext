@@ -32,7 +32,7 @@ interface PeriodTimeSettingFormProps {
 }
 
 export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFormProps) {
-    const { data: response, refetch } = usePeriodTimeSettingDetails();
+    const { data: response, refetchAll } = usePeriodTimeSettingDetails();
     const { selectedRow: editData, closeEditForm } = useFormContext<IPeriodTimeSettingData>();
     const [daySearch, setDaySearch] = useState('');
     const { data: academicData } = useAcademicYearPeriodDistrubution();
@@ -177,18 +177,22 @@ export default function PeriodTimeSettingForm({ onSuccess }: PeriodTimeSettingFo
             const response = await savePeriodTimeSetting(payload);
 
             const isSuccess =
-                response?.returnval === true || response?.success === true || response?.message?.toLowerCase().includes('success');
+                response?.returnval === true ||
+                response?.returnval === 'saved' ||
+                response?.returnval === 'updated' ||
+                response?.success === true ||
+                response?.message?.toLowerCase().includes('success');
 
             if (isSuccess) {
-                toast.success(response.message);
-                await refetch();
+                toast.success('Data saved successfully');
+                refetchAll();
                 onSuccess?.();
                 cancelEdit();
             } else {
-                toast.error(response.message);
+                toast.error(response?.message || 'Failed to save data');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error?.message || 'Failed to save data');
         }
     };
 

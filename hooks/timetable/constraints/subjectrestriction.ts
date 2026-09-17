@@ -19,12 +19,12 @@ interface SubjectRestrictionParams {
     [key: string]: any; // Allow for generic search/pagination params
 }
 
-export const useSubjectRestrictionDayPeriodGridData = (params: SubjectRestrictionParams) => {
+export const useSubjectRestrictionDayPeriodGridData = (params?: ApiSearchparams | any) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.SUBJECT_RESTRICTION_DAY_PERIOD_GRID, params],
+            queryKey: [TIMETABLE_QUERY_KEYS.SUBJECT_RESTRICTION_DAY_PERIOD_GRID, params ?? {}],
             queryFn: async () => {
                 return await getSubjectRestrictionDayPeriodGridData(params);
             },
@@ -38,12 +38,12 @@ export const useSubjectRestrictionDayPeriodGridData = (params: SubjectRestrictio
     };
 };
 
-export const useSubjectRestrictionDaySubjectGridData = (params: SubjectRestrictionParams) => {
+export const useSubjectRestrictionDaySubjectGridData = (params?: ApiSearchparams | any) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.SUBJECT_RESTRICTION_DAY_SUBJECT_GRID, params],
+            queryKey: [TIMETABLE_QUERY_KEYS.SUBJECT_RESTRICTION_DAY_SUBJECT_GRID, params ?? {}],
             queryFn: async () => {
                 return await getSubjectRestrictionDaySubjectGridData(params);
             },
@@ -57,12 +57,12 @@ export const useSubjectRestrictionDaySubjectGridData = (params: SubjectRestricti
     };
 };
 
-export const useSubjectRestrictionDayStaffGridData = (params: SubjectRestrictionParams) => {
+export const useSubjectRestrictionDayStaffGridData = (params?: ApiSearchparams | any) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.SUBJECT_RESTRICTION_DAY_STAFF_GRID, params],
+            queryKey: [TIMETABLE_QUERY_KEYS.SUBJECT_RESTRICTION_DAY_STAFF_GRID, params ?? {}],
             queryFn: async () => {
                 return await getSubjectRestrictionDayStaffGridData(params);
             },
@@ -76,12 +76,12 @@ export const useSubjectRestrictionDayStaffGridData = (params: SubjectRestriction
     };
 };
 
-export const useSubjectRestrictionPeriodStaffGridData = (params: SubjectRestrictionParams) => {
+export const useSubjectRestrictionPeriodStaffGridData = (params?: ApiSearchparams | any) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.SUBJECT_RESTRICTION_PERIOD_STAFF_GRID, params],
+            queryKey: [TIMETABLE_QUERY_KEYS.SUBJECT_RESTRICTION_PERIOD_STAFF_GRID, params ?? {}],
             queryFn: async () => {
                 return await getSubjectRestrictionPeriodStaffGridData(params);
             },
@@ -95,12 +95,12 @@ export const useSubjectRestrictionPeriodStaffGridData = (params: SubjectRestrict
     };
 };
 
-export const useSubjectRestrictionPeriodSubjectGridData = (params: SubjectRestrictionParams) => {
+export const useSubjectRestrictionPeriodSubjectGridData = (params?: ApiSearchparams | any) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [TIMETABLE_QUERY_KEYS.SUBJECT_RESTRICTION_PERIOD_SUBJECT_GRID, params],
+            queryKey: [TIMETABLE_QUERY_KEYS.SUBJECT_RESTRICTION_PERIOD_SUBJECT_GRID, params ?? {}],
             queryFn: async () => {
                 return await getSubjectRestrictionPeriodSubjectGridData(params);
             },

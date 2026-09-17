@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
@@ -52,15 +52,11 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
     const {
         data: gridResponse,
         isLoading: isGridLoading,
+        error,
         refetchAll
-    } = useSubjectRestrictionDayStaffGridData({
-        ASMAY_Id: Number(searchParams?.asmaY_Id) || 0,
-        TTMC_Id: 0
-    });
+    } = useSubjectRestrictionDayStaffGridData(searchParams);
 
-    const gridData =
-        (gridResponse as any)?.data || (gridResponse as any)?.daystafflist || (Array.isArray(gridResponse) ? gridResponse : []);
-    const totalItems = (gridResponse as any)?.total || gridData.length;
+    const tableProps = useDataTableProps(gridResponse);
 
     useEffect(() => {
         const loadDropdowns = async () => {
@@ -96,7 +92,17 @@ function DayStaffTabContent({ initialData, searchParams }: DayStaffTabProps) {
             </div>
 
             <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                <GenericDataTable data={gridData} columns={dayStaffColumns} totalItems={totalItems} isLoading={isGridLoading} />
+                <GenericDataTable
+                    {...tableProps}
+                    columns={dayStaffColumns}
+                    isLoading={isGridLoading}
+                    error={error}
+                    columnPinning={{ right: ['actions'] }}
+                    loadingMessage='Loading day staff constraint data...'
+                    noDataTitle='No Day Staff Constraints Found'
+                    noDataDescription='Add a new day staff constraint to get started'
+                    errorTitle='Error Loading Data'
+                />
             </CollapsibleSection>
 
             {isToggleFormOpen && selectedRow && <DayStaffToggle rowData={selectedRow} onClose={closeToggleForm} />}
