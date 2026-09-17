@@ -42,11 +42,15 @@ export default function ToggleMasterBuildingtForm({ rowData, onClose }: ToggleMa
         try {
             const response = await ToggleMasterBuilding(Number(rowData.ttmB_Id));
             if (response.success) {
-                toast.success(response.message);
+                if (isActive) {
+                    toast.error('Deactivated Successfully');
+                } else {
+                    toast.success('Activated Successfully');
+                }
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update status');
             }
         } catch (error: any) {
             toast.error(error.message);
