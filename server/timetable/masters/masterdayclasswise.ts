@@ -47,7 +47,7 @@ export async function getDayDropDownMasterDayClasswise() {
 }
 
 export async function getClassDropDownMasterDayClasswiseOnchnageofCatandyr(asmay_id: number, TTMC_Id: number) {
-    const url = `/TimeTableCommon/GetClassData?asmay_id=${asmay_id}&TTMC_Id=${TTMC_Id}`;
+    const url = `/MasterDayFacade/ClassDataByAcademicyrandCategory/${asmay_id}/${TTMC_Id}`;
     return await api.get<ClassDropDownDataTT[]>('timetable', url);
 }
 

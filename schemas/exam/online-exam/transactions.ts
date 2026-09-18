@@ -1,12 +1,18 @@
 import { z } from 'zod';
 
+const parseNumberWithMsg = (msg: string) =>
+    z.preprocess(
+        (val) => (val === '' || val === undefined || val === null || isNaN(Number(val)) ? 0 : Number(val)),
+        z.number().refine((val) => val !== 0, { message: msg })
+    );
+
 // Answer Paper Correction Filter Schema
 export const answerPaperFilterSchema = z.object({
-    asmaY_Id: z.coerce.number({ required_error: 'Academic Year is required' }).min(1, 'Select Academic Year'),
-    asmcL_Id: z.coerce.number({ required_error: 'Class is required' }).min(1, 'Select Class'),
-    asmS_Id: z.coerce.number({ required_error: 'Section is required' }).min(1, 'Select Section'),
-    ismS_Id: z.coerce.number({ required_error: 'Subject is required' }).min(1, 'Select Subject'),
-    lpmoeeX_Id: z.coerce.number({ required_error: 'Exam Name is required' }).min(1, 'Select Exam Name')
+    asmaY_Id: parseNumberWithMsg('Select Academic Year'),
+    asmcL_Id: parseNumberWithMsg('Select Class'),
+    asmS_Id: z.preprocess((val) => (val === '' || val === undefined || val === null || isNaN(Number(val)) ? 0 : Number(val)), z.number().optional()),
+    ismS_Id: parseNumberWithMsg('Select Subject'),
+    lpmoeeX_Id: parseNumberWithMsg('Select Exam Name')
 });
 
 // Single Question Evaluation Schema
@@ -25,11 +31,11 @@ export const saveEvaluationSchema = z.object({
 
 // Publish To Student Portal Filter Schema
 export const publishFilterSchema = z.object({
-    asmaY_Id: z.coerce.number({ required_error: 'Academic Year is required' }).min(1, 'Select Academic Year'),
-    asmcL_Id: z.coerce.number({ required_error: 'Class is required' }).min(1, 'Select Class'),
-    asmS_Id: z.coerce.number({ required_error: 'Section is required' }).min(1, 'Select Section'),
-    ismS_Id: z.coerce.number().optional(),
-    lpmoeeX_Id: z.coerce.number({ required_error: 'Exam Name is required' }).min(1, 'Select Exam Name')
+    asmaY_Id: parseNumberWithMsg('Select Academic Year'),
+    asmcL_Id: parseNumberWithMsg('Select Class'),
+    asmS_Id: z.preprocess((val) => (val === '' || val === undefined || val === null || isNaN(Number(val)) ? 0 : Number(val)), z.number().optional()),
+    ismS_Id: parseNumberWithMsg('Select Subject'),
+    lpmoeeX_Id: parseNumberWithMsg('Select Exam Name')
 });
 
 // Bulk Publish Action Schema

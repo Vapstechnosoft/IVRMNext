@@ -46,8 +46,12 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
             invmgrN_Prepared: '',
             invmgrN_SignedBy: '',
             invmgrN_ChallanNo: '',
+            invmgrN_Challanverfied: '',
             invmgrN_KitNo: '',
             invmgrN_Remarks: '',
+            invmgrN_ReturnFlg: false,
+            invmgrN_PaidFlg: false,
+            invmgrN_CreditFlg: false,
             invmgrN_TotalAmount: 0,
             invmgrN_TotDiscount: 0,
             invmgrN_TotTaxAmt: 0,
@@ -199,7 +203,86 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
     };
 
     const onSubmit = (data: InvTGRNSchema) => {
-        saveMutation.mutate(data, {
+        const payload = {
+            invmgrN_Id: Number(data.invmgrN_Id || 0),
+            invmgrN_InvoiceNo: String(data.invmgrN_InvoiceNo || ''),
+            invmgrN_PurchaseDate:
+                data.invmgrN_PurchaseDate instanceof Date
+                    ? data.invmgrN_PurchaseDate.toISOString()
+                    : data.invmgrN_PurchaseDate
+                      ? new Date(data.invmgrN_PurchaseDate).toISOString()
+                      : new Date().toISOString(),
+            invmgrN_PurchaseValue: Number(data.invmgrN_PurchaseValue || 0),
+            invmgrN_TotDiscount: Number(data.invmgrN_TotDiscount || 0),
+            invmgrN_TotTaxAmt: Number(data.invmgrN_TotTaxAmt || 0),
+            invmgrN_TotalAmount: Number(data.invmgrN_TotalAmount || 0),
+            invmgrN_Remarks: String(data.invmgrN_Remarks || ''),
+            invmgrN_ReturnFlg: Boolean(data.invmgrN_ReturnFlg ?? false),
+            invmgrN_PaidFlg: Boolean(data.invmgrN_PaidFlg ?? false),
+            invmgrN_CreditFlg: Boolean(data.invmgrN_CreditFlg ?? false),
+            invmsT_Id: Number(data.invmsT_Id || 0),
+            invmS_Id: Number(data.invmS_Id || 0),
+            invmgrN_POReference: String(data.invmgrN_POReference || ''),
+            invmgrN_EWayBillRef: String(data.invmgrN_EWayBillRef || ''),
+            invmgrN_TowardsProjects: String(data.invmgrN_TowardsProjects || ''),
+            invmgrN_Prepared: String(data.invmgrN_Prepared || ''),
+            invmgrN_SignedBy: String(data.invmgrN_SignedBy || ''),
+            invmgrN_ChallanNo: String(data.invmgrN_ChallanNo || ''),
+            invmgrN_Challanverfied: String(data.invmgrN_Challanverfied || ''),
+            invmgrN_KitNo: String(data.invmgrN_KitNo || ''),
+            ...(data.invmgrN_PODate && {
+                invmgrN_PODate:
+                    data.invmgrN_PODate instanceof Date
+                        ? data.invmgrN_PODate.toISOString()
+                        : new Date(data.invmgrN_PODate).toISOString()
+            }),
+            ...(data.invmgrN_Challandate && {
+                invmgrN_Challandate:
+                    data.invmgrN_Challandate instanceof Date
+                        ? data.invmgrN_Challandate.toISOString()
+                        : new Date(data.invmgrN_Challandate).toISOString()
+            }),
+            GRNItem: (data.GRNItem || []).map((item) => ({
+                invtgrN_Id: Number(item.invtgrN_Id || 0),
+                invmgrN_Id: Number(item.invmgrN_Id || data.invmgrN_Id || 0),
+                invmI_Id: Number(item.invmI_Id || 0),
+                invmuoM_Id: Number(item.invmuoM_Id || 0),
+                invtgrN_BatchNo: String(item.invtgrN_BatchNo || ''),
+                invtgrN_Qty: Number(item.invtgrN_Qty || 0),
+                invtgrN_PurchaseRate: Number(item.invtgrN_PurchaseRate || 0),
+                invtgrN_MRP: Number(item.invtgrN_MRP || 0),
+                invtgrN_DiscountAmt: Number(item.invtgrN_DiscountAmt || 0),
+                invtgrN_SalesPrice: Number(item.invtgrN_SalesPrice || 0),
+                invtgrN_Amount: Number(item.invtgrN_Amount || 0),
+                invtgrN_TaxAmt: Number(item.invtgrN_TaxAmt || 0),
+                ...(item.invtgrN_Naration ? { invtgrN_Naration: String(item.invtgrN_Naration) } : {}),
+                ...(item.invtgrN_MfgDate
+                    ? {
+                          invtgrN_MfgDate:
+                              item.invtgrN_MfgDate instanceof Date
+                                  ? item.invtgrN_MfgDate.toISOString()
+                                  : new Date(item.invtgrN_MfgDate).toISOString()
+                      }
+                    : {}),
+                ...(item.invtgrN_ExpDate
+                    ? {
+                          invtgrN_ExpDate:
+                              item.invtgrN_ExpDate instanceof Date
+                                  ? item.invtgrN_ExpDate.toISOString()
+                                  : new Date(item.invtgrN_ExpDate).toISOString()
+                      }
+                    : {}),
+                GRNItemTax: (item.GRNItemTax || []).map((tax) => ({
+                    invtgrnT_Id: Number(tax.invtgrnT_Id || 0),
+                    invtgrN_Id: Number(tax.invtgrN_Id || item.invtgrN_Id || 0),
+                    invmT_Id: Number(tax.invmT_Id || 0),
+                    invtgrnT_TaxPer: Number(tax.invtgrnT_TaxPer || 0),
+                    invtgrnT_TaxAmt: Number(tax.invtgrnT_TaxAmt || 0)
+                }))
+            }))
+        };
+
+        saveMutation.mutate(payload, {
             onSuccess: (res) => {
                 if (res.success) {
                     reset();

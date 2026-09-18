@@ -49,6 +49,8 @@ export const createPeriodDistributionColumns: ColumnDef<PeriodDistributionColumn
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];

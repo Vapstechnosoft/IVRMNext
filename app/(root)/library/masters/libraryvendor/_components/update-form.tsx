@@ -55,7 +55,7 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
                 lmV_EMailId,
                 lmV_MobileNo,
                 lmV_Address,
-                lmV_PhoneNo: '',
+                lmV_PhoneNo: lmV_PhoneNo || '',
                 lmV_ActiveFlg: true
             };
 
@@ -134,7 +134,7 @@ export default function UpdateMasterVendorForm({ onSuccess, className = '', sele
                             label='Vendor Address'
                             id='lmV_Address'
                             onKeyDown={(e) => {
-                                if (e.key.length === 1 && !/^[a-zA-Z0-9\s]$/.test(e.key)) {
+                                if (e.key.length === 1 && !/^[a-zA-Z0-9\s,./#\-]$/.test(e.key)) {
                                     e.preventDefault();
                                 }
                             }}

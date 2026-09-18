@@ -34,8 +34,8 @@ export const studentApplicationFormSchema = {
     add: z.object({
         // Student Details
         pasR_FirstName: createStringOnlySchema('First Name', 1, 100),
-        pasR_MiddleName: createStringOnlySchema('Middle Name', 1, 100),
-        pasR_LastName: createStringOnlySchema('Last Name', 1, 100),
+        pasR_MiddleName: createStringOnlyOptionalSchema('Middle Name', 1, 100),
+        pasR_LastName: createStringOnlyOptionalSchema('Last Name', 1, 100),
 
         // NATIONALITY - STRING
         pasR_Nationality: z.string().min(1, 'Student nationality is required'),
@@ -65,7 +65,7 @@ export const studentApplicationFormSchema = {
         pasR_AadharNo: z
             .string()
             .refine((val) => val === '' || val.length === 12, {
-                message: 'Aadhar No must be exactly 12 digits'
+                message: 'Aadhaar No must be exactly 12 digits'
             })
             .optional(),
         pasR_Languagespeaking: createStringOnlyOptionalSchema('Student Language Speaking At Home', 1, 100),
@@ -263,7 +263,7 @@ export const studentApplicationFormUpdateSchema = {
             .optional()
             // Allow undefined or empty string (user cleared the field) OR a 12-digit Aadhar
             .refine((val) => val === undefined || val === '' || /^[0-9]{12}$/.test(val), {
-                message: 'Aadhar No must be exactly 12 digits'
+                message: 'Aadhaar No must be exactly 12 digits'
             }),
         pasR_Languagespeaking: createStringOnlyOptionalSchema('Student Language Speaking At Home', 1, 100),
         pasR_LastPlayGrndAttnd: createStringOnlyOptionalSchema('Student Last Play Ground Attended', 1, 50),

@@ -8,7 +8,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputNumber } from '@/components/ui/extension/input-number';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useExamSubjectWizard, useExamSubjectWizardDetails } from '@/hooks/exam/exammodule/exam-mapping';
+import { useExamSubjectWizard } from '@/hooks/exam/exammodule/exam-mapping';
 import {
     useMasterGradeDropdownList,
     useMasterSubExamDropdownList,
@@ -20,6 +20,7 @@ import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-mod
 import {
     addOrUpdateExamSubjectWizard,
     getExamDropdownForWizardSubjectMapping,
+    getExamSubjectWizardDetails,
     getSubExamsMappedList,
     getSubSubjectSubExamList,
     getSubSubjectsAndSubExamsMappedList,
@@ -103,7 +104,6 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [subSubjectSubExamModalState, setSubSubjectSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: gradeData, error: gradeError } = useMasterGradeDropdownList();
-    const { data: response } = useExamSubjectWizardDetails(rowData?.eycE_Id ? rowData?.eycE_Id : 0);
     const { refetchAll } = useExamSubjectWizard();
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: masterSubSubject, isLoading: masterSubSubjectLoading } = useMasterSubSubjectDropdownList();
@@ -142,17 +142,17 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         }
     }, [masterSubExam]);
 
-    // populate controlled dropdowns on mount / when data arrives
+    // Populate grade dropdown
     useEffect(() => {
         if (gradeError) {
-            toast.error(gradeError.message || 'Error fetching grades');
+            toast.error(gradeError.message || 'Failed to load grade list');
             setGradeList([]);
         } else {
             const rawGrades = Array.isArray(gradeData?.data)
                 ? gradeData.data
                 : Array.isArray(gradeData)
-                  ? gradeData
-                  : [];
+                    ? gradeData
+                    : [];
             if (rawGrades.length > 0) {
                 const formattedGrades: IMasterGrade[] = rawGrades.map((item: any) => ({
                     emgR_Id: item.emgR_Id?.toString() ?? '',
@@ -306,14 +306,18 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             */
         }
     }, [formState.isSubmitted, formState.errors, getValues]);
-    // Setting Subjects
+    // Setting Subjects & Populating Saved Data on Edit
     useEffect(() => {
         if (!watchCategory || !watchEMCA_ID) return;
 
         (async () => {
             try {
-                const { data: subj } = await getSubjectsByCategory(Number(watchCategory));
-                console.info('category based subjects', subj);
+                const [subjRes, detailsRes] = await Promise.all([
+                    getSubjectsByCategory(Number(watchCategory)),
+                    rowData?.eycE_Id ? getExamSubjectWizardDetails(Number(rowData.eycE_Id)) : Promise.resolve(null)
+                ]);
+
+                const subj = subjRes?.data;
                 const formattedSubjects = Array.isArray(subj)
                     ? subj.map((s: any) => ({
                         ismS_Id: s.ismS_Id,
@@ -324,7 +328,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                         ismS_OrderFlag: s.ismS_OrderFlag,
                         eyceS_MarksEntryMax: 0,
                         emgr_Id: watchGrade ?? 0,
-                        eyceS_Id: s.eyceS_Id ?? s.EYCES_d,
+                        eyceS_Id: s.eyceS_Id ?? s.EYCES_d ?? 0,
                         eyceS_SubExamFlg: false,
                         eyceS_SubSubjectFlg: false,
                         eyceS_ActiveFlg: true,
@@ -339,136 +343,130 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     }))
                     : [];
 
-                setSubjects(formattedSubjects);
-                if (formattedSubjects.length === 0) toast.info('No subjects found for this category.');
+                if (rowData?.eycE_Id) {
+                    const rawDetails = detailsRes as any;
+                    const data: any[] = Array.isArray(rawDetails)
+                        ? rawDetails
+                        : Array.isArray(rawDetails?.data)
+                          ? rawDetails.data
+                          : Array.isArray(rawDetails?.data?.data)
+                            ? rawDetails.data.data
+                            : [];
 
-                if (rowData) {
-                    if (rowData?.eycE_Id && response) {
-                        console.info('subject wizard details response', response);
-                        const apiResponse = response as unknown as {
-                            success: boolean;
-                            message: string;
-                            data: IExamSubjectWizardDetails[];
+                    const updatedSubjects: any[] = [];
+
+                    for (const s of formattedSubjects) {
+                        const dataObject = data.find(
+                            (d: any) => Number(d.ismS_Id ?? d.ISMS_Id ?? d.isms_Id) === Number(s.ismS_Id)
+                        );
+
+                        const isChecked = Boolean(dataObject);
+
+                        const updated = {
+                            ...s,
+                            eyceS_Id: Number(dataObject?.eyceS_Id ?? dataObject?.EYCES_Id ?? s.eyceS_Id ?? 0),
+                            emgr_Id: dataObject?.emgR_Id ?? dataObject?.EMGR_Id ?? rowData?.emgR_Id ?? s.emgr_Id,
+                            ismS_SubjectName: dataObject?.ismS_SubjectName ?? dataObject?.ISMS_SubjectName ?? s.ismS_SubjectName,
+                            ismS_SubjectCode: dataObject?.ismS_SubjectCode ?? dataObject?.ISMS_SubjectCode ?? s.ismS_SubjectCode,
+                            eyceS_MaxMarks: isChecked
+                                ? (dataObject?.eyceS_MaxMarks ?? dataObject?.EYCES_MaxMarks ?? dataObject?.ECYSES_MaxMarks ?? s.ismS_Max_Marks ?? 0)
+                                : 0,
+                            eyceS_MinMarks: isChecked
+                                ? (dataObject?.eyceS_MinMarks ?? dataObject?.EYCES_MinMarks ?? dataObject?.ECYSES_MinMarks ?? s.ismS_Min_Marks ?? 0)
+                                : 0,
+                            eyceS_MarksEntryMax: isChecked
+                                ? (dataObject?.eyceS_MarksEntryMax ?? dataObject?.EYCES_MarksEntryMax ?? dataObject?.ECYSES_MarksEntryMax ?? 0)
+                                : 0,
+                            eyceS_SubExamFlg: Boolean(dataObject?.eyceS_SubExamFlg ?? dataObject?.EYCES_SubExamFlg ?? s.eyceS_SubExamFlg),
+                            eyceS_SubSubjectFlg: Boolean(dataObject?.eyceS_SubSubjectFlg ?? dataObject?.EYCES_SubSubjectFlg ?? s.eyceS_SubSubjectFlg),
+                            eyceS_MarksGradeEntryFlg: dataObject?.eyceS_MarksGradeEntryFlg ?? dataObject?.EYCES_MarksGradeEntryFlg ?? s.eyceS_MarksGradeEntryFlg ?? 'M',
+                            eyceS_MarksDisplayFlg: Boolean(dataObject?.eyceS_MarksDisplayFlg ?? dataObject?.EYCES_MarksDisplayFlg ?? isChecked),
+                            eyceS_GradeDisplayFlg: Boolean(dataObject?.eyceS_GradeDisplayFlg ?? dataObject?.EYCES_GradeDisplayFlg ?? s.eyceS_GradeDisplayFlg),
+                            eyceS_AplResultFlg: Boolean(dataObject?.eyceS_AplResultFlg ?? dataObject?.EYCES_AplResultFlg ?? isChecked),
+                            eyceS_SubjectOrder: dataObject?.eyceS_SubjectOrder ?? dataObject?.EYCES_SubjectOrder ?? s.ismS_OrderFlag ?? (updatedSubjects.length + 1),
+                            eyceS_ActiveFlg: Boolean(dataObject?.eyceS_ActiveFlg ?? dataObject?.EYCES_ActiveFlg ?? true),
+                            checkedvalue: isChecked
                         };
 
-                        const data = apiResponse?.data || [];
-                        const updatedSubjects: any[] = [];
-
-                        for (const s of formattedSubjects) {
-                            const dataObject = data.find((d: any) => d.ismS_Id === s.ismS_Id);
-
-                            const updated = {
-                                ...s,
-
-                                eyceS_Id: dataObject?.eyceS_Id ?? s.eyceS_Id ?? 0,
-                                emgr_Id: rowData?.emgR_Id ?? s.emgr_Id,
-
-                                ismS_SubjectName: dataObject?.ismS_SubjectName ?? s.ismS_SubjectName,
-                                ismS_SubjectCode: dataObject?.ismS_SubjectCode ?? s.ismS_SubjectCode,
-
-                                eyceS_MaxMarks: dataObject?.eyceS_MaxMarks ?? 0,
-                                eyceS_MinMarks: dataObject?.eyceS_MinMarks ?? 0,
-                                eyceS_MarksEntryMax: dataObject?.eyceS_MarksEntryMax ?? 0,
-
-                                eyceS_SubExamFlg: dataObject?.eyceS_SubExamFlg ?? s.eyceS_SubExamFlg,
-                                eyceS_SubSubjectFlg: dataObject?.eyceS_SubSubjectFlg ?? s.eyceS_SubSubjectFlg,
-
-                                eyceS_MarksGradeEntryFlg: dataObject?.eyceS_MarksGradeEntryFlg ?? s.eyceS_MarksGradeEntryFlg,
-
-                                eyceS_MarksDisplayFlg: dataObject?.eyceS_MarksDisplayFlg ?? s.eyceS_MarksDisplayFlg,
-
-                                eyceS_GradeDisplayFlg: dataObject?.eyceS_GradeDisplayFlg ?? s.eyceS_GradeDisplayFlg,
-
-                                eyceS_AplResultFlg: dataObject?.eyceS_AplResultFlg ?? s.eyceS_AplResultFlg,
-
-                                eyceS_SubjectOrder: dataObject?.eyceS_SubjectOrder ?? s.ismS_OrderFlag,
-
-                                eyceS_ActiveFlg: dataObject?.eyceS_ActiveFlg ?? true,
-
-                                checkedvalue: Boolean(dataObject)
-                            };
-
-                            // ---------------------------
-                            // YOUR FLAG-BASED MAPPING LOGIC
-                            // (Syntax-fixed only, no changes)
-                            // ---------------------------
-                            // Sub-Subject Mapping
-                            if (updated.eyceS_SubSubjectFlg && !updated.eyceS_SubExamFlg) {
-                                const { data: mappedList } = await getSubSubjectsMappedList(updated.eyceS_Id);
-                                if (mappedList?.length) {
-                                    updated.subSubjectConfig = mappedList.map((item: any) => ({
-                                        ...mapToSubSubjectConfig(item),
-                                        emsS_Order: item.emsS_Order ?? item.EMSS_Order ?? item.eycessS_SubSubjectOrder ?? 0,
-                                        // Ensure standard keys exist even if backend sends PascalCase
-                                        emsS_Id: item.emsS_Id ?? item.EMSS_Id,
-                                        emsS_SubSubjectName: item.emsS_SubSubjectName ?? item.EMSS_SubSubjectName
-                                    }));
-                                }
+                        // Sub-Subject Mapping
+                        if (updated.eyceS_SubSubjectFlg && !updated.eyceS_SubExamFlg && updated.eyceS_Id) {
+                            const { data: mappedList } = await getSubSubjectsMappedList(updated.eyceS_Id);
+                            if (mappedList?.length) {
+                                updated.subSubjectConfig = mappedList.map((item: any) => ({
+                                    ...mapToSubSubjectConfig(item),
+                                    emsS_Order: item.emsS_Order ?? item.EMSS_Order ?? item.eycessS_SubSubjectOrder ?? 0,
+                                    emsS_Id: item.emsS_Id ?? item.EMSS_Id,
+                                    emsS_SubSubjectName: item.emsS_SubSubjectName ?? item.EMSS_SubSubjectName
+                                }));
                             }
-
-                            // Sub-Exam Mapping
-                            if (updated.eyceS_SubExamFlg && !updated.eyceS_SubSubjectFlg) {
-                                const { data: mappedList } = await getSubExamsMappedList(updated.eyceS_Id);
-                                if (mappedList?.length) {
-                                    updated.subExamConfig = mappedList;
-                                    // updated.subExamConfig = mappedList.map((item: any) => ({
-                                    //     ...mapToSubExamConfig(item),
-                                    //     emsE_SubExamOrder:
-                                    //         item.emsE_SubExamOrder ?? item.EMSE_SubExamOrder ?? item.eycessE_SubExamOrder ?? 0,
-                                    //     // Ensure standard keys exist
-                                    //     emsE_Id: item.emsE_Id ?? item.EMSE_Id,
-                                    //     emsE_SubExamName: item.emsE_SubExamName ?? item.EMSE_SubExamName
-                                    // }));
-                                }
-                            }
-
-                            // Sub-Subject-Sub-Exam Mapping
-                            if (updated.eyceS_SubSubjectFlg && updated.eyceS_SubExamFlg) {
-                                const { data: mappedList } = await getSubSubjectsAndSubExamsMappedList(updated.eyceS_Id);
-                                if (mappedList?.length) {
-                                    updated.subSubjectSubExamConfig = mappedList.map((item: any) => ({
-                                        ...mapToSubSubjeSubExamctConfig(item),
-                                        // Ensure ID and Order fields fallbacks
-                                        emsS_Id: item.emsS_Id ?? item.EMSS_Id,
-                                        emsE_Id: item.emsE_Id ?? item.EMSE_Id
-                                    }));
-                                }
-                            }
-
-                            updatedSubjects.push(updated);
                         }
 
-                        setSubjects(updatedSubjects);
-                    } else {
-                        setSubjects(formattedSubjects);
-                    }
-                }
-                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
-            } catch (err) {
-                const fallback = [
-                    {
-                        ismS_Id: 1,
-                        ISMS_SubjectName: 'Kannada',
-                        EYCES_MaxMarks: 100,
-                        EYCES_MinMarks: 35,
-                        EMGR_Id: watchGrade ?? 0
-                    },
-                    {
-                        ismS_Id: 2,
-                        ISMS_SubjectName: 'French',
-                        EYCES_MaxMarks: 22,
-                        EYCES_MinMarks: 22,
-                        EMGR_Id: watchGrade ?? 0
-                    }
-                ];
+                        // Sub-Exam Mapping
+                        if (updated.eyceS_SubExamFlg && !updated.eyceS_SubSubjectFlg && updated.eyceS_Id) {
+                            const { data: mappedList } = await getSubExamsMappedList(updated.eyceS_Id);
+                            if (mappedList?.length) {
+                                updated.subExamConfig = mappedList;
+                            }
+                        }
 
-                setSubjects(fallback);
+                        // Sub-Subject-Sub-Exam Mapping
+                        if (updated.eyceS_SubSubjectFlg && updated.eyceS_SubExamFlg && updated.eyceS_Id) {
+                            const { data: mappedList } = await getSubSubjectsAndSubExamsMappedList(updated.eyceS_Id);
+                            if (mappedList?.length) {
+                                updated.subSubjectSubExamConfig = mappedList.map((item: any) => ({
+                                    ...mapToSubSubjeSubExamctConfig(item),
+                                    emsS_Id: item.emsS_Id ?? item.EMSS_Id,
+                                    emsE_Id: item.emsE_Id ?? item.EMSE_Id
+                                }));
+                            }
+                        }
+
+                        updatedSubjects.push(updated);
+                    }
+
+                    // Include any saved subjects that were not returned by category subject list
+                    const missingSaved = data.filter(
+                        (d: any) => !formattedSubjects.some((s: any) => Number(s.ismS_Id) === Number(d.ismS_Id ?? d.ISMS_Id ?? d.isms_Id))
+                    );
+                    for (const d of missingSaved) {
+                        updatedSubjects.push({
+                            ismS_Id: Number(d.ismS_Id ?? d.ISMS_Id ?? d.isms_Id),
+                            ismS_SubjectName: d.ismS_SubjectName ?? d.ISMS_SubjectName ?? '',
+                            ismS_SubjectCode: d.ismS_SubjectCode ?? d.ISMS_SubjectCode ?? '',
+                            eyceS_Id: Number(d.eyceS_Id ?? d.EYCES_Id ?? 0),
+                            emgr_Id: d.emgR_Id ?? d.EMGR_Id ?? rowData?.emgR_Id ?? watchGrade ?? 0,
+                            eyceS_MaxMarks: d.eyceS_MaxMarks ?? d.EYCES_MaxMarks ?? d.ECYSES_MaxMarks ?? 0,
+                            eyceS_MinMarks: d.eyceS_MinMarks ?? d.EYCES_MinMarks ?? d.ECYSES_MinMarks ?? 0,
+                            eyceS_MarksEntryMax: d.eyceS_MarksEntryMax ?? d.EYCES_MarksEntryMax ?? d.ECYSES_MarksEntryMax ?? 0,
+                            eyceS_SubExamFlg: Boolean(d.eyceS_SubExamFlg ?? d.EYCES_SubExamFlg),
+                            eyceS_SubSubjectFlg: Boolean(d.eyceS_SubSubjectFlg ?? d.EYCES_SubSubjectFlg),
+                            eyceS_MarksGradeEntryFlg: d.eyceS_MarksGradeEntryFlg ?? d.EYCES_MarksGradeEntryFlg ?? 'M',
+                            eyceS_MarksDisplayFlg: Boolean(d.eyceS_MarksDisplayFlg ?? d.EYCES_MarksDisplayFlg ?? true),
+                            eyceS_GradeDisplayFlg: Boolean(d.eyceS_GradeDisplayFlg ?? d.EYCES_GradeDisplayFlg),
+                            eyceS_AplResultFlg: Boolean(d.eyceS_AplResultFlg ?? d.EYCES_AplResultFlg ?? true),
+                            eyceS_SubjectOrder: d.eyceS_SubjectOrder ?? d.EYCES_SubjectOrder ?? (updatedSubjects.length + 1),
+                            eyceS_ActiveFlg: Boolean(d.eyceS_ActiveFlg ?? d.EYCES_ActiveFlg ?? true),
+                            checkedvalue: true,
+                            subExamConfig: [],
+                            subSubjectConfig: [],
+                            subSubjectSubExamConfig: [],
+                            exam_Subject_PT_GradeList: []
+                        });
+                    }
+
+                    setSubjects(updatedSubjects);
+                } else {
+                    setSubjects(formattedSubjects);
+                    if (formattedSubjects.length === 0) toast.info('No subjects found for this category.');
+                }
+            } catch (err) {
+                console.error(err);
                 toast.error('Failed to load subjects.');
             } finally {
                 setIsEditFormLoading(false);
             }
         })();
-    }, [rowData, watchCategory, watchEMCA_ID, response, setValue]);
+    }, [rowData, watchCategory, watchEMCA_ID, watchGrade, setValue]);
 
     // ------------------- Modal open/prepare handlers -------------------
     const onOpenSubExamModal = async (subject: any) => {
@@ -773,12 +771,12 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             const isValid = validateSubjectsRef.current?.();
 
             if (!isValid) {
-                toast.error('Please fill required marks for selected subjects');
+                toast.error('Please fill required marks for selected subjects (Max Marks, Min Marks, Max Entry Marks)');
                 return;
             }
             const ok = await trigger();
             if (!ok) {
-                toast.error('Fix validation errors before saving');
+                toast.error('Please fix validation errors before saving');
                 return;
             }
             const checkedSubjects = (subjects?.length > 0 ? subjects : (values.yearly_category_exam_subjects ?? [])).filter(
@@ -786,7 +784,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             );
 
             if (checkedSubjects.length === 0) {
-                toast.error('Select at least one subject');
+                toast.error('Please select at least one subject');
                 return;
             }
             const exams_list = exams
@@ -797,41 +795,47 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     checked: true
                 }));
             if (exams_list.length === 0) {
-                toast.error('Select at least one exam');
+                toast.error('Please select at least one exam');
                 return;
             }
             const exm_subject_subexams_list = buildExmSubjectSubExamsList();
             const exm_subject_subsubjects_list = buildExmSubjectSubsubjectsList();
             const exm_subject_subsubjects_subexam = buildExmSubjectSubsubjectsSubexamList();
 
+            const recordEyceId = Number(values.EYCE_Id || rowData?.eycE_Id || 0) || 0;
+            const defaultGradeId = Number(values.EMGR_Id || rowData?.emgR_Id || watchGrade || 0) || 0;
+
             const yearly_category_exam_subjects = checkedSubjects.map((s: any, index: number) => ({
-                EYCES_Id: s.eyceS_Id ?? 0,
-                EYCE_Id: s.eycE_Id ?? 0,
-                ismS_Id: s.ismS_Id,
-                EMGR_Id: Number(s.emgR_Id) ?? 0,
-                EYCES_MaxMarks: Number(s.eyceS_MaxMarks ?? 0),
-                EYCES_MinMarks: Number(s.eyceS_MinMarks ?? 0),
-                EYCES_MarksEntryMax: Number(s.eyceS_MarksEntryMax ?? 0),
-                EYCES_SubExamFlg: Boolean(s.eyceS_SubExamFlg ?? false),
-                EYCES_SubSubjectFlg: Boolean(s.eyceS_SubSubjectFlg ?? false),
-                EYCES_MarksGradeEntryFlg: s.eyceS_MarksGradeEntryFlg ?? 'M',
-                EYCES_MarksDisplayFlg: Boolean(s.eyceS_MarksDisplayFlg ?? true),
-                EYCES_GradeDisplayFlg: Boolean(s.eyceS_GradeDisplayFlg ?? true),
-                EYCES_AplResultFlg: Boolean(s.eyceS_AplResultFlg ?? true),
-                EYCES_ActiveFlg: Boolean(s.eyceS_ActiveFlg ?? true),
-                EYCES_SubjectOrder: s.eyceS_SubjectOrder ?? index + 1,
+                EYCES_Id: Number(s.eyceS_Id || s.EYCES_Id || 0) || 0,
+                EYCE_Id: Number(s.eycE_Id || s.EYCE_Id || recordEyceId) || recordEyceId,
+                ismS_Id: Number(s.ismS_Id || s.ISMS_Id || 0) || 0,
+                EMGR_Id: Number(s.emgR_Id || s.emgr_Id || defaultGradeId) || defaultGradeId,
+                EYCES_MaxMarks: Number(s.eyceS_MaxMarks || s.EYCES_MaxMarks || 0) || 0,
+                EYCES_MinMarks: Number(s.eyceS_MinMarks || s.EYCES_MinMarks || 0) || 0,
+                EYCES_MarksEntryMax: Number(s.eyceS_MarksEntryMax || s.EYCES_MarksEntryMax || 0) || 0,
+                EYCES_SubExamFlg: Boolean(s.eyceS_SubExamFlg ?? s.EYCES_SubExamFlg ?? false),
+                EYCES_SubSubjectFlg: Boolean(s.eyceS_SubSubjectFlg ?? s.EYCES_SubSubjectFlg ?? false),
+                EYCES_MarksGradeEntryFlg: s.eyceS_MarksGradeEntryFlg || s.EYCES_MarksGradeEntryFlg || 'M',
+                EYCES_MarksDisplayFlg: Boolean(s.eyceS_MarksDisplayFlg ?? s.EYCES_MarksDisplayFlg ?? true),
+                EYCES_GradeDisplayFlg: Boolean(s.eyceS_GradeDisplayFlg ?? s.EYCES_GradeDisplayFlg ?? false),
+                EYCES_AplResultFlg: Boolean(s.eyceS_AplResultFlg ?? s.EYCES_AplResultFlg ?? true),
+                EYCES_ActiveFlg: Boolean(s.eyceS_ActiveFlg ?? s.EYCES_ActiveFlg ?? true),
+                EYCES_SubjectOrder: Number(s.eyceS_SubjectOrder || s.EYCES_SubjectOrder || index + 1) || (index + 1),
                 Exam_Subject_PT_GradeList: s.exam_Subject_PT_GradeList ?? []
             }));
 
             const finalPayload = {
                 ...values,
+                EYCE_Id: recordEyceId,
                 UserId: 0,
                 MI_Id: 0,
-                ASMAY_Id: Number(values.ASMAY_Id) ?? 0,
+                ASMAY_Id: Number(values.ASMAY_Id) || 0,
+                EMCA_Id: Number(values.EMCA_Id || rowData?.emcA_Id || 0) || 0,
+                EYC_Id: Number(values.EYC_Id || rowData?.eyC_Id || 0) || 0,
+                EMGR_Id: defaultGradeId,
                 ASMAY_Year: '',
-                EYCE_BestOfApplicableFlg: values.EYCE_BestOfApplicableFlg ?? true,
-                //EYCE_BestOf: values.EYCE_BestOf ?? 0,
-                EYCE_BestOf: (values.EYCE_BestOfApplicableFlg ?? true) ? (values.EYCE_BestOf ?? 0) : 0,
+                EYCE_BestOfApplicableFlg: Boolean(values.EYCE_BestOfApplicableFlg ?? false),
+                EYCE_BestOf: Boolean(values.EYCE_BestOfApplicableFlg) ? (Number(values.EYCE_BestOf) || 0) : 0,
                 EYCE_AttendanceFromDate: toBackendDate(values.EYCE_AttendanceFromDate),
                 EYCE_AttendanceToDate: toBackendDate(values.EYCE_AttendanceToDate),
                 exams_list,
@@ -868,7 +872,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     !res?.error);
 
             if (isSuccess) {
-                toast.success(res?.message || 'Data saved successfully');
+                toast.success(res?.message || 'Subject details saved successfully');
                 onSuccess?.();
                 refetchAll();
                 router.refresh();
@@ -878,20 +882,35 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 res?.returnval === 'Duplicate' ||
                 res?.returnVal === 'Duplicate'
             ) {
-                toast.error(res?.message || 'Record already exists');
+                toast.error(res?.message || 'Subject details already exist for the selected exam');
             } else {
-                toast.error(res?.message || 'Failed to save the data');
+                toast.error(res?.message || res?.error || 'Failed to save subject details');
             }
         } catch (err: any) {
             console.error(err);
-            toast.error(err?.message || 'Failed to save the data');
+            toast.error(err?.message || 'Failed to save subject details');
         }
     };
 
     const onError = (formErrors: any) => {
-        console.error('Validation errors:', formErrors);
-        const firstError = Object.values(formErrors)[0] as any;
-        toast.error(firstError?.message || 'Please fill all required fields before saving');
+        console.warn('Validation errors:', formErrors);
+        let errorMsg = 'Please fill all required fields before saving';
+        if (formErrors && typeof formErrors === 'object') {
+            for (const key of Object.keys(formErrors)) {
+                const err = formErrors[key];
+                if (err?.message && typeof err.message === 'string') {
+                    errorMsg = err.message;
+                    break;
+                } else if (Array.isArray(err)) {
+                    const firstSub = err.find((item: any) => item?.message);
+                    if (firstSub?.message) {
+                        errorMsg = firstSub.message;
+                        break;
+                    }
+                }
+            }
+        }
+        toast.error(errorMsg);
     };
 
     const handleReset = () => {

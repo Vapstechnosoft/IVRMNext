@@ -110,29 +110,28 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
         if (selectedYear > 0 && selectedCategory > 0) {
             const fetchData = async () => {
                 setLoadingExams(true);
-                if (qualificationType === 'individual') setLoadingClasses(true);
+                setLoadingClasses(true);
                 try {
-                    const response = await getExamGroupsByCategory(selectedYear, selectedCategory);
-                    if (qualificationType === 'individual') {
-                        const classes_res = await getClassDropDownByYearCategoryList(selectedYear, selectedCategory);
-                        const safeClasses = Array.isArray(classes_res) ? classes_res : [];
-                        if (safeClasses.length === 0) {
-                            toast.info('No classes found for this category');
-                        }
-                        setClasses(safeClasses);
-                    }
+                    const [examRes, classesRes] = await Promise.all([
+                        getExamGroupsByCategory(selectedYear, selectedCategory),
+                        getClassDropDownByYearCategoryList(selectedYear, selectedCategory)
+                    ]);
 
-                    if (response.success) {
-                        if (response.data.length === 0) {
-                            toast.info('No exams found for this category');
-                        }
-                        setExams(response.data || []);
+                    const safeClasses = Array.isArray(classesRes) ? classesRes : [];
+                    setClasses(safeClasses);
+
+                    if (examRes?.success) {
+                        setExams(examRes.data || []);
+                    } else if (Array.isArray(examRes)) {
+                        setExams(examRes);
+                    } else {
+                        setExams([]);
                     }
-                } catch {
-                    // error
+                } catch (error) {
+                    console.error('Error fetching exams and classes:', error);
                 } finally {
                     setLoadingExams(false);
-                    if (qualificationType === 'individual') setLoadingClasses(false);
+                    setLoadingClasses(false);
                 }
             };
             fetchData();
@@ -140,7 +139,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
             setClasses([]);
             setExams([]);
         }
-    }, [selectedYear, selectedCategory, qualificationType]);
+    }, [selectedYear, selectedCategory]);
 
     // On Class Change
     useEffect(() => {
@@ -150,12 +149,10 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                 try {
                     const response = await getSectionDropDownByYearCategoryClassList(selectedYear, selectedCategory, selectedClass);
                     const safeSections = Array.isArray(response) ? response : [];
-                    if (safeSections.length === 0) {
-                        toast.info('No sections found for this class');
-                    }
                     setSections(safeSections);
-                } catch {
-                    // error
+                } catch (error) {
+                    console.error('Error fetching sections:', error);
+                    setSections([]);
                 } finally {
                     setLoadingSections(false);
                 }
@@ -170,8 +167,8 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
         setLoading(true);
 
         try {
-            const classId = data.qualification_type === 'all' ? 0 : data.ASMCL_Id;
-            const sectionId = data.qualification_type === 'all' ? 0 : data.ASMS_Id;
+            const classId = data.ASMCL_Id || 0;
+            const sectionId = data.ASMS_Id !== undefined && data.ASMS_Id !== null ? data.ASMS_Id : 0;
 
             const selected_Year = academicYears.find((y: any) => y.asmaY_Id === Number(data.ASMAY_Id))?.asmaY_Year;
             const select_Exam = exams.find((e: any) => e.emE_Id === Number(data.EME_Id))?.emE_ExamName;
@@ -337,29 +334,34 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                         key={`${field.value}-${classes.length}-${loadingClasses}`}
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                        disabled={qualificationType === 'all'}>
+                                        disabled={!selectedCategory || loadingClasses}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {loadingClasses ? (
-                                                <SelectItem value='0' disabled>
-                                                    Classes are loading...
-                                                </SelectItem>
-                                            ) : classes.length === 0 ? (
-                                                <SelectItem value='0' disabled>
-                                                    No Classes found
-                                                </SelectItem>
-                                            ) : (
-                                                classes.map((item) => (
-                                                    <SelectItem key={item.asmcL_Id} value={String(item.asmcL_Id)}>
-                                                        {item.asmcL_ClassName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                )}
+                                                 <SelectItem value='0' disabled>
+                                                     Classes are loading...
+                                                 </SelectItem>
+                                             ) : classes.length === 0 ? (
+                                                 <SelectItem value='0' disabled>
+                                                     No Classes found
+                                                 </SelectItem>
+                                             ) : (
+                                                 classes.map((item) => {
+                                                     const classId = item.asmcL_Id ?? item.ASMCL_Id ?? item.id;
+                                                     const className = item.asmcL_ClassName ?? item.ASMCL_ClassName ?? item.className ?? item.name ?? `Class ${classId}`;
+                                                     if (!classId) return null;
+                                                     return (
+                                                         <SelectItem key={String(classId)} value={String(classId)}>
+                                                             {className}
+                                                         </SelectItem>
+                                                     );
+                                                 })
+                                             )}
+                                         </SelectContent>
+                                     </Select>
+                                 )}
                             />
                             {form.formState.errors.ASMCL_Id && (
                                 <p className='text-red-500 text-sm'>{form.formState.errors.ASMCL_Id.message}</p>
@@ -379,30 +381,35 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onPri
                                         key={`${field.value}-${sections.length}-${loadingSections}`}
                                         onValueChange={(val) => field.onChange(Number(val))}
                                         value={field.value !== undefined && field.value !== null ? String(field.value) : undefined}
-                                        disabled={qualificationType === 'all'}>
+                                        disabled={!selectedClass || loadingSections}>
                                         <SelectTrigger>
                                             <SelectValue placeholder='Select Section' />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value='0'>All</SelectItem>
                                             {loadingSections ? (
-                                                <SelectItem value='loading' disabled>
-                                                    Sections are loading...
-                                                </SelectItem>
-                                            ) : sections.length === 0 ? (
-                                                <SelectItem value='empty' disabled>
-                                                    No Sections found
-                                                </SelectItem>
-                                            ) : (
-                                                sections.map((item) => (
-                                                    <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
-                                                        {item.asmC_SectionName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
+                                                 <SelectItem value='loading' disabled>
+                                                     Sections are loading...
+                                                 </SelectItem>
+                                             ) : sections.length === 0 ? (
+                                                 <SelectItem value='empty' disabled>
+                                                     No Sections found
+                                                 </SelectItem>
+                                             ) : (
+                                                 sections.map((item) => {
+                                                     const secId = item.asmS_Id ?? item.ASMS_Id ?? item.id;
+                                                     const secName = item.asmC_SectionName ?? item.ASMC_SectionName ?? item.sectionName ?? item.name ?? `Section ${secId}`;
+                                                     if (!secId) return null;
+                                                     return (
+                                                         <SelectItem key={String(secId)} value={String(secId)}>
+                                                             {secName}
+                                                         </SelectItem>
+                                                     );
+                                                 })
+                                             )}
                                         </SelectContent>
                                     </Select>
-                                )}
+                                 )}
                             />
                             {form.formState.errors.ASMS_Id && (
                                 <p className='text-red-500 text-sm'>{form.formState.errors.ASMS_Id.message}</p>

@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { PeriodDistributionColumn, PeriodDropdownData } from '@/types/timetable/masters/masters';
 
 export async function getPeriodDistributionDetails(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'staffName');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmaY_Year,staffName,ttfpD_TotWeekPeriods');
     const url = `/ClassMasterFacade/getPeriodDistributionData?${urlParams}`;
     console.info('PeriodDistributionFacade', url);
     return await api.get<PeriodDistributionColumn[]>('timetable', url);

@@ -83,14 +83,6 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
                 {/* Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
-                        type='button'
-                        variant='outline'
-                        onClick={handleReset}
-                        disabled={isSubmitting}
-                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Reset
-                    </Button>
-                    <Button
                         type='submit'
                         disabled={isSubmitting}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
@@ -98,8 +90,19 @@ export default function AddMasterSubExamForm({ onSuccess, className = '' }: AddM
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Save Sub Exam
+                            Save
                         </div>
+                    </Button>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={() => {
+                            reset();
+                            onSuccess?.();
+                        }}
+                        disabled={isSubmitting}
+                        className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
+                        Cancel
                     </Button>
                 </div>
             </form>

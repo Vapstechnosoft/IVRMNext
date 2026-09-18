@@ -4520,8 +4520,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         label='Registration No.'
                                                                         required
                                                                         id={`qualificationDetails.${index}.registrationNo`}
-                                                                        maxLength={50}
+                                                                        
                                                                         {...register(`qualificationDetails.${index}.registrationNo`)}
+                                                                        maxLength={30}
                                                                         error={
                                                                             (errors.qualificationDetails as any)?.[index]?.registrationNo
                                                                                 ?.message

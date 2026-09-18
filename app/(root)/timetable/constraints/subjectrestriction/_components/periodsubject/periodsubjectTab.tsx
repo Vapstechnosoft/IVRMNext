@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import {
@@ -19,17 +19,18 @@ import PeriodSubjectUpdate from './periodsubjectUpdate';
 
 interface PeriodSubjectTabProps {
     initialData?: any;
+    searchParams?: any;
 }
 
-export default function PeriodSubjectTab({ initialData }: PeriodSubjectTabProps) {
+export default function PeriodSubjectTab({ initialData, searchParams }: PeriodSubjectTabProps) {
     return (
         <FormProvider>
-            <PeriodSubjectTabContent initialData={initialData} />
+            <PeriodSubjectTabContent initialData={initialData} searchParams={searchParams} />
         </FormProvider>
     );
 }
 
-function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
+function PeriodSubjectTabContent({ initialData, searchParams }: PeriodSubjectTabProps) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -39,7 +40,9 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
         closeAllForms,
         isToggleFormOpen,
         closeToggleForm,
-        selectedRow
+        selectedRow,
+        addFormRef,
+        editFormRef
     } = useFormContext();
 
     const { data: academicYearData } = useAcademicYearDropDownMasterDayClasswise();
@@ -52,15 +55,11 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
     const {
         data: gridResponse,
         isLoading: isGridLoading,
+        error,
         refetchAll
-    } = useSubjectRestrictionPeriodSubjectGridData({
-        ASMAY_Id: 0,
-        TTMC_Id: 0
-    });
+    } = useSubjectRestrictionPeriodSubjectGridData(searchParams);
 
-    const gridData =
-        (gridResponse as any)?.data || (gridResponse as any)?.periodsubjectlist || (Array.isArray(gridResponse) ? gridResponse : []);
-    const totalItems = (gridResponse as any)?.total || gridData.length;
+    const tableProps = useDataTableProps(gridResponse);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -89,28 +88,38 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
             </div>
 
             <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                <GenericDataTable data={gridData} columns={periodSubjectColumns} isLoading={isGridLoading} />
+                <GenericDataTable
+                    {...tableProps}
+                    columns={periodSubjectColumns}
+                    isLoading={isGridLoading}
+                    error={error}
+                    columnPinning={{ right: ['actions'] }}
+                    loadingMessage='Loading period subject constraint data...'
+                    noDataTitle='No Period Subject Constraints Found'
+                    noDataDescription='Add a new period subject constraint to get started'
+                    errorTitle='Error Loading Data'
+                />
             </CollapsibleSection>
 
             {isToggleFormOpen && selectedRow && <PeriodSubjectToggle rowData={selectedRow} onClose={closeToggleForm} />}
 
-            {(isAddFormOpen || isEditFormOpen) && (
-                <CollapsibleSection
-                    title={isEditFormOpen ? 'Edit Period Subject Constraint' : 'Add New Period Subject Constraint'}
-                    defaultOpen={true}
-                    variant='outline'
-                    size='md'
-                    className='shadow-lg'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={isEditFormOpen ? closeEditForm : closeAddForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
-                        {isAddFormOpen && (
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='Add New Period Subject Constraint'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
                             <PeriodSubjectAddForm
                                 academicList={academicList}
                                 periodList={periodList}
@@ -118,8 +127,28 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                 onSuccess={onFormSuccess}
                                 onCancel={closeAddForm}
                             />
-                        )}
-                        {isEditFormOpen && selectedRow && (
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Period Subject Constraint'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        className='slide-in-from-top-4 animate-in border-primary/20 shadow-lg duration-300'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
                             <PeriodSubjectUpdate
                                 academicList={academicList}
                                 periodList={periodList}
@@ -128,9 +157,9 @@ function PeriodSubjectTabContent({ initialData }: PeriodSubjectTabProps) {
                                 onSuccess={onFormSuccess}
                                 onCancel={closeEditForm}
                             />
-                        )}
-                    </div>
-                </CollapsibleSection>
+                        </div>
+                    </CollapsibleSection>
+                </div>
             )}
         </div>
     );

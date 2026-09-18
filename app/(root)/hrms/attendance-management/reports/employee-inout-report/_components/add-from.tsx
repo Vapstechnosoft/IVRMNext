@@ -179,6 +179,7 @@ export default function AddEmployeeInOutReportForm({
                 to_date: data.toDate,
                 hrme_ids: hrmeIds
             };
+            console.log("inout",payload);
 
             const response = (await getEmployeeInOutReport(payload)) as any;
 

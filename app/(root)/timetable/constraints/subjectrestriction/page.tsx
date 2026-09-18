@@ -3,7 +3,10 @@ import SubjectRestriction from './_components/subject-restriction';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SubjectRestrictionPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default async function SubjectRestrictionPage(props: { searchParams: SearchParams }) {
+    const searchParams = await props.searchParams;
     let initialData = null;
     try {
         initialData = await getSubjectRestrictionDetails();
@@ -20,5 +23,5 @@ export default async function SubjectRestrictionPage() {
         };
     }
 
-    return <SubjectRestriction initialData={initialData} />;
+    return <SubjectRestriction initialData={initialData} searchParams={searchParams} />;
 }

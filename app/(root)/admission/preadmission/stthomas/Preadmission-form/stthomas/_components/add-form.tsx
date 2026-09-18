@@ -185,7 +185,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     const { data: activePreadmission } = useActivePreadmissionDetails();
 
-    const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
+    const asmayId = Array.isArray(activePreadmission?.data) 
+        ? activePreadmission?.data[0]?.asmaY_Id 
+        : (activePreadmission?.data as any)?.asmaY_Id ?? 0;
+
+    const { data: masterConfig } = useAcademicYearMasterConfiguration(asmayId);
 
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
     const conConuntryId = watch('pasR_ConCountry');
@@ -271,8 +275,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         if (currentStep === 1) {
             fieldsToValidate = [
                 'pasR_FirstName',
-                'pasR_MiddleName',
-                'pasR_LastName',
                 'pasR_DOB',
                 'pasR_MobileNo',
                 'pasR_BirthPlace',
@@ -502,6 +504,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 PASRPSLeftDate: PASRPSLeftDate ? format(PASRPSLeftDate, 'yyyy-MM-dd') : null,
                 PASRPSTcIssueDate: PASRPSTcIssueDate ? format(PASRPSTcIssueDate, 'yyyy-MM-dd') : null,
                 PASRPSTCProducingDate: PASRPSTCProducingDate ? format(PASRPSTCProducingDate, 'yyyy-MM-dd') : null,
+                ASMAY_Id: asmayId,
                 pasR_Age: 0,
                 pasR_Student_Pic_Path: studentPhoto?.pasR_Student_Pic_Path || '',
                 pasR_FatherPhoto: fatherPhoto?.pasR_FatherPhoto || '',
@@ -935,25 +938,30 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     // Add this handler where other form handlers are defined
     const handleDOBChange = (date: Date | undefined) => {
         console.log('handleDOBChange');
-        if (!date || !masterConfig?.data) {
-            if (masterConfig?.data == null) {
-                console.log(masterConfig?.data);
-                console.log('Master Config data is null');
-            }
-            console.log(masterConfig?.data);
+        const configData = Array.isArray(masterConfig?.data) 
+            ? masterConfig?.data[0] 
+            : (masterConfig?.data as any)?.$values 
+                ? (masterConfig?.data as any).$values[0] 
+                : masterConfig?.data;
+
+        if (!date) {
             setIsClassDisabled(true);
             setFilteredClasses([]);
             setValue('asmcL_Id', 0);
             return;
         }
 
-        const allClasses = preadmissionClass?.data || [];
+        const allClasses = Array.isArray(preadmissionClass?.data)
+            ? preadmissionClass?.data
+            : (preadmissionClass?.data as any)?.$values
+                ? (preadmissionClass?.data as any).$values
+                : preadmissionClass?.data || [];
 
         const validClasses: IPreadmissionClassDropdown[] = [];
         const invalidClasses: IPreadmissionClassDropdown[] = [];
 
         allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
-            const validation = validateAgeForClass(date, classItem, masterConfig.data);
+            const validation = validateAgeForClass(date, classItem, configData);
 
             if (validation.isValid) {
                 validClasses.push(classItem);
@@ -1471,7 +1479,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             <InputText
                                                 label='Middle Name'
-                                                required
                                                 id='pasR_MiddleName'
                                                 placeholder='Enter middle name'
                                                 {...register('pasR_MiddleName')}
@@ -1479,7 +1486,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             <InputText
                                                 label='Last Name'
-                                                required
                                                 id='pasR_LastName'
                                                 placeholder='Enter last name'
                                                 {...register('pasR_LastName')}
@@ -1819,6 +1825,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             value={field.value}
                                                             onChange={(value) => field.onChange(value)}
                                                             type='number'
+                                                            maxLength={12}
                                                             showSpinner={false}
                                                         />
                                                     )}
@@ -2835,6 +2842,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         label='Father Aadhaar No.'
                                                         id='PASR_FatherAadharNo'
                                                         placeholder='Enter father Aadhaar'
+                                                        maxLength={12}
                                                         {...register('PASR_FatherAadharNo')}
                                                         error={errors.PASR_FatherAadharNo?.message}
                                                     />
@@ -3276,6 +3284,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         label='Mother Aadhaar No.'
                                                         id='PASR_MotherAadharNo'
                                                         placeholder='Enter mother Aadhaar'
+                                                        maxLength={12}
                                                         {...register('PASR_MotherAadharNo')}
                                                         error={errors.PASR_MotherAadharNo?.message}
                                                     />

@@ -7,15 +7,26 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { IClass, ISection, IYear } from '@/types/alumni/student-password-creation';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, X, Loader2 } from 'lucide-react';
+import { Eye, Loader2, X } from 'lucide-react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import * as z from 'zod';
 
 const formSchema = z.object({
     filterdata: z.string(),
-    asmaY_Id: z.string().min(1, 'Please select a year'),
-    asmcL_Id: z.string().min(1, 'Please select a class'),
+    asmaY_Id: z.string({ required_error: 'Academic Year is required' }).min(1, 'Academic Year is required'),
+    asmcL_Id: z.string({ required_error: 'Class is required' }).min(1, 'Class is required'),
     asmS_Id: z.string().optional()
+}).superRefine((data, ctx) => {
+    if (data.filterdata !== 'Alumni' && data.filterdata !== 'stunew') {
+        if (!data.asmS_Id || data.asmS_Id.trim() === '') {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Section is required',
+                path: ['asmS_Id']
+            });
+        }
+    }
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -47,9 +58,19 @@ export default function FilterForm({ years, classes, sections, onSubmit, onCance
     const filterdata = form.watch('filterdata');
     const isSectionHidden = filterdata === 'Alumni' || filterdata === 'stunew';
 
+    const onError = (errors: any) => {
+        if (errors.asmaY_Id) {
+            toast.error(errors.asmaY_Id.message || 'Academic Year is required');
+        } else if (errors.asmcL_Id) {
+            toast.error(errors.asmcL_Id.message || 'Class is required');
+        } else if (errors.asmS_Id) {
+            toast.error(errors.asmS_Id.message || 'Section is required');
+        }
+    };
+
     return (
         <Form {...form}>
-            <form key={resetKey} onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+            <form key={resetKey} onSubmit={form.handleSubmit(onSubmit, onError)} className='space-y-6'>
                 <FormField
                     control={form.control}
                     name='filterdata'
@@ -102,7 +123,6 @@ export default function FilterForm({ years, classes, sections, onSubmit, onCance
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
                             </FormItem>
                         )}
                     />
@@ -130,7 +150,6 @@ export default function FilterForm({ years, classes, sections, onSubmit, onCance
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
                             </FormItem>
                         )}
                     />
@@ -159,7 +178,6 @@ export default function FilterForm({ years, classes, sections, onSubmit, onCance
                                             ))}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
                                 </FormItem>
                             )}
                         />

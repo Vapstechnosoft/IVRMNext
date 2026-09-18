@@ -12,6 +12,7 @@ import { use, useState } from 'react';
 import { toast } from 'sonner';
 import AddSubExamForm from './_components/add-form';
 import { MasterSubExamColumns } from './_components/columns';
+import DeleteSubExamForm from './_components/delete-form';
 import ToggleSubExamForm from './_components/toggle-form';
 import UpdateSubExamForm from './_components/update-form';
 
@@ -133,6 +134,9 @@ function SubExamPageContent({
                         columns={MasterSubExamColumns}
                         isLoading={isLoading}
                         error={error}
+                        showSearchColumns={true}
+                        pageSizeOptions={[5, 10, 20, 50]}
+                        defaultPageSize={5}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading sub exams...'
                         noDataTitle='No Sub Exams Found'
@@ -177,10 +181,12 @@ function FormSections() {
         isAddFormOpen,
         isEditFormOpen,
         isToggleFormOpen,
+        isDeleteFormOpen,
         selectedRow,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
+        closeDeleteForm,
         addFormRef,
         editFormRef
     } = useFormContext<IMasterSubExam>();
@@ -240,6 +246,9 @@ function FormSections() {
 
             {/* TOGGLE FORM */}
             {isToggleFormOpen && selectedRow && <ToggleSubExamForm rowData={selectedRow} onClose={closeToggleForm} />}
+
+            {/* DELETE FORM */}
+            {isDeleteFormOpen && selectedRow && <DeleteSubExamForm rowData={selectedRow} onClose={closeDeleteForm} />}
         </>
     );
 }
