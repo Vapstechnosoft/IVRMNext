@@ -15,7 +15,7 @@ export async function fetchAdmissionAnalytics() {
             console.error('Failed to fetch from our backend:', backendResponse.message);
             throw new Error(`Failed to fetch from backend: ${backendResponse.message}`);
         }
-        
+
         // The dashboard AI API expects the exact full response object from our backend (with success, message, data).
         const payloadForAI = backendResponse;
 
@@ -35,11 +35,11 @@ export async function fetchAdmissionAnalytics() {
             console.error('Failed to fetch from AI API:', errText);
             throw new Error(`Failed to fetch AI analytics: ${aiResponse.statusText}`);
         }
-        
+
         const data = await aiResponse.json();
         return data;
     } catch (error) {
         console.error('Error fetching admission analytics:', error);
-        throw error;
+        return null;
     }
 }

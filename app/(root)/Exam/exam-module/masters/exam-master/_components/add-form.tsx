@@ -47,6 +47,11 @@ export default function AddMasterExamForm({ onSuccess, className = '' }: AddMast
         try {
             const payload = {
                 ...data,
+                emE_ExamDescription: data.emE_ExamDescription,
+                emE_ExamDiscription: data.emE_ExamDescription,
+                emE_ExamDesc: data.emE_ExamDescription,
+                EME_ExamDescription: data.emE_ExamDescription,
+                EME_ExamDiscription: data.emE_ExamDescription,
                 emE_FinalExamFlag: Boolean(data.emE_FinalExamFlag),
                 emE_SujectwiseMarksPublishFlg: Boolean(data.emE_SujectwiseMarksPublishFlg)
             };

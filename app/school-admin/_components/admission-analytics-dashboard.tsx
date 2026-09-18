@@ -55,8 +55,16 @@ export function AdmissionAnalyticsDashboard() {
         fetchAnalytics();
     }, []);
 
-    if (isLoading || !data) {
-        return <div className='flex h-64 items-center justify-center'>Loading Analytics...</div>;
+    if (isLoading) {
+        return (
+            <div className='flex h-48 w-full items-center justify-center rounded-2xl bg-white shadow-sm'>
+                <p className='text-muted-foreground text-xs font-semibold'>Loading Analytics...</p>
+            </div>
+        );
+    }
+
+    if (!data) {
+        return null;
     }
 
     const lineChartData = data.year_wise.map((item, index) => ({

@@ -1,8 +1,10 @@
 'use server';
+
+import { ROLES } from '@/constants';
 import { signIn } from '@/lib/auth';
 import type { loginSchema } from '@/schemas/admission/preadmission/masters';
+import { getUserByEmail } from '@/server/user-service';
 import { AuthError } from 'next-auth';
-import { revalidatePath } from 'next/cache';
 import type { z } from 'zod';
 
 interface LoginSceham {
@@ -10,16 +12,48 @@ interface LoginSceham {
     callbackUrl?: string | null;
 }
 
+function getRoleHomeUrl(role?: string): string {
+    const r = role?.toUpperCase();
+    if (r === ROLES.ADMIN || r === ROLES.SUPER_ADMIN) {
+        return '/school-admin';
+    }
+    if (r === ROLES.STUDENT) {
+        return '/StudentPortal/student-dashboard';
+    }
+    if (r === ROLES.CHAIRMAN) {
+        return '/chairman';
+    }
+    if (r === ROLES.STAFF || r === ROLES.GENERAL_STAFF || r === ROLES.HR_ADMIN) {
+        return '/StaffPortal/staff-dashboard';
+    }
+    return '/';
+}
+
 export async function login({ values, callbackUrl }: LoginSceham) {
     try {
         const { email, password } = values;
+
+        let targetUrl = callbackUrl && callbackUrl !== '/' && callbackUrl !== '/sign-in' ? callbackUrl : undefined;
+
+        if (!targetUrl) {
+            try {
+                const userRes = await getUserByEmail(email, password);
+                if (userRes?.success && userRes?.data) {
+                    const role = userRes.data.role || userRes.data.roleName;
+                    targetUrl = getRoleHomeUrl(role);
+                }
+            } catch (err) {
+                console.warn('Could not determine role redirect ahead of time:', err);
+            }
+        }
+
         await signIn('credentials', {
             email,
             password,
-            redirectTo: callbackUrl || '/',
-            redirect: true
+            redirect: false
         });
-        revalidatePath('/');
+
+        return { success: true, redirectTo: targetUrl || '/' };
     } catch (error) {
         if (error instanceof AuthError) {
             switch (error.type) {
@@ -28,6 +62,10 @@ export async function login({ values, callbackUrl }: LoginSceham) {
                 default:
                     return { error: error.message || 'Something went wrong!' };
             }
+        }
+
+        if ((error as any)?.message) {
+            return { error: (error as any).message };
         }
 
         throw error;

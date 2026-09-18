@@ -96,12 +96,19 @@ export default function SigninForm() {
     const onSubmit: SubmitHandler<FormFields> = (values) => {
         setError('');
         startTransition(() => {
-            login({ values, callbackUrl }).then(async (data) => {
-                if (data?.error) {
-                    reset({ password: '' });
-                    setError(data.error);
-                }
-            });
+            login({ values, callbackUrl })
+                .then(async (data) => {
+                    if (data?.error) {
+                        reset({ password: '' });
+                        setError(data.error);
+                    } else if (data?.success && data?.redirectTo) {
+                        sessionStorage.setItem('isLoggedIn', 'true');
+                        window.location.href = data.redirectTo;
+                    }
+                })
+                .catch((err) => {
+                    setError(err?.message || 'Something went wrong!');
+                });
         });
     };
 

@@ -8,8 +8,8 @@ import { masterExamPaperSchema } from '@/schemas/exam/exam-module/masters';
 import { addOrUpdateMasterExamPaper } from '@/server/exam/exam-module/masters/exam-paper';
 import type { IMasterExamPaper } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RefreshCw, Save } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Save } from 'lucide-react';
+import { useEffect } from 'react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -24,7 +24,8 @@ interface UpdateMasterExamPaperFormProps {
 
 export default function UpdateMasterExamPaperForm({ onSuccess, className = '', selectedRow: row }: UpdateMasterExamPaperFormProps) {
     const { refetchAll } = useMasterExamPaper();
-    const [isLoading, setIsLoading] = useState(false);
+    const paperId = (row as any)?.empatY_Id ?? (row as any)?.EMPATY_Id ?? (row as any)?.id ?? 0;
+
     const {
         register,
         handleSubmit,
@@ -32,17 +33,28 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterExamPaperSchema.addOrUpdate),
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            empatY_Id: paperId,
+            empatY_PaperTypeName: (row as any)?.empatY_PaperTypeName ?? (row as any)?.EMPATY_PaperTypeName ?? '',
+            empatY_Color: (row as any)?.empatY_Color ?? (row as any)?.EMPATY_Color ?? '',
+            empatY_PaperTypeDescription: (row as any)?.empatY_PaperTypeDescription ?? (row as any)?.EMPATY_PaperTypeDescription ?? ''
+        }
     });
 
-    // Set initial values when a row is selected
+    // Set initial values when a row is selected or updated
     useEffect(() => {
         if (row) {
+            const id = (row as any)?.empatY_Id ?? (row as any)?.EMPATY_Id ?? (row as any)?.id ?? 0;
+            const name = (row as any)?.empatY_PaperTypeName ?? (row as any)?.EMPATY_PaperTypeName ?? '';
+            const color = (row as any)?.empatY_Color ?? (row as any)?.EMPATY_Color ?? '';
+            const desc = (row as any)?.empatY_PaperTypeDescription ?? (row as any)?.EMPATY_PaperTypeDescription ?? '';
+
             reset({
-                empatY_Id: row.empatY_Id,
-                empatY_PaperTypeName: row.empatY_PaperTypeName,
-                empatY_Color: row.empatY_Color,
-                empatY_PaperTypeDescription: row.empatY_PaperTypeDescription
+                empatY_Id: id,
+                empatY_PaperTypeName: name,
+                empatY_Color: color,
+                empatY_PaperTypeDescription: desc
             });
         }
     }, [row, reset]);
@@ -50,48 +62,46 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
     // Handle form submission
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            const currentPaperId = (row as any)?.empatY_Id ?? (row as any)?.EMPATY_Id ?? (row as any)?.id ?? data.empatY_Id ?? paperId;
             const payload = {
-                empatY_Id: row.empatY_Id, // Hardcoded for now
-                empatY_PaperTypeName: data.empatY_PaperTypeName,
-                empatY_Color: data.empatY_Color,
-                empatY_PaperTypeDescription: data.empatY_PaperTypeDescription
+                empatY_Id: currentPaperId,
+                empatY_PaperTypeName: data.empatY_PaperTypeName.trim(),
+                empatY_Color: data.empatY_Color.trim(),
+                empatY_PaperTypeDescription: data.empatY_PaperTypeDescription.trim()
             };
 
             const response = await addOrUpdateMasterExamPaper(payload);
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success(response.message || 'Updated successfully');
                 reset();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Something went wrong');
         }
     };
 
     const handleReset = () => {
-        reset();
+        if (row) {
+            const id = (row as any)?.empatY_Id ?? (row as any)?.EMPATY_Id ?? (row as any)?.id ?? 0;
+            const name = (row as any)?.empatY_PaperTypeName ?? (row as any)?.EMPATY_PaperTypeName ?? '';
+            const color = (row as any)?.empatY_Color ?? (row as any)?.EMPATY_Color ?? '';
+            const desc = (row as any)?.empatY_PaperTypeDescription ?? (row as any)?.EMPATY_PaperTypeDescription ?? '';
+
+            reset({
+                empatY_Id: id,
+                empatY_PaperTypeName: name,
+                empatY_Color: color,
+                empatY_PaperTypeDescription: desc
+            });
+        } else {
+            reset();
+        }
     };
-
-    useEffect(() => {
-        setIsLoading(true);
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [row]);
-
-    if (isLoading) {
-        return (
-            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
-                <RefreshCw className='h-8 w-8 animate-spin text-secondary' />
-                <p className='text-muted-foreground text-sm'>Loading data...</p>
-            </div>
-        );
-    }
 
     return (
         <div className={className}>
@@ -104,7 +114,6 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
                             placeholder='Enter Paper Type Name'
                             id='empatY_PaperTypeName'
                             {...register('empatY_PaperTypeName')}
-                            defaultValue={row.empatY_PaperTypeName}
                             error={errors.empatY_PaperTypeName?.message}
                         />
                         <InputText
@@ -113,7 +122,6 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
                             placeholder='Enter Color'
                             id='empatY_Color'
                             {...register('empatY_Color')}
-                            defaultValue={row.empatY_Color}
                             error={errors.empatY_Color?.message}
                         />
                     </div>
@@ -125,7 +133,6 @@ export default function UpdateMasterExamPaperForm({ onSuccess, className = '', s
                             placeholder='Enter Paper Type Description'
                             id='empatY_PaperTypeDescription'
                             {...register('empatY_PaperTypeDescription')}
-                            defaultValue={row.empatY_PaperTypeDescription}
                             error={errors.empatY_PaperTypeDescription?.message}
                         />
                     </div>

@@ -21,7 +21,8 @@ interface ToggleExamPaperFormProps {
 
 export default function ToggleExamPaperForm({ rowData, onClose }: ToggleExamPaperFormProps) {
     const { refetchAll } = useMasterExamPaper();
-    const isActive = rowData.empatY_ActiveFlag;
+    const paperId = (rowData as any)?.empatY_Id ?? (rowData as any)?.EMPATY_Id ?? (rowData as any)?.id ?? 0;
+    const isActive = (rowData as any)?.empatY_ActiveFlag ?? (rowData as any)?.EMPATY_ActiveFlag ?? true;
 
     const {
         register,
@@ -40,14 +41,14 @@ export default function ToggleExamPaperForm({ rowData, onClose }: ToggleExamPape
 
     const onSubmit: SubmitHandler<FormFields> = async () => {
         try {
-            const response = await toggleMasterExamPaper(rowData.empatY_Id);
+            const response = await toggleMasterExamPaper(paperId);
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success(response.message || 'Status updated');
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update status');
             }
         } catch (error: any) {
             toast.error(error.message);
