@@ -16,7 +16,7 @@ export async function login({ values, callbackUrl }: LoginSceham) {
         await signIn('credentials', {
             email,
             password,
-            redirectTo: callbackUrl || '/',
+            redirectTo: callbackUrl || '/school-admin',
             redirect: true
         });
         revalidatePath('/');
