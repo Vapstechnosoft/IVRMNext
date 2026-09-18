@@ -50,12 +50,18 @@ export async function login({ values, callbackUrl }: LoginSceham) {
         await signIn('credentials', {
             email,
             password,
-            redirectTo: callbackUrl || '/school-admin',
-            redirect: true
+            redirect: false
         });
 
-        return { success: true, redirectTo: targetUrl || '/' };
+        return { success: true, redirectTo: targetUrl || '/school-admin' };
     } catch (error) {
+        if (
+            (error as any)?.message === 'NEXT_REDIRECT' ||
+            (error as any)?.digest?.startsWith?.('NEXT_REDIRECT')
+        ) {
+            throw error;
+        }
+
         if (error instanceof AuthError) {
             switch (error.type) {
                 case 'CredentialsSignin':
