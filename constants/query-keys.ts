@@ -706,7 +706,10 @@ export const COLLEGE_QUERY_KEYS = {
     COLLEGE_FEE_PREVILEGE_GROUPS: 'college_fee_previlege_groups',
     COLLEGE_FEE_PREVILEGE_HEADS: 'college_fee_previlege_heads',
     COLLEGE_FEE_PREVILEGE_USERS_BY_ROLE: 'college_fee_previlege_users_by_role',
-    COLLEGE_FEE_PREVILEGE_EDIT: 'college_fee_previlege_edit'
+    COLLEGE_FEE_PREVILEGE_EDIT: 'college_fee_previlege_edit',
+    CLG_REG_NO_FORMAT: 'college_clg_reg_no_format',
+    COLLEGE_USERNAME_CREATION: 'college_username_creation',
+    CLG_YEARLY_COURSE_MAPPING: 'college_yearly_course_mapping'
 };
 export const ONLINE_EXAM_QUERY_KEYS = {
     MASTER_QUESTION: 'online_exam_master_question',

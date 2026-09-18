@@ -18,43 +18,51 @@ export interface IPeriodStaffList {
 export const periodStaffColumns: ColumnDef<IPeriodStaffList>[] = [
     {
         accessorKey: 'ttrpS_Id',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='pl-6' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' className='font-bold text-black' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='pl-6'>{continuousIndex}</div>;
+            return <div className='px-4 py-2'>{continuousIndex}</div>;
         },
-        enableSorting: false,
+        enableSorting: true,
         enableHiding: false
     },
     {
         accessorKey: 'asmaY_Year',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
-        cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' className='font-bold text-black' />,
+        cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
         accessorKey: 'ttmP_PeriodName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Period' />,
-        cell: ({ row }) => <div>{row.getValue('ttmP_PeriodName')}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Period' className='font-bold text-black' />,
+        cell: ({ row }) => <div>{row.getValue('ttmP_PeriodName')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
         accessorKey: 'staffName',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff' />,
-        cell: ({ row }) => <div>{row.getValue('staffName')}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Staff' className='font-bold text-black' />,
+        cell: ({ row }) => <div>{row.getValue('staffName')}</div>,
+        enableSorting: true,
+        enableHiding: true
     },
     {
         accessorKey: 'ttrpS_SUbSelcFlag',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Restriction Level' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Restriction Level' className='font-bold text-black' />,
         cell: ({ row }) => (
             <div className={`font-medium ${row.original.ttrpS_SUbSelcFlag ? 'text-blue-600' : 'text-green-600'}`}>
                 {row.original.ttrpS_SUbSelcFlag ? 'Class-Section Wise' : 'General'}
             </div>
-        )
+        ),
+        enableSorting: true,
+        enableHiding: true
     },
     {
         id: 'actions',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='font-bold text-black' />,
         accessorFn: (row) => row,
         enableSorting: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />

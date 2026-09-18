@@ -50,7 +50,8 @@ export async function login({ values, callbackUrl }: LoginSceham) {
         await signIn('credentials', {
             email,
             password,
-            redirect: false
+            redirectTo: callbackUrl || '/school-admin',
+            redirect: true
         });
 
         return { success: true, redirectTo: targetUrl || '/' };

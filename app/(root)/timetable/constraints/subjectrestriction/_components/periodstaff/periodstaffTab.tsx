@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { usebifurcationAcademicYear } from '@/hooks/timetable/constraints/bifurcationconstraints';
@@ -16,17 +16,18 @@ import PeriodStaffUpdate from './periodstaffUpdate';
 
 interface PeriodStaffTabProps {
     initialData?: any;
+    searchParams?: any;
 }
 
-export default function PeriodStaffTab({ initialData }: PeriodStaffTabProps) {
+export default function PeriodStaffTab({ initialData, searchParams }: PeriodStaffTabProps) {
     return (
         <FormProvider>
-            <PeriodStaffTabContent initialData={initialData} />
+            <PeriodStaffTabContent initialData={initialData} searchParams={searchParams} />
         </FormProvider>
     );
 }
 
-function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
+function PeriodStaffTabContent({ initialData, searchParams }: PeriodStaffTabProps) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -50,15 +51,11 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
     const {
         data: gridResponse,
         isLoading: isGridLoading,
+        error,
         refetchAll
-    } = useSubjectRestrictionPeriodStaffGridData({
-        ASMAY_Id: 0,
-        TTMC_Id: 0
-    });
+    } = useSubjectRestrictionPeriodStaffGridData(searchParams);
 
-    const gridData =
-        (gridResponse as any)?.data || (gridResponse as any)?.periodstafflist || (Array.isArray(gridResponse) ? gridResponse : []);
-    const totalItems = (gridResponse as any)?.total || gridData.length;
+    const tableProps = useDataTableProps(gridResponse);
 
     useEffect(() => {
         const loadInitialData = async () => {
@@ -90,7 +87,17 @@ function PeriodStaffTabContent({ initialData }: PeriodStaffTabProps) {
             </div>
 
             <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                <GenericDataTable data={gridData} columns={periodStaffColumns} isLoading={isGridLoading} />
+                <GenericDataTable
+                    {...tableProps}
+                    columns={periodStaffColumns}
+                    isLoading={isGridLoading}
+                    error={error}
+                    columnPinning={{ right: ['actions'] }}
+                    loadingMessage='Loading period staff constraint data...'
+                    noDataTitle='No Period Staff Constraints Found'
+                    noDataDescription='Add a new period staff constraint to get started'
+                    errorTitle='Error Loading Data'
+                />
             </CollapsibleSection>
 
             {isToggleFormOpen && selectedRow && <PeriodStaffToggle rowData={selectedRow} onClose={closeToggleForm} />}

@@ -149,7 +149,16 @@ export default function FeeMonthEndReport() {
     }, [selectedAcademicYear]);
 
     const handleExport = () => {
-        ExportToExcelData(reportData, formattedDate, instituteLogo || undefined, monthlabel);
+        ExportToExcelData(
+            reportData,
+            formattedDate,
+            instituteLogo || undefined,
+            monthlabel,
+            iename,
+            academicYearLabel,
+            designation,
+            schoolName
+        );
     };
 
     const printRef = useRef<HTMLDivElement>(null);

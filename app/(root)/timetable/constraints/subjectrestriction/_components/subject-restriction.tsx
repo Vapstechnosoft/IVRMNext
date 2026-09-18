@@ -10,9 +10,10 @@ import PeriodSubjectTab from './periodsubject/periodsubjectTab';
 
 interface SubjectRestrictionProps {
     initialData: any;
+    searchParams?: any;
 }
 
-export default function SubjectRestriction({ initialData }: SubjectRestrictionProps) {
+export default function SubjectRestriction({ initialData, searchParams }: SubjectRestrictionProps) {
     const [activeTab, setActiveTab] = useState('day_period');
 
     return (
@@ -31,19 +32,19 @@ export default function SubjectRestriction({ initialData }: SubjectRestrictionPr
                 </TabsList>
                 <div className='mt-4'>
                     <TabsContent value='day_period'>
-                        <DayPeriodTab initialData={initialData} />
+                        <DayPeriodTab initialData={initialData} searchParams={searchParams} />
                     </TabsContent>
                     <TabsContent value='day_staff'>
-                        <DayStaffTab initialData={initialData} />
+                        <DayStaffTab initialData={initialData} searchParams={searchParams} />
                     </TabsContent>
                     <TabsContent value='day_subject'>
-                        <DaySubjectTab initialData={initialData} />
+                        <DaySubjectTab initialData={initialData} searchParams={searchParams} />
                     </TabsContent>
                     <TabsContent value='period_staff'>
-                        <PeriodStaffTab initialData={initialData} />
+                        <PeriodStaffTab initialData={initialData} searchParams={searchParams} />
                     </TabsContent>
                     <TabsContent value='period_subject'>
-                        <PeriodSubjectTab initialData={initialData} />
+                        <PeriodSubjectTab initialData={initialData} searchParams={searchParams} />
                     </TabsContent>
                 </div>
             </Tabs>

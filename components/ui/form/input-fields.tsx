@@ -117,7 +117,15 @@ export function GenericSelectField({
                     error && 'border-destructive focus-visible:ring-destructive'
                 )}
                 value={value || ''}
-                onChange={(e) => setValue(name, e.target.value ? Number(e.target.value) : 0, { shouldValidate: true })}>
+                onChange={(e) => {
+                    const val = e.target.value;
+                    if (!val) {
+                        setValue(name, '', { shouldValidate: true });
+                    } else {
+                        const numVal = Number(val);
+                        setValue(name, isNaN(numVal) ? val : numVal, { shouldValidate: true });
+                    }
+                }}>
                 <option value='' disabled hidden>
                     {placeholder}
                 </option>
