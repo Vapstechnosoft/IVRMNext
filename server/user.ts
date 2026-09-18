@@ -55,12 +55,12 @@ export async function login({ values, callbackUrl }: LoginSceham) {
             redirect: false
         });
 
-        return { success: true, redirectTo: targetUrl || '/' };
+        return { success: true, redirectTo: targetUrl || '/school-admin' };
     } catch (error) {
         if (isRedirectError(error)) {
             throw error;
         }
-        
+
         if (error instanceof AuthError) {
             switch (error.type) {
                 case 'CredentialsSignin':
