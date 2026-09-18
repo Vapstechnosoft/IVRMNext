@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { categoryClassMappingSchema } from '@/schemas/exam/exam-module/masters';
 import {
     addOrUpdateCategoryClassMapping,
@@ -12,6 +11,7 @@ import {
     getUnMappedSections,
     getUnmappedClasses
 } from '@/server/exam/exam-module/masters/category-class-mapping';
+import { getExamAcademicYearDropdown } from '@/server/exam/exam-module/masters/exam';
 import type { ICategory, IClass } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Edit, Loader2, Save, Trash2, X } from 'lucide-react';
@@ -29,11 +29,13 @@ interface AddCategoryClassFormProps {
 
 export default function AddCategoryClassForm({ onSuccess, initialData }: AddCategoryClassFormProps) {
     // Dropdown Data States
+    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [classes, setClasses] = useState<IClass[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
 
     // Loading States
+    const [academicYearLoading, setAcademicYearLoading] = useState(false);
     const [loadingCategories, setLoadingCategories] = useState(false);
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [loadingSections, setLoadingSections] = useState(false);
@@ -43,8 +45,6 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
     const tableRef = useRef<HTMLDivElement>(null);
-    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
-    const academicYears = academicYear?.data ? academicYear.data : [];
 
     const [mappingList, setMappingList] = useState<
         {
@@ -83,23 +83,47 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     const watchedCategory = useWatch({ control, name: 'emcA_Id' });
     const watchedSections = useWatch({ control, name: 'section_list' }) as { asmS_Id: number; asmC_SectionName?: string }[];
 
-    // ---------- Load Initial Dropdowns (Categories) ----------
+    // ---------- Load Academic Years on Mount ----------
     useEffect(() => {
-        const fetchInitialDropdowns = async () => {
+        const fetchAcademicYears = async () => {
+            try {
+                setAcademicYearLoading(true);
+                const res = await getExamAcademicYearDropdown();
+                const yearData = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+                setAcademicYears(yearData);
+            } catch (err: any) {
+                toast.error(err.message || 'Failed to load academic years');
+            } finally {
+                setAcademicYearLoading(false);
+            }
+        };
+
+        fetchAcademicYears();
+    }, []);
+
+    // ---------- Load Categories (Dependent on Academic Year Selection) ----------
+    useEffect(() => {
+        const fetchCategories = async () => {
+            if (!watchedYear || Number(watchedYear) === 0) {
+                setCategories([]);
+                return;
+            }
+
             try {
                 setLoadingCategories(true);
                 const catsRes = await getCategories();
-
-                setCategories(Array.isArray(catsRes?.data) ? catsRes.data : Array.isArray(catsRes) ? catsRes : []);
+                const catData = Array.isArray(catsRes?.data) ? catsRes.data : Array.isArray(catsRes) ? catsRes : [];
+                setCategories(catData);
             } catch (err: any) {
-                toast.error(err.message || 'Failed to load initial dropdowns');
+                toast.error(err.message || 'Failed to load categories');
+                setCategories([]);
             } finally {
                 setLoadingCategories(false);
             }
         };
 
-        fetchInitialDropdowns();
-    }, []);
+        fetchCategories();
+    }, [watchedYear]);
     // ---------- Load classes (Dependent on Year) ----------
     useEffect(() => {
         const fetchClasses = async () => {
@@ -305,6 +329,8 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
         setValue('asmcL_Id', 0);
         setValue('section_list', []);
         setEditIndex(null);
+        setCategories([]);
+        setClasses([]);
         setSections([]);
         setResetKey((prev) => prev + 1);
     };
@@ -372,8 +398,11 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
                                         // Reset dependent fields when year changes
+                                        setValue('emcA_Id', 0);
                                         setValue('asmcL_Id', 0);
                                         setValue('section_list', []);
+                                        setCategories([]);
+                                        setClasses([]);
                                         setSections([]);
                                     }}
                                     disabled={mappingList.length > 0 && field.value !== 0}>
@@ -404,51 +433,51 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                     />
                 </div>
 
-                {/* Category */}
-                <div className='flex flex-col gap-1'>
-                    <span className='font-normal text-sm'>
-                        Category <span className='text-red-600'>*</span>
-                    </span>
-                    <Controller
-                        control={control}
-                        name='emcA_Id'
-                        render={({ field }) => (
-                            <>
-                                <Select
-                                    key={`category-${resetKey}-${field.value}`}
-                                    value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                    onValueChange={(val) => {
-                                        field.onChange(Number(val));
-                                        // Category change might not strictly require clearing others, but typically
-                                        // in a mapping form you might want to keep the year/class selection.
-                                    }}
-                                    disabled={mappingList.length > 0 && field.value !== 0}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder='Select Category' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {loadingCategories ? (
-                                            <SelectItem value='loading' disabled>
-                                                Loading...
-                                            </SelectItem>
-                                        ) : categories.length === 0 ? (
-                                            <SelectItem value='empty' disabled>
-                                                No Categories
-                                            </SelectItem>
-                                        ) : (
-                                            categories.map((c) => (
-                                                <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
-                                                    {c.emcA_CategoryName}
+                {/* Category - Only shown after Academic Year is selected */}
+                {watchedYear && Number(watchedYear) !== 0 ? (
+                    <div className='flex flex-col gap-1'>
+                        <span className='font-normal text-sm'>
+                            Category <span className='text-red-600'>*</span>
+                        </span>
+                        <Controller
+                            control={control}
+                            name='emcA_Id'
+                            render={({ field }) => (
+                                <>
+                                    <Select
+                                        key={`category-${resetKey}-${field.value}`}
+                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                        onValueChange={(val) => {
+                                            field.onChange(Number(val));
+                                        }}
+                                        disabled={mappingList.length > 0 && field.value !== 0}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder='Select Category' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {loadingCategories ? (
+                                                <SelectItem value='loading' disabled>
+                                                    Loading...
                                                 </SelectItem>
-                                            ))
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                                {errors.emcA_Id && <FormError>{errors.emcA_Id.message}</FormError>}
-                            </>
-                        )}
-                    />
-                </div>
+                                            ) : categories.length === 0 ? (
+                                                <SelectItem value='empty' disabled>
+                                                    No Categories
+                                                </SelectItem>
+                                            ) : (
+                                                categories.map((c) => (
+                                                    <SelectItem key={c.emcA_Id} value={String(c.emcA_Id)}>
+                                                        {c.emcA_CategoryName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.emcA_Id && <FormError>{errors.emcA_Id.message}</FormError>}
+                                </>
+                            )}
+                        />
+                    </div>
+                ) : null}
 
                 {/* Class */}
                 <div className='flex flex-col gap-1'>

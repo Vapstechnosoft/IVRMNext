@@ -29,6 +29,7 @@ interface DataTableProps<TData, TValue> {
     data: TData[];
     totalItems: number;
     pageSizeOptions?: number[];
+    defaultPageSize?: number;
     isLoading?: boolean;
     showExportOptions?: boolean;
     showViewOptions?: boolean;
@@ -59,6 +60,7 @@ function DataTableInner<TData, TValue>(
         data,
         totalItems,
         pageSizeOptions = [10, 20, 30, 40, 50],
+        defaultPageSize,
         isLoading,
         showExportOptions = false,
         showViewOptions = true,
@@ -87,7 +89,9 @@ function DataTableInner<TData, TValue>(
     );
     const [pageSize, setPageSize] = useQueryState(
         tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
+        parseAsInteger
+            .withOptions({ shallow: false, history: 'push' })
+            .withDefault(defaultPageSize ?? (pageSizeOptions && pageSizeOptions.length > 0 ? pageSizeOptions[0] : 10))
     );
 
     // Sorting and filtering
@@ -300,7 +304,10 @@ function DataTableInner<TData, TValue>(
 
                             <TableBody>
                                 {table.getRowModel().rows?.length ? (
-                                    table.getRowModel().rows.map((row) => (
+                                    (table.getRowModel().rows.length > pageSize
+                                        ? table.getRowModel().rows.slice(0, pageSize)
+                                        : table.getRowModel().rows
+                                    ).map((row) => (
                                         <TableRow key={row.id} data-state={row.getIsSelected()}>
                                             {row.getVisibleCells().map((cell) => (
                                                 <TableCell

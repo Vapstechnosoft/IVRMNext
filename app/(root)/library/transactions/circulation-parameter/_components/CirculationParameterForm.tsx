@@ -1,6 +1,7 @@
 'use client';
 
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormControl, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormField } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,20 +10,20 @@ import { useFormContext } from 'react-hook-form';
 
 interface CirculationParameterFormProps {
     categoryList: any[];
-    bookTypeList: any[];
+    bookTypeList?: any[];
     classList: any[];
-    departmentList: any[];
+    departmentList?: any[];
     employeeGroupList: any[];
-    guestList: any[];
+    guestList?: any[];
 }
 
 export const CirculationParameterForm = ({
-    categoryList,
-    bookTypeList,
-    classList,
-    departmentList,
-    employeeGroupList,
-    guestList
+    categoryList = [],
+    bookTypeList = [],
+    classList = [],
+    departmentList = [],
+    employeeGroupList = [],
+    guestList = []
 }: CirculationParameterFormProps) => {
     const form = useFormContext<CirculationParameterFormValues>();
     const { watch, setValue } = form;
@@ -47,7 +48,7 @@ export const CirculationParameterForm = ({
                                         setValue('categoryName', undefined);
                                         setValue('bookType', undefined);
                                     }}
-                                    value={field.value}
+                                    value={field.value || 'BP'}
                                     className='flex space-x-4'>
                                     <FormItem className='flex items-center space-x-2 space-y-0'>
                                         <FormControl>
@@ -84,7 +85,7 @@ export const CirculationParameterForm = ({
                                         setValue('departmentId', undefined);
                                         setValue('guestId', undefined);
                                     }}
-                                    value={field.value}
+                                    value={field.value || 'STUDENT'}
                                     className='flex flex-wrap space-x-4'>
                                     <FormItem className='flex items-center space-x-2 space-y-0'>
                                         <FormControl>
@@ -123,29 +124,54 @@ export const CirculationParameterForm = ({
                     <FormField
                         control={form.control}
                         name='bookType'
-                        render={({ field }) => (
-                            <FormItem className='flex flex-col'>
-                                <FormLabel>
-                                    Book Type <span className='text-red-500'>*</span>
-                                </FormLabel>
-                                <Select
-                                    key={field.value || 'empty-bookType'}
-                                    onValueChange={field.onChange}
-                                    value={field.value || undefined}>
-                                    <FormControl>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder='Select Book Type' />
-                                        </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        <SelectItem value='Issue'>Issue</SelectItem>
-                                        <SelectItem value='Reference'>Reference</SelectItem>
-                                        <SelectItem value='Both'>Both</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        render={({ field }) => {
+                            const resolvedBookTypes = (() => {
+                                const typesSet = new Set<string>();
+                                if (Array.isArray(bookTypeList) && bookTypeList.length > 0) {
+                                    for (const item of bookTypeList) {
+                                        if (typeof item === 'string' && item.trim()) {
+                                            typesSet.add(item.trim());
+                                        } else if (item && typeof item === 'object') {
+                                            const val = item.lmB_BookType || item.lmb_BookType || item.bookType || item.name || item.value;
+                                            if (typeof val === 'string' && val.trim()) {
+                                                typesSet.add(val.trim());
+                                            }
+                                        }
+                                    }
+                                }
+                                ['Issue', 'Reference', 'Both', 'Book'].forEach((t) => typesSet.add(t));
+                                if (field.value && typeof field.value === 'string' && field.value.trim()) {
+                                    typesSet.add(field.value.trim());
+                                }
+                                return Array.from(typesSet);
+                            })();
+
+                            return (
+                                <FormItem className='flex flex-col'>
+                                    <FormLabel>
+                                        Book Type <span className='text-red-500'>*</span>
+                                    </FormLabel>
+                                    <Select
+                                        key={field.value || 'empty-bookType'}
+                                        onValueChange={field.onChange}
+                                        value={field.value || undefined}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder='Select Book Type' />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {resolvedBookTypes.map((type) => (
+                                                <SelectItem key={type} value={type}>
+                                                    {type}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            );
+                        }}
                     />
                 ) : (
                     <FormField
@@ -160,8 +186,8 @@ export const CirculationParameterForm = ({
                                     key={field.value ? String(field.value) : 'empty-category'}
                                     onValueChange={(val) => {
                                         field.onChange(Number(val));
-                                        const category = categoryList.find((c: any) => c.lmC_Id === Number(val));
-                                        if (category) setValue('categoryName', category.lmC_CategoryName);
+                                        const category = categoryList.find((c: any) => Number(c.lmC_Id ?? c.lmc_id ?? c.LMC_Id ?? c.id) === Number(val));
+                                        if (category) setValue('categoryName', category.lmC_CategoryName ?? category.categoryName);
                                     }}
                                     value={field.value ? String(field.value) : undefined}>
                                     <FormControl>
@@ -170,11 +196,15 @@ export const CirculationParameterForm = ({
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {categoryList.map((c: any) => (
-                                            <SelectItem key={c.lmC_Id} value={String(c.lmC_Id)}>
-                                                {c.lmC_CategoryName}
-                                            </SelectItem>
-                                        ))}
+                                        {categoryList.map((c: any) => {
+                                            const catId = c.lmC_Id ?? c.lmc_id ?? c.LMC_Id ?? c.id;
+                                            const catName = c.lmC_CategoryName ?? c.categoryName ?? c.name;
+                                            return (
+                                                <SelectItem key={catId} value={String(catId)}>
+                                                    {catName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -203,11 +233,15 @@ export const CirculationParameterForm = ({
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {classList.map((c: any) => (
-                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                {c.asmcL_ClassName}
-                                            </SelectItem>
-                                        ))}
+                                        {classList.map((c: any) => {
+                                            const cId = c.asmcL_Id ?? c.asmcl_id ?? c.ASMCL_Id ?? c.id;
+                                            const cName = c.asmcL_ClassName ?? c.className ?? c.name;
+                                            return (
+                                                <SelectItem key={cId} value={String(cId)}>
+                                                    {cName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -235,11 +269,15 @@ export const CirculationParameterForm = ({
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {employeeGroupList.map((e: any) => (
-                                            <SelectItem key={e.hrmgT_Id} value={String(e.hrmgT_Id)}>
-                                                {e.hrmgT_EmployeeGroupType}
-                                            </SelectItem>
-                                        ))}
+                                        {employeeGroupList.map((e: any) => {
+                                            const empId = e.hrmgT_Id ?? e.hrmgt_id ?? e.HRMGT_Id ?? e.id;
+                                            const empName = e.hrmgT_EmployeeGroupType ?? e.groupName ?? e.name;
+                                            return (
+                                                <SelectItem key={empId} value={String(empId)}>
+                                                    {empName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -267,11 +305,15 @@ export const CirculationParameterForm = ({
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {departmentList.map((d: any) => (
-                                            <SelectItem key={d.hrmD_Id} value={String(d.hrmD_Id)}>
-                                                {d.hrmD_DepartmentName}
-                                            </SelectItem>
-                                        ))}
+                                        {departmentList.map((d: any) => {
+                                            const dId = d.hrmD_Id ?? d.hrmd_id ?? d.HRMD_Id ?? d.id;
+                                            const dName = d.hrmD_DepartmentName ?? d.departmentName ?? d.name;
+                                            return (
+                                                <SelectItem key={dId} value={String(dId)}>
+                                                    {dName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />
@@ -299,11 +341,15 @@ export const CirculationParameterForm = ({
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        {guestList.map((g: any) => (
-                                            <SelectItem key={g.guest_Id} value={String(g.guest_Id)}>
-                                                {g.guest_Name}
-                                            </SelectItem>
-                                        ))}
+                                        {guestList.map((g: any) => {
+                                            const gId = g.guest_Id ?? g.guestId ?? g.guest_id ?? g.hrmG_Id ?? g.id;
+                                            const gName = g.guest_Name ?? g.guestName ?? g.name;
+                                            return (
+                                                <SelectItem key={gId} value={String(gId)}>
+                                                    {gName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />

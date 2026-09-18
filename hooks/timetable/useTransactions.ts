@@ -272,7 +272,7 @@ export const useManualPeriodInsertionReport = (payload: any) => {
             return res.data || res;
         },
         enabled: !!payload && !!payload.asmaY_Id && !!payload.asmcL_Id && !!payload.asms_Id,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 0,
         refetchOnWindowFocus: false
     });
 };

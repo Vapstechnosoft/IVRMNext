@@ -41,6 +41,7 @@ interface DataTableProps<TData, TValue> {
     defaultSelectedRowIds?: string[];
     onRowSelectionChange?: (selectedRows: TData[]) => void;
     currentApiParams?: ApiSearchparams;
+    getRowId?: (originalRow: TData, index: number) => string;
 }
 
 export interface DataTableRef {
@@ -64,7 +65,8 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
         defaultSelectedRowIds,
         onRowSelectionChange,
         onSearchQueryChange,
-        currentApiParams
+        currentApiParams,
+        getRowId
     } = props;
 
     const { page = 1, page_size = 10, search_query = '', sort_column = '', sort_direction = 'desc' } = currentApiParams || {};
@@ -154,6 +156,7 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
         data,
         columns,
         pageCount,
+        getRowId,
         state: {
             pagination: paginationState,
             sorting: currentSorting,
@@ -166,7 +169,7 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
         onRowSelectionChange: (newSelection) => {
             const selectionObj = typeof newSelection === 'function' ? newSelection(rowSelection) : newSelection;
 
-            const selectedCount = Object.keys(selectionObj).length;
+            const selectedCount = Object.keys(selectionObj).filter((k) => selectionObj[k]).length;
 
             if (maxSelectableRows && selectedCount > maxSelectableRows) {
                 toast.error(`You can select up to ${maxSelectableRows} rows only.`);
@@ -177,7 +180,7 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
             rowSelectionRef.current = selectionObj;
 
             const selectedRows = table
-                .getFilteredRowModel()
+                .getCoreRowModel()
                 .rows.filter((r) => selectionObj[r.id])
                 .map((r) => r.original);
 

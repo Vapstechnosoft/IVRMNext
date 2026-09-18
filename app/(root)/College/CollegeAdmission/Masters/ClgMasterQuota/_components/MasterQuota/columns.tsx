@@ -17,21 +17,21 @@ export const masterQuotaColumns: ColumnDef<IMasterQuota>[] = [
     {
         accessorKey: 'acQ_QuotaName',
         header: () => <div className='text-center font-bold text-black'>Quota Name</div>,
-        cell: ({ row }) => <div className='text-left font-medium'>{row.original.acQ_QuotaName}</div>,
+        cell: ({ row }) => <div className='text-center font-medium'>{row.original.acQ_QuotaName}</div>,
     },
     {
         accessorKey: 'acQ_QuotaCode',
         header: () => <div className='text-center font-bold text-black'>Quota Code</div>,
-        cell: ({ row }) => <div className='text-left'>{row.original.acQ_QuotaCode}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.original.acQ_QuotaCode}</div>,
     },
     {
         accessorKey: 'acQ_QuotaInfo',
         header: () => <div className='text-center font-bold text-black'>Quota Info</div>,
-        cell: ({ row }) => <div className='text-left'>{row.original.acQ_QuotaInfo}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.original.acQ_QuotaInfo}</div>,
     },
     {
         id: 'actions',
-        header: () => <div className='font-bold text-black text-center'>Actions</div>,
+        header: () => <div className='font-bold text-black text-left'>Actions</div>,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         size: 100
     }

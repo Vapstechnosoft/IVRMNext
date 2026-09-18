@@ -44,6 +44,7 @@ import { getIconByName } from '@/lib/lucide-icon-registry';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 import type { z } from 'zod';
 
 type FormFields = z.infer<typeof studentAdmissionFormSchema.add>;
@@ -285,6 +286,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const classIdForCategory = watch('asmcL_Id');
     const asmaYId = watch('asmaY_Id' as any);
     const { data: categoryByClass } = useStudentCategoryByClass(Number(classIdForCategory) || 0, Number(asmaYId) || 0, 'adm');
+
+    useEffect(() => {
+        if (categoryByClass && (categoryByClass as any).success === false) {
+            Swal.fire({
+                title: 'Warning',
+                text: (categoryByClass as any).message || 'To get Student Category.Please Map Selected Class to Some category',
+                icon: 'warning'
+            });
+        }
+    }, [categoryByClass]);
 
     useEffect(() => {
         const activeYear =

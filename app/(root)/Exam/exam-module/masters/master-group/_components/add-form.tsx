@@ -36,23 +36,41 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
     const [isSubjectsEnabled, setIsSubjectsEnabled] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showOnlySelected, setShowOnlySelected] = useState(false);
     const { refetchAll } = useMasterSubjectGroup();
     // Ref for the GenericDataTable to control selection reset
     const tableRef = React.useRef<DataTableRef>(null);
 
-    // Filter subjects based on search term
-    const filteredSubjects = useMemo(() => {
-        if (!searchTerm.trim()) return allSubjects;
+    const selectedIdsSet = useMemo(() => new Set(selectedSubjects.map((s) => s.ismS_Id)), [selectedSubjects]);
 
-        const term = searchTerm.toLowerCase().trim();
-        return allSubjects.filter(
-            (subject) =>
-                subject.ismS_SubjectName?.toLowerCase().includes(term) ||
-                subject.ismS_SubjectCode?.toLowerCase().includes(term) ||
-                subject.ismS_SubjectName?.toLowerCase().includes(term) ||
-                subject.ismS_SubjectGroup?.toLowerCase().includes(term)
-        );
-    }, [allSubjects, searchTerm]);
+    // Filter subjects based on search term and sort selected to the top
+    const filteredSubjects = useMemo(() => {
+        let list = allSubjects;
+
+        if (showOnlySelected) {
+            list = list.filter((s) => selectedIdsSet.has(s.ismS_Id));
+        }
+
+        if (searchTerm.trim()) {
+            const term = searchTerm.toLowerCase().trim();
+            list = list.filter(
+                (subject) =>
+                    subject.ismS_SubjectName?.toLowerCase().includes(term) ||
+                    subject.ismS_SubjectCode?.toLowerCase().includes(term) ||
+                    subject.ismS_SubjectGroup?.toLowerCase().includes(term)
+            );
+        }
+
+        // Put selected subjects at the TOP so user sees them immediately
+        return [...list].sort((a, b) => {
+            const aSelected = selectedIdsSet.has(a.ismS_Id) ? 1 : 0;
+            const bSelected = selectedIdsSet.has(b.ismS_Id) ? 1 : 0;
+            if (aSelected !== bSelected) {
+                return bSelected - aSelected;
+            }
+            return (a.ismS_OrderFlag || 0) - (b.ismS_OrderFlag || 0);
+        });
+    }, [allSubjects, searchTerm, showOnlySelected, selectedIdsSet]);
 
     // -------------------------
     // GET SUBJECT LIST
@@ -148,12 +166,19 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
     // TABLE SELECTION
     // -------------------------
     const handleSelectedSubjectsChange = (rows: IMasterSubjectGroupDetails[]) => {
-        setSelectedSubjects(rows);
+        setSelectedSubjects((prev) => {
+            const currentViewIds = new Set(filteredSubjects.map((s) => s.ismS_Id));
+            const preserved = prev.filter((s) => !currentViewIds.has(s.ismS_Id));
+            return [...preserved, ...rows];
+        });
     };
 
     // Clear search
     const handleClearSearch = () => {
         setSearchTerm('');
+        if (selectedSubjects.length > 0) {
+            setShowOnlySelected(true);
+        }
     };
 
     // -------------------------
@@ -300,34 +325,56 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
             <CollapsibleSection title='Select Subjects' defaultOpen>
                 {/* Search Box Section */}
                 <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-                    <div className='text-gray-600 text-sm'>
-                        Showing {filteredSubjects.length} of {allSubjects.length} subjects
-                        {searchTerm && <span className='ml-2'>(Search: "{searchTerm}")</span>}
+                    <div className='flex items-center gap-2 text-gray-600 text-sm'>
+                        <span>Showing {filteredSubjects.length} of {allSubjects.length} subjects</span>
+                        {searchTerm && <span className='font-medium text-primary'>(Search: "{searchTerm}")</span>}
+                        {showOnlySelected && <span className='rounded bg-blue-100 px-2 py-0.5 font-medium text-blue-700 text-xs'>Filtered: Selected Only</span>}
                     </div>
 
-                    <div className='relative w-full sm:w-64'>
-                        <div className='relative'>
-                            <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-gray-400' />
-                            <Input
-                                type='text'
-                                placeholder='Search subjects...'
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className='pr-9 pl-9'
-                            />
-                            {searchTerm && (
-                                <button
-                                    type='button'
-                                    onClick={handleClearSearch}
-                                    className='-translate-y-1/2 absolute top-1/2 right-3 text-gray-400 hover:text-gray-600'
-                                    aria-label='Clear search'>
-                                    ✕
-                                </button>
+                    <div className='flex flex-wrap items-center gap-2'>
+                        {selectedSubjects.length > 0 && (
+                            <Button
+                                type='button'
+                                variant={showOnlySelected ? 'default' : 'outline'}
+                                size='sm'
+                                onClick={() => setShowOnlySelected(!showOnlySelected)}
+                                className='h-9 text-xs'>
+                                {showOnlySelected ? 'Show All' : `Show Selected Only (${selectedSubjects.length})`}
+                            </Button>
+                        )}
+
+                        <div className='relative w-full sm:w-64'>
+                            <div className='relative'>
+                                <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-gray-400' />
+                                <Input
+                                    type='text'
+                                    placeholder='Search subjects...'
+                                    value={searchTerm}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setSearchTerm(val);
+                                        if (val) {
+                                            setShowOnlySelected(false);
+                                        } else if (selectedSubjects.length > 0) {
+                                            setShowOnlySelected(true);
+                                        }
+                                    }}
+                                    className='pr-9 pl-9'
+                                />
+                                {searchTerm && (
+                                    <button
+                                        type='button'
+                                        onClick={handleClearSearch}
+                                        className='-translate-y-1/2 absolute top-1/2 right-3 text-gray-400 hover:text-gray-600'
+                                        aria-label='Clear search'>
+                                        ✕
+                                    </button>
+                                )}
+                            </div>
+                            {searchTerm && filteredSubjects.length === 0 && (
+                                <p className='mt-1 text-red-500 text-xs'>No subjects found matching "{searchTerm}"</p>
                             )}
                         </div>
-                        {searchTerm && filteredSubjects.length === 0 && (
-                            <p className='mt-1 text-red-500 text-xs'>No subjects found matching "{searchTerm}"</p>
-                        )}
                     </div>
                 </div>
 
@@ -338,9 +385,11 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                     columns={MasterSubjectGroupDetailsColumns}
                     isLoading={isLoading}
                     maxSelectableRows={total}
+                    getRowId={(row) => String(row.ismS_Id)}
+                    defaultSelectedRowIds={initialData?.subjects?.map((s) => String(s.ismS_Id))}
                     onRowSelectionChange={handleSelectedSubjectsChange}
-                    noDataTitle={searchTerm ? 'No Subjects Found' : 'No Subjects Available'}
-                    noDataDescription={searchTerm ? 'Try a different search term' : 'Please add subjects first'}
+                    noDataTitle={searchTerm ? 'No Subjects Found' : showOnlySelected ? 'No Selected Subjects' : 'No Subjects Available'}
+                    noDataDescription={searchTerm ? 'Try a different search term' : showOnlySelected ? 'Select subjects from the list first' : 'Please add subjects first'}
                 />
 
                 {/* Selection Summary */}
@@ -350,12 +399,20 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                             <div className='font-medium text-sm'>
                                 Selected: <span className='text-blue-600'>{selectedSubjects.length}</span> of {total} required subjects
                             </div>
-                            <div className='text-gray-500 text-xs'>
-                                {selectedSubjects.length >= total ? (
-                                    <span className='text-green-600'>✓ Selection requirement met</span>
-                                ) : (
-                                    <span className='text-amber-600'>Select {total - selectedSubjects.length} more subject(s)</span>
-                                )}
+                            <div className='flex items-center gap-3'>
+                                <button
+                                    type='button'
+                                    onClick={() => setShowOnlySelected(!showOnlySelected)}
+                                    className='text-primary text-xs underline hover:text-primary/80'>
+                                    {showOnlySelected ? 'View All Subjects' : `View Selected Only (${selectedSubjects.length})`}
+                                </button>
+                                <div className='text-gray-500 text-xs'>
+                                    {selectedSubjects.length >= total ? (
+                                        <span className='text-green-600'>✓ Selection requirement met</span>
+                                    ) : (
+                                        <span className='text-amber-600'>Select {total - selectedSubjects.length} more subject(s)</span>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -370,6 +427,7 @@ export default function MasterSubjectGroupForm({ onSuccess, className = '', init
                         reset();
                         setSearchTerm('');
                         setSelectedSubjects([]);
+                        setShowOnlySelected(false);
                         // Reset the table's internal selection state
                         tableRef.current?.resetSelection();
                     }}>

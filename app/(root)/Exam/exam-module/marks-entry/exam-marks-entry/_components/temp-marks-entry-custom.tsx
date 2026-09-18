@@ -89,8 +89,9 @@ export const MarksInputCell = forwardRef<
         placeholder?: string;
         sizeClass?: string;
         onArrow?: (direction: 'left' | 'right' | 'up' | 'down') => void;
+        disabled?: boolean;
     }
->(({ value, max, onChange, placeholder, sizeClass = 'w-[110px]', onArrow }, ref) => {
+>(({ value, max, onChange, placeholder, sizeClass = 'w-[110px]', onArrow, disabled = false }, ref) => {
     const [local, setLocal] = useState<string>(value === '' || value === undefined ? '' : String(value));
     const [error, setError] = useState<string>('');
 
@@ -100,6 +101,7 @@ export const MarksInputCell = forwardRef<
     }, [value]);
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+        if (disabled) return;
         const raw = e.target.value.trim();
         if (raw === '') {
             setLocal('');
@@ -125,6 +127,7 @@ export const MarksInputCell = forwardRef<
     }
 
     function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+        if (disabled) return;
         if (!onArrow) return;
         switch (e.key) {
             case 'ArrowRight':
@@ -150,7 +153,10 @@ export const MarksInputCell = forwardRef<
         <div className='flex flex-col items-start'>
             <Input
                 ref={ref}
-                className={`rounded border border-gray-300 bg-white px-2 py-1 text-sm ${sizeClass}`}
+                disabled={disabled}
+                readOnly={disabled}
+                tabIndex={disabled ? -1 : 0}
+                className={`rounded border border-gray-300 bg-white px-2 py-1 text-sm ${sizeClass} ${disabled ? 'bg-gray-100 cursor-not-allowed opacity-60 pointer-events-none' : ''}`}
                 placeholder={placeholder ?? 'Enter Marks...'}
                 value={local}
                 onChange={handleChange}
@@ -358,6 +364,7 @@ export default function MarksCustomTable({
                                                                 <MarksInputCell
                                                                     value={cur}
                                                                     max={ss.maxMarks}
+                                                                    disabled={!selectedIds[st.studentID]}
                                                                     onChange={(v) => onUpdateSubSubMark(st.studentID, ss.subsubId, v)}
                                                                     sizeClass='w-[120px]'
                                                                     onArrow={(dir) => handleArrowNavigation(rowIndex, colIndex, dir)}
@@ -391,6 +398,7 @@ export default function MarksCustomTable({
                                                             <MarksInputCell
                                                                 value={cur}
                                                                 max={se.maxMarks}
+                                                                disabled={!selectedIds[st.studentID]}
                                                                 onChange={(v) => onUpdateSubExamMark(st.studentID, se.subexamId, v)}
                                                                 sizeClass='w-[120px]'
                                                                 onArrow={(dir) => handleArrowNavigation(rowIndex, colIndex, dir)}
@@ -420,6 +428,7 @@ export default function MarksCustomTable({
                                                     <MarksInputCell
                                                         value={st.marks ?? ''}
                                                         max={subjectMeta.maxMarks}
+                                                        disabled={!selectedIds[st.studentID]}
                                                         onChange={(v) => onUpdateSimpleMark(st.studentID, v)}
                                                         sizeClass='w-[120px]'
                                                         onArrow={(dir) => handleArrowNavigation(rowIndex, 0, dir)}

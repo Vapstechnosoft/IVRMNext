@@ -204,14 +204,15 @@ export const useExamSubjectWizardDetails = (ecycE_Id: number) => {
 
     return {
         ...useQuery({
-            queryKey: [EXAM_QUERY_KEYS.EXAM_SUBJECT_WIZARD_DETAILS],
+            queryKey: [EXAM_QUERY_KEYS.EXAM_SUBJECT_WIZARD_DETAILS, ecycE_Id],
             queryFn: async () => getExamSubjectWizardDetails(ecycE_Id),
+            enabled: Boolean(ecycE_Id && ecycE_Id > 0),
             staleTime: 0
         }),
 
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [EXAM_QUERY_KEYS.EXAM_SUBJECT_WIZARD_DETAILS]
+                queryKey: [EXAM_QUERY_KEYS.EXAM_SUBJECT_WIZARD_DETAILS, ecycE_Id]
             });
         }
     };

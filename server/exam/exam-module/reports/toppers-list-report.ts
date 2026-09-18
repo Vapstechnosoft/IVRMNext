@@ -145,7 +145,35 @@ export async function getToppersReportDetails(data: any) {
 }
 
 export async function getMappedSubjects(data: any) {
-    const url = '/toppers_list_report/GetSubjects_Based_On_Exams';
-    const response = await api.post('exam', url, data);
-    return response;
+    try {
+        const url = '/toppers_list_report/GetSubjects_Based_On_Exams';
+        const response = await api.post<any>('exam', url, data);
+        const resData = response?.data ?? response;
+        if (
+            (Array.isArray(resData) && resData.length > 0) ||
+            (resData && typeof resData === 'object' && (resData.subjectlist?.length || resData.getsubjectlist?.length || resData.sublist?.length || resData.subjects?.length))
+        ) {
+            return response;
+        }
+    } catch (e) {
+        console.warn('Primary getMappedSubjects endpoint failed, trying fallback:', e);
+    }
+
+    // Fallback 1: Exam login privilege subjects dropdown (Standard IVRM endpoint)
+    try {
+        const yearId = data.ASMAY_Id || data.asmaY_Id;
+        const classId = data.ASMCL_Id || data.asmcL_Id;
+        const sectionId = data.ASMS_Id || data.asmS_Id || 0;
+        const examId = data.EME_Id || data.emE_Id;
+        if (yearId && classId && examId) {
+            const fallbackUrl = `/exam_marks_entry/exam_login_privilege_subjects_dropdown/${yearId}/${classId}/${sectionId}/${examId}`;
+            const fallbackRes = await api.get<any>('exam', fallbackUrl);
+            if (fallbackRes) return fallbackRes;
+        }
+    } catch (e) {
+        console.warn('Fallback subjects endpoint failed:', e);
+    }
+
+    return { success: false, data: [] };
 }
+

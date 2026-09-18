@@ -6,7 +6,7 @@ import { auth } from '@/lib/auth';
 export async function getAvailableExams() {
     const _session = await auth();
     try {
-        const response = await apiService.get('naac', '/StudentExamFacade/GetAvailableExams');
+        const response = await apiService.getArray('naac', '/StudentExamFacade/GetAvailableExams');
         return response;
     } catch (error) {
         console.error('Error fetching available exams:', error);

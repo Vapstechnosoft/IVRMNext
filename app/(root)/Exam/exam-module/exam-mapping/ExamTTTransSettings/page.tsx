@@ -2,11 +2,12 @@
 
 import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { PolygonBanner } from '@/components/ui/extension/polygon-banner';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useExamTTTransSettings } from '@/hooks/exam/exammodule/exam-mapping';
 import type { IExamTTTransSettings } from '@/types/exam/exam-module/exam-mapping';
-import { Plus, X } from 'lucide-react';
+import { ChevronRight, Plus, X } from 'lucide-react';
 import { use } from 'react';
 import AddExamTTTransSettingsForm from './_components/add-form';
 import { ExamTTTransSettingsColumns } from './_components/columns';
@@ -39,8 +40,25 @@ function ExamTTTransSettingsPageContent({
 
     return (
         <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+            {/* Banner Section */}
+            <PolygonBanner
+                title='ExamTimeTableTransactionSettings'
+                description='Manage Exam Time Table Transaction Settings'
+                breadcrumb={
+                    <div className='flex flex-wrap items-center gap-2 text-sm text-white/90'>
+                        <span>Exam</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span>Exam Module</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span>Exam Mapping</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span className='font-bold text-white'>ExamTimeTableTransactionSettings</span>
+                    </div>
+                }
+            />
+
+            <div className='container space-y-4 p-4'>
+                <div className='mt-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}

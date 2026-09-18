@@ -19,7 +19,7 @@ export async function getClassDropDownByAcademicYearlist(asmaY_Id: number) {
         if (!asmaY_Id) return { success: false, message: 'Academic Year ID is required', data: [] };
         const url = `/exam_master_category/class_drop_down_by_academic_year_list/${asmaY_Id}`;
         const res = await api.get<IAcademicYearandClassandsection[]>('exam', url);
-        return { success: res?.success ?? true, data: res?.data ?? res };
+        return { success: res?.success ?? true, data: res?.data ?? [] };
     } catch (error: any) {
         console.error('Error in getClassDropDownByAcademicYearlist:', error);
         return { success: false, message: error?.message || 'Failed to fetch classes', data: [] };
@@ -32,7 +32,7 @@ export async function getSectionsDropDownByAcademicYearandClasslist(asmaY_Id: nu
         if (!asmaY_Id || !asmcL_Id) return { success: false, message: 'Academic Year and Class ID are required', data: [] };
         const url = `/exam_master_category/sections_drop_down_by_class_list/${asmcL_Id}/${asmaY_Id}`;
         const res = await api.get<IAcademicYearandClassandsection[]>('exam', url);
-        return { success: res?.success ?? true, data: res?.data ?? res };
+        return { success: res?.success ?? true, data: res?.data ?? [] };
     } catch (error: any) {
         console.error('Error in getSectionsDropDownByAcademicYearandClasslist:', error);
         return { success: false, message: error?.message || 'Failed to fetch sections', data: [] };
@@ -47,7 +47,7 @@ export async function getExamsDropDownByAcademicYearandClassandSectionlist(asmaY
         }
         const url = `/exam_master/exam_drop_down_by_year_class_section_list/${asmaY_Id}/${asmcL_Id}/${asmS_Id}`;
         const res = await api.get<IAcademicYearandClassandsection[]>('exam', url);
-        return { success: res?.success ?? true, data: res?.data ?? res };
+        return { success: res?.success ?? true, data: res?.data ?? [] };
     } catch (error: any) {
         console.error('Error in getExamsDropDownByAcademicYearandClassandSectionlist:', error);
         return { success: false, message: error?.message || 'Failed to fetch exams', data: [] };
@@ -63,7 +63,7 @@ export async function getStudentsDropDownByAcademicYearandClassandSectionlist(as
         const url = `/exam_master_category/students_drop_down_by_year_class_section_list?ASMAY_Id=${asmaY_Id}&ASMCL_Id=${asmcL_Id}&ASMS_Id=${asmS_Id}`;
         console.info('url', url);
         const res = await api.get<IAcademicYearandClassandsection[]>('exam', url);
-        return { success: res?.success ?? true, data: res?.data ?? res };
+        return { success: res?.success ?? true, data: res?.data ?? [] };
     } catch (error: any) {
         console.error('Error in getStudentsDropDownByAcademicYearandClassandSectionlist:', error);
         return { success: false, message: error?.message || 'Failed to fetch students', data: [] };

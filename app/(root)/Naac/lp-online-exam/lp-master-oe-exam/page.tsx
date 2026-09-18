@@ -1,339 +1,273 @@
 'use client';
 
+import { PolygonBanner } from '@/components/ui/extension/polygon-banner';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import {
-    deleteMasterExam,
-    getMasterExamList,
-    getMasterOEExamInitialLoad,
-    saveMasterExam,
-    toggleMasterExam
-} from '@/server/naac/lp-online-exam/master-oe-exam';
-import { Edit, Trash2 } from 'lucide-react';
-import type React from 'react';
-import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { useMasterOEExam } from '@/hooks/naac/lp-online-exam/useMasters';
+import type { IMasterOEExam } from '@/types/naac/lp-online-exam/masters';
+import { Plus, X, ChevronRight } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import AddMasterOEExamForm from './_components/add-form';
+import { masterOEExamColumns } from './_components/columns';
+import MapQuestionsForm from './_components/map-questions';
+import ToggleMasterOEExamForm from './_components/toggle-form';
+import UpdateMasterOEExamForm from './_components/update-form';
 
 export default function MasterOEExamPage() {
-    const [exams, setExams] = useState([]);
-    const [loading, setLoading] = useState(true);
+    return (
+        <FormProvider<IMasterOEExam>>
+            <MasterOEExamContent />
+        </FormProvider>
+    );
+}
 
-    // Dropdown options
-    const [years, setYears] = useState<any[]>([]);
-    const [classes, setClasses] = useState<any[]>([]);
-    const [subjects, setSubjects] = useState<any[]>([]);
+function MasterOEExamContent() {
+    const { data: examList, isLoading, error, initialData } = useMasterOEExam();
+    const { openAddForm } = useFormContext<IMasterOEExam>();
+    
+    const [isMapOpen, setIsMapOpen] = useState(false);
+    const [mappingExam, setMappingExam] = useState<IMasterOEExam | null>(null);
 
-    // Form state
-    const [formData, setFormData] = useState({
-        LPMOEEX_Id: 0,
-        ASMAY_Id: '',
-        ASMCL_Id: '',
-        ISMS_Id: '',
-        LPMOEEX_ExamName: '',
-        LPMOEEX_TotalMarks: '',
-        LPMOEEX_NoOfQuestion: ''
-    });
-
-    const fetchExams = async () => {
-        setLoading(true);
-        try {
-            const listRes = await getMasterExamList({});
-            if (listRes.success) {
-                setExams(listRes.data?.$values || listRes.data || []);
-            } else {
-                toast.error(`API Error: ${listRes.message}`);
-            }
-        } catch (error: any) {
-            toast.error(error?.message || 'Failed to load exams');
-        } finally {
-            setLoading(false);
-        }
+    const handleOpenMap = (exam: IMasterOEExam) => {
+        setMappingExam(exam);
+        setIsMapOpen(true);
     };
 
-    const loadData = async () => {
-        setLoading(true);
-        try {
-            const [initRes, listRes] = await Promise.all([getMasterOEExamInitialLoad(), getMasterExamList({})]);
-
-            if (initRes.success) {
-                setYears(initRes.data?.getyear?.$values || initRes.data?.getyear || []);
-                setClasses(initRes.data?.getclass?.$values || initRes.data?.getclass || []);
-                setSubjects(initRes.data?.getsubjects?.$values || initRes.data?.getsubjects || []);
-            }
-
-            if (listRes.success) {
-                setExams(listRes.data?.$values || listRes.data || []);
-            } else {
-                toast.error(`API Error: ${listRes.message}`);
-            }
-        } catch (error: any) {
-            toast.error(error?.message || 'Failed to load exams');
-        } finally {
-            setLoading(false);
-        }
+    const handleCloseMap = () => {
+        setIsMapOpen(false);
+        setMappingExam(null);
     };
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    const years = useMemo(() => {
+        const raw = initialData?.getyear;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    const classes = useMemo(() => {
+        const raw = initialData?.getclass;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
 
-    const handleSelectChange = (name: string, value: string) => {
-        setFormData({ ...formData, [name]: value });
-    };
+    const sections = useMemo(() => {
+        const raw = initialData?.getsections || initialData?.getsection || initialData?.sections || initialData?.sectionList || initialData?.getSectionList;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
 
-    const handleSave = async () => {
-        if (!formData.ASMAY_Id || !formData.ASMCL_Id || !formData.ISMS_Id || !formData.LPMOEEX_ExamName) {
-            toast.error('Please fill all required fields');
-            return;
-        }
+    const subjects = useMemo(() => {
+        const raw = initialData?.getsubjects;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
 
-        try {
-            const payload = {
-                LPMOEEX_Id: formData.LPMOEEX_Id,
-                ASMAY_Id: Number(formData.ASMAY_Id),
-                ASMCL_Id: Number(formData.ASMCL_Id),
-                ISMS_Id: Number(formData.ISMS_Id),
-                LPMOEEX_ExamName: formData.LPMOEEX_ExamName,
-                LPMOEEX_TotalMarks: formData.LPMOEEX_TotalMarks ? Number(formData.LPMOEEX_TotalMarks) : 0,
-                LPMOEEX_NoOfQuestion: formData.LPMOEEX_NoOfQuestion ? Number(formData.LPMOEEX_NoOfQuestion) : 0
+    const exams = useMemo(() => {
+        const raw = initialData?.getexams || initialData?.getexam || initialData?.masterExamList || initialData?.exams || initialData?.getExams || initialData?.getMasterExams;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
+
+    const topics = useMemo(() => {
+        const raw = initialData?.gettopic || initialData?.getTopic || initialData?.topicList || initialData?.topic_list || initialData?.topics || initialData?.gettopiclist || initialData?.getTopicList || initialData?.getTopics || initialData?.getmastertopic;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
+
+    const mappedExamList = useMemo(() => {
+        if (!examList || !Array.isArray(examList)) return [];
+        return examList.map((exam: any) => {
+            const yearObj = years.find((y: any) => String(y.asmaY_Id ?? y.ASMAY_Id ?? y.id ?? '') === String(exam.asmaY_Id ?? exam.ASMAY_Id ?? ''));
+            const classObj = classes.find((c: any) => String(c.asmcL_Id ?? c.ASMCL_Id ?? c.id ?? '') === String(exam.asmcL_Id ?? exam.ASMCL_Id ?? ''));
+            const sectionObj = sections.find((sec: any) => String(sec.asmS_Id ?? sec.ASMS_Id ?? sec.id ?? '') === String(exam.asmS_Id ?? exam.ASMS_Id ?? ''));
+            const subjectObj = subjects.find((s: any) => String(s.ismS_Id ?? s.ISMS_Id ?? s.id ?? '') === String(exam.ismS_Id ?? exam.ISMS_Id ?? ''));
+            const examObj = exams.find((e: any) => String(e.emE_Id ?? e.EME_Id ?? e.id ?? '') === String(exam.emE_Id ?? exam.EME_Id ?? ''));
+
+            return {
+                ...exam,
+                asmaY_Year: yearObj ? (yearObj.asmaY_Year || yearObj.ASMAY_Year || yearObj.year) : (exam.asmaY_Year || exam.ASMAY_Year || exam.yearName || '-'),
+                asmcL_ClassName: classObj ? (classObj.asmcL_ClassName || classObj.ASMCL_ClassName || classObj.className) : (exam.asmcL_ClassName || exam.ASMCL_ClassName || exam.className || '-'),
+                asmC_SectionName: sectionObj ? (sectionObj.asmC_SectionName || sectionObj.ASMC_SectionName || sectionObj.sectionName) : (exam.asmC_SectionName || exam.ASMC_SectionName || exam.sectionName || '-'),
+                ismS_SubjectName: subjectObj ? (subjectObj.ismS_SubjectName || subjectObj.ISMS_SubjectName || subjectObj.subjectName) : (exam.ismS_SubjectName || exam.ISMS_SubjectName || exam.subjectName || '-'),
+                emE_ExamName: examObj ? (examObj.emE_ExamName || examObj.EME_ExamName || examObj.examName) : (exam.emE_ExamName || exam.EME_ExamName || exam.lpmoeeX_ExamName || '-')
             };
-
-            const res = await saveMasterExam(payload);
-            if (res?.success) {
-                toast.success(res.message || 'Exam saved successfully');
-                setFormData({
-                    LPMOEEX_Id: 0,
-                    ASMAY_Id: '',
-                    ASMCL_Id: '',
-                    ISMS_Id: '',
-                    LPMOEEX_ExamName: '',
-                    LPMOEEX_TotalMarks: '',
-                    LPMOEEX_NoOfQuestion: ''
-                });
-                fetchExams();
-            } else {
-                toast.error(res?.message || 'Failed to save exam');
-            }
-        } catch (error: any) {
-            toast.error(`Error: ${error?.message || 'unknown error'}`);
-        }
-    };
-
-    const handleEdit = (exam: any) => {
-        setFormData({
-            LPMOEEX_Id: exam.lpmoeeX_Id,
-            ASMAY_Id: exam.asmaY_Id.toString(),
-            ASMCL_Id: exam.asmcL_Id.toString(),
-            ISMS_Id: exam.ismS_Id.toString(),
-            LPMOEEX_ExamName: exam.lpmoeeX_ExamName,
-            LPMOEEX_TotalMarks: exam.lpmoeeX_TotalMarks?.toString() || '',
-            LPMOEEX_NoOfQuestion: exam.lpmoeeX_NoOfQuestion?.toString() || ''
         });
-    };
+    }, [examList, years, classes, sections, subjects, exams]);
 
-    const handleToggle = async (id: number) => {
-        try {
-            const res = await toggleMasterExam(id);
-            if (res.success) {
-                toast.success(res.message);
-                fetchExams();
-            } else {
-                toast.error(res.message);
-            }
-        } catch (_error) {
-            toast.error('Error toggling exam');
-        }
-    };
+    const columns = useMemo(() => masterOEExamColumns(handleOpenMap), []);
 
-    const handleDelete = async (id: number) => {
-        if (!confirm('Are you sure you want to delete this exam?')) return;
-        try {
-            const res = await deleteMasterExam(id);
-            if (res.success) {
-                toast.success(res.message);
-                fetchExams();
-            } else {
-                toast.error(res.message);
-            }
-        } catch (_error) {
-            toast.error('Error deleting exam');
-        }
-    };
+    const tableProps = useDataTableProps(mappedExamList);
 
     return (
-        <div className='container mx-auto space-y-6 p-6'>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Master OE Exam</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className='mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
-                        <div className='space-y-2'>
-                            <Label>Academic Year</Label>
-                            <Select value={formData.ASMAY_Id} onValueChange={(val) => handleSelectChange('ASMAY_Id', val)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Year' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {years.map((y) => (
-                                        <SelectItem key={y.asmaY_Id} value={y.asmaY_Id.toString()}>
-                                            {y.asmaY_Year}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='space-y-2'>
-                            <Label>Class</Label>
-                            <Select value={formData.ASMCL_Id} onValueChange={(val) => handleSelectChange('ASMCL_Id', val)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Class' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {classes.map((c) => (
-                                        <SelectItem key={c.asmcL_Id} value={c.asmcL_Id.toString()}>
-                                            {c.asmcL_ClassName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='space-y-2'>
-                            <Label>Subject</Label>
-                            <Select value={formData.ISMS_Id} onValueChange={(val) => handleSelectChange('ISMS_Id', val)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select Subject' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {subjects.map((s) => (
-                                        <SelectItem key={s.ismS_Id} value={s.ismS_Id.toString()}>
-                                            {s.ismS_SubjectName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='space-y-2'>
-                            <Label>Exam Name</Label>
-                            <Input
-                                name='LPMOEEX_ExamName'
-                                value={formData.LPMOEEX_ExamName}
-                                onChange={handleChange}
-                                placeholder='Exam Name'
-                            />
-                        </div>
-                        <div className='space-y-2'>
-                            <Label>Total Marks</Label>
-                            <Input
-                                name='LPMOEEX_TotalMarks'
-                                type='number'
-                                value={formData.LPMOEEX_TotalMarks}
-                                onChange={handleChange}
-                                placeholder='Total Marks'
-                            />
-                        </div>
-                        <div className='space-y-2'>
-                            <Label>No. of Questions</Label>
-                            <Input
-                                name='LPMOEEX_NoOfQuestion'
-                                type='number'
-                                value={formData.LPMOEEX_NoOfQuestion}
-                                onChange={handleChange}
-                                placeholder='No. of Questions'
-                            />
-                        </div>
+        <div className='min-h-screen'>
+            {/* Polygon Banner matching Master Question Bank design */}
+            <PolygonBanner 
+                title="EXAM QUESTION PAPER CREATION" 
+                description="Configure online exam question papers, header sections, duration, and question mappings"
+                breadcrumb={
+                    <div className='flex flex-wrap items-center gap-2 text-sm text-white/80'>
+                        <span className='font-medium'>Exam</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span>Online Exam</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span className='font-medium'>Masters</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span className='font-bold text-white'>Exam Question Mapping</span>
                     </div>
-                    <div className='mb-8 flex justify-center gap-4'>
-                        <Button onClick={handleSave}>{formData.LPMOEEX_Id > 0 ? 'Update Exam' : 'Save Exam'}</Button>
-                        <Button
-                            variant='outline'
-                            onClick={() =>
-                                setFormData({
-                                    LPMOEEX_Id: 0,
-                                    ASMAY_Id: '',
-                                    ASMCL_Id: '',
-                                    ISMS_Id: '',
-                                    LPMOEEX_ExamName: '',
-                                    LPMOEEX_TotalMarks: '',
-                                    LPMOEEX_NoOfQuestion: ''
-                                })
-                            }>
-                            Clear
-                        </Button>
-                    </div>
+                }
+            />
 
-                    {loading ? (
-                        <p className='py-4 text-center'>Loading data...</p>
-                    ) : (
-                        <div className='overflow-x-auto'>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Sl. No</TableHead>
-                                        <TableHead>Exam Name</TableHead>
-                                        <TableHead>Total Marks</TableHead>
-                                        <TableHead>No. of Questions</TableHead>
-                                        <TableHead className='text-center'>Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {exams.length > 0 ? (
-                                        exams.map((exam: any, index: number) => (
-                                            <TableRow key={exam.lpmoeeX_Id}>
-                                                <TableCell>{index + 1}</TableCell>
-                                                <TableCell>{exam.lpmoeeX_ExamName}</TableCell>
-                                                <TableCell>{exam.lpmoeeX_TotalMarks}</TableCell>
-                                                <TableCell>{exam.lpmoeeX_NoOfQuestion}</TableCell>
-                                                <TableCell>
-                                                    <div className='flex items-center justify-center gap-6'>
-                                                        <button
-                                                            type='button'
-                                                            onClick={() => handleEdit(exam)}
-                                                            className='text-purple-600 transition-colors hover:text-purple-800'>
-                                                            <Edit className='h-4 w-4' />
-                                                        </button>
-                                                        <div className='flex items-center gap-2'>
-                                                            <span
-                                                                className={`font-semibold text-sm ${exam.lpmoeeX_ActiveFlg ? 'text-green-600' : 'text-red-600'}`}>
-                                                                {exam.lpmoeeX_ActiveFlg ? 'Active' : 'Deactive'}
-                                                            </span>
-                                                            <Switch
-                                                                checked={exam.lpmoeeX_ActiveFlg}
-                                                                onCheckedChange={() => handleToggle(exam.lpmoeeX_Id)}
-                                                            />
-                                                        </div>
-                                                        <button
-                                                            type='button'
-                                                            onClick={() => handleDelete(exam.lpmoeeX_Id)}
-                                                            className='text-red-500 transition-colors hover:text-red-700'>
-                                                            <Trash2 className='h-4 w-4' />
-                                                        </button>
-                                                    </div>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={5} className='py-6 text-center text-gray-500'>
-                                                No exams found.
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+            <div className='container space-y-4 p-4'>
+                {/* Header Action Button */}
+                <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-end mt-2'>
+                    <Button
+                        type='button'
+                        size='sm'
+                        onClick={openAddForm}
+                        className='w-fit shadow-xs transition-all duration-200 hover:scale-105 gap-1.5 bg-orange-600 hover:bg-orange-700 text-white h-8 text-xs font-semibold px-3.5'>
+                        <Plus className='h-3.5 w-3.5' />
+                        Create Question Paper
+                    </Button>
+                </div>
+
+                {/* Exam Data Table */}
+                <CollapsibleSection
+                    defaultOpen={true}
+                    variant='default'
+                    size='lg'
+                    className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                    <GenericDataTable<IMasterOEExam>
+                        columns={columns}
+                        {...tableProps}
+                        isLoading={isLoading}
+                        error={error}
+                        loadingMessage='Loading exam question papers...'
+                        noDataTitle='No Exam Question Papers Found'
+                        noDataDescription='Get started by creating your first exam question paper'
+                        errorTitle='Error Loading Exam Question Papers'
+                    />
+                </CollapsibleSection>
+
+                {/* Form Sections */}
+                <FormSections years={years} classes={classes} sections={sections} subjects={subjects} exams={exams} topics={topics} />
+                
+                <MapQuestionsForm 
+                    isOpen={isMapOpen} 
+                    onClose={handleCloseMap} 
+                    exam={mappingExam} 
+                />
+            </div>
         </div>
     );
 }
+
+function FormSections({
+    years,
+    classes,
+    sections,
+    subjects,
+    exams,
+    topics
+}: {
+    years: any[];
+    classes: any[];
+    sections: any[];
+    subjects: any[];
+    exams: any[];
+    topics: any[];
+}) {
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterOEExam>();
+
+    return (
+        <>
+            {/* Add Form */}
+            {isAddFormOpen && (
+                <div ref={addFormRef}>
+                    <CollapsibleSection
+                        title='EXAM QUESTION PAPER CREATION'
+                        description='Fill in the exam details and section breakdown below'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        rightElement={
+                            <Button
+                                type='button'
+                                onClick={closeAddForm}
+                                variant='ghost'
+                                size='sm'
+                                className='h-8 gap-1.5 px-3 text-destructive text-xs hover:bg-destructive/10 hover:text-destructive'>
+                                <X className='h-4 w-4' /> Close
+                            </Button>
+                        }>
+                        <AddMasterOEExamForm
+                            years={years}
+                            classes={classes}
+                            sections={sections}
+                            subjects={subjects}
+                            exams={exams}
+                            topics={topics}
+                            onSuccess={closeAddForm}
+                            onCancel={closeAddForm}
+                        />
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Update Form */}
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Update Exam Question Paper'
+                        description='Edit the exam details and section breakdown below'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='md'
+                        rightElement={
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='h-8 gap-1.5 px-3 text-destructive text-xs hover:bg-destructive/10 hover:text-destructive'>
+                                <X className='h-4 w-4' /> Close
+                            </Button>
+                        }>
+                        <UpdateMasterOEExamForm
+                            rowData={selectedRow}
+                            years={years}
+                            classes={classes}
+                            sections={sections}
+                            subjects={subjects}
+                            exams={exams}
+                            topics={topics}
+                            onSuccess={closeEditForm}
+                            onCancel={closeEditForm}
+                        />
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {/* Toggle Status Dialog */}
+            {isToggleFormOpen && selectedRow && <ToggleMasterOEExamForm rowData={selectedRow} onClose={closeToggleForm} />}
+        </>
+    );
+}
+

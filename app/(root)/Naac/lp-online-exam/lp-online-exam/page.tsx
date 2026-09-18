@@ -3,10 +3,12 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { getAvailableExams } from '@/server/naac/lp-online-exam/student-exam';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function StudentExamPage() {
+    const router = useRouter();
     const [exams, setExams] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -32,8 +34,7 @@ export default function StudentExamPage() {
     }, []);
 
     const startExam = (_examId: number) => {
-        toast.info('Starting exam... (Integration pending)');
-        // Routing to actual quiz interface will go here
+        router.push('/StudentPortal/student-dashboard/Exam/OnlineMcqQuiz');
     };
 
     return (
