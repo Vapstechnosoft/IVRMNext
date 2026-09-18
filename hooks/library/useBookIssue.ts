@@ -52,15 +52,15 @@ export const useIssueBook = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (data: IIssueBookRequest) => issueBook(data),
-        onSuccess: (data) => {
-            if (data.returnval) {
+        onSuccess: (data: any) => {
+            if (data?.returnval) {
                 toast.success('Book issued successfully');
                 queryClient.invalidateQueries({ queryKey: ['book-details-on-load'] });
                 queryClient.invalidateQueries({ queryKey: ['book-issue-initial'] });
-            } else if (data.duplicate) {
+            } else if (data?.duplicate) {
                 toast.warning('Book already issued or duplicate transaction');
-            } else if (data.maxmsg) {
-                toast.warning(data.maxmsg);
+            } else if (data?.maxmsg) {
+                toast.warning(String(data.maxmsg));
             } else {
                 toast.error('Failed to issue book');
             }
@@ -76,14 +76,14 @@ export const useReturnBook = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (data: IReturnBookRequest) => returnBook(data),
-        onSuccess: (data) => {
+        onSuccess: (data: any) => {
             if (data?.returnval !== false) {
-                const message = data?.msg?.trim() || (data as any)?.message?.trim() || 'Returned successfully';
+                const message = (typeof data?.msg === 'string' && data.msg.trim()) || (typeof data?.message === 'string' && data.message.trim()) || 'Returned successfully';
                 toast.success(message);
                 queryClient.invalidateQueries({ queryKey: ['book-details-on-load'] });
                 queryClient.invalidateQueries({ queryKey: ['book-issue-initial'] });
             } else {
-                toast.error(data?.msg || 'Failed to return book');
+                toast.error(String(data?.msg || data?.message || 'Failed to return book'));
             }
         },
         onError: (error) => {
@@ -97,12 +97,12 @@ export const useRenewBook = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (data: IRenewalBookRequest) => renewBook(data),
-        onSuccess: (data) => {
-            if (data.returnval) {
+        onSuccess: (data: any) => {
+            if (data?.returnval) {
                 toast.success('Book renewed successfully');
                 queryClient.invalidateQueries({ queryKey: ['book-details-on-load'] });
                 queryClient.invalidateQueries({ queryKey: ['book-issue-initial'] });
-            } else if (data.duplicate) {
+            } else if (data?.duplicate) {
                 toast.warning('Book already renewed');
             } else {
                 toast.error('Failed to renew book');

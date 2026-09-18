@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { useEffect, useState } from 'react';
@@ -23,6 +24,7 @@ export default function ImportLibraryDataPage() {
 function ImportLibraryDataContent() {
     const [libraries, setLibraries] = useState<any[]>([]);
     const [selectedLibraryId, setSelectedLibraryId] = useState<string>('');
+    const [activeFlag, setActiveFlag] = useState<boolean>(false);
     const [gridData, setGridData] = useState<any[]>([]);
     const [columns, setColumns] = useState<any[]>([]);
     const [filename, setFilename] = useState<string>('');
@@ -160,6 +162,7 @@ function ImportLibraryDataContent() {
         setColumns([]);
         setSelectedLibraryId('');
         setFilename('');
+        setActiveFlag(false);
         // clear file input via ref if we had one, but state clear is enough for logic
     };
 
@@ -201,6 +204,16 @@ function ImportLibraryDataContent() {
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <Checkbox
+                                        id='active-flag'
+                                        checked={activeFlag}
+                                        onCheckedChange={(checked) => setActiveFlag(!!checked)}
+                                    />
+                                    <Label htmlFor='active-flag' className='cursor-pointer text-sm font-medium text-gray-700'>
+                                        Active Flag
+                                    </Label>
                                 </div>
                             </div>
                             <div className='w-full md:w-[250px]'>
