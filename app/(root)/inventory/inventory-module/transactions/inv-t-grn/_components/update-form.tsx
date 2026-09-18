@@ -262,9 +262,7 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
             invmgrN_KitNo: String(data.invmgrN_KitNo || ''),
             ...(data.invmgrN_PODate && {
                 invmgrN_PODate:
-                    data.invmgrN_PODate instanceof Date
-                        ? data.invmgrN_PODate.toISOString()
-                        : new Date(data.invmgrN_PODate).toISOString()
+                    data.invmgrN_PODate instanceof Date ? data.invmgrN_PODate.toISOString() : new Date(data.invmgrN_PODate).toISOString()
             }),
             ...(data.invmgrN_Challandate && {
                 invmgrN_Challandate:
@@ -465,7 +463,8 @@ export default function UpdateGRNForm({ selectedRow, onSuccess }: UpdateGRNFormP
                                         <div className='flex h-8 items-center justify-center rounded border border-dashed bg-muted/30 font-semibold text-[11px] text-muted-foreground'>
                                             {watch(`GRNItem.${index}.invmuoM_UOMName`) ||
                                                 (watch(`GRNItem.${index}.invmI_Id`)
-                                                    ? items?.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName ||
+                                                    ? items?.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))
+                                                          ?.invmuoM_UOMName ||
                                                       loadData?.data?.get_item?.find(
                                                           (i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`)
                                                       )?.invmuoM_UOMName
