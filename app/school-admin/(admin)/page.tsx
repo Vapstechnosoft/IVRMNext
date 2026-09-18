@@ -137,17 +137,6 @@ export default function AdminDashboardPage() {
     React.useEffect(() => {
         const fetchData = async () => {
             try {
-<<<<<<< Updated upstream
-                const response = await getDashboardCounts();
-                const feesResponse = await GetChairmanDashBoardFeesdata();
-                const { data: teacherResponse } = await GetTeacherCount();
-                const teacherData = Array.isArray(teacherResponse) ? teacherResponse[0] : teacherResponse;
-                const totalTeachers = teacherData?.activeEmp?.length || 0;
-                setTeachers(totalTeachers);
-
-                // If the response has a data property (nested wrapper), use it, otherwise use the response itself
-                const finalData = response?.data ? response.data : response;
-=======
                 const [response, feesResponse, teacherResponse] = await Promise.allSettled([
                     getDashboardCounts(),
                     GetChairmanDashBoardFeesdata(),
@@ -161,16 +150,11 @@ export default function AdminDashboardPage() {
 
                 const countResult = response.status === 'fulfilled' ? response.value : null;
                 const finalData = countResult?.data ? countResult.data : countResult;
->>>>>>> Stashed changes
                 setDashboardData(finalData);
 
                 const feesResult = feesResponse.status === 'fulfilled' ? feesResponse.value : null;
                 const feesDataArray = feesResult?.data || [];
                 if (Array.isArray(feesDataArray)) {
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
                     const totalCollected = feesDataArray.reduce((acc: number, curr: any) => acc + (curr.callected || 0), 0);
                     setTotalFeeCollected(totalCollected);
 
