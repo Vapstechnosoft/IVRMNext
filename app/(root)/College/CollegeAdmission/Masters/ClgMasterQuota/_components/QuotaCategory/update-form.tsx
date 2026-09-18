@@ -49,7 +49,7 @@ export default function UpdateQuotaCategoryForm({ selectedRow, onSuccess }: Upda
         if (selectedRow) {
             editMutation.mutateAsync({ acqC_Id: selectedRow.acqC_Id })
                 .then((res: any) => {
-                    const data = res?.editdetails1?.[0];
+                    const data = res?.data?.[0] || res?.editdetails1?.[0];
                     if (data) {
                         form.reset({
                             acqC_CategoryName: data.acqC_CategoryName,
@@ -75,13 +75,11 @@ export default function UpdateQuotaCategoryForm({ selectedRow, onSuccess }: Upda
         toast.promise(promise, {
             loading: 'Updating record...',
             success: (data: any) => {
-                if (data?.message === 'Update' && data?.returnval === true) {
+                if (data?.success) {
                     onSuccess();
-                    return 'Record Updated Successfully';
-                } else if (data?.returnduplicatestatus === 'Duplicate') {
-                    throw new Error('Record Already Exists');
+                    return data.message || 'Record Updated Successfully';
                 }
-                throw new Error('Failed To Update Record');
+                throw new Error(data?.message || 'Failed To Update Record');
             },
             error: (err: any) => err.message || 'Something went wrong'
         });

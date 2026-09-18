@@ -75,17 +75,14 @@ export default function AddQuotaCategoryMappingForm({ quotas, categories, onSucc
     };
 
     const onSubmit = async (values: FormValues) => {
-        // Construct the array payload exactly like Angular does:
-        // QuotaClist is array of items which were checked.
+        // Construct the array payload exactly as requested
         const checkedCategories = categories.filter(c => values.selectedCategories.includes(c.acqC_Id)).map(c => ({
-            ...c,
-            checkedsub: true
+            acqC_Id: c.acqC_Id
         }));
 
         const payload = {
             acQ_Id: parseInt(values.acQ_Id),
-            acqcM_Id: 0,
-            QuotaClist: checkedCategories
+            quotaClist: checkedCategories
         };
 
         const promise = saveMutation.mutateAsync(payload);
@@ -93,13 +90,11 @@ export default function AddQuotaCategoryMappingForm({ quotas, categories, onSucc
         toast.promise(promise, {
             loading: 'Saving record...',
             success: (data: any) => {
-                if (data?.message === 'Add' && data?.returnval === true) {
+                if (data?.success) {
                     onSuccess();
-                    return 'Record Saved Successfully';
-                } else if (data?.returnduplicatestatus === 'Duplicate') {
-                    throw new Error('Record Already Exists');
+                    return data.message || 'Record Saved Successfully';
                 }
-                throw new Error('Failed To Save Record');
+                throw new Error(data?.message || 'Failed To Save Record');
             },
             error: (err: any) => err.message || 'Something went wrong'
         });

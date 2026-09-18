@@ -261,6 +261,9 @@ class ApiService {
         }
 
         if (error?.response?.data && typeof error.response.data === 'object') {
+            if (error.response.data.message && typeof error.response.data.message === 'string') {
+                return error.response.data.message;
+            }
             const dataStr = JSON.stringify(error.response.data);
             if (dataStr && dataStr !== '{}' && dataStr.length < 300) {
                 return `API Error: ${dataStr}`;
