@@ -21,7 +21,8 @@ interface TogglePeriodTimeSettingFormProps {
 
 export default function TogglePeriodTimeSettingForm({ rowData, onClose }: TogglePeriodTimeSettingFormProps) {
     const { refetchAll } = usePeriodTimeSettingDetails();
-    const isActive = rowData.ttmdpT_ActiveFlag;
+    const activeValues = new Set([1, true, '1', 'true', 'True']);
+    const isActive = activeValues.has(rowData.ttmdpT_ActiveFlag);
 
     const {
         register,
@@ -43,14 +44,18 @@ export default function TogglePeriodTimeSettingForm({ rowData, onClose }: Toggle
             const response = await deactivatePeriodTimeSetting(Number(rowData.ttmdpT_Id));
 
             if (response.success) {
-                toast.success(response.message);
+                if (isActive) {
+                    toast.error('Deactivated Successfully');
+                } else {
+                    toast.success('Activated Successfully');
+                }
                 refetchAll();
                 closeDialog();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to update status');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Failed to update status');
         }
     };
 
