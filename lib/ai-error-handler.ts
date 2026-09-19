@@ -10,12 +10,18 @@ export function isAiRateLimitError(error: any): boolean {
     if (!error) return false;
 
     // Check direct status codes
-    if (error.status === 429 || error.statusCode === 429) return true;
-    if (error.response?.status === 429 || error.response?.statusCode === 429) return true;
+    if (error.status === 429 || error.statusCode === 429 || error.status === 413 || error.statusCode === 413) return true;
+    if (
+        error.response?.status === 429 ||
+        error.response?.statusCode === 429 ||
+        error.response?.status === 413 ||
+        error.response?.statusCode === 413
+    )
+        return true;
 
     // Check error codes
     const code = error.code || error.error?.code;
-    if (code === 'rate_limit_exceeded' || code === 429 || code === '429') return true;
+    if (code === 'rate_limit_exceeded' || code === 429 || code === '429' || code === 413 || code === '413') return true;
 
     // Extract error string from various structures
     const message =
@@ -29,7 +35,9 @@ export function isAiRateLimitError(error: any): boolean {
         lower.includes('rate limit') ||
         lower.includes('rate_limit') ||
         lower.includes('429') ||
+        lower.includes('413') ||
         lower.includes('too many requests') ||
+        lower.includes('request too large') ||
         lower.includes('tokens per minute') ||
         lower.includes('requests per minute') ||
         lower.includes('tpm') ||

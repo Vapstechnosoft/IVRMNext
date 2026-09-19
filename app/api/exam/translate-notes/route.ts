@@ -25,12 +25,13 @@ export async function POST(req: NextRequest) {
 
         const prompt = `
 You are an expert academic translator.
-Translate the following academic study content into ${targetLanguage}.
+Translate the following academic study content accurately into ${targetLanguage}.
 
 CRITICAL REQUIREMENTS:
-1. Maintain exact Markdown formatting: preserve all bold markers (**bold**), bullet points (- or •), section headers (# or capitalized headings), and line breaks.
-2. Translate technical terms and explanations clearly and fluently into ${targetLanguage}.
-3. Return the output in the EXACT structure:
+1. Native Script: Always write the translation in the official native script of ${targetLanguage} (for example, Malayalam in Malayalam script, Hindi in Devanagari script, Kannada in Kannada script). Never use Arabic, Urdu, or Latin script unless the target language explicitly requires it.
+2. Maintain exact Markdown formatting: preserve all bold markers (**bold**), bullet points (- or •), section headers (# or capitalized headings), and line breaks.
+3. Translate technical terms and explanations clearly and fluently into ${targetLanguage}.
+4. Return the output in the EXACT structure:
 
 ---SUMMARY---
 <translated summary here>
@@ -47,11 +48,11 @@ ${notes ? `---NOTES---\n${notes}\n` : ''}
             messages: [
                 {
                     role: 'system',
-                    content: `You are a professional academic translator. You translate educational content into ${targetLanguage} while strictly preserving Markdown formatting (**bold**, list markers, headers).`
+                    content: `You are a professional academic translator specializing in Indian and international languages. You accurately translate educational content into ${targetLanguage} using its correct official native script while strictly preserving Markdown formatting (**bold**, list markers, headers).`
                 },
                 { role: 'user', content: prompt }
             ],
-            model: 'openai/gpt-oss-120b',
+            model: 'llama-3.3-70b-versatile',
             temperature: 0.3,
             max_tokens: 4096
         });
