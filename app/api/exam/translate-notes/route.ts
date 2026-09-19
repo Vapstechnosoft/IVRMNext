@@ -1,14 +1,53 @@
-import { formatAiErrorMessage, isAiRateLimitError } from '@/lib/ai-error-handler';
 import { standardizeNoteMarkdown } from '@/lib/notemaker-cleaner';
-import Groq from 'groq-sdk';
+import TextTranslationClient, { isUnexpected } from '@azure-rest/ai-translation-text';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const groq = new Groq({
-    apiKey: process.env.note_Groq_api_key || process.env.assistant_groq_key || ''
-});
+const AZURE_TRANSLATOR_KEY = process.env.AZURE_TRANSLATOR_KEY || 'ae1549ade3594811b31d5b7eedf42758';
+const AZURE_TRANSLATOR_ENDPOINT = process.env.AZURE_TRANSLATOR_ENDPOINT || 'https://api.cognitive.microsofttranslator.com';
+const AZURE_TRANSLATOR_REGION = process.env.AZURE_TRANSLATOR_REGION || 'centralindia';
+
+// Map language display names and codes to Azure Translator BCP-47 codes
+const LANGUAGE_CODE_MAP: Record<string, string> = {
+    english: 'en',
+    en: 'en',
+    hindi: 'hi',
+    hi: 'hi',
+    kannada: 'kn',
+    kn: 'kn',
+    tamil: 'ta',
+    ta: 'ta',
+    telugu: 'te',
+    te: 'te',
+    malayalam: 'ml',
+    ml: 'ml',
+    marathi: 'mr',
+    mr: 'mr',
+    gujarati: 'gu',
+    gu: 'gu',
+    bengali: 'bn',
+    bn: 'bn',
+    punjabi: 'pa',
+    pa: 'pa',
+    spanish: 'es',
+    es: 'es',
+    french: 'fr',
+    fr: 'fr',
+    german: 'de',
+    de: 'de',
+    arabic: 'ar',
+    ar: 'ar',
+    urdu: 'ur',
+    ur: 'ur',
+    sanskrit: 'sa',
+    sa: 'sa',
+    odia: 'or',
+    or: 'or',
+    assamese: 'as',
+    as: 'as'
+};
 
 export async function POST(req: NextRequest) {
     try {
@@ -19,67 +58,70 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ summary, notes });
         }
 
+        const toLang = LANGUAGE_CODE_MAP[String(targetLanguage).toLowerCase().trim()] || 'en';
+
+        if (toLang === 'en') {
+            return NextResponse.json({ summary, notes, language: targetLanguage });
+        }
+
         if (!summary && !notes) {
             return NextResponse.json({ error: 'No content provided for translation' }, { status: 400 });
         }
 
-        const prompt = `
-You are an expert academic translator.
-Translate the following academic study content accurately into ${targetLanguage}.
-
-CRITICAL REQUIREMENTS:
-1. Native Script: Always write the translation in the official native script of ${targetLanguage} (for example, Malayalam in Malayalam script, Hindi in Devanagari script, Kannada in Kannada script). Never use Arabic, Urdu, or Latin script unless the target language explicitly requires it.
-2. Maintain exact Markdown formatting: preserve all bold markers (**bold**), bullet points (- or •), section headers (# or capitalized headings), and line breaks.
-3. Translate technical terms and explanations clearly and fluently into ${targetLanguage}.
-4. Return the output in the EXACT structure:
-
----SUMMARY---
-<translated summary here>
-
----NOTES---
-<translated notes here>
-
-Content to Translate:
-${summary ? `---SUMMARY---\n${summary}\n` : ''}
-${notes ? `---NOTES---\n${notes}\n` : ''}
-`;
-
-        const chatCompletion = await groq.chat.completions.create({
-            messages: [
-                {
-                    role: 'system',
-                    content: `You are a professional academic translator specializing in Indian and international languages. You accurately translate educational content into ${targetLanguage} using its correct official native script while strictly preserving Markdown formatting (**bold**, list markers, headers).`
-                },
-                { role: 'user', content: prompt }
-            ],
-            model: 'llama-3.3-70b-versatile',
-            temperature: 0.3,
-            max_tokens: 4096
+        const client = TextTranslationClient(AZURE_TRANSLATOR_ENDPOINT, {
+            key: AZURE_TRANSLATOR_KEY,
+            region: AZURE_TRANSLATOR_REGION
         });
 
-        const content = chatCompletion.choices[0]?.message?.content || '';
-        let translatedSummary = '';
-        let translatedNotes = '';
+        // Prepare translation payload
+        const itemsToTranslate: { text: string }[] = [];
+        let summaryIndex = -1;
+        let notesIndex = -1;
 
-        if (summary && notes) {
-            const parts = content.split(/---NOTES---/i);
-            translatedSummary = standardizeNoteMarkdown(parts[0].replace(/---SUMMARY---/i, '').trim());
-            translatedNotes = standardizeNoteMarkdown(parts[1]?.trim() || '');
-        } else if (summary) {
-            translatedSummary = standardizeNoteMarkdown(content.replace(/---SUMMARY---/i, '').trim());
-        } else {
-            translatedNotes = standardizeNoteMarkdown(content.replace(/---NOTES---/i, '').trim());
+        if (summary?.trim()) {
+            summaryIndex = itemsToTranslate.length;
+            itemsToTranslate.push({ text: summary.trim() });
+        }
+
+        if (notes?.trim()) {
+            notesIndex = itemsToTranslate.length;
+            itemsToTranslate.push({ text: notes.trim() });
+        }
+
+        const response = await client.path('/translate').post({
+            body: itemsToTranslate,
+            queryParameters: {
+                'api-version': '3.0',
+                to: toLang,
+                textType: 'plain'
+            }
+        });
+
+        if (isUnexpected(response)) {
+            console.error('Azure Translation Unexpected Error:', response.body);
+            const errDetails = (response.body as any)?.error?.message || 'Translation service error';
+            return NextResponse.json({ error: errDetails }, { status: 502 });
+        }
+
+        const results = response.body as any[];
+        let translatedSummary = summary;
+        let translatedNotes = notes;
+
+        if (summaryIndex !== -1 && results[summaryIndex]?.translations?.[0]?.text) {
+            translatedSummary = standardizeNoteMarkdown(results[summaryIndex].translations[0].text);
+        }
+
+        if (notesIndex !== -1 && results[notesIndex]?.translations?.[0]?.text) {
+            translatedNotes = standardizeNoteMarkdown(results[notesIndex].translations[0].text);
         }
 
         return NextResponse.json({
-            summary: translatedSummary || standardizeNoteMarkdown(summary),
-            notes: translatedNotes || standardizeNoteMarkdown(notes),
+            summary: translatedSummary,
+            notes: translatedNotes,
             language: targetLanguage
         });
     } catch (error: any) {
-        console.error('Translation Error:', error);
-        const isRateLimit = isAiRateLimitError(error);
-        const userFacingMessage = formatAiErrorMessage(error, 'Translation failed');
-        return NextResponse.json({ error: userFacingMessage }, { status: isRateLimit ? 429 : 500 });
+        console.error('Azure Translation Error:', error);
+        return NextResponse.json({ error: error.message || 'Failed to translate notes with Azure Translator' }, { status: 500 });
     }
 }
