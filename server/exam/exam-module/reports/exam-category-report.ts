@@ -36,7 +36,8 @@ export const getInitialData = async () => {
 };
 
 export const getReportData = async (data: any) => {
-    const url = `/exam_category_report/exam_category_report/${data.asmaY_Id}/${data.emcA_Id}/${data.type}`;
+    const categoryId = data.emcA_Id || 0;
+    const url = `/exam_category_report/exam_category_report/${data.asmaY_Id}/${categoryId}/${data.type}`;
     console.log('url', url);
     return await api.get<any>('exam', url);
 };

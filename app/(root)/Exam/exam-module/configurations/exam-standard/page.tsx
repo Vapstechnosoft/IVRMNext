@@ -27,12 +27,15 @@ export default function ExamStandardPage(props: { searchParams: SearchParams }) 
 }
 
 function ExamStandardPageContent({
-    response
+    response,
+    isLoading,
+    error,
+    refetchAll
 }: {
     response: any;
     isLoading: boolean;
     error: any;
-    refetchAll: any;
+    refetchAll: () => void;
 }) {
     const { control, watch, reset, handleSubmit, formState } = useForm<FormFields>({
         resolver: zodResolver(examStandardSchema.Update),
@@ -144,19 +147,23 @@ function ExamStandardPageContent({
         try {
             const payload = {
                 ...data,
-                ExmConfig_NoOfDecimalValues: Number(data.ExmConfig_NoOfDecimalValues),
-                ExmConfig_NoOfDecimal: Number(data.ExmConfig_NoOfDecimal),
-                // biome-ignore lint/complexity/noUselessTernary: <explanation>
-                ExmConfig_PassFailRankFlag: data.ExmConfig_PassFailRankFlag === '1' ? true : false
+                ExmConfig_NoOfDecimalValues: data.ExmConfig_RoundoffFlag
+                    ? (data.ExmConfig_NoOfDecimalValues ? Number(data.ExmConfig_NoOfDecimalValues) : 2)
+                    : 0,
+                ExmConfig_NoOfDecimal: data.ExmConfig_EnableFractionFlg
+                    ? (data.ExmConfig_NoOfDecimal ? Number(data.ExmConfig_NoOfDecimal) : 2)
+                    : 0,
+                ExmConfig_PassFailRankFlag: data.ExmConfig_PassFailRankFlag === '1' || data.ExmConfig_PassFailRankFlag === true
             };
             const res = await UpdateExamStandard(payload);
             if (res.success) {
                 toast.success(res.message || 'Exam Standard Updated Successfully');
+                refetchAll();
             } else {
-                toast.error(res.message || 'Failed to update mapping');
+                toast.error(res.message || 'Failed to update exam standard');
             }
         } catch (err: any) {
-            toast.error(err.message || 'Failed to update mapping');
+            toast.error(err.message || 'Failed to update exam standard');
         }
     };
 
@@ -164,8 +171,8 @@ function ExamStandardPageContent({
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 <CollapsibleSection
-                    title='Add Configuration'
-                    description='Add a new configuration'
+                    title='Exam Standard'
+                    description='General Configuration'
                     defaultOpen={true}
                     variant='outline'
                     size='md'

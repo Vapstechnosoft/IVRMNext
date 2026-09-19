@@ -23,6 +23,7 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId, asmayYear }
     const receiptRef = useRef<HTMLDivElement>(null);
     const [institute, setInstitute] = useState<IInstituteDetails>({});
     const [loading, setLoading] = useState(true);
+    const [dueAmount, setDueAmount] = useState(0);
     const [studentDetails, setStudentDetails] = useState<StudentPrintDetails[]>([]);
     const [currentPaymentDetails, setCurrentPaymentDetails] = useState<CurrentPaymentDetails[]>([]);
 
@@ -38,6 +39,8 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId, asmayYear }
                 const studentDetails = JSON.parse(JSON.stringify((response as any)?.printtermDTOs?.fee_termwise_fee_receipt_details || []));
                 const currentPaymentDetails = JSON.parse(JSON.stringify((response as any)?.printtermDTOs?.currpaymentdetails || []));
                 // console.log("currentPaymentDetails",currentPaymentDetails)
+                const dueAmount = JSON.parse(JSON.stringify((response as any)?.dueamount));
+                setDueAmount(dueAmount);
                 setStudentDetails(studentDetails);
                 setCurrentPaymentDetails(currentPaymentDetails);
             } catch (err) {
@@ -378,6 +381,13 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId, asmayYear }
                                     <strong>Amount Received (in Words):</strong> {convertNumberToWords(currentPaidAmount)} Rupees Only/-
                                 </div>
 
+                                {rowData.mI_Id == 52 && (
+                                    <div className='mb-1 text-xs'>
+                                        <strong>Next Due Amount: </strong>
+                                        {dueAmount}/-
+                                    </div>
+                                )}
+
                                 <div className='mb-4 text-xs'>
                                     <strong>Note: </strong>
                                     {rowData.mI_Id === 78
@@ -482,7 +492,12 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId, asmayYear }
                                 <div className='mb-4 text-sm'>
                                     <strong>Amount Received (in Words):</strong> {convertNumberToWords(currentPaidAmount)} Rupees Only/-
                                 </div>
-
+                                {rowData.mI_Id == 52 && (
+                                    <div className='mb-1 text-xs'>
+                                        <strong>Next Due Amount: </strong>
+                                        {dueAmount}/-
+                                    </div>
+                                )}
                                 <div className='mb-4 text-xs'>
                                     <strong>Note: </strong>
                                     {rowData.mI_Id === 78

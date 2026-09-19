@@ -17,16 +17,16 @@ export const quotaCategoryMappingColumns: ColumnDef<IMasterQuotaCategoryMapping>
     {
         accessorKey: 'acQ_QuotaName',
         header: () => <div className='text-center font-bold text-black'>Quota Name</div>,
-        cell: ({ row }) => <div className='text-left font-medium'>{row.original.acQ_QuotaName}</div>,
+        cell: ({ row }) => <div className='text-center font-medium'>{row.original.acQ_QuotaName}</div>,
     },
     {
         accessorKey: 'acqC_CategoryName',
         header: () => <div className='text-center font-bold text-black'>Quota Category</div>,
-        cell: ({ row }) => <div className='text-left'>{row.original.acqC_CategoryName}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.original.acqC_CategoryName}</div>,
     },
     {
         id: 'actions',
-        header: () => <div className='font-bold text-black text-center'>Actions</div>,
+        header: () => <div className='font-bold text-black text-left'>Actions</div>,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         size: 100
     }

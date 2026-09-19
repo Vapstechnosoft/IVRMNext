@@ -66,37 +66,58 @@ export default function PublishTable({
             {
                 accessorKey: 'studentName',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
-                cell: ({ row }) => <div className='font-semibold text-foreground'>{row.getValue('studentName')}</div>,
+                cell: ({ row }) => (
+                    <div className='font-semibold text-foreground'>
+                        {row.getValue('studentName') ||
+                            [(row.original as any).amsT_FirstName, (row.original as any).amsT_LastName].filter(Boolean).join(' ') ||
+                            'N/A'}
+                    </div>
+                ),
                 enableSorting: true
             },
             {
                 accessorKey: 'admNo',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Adm No' />,
-                cell: ({ row }) => <div>{row.getValue('admNo')}</div>,
+                cell: ({ row }) => (
+                    <div>
+                        {row.getValue('admNo') || (row.original as any).amsT_AdmNo || (row.original as any).AMST_AdmNo || 'N/A'}
+                    </div>
+                ),
                 enableSorting: true
             },
             {
                 accessorKey: 'rollNo',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No' />,
-                cell: ({ row }) => <div className='text-center'>{row.getValue('rollNo') || 'N/A'}</div>,
+                cell: ({ row }) => (
+                    <div className='text-center'>
+                        {row.getValue('rollNo') || (row.original as any).amsT_RollNo || (row.original as any).AMST_RollNo || 'N/A'}
+                    </div>
+                ),
                 enableSorting: true,
                 size: 90
             },
             {
                 accessorKey: 'marksObtained',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Score' />,
-                cell: ({ row }) => (
-                    <div className='text-center font-bold text-primary'>
-                        {row.original.marksObtained} / {row.original.totalMarks}
-                    </div>
-                ),
+                cell: ({ row }) => {
+                    const obtained = row.original.marksObtained ?? (row.original as any).score ?? 0;
+                    const total = row.original.totalMarks ?? 100;
+                    return (
+                        <div className='text-center font-bold text-primary'>
+                            {obtained} / {total}
+                        </div>
+                    );
+                },
                 enableSorting: true,
                 size: 100
             },
             {
                 accessorKey: 'percentage',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Percentage' />,
-                cell: ({ row }) => <div className='text-center font-semibold'>{row.getValue('percentage')}%</div>,
+                cell: ({ row }) => {
+                    const pct = row.getValue('percentage') ?? (row.original as any).percentage ?? 0;
+                    return <div className='text-center font-semibold'>{pct}%</div>;
+                },
                 enableSorting: true,
                 size: 110
             },
@@ -104,7 +125,8 @@ export default function PublishTable({
                 accessorKey: 'resultStatus',
                 header: ({ column }) => <DataTableColumnHeader column={column} title='Result' />,
                 cell: ({ row }) => {
-                    const pass = row.getValue('resultStatus') === 'Pass';
+                    const res = row.getValue('resultStatus') || (row.original as any).result;
+                    const pass = res === 'Pass' || res === 'PASS' || (Number(row.original.percentage) >= 35);
                     return (
                         <Badge variant={pass ? 'success' : 'destructive'} className='font-medium'>
                             {pass ? 'Pass' : 'Fail'}

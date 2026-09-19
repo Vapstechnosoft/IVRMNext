@@ -1,4 +1,5 @@
 export const runtime = 'nodejs';
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 import { loginSchema } from '@/schemas/admission/preadmission/masters';
 import { getUserByEmail } from '@/server/user-service';

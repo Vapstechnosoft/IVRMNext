@@ -55,9 +55,9 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
         } else if (academicData?.data) {
             const formatted = Array.isArray(academicData.data)
                 ? academicData.data.map((i: any) => ({
-                      asmaY_Id: i.asmaY_Id ?? 0,
-                      asmaY_Year: i.asmaY_Year ?? ''
-                  }))
+                    asmaY_Id: i.asmaY_Id ?? 0,
+                    asmaY_Year: i.asmaY_Year ?? ''
+                }))
                 : [];
             setYears(formatted);
             if (!formatted || formatted.length === 0) {
@@ -152,26 +152,68 @@ export const ReportForm = ({ onReportGenerated, onReset }: ReportFormProps) => {
     const onSubmit = async (data: MarksEntryReportSchema) => {
         try {
             const payload = {
-                ASMAY_Id: Number(data.ASMAY_Id),
-                ASMCL_Id: Number(data.ASMCL_Id),
-                ASMS_Id: Number(data.ASMS_Id),
-                EME_Id: Number(data.EME_Id)
+                mI_Id: 0,
+                asmaY_Id: Number(data.ASMAY_Id),
+                asmcL_Id: Number(data.ASMCL_Id),
+                asmS_Id: Number(data.ASMS_Id),
+                emE_Id: Number(data.EME_Id),
+                ismS_Id: 0,
+                emsS_Id: 0,
+                emsE_Id: 0,
+                amsT_Ids: ''
             };
 
             const selected_Year = years.find((y: any) => y.asmaY_Id === Number(data.ASMAY_Id))?.asmaY_Year || '';
             const selected_Exam = exams.find((e: any) => e.emE_Id === Number(data.EME_Id))?.emE_ExamName || '';
             const result = await getReportDetails(payload);
+            console.info('Marks Entry Report Response:', result);
 
-            const resultData = Array.isArray(result.data) ? result.data : [];
+            // Extract array from direct array, result.data, or nested response properties
+            let resultData: any[] = [];
+            if (Array.isArray(result)) {
+                resultData = result;
+            } else if (Array.isArray(result?.data)) {
+                resultData = result.data;
+            } else if (result?.data && typeof result.data === 'object') {
+                const innerData = result.data as Record<string, any>;
+                const knownKeys = [
+                    'getreportmarksentrylist',
+                    'get_report',
+                    'reportdatelist',
+                    'datalst',
+                    'sectionlist',
+                    'notEnteredSubjects',
+                    'saveddata',
+                    'marklist',
+                    'getreport',
+                    '$values'
+                ];
+                for (const key of knownKeys) {
+                    if (Array.isArray(innerData[key]) && innerData[key].length > 0) {
+                        resultData = innerData[key];
+                        break;
+                    }
+                }
+                if (resultData.length === 0) {
+                    // Fallback to find any array property inside innerData
+                    for (const key of Object.keys(innerData)) {
+                        if (Array.isArray(innerData[key]) && innerData[key].length > 0) {
+                            resultData = innerData[key];
+                            break;
+                        }
+                    }
+                }
+            }
 
-            if (!result.data || resultData.length === 0) {
+            if (resultData.length === 0) {
                 toast.error('No records found');
                 onReportGenerated([], selected_Year, selected_Exam);
             } else {
-                onReportGenerated(result.data, selected_Year, selected_Exam);
+                onReportGenerated(resultData, selected_Year, selected_Exam);
             }
         } catch (error) {
             console.error('Error:', error);
+            toast.error('Failed to generate report');
         }
     };
 

@@ -58,7 +58,7 @@ export default function MasterGroups({ onSuccess, className = '' }: MasterGroups
                 is_Active: true,
                 retvalue: false,
                 asmaY_Id: 0,
-                fmG_PRE_FLAG: '',
+                fmG_PRE_FLAG: '0',
                 fmG_RegNewFlg: studentType === 'regular' ? 'R' : 'N',
                 fmG_HostelFlg: transportHostelType === 'hostel',
                 fmG_TransportFlg: transportHostelType === 'transport',

@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import {
@@ -18,17 +18,18 @@ import DaySubjectUpdate from './daysubjectUpdate';
 
 interface DaySubjectTabProps {
     initialData?: any;
+    searchParams?: any;
 }
 
-export default function DaySubjectTab({ initialData }: DaySubjectTabProps) {
+export default function DaySubjectTab({ initialData, searchParams }: DaySubjectTabProps) {
     return (
         <FormProvider>
-            <DaySubjectTabContent initialData={initialData} />
+            <DaySubjectTabContent initialData={initialData} searchParams={searchParams} />
         </FormProvider>
     );
 }
 
-function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
+function DaySubjectTabContent({ initialData, searchParams }: DaySubjectTabProps) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -50,13 +51,13 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
     const academicList = (academicData as any)?.data || (Array.isArray(academicData) ? academicData : []);
 
     const {
-        data: gridData,
+        data: gridResponse,
         isLoading: gridLoading,
+        error,
         refetchAll
-    } = useSubjectRestrictionDaySubjectGridData({
-        ASMAY_Id: 0,
-        TTMC_Id: 0
-    });
+    } = useSubjectRestrictionDaySubjectGridData(searchParams);
+
+    const tableProps = useDataTableProps(gridResponse);
 
     useEffect(() => {
         const loadDropdowns = async () => {
@@ -78,9 +79,6 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
         closeAllForms();
     };
 
-    const dataArray = (gridData as any)?.data || (gridData as any)?.daysubjectlist || (Array.isArray(gridData) ? gridData : []);
-    const totalItems = (gridData as any)?.total || dataArray.length;
-
     return (
         <div className='space-y-4'>
             <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
@@ -90,7 +88,17 @@ function DaySubjectTabContent({ initialData }: DaySubjectTabProps) {
             </div>
 
             <CollapsibleSection defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
-                <GenericDataTable data={dataArray} columns={daySubjectColumns} isLoading={gridLoading} />
+                <GenericDataTable
+                    {...tableProps}
+                    columns={daySubjectColumns}
+                    isLoading={gridLoading}
+                    error={error}
+                    columnPinning={{ right: ['actions'] }}
+                    loadingMessage='Loading day subject constraint data...'
+                    noDataTitle='No Day Subject Constraints Found'
+                    noDataDescription='Add a new day subject constraint to get started'
+                    errorTitle='Error Loading Data'
+                />
             </CollapsibleSection>
 
             {isToggleFormOpen && selectedRow && <DaySubjectToggle rowData={selectedRow} onClose={closeToggleForm} />}

@@ -30,13 +30,16 @@ export default function ToggleQuotaCategoryForm({ rowData, onClose }: ToggleQuot
         toast.promise(promise, {
             loading: `${actionText}ing Quota Category...`,
             success: (data: any) => {
-                if (data?.message === 'Mapped') {
+                if (data?.success === false) {
+                    onClose();
+                    throw new Error(data?.message || 'Something Went Wrong please contact administrator');
+                } else if (data?.message === 'Mapped') {
                     onClose();
                     throw new Error('You Can Not Deactive This Record Its Already Mapped');
                 } else if (data?.message === 'Error') {
                     onClose();
                     throw new Error('Something Went Wrong please contact administrator');
-                } else if (data?.returnval === 'true' || data?.returnval === true) {
+                } else if (data?.returnval === 'true' || data?.returnval === true || data?.success) {
                     onClose();
                     return `Quota Category ${actionText}d Successfully`;
                 }

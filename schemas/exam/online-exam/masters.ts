@@ -20,10 +20,26 @@ export const questionFileSchema = z.object({
 export const masterQuestionSchema = z.object({
     lmsmoeQ_Id: z.number().optional(),
     ismS_Id: z.coerce.number({ required_error: 'Subject is required' }).min(1, 'Please select a subject'),
+    topic_Id: z.coerce.number().optional(),
+    
+    // Question Types
+    isTextType: z.boolean().default(true),
+    isMathChemType: z.boolean().default(false),
+    isStructuralType: z.boolean().default(false),
+    
     lmsmoeQ_Question: z.string().min(3, 'Question must be at least 3 characters long').max(1000, 'Max 1000 characters'),
     lmsmoeQ_QuestionDesc: z.string().max(2000, 'Max 2000 characters').optional().or(z.literal('')),
-    lmsmoeQ_Marks: z.coerce.number({ required_error: 'Marks is required' }).min(1, 'Marks must be at least 1'),
+    
     lmsmoecX_Id: z.coerce.number().optional(),
+    lmsmoeQ_NoOfOptions: z.coerce.number().optional(),
+    lmsmoeQ_Marks: z.coerce.number({ required_error: 'Marks is required' }).min(1, 'Marks must be at least 1'),
+    
+    subjectiveFlg: z.boolean().default(false),
+    subjectiveAnswer: z.string().optional().or(z.literal('')),
+    matchTheFollowingFlg: z.boolean().default(false),
+    noOfRows: z.coerce.number().optional(),
+    noOfColumns: z.coerce.number().optional(),
+
     classIds: z.array(z.number()).optional(),
     options: z.array(questionOptionSchema).optional(),
     files: z.array(questionFileSchema).optional()

@@ -97,7 +97,7 @@ function FormSections() {
                 <div ref={addFormRef}>
                     <CollapsibleSection
                         title='Add New Master Exam Paper'
-                        description='Fill in the details below to create a new master subject'
+                        description='Fill in the details below to create a new master exam paper'
                         defaultOpen={true}
                         variant='outline'
                         size='md'
