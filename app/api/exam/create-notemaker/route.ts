@@ -1,5 +1,6 @@
 // Use node:stream for better compatibility with modern Node environments in Next.js 15
 import { Readable } from 'node:stream';
+import { standardizeNoteMarkdown } from '@/lib/notemaker-cleaner';
 import Groq from 'groq-sdk';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -94,7 +95,6 @@ export async function POST(req: NextRequest) {
         const timestamp = new Date().toISOString();
         const entry = `[${timestamp}] ${msg}`;
         logs.push(entry);
-        console.log(entry);
     };
 
     try {
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
         const formFields: Record<string, string> = {};
 
         await new Promise((resolve, reject) => {
-            bb.on('file', (name: string, file: any, info: any) => {
+            bb.on('file', (_name: string, file: any, info: any) => {
                 const { filename } = info;
                 fileName = filename;
                 const chunks: any[] = [];
@@ -149,8 +149,8 @@ export async function POST(req: NextRequest) {
         const buffer = fileBuffer as Buffer;
         log(`File received: ${fileName}, Size: ${buffer.length}`);
 
-        const chapter = formFields['chapter'] || '';
-        const mode = formFields['mode'] || 'both'; // both, summary, notes
+        const chapter = formFields.chapter || '';
+        const mode = formFields.mode || 'both'; // both, summary, notes
 
         let extractedText = '';
 
@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
                 ${contextContent}
 
                 TASK:
-                Create a high-level Academic Executive Summary ${chapter ? 'for chapter ' + chapter : 'for the provided document'}.
+                Create a high-level Academic Executive Summary ${chapter ? `for chapter ${chapter}` : 'for the provided document'}.
                 
                 **STRICT REQUIREMENT**: The summary MUST be presented in clear, concise bullet points for maximum readability.
                 
@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
                 ${contextContent}
 
                 TASK:
-                Create **Exhaustive, Ultra-Detailed Study Material** ${chapter ? 'specifically for chapter ' + chapter : 'for the provided material'}.
+                Create **Exhaustive, Ultra-Detailed Study Material** ${chapter ? `specifically for chapter ${chapter}` : 'for the provided material'}.
 
                 **COMPULSORY REQUIREMENT: 1500+ WORDS MINIMUM**
                 You are strictly forbidden from giving short answers. You must produce a MASSIVE, long-form academic document.
@@ -210,7 +210,14 @@ export async function POST(req: NextRequest) {
                 5. **EXTENSIVE DEFINITION LIST**: Provide 2-3 sentence definitions for every technical keyword.
 
                 **STRICT INSTRUCTIONS**:
-                - **STRICT REQUIREMENT**: **BOLD** all topic and sub-topic titles.
+                - **FORMATTING REQUIREMENTS (STANDARD CLEAN MARKDOWN)**:
+                  * Start the notes with the Chapter Title as a top-level header: '# CHAPTER <X> – <TITLE>'. DO NOT wrap chapter titles in asterisks ('**').
+                  * Use '## 1. <SECTION TITLE>' for numbered major sections (e.g. '## 1. EXHAUSTIVE INTRODUCTION').
+                  * Use '### <SUBTOPIC TITLE>' for sub-topic sections.
+                  * Use standard bullet points ('- ') for lists.
+                  * Use '**keyword**' strictly for highlighting key technical terms inline inside paragraphs or list items. Always close all asterisks properly.
+                  * Never output unbalanced or stray asterisks like '*text**' or '**text*'. Never leave stray asterisks around headings or dividers.
+                  * Use '---' on its own line between major sections.
                 - Use professional, academic, and extremely descriptive language.
                 - Capture EVERYTHING. Do not summarize. EXPAND on every sentence of the input.
             `;
@@ -220,7 +227,7 @@ export async function POST(req: NextRequest) {
 
                 TASK:
                 1. Provide an **Exam-Focused Executive Summary** (~300 words). 
-                   **REQUIREMENT**: Use clear bullet points for the summary.
+                   **REQUIREMENT**: Use clear standard bullet points ('- ') for the summary.
                 2. Provide **Exhaustive Study Material (COMPULSORY 1500+ WORDS)**.
 
                 **STRICT REQUIREMENT FOR NOTES**:
@@ -228,7 +235,14 @@ export async function POST(req: NextRequest) {
                 - You must take the provided text and EXPAND it into a full standalone textbook chapter.
                 - Every topic must be a full lesson with deep technical detail.
                 - Capture EVERY sub-topic. If the text mentions it, you must write a detailed section on it.
-                - **STRICT REQUIREMENT**: **BOLD** all topic names and key technical terms.
+                - **FORMATTING REQUIREMENTS (STANDARD CLEAN MARKDOWN)**:
+                  * Start the notes with the Chapter Title as a top-level header: '# CHAPTER <X> – <TITLE>'. DO NOT wrap chapter titles in asterisks.
+                  * Use '## 1. <SECTION TITLE>' for numbered major sections (e.g. '## 1. EXHAUSTIVE INTRODUCTION').
+                  * Use '### <SUBTOPIC TITLE>' for sub-topics.
+                  * Use standard bullet points ('- ') for lists.
+                  * Use '**keyword**' strictly for highlighting key technical terms inline inside paragraphs or list items.
+                  * Never output stray asterisks or unbalanced asterisks like '*text**' or '**text*'.
+                  * Use '---' on its own line between major sections.
                 - Use hierarchical, professional formatting.
 
                 OUTPUT FORMAT:
@@ -248,7 +262,7 @@ export async function POST(req: NextRequest) {
                 {
                     role: 'system',
                     content:
-                        'You are an Elite Academic Architect. You produce MASSIVE, ultra-detailed, long-form study materials (minimum 1500-2000 words). You never summarize; you expand every single concept provided into a full, standalone lesson with deep descriptive paragraphs. You are characterized by extreme verbosity and academic depth.'
+                        'You are an Elite Academic Architect. You produce MASSIVE, ultra-detailed, long-form study materials (minimum 1500-2000 words). You never summarize; you expand every single concept provided into a full, standalone lesson with deep descriptive paragraphs. You write pristine standard Markdown without stray or broken asterisks.'
                 },
                 { role: 'user', content: prompt }
             ],
@@ -264,12 +278,12 @@ export async function POST(req: NextRequest) {
 
         if (mode === 'both') {
             const parts = content.split(/---NOTES---/i);
-            summary = parts[0].replace(/---SUMMARY---/i, '').trim();
-            notes = parts[1]?.trim() || '';
+            summary = standardizeNoteMarkdown(parts[0].replace(/---SUMMARY---/i, '').trim());
+            notes = standardizeNoteMarkdown(parts[1]?.trim() || '');
         } else if (mode === 'summary') {
-            summary = content;
+            summary = standardizeNoteMarkdown(content);
         } else {
-            notes = content;
+            notes = standardizeNoteMarkdown(content);
         }
 
         return NextResponse.json({ summary, notes, chapter });

@@ -23,7 +23,9 @@ import {
 import type React from 'react';
 import { useRef, useState } from 'react';
 
+import { NoteContentRenderer } from '@/components/ai-notemaker/note-content-renderer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { standardizeNoteMarkdown } from '@/lib/notemaker-cleaner';
 import { exportNoteMakerPdf, printNoteMakerContent } from '@/lib/notemaker-pdf-export';
 import { toast } from 'sonner';
 
@@ -56,7 +58,7 @@ export default function AINotemaker() {
     const [originalResult, setOriginalResult] = useState<{ summary?: string; notes?: string; chapter?: string } | null>(null);
     const [selectedLanguage, setSelectedLanguage] = useState<string>('English');
     const [isTranslating, setIsTranslating] = useState<boolean>(false);
-    const [errorLog, setErrorLog] = useState<string | null>(null);
+    const [_errorLog, setErrorLog] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
     const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -182,7 +184,7 @@ export default function AINotemaker() {
     };
 
     const handleCopyContent = (text: string) => {
-        navigator.clipboard.writeText(text);
+        navigator.clipboard.writeText(standardizeNoteMarkdown(text));
         toast.success('Copied to clipboard');
     };
 
@@ -217,7 +219,7 @@ export default function AINotemaker() {
         });
     };
 
-    const renderWithBold = (text: string) => {
+    const _renderWithBold = (text: string) => {
         if (!text) return null;
         const parts = text.split(/(\*\*.*?\*\*)/g);
         return parts.map((part, index) => {
@@ -476,27 +478,8 @@ export default function AINotemaker() {
                                                 <Clipboard className='h-4 w-4' />
                                             </Button>
                                         </CardHeader>
-                                        <CardContent className='p-8'>
-                                            <div className='prose prose-slate max-w-none text-lg text-muted-foreground leading-relaxed'>
-                                                {result.summary.split('\n').map((line, i) => {
-                                                    const trimmedLine = line.trim();
-                                                    if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
-                                                        return (
-                                                            <div key={i} className='mb-2 ml-4 flex items-start'>
-                                                                <span className='mt-1.5 mr-3 text-primary'>•</span>
-                                                                <span className='flex-1'>
-                                                                    {renderWithBold(trimmedLine.substring(1).trim())}
-                                                                </span>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return (
-                                                        <p key={i} className='mb-3'>
-                                                            {renderWithBold(line)}
-                                                        </p>
-                                                    );
-                                                })}
-                                            </div>
+                                        <CardContent className='p-6 md:p-8'>
+                                            <NoteContentRenderer content={result.summary} variant='summary' />
                                         </CardContent>
                                     </Card>
                                 )}
@@ -520,43 +503,8 @@ export default function AINotemaker() {
                                                 <Clipboard className='h-4 w-4' />
                                             </Button>
                                         </CardHeader>
-                                        <CardContent className='bg-white p-8'>
-                                            <div className='prose prose-blue max-w-none'>
-                                                <div className='whitespace-pre-wrap font-sans text-slate-800'>
-                                                    {result.notes.split('\n').map((line, i) => {
-                                                        const trimmedLine = line.trim();
-                                                        if (
-                                                            trimmedLine.startsWith('#') ||
-                                                            (trimmedLine.toUpperCase() === trimmedLine &&
-                                                                trimmedLine.length > 3 &&
-                                                                !trimmedLine.includes(' '))
-                                                        ) {
-                                                            return (
-                                                                <h3
-                                                                    key={i}
-                                                                    className='mt-6 mb-3 border-b pb-2 font-bold text-primary text-xl'>
-                                                                    {renderWithBold(trimmedLine.replace(/^#+\s*/, ''))}
-                                                                </h3>
-                                                            );
-                                                        }
-                                                        if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
-                                                            return (
-                                                                <li key={i} className='mb-2 ml-4 flex list-none items-start'>
-                                                                    <span className='mt-1.5 mr-2 text-primary'>•</span>
-                                                                    <span className='flex-1'>
-                                                                        {renderWithBold(trimmedLine.substring(1).trim())}
-                                                                    </span>
-                                                                </li>
-                                                            );
-                                                        }
-                                                        return (
-                                                            <p key={i} className='mb-2 leading-relaxed'>
-                                                                {renderWithBold(line)}
-                                                            </p>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
+                                        <CardContent className='bg-white p-6 md:p-8'>
+                                            <NoteContentRenderer content={result.notes} variant='notes' />
                                         </CardContent>
                                         <CardFooter className='justify-center border-t bg-muted/30 py-4'>
                                             <p className='text-muted-foreground text-xs'>Generated by AI Notemaker • Optimized for Exams</p>

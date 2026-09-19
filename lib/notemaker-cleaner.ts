@@ -1,0 +1,100 @@
+/**
+ * Utility to sanitize, standardize, and clean AI-generated Academic Notes and Summaries.
+ * Fixes stray, unbalanced, or unwanted asterisks (* and **), converts chapter and section
+ * headers to standard Markdown, standardizes bullet lists and dividers, and eliminates
+ * any formatting artifacts that degrade readability.
+ */
+
+export function standardizeNoteMarkdown(content: string): string {
+    if (!content) return '';
+
+    let text = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+    // 1. Standardize major chapter headers wrapped in asterisks or symbols to standard H1
+    // e.g. "*CHAPTER 1 – ...**", "**CHAPTER 1 – ...**", "***CHAPTER 1 – ...***", or starting with bullet dot "• *CHAPTER 1..."
+    text = text.replace(/^(?:\s*[-*•\s]*)?\*{1,3}\s*((?:CHAPTER|UNIT|MODULE|LESSON)\s+[0-9IVXLCDM]+[^\n*]*?)\s*\*{1,3}(?:\s*)$/gim, '# $1');
+
+    // Any line that starts with CHAPTER/UNIT/MODULE without a markdown heading
+    text = text.replace(/^(?:\s*[-*•\s]*)((?:CHAPTER|UNIT|MODULE|LESSON)\s+[0-9IVXLCDM]+[:\s–—\-][^\n]+)$/gim, (_match, p1) => {
+        const clean = p1
+            .replace(/^[-*•\s]+/, '')
+            .replace(/\*+/g, '')
+            .trim();
+        return `# ${clean}`;
+    });
+
+    // 2. Standardize dividers: e.g. "--", "---", "***", "___", or bullet with divider "• --"
+    text = text.replace(/^(?:\s*[-*•\s]*)(?:-{2,}|\*{3,}|_{3,})(?:\s*)$/gm, '\n---\n');
+
+    // 3. Standardize numbered major sections to H2
+    // e.g. "**1. EXHAUSTIVE INTRODUCTION (~250 WORDS)**"
+    // e.g. "1. **EXHAUSTIVE INTRODUCTION (~250 WORDS)**"
+    // e.g. "1. EXHAUSTIVE INTRODUCTION (≈250 WORDS)"
+    text = text.replace(/^(?:\s*)(?:##\s*)?\*{0,3}(\d+[\.\)]\s+[A-Z0-9\s\/\-_–—\(\):,≈~]+?)\*{0,3}(?:\s*)$/gm, (match, p1) => {
+        const clean = p1.replace(/\*+/g, '').trim();
+        // Only if it looks like a major section heading (uppercase words and reasonable length)
+        if (clean.length < 90 && /[A-Z]{3,}/.test(clean)) {
+            return `## ${clean}`;
+        }
+        return match;
+    });
+
+    // 4. Standalone sub-topic bold lines to H3
+    // e.g. "**CONCEPTUAL DEEP-DIVE**" or "**CRITICAL ANALYSIS & EXAM PREP**"
+    text = text.replace(/^(?:\s*)\*{2,3}([A-Z0-9\s\-_–—\(\):,]{4,60})\*{2,3}(?:\s*)$/gm, '### $1');
+
+    // 5. Fix bullet points:
+    // Only lines starting with a bullet marker followed by space
+    text = text.replace(/^(?:\s*)(?:[\*\+\-•])\s+/gm, '- ');
+
+    // 6. Fix unbalanced or malformed asterisks inside text:
+    // Pattern: "*word**" -> "**word**"
+    text = text.replace(/([^\w*]|^)\*([a-zA-Z0-9\s\-_–—:]{2,50})\*\*(?=[^\w*]|$)/g, '$1**$2**');
+    // Pattern: "**word*" -> "**word**"
+    text = text.replace(/([^\w*]|^)\*\*([a-zA-Z0-9\s\-_–—:]{2,50})\*(?=[^\w*]|$)/g, '$1**$2**');
+
+    // 7. Replace triple asterisks "***bold italic***" with clean bold "**bold italic**"
+    text = text.replace(/\*\*\*([^*]+?)\*\*\*/g, '**$1**');
+
+    // 8. Fix empty or corrupt bold tags: "****" or "** **"
+    text = text.replace(/\*\*\s*\*\*/g, '');
+
+    // 9. Remove stray isolated asterisks:
+    // e.g. " * " or isolated asterisk surrounded by spaces
+    text = text.replace(/(\s)\*(\s)/g, '$1$2');
+
+    // 10. Clean markdown headings that still have bold markers inside them
+    // e.g. "## **1. Introduction**" -> "## 1. Introduction"
+    text = text.replace(/^(#{1,6}\s+)\*{1,3}(.*?)\*{1,3}$/gm, '$1$2');
+
+    // 11. Repair any odd/unclosed bold tags per line so text doesn't leak raw asterisks
+    const lines = text.split('\n');
+    const processedLines = lines.map((line) => {
+        // Skip code fences or dividers
+        if (/^(---\s*|```)/.test(line.trim())) return line;
+
+        // If line is a heading, strip remaining asterisks
+        if (/^#{1,6}\s+/.test(line.trim())) {
+            return line.replace(/\*+/g, '');
+        }
+
+        const boldMatches = line.match(/\*\*/g);
+        if (boldMatches && boldMatches.length % 2 !== 0) {
+            // Unmatched '**' on this line.
+            // If it's a lead definition e.g. "- **Key Term: rest of explanation"
+            const leadMatch = line.match(/^(\s*(?:-\s+)?)\*\*([^*:\n]+):?(.*)$/);
+            if (leadMatch) {
+                return `${leadMatch[1]}**${leadMatch[2].trim()}**: ${leadMatch[3].trim()}`;
+            }
+            // Otherwise remove the orphan '**'
+            return line.replace(/\*\*/, '');
+        }
+        return line;
+    });
+
+    // 12. Collapse excessive consecutive blank lines (max 2)
+    return processedLines
+        .join('\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}

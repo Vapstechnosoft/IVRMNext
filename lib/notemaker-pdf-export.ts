@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { standardizeNoteMarkdown } from './notemaker-cleaner';
 
 export interface NoteMakerPdfOptions {
     chapter?: string;
@@ -75,7 +76,8 @@ interface MarkdownBlock {
 }
 
 export function parseMarkdownBlocks(content: string): MarkdownBlock[] {
-    const lines = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    const cleanContent = standardizeNoteMarkdown(content || '');
+    const lines = cleanContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
     const blocks: MarkdownBlock[] = [];
     let currentParagraph: string[] = [];
 
@@ -513,15 +515,22 @@ async function buildHtmlCanvasPdf(options: NoteMakerPdfOptions): Promise<jsPDF> 
  * Selects the optimal rendering engine based on language script.
  */
 export async function exportNoteMakerPdf(options: NoteMakerPdfOptions): Promise<void> {
-    const combinedContent = `${options.summary || ''}\n${options.notes || ''}`;
+    const sanitizedSummary = standardizeNoteMarkdown(options.summary || '');
+    const sanitizedNotes = standardizeNoteMarkdown(options.notes || '');
+    const sanitizedOptions: NoteMakerPdfOptions = {
+        ...options,
+        summary: sanitizedSummary,
+        notes: sanitizedNotes
+    };
+    const combinedContent = `${sanitizedSummary}\n${sanitizedNotes}`;
     const needsComplexShaping =
-        (options.language && options.language.toLowerCase() !== 'english') || containsComplexScript(combinedContent);
+        (sanitizedOptions.language && sanitizedOptions.language.toLowerCase() !== 'english') || containsComplexScript(combinedContent);
 
     let doc: jsPDF;
     if (needsComplexShaping) {
-        doc = await buildHtmlCanvasPdf(options);
+        doc = await buildHtmlCanvasPdf(sanitizedOptions);
     } else {
-        doc = buildVectorPdf(options);
+        doc = buildVectorPdf(sanitizedOptions);
     }
 
     const cleanChapter = (options.chapter || 'Document').replace(/[^a-zA-Z0-9_\-]/g, '_');
@@ -533,7 +542,9 @@ export async function exportNoteMakerPdf(options: NoteMakerPdfOptions): Promise<
  * Helper to trigger clean browser print for the current notes.
  */
 export function printNoteMakerContent(options: NoteMakerPdfOptions): void {
-    const { chapter, summary, notes } = options;
+    const { chapter } = options;
+    const summary = standardizeNoteMarkdown(options.summary || '');
+    const notes = standardizeNoteMarkdown(options.notes || '');
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
@@ -544,7 +555,10 @@ export function printNoteMakerContent(options: NoteMakerPdfOptions): void {
     if (summary) {
         summaryHtml = `
             <div class="section-banner">EXECUTIVE SUMMARY</div>
-            <div class="content-body">${summary.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>')}</div>
+            <div class="content-body">${summary
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*+/g, '')
+                .replace(/\n/g, '<br/>')}</div>
         `;
     }
 
@@ -552,7 +566,10 @@ export function printNoteMakerContent(options: NoteMakerPdfOptions): void {
     if (notes) {
         notesHtml = `
             <div class="section-banner">STRUCTURED STUDY MATERIAL</div>
-            <div class="content-body">${notes.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>')}</div>
+            <div class="content-body">${notes
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*+/g, '')
+                .replace(/\n/g, '<br/>')}</div>
         `;
     }
 

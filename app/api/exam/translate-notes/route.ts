@@ -1,3 +1,4 @@
+import { standardizeNoteMarkdown } from '@/lib/notemaker-cleaner';
 import Groq from 'groq-sdk';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -60,17 +61,17 @@ ${notes ? `---NOTES---\n${notes}\n` : ''}
 
         if (summary && notes) {
             const parts = content.split(/---NOTES---/i);
-            translatedSummary = parts[0].replace(/---SUMMARY---/i, '').trim();
-            translatedNotes = parts[1]?.trim() || '';
+            translatedSummary = standardizeNoteMarkdown(parts[0].replace(/---SUMMARY---/i, '').trim());
+            translatedNotes = standardizeNoteMarkdown(parts[1]?.trim() || '');
         } else if (summary) {
-            translatedSummary = content.replace(/---SUMMARY---/i, '').trim();
+            translatedSummary = standardizeNoteMarkdown(content.replace(/---SUMMARY---/i, '').trim());
         } else {
-            translatedNotes = content.replace(/---NOTES---/i, '').trim();
+            translatedNotes = standardizeNoteMarkdown(content.replace(/---NOTES---/i, '').trim());
         }
 
         return NextResponse.json({
-            summary: translatedSummary || summary,
-            notes: translatedNotes || notes,
+            summary: translatedSummary || standardizeNoteMarkdown(summary),
+            notes: translatedNotes || standardizeNoteMarkdown(notes),
             language: targetLanguage
         });
     } catch (error: any) {
