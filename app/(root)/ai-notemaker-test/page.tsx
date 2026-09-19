@@ -25,6 +25,7 @@ import { useRef, useState } from 'react';
 
 import { NoteContentRenderer } from '@/components/ai-notemaker/note-content-renderer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { formatAiErrorMessage } from '@/lib/ai-error-handler';
 import { standardizeNoteMarkdown } from '@/lib/notemaker-cleaner';
 import { exportNoteMakerPdf, printNoteMakerContent } from '@/lib/notemaker-pdf-export';
 import { toast } from 'sonner';
@@ -107,8 +108,8 @@ export default function AINotemaker() {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate notes');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(formatAiErrorMessage(errorData.error || 'Failed to generate notes'));
             }
 
             const data = await response.json();
@@ -118,7 +119,7 @@ export default function AINotemaker() {
             toast.success('Notes generated successfully');
         } catch (error: any) {
             console.error('Notemaker Error:', error);
-            const displayMessage = error.message || 'Error generating notes. Please try again.';
+            const displayMessage = formatAiErrorMessage(error, 'Error generating notes. Please try again.');
             setErrorMessage(displayMessage);
             toast.error(displayMessage);
         } finally {
@@ -153,8 +154,8 @@ export default function AINotemaker() {
             });
 
             if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error || 'Translation failed');
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(formatAiErrorMessage(errData.error || 'Translation failed'));
             }
 
             const translatedData = await response.json();
@@ -166,7 +167,7 @@ export default function AINotemaker() {
             toast.success(`Notes translated to ${targetLang}`, { id: 'translate-notemaker' });
         } catch (err: any) {
             console.error('Translation Error:', err);
-            toast.error(err.message || 'Failed to translate notes', { id: 'translate-notemaker' });
+            toast.error(formatAiErrorMessage(err, 'Failed to translate notes'), { id: 'translate-notemaker' });
         } finally {
             setIsTranslating(false);
         }

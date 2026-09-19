@@ -1,4 +1,5 @@
 import { Readable } from 'node:stream';
+import { formatAiErrorMessage, isAiRateLimitError } from '@/lib/ai-error-handler';
 import Groq from 'groq-sdk';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -139,6 +140,14 @@ Ensure all math expressions are clear. Use bold text for key terms.`;
         return NextResponse.json({ solution: content, logs });
     } catch (error: any) {
         log(`Error in Doubt Resolver: ${error.message}`);
-        return NextResponse.json({ error: error.message, logs }, { status: 500 });
+        const isRateLimit = isAiRateLimitError(error);
+        const userFacingMessage = formatAiErrorMessage(error, 'Failed to resolve doubt. Please try again.');
+        return NextResponse.json(
+            {
+                error: userFacingMessage,
+                logs: isRateLimit ? undefined : logs
+            },
+            { status: isRateLimit ? 429 : 500 }
+        );
     }
 }

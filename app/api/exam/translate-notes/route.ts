@@ -1,3 +1,4 @@
+import { formatAiErrorMessage, isAiRateLimitError } from '@/lib/ai-error-handler';
 import { standardizeNoteMarkdown } from '@/lib/notemaker-cleaner';
 import Groq from 'groq-sdk';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -76,6 +77,8 @@ ${notes ? `---NOTES---\n${notes}\n` : ''}
         });
     } catch (error: any) {
         console.error('Translation Error:', error);
-        return NextResponse.json({ error: error.message || 'Translation failed' }, { status: 500 });
+        const isRateLimit = isAiRateLimitError(error);
+        const userFacingMessage = formatAiErrorMessage(error, 'Translation failed');
+        return NextResponse.json({ error: userFacingMessage }, { status: isRateLimit ? 429 : 500 });
     }
 }

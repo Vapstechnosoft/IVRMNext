@@ -1,5 +1,6 @@
 // Use node:stream for better compatibility with modern Node environments in Next.js 15
 import { Readable } from 'node:stream';
+import { formatAiErrorMessage, isAiRateLimitError } from '@/lib/ai-error-handler';
 import { standardizeNoteMarkdown } from '@/lib/notemaker-cleaner';
 import Groq from 'groq-sdk';
 import { type NextRequest, NextResponse } from 'next/server';
@@ -289,6 +290,15 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ summary, notes, chapter });
     } catch (error: any) {
         log(`Error: ${error.message}`);
-        return NextResponse.json({ error: error.message, logs }, { status: 500 });
+        const isRateLimit = isAiRateLimitError(error);
+        const userFacingMessage = formatAiErrorMessage(error, 'Failed to generate study notes');
+
+        return NextResponse.json(
+            {
+                error: userFacingMessage,
+                logs: isRateLimit ? undefined : logs
+            },
+            { status: isRateLimit ? 429 : 500 }
+        );
     }
 }
