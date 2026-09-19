@@ -42,23 +42,23 @@ export default function AddMasterExamPaperForm({ onSuccess, className = '' }: Ad
             // Prepare the payload with form data and fixed values
             const payload = {
                 empatY_Id: 0,
-                empatY_PaperTypeName: data.empatY_PaperTypeName,
-                empatY_Color: data.empatY_Color,
-                empatY_PaperTypeDescription: data.empatY_PaperTypeDescription
+                empatY_PaperTypeName: data.empatY_PaperTypeName.trim(),
+                empatY_Color: data.empatY_Color.trim(),
+                empatY_PaperTypeDescription: data.empatY_PaperTypeDescription.trim()
             };
 
             const response = await addOrUpdateMasterExamPaper(payload);
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success(response.message || 'Exam Paper added successfully');
                 reset();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to add Exam Paper');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error.message || 'Something went wrong');
         }
     };
 

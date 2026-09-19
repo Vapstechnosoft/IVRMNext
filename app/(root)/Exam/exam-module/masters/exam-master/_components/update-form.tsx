@@ -49,14 +49,25 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
     // ✅ Prefill data when editing
     useEffect(() => {
         if (row) {
+            const rowData: any = row;
             reset({
-                emE_Id: row.emE_Id,
-                emE_ExamName: row.emE_ExamName ?? '',
-                emE_IVRSExamName: row.emE_IVRSExamName ?? '',
-                emE_ExamDescription: row.emE_ExamDescription ?? '',
-                emE_ExamCode: row.emE_ExamCode ?? '',
-                emE_FinalExamFlag: Boolean(row.emE_FinalExamFlag),
-                emE_SujectwiseMarksPublishFlg: Boolean(row.emE_SujectwiseMarksPublishFlg)
+                emE_Id: row.emE_Id ?? rowData.eme_Id ?? rowData.EME_Id ?? 0,
+                emE_ExamName: row.emE_ExamName ?? rowData.eme_ExamName ?? rowData.EME_ExamName ?? '',
+                emE_IVRSExamName: row.emE_IVRSExamName ?? rowData.eme_IVRSExamName ?? rowData.EME_IVRSExamName ?? '',
+                emE_ExamDescription:
+                    row.emE_ExamDescription ??
+                    rowData.emE_ExamDiscription ??
+                    rowData.eme_ExamDescription ??
+                    rowData.emE_Examdescription ??
+                    rowData.emE_ExamDesc ??
+                    rowData.eme_examdescription ??
+                    rowData.EME_ExamDescription ??
+                    rowData.EME_ExamDiscription ??
+                    rowData.examDescription ??
+                    '',
+                emE_ExamCode: row.emE_ExamCode ?? rowData.eme_ExamCode ?? rowData.EME_ExamCode ?? '',
+                emE_FinalExamFlag: Boolean(row.emE_FinalExamFlag ?? rowData.eme_FinalExamFlag ?? rowData.EME_FinalExamFlag),
+                emE_SujectwiseMarksPublishFlg: Boolean(row.emE_SujectwiseMarksPublishFlg ?? rowData.eme_SujectwiseMarksPublishFlg ?? rowData.EME_SujectwiseMarksPublishFlg)
             });
         }
     }, [row, reset]);
@@ -66,6 +77,11 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
         try {
             const payload = {
                 ...data,
+                emE_ExamDescription: data.emE_ExamDescription,
+                emE_ExamDiscription: data.emE_ExamDescription,
+                emE_ExamDesc: data.emE_ExamDescription,
+                EME_ExamDescription: data.emE_ExamDescription,
+                EME_ExamDiscription: data.emE_ExamDescription,
                 emE_FinalExamFlag: Boolean(data.emE_FinalExamFlag),
                 emE_SujectwiseMarksPublishFlg: Boolean(data.emE_SujectwiseMarksPublishFlg)
             };
@@ -88,14 +104,25 @@ export default function UpdateMasterExamForm({ onSuccess, className = '', select
     // ✅ Reset form to selected row values
     const handleReset = () => {
         if (row) {
+            const rowData: any = row;
             reset({
-                emE_Id: row.emE_Id,
-                emE_ExamName: row.emE_ExamName ?? '',
-                emE_IVRSExamName: row.emE_IVRSExamName ?? '',
-                emE_ExamDescription: row.emE_ExamDescription ?? '',
-                emE_ExamCode: row.emE_ExamCode ?? '',
-                emE_FinalExamFlag: Boolean(row.emE_FinalExamFlag),
-                emE_SujectwiseMarksPublishFlg: Boolean(row.emE_SujectwiseMarksPublishFlg)
+                emE_Id: row.emE_Id ?? rowData.eme_Id ?? rowData.EME_Id ?? 0,
+                emE_ExamName: row.emE_ExamName ?? rowData.eme_ExamName ?? rowData.EME_ExamName ?? '',
+                emE_IVRSExamName: row.emE_IVRSExamName ?? rowData.eme_IVRSExamName ?? rowData.EME_IVRSExamName ?? '',
+                emE_ExamDescription:
+                    row.emE_ExamDescription ??
+                    rowData.emE_ExamDiscription ??
+                    rowData.eme_ExamDescription ??
+                    rowData.emE_Examdescription ??
+                    rowData.emE_ExamDesc ??
+                    rowData.eme_examdescription ??
+                    rowData.EME_ExamDescription ??
+                    rowData.EME_ExamDiscription ??
+                    rowData.examDescription ??
+                    '',
+                emE_ExamCode: row.emE_ExamCode ?? rowData.eme_ExamCode ?? rowData.EME_ExamCode ?? '',
+                emE_FinalExamFlag: Boolean(row.emE_FinalExamFlag ?? rowData.eme_FinalExamFlag ?? rowData.EME_FinalExamFlag),
+                emE_SujectwiseMarksPublishFlg: Boolean(row.emE_SujectwiseMarksPublishFlg ?? rowData.eme_SujectwiseMarksPublishFlg ?? rowData.EME_SujectwiseMarksPublishFlg)
             });
         }
     };
