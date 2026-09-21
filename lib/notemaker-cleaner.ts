@@ -47,25 +47,42 @@ export function standardizeNoteMarkdown(content: string): string {
     // Only lines starting with a bullet marker followed by space
     text = text.replace(/^(?:\s*)(?:[\*\+\-•])\s+/gm, '- ');
 
-    // 6. Fix unbalanced or malformed asterisks inside text:
-    // Pattern: "*word**" -> "**word**"
-    text = text.replace(/([^\w*]|^)\*([a-zA-Z0-9\s\-_–—:]{2,50})\*\*(?=[^\w*]|$)/g, '$1**$2**');
-    // Pattern: "**word*" -> "**word**"
-    text = text.replace(/([^\w*]|^)\*\*([a-zA-Z0-9\s\-_–—:]{2,50})\*(?=[^\w*]|$)/g, '$1**$2**');
+    // 6. Fix internal whitespace in bold markers: "** text **" or "**text **" -> "**text**"
+    // CommonMark disallows whitespace immediately following opening ** or preceding closing **.
+    // Azure Translator frequently generates spaces inside bold markers.
+    text = text.replace(/\*\*\s*([^*\n]+?)\s*\*\*/g, (_match, p1) => {
+        const trimmed = p1.trim();
+        return trimmed ? `**${trimmed}**` : '';
+    });
 
-    // 7. Replace triple asterisks "***bold italic***" with clean bold "**bold italic**"
+    // 7. Fix internal whitespace in italic markers: "* text *" -> "*text*"
+    text = text.replace(/(?<!\*)\*\s*([^*\n]+?)\s*\*(?!\*)/g, (_match, p1) => {
+        const trimmed = p1.trim();
+        return trimmed ? `*${trimmed}*` : '';
+    });
+
+    // 8. Fix unbalanced or malformed asterisks inside text across all Unicode scripts:
+    // Pattern: "*word**" -> "**word**"
+    text = text.replace(/(^|[^\*])\*(?!\*)([^*\n]{2,60})\*\*(?!\*)/gu, '$1**$2**');
+    // Pattern: "**word*" -> "**word**"
+    text = text.replace(/(^|[^\*])\*\*(?!\*)([^*\n]{2,60})\*(?!\*)/gu, '$1**$2**');
+
+    // 9. Replace triple asterisks "***bold italic***" with clean bold "**bold italic**"
     text = text.replace(/\*\*\*([^*]+?)\*\*\*/g, '**$1**');
 
-    // 8. Fix empty or corrupt bold tags: "****" or "** **"
+    // 10. Fix empty or corrupt bold tags: "****" or "** **"
     text = text.replace(/\*\*\s*\*\*/g, '');
 
-    // 9. Remove stray isolated asterisks:
+    // 11. Remove stray isolated asterisks:
     // e.g. " * " or isolated asterisk surrounded by spaces
     text = text.replace(/(\s)\*(\s)/g, '$1$2');
 
-    // 10. Clean markdown headings that still have bold markers inside them
+    // 12. Clean markdown headings that still have bold markers inside them
     // e.g. "## **1. Introduction**" -> "## 1. Introduction"
     text = text.replace(/^(#{1,6}\s+)\*{1,3}(.*?)\*{1,3}$/gm, '$1$2');
+
+    // 13. Ensure colon spacing is clean after bold term: e.g. "**Term** :" -> "**Term**:"
+    text = text.replace(/\*\*([^*\n]+?)\*\*\s*:/g, '**$1**:');
 
     // 11. Repair any odd/unclosed bold tags per line so text doesn't leak raw asterisks
     const lines = text.split('\n');

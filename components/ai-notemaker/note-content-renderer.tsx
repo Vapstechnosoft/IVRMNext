@@ -60,11 +60,7 @@ export function NoteContentRenderer({ content, className = '', variant = 'notes'
                     p: ({ children }) => (
                         <p className='mb-3.5 font-normal text-[15px] text-slate-700 leading-relaxed last:mb-0'>{children}</p>
                     ),
-                    strong: ({ children }) => (
-                        <strong className='rounded border border-indigo-100/60 bg-indigo-50/80 px-1 py-0.5 font-bold text-indigo-950'>
-                            {children}
-                        </strong>
-                    ),
+                    strong: ({ children }) => <strong className='font-bold text-slate-900'>{children}</strong>,
                     em: ({ children }) => <em className='font-medium text-slate-800 italic'>{children}</em>,
                     ul: ({ children }) => <ul className='my-3 space-y-2 pl-1'>{children}</ul>,
                     ol: ({ children }) => (

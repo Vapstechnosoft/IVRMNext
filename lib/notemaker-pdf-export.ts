@@ -414,67 +414,214 @@ function buildVectorPdf(options: NoteMakerPdfOptions): jsPDF {
     return doc;
 }
 
-/**
- * Renders notes using html2canvas for complex/Indic scripts (Hindi, Kannada, etc.).
- */
-async function buildHtmlCanvasPdf(options: NoteMakerPdfOptions): Promise<jsPDF> {
-    const { chapter, summary, notes, previewElement } = options;
+function escapeHtml(str: string): string {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
-    let targetElement = previewElement;
-    let tempContainer: HTMLElement | null = null;
+function formatInlineMarkdown(str: string): string {
+    if (!str) return '';
+    let text = escapeHtml(str);
 
-    if (!targetElement) {
-        // Create an offscreen container styled cleanly for A4 printing
-        tempContainer = document.createElement('div');
-        tempContainer.style.position = 'fixed';
-        tempContainer.style.top = '-99999px';
-        tempContainer.style.left = '-99999px';
-        tempContainer.style.width = '800px';
-        tempContainer.style.background = '#ffffff';
-        tempContainer.style.color = '#1e293b';
-        tempContainer.style.padding = '32px';
-        tempContainer.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+    // Bold: **text**
+    text = text.replace(/\*\*(.*?)\*\*/g, '<strong style="font-weight: 700; color: #0f172a;">$1</strong>');
 
-        let innerHtml = `
-            <div style="border: 1px solid #e2e8f0; border-left: 5px solid #2563eb; background: #f8fafc; border-radius: 8px; padding: 18px 24px; margin-bottom: 24px;">
-                <h1 style="margin: 0 0 6px 0; font-size: 24px; color: #0f172a; font-weight: 800;">AI STUDY NOTES & EXAM GUIDE</h1>
-                <p style="margin: 0; font-size: 13px; color: #64748b;">Chapter: ${chapter || 'Entire Document'} | IVRM Next Academic System</p>
-            </div>
-        `;
+    // Italic: *text* (not surrounded by other asterisks)
+    text = text.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em style="font-style: italic; color: #334155;">$1</em>');
 
-        if (summary) {
-            innerHtml += `
-                <div style="margin-bottom: 28px;">
-                    <div style="background: #eff6ff; border-left: 4px solid #2563eb; padding: 8px 14px; border-radius: 4px; margin-bottom: 14px;">
-                        <h2 style="margin: 0; font-size: 16px; color: #1e3a8a; font-weight: 700;">EXECUTIVE SUMMARY</h2>
-                    </div>
-                    <div style="font-size: 14px; line-height: 1.7; color: #334155; white-space: pre-wrap;">
-                        ${summary.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
-                    </div>
-                </div>
-            `;
+    // Inline code: `code`
+    text = text.replace(
+        /`([^`]+)`/g,
+        '<code style="background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 11.5px; color: #0f172a;">$1</code>'
+    );
+
+    return text;
+}
+
+export function renderMarkdownToAcademicHtml(content: string): string {
+    if (!content) return '';
+
+    const cleanContent = standardizeNoteMarkdown(content);
+    const lines = cleanContent.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+    let html = '';
+    let inList = false;
+    let inOrderedList = false;
+
+    function closeLists() {
+        if (inList) {
+            html += '</ul>\n';
+            inList = false;
         }
-
-        if (notes) {
-            innerHtml += `
-                <div style="margin-bottom: 28px;">
-                    <div style="background: #eff6ff; border-left: 4px solid #2563eb; padding: 8px 14px; border-radius: 4px; margin-bottom: 14px;">
-                        <h2 style="margin: 0; font-size: 16px; color: #1e3a8a; font-weight: 700;">STRUCTURED STUDY MATERIAL</h2>
-                    </div>
-                    <div style="font-size: 14px; line-height: 1.7; color: #334155; white-space: pre-wrap;">
-                        ${notes.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
-                    </div>
-                </div>
-            `;
+        if (inOrderedList) {
+            html += '</ol>\n';
+            inOrderedList = false;
         }
-
-        tempContainer.innerHTML = innerHtml;
-        document.body.appendChild(tempContainer);
-        targetElement = tempContainer;
     }
 
+    for (let i = 0; i < lines.length; i++) {
+        const rawLine = lines[i];
+        const line = rawLine.trim();
+
+        if (!line) {
+            closeLists();
+            continue;
+        }
+
+        // Horizontal divider
+        if (/^(\-{3,}|\*{3,}|_{3,})$/.test(line)) {
+            closeLists();
+            html += '<hr style="border: none; border-top: 1px solid #e2e8f0; margin: 18px 0;" />\n';
+            continue;
+        }
+
+        // H1 Heading
+        if (line.startsWith('# ')) {
+            closeLists();
+            const text = line.replace(/^#\s+/, '').replace(/\*\*/g, '');
+            html += `<h1 style="font-size: 18px; color: #0f172a; font-weight: 800; margin: 20px 0 8px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px;">${escapeHtml(text)}</h1>\n`;
+            continue;
+        }
+
+        // H2 Heading
+        if (line.startsWith('## ') || (/^\d+[\.\)]\s+[A-Z0-9\s\/\-_–—\(\):,≈~]+$/.test(line) && line.length < 80)) {
+            closeLists();
+            const text = line.replace(/^##\s+/, '').replace(/\*\*/g, '');
+            html += `<h2 style="font-size: 14.5px; color: #1d4ed8; font-weight: 700; margin: 16px 0 6px 0;">${escapeHtml(text)}</h2>\n`;
+            continue;
+        }
+
+        // H3 Heading
+        if (line.startsWith('### ')) {
+            closeLists();
+            const text = line.replace(/^###\s+/, '').replace(/\*\*/g, '');
+            html += `<h3 style="font-size: 13.5px; color: #334155; font-weight: 700; margin: 12px 0 4px 0;">${escapeHtml(text)}</h3>\n`;
+            continue;
+        }
+
+        // Unordered Bullet point (- or * or +)
+        const bulletMatch = line.match(/^[-*•]\s+(.*)$/);
+        if (bulletMatch) {
+            if (inOrderedList) {
+                html += '</ol>\n';
+                inOrderedList = false;
+            }
+            if (!inList) {
+                html += '<ul style="list-style: none; padding: 0; margin: 6px 0 10px 0;">\n';
+                inList = true;
+            }
+            const bulletBody = formatInlineMarkdown(bulletMatch[1]);
+            html += `  <li style="display: flex; align-items: flex-start; margin-bottom: 6px; font-size: 12.5px; line-height: 1.6; color: #334155;">\n    <span style="display: inline-block; width: 5px; height: 5px; background-color: #2563eb; border-radius: 50%; margin-top: 7px; margin-right: 9px; flex-shrink: 0;"></span>\n    <span style="flex: 1;">${bulletBody}</span>\n  </li>\n`;
+            continue;
+        }
+
+        // Ordered List (1. 2. etc.)
+        const orderedMatch = line.match(/^(\d+)[\.\)]\s+(.*)$/);
+        if (orderedMatch) {
+            if (inList) {
+                html += '</ul>\n';
+                inList = false;
+            }
+            if (!inOrderedList) {
+                html += '<ol style="padding-left: 20px; margin: 6px 0 10px 0; font-size: 12.5px; color: #334155;">\n';
+                inOrderedList = true;
+            }
+            const itemBody = formatInlineMarkdown(orderedMatch[2]);
+            html += `  <li style="margin-bottom: 6px; line-height: 1.6;">${itemBody}</li>\n`;
+            continue;
+        }
+
+        // Blockquote
+        if (line.startsWith('>')) {
+            closeLists();
+            const quoteText = line.replace(/^>\s*/, '');
+            html += `<blockquote style="border-left: 3px solid #2563eb; background: #f8fafc; padding: 8px 14px; margin: 10px 0; font-style: italic; color: #475569; font-size: 12.5px;">${formatInlineMarkdown(quoteText)}</blockquote>\n`;
+            continue;
+        }
+
+        // Regular paragraph
+        closeLists();
+        const paragraphBody = formatInlineMarkdown(line);
+        html += `<p style="font-size: 12.5px; line-height: 1.65; color: #334155; margin: 0 0 8px 0;">${paragraphBody}</p>\n`;
+    }
+
+    closeLists();
+    return html;
+}
+
+/**
+ * Renders notes using html2canvas for complex/Indic scripts (Hindi, Kannada, Punjabi, etc.).
+ * Always generates a dedicated, publication-grade academic A4 document DOM rather than
+ * screenshotting interactive web UI widgets.
+ */
+async function buildHtmlCanvasPdf(options: NoteMakerPdfOptions): Promise<jsPDF> {
+    const { chapter, summary, notes } = options;
+
+    const dateStr = new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    const cleanChapter = escapeHtml(chapter || 'Entire Document');
+
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'fixed';
+    tempContainer.style.top = '-99999px';
+    tempContainer.style.left = '-99999px';
+    tempContainer.style.width = '794px';
+    tempContainer.style.background = '#ffffff';
+    tempContainer.style.color = '#1e293b';
+    tempContainer.style.padding = '36px 44px';
+    tempContainer.style.fontFamily =
+        '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Gurmukhi", "Noto Sans Devanagari", "Noto Sans Malayalam", "Noto Sans Kannada", "Noto Sans Tamil", sans-serif';
+    tempContainer.style.boxSizing = 'border-box';
+
+    let innerHtml = `
+        <div style="border: 1px solid #e2e8f0; border-left: 5px solid #2563eb; background: #f8fafc; border-radius: 6px; padding: 16px 20px; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 11px; font-weight: 700; color: #2563eb; text-transform: uppercase; letter-spacing: 0.05em;">IVRM Next Academic Study Portal</span>
+                <span style="font-size: 11px; color: #64748b;">${dateStr}</span>
+            </div>
+            <h1 style="margin: 0 0 6px 0; font-size: 20px; color: #0f172a; font-weight: 800; letter-spacing: -0.01em;">AI STUDY NOTES & EXAM GUIDE</h1>
+            <p style="margin: 0; font-size: 12.5px; color: #475569; font-weight: 500;">
+                Chapter / Subject: <strong style="color: #1e293b;">${cleanChapter}</strong>
+            </p>
+        </div>
+    `;
+
+    if (summary) {
+        innerHtml += `
+            <div style="margin-bottom: 24px;">
+                <div style="background: #eff6ff; border-left: 4px solid #2563eb; padding: 7px 12px; border-radius: 4px; margin-bottom: 12px;">
+                    <h2 style="margin: 0; font-size: 13.5px; color: #1e3a8a; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em;">EXECUTIVE SUMMARY</h2>
+                </div>
+                <div>
+                    ${renderMarkdownToAcademicHtml(summary)}
+                </div>
+            </div>
+        `;
+    }
+
+    if (notes) {
+        innerHtml += `
+            <div style="margin-bottom: 24px;">
+                <div style="background: #eff6ff; border-left: 4px solid #2563eb; padding: 7px 12px; border-radius: 4px; margin-bottom: 12px;">
+                    <h2 style="margin: 0; font-size: 13.5px; color: #1e3a8a; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em;">STRUCTURED STUDY MATERIAL</h2>
+                </div>
+                <div>
+                    ${renderMarkdownToAcademicHtml(notes)}
+                </div>
+            </div>
+        `;
+    }
+
+    innerHtml += `
+        <div style="margin-top: 32px; padding-top: 10px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8;">
+            <span>Generated by IVRM AI NoteMaker | Confidential & Educational Use</span>
+            <span>IVRM Next Academic Portal</span>
+        </div>
+    `;
+
+    tempContainer.innerHTML = innerHtml;
+    document.body.appendChild(tempContainer);
+
     try {
-        const canvas = await html2canvas(targetElement, {
+        const canvas = await html2canvas(tempContainer, {
             scale: 2,
             useCORS: true,
             logging: false,
@@ -550,15 +697,13 @@ export function printNoteMakerContent(options: NoteMakerPdfOptions): void {
 
     const title = `AI Study Notes - ${chapter || 'Chapter'}`;
     const dateStr = new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    const cleanChapter = escapeHtml(chapter || 'Entire Document');
 
     let summaryHtml = '';
     if (summary) {
         summaryHtml = `
             <div class="section-banner">EXECUTIVE SUMMARY</div>
-            <div class="content-body">${summary
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*+/g, '')
-                .replace(/\n/g, '<br/>')}</div>
+            <div>${renderMarkdownToAcademicHtml(summary)}</div>
         `;
     }
 
@@ -566,10 +711,7 @@ export function printNoteMakerContent(options: NoteMakerPdfOptions): void {
     if (notes) {
         notesHtml = `
             <div class="section-banner">STRUCTURED STUDY MATERIAL</div>
-            <div class="content-body">${notes
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*+/g, '')
-                .replace(/\n/g, '<br/>')}</div>
+            <div>${renderMarkdownToAcademicHtml(notes)}</div>
         `;
     }
 
@@ -584,7 +726,7 @@ export function printNoteMakerContent(options: NoteMakerPdfOptions): void {
                     margin: 18mm;
                 }
                 body {
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Gurmukhi", "Noto Sans Devanagari", "Noto Sans Malayalam", "Noto Sans Kannada", "Noto Sans Tamil", sans-serif;
                     color: #1e293b;
                     background: #ffffff;
                     margin: 0;
@@ -621,11 +763,6 @@ export function printNoteMakerContent(options: NoteMakerPdfOptions): void {
                     page-break-after: avoid;
                     break-after: avoid;
                 }
-                .content-body {
-                    font-size: 13.5px;
-                    color: #334155;
-                    line-height: 1.7;
-                }
                 @media print {
                     body { margin: 0; }
                     .section-banner { break-after: avoid; }
@@ -635,7 +772,7 @@ export function printNoteMakerContent(options: NoteMakerPdfOptions): void {
         <body>
             <div class="header-card">
                 <h1>AI STUDY NOTES & EXAM GUIDE</h1>
-                <p>Chapter: ${chapter || 'Entire Document'}  |  Date: ${dateStr}  |  IVRM Next Academic System</p>
+                <p>Chapter: ${cleanChapter}  |  Date: ${dateStr}  |  IVRM Next Academic System</p>
             </div>
             ${summaryHtml}
             ${notesHtml}
