@@ -8,16 +8,24 @@ import { revalidatePath } from 'next/cache';
 const FACADE_URL = '/MasterSubMenuFacade'; // Assumed FACADE URL based on convention
 
 export async function getMasterSubMenuData(searchParams: any) {
-    const page = searchParams?.page || 1;
-    const pageSize = searchParams?.page_size || 10;
-    const query = getSearchParamsUrl(searchParams);
+    const page = Number(searchParams?.page || 1);
+    const pageSize = Number(searchParams?.page_size || 10);
+    const searchQuery = searchParams?.search_query || searchParams?.search || '';
+
+    const params = {
+        page,
+        page_size: pageSize,
+        ...searchParams,
+        search_column: searchParams?.search_column || (searchQuery ? 'ivrmmS_SubMenuName' : '')
+    };
+    const query = getSearchParamsUrl(params);
     const url = `${FACADE_URL}/get_onload_grid_master_sub_menu?${query}`;
     try {
         const response = await api.get<any>('sadmin', url);
 
         if (response.success && response.data) {
             const rawRecords = response.data?.pagesdata || [];
-            const records = rawRecords.map((record: any) => ({
+            let records = rawRecords.map((record: any) => ({
                 ...record,
                 ivrmmS_Id: record.ivrmmM_Id, // API returns SubMenuID as ivrmmM_Id in this grid
                 ivrmmS_SubMenuName: record.subMenuName,
@@ -25,11 +33,27 @@ export async function getMasterSubMenuData(searchParams: any) {
                 mainMenuName: record.ivrmmM_MenuName // For column display
             }));
 
+            // Fallback in-memory filter in case backend returns unfiltered results
+            if (searchQuery) {
+                const q = String(searchQuery).toLowerCase().trim();
+                const filtered = records.filter(
+                    (item: any) =>
+                        (item.modulename && item.modulename.toLowerCase().includes(q)) ||
+                        (item.mainMenuName && item.mainMenuName.toLowerCase().includes(q)) ||
+                        (item.ivrmmM_MenuName && item.ivrmmM_MenuName.toLowerCase().includes(q)) ||
+                        (item.ivrmmS_SubMenuName && item.ivrmmS_SubMenuName.toLowerCase().includes(q)) ||
+                        (item.subMenuName && item.subMenuName.toLowerCase().includes(q))
+                );
+                if (filtered.length !== records.length) {
+                    records = filtered;
+                }
+            }
+
             return {
                 success: true,
                 message: response.message,
                 data: records,
-                total: response.total || records.length,
+                total: searchQuery ? records.length : (response.total || response.data?.total || records.length),
                 page: response.page || page,
                 pageSize: response.page_size || pageSize
             };

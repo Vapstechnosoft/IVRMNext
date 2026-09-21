@@ -15,15 +15,15 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Spinner } from '@/components/ui/spinner';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { deleteMasterMainMenu, getMasterMainMenuData } from '@/server/super-admin/super-admin-module/general-setting/master-main-menu';
 import type { IMasterMainMenu } from '@/types/super-admin/super-admin-module/general-setting/master-main-menu';
 import { Plus, X } from 'lucide-react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import AddMasterMainMenuForm from './_components/add-form';
 import { columns } from './_components/columns';
-
-import { useSearchParams } from 'next/navigation';
 
 export default function MasterMainMenuPage() {
     return (
@@ -39,21 +39,33 @@ function MasterMainMenuPageContent() {
     const [totalRecords, setTotalRecords] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
-    const searchParams = useSearchParams();
-    const page = Number.parseInt(searchParams.get('page') || '1');
-    const pageSize = Number.parseInt(searchParams.get('page_size') || '10');
+    // Sync with URL params
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
+    );
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
 
-    // Fetch data when page/pageSize changes
+    // Fetch data when query params change
     const fetchData = () => {
         setIsLoading(true);
-        getMasterMainMenuData(page, pageSize)
+        getMasterMainMenuData({
+            page,
+            page_size: pageSize,
+            sort_column: sortBy,
+            sort_direction: sortDirection,
+            search_query: searchQuery
+        })
             .then((res: any) => {
                 if (res.success) {
                     setData(res.data || []);
                     setTotalRecords(res.total || 0);
-
-                    // Debug log
-                    console.log(`Fetched Page ${page}, Size ${pageSize}, Total ${res.total}, Records ${res.data?.length}`);
                 } else {
                     toast.error(res.message || 'Failed to load grid data');
                 }
@@ -68,7 +80,7 @@ function MasterMainMenuPageContent() {
 
     useEffect(() => {
         fetchData();
-    }, [page, pageSize]); // Refetch when page/pageSize changes
+    }, [page, pageSize, sortBy, sortDirection, searchQuery]);
 
     const refreshData = () => {
         fetchData();

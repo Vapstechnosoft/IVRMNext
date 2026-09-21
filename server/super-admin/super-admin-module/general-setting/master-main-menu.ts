@@ -1,16 +1,32 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import { masterMainMenuSchema } from '@/schemas/super-admin/super-admin-module/general-setting/master-main-menu';
 import type { IModuleDropdownItem } from '@/types/super-admin/super-admin-module/general-setting/master-main-menu';
 import { revalidatePath } from 'next/cache';
 
 const FACADE_URL = '/MasterMainMenuFacade';
 
-export async function getMasterMainMenuData(page = 1, pageSize = 10) {
-    // URL provided by user
-    // Using query parameters for pagination as path-based failed
-    const url = `${FACADE_URL}/get_onload_grid_master_main_menu?page=${page}&page_size=${pageSize}`;
+export async function getMasterMainMenuData(searchParams?: any) {
+    const page = typeof searchParams === 'number' ? searchParams : Number(searchParams?.page || 1);
+    const pageSize = typeof searchParams === 'object' && searchParams?.page_size ? Number(searchParams.page_size) : 10;
+    const searchQuery = typeof searchParams === 'object' ? searchParams?.search_query || searchParams?.search || '' : '';
+    const sortBy = typeof searchParams === 'object' ? searchParams?.sort_column || '' : '';
+    const sortDirection = typeof searchParams === 'object' ? searchParams?.sort_direction || '' : '';
+
+    const params: any = {
+        page,
+        page_size: pageSize,
+        ...(typeof searchParams === 'object' ? searchParams : {}),
+        search_column:
+            typeof searchParams === 'object' && searchParams?.search_column
+                ? searchParams.search_column
+                : searchQuery
+                  ? 'ivrmmM_MenuName'
+                  : ''
+    };
+    const query = getSearchParamsUrl(params);
+    const url = `${FACADE_URL}/get_onload_grid_master_main_menu?${query}`;
     console.log('Fetching Master Main Menu data from URL:', url); // Debug log
 
     try {
@@ -20,15 +36,28 @@ export async function getMasterMainMenuData(page = 1, pageSize = 10) {
         // Handle the specific response structure provided by user
         if (response.success) {
             // Support both data.records and data as array, just in case
-            const records = response.data?.records || (Array.isArray(response.data) ? response.data : []);
+            let records = response.data?.records || (Array.isArray(response.data) ? response.data : []);
+
+            // Fallback in-memory filter in case backend returns unfiltered results
+            if (searchQuery) {
+                const q = String(searchQuery).toLowerCase().trim();
+                const filtered = records.filter(
+                    (item: any) =>
+                        (item.ivrmmM_MenuName && item.ivrmmM_MenuName.toLowerCase().includes(q)) ||
+                        (item.modulename && item.modulename.toLowerCase().includes(q))
+                );
+                if (filtered.length !== records.length) {
+                    records = filtered;
+                }
+            }
 
             return {
                 success: true,
                 message: response.message,
                 data: records,
-                total: response.total || records.length,
-                page: response.page,
-                pageSize: response.page_size
+                total: searchQuery ? records.length : (response.total || response.data?.total || records.length),
+                page: response.page || page,
+                pageSize: response.page_size || pageSize
             };
         }
 

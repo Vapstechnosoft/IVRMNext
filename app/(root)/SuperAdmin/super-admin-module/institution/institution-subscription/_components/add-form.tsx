@@ -6,28 +6,33 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useInstitutionSubscriptionDropdown } from '@/hooks/super-admin/super-admin-module/use-master-institution';
 import { cn } from '@/lib/utils';
 import { institutionSubscriptionSchema } from '@/schemas/super-admin/super-admin-module/institution/institution-subscription';
 import { addOrUpdateInstitutionSubscription } from '@/server/super-admin/super-admin-module/institution/institution-subscription';
+import type { IInstitutionSubscription } from '@/types/super-admin/super-admin-module/institution/institution-subscription';
+import type { IInstitutionDropdown } from '@/types/super-admin/super-admin-module/institution/master-institution';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
+import React, { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 
-import { useInstitutionSubscriptionDropdown } from '@/hooks/super-admin/super-admin-module/use-master-institution';
-import type { IInstitutionDropdown } from '@/types/super-admin/super-admin-module/institution/master-institution';
-
-// Mock Data Removed
-
 type FormFields = z.infer<typeof institutionSubscriptionSchema.addOrUpdate>;
 
 interface AddInstitutionSubscriptionFormProps {
+    initialData?: IInstitutionSubscription | null;
     onSuccess?: () => void;
+    onRefresh?: () => void;
 }
 
-export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitutionSubscriptionFormProps) {
+export default function AddInstitutionSubscriptionForm({
+    initialData,
+    onSuccess,
+    onRefresh
+}: AddInstitutionSubscriptionFormProps) {
     const {
         register,
         handleSubmit,
@@ -42,6 +47,30 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
         }
     });
 
+    useEffect(() => {
+        if (initialData) {
+            reset({
+                misV_Id: initialData.misV_Id,
+                mI_Id: initialData.mI_Id,
+                misV_SubscriptionType: initialData.misV_SubscriptionType,
+                misV_FromDate: initialData.misV_FromDate ? new Date(initialData.misV_FromDate) : undefined,
+                misV_ToDate: initialData.misV_ToDate ? new Date(initialData.misV_ToDate) : undefined,
+                misV_ActiveFlag: initialData.misV_ActiveFlag,
+                misV_SubscriptionNo: initialData.misV_SubscriptionNo
+            });
+        } else {
+            reset({
+                misV_Id: undefined,
+                mI_Id: undefined,
+                misV_SubscriptionType: '',
+                misV_FromDate: undefined,
+                misV_ToDate: undefined,
+                misV_ActiveFlag: true,
+                misV_SubscriptionNo: ''
+            });
+        }
+    }, [initialData, reset]);
+
     const { data: institutionResponse, isLoading: isInstitutionLoading } = useInstitutionSubscriptionDropdown();
     const institutionOptions = (institutionResponse?.data?.institutionList || []) as IInstitutionDropdown[];
 
@@ -51,18 +80,41 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
             const response = await addOrUpdateInstitutionSubscription(data);
 
             if (response.success) {
-                toast.success(response.message || 'Subscription added successfully');
+                toast.success(response.message || (initialData ? 'Subscription updated successfully' : 'Subscription added successfully'));
                 reset();
                 onSuccess?.();
+                onRefresh?.();
             } else {
-                toast.error(response.message || 'Failed to add Subscription');
+                toast.error(response.message || (initialData ? 'Failed to update Subscription' : 'Failed to add Subscription'));
             }
         } catch (error: any) {
             toast.error(error.message || 'Something went wrong');
         }
     };
 
-    const handleReset = () => reset();
+    const handleReset = () => {
+        if (initialData) {
+            reset({
+                misV_Id: initialData.misV_Id,
+                mI_Id: initialData.mI_Id,
+                misV_SubscriptionType: initialData.misV_SubscriptionType,
+                misV_FromDate: initialData.misV_FromDate ? new Date(initialData.misV_FromDate) : undefined,
+                misV_ToDate: initialData.misV_ToDate ? new Date(initialData.misV_ToDate) : undefined,
+                misV_ActiveFlag: initialData.misV_ActiveFlag,
+                misV_SubscriptionNo: initialData.misV_SubscriptionNo
+            });
+        } else {
+            reset({
+                misV_Id: undefined,
+                mI_Id: undefined,
+                misV_SubscriptionType: '',
+                misV_FromDate: undefined,
+                misV_ToDate: undefined,
+                misV_ActiveFlag: true,
+                misV_SubscriptionNo: ''
+            });
+        }
+    };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 pt-4'>
@@ -75,7 +127,9 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
                         name='mI_Id'
                         control={control}
                         render={({ field }) => (
-                            <Select onValueChange={(val) => field.onChange(Number(val))} defaultValue={field.value?.toString()}>
+                            <Select
+                                onValueChange={(val) => field.onChange(Number(val))}
+                                value={field.value ? field.value.toString() : ''}>
                                 <SelectTrigger>
                                     <SelectValue placeholder={isInstitutionLoading ? 'Loading Institutions...' : 'Select Institution'} />
                                 </SelectTrigger>
@@ -106,7 +160,7 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
                                     <Button
                                         variant={'outline'}
                                         className={cn('w-full pl-3 text-left font-normal', !field.value && 'text-muted-foreground')}>
-                                        {field.value ? format(field.value, 'dd-MM-yyyy') : <span>Pick a date</span>}
+                                            {field.value ? format(field.value, 'dd-MM-yyyy') : <span>Pick a date</span>}
                                         <CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
                                     </Button>
                                 </PopoverTrigger>
@@ -154,7 +208,10 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
                         control={control}
                         name='misV_SubscriptionType'
                         render={({ field }) => (
-                            <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className='flex flex-row space-x-4'>
+                            <RadioGroup
+                                onValueChange={field.onChange}
+                                value={field.value || ''}
+                                className='flex flex-row space-x-4'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='Licence' id='r1' />
                                     <Label htmlFor='r1' className='font-normal'>
@@ -189,7 +246,7 @@ export default function AddInstitutionSubscriptionForm({ onSuccess }: AddInstitu
                     className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'>
                     <div className='flex items-center'>
                         <Save className='mr-2 h-4 w-4' />
-                        Save
+                        {initialData ? 'Update' : 'Save'}
                     </div>
                 </Button>
             </div>
