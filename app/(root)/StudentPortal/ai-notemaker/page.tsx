@@ -6,12 +6,25 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, BookOpen, Check, Clipboard, Download, FileText, Languages, Layout, Loader2, StickyNote, Upload } from 'lucide-react';
+import {
+    AlertCircle,
+    BookOpen,
+    Check,
+    Clipboard,
+    Download,
+    FileText,
+    Languages,
+    Layout,
+    Loader2,
+    Printer,
+    StickyNote,
+    Upload
+} from 'lucide-react';
 import type React from 'react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import jsPDF from 'jspdf';
+import { exportNoteMakerPdf, printNoteMakerContent } from '@/lib/notemaker-pdf-export';
 import { toast } from 'sonner';
 
 const LANGUAGES = [
@@ -45,6 +58,8 @@ export default function AINotemaker() {
     const [isTranslating, setIsTranslating] = useState<boolean>(false);
     const [errorLog, setErrorLog] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+    const previewContainerRef = useRef<HTMLDivElement>(null);
 
     // Handlers
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -171,75 +186,35 @@ export default function AINotemaker() {
         toast.success('Copied to clipboard');
     };
 
-    const handleDownloadPDF = () => {
+    const handleDownloadPDF = async () => {
         if (!result) return;
-
-        const doc = new jsPDF();
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const margin = 20;
-        const maxWidth = pageWidth - margin * 2;
-        let yPos = 20;
-
-        const addNewPage = () => {
-            doc.addPage();
-            yPos = 20;
-        };
-
-        // Header
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.text('AI NOTEMAKER', pageWidth / 2, yPos, { align: 'center' });
-        yPos += 10;
-
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Chapter: ${result.chapter || 'Entire Document'}`, pageWidth / 2, yPos, { align: 'center' });
-        yPos += 10;
-        doc.line(margin, yPos, pageWidth - margin, yPos);
-        yPos += 10;
-
-        const printLargeText = (title: string, content: string) => {
-            if (yPos > pageHeight - margin - 20) addNewPage();
-
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text(title, margin, yPos);
-            yPos += 10;
-
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-
-            // Clean markdown markers for PDF
-            const cleanedContent = content
-                .replace(/\r/g, '') // Remove carriage returns first to avoid CRLF issues
-                .replace(/\*\*([\s\S]*?)\*\*/g, '$1') // Remove bold markers (multiline-safe)
-                .replace(/\*([\s\S]*?)\*/g, '$1') // Remove italic markers (multiline-safe)
-                .replace(/^\s*#+\s+/gm, '') // Remove heading markers (even with leading spaces)
-                .replace(/^\s*[\*\-\+]\s+/gm, '• '); // Replace bullets with a clean dot
-
-            const lines = doc.splitTextToSize(cleanedContent, maxWidth);
-
-            for (const line of lines) {
-                if (yPos > pageHeight - margin) {
-                    addNewPage();
-                }
-                doc.text(line, margin, yPos);
-                yPos += 7;
-            }
-            yPos += 10;
-        };
-
-        if (result.summary) {
-            printLargeText('SUMMARY', result.summary);
+        setIsDownloadingPdf(true);
+        toast.loading('Generating PDF...', { id: 'notemaker-pdf' });
+        try {
+            await exportNoteMakerPdf({
+                chapter: result.chapter,
+                summary: result.summary,
+                notes: result.notes,
+                language: selectedLanguage,
+                previewElement: previewContainerRef.current
+            });
+            toast.success('PDF Downloaded successfully', { id: 'notemaker-pdf' });
+        } catch (err: any) {
+            console.error('PDF export failed:', err);
+            toast.error('Failed to generate PDF. Please try again.', { id: 'notemaker-pdf' });
+        } finally {
+            setIsDownloadingPdf(false);
         }
+    };
 
-        if (result.notes) {
-            printLargeText('STRUCTURED NOTES', result.notes);
-        }
-
-        doc.save(`notes-${Date.now()}.pdf`);
-        toast.success('PDF Downloaded');
+    const handlePrintNotes = () => {
+        if (!result) return;
+        printNoteMakerContent({
+            chapter: result.chapter,
+            summary: result.summary,
+            notes: result.notes,
+            language: selectedLanguage
+        });
     };
 
     const renderWithBold = (text: string) => {
@@ -462,14 +437,27 @@ export default function AINotemaker() {
                                         </span>
                                     )}
                                 </div>
-                                <Button onClick={handleDownloadPDF} variant='outline' className='font-medium'>
-                                    <Download className='mr-2 h-4 w-4' /> Download PDF
-                                </Button>
+                                <div className='flex items-center gap-2'>
+                                    <Button onClick={handlePrintNotes} variant='outline' className='font-medium'>
+                                        <Printer className='mr-2 h-4 w-4' /> Print / Save PDF
+                                    </Button>
+                                    <Button onClick={handleDownloadPDF} disabled={isDownloadingPdf} className='font-medium'>
+                                        {isDownloadingPdf ? (
+                                            <>
+                                                <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Generating...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Download className='mr-2 h-4 w-4' /> Download PDF
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
                             </div>
                         )}
 
                         {result ? (
-                            <div className='fade-in mx-auto max-w-5xl animate-in space-y-8 duration-500'>
+                            <div ref={previewContainerRef} className='fade-in mx-auto max-w-5xl animate-in space-y-8 duration-500'>
                                 {/* Summary Card */}
                                 {result.summary && (
                                     <Card className='overflow-hidden'>

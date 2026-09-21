@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import { Calculator, Minus, Plus, ReceiptIndianRupee, RotateCcw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 const round = (num: number) => Math.round((num + Number.EPSILON) * 100) / 100;
 
@@ -126,27 +127,49 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
     const handleItemChange = async (index: number, itemId: number) => {
         const item = items?.find((i: any) => i.invmI_Id === itemId) || loadData?.data?.get_item?.find((i: any) => i.invmI_Id === itemId);
         if (item) {
+            if (item.invmuoM_Id) {
+                setValue(`GRNItem.${index}.invmuoM_Id`, item.invmuoM_Id);
+            }
+            if (item.invmuoM_UOMName) {
+                setValue(`GRNItem.${index}.invmuoM_UOMName`, item.invmuoM_UOMName);
+            }
+
             try {
                 // Call both APIs concurrently
-                const [itemRes, taxRes] = await Promise.all([getItemDetail(item.invmI_Id), getItemTaxDetail(item.invmI_Id)]);
+                const [itemRes, taxRes] = await Promise.all([
+                    getItemDetail(item.invmI_Id).catch(() => null),
+                    getItemTaxDetail(item.invmI_Id).catch(() => null)
+                ]);
 
-                if (itemRes.success && itemRes.data) {
-                    const detail = itemRes.data.get_itemDetail?.[0];
-                    if (detail) {
-                        if (detail.invmuoM_UOMName) {
-                            setValue(`GRNItem.${index}.invmuoM_UOMName`, detail.invmuoM_UOMName);
-                        }
+                const itemDetailList =
+                    itemRes?.get_itemDetail ||
+                    itemRes?.data?.get_itemDetail ||
+                    (Array.isArray(itemRes?.data) ? itemRes.data : Array.isArray(itemRes) ? itemRes : []);
+                const detail = itemDetailList?.[0];
+
+                if (detail) {
+                    if (detail.invmuoM_UOMName || detail.INVMUOM_UOMName) {
+                        setValue(`GRNItem.${index}.invmuoM_UOMName`, detail.invmuoM_UOMName || detail.INVMUOM_UOMName);
                     }
-                    setValue(`GRNItem.${index}.invmuoM_Id`, item.invmuoM_Id);
+                    if (detail.invmuoM_Id || detail.INVMUOM_Id) {
+                        setValue(`GRNItem.${index}.invmuoM_Id`, detail.invmuoM_Id || detail.INVMUOM_Id);
+                    }
                 }
 
                 // Use taxRes for tax details
-                const taxes = taxRes.success && taxRes.data ? taxRes.data : [];
+                const taxes =
+                    taxRes?.get_itemTax ||
+                    taxRes?.get_itemtax ||
+                    taxRes?.get_tax ||
+                    taxRes?.data?.get_itemTax ||
+                    taxRes?.data?.get_itemtax ||
+                    taxRes?.data?.get_tax ||
+                    (Array.isArray(taxRes?.data) ? taxRes.data : Array.isArray(taxRes) ? taxRes : []);
 
                 if (taxes.length > 0) {
                     const mappedTaxes = taxes.map((t: any) => ({
-                        invmT_Id: t.invmT_Id,
-                        invtgrnT_TaxPer: t.invmiT_TaxValue,
+                        invmT_Id: t.invmT_Id || t.INVMT_Id,
+                        invtgrnT_TaxPer: t.invmiT_TaxValue ?? t.INVMIT_TaxValue ?? t.invtgrnT_TaxPer ?? 0,
                         invtgrnT_TaxAmt: 0
                     }));
                     setValue(`GRNItem.${index}.GRNItemTax`, mappedTaxes);
@@ -202,16 +225,69 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
         calculateTotals();
     };
 
+    const isSuccessResponse = (res: any) => {
+        return Boolean(
+            res?.success ||
+            res?.returnval === true ||
+            res?.returnval === 'true' ||
+            (typeof res?.message === 'string' && res.message.toLowerCase().includes('success')) ||
+            (typeof res?.returnval === 'string' && res.returnval.toLowerCase().includes('save'))
+        );
+    };
+
     const onSubmit = (data: InvTGRNSchema) => {
-        const payload = {
+        const itemsPayload = (data.GRNItem || []).map((item) => {
+            const taxes = (item.GRNItemTax || []).map((tax) => ({
+                invtgrnT_Id: Number(tax.invtgrnT_Id || 0),
+                invtgrN_Id: Number(tax.invtgrN_Id || item.invtgrN_Id || 0),
+                invmT_Id: Number(tax.invmT_Id || 0),
+                invtgrnT_TaxPer: Number(tax.invtgrnT_TaxPer || 0),
+                invtgrnT_TaxAmt: Number(tax.invtgrnT_TaxAmt || 0)
+            }));
+            return {
+                invtgrN_Id: Number(item.invtgrN_Id || 0),
+                invmgrN_Id: Number(item.invmgrN_Id || data.invmgrN_Id || 0),
+                invmI_Id: Number(item.invmI_Id || 0),
+                invmuoM_Id: Number(item.invmuoM_Id || 0),
+                invtgrN_BatchNo: String(item.invtgrN_BatchNo || ''),
+                invtgrN_Qty: Number(item.invtgrN_Qty || 0),
+                invtgrN_PurchaseRate: Number(item.invtgrN_PurchaseRate || 0),
+                invtgrN_MRP: Number(item.invtgrN_MRP || 0),
+                invtgrN_DiscountAmt: Number(item.invtgrN_DiscountAmt || 0),
+                invtgrN_SalesPrice: Number(item.invtgrN_SalesPrice || 0),
+                invtgrN_Amount: Number(item.invtgrN_Amount || 0),
+                invtgrN_TaxAmt: Number(item.invtgrN_TaxAmt || 0),
+                ...(item.invtgrN_Naration ? { invtgrN_Naration: String(item.invtgrN_Naration) } : {}),
+                ...(item.invtgrN_MfgDate
+                    ? {
+                        invtgrN_MfgDate:
+                            item.invtgrN_MfgDate instanceof Date
+                                ? item.invtgrN_MfgDate.toISOString()
+                                : new Date(item.invtgrN_MfgDate).toISOString()
+                    }
+                    : {}),
+                ...(item.invtgrN_ExpDate
+                    ? {
+                        invtgrN_ExpDate:
+                            item.invtgrN_ExpDate instanceof Date
+                                ? item.invtgrN_ExpDate.toISOString()
+                                : new Date(item.invtgrN_ExpDate).toISOString()
+                    }
+                    : {}),
+                GRNItemTax: taxes,
+                grnItemTax: taxes
+            };
+        });
+
+        const payload: any = {
             invmgrN_Id: Number(data.invmgrN_Id || 0),
             invmgrN_InvoiceNo: String(data.invmgrN_InvoiceNo || ''),
             invmgrN_PurchaseDate:
                 data.invmgrN_PurchaseDate instanceof Date
                     ? data.invmgrN_PurchaseDate.toISOString()
                     : data.invmgrN_PurchaseDate
-                      ? new Date(data.invmgrN_PurchaseDate).toISOString()
-                      : new Date().toISOString(),
+                        ? new Date(data.invmgrN_PurchaseDate).toISOString()
+                        : new Date().toISOString(),
             invmgrN_PurchaseValue: Number(data.invmgrN_PurchaseValue || 0),
             invmgrN_TotDiscount: Number(data.invmgrN_TotDiscount || 0),
             invmgrN_TotTaxAmt: Number(data.invmgrN_TotTaxAmt || 0),
@@ -232,9 +308,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
             invmgrN_KitNo: String(data.invmgrN_KitNo || ''),
             ...(data.invmgrN_PODate && {
                 invmgrN_PODate:
-                    data.invmgrN_PODate instanceof Date
-                        ? data.invmgrN_PODate.toISOString()
-                        : new Date(data.invmgrN_PODate).toISOString()
+                    data.invmgrN_PODate instanceof Date ? data.invmgrN_PODate.toISOString() : new Date(data.invmgrN_PODate).toISOString()
             }),
             ...(data.invmgrN_Challandate && {
                 invmgrN_Challandate:
@@ -242,54 +316,31 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                         ? data.invmgrN_Challandate.toISOString()
                         : new Date(data.invmgrN_Challandate).toISOString()
             }),
-            GRNItem: (data.GRNItem || []).map((item) => ({
-                invtgrN_Id: Number(item.invtgrN_Id || 0),
-                invmgrN_Id: Number(item.invmgrN_Id || data.invmgrN_Id || 0),
-                invmI_Id: Number(item.invmI_Id || 0),
-                invmuoM_Id: Number(item.invmuoM_Id || 0),
-                invtgrN_BatchNo: String(item.invtgrN_BatchNo || ''),
-                invtgrN_Qty: Number(item.invtgrN_Qty || 0),
-                invtgrN_PurchaseRate: Number(item.invtgrN_PurchaseRate || 0),
-                invtgrN_MRP: Number(item.invtgrN_MRP || 0),
-                invtgrN_DiscountAmt: Number(item.invtgrN_DiscountAmt || 0),
-                invtgrN_SalesPrice: Number(item.invtgrN_SalesPrice || 0),
-                invtgrN_Amount: Number(item.invtgrN_Amount || 0),
-                invtgrN_TaxAmt: Number(item.invtgrN_TaxAmt || 0),
-                ...(item.invtgrN_Naration ? { invtgrN_Naration: String(item.invtgrN_Naration) } : {}),
-                ...(item.invtgrN_MfgDate
-                    ? {
-                          invtgrN_MfgDate:
-                              item.invtgrN_MfgDate instanceof Date
-                                  ? item.invtgrN_MfgDate.toISOString()
-                                  : new Date(item.invtgrN_MfgDate).toISOString()
-                      }
-                    : {}),
-                ...(item.invtgrN_ExpDate
-                    ? {
-                          invtgrN_ExpDate:
-                              item.invtgrN_ExpDate instanceof Date
-                                  ? item.invtgrN_ExpDate.toISOString()
-                                  : new Date(item.invtgrN_ExpDate).toISOString()
-                      }
-                    : {}),
-                GRNItemTax: (item.GRNItemTax || []).map((tax) => ({
-                    invtgrnT_Id: Number(tax.invtgrnT_Id || 0),
-                    invtgrN_Id: Number(tax.invtgrN_Id || item.invtgrN_Id || 0),
-                    invmT_Id: Number(tax.invmT_Id || 0),
-                    invtgrnT_TaxPer: Number(tax.invtgrnT_TaxPer || 0),
-                    invtgrnT_TaxAmt: Number(tax.invtgrnT_TaxAmt || 0)
-                }))
-            }))
+            GRNItem: itemsPayload,
+            grnItem: itemsPayload
         };
 
         saveMutation.mutate(payload, {
             onSuccess: (res) => {
-                if (res.success) {
+                if (isSuccessResponse(res)) {
                     reset();
                     onSuccess();
                 }
             }
         });
+    };
+
+    const onInvalid = (formErrors: any) => {
+        console.warn('Form validation failed:', formErrors);
+        const firstErrorKey = Object.keys(formErrors)[0];
+        const firstError = formErrors[firstErrorKey];
+        if (firstError?.message) {
+            toast.error(firstError.message);
+        } else if (formErrors.GRNItem) {
+            toast.error('Please complete all required item fields');
+        } else {
+            toast.error('Please check the required fields');
+        }
     };
 
     const openTaxModal = (index: number) => {
@@ -315,7 +366,7 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='mx-auto max-w-[1400px] space-y-6'>
+        <form onSubmit={handleSubmit(onSubmit, onInvalid)} className='mx-auto max-w-[1400px] space-y-6'>
             {/* Header Details */}
             <CollapsibleSection
                 title='GRN Header Information'
@@ -493,7 +544,8 @@ export default function AddGRNForm({ onSuccess }: AddGRNFormProps) {
                                     <td className='border p-2'>
                                         <div className='flex h-8 items-center justify-center rounded border border-dashed bg-muted/30 font-semibold text-[11px] text-muted-foreground'>
                                             {watch(`GRNItem.${index}.invmuoM_UOMName`) ||
-                                                items?.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))?.invmuoM_UOMName ||
+                                                items?.find((i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`))
+                                                    ?.invmuoM_UOMName ||
                                                 loadData?.data?.get_item?.find(
                                                     (i: any) => i.invmI_Id === watch(`GRNItem.${index}.invmI_Id`)
                                                 )?.invmuoM_UOMName ||

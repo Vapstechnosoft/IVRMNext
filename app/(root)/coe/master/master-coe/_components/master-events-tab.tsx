@@ -356,6 +356,7 @@ export default function MasterEventsTab({ initialData, refreshData }: MasterEven
                         return initialData?.master_eventlist || initialData?.master_event_list || initialData?.mapped_eventlist || [];
                     })()}
                     isLoading={false}
+                    manualFiltering={false}
                 />
             </CollapsibleSection>
 

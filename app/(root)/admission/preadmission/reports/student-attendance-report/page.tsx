@@ -173,9 +173,7 @@ export default function StudyCertificateReportPage(props: {
               page: Number(searchParams.page) || 1,
               page_size: Number(searchParams.page_size) || 10,
               sort_column: String(searchParams.sort_column || ''),
-              sort_direction: String(searchParams.sort_direction || 'asc'),
-              search_query: String(searchParams.search_query || ''),
-              search_columns: String(searchParams.search_columns || '')
+              sort_direction: String(searchParams.sort_direction || 'asc')
           }
         : undefined;
 
@@ -475,7 +473,7 @@ export default function StudyCertificateReportPage(props: {
             const reportHeaders = [
                 ['STUDENT ATTENDANCE REPORT'],
                 [`Academic Year: ${activeYear || 'N/A'}`],
-                [`Class: ${activeClass || 'N/A'}`, `Section: ${activeSection || 'N/A'}`],
+                [`Class: ${activeClass || 'N/A'}     Section: ${activeSection || 'N/A'}`],
                 [activeMonth ? `Month: ${activeMonth}` : ''],
                 [] // Empty row
             ];
@@ -495,7 +493,7 @@ export default function StudyCertificateReportPage(props: {
 
                 if (monthDateWise) {
                     for (const day of excelDays) {
-                        baseData.push(row[`_${day}`] || '');
+                        baseData.push(row[`_${day}`] || row[day] || 'NE');
                     }
                 }
 
@@ -519,6 +517,24 @@ export default function StudyCertificateReportPage(props: {
 
             // Create worksheet
             const ws = XLSX.utils.aoa_to_sheet([...reportHeaders, tableHeaders, ...tableData, [], totalRecordsRow]);
+            
+            // Merge header rows across all table columns
+            const totalCols = tableHeaders.length;
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: totalCols - 1 } },
+                { s: { r: 2, c: 0 }, e: { r: 2, c: totalCols - 1 } },
+                { s: { r: 3, c: 0 }, e: { r: 3, c: totalCols - 1 } }
+            ];
+
+            // Apply center alignment if the library supports it
+            for (let i = 0; i <= 3; i++) {
+                const cellRef = XLSX.utils.encode_cell({ r: i, c: 0 });
+                if (ws[cellRef]) {
+                    ws[cellRef].s = { alignment: { horizontal: 'center', vertical: 'center' }, font: { bold: true } };
+                }
+            }
+
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'AttendanceReport');
 
@@ -732,17 +748,6 @@ export default function StudyCertificateReportPage(props: {
                                         />
                                     )}
                                     <div>
-                                        <h1 className='font-bold text-2xl uppercase'>
-                                            {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Name}
-                                        </h1>
-                                        <p className='text-muted-foreground text-sm'>
-                                            {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address1}
-                                            {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address2 &&
-                                                `, ${(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address2}`}
-                                            {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address3 &&
-                                                `, ${(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address3}`}
-                                        </p>
-                                        <h2 className='mt-2 font-bold text-lg tracking-wide'>STUDENT ATTENDANCE REPORT</h2>
                                         <div className='mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 font-semibold text-sm'>
                                             {academicYearId && (
                                                 <span>
@@ -809,6 +814,7 @@ export default function StudyCertificateReportPage(props: {
                                         </div>
                                     </div>
                                 </div>
+
                             </div>
                             <div className='font-bold text-[11px] uppercase'>
                                 Note : P - Present , A - Absent , HO - Holiday , NE - Not Entered
@@ -823,11 +829,13 @@ export default function StudyCertificateReportPage(props: {
                                 isLoading={isLoading}
                                 error={error}
                                 showViewOptions={false}
+                                isSearchRequired={false}
                                 onRowSelectionChange={setSelectedRows}
                                 loadingMessage='Loading Student Attendance Reports...'
                                 noDataTitle='No Data Found'
                                 noDataDescription='No Student Attendance Reports found.'
                                 errorTitle='Error Loading Student Attendance Reports'
+                                manualFiltering={false}
                             />
                         </div>
 
@@ -898,8 +906,10 @@ function SelectField({ label, name, control, options, labelKey, valueKey, error,
                             <SelectValue placeholder={`Select ${label}`} />
                         </SelectTrigger>
                         <SelectContent>
-                            {options?.map((o: any) => (
-                                <SelectItem key={o[valueKey]} value={String(o[valueKey])}>
+                            {options
+                                ?.filter((v: any, i: number, a: any[]) => a.findIndex((v2: any) => v2[valueKey] === v[valueKey]) === i)
+                                .map((o: any, index: number) => (
+                                <SelectItem key={`${o[valueKey]}-${index}`} value={String(o[valueKey])}>
                                     {o[labelKey]}
                                 </SelectItem>
                             ))}

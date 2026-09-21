@@ -155,6 +155,7 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
                     loadingMessage='Loading mappings...'
                     noDataTitle='No Mapped Events Found'
                     noDataDescription='Map a master event to an academic year to see it here.'
+                    manualFiltering={false}
                 />
             </CollapsibleSection>
 

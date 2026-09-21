@@ -5,6 +5,7 @@ import { signIn } from '@/lib/auth';
 import type { loginSchema } from '@/schemas/admission/preadmission/masters';
 import { getUserByEmail } from '@/server/user-service';
 import { AuthError } from 'next-auth';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import type { z } from 'zod';
 
 interface LoginSceham {
@@ -50,15 +51,13 @@ export async function login({ values, callbackUrl }: LoginSceham) {
         await signIn('credentials', {
             email,
             password,
+            redirectTo: targetUrl || callbackUrl || '/school-admin',
             redirect: false
         });
 
         return { success: true, redirectTo: targetUrl || '/school-admin' };
     } catch (error) {
-        if (
-            (error as any)?.message === 'NEXT_REDIRECT' ||
-            (error as any)?.digest?.startsWith?.('NEXT_REDIRECT')
-        ) {
+        if (isRedirectError(error)) {
             throw error;
         }
 
