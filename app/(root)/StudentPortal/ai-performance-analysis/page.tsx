@@ -18,6 +18,7 @@ import {
     analyzeStudentPerformance,
     extractStudentDataFromPdf
 } from '@/server/exam/exam-module/ai-analysis_/ai-analysis';
+import { formatAiErrorMessage } from '@/lib/ai-error-handler';
 import type { ClassAnalysis, IndividualAnalysis, StudentPerformance, StudentSubject } from '@/types/exam/exam-module/ai-analysis';
 import { StudentTable } from './_components/student-table';
 
@@ -86,7 +87,7 @@ export default function AiPerformanceAnalysisPage() {
             }
         } catch (error: any) {
             console.error(error);
-            toast.error('Error processing file: ' + error.message);
+            toast.error(formatAiErrorMessage(error, 'Error processing file'));
         } finally {
             setIsLoading(false);
         }
@@ -111,7 +112,8 @@ export default function AiPerformanceAnalysisPage() {
             setClassAnalysis(result);
             toast.success('Class analysis complete');
         } catch (error: any) {
-            toast.error(error.message);
+            console.error(error);
+            toast.error(formatAiErrorMessage(error));
         } finally {
             setIsLoading(false);
         }
@@ -136,7 +138,8 @@ export default function AiPerformanceAnalysisPage() {
             setStudentAnalysis(result);
             toast.success(`Analysis for ${student.name} complete`);
         } catch (error: any) {
-            toast.error(error.message);
+            console.error(error);
+            toast.error(formatAiErrorMessage(error));
         } finally {
             setIsAnalyzingStudent(false);
         }
