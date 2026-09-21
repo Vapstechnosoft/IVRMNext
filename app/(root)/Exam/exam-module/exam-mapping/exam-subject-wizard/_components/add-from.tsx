@@ -14,7 +14,7 @@ import {
     useMasterSubExamDropdownList,
     useMasterSubSubjectDropdownList
 } from '@/hooks/exam/exammodule/usemasters';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { getExamAcademicYearDropdown } from '@/server/exam/exam-module/masters/exam';
 import { ExamSubjectWizardSchema, SubSubjectSubExamSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
@@ -102,9 +102,30 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const [subExamModalState, setSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const [subSubjectModalState, setSubSubjectModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const [subSubjectSubExamModalState, setSubSubjectSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
-    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
+    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
+    const [academicYearLoading, setAcademicYearLoading] = useState(false);
     const { data: gradeData, error: gradeError } = useMasterGradeDropdownList();
     const { refetchAll } = useExamSubjectWizard();
+
+    useEffect(() => {
+        const fetchAcademicYears = async () => {
+            try {
+                setAcademicYearLoading(true);
+                const res = await getExamAcademicYearDropdown();
+                const yearData = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+                const formatted = yearData.map((item: any) => ({
+                    asmaY_Id: item.asmaY_Id ?? item.ASMAY_Id ?? 0,
+                    asmaY_Year: item.asmaY_Year ?? item.ASMAY_Year ?? ''
+                })).filter((item: any) => item.asmaY_Id > 0);
+                setAcademicYears(formatted);
+            } catch (err: any) {
+                toast.error(err.message || 'Failed to load academic years');
+            } finally {
+                setAcademicYearLoading(false);
+            }
+        };
+        fetchAcademicYears();
+    }, []);
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: masterSubSubject, isLoading: masterSubSubjectLoading } = useMasterSubSubjectDropdownList();
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
@@ -936,6 +957,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     };
 
     const isTopFieldsFilled = watchYear && watchCategory;
+    const hasSelectedExams = (Array.isArray(exams) && exams.some((e) => e.checked)) || Boolean(rowData?.eycE_Id);
 
     return (
         <FormProvider {...methods}>
@@ -973,12 +995,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                                             <SelectItem value='loading' disabled>
                                                                 Loading Academic Year...
                                                             </SelectItem>
-                                                        ) : academicYearError ? (
-                                                            <SelectItem value='error' disabled>
-                                                                Error loading Academic Year
-                                                            </SelectItem>
                                                         ) : (
-                                                            academicYear?.data?.map((item) => (
+                                                            academicYears.map((item) => (
                                                                 <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                                     {item.asmaY_Year}
                                                                 </SelectItem>
@@ -1215,20 +1233,28 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                             {/* Subject Table */}
                             <div className='mt-6'>
-                                <SubjectTable
-                                    initialSubjects={subjects}
-                                    setParentSubjects={setSubjects}
-                                    showSubExamColumn={watchSubExam ?? false}
-                                    showSubSubjectColumn={watchSubSubject ?? false}
-                                    onOpenSubExamModal={onOpenSubExamModal}
-                                    onOpenSubSubjectModal={onOpenSubSubjectModal}
-                                    onOpenSubSubjectSubExamModal={onOpenSubSubjectSubExamModal}
-                                    gradeList={gradeList}
-                                    selectedGrade={watchGrade}
-                                    onRegisterValidate={(fn) => {
-                                        validateSubjectsRef.current = fn;
-                                    }}
-                                />
+                                {hasSelectedExams ? (
+                                    <SubjectTable
+                                        initialSubjects={subjects}
+                                        setParentSubjects={setSubjects}
+                                        showSubExamColumn={watchSubExam ?? false}
+                                        showSubSubjectColumn={watchSubSubject ?? false}
+                                        onOpenSubExamModal={onOpenSubExamModal}
+                                        onOpenSubSubjectModal={onOpenSubSubjectModal}
+                                        onOpenSubSubjectSubExamModal={onOpenSubSubjectSubExamModal}
+                                        gradeList={gradeList}
+                                        selectedGrade={watchGrade}
+                                        onRegisterValidate={(fn) => {
+                                            validateSubjectsRef.current = fn;
+                                        }}
+                                    />
+                                ) : (
+                                    <div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50/60 p-8 text-center'>
+                                        <p className='font-medium text-gray-500 text-sm'>
+                                            Please select at least one Exam above to display and configure subjects.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className='mt-6 flex w-fit gap-4'>
