@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { type AssistantResponse, getPrincipalAssistantResponse } from '@/server/dashboards/principal-assistant';
-import { ArrowUpRight, CheckCircle2, HelpCircle, Lightbulb, RefreshCw, RotateCcw, Sparkles, X } from 'lucide-react';
+import { ArrowUpRight, CheckCircle2, ChevronDown, ChevronUp, HelpCircle, Lightbulb, RefreshCw, RotateCcw, Sparkles, X } from 'lucide-react';
 import { useState } from 'react';
 import {
     Area,
@@ -66,6 +66,7 @@ export function PrincipalAssistant() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showQuerySwitcher, setShowQuerySwitcher] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const handleAsk = async (questionId: string) => {
         setLoading(true);
@@ -89,6 +90,8 @@ export function PrincipalAssistant() {
 
     const filteredQuestions =
         selectedCategory === 'All' ? ADMINISTRATIVE_QUESTIONS : ADMINISTRATIVE_QUESTIONS.filter((q) => q.category === selectedCategory);
+
+    const displayedQuestions = isExpanded ? filteredQuestions : filteredQuestions.slice(0, 8);
 
     return (
         <Card className='card-premium mb-6 overflow-hidden rounded-3xl border border-slate-100 bg-white text-slate-900 shadow-sm'>
@@ -129,7 +132,10 @@ export function PrincipalAssistant() {
                         <button
                             key={cat}
                             type='button'
-                            onClick={() => setSelectedCategory(cat)}
+                            onClick={() => {
+                                setSelectedCategory(cat);
+                                setIsExpanded(false);
+                            }}
                             className={cn(
                                 'rounded-xl px-3 py-1.5 font-bold text-xs transition-all',
                                 selectedCategory === cat
@@ -161,12 +167,28 @@ export function PrincipalAssistant() {
 
                 {/* Query Selection Grid (When no response is active) */}
                 {!response && !loading && (
-                    <div className='space-y-3'>
+                    <div className='space-y-3.5'>
                         <div className='flex items-center justify-between font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                            <span>Administrative Queries ({filteredQuestions.length})</span>
+                            <div className='flex items-center gap-2'>
+                                <span>Administrative Queries</span>
+                                <span className='rounded-full bg-slate-100 px-2 py-0.5 font-bold text-[10px] text-slate-600'>
+                                    {filteredQuestions.length > 8 && !isExpanded
+                                        ? `Showing 8 of ${filteredQuestions.length}`
+                                        : `${filteredQuestions.length}`}
+                                </span>
+                            </div>
+                            {filteredQuestions.length > 8 && (
+                                <button
+                                    type='button'
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    className='inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-2.5 py-1 font-bold text-indigo-600 text-xs transition-all hover:bg-indigo-50 hover:text-indigo-700'>
+                                    <span>{isExpanded ? 'Collapse' : `Show All (${filteredQuestions.length})`}</span>
+                                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                </button>
+                            )}
                         </div>
                         <div className='grid grid-cols-1 gap-2.5 md:grid-cols-2 lg:grid-cols-3'>
-                            {filteredQuestions.map((q) => (
+                            {displayedQuestions.map((q) => (
                                 <button
                                     key={q.id}
                                     type='button'
@@ -185,6 +207,34 @@ export function PrincipalAssistant() {
                                 </button>
                             ))}
                         </div>
+
+                        {/* Dropdown / Collapse Button at bottom */}
+                        {filteredQuestions.length > 8 && (
+                            <div className='flex flex-col items-center justify-center pt-2'>
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    onClick={() => setIsExpanded(!isExpanded)}
+                                    className='group flex h-9.5 items-center gap-2 rounded-2xl border-slate-200 bg-white px-5 font-bold text-indigo-600 text-xs shadow-2xs transition-all hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700 active:scale-95'>
+                                    <span>
+                                        {isExpanded
+                                            ? 'Show Less (Collapse to 8 Queries)'
+                                            : `Show All Queries (${filteredQuestions.length})`}
+                                    </span>
+                                    {isExpanded ? (
+                                        <ChevronUp
+                                            size={15}
+                                            className='group-hover:-translate-y-0.5 text-indigo-500 transition-transform duration-200'
+                                        />
+                                    ) : (
+                                        <ChevronDown
+                                            size={15}
+                                            className='text-indigo-500 transition-transform duration-200 group-hover:translate-y-0.5'
+                                        />
+                                    )}
+                                </Button>
+                            </div>
+                        )}
                     </div>
                 )}
 
