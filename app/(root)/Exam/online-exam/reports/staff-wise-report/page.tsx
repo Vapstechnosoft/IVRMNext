@@ -5,7 +5,7 @@ import { useStaffWiseReportInitialData } from '@/hooks/exam/online-exam/useRepor
 import { getNotSubmittedReportData, getStaffWiseReportData } from '@/server/exam/online-exam/reports/staff-wise-report';
 import type { INotSubmittedReportRow, IStaffWiseReportRow } from '@/types/exam/online-exam/reports';
 import { Download, Printer } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import StaffWiseReportFilterForm from './_components/filter-form';
 import StaffWiseReportPrintView from './_components/report-print-view';
@@ -20,28 +20,41 @@ export default function StaffWiseReportPage() {
     const [isLoading, setIsLoading] = useState(false);
 
     const initialData = (initialResponse?.data || initialResponse || {}) as any;
-    const years = initialData?.yearList || [
-        { asmaY_Id: 1, asmaY_Year: '2025-2026' },
-        { asmaY_Id: 2, asmaY_Year: '2026-2027' }
-    ];
-    const classes = initialData?.classList || [
-        { asmcL_Id: 10, asmcL_ClassName: 'Grade 10' },
-        { asmcL_Id: 11, asmcL_ClassName: 'Grade 11' },
-        { asmcL_Id: 12, asmcL_ClassName: 'Grade 12' }
-    ];
-    const sections = initialData?.sectionList || [
-        { asmS_Id: 1, asmC_SectionName: 'Section A' },
-        { asmS_Id: 2, asmC_SectionName: 'Section B' }
-    ];
-    const subjects = initialData?.subjectList || [
-        { ismS_Id: 101, ismS_SubjectName: 'Science & Biology' },
-        { ismS_Id: 102, ismS_SubjectName: 'Mathematics' },
-        { ismS_Id: 103, ismS_SubjectName: 'Physics' }
-    ];
-    const exams = initialData?.examList || [
-        { lpmoeeX_Id: 501, lpmoeeX_ExamName: 'Mid Term Online Assessment 2026' },
-        { lpmoeeX_Id: 502, lpmoeeX_ExamName: 'Final Term Online Exam 2026' }
-    ];
+
+    const years = useMemo(() => {
+        const raw = initialData?.getyear || initialData?.getYear || initialData?.yearList || initialData?.year_list || initialData?.years;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
+
+    const classes = useMemo(() => {
+        const raw = initialData?.getclass || initialData?.getClass || initialData?.classList || initialData?.class_list || initialData?.classes;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
+
+    const sections = useMemo(() => {
+        const raw = initialData?.getsections || initialData?.getsection || initialData?.sectionList || initialData?.section_list || initialData?.sections || initialData?.getSection || initialData?.getSectionList;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
+
+    const subjects = useMemo(() => {
+        const raw = initialData?.getsubjects || initialData?.getSubject || initialData?.subjectList || initialData?.subject_list || initialData?.subjects;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
+
+    const exams = useMemo(() => {
+        const raw = initialData?.getexams || initialData?.getexam || initialData?.getexamlist || initialData?.getExamList || initialData?.examlist || initialData?.masterExamList || initialData?.exams || initialData?.getExams;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
 
     const handleFilterSubmit = async (values: any) => {
         setIsLoading(true);

@@ -143,15 +143,22 @@ export default function UpdatePeriodTimeSettingForm({ onSuccess, selectedRow: ro
             };
 
             const response = await savePeriodTimeSetting(payload);
-            if (response.success) {
-                toast.success(response.message);
+            const isSuccess =
+                response?.returnval === true ||
+                response?.returnval === 'saved' ||
+                response?.returnval === 'updated' ||
+                response?.success === true ||
+                response?.message?.toLowerCase().includes('success');
+
+            if (isSuccess) {
+                toast.success('Data saved successfully');
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message);
+                toast.error(response?.message || 'Failed to save data');
             }
         } catch (error: any) {
-            toast.error(error.message);
+            toast.error(error?.message || 'Failed to save data');
         }
     };
 

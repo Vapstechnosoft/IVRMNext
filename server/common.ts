@@ -797,6 +797,13 @@ export async function getUserAccessibleModules() {
             subByParent.get(parentId)!.push(sub);
         });
 
+        const cleanMenuTitle = (text: string): string => {
+            if (!text) return '';
+            return text
+                .replace(/\bbaldwin\b\s*/gi, '')
+                .trim();
+        };
+
         // Filter pages: only keep those whose URL starts with "app."
         const pagesByMenuId = new Map<number, any[]>();
         pages.forEach((page: any) => {
@@ -806,13 +813,15 @@ export async function getUserAccessibleModules() {
             if (!pagesByMenuId.has(menuId)) {
                 pagesByMenuId.set(menuId, []);
             }
+            const rawName = page.ivrmmP_PageName || page.ivrmP_PageDisplayName || '';
+            const cleanedName = cleanMenuTitle(rawName);
             pagesByMenuId.get(menuId)!.push({
                 id: page.pageId,
-                name: page.ivrmmP_PageName,
+                name: cleanedName,
                 icon: 'Settings',
                 url: page.ivrmP_PageURL,
-                title: page.ivrmmP_PageName,
-                description: page.ivrmmP_PageName
+                title: cleanedName,
+                description: cleanedName
             });
             // }
         });
@@ -838,7 +847,7 @@ export async function getUserAccessibleModules() {
                 if (itemPages.length > 0 || subMenuItems.length > 0) {
                     const menuItem: any = {
                         id: sub.menuId,
-                        name: sub.ivrmM_ModuleName,
+                        name: cleanMenuTitle(sub.ivrmM_ModuleName),
                         icon: mapIcon(sub.ivrmmmI_Icon),
                         sub_menu: subMenuItems,
                         pages: hasGrandChildren ? [] : itemPages.sort(sortByOrder)
@@ -859,14 +868,15 @@ export async function getUserAccessibleModules() {
                 if (subMenuStructure.length === 0) {
                     return null;
                 }
+                const cleanedModuleName = cleanMenuTitle(m.ivrmM_ModuleName);
                 return {
                     id: m.menuId,
-                    name: m.ivrmM_ModuleName,
+                    name: cleanedModuleName,
                     icon: mapIcon(m.ivrmmmI_Icon),
                     menu: [
                         {
                             id: 1,
-                            name: m.ivrmM_ModuleName,
+                            name: cleanedModuleName,
                             icon: mapIcon(m.ivrmmmI_Icon),
                             sub_menu: subMenuStructure
                         }

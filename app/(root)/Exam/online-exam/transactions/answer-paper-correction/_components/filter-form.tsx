@@ -71,11 +71,15 @@ export default function AnswerPaperFilterForm({
                         {...register('asmaY_Id', { valueAsNumber: true })}
                         className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
                         <option value=''>-- Select Year --</option>
-                        {years.map((y) => (
-                            <option key={y.asmaY_Id} value={y.asmaY_Id}>
-                                {y.asmaY_Year}
-                            </option>
-                        ))}
+                        {years.map((y: any, idx: number) => {
+                            const val = y.asmaY_Id ?? y.ASMAY_Id ?? y.id ?? idx + 1;
+                            const label = y.asmaY_Year || y.ASMAY_Year || y.year || `Year ${val}`;
+                            return (
+                                <option key={val} value={val}>
+                                    {label}
+                                </option>
+                            );
+                        })}
                     </select>
                     {errors.asmaY_Id && <p className='text-[11px] text-destructive'>{errors.asmaY_Id.message}</p>}
                 </div>
@@ -90,30 +94,38 @@ export default function AnswerPaperFilterForm({
                         {...register('asmcL_Id', { valueAsNumber: true })}
                         className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
                         <option value=''>-- Select Class --</option>
-                        {classes.map((c) => (
-                            <option key={c.asmcL_Id} value={c.asmcL_Id}>
-                                {c.asmcL_ClassName}
-                            </option>
-                        ))}
+                        {classes.map((c: any, idx: number) => {
+                            const val = c.asmcL_Id ?? c.ASMCL_Id ?? c.id ?? idx + 1;
+                            const label = c.asmcL_ClassName || c.ASMCL_ClassName || c.className || `Class ${val}`;
+                            return (
+                                <option key={val} value={val}>
+                                    {label}
+                                </option>
+                            );
+                        })}
                     </select>
                     {errors.asmcL_Id && <p className='text-[11px] text-destructive'>{errors.asmcL_Id.message}</p>}
                 </div>
 
-                {/* Section */}
+                {/* Section (Optional) */}
                 <div className='space-y-1.5'>
                     <Label htmlFor='filter_asmS_Id' className='font-semibold text-xs'>
-                        Section <span className='text-destructive'>*</span>
+                        Section (Optional)
                     </Label>
                     <select
                         id='filter_asmS_Id'
                         {...register('asmS_Id', { valueAsNumber: true })}
                         className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
-                        <option value=''>-- Select Section --</option>
-                        {sections.map((s) => (
-                            <option key={s.asmS_Id} value={s.asmS_Id}>
-                                {s.asmC_SectionName}
-                            </option>
-                        ))}
+                        <option value='0'>-- All / Select Section --</option>
+                        {(sections || []).map((s: any, idx: number) => {
+                            const val = s.asmS_Id ?? s.ASMS_Id ?? s.asmC_Id ?? s.ASMC_Id ?? s.id ?? idx + 1;
+                            const label = s.asmC_SectionName || s.ASMC_SectionName || s.asmS_SectionName || s.ASMS_SectionName || s.sectionName || s.section_name || `Section ${val}`;
+                            return (
+                                <option key={val} value={val}>
+                                    {label}
+                                </option>
+                            );
+                        })}
                     </select>
                     {errors.asmS_Id && <p className='text-[11px] text-destructive'>{errors.asmS_Id.message}</p>}
                 </div>
@@ -128,11 +140,15 @@ export default function AnswerPaperFilterForm({
                         {...register('ismS_Id', { valueAsNumber: true })}
                         className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
                         <option value=''>-- Select Subject --</option>
-                        {subjects.map((sub) => (
-                            <option key={sub.ismS_Id} value={sub.ismS_Id}>
-                                {sub.ismS_SubjectName}
-                            </option>
-                        ))}
+                        {subjects.map((sub: any, idx: number) => {
+                            const val = sub.ismS_Id ?? sub.ISMS_Id ?? sub.id ?? idx + 1;
+                            const label = sub.ismS_SubjectName || sub.ISMS_SubjectName || sub.subjectName || `Subject ${val}`;
+                            return (
+                                <option key={val} value={val}>
+                                    {label}
+                                </option>
+                            );
+                        })}
                     </select>
                     {errors.ismS_Id && <p className='text-[11px] text-destructive'>{errors.ismS_Id.message}</p>}
                 </div>
@@ -147,23 +163,27 @@ export default function AnswerPaperFilterForm({
                         {...register('lpmoeeX_Id', { valueAsNumber: true })}
                         className='flex h-9 w-full rounded-md border border-input bg-background px-3 py-1.5 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'>
                         <option value=''>-- Select Exam --</option>
-                        {exams.map((ex) => (
-                            <option key={ex.lpmoeeX_Id} value={ex.lpmoeeX_Id}>
-                                {ex.lpmoeeX_ExamName}
-                            </option>
-                        ))}
+                        {(exams || []).map((ex: any, idx: number) => {
+                            const val = ex.lpmoeeX_Id ?? ex.LPMOEEX_Id ?? ex.emE_Id ?? ex.EME_Id ?? ex.lpmoeX_Id ?? ex.LPMOEX_Id ?? ex.id ?? idx + 1;
+                            const label = ex.lpmoeeX_ExamName || ex.LPMOEEX_ExamName || ex.emE_ExamName || ex.EME_ExamName || ex.lpmoeX_ExamName || ex.LPMOEX_ExamName || ex.examName || ex.exam_name || `Exam ${val}`;
+                            return (
+                                <option key={val} value={val}>
+                                    {label}
+                                </option>
+                            );
+                        })}
                     </select>
                     {errors.lpmoeeX_Id && <p className='text-[11px] text-destructive'>{errors.lpmoeeX_Id.message}</p>}
                 </div>
             </div>
 
             {/* Submit & Reset Buttons */}
-            <div className='flex items-center justify-end gap-3 pt-2'>
-                <Button type='button' variant='outline' size='sm' onClick={handleFormReset} className='h-9 gap-1.5 text-xs'>
-                    <RotateCcw className='h-3.5 w-3.5' /> Reset
+            <div className='flex items-center justify-center sm:justify-end gap-2 pt-2'>
+                <Button type='button' variant='outline' size='sm' onClick={handleFormReset} className='h-8 px-3 gap-1.5 text-xs w-auto font-medium'>
+                    <RotateCcw className='h-3 w-3' /> Reset
                 </Button>
-                <Button type='submit' size='sm' disabled={isLoading} className='h-9 min-w-28 gap-1.5 text-xs shadow-sm'>
-                    <Search className='h-3.5 w-3.5' /> {isLoading ? 'Searching...' : 'Search Submissions'}
+                <Button type='submit' size='sm' disabled={isLoading} className='h-8 px-4 gap-1.5 text-xs w-auto font-medium shadow-sm bg-orange-600 hover:bg-orange-700 text-white'>
+                    <Search className='h-3 w-3' /> {isLoading ? 'Searching...' : 'Search Submissions'}
                 </Button>
             </div>
         </form>

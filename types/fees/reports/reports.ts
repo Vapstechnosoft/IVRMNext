@@ -588,3 +588,33 @@ export interface FeeUserWiseDailyCollectionData {
     totalAmount: number;
     receiptCount: number;
 }
+
+export interface IFeeChallanReportRequest {
+    asmayidpss: number;
+    asmcL_Id: number;
+    asmS_Id: number;
+    fromdate: string;
+    todate: string;
+    typeofrpt?: boolean;
+}
+export interface IFeeChallanData{
+    reportdatelist:IFeeChallanReportItem[]
+}
+export interface IFeeChallanReportItem {
+    slNo?: number;
+    name: string;                // ✅ API returns "name", not "studentName"
+    asmcl_classname?: string;   // ✅ actual API field
+    asmc_sectionname?: string;  // ✅ actual API field
+    amay_rollno?: string;
+    fyp_challanno?: string;     // ✅ actual API field
+    fyp_tot_amount?: number;    // ✅ actual API field
+    fyp_receipt_no?: string;    // ✅ actual API field
+    fyp_bank_or_cash?: string;  // ✅ actual API field
+    isSelected?: boolean;
+}
+
+export interface IFeeChallanReportResponse {
+    success: boolean;
+    message?: string;
+    data: IFeeChallanData;
+}

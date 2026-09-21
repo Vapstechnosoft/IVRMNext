@@ -51,11 +51,11 @@ export async function getManualPeriodInsertionMasters() {
     ]);
 
     return {
-        years: years.data || [],
-        categories: categories.data || [],
-        classes: classes.data || [],
-        staff: staff.data || [],
-        subjects: subjects.data || []
+        years: years.data ?? [],
+        categories: categories.data ?? [],
+        classes: classes.data ?? [],
+        staff: staff.data ?? [],
+        subjects: subjects.data ?? []
     };
 }
 
@@ -71,22 +71,40 @@ export async function getClassDetailsByacademicyrandcategoty(asmay_id: number, T
     return await api.get<ClassDropdownDatamanualPeriodInsertion[]>('timetable', url);
 }
 
+import { auth } from '@/lib/auth';
+
 export async function getManualPeriodInsertionReportData(payload: any) {
+    const session = await auth();
     const url = '/ManualperiodinsertionFacade/ManualPeriodInsertionReportdata';
-    console.info('ManualperiodinsertionFacade', url);
-    const normalizedPayload = {
+    const data = {
         ...payload,
-        asmaY_Id: payload.asmaY_Id ? Number(payload.asmaY_Id) : 0,
-        ttmC_Id: payload.ttmC_Id ? Number(payload.ttmC_Id) : 0,
-        asmcL_Id: payload.asmcL_Id ? Number(payload.asmcL_Id) : 0,
-        asms_Id: payload.asms_Id ? Number(payload.asms_Id) : 0
+        MI_Id: payload.MI_Id || (session?.mi_id ? Number(session.mi_id) : 79),
+        UserId: payload.UserId || (session?.user_id ? Number(session.user_id) : 0),
+        ASMAY_Id: payload.ASMAY_Id ? Number(payload.ASMAY_Id) : Number(payload.asmaY_Id || 0),
+        TTMC_Id: payload.TTMC_Id ? Number(payload.TTMC_Id) : Number(payload.ttmC_Id || 0),
+        ASMCL_Id: payload.ASMCL_Id ? Number(payload.ASMCL_Id) : Number(payload.asmcL_Id || 0),
+        ASMS_Id: payload.ASMS_Id ? Number(payload.ASMS_Id) : Number(payload.asms_Id || 0)
     };
-    return await api.post<any>('timetable', url, normalizedPayload);
+    console.info('ManualperiodinsertionFacade', url, data);
+    const res = await api.post<any>('timetable', url, data);
+    console.log('MANUAL PERIOD REPORT DATA RESPONSE:', JSON.stringify(res, null, 2));
+    return res;
 }
 
 export async function saveManualPeriodInsertion(payload: any) {
+    const session = await auth();
     const url = '/ManualperiodinsertionFacade/savemanualPeriodinsertion';
-    console.info('ManualperiodinsertionFacade', url);
-    console.log('payload : ', JSON.stringify(payload, null, 2));
-    return await api.post<any>('timetable', url, payload);
+    const data = {
+        ...payload,
+        MI_Id: payload.MI_Id || (session?.mi_id ? Number(session.mi_id) : 79),
+        UserId: payload.UserId || (session?.user_id ? Number(session.user_id) : 0),
+        ASMAY_Id: payload.ASMAY_Id ? Number(payload.ASMAY_Id) : Number(payload.asmaY_Id || 0),
+        TTMC_Id: payload.TTMC_Id ? Number(payload.TTMC_Id) : Number(payload.ttmC_Id || 0),
+        ASMCL_Id: payload.ASMCL_Id ? Number(payload.ASMCL_Id) : Number(payload.asmcL_Id || 0),
+        ASMS_Id: payload.ASMS_Id ? Number(payload.ASMS_Id) : Number(payload.asms_Id || 0),
+        HRME_Id: payload.HRME_Id ? Number(payload.HRME_Id) : Number(payload.hrmE_Id || 0),
+        ISMS_Id: payload.ISMS_Id ? Number(payload.ISMS_Id) : Number(payload.ismS_Id || 0)
+    };
+    console.info('ManualperiodinsertionFacade', url, data);
+    return await api.post<any>('timetable', url, data);
 }

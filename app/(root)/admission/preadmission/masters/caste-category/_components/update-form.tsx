@@ -7,7 +7,7 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useMasterCasteCategory, useMasterCasteCategoryCodeDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { masterCasteCategorySchema } from '@/schemas/admission/preadmission/masters';
-import { addOrUpdateMasterCasteCategory } from '@/server/admission/preadmission/masters/caste_category';
+import { addOrUpdateMasterCasteCategory, getMasterCasteCategorySelectedRowDetails } from '@/server/admission/preadmission/masters/caste_category';
 import type { IMasterCasteCategoryList } from '@/types/admission/preadmission/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
@@ -47,14 +47,40 @@ export default function UpdateMasterCasteCategoryForm({ onSuccess, className = '
     });
 
     useEffect(() => {
-        if (row) {
-            reset({
-                imcC_Id: row.imcC_Id,
-                imcC_CategoryCode: row.imcC_CategoryCode,
-                imcC_CategoryName: row.imcC_CategoryName,
-                imcC_CategoryDesc: row.imcC_CategoryDesc
-            });
-        }
+        const fetchDetails = async () => {
+            if (row) {
+                try {
+                    const response = await getMasterCasteCategorySelectedRowDetails(row.imcC_Id);
+                    const dataObj = response.data?.castecategoryname;
+                    const rowData = Array.isArray(dataObj) && dataObj.length > 0 ? dataObj[0] : null;
+                    
+                    if (response.success && rowData) {
+                        reset({
+                            imcC_Id: rowData.imcC_Id || row.imcC_Id,
+                            imcC_CategoryCode: rowData.imcC_CategoryCode || row.imcC_CategoryCode,
+                            imcC_CategoryName: rowData.imcC_CategoryName || row.imcC_CategoryName,
+                            imcC_CategoryDesc: rowData.imcC_CategoryDesc || row.imcC_CategoryDesc
+                        });
+                    } else {
+                        reset({
+                            imcC_Id: row.imcC_Id,
+                            imcC_CategoryCode: row.imcC_CategoryCode,
+                            imcC_CategoryName: row.imcC_CategoryName,
+                            imcC_CategoryDesc: row.imcC_CategoryDesc
+                        });
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch details:', error);
+                    reset({
+                        imcC_Id: row.imcC_Id,
+                        imcC_CategoryCode: row.imcC_CategoryCode,
+                        imcC_CategoryName: row.imcC_CategoryName,
+                        imcC_CategoryDesc: row.imcC_CategoryDesc
+                    });
+                }
+            }
+        };
+        fetchDetails();
     }, [row, reset, setValue]);
 
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
@@ -104,7 +130,13 @@ export default function UpdateMasterCasteCategoryForm({ onSuccess, className = '
                                         onValueChange={(value) => {
                                             field.onChange(value);
                                         }}
-                                        value={field.value?.toString() || row.imcC_CategoryCode}>
+                                        value={
+                                            masterCasteCategoryCode?.data?.find(
+                                                (item) => item.name?.toUpperCase() === (field.value?.toString() || row.imcC_CategoryCode)?.toUpperCase()
+                                            )?.name ||
+                                            field.value?.toString() ||
+                                            row.imcC_CategoryCode
+                                        }>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select a Category' />
                                         </SelectTrigger>
@@ -119,7 +151,7 @@ export default function UpdateMasterCasteCategoryForm({ onSuccess, className = '
                                                 </SelectItem>
                                             ) : (
                                                 masterCasteCategoryCode?.data?.map((item) => (
-                                                    <SelectItem key={item.id} value={item.id.toString()}>
+                                                    <SelectItem key={item.id} value={item.name}>
                                                         {item.name}
                                                     </SelectItem>
                                                 ))

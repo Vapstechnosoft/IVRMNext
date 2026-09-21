@@ -29,6 +29,7 @@ interface DataTableProps<TData, TValue> {
     data: TData[];
     totalItems: number;
     pageSizeOptions?: number[];
+    defaultPageSize?: number;
     isLoading?: boolean;
     showExportOptions?: boolean;
     showViewOptions?: boolean;
@@ -44,6 +45,9 @@ interface DataTableProps<TData, TValue> {
     showPaginationInfo?: boolean;
     showRowsPerPage?: boolean;
     onPageChange?: (page: number) => void;
+    manualPagination?: boolean;
+    manualSorting?: boolean;
+    manualFiltering?: boolean;
 }
 
 export interface DataTableRef {
@@ -56,6 +60,7 @@ function DataTableInner<TData, TValue>(
         data,
         totalItems,
         pageSizeOptions = [10, 20, 30, 40, 50],
+        defaultPageSize,
         isLoading,
         showExportOptions = false,
         showViewOptions = true,
@@ -70,7 +75,10 @@ function DataTableInner<TData, TValue>(
         getRowId,
         showPaginationInfo = true,
         showRowsPerPage = true,
-        onPageChange
+        onPageChange,
+        manualPagination = true,
+        manualSorting = true,
+        manualFiltering = true
     }: DataTableProps<TData, TValue>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -81,7 +89,9 @@ function DataTableInner<TData, TValue>(
     );
     const [pageSize, setPageSize] = useQueryState(
         tableSearchVariables.page_size,
-        parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
+        parseAsInteger
+            .withOptions({ shallow: false, history: 'push' })
+            .withDefault(defaultPageSize ?? (pageSizeOptions && pageSizeOptions.length > 0 ? pageSizeOptions[0] : 10))
     );
 
     // Sorting and filtering
@@ -217,9 +227,9 @@ function DataTableInner<TData, TValue>(
         getPaginationRowModel: getPaginationRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getSortedRowModel: getSortedRowModel(),
-        manualPagination: true,
-        manualSorting: true,
-        manualFiltering: true,
+        manualPagination,
+        manualSorting,
+        manualFiltering,
         initialState: {
             columnPinning: columnPinning || { right: ['actions'] }
         }
@@ -294,7 +304,10 @@ function DataTableInner<TData, TValue>(
 
                             <TableBody>
                                 {table.getRowModel().rows?.length ? (
-                                    table.getRowModel().rows.map((row) => (
+                                    (table.getRowModel().rows.length > pageSize
+                                        ? table.getRowModel().rows.slice(0, pageSize)
+                                        : table.getRowModel().rows
+                                    ).map((row) => (
                                         <TableRow key={row.id} data-state={row.getIsSelected()}>
                                             {row.getVisibleCells().map((cell) => (
                                                 <TableCell

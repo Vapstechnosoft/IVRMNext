@@ -31,6 +31,7 @@ interface GenericDataTableProps<T> {
     defaultSelectedRowIds?: string[];
     onRowSelectionChange?: (selectedRows: T[]) => void;
     onSearchQueryChange?: (value: ApiSearchparams) => void;
+    getRowId?: (row: T, index: number) => string;
 
     // Custom messages
     loadingMessage?: string;
@@ -70,6 +71,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         defaultSelectedRowIds,
         onRowSelectionChange,
         onSearchQueryChange,
+        getRowId,
         loadingMessage = 'Loading data...',
         errorTitle = 'Error Loading Data',
         requestFailedTitle = 'Request Failed',
@@ -159,6 +161,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 columnPinning={columnPinning}
                 maxSelectableRows={maxSelectableRows}
                 defaultSelectedRowIds={defaultSelectedRowIds}
+                getRowId={getRowId}
                 onRowSelectionChange={(selectedRows) => {
                     if (onRowSelectionChange) {
                         onRowSelectionChange(selectedRows);

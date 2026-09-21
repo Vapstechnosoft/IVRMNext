@@ -929,7 +929,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                         setCurrentStep(2);
                     } else {
                         console.error('❌ [DEBUG] Tab 1 - Failed to get employee ID from response');
-                        toast.error('Failed to get employee ID from response');
+                        toast.error(response?.message || 'Failed to get employee ID from response');
                     }
                 },
                 onError: (error: any) => {
@@ -2203,8 +2203,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                        {...register('lastName')}
-                                                        error={errors.lastName?.message as string | undefined}
+                                                        // {...register('lastName')}
+                                                        // error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Employee Code'
@@ -4652,10 +4652,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                             <InputText
                                                                                 label='Registration No. *'
                                                                                 id={`qualificationDetails.${index}.registrationNo`}
-                                                                                maxLength={50}
+                                                                               
                                                                                 {...register(
                                                                                     `qualificationDetails.${index}.registrationNo`
                                                                                 )}
+                                                                                maxLength={30}
                                                                                 error={
                                                                                     (errors.qualificationDetails as any)?.[index]
                                                                                         ?.registrationNo?.message

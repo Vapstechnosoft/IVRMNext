@@ -38,6 +38,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     const [loadingClasses, setLoadingClasses] = useState(false);
     const [_loadingSections, setLoadingSections] = useState(false);
     const [loadingExams, setLoadingExams] = useState(false);
+    const [loadingSubjects, setLoadingSubjects] = useState(false);
 
     const methods = useForm<ToppersListSchema>({
         resolver: zodResolver(toppersListReportSchema),
@@ -199,35 +200,60 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
     }, [watchYear, watchClass, watchSection, setValue]);
 
     useEffect(() => {
-        if (watchYear && watchClass && watchSection && watchExam) {
+        if (watchYear && watchClass && watchSection !== undefined && watchSection !== '' && watchExam) {
             const fetchSubjects = async () => {
                 try {
-                    //setLoadingSubjects(true);
+                    setLoadingSubjects(true);
                     const yearId = Number.parseInt(watchYear, 10);
                     const classId = Number.parseInt(watchClass, 10);
-                    const sectionId = Number.parseInt(watchSection, 10);
+                    const sectionId = Number.parseInt(watchSection, 10) || 0;
                     const examId = Number.parseInt(watchExam, 10);
                     const payload = {
+                        ASMAY_Id: yearId,
+                        ASMCL_Id: classId,
+                        ASMS_Id: sectionId,
+                        EME_Id: examId,
                         asmaY_Id: yearId,
                         asmcL_Id: classId,
                         asmS_Id: sectionId,
                         emE_Id: examId
                     };
 
-                    const { data: response } = await getMappedSubjects(payload);
-                    const res__ = Array.isArray(response) ? response : [];
-                    if (response) {
-                        setSubjects(res__);
-                    } else {
-                        setSubjects([]);
+                    const result = await getMappedSubjects(payload);
+                    const resData: any = result?.data ?? result;
+                    let list: any[] = [];
+
+                    if (Array.isArray(resData)) {
+                        list = resData;
+                    } else if (resData && typeof resData === 'object') {
+                        list =
+                            resData.subjectlist ||
+                            resData.sublist ||
+                            resData.getsubjectlist ||
+                            resData.getsubjects ||
+                            resData.getsubjectslist ||
+                            resData.subjects ||
+                            resData.subjectList ||
+                            resData.get_exam_subjects ||
+                            resData.exam_subject ||
+                            resData.clssubjlist ||
+                            resData.fillsubject ||
+                            resData.$values ||
+                            [];
                     }
+
+                    setSubjects(Array.isArray(list) ? list : []);
                 } catch (error) {
                     console.error('Error fetching subjects:', error);
                     toast.error('Failed to load subjects');
                     setSubjects([]);
+                } finally {
+                    setLoadingSubjects(false);
                 }
             };
             fetchSubjects();
+        } else {
+            setSubjects([]);
         }
     }, [watchYear, watchClass, watchSection, watchExam]);
 
@@ -437,7 +463,7 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                 {errors.ASMCL_Id && watchType === '2' && <FormError>{errors.ASMCL_Id.message}</FormError>}
                             </div>
 
-                            {/* Section (Only for Individual type) */}
+                            {/* Section */}
                             <div className='space-y-2'>
                                 <Label>
                                     Section <span className='text-red-500'>*</span>
@@ -450,21 +476,25 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                             key={field.value}
                                             onValueChange={(val) => {
                                                 field.onChange(val);
-                                                // Trigger validation when changed
                                                 trigger('ASMS_Id');
                                             }}
-                                            value={field.value || undefined}
-                                            disabled={watchType === '1' ? true : undefined}>
+                                            value={field.value || '0'}
+                                            disabled={!watchClass ? true : undefined}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Section' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem value='0'>All</SelectItem>
-                                                {sections.map((item) => (
-                                                    <SelectItem key={item.asmS_Id} value={String(item.asmS_Id)}>
-                                                        {item.asmC_SectionName}
-                                                    </SelectItem>
-                                                ))}
+                                                {sections.map((item) => {
+                                                    const secId = String(item.asmS_Id ?? item.ASMS_Id ?? item.id ?? '');
+                                                    const secName = item.asmC_SectionName ?? item.ASMC_SectionName ?? item.sectionName ?? '';
+                                                    if (!secId || secId === '0') return null;
+                                                    return (
+                                                        <SelectItem key={secId} value={secId}>
+                                                            {secName}
+                                                        </SelectItem>
+                                                    );
+                                                })}
                                             </SelectContent>
                                         </Select>
                                     )}
@@ -591,11 +621,33 @@ export const ReportForm: React.FC<ReportFormProps> = ({ onReportGenerated, onRes
                                                     <SelectValue placeholder='Select Subject' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {subjects.map((item) => (
-                                                        <SelectItem key={item.ismS_Id} value={String(item.ismS_Id)}>
-                                                            {item.ismS_SubjectName}
+                                                    {loadingSubjects ? (
+                                                        <SelectItem value='0' disabled>
+                                                            Subjects are loading...
                                                         </SelectItem>
-                                                    ))}
+                                                    ) : subjects.length === 0 ? (
+                                                        <SelectItem value='0' disabled>
+                                                            No Subjects found
+                                                        </SelectItem>
+                                                    ) : (
+                                                        subjects.map((item) => {
+                                                            const subId = item.ismS_Id ?? item.ISMS_Id ?? item.id ?? item.subjectId ?? item.ismS_ID ?? item.subject_Id;
+                                                            const subName =
+                                                                item.ismS_SubjectName ??
+                                                                item.ISMS_SubjectName ??
+                                                                item.subjectName ??
+                                                                item.ismS_IVRSSubjectName ??
+                                                                item.subject_Name ??
+                                                                item.name ??
+                                                                `Subject ${subId}`;
+                                                            if (!subId) return null;
+                                                            return (
+                                                                <SelectItem key={String(subId)} value={String(subId)}>
+                                                                    {subName}
+                                                                </SelectItem>
+                                                            );
+                                                        })
+                                                    )}
                                                 </SelectContent>
                                             </Select>
                                         )}

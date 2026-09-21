@@ -6,13 +6,43 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, BookOpen, Check, Clipboard, Download, FileText, Layout, Loader2, StickyNote, Upload } from 'lucide-react';
+import {
+    AlertCircle,
+    BookOpen,
+    Check,
+    Clipboard,
+    Download,
+    FileText,
+    Languages,
+    Layout,
+    Loader2,
+    Printer,
+    StickyNote,
+    Upload
+} from 'lucide-react';
 import type React from 'react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import jsPDF from 'jspdf';
+import { exportNoteMakerPdf, printNoteMakerContent } from '@/lib/notemaker-pdf-export';
 import { toast } from 'sonner';
+
+const LANGUAGES = [
+    { code: 'English', label: 'English (Original)' },
+    { code: 'Hindi', label: 'Hindi (हिंदी)' },
+    { code: 'Kannada', label: 'Kannada (ಕನ್ನಡ)' },
+    { code: 'Tamil', label: 'Tamil (தமிழ்)' },
+    { code: 'Telugu', label: 'Telugu (తెలుగు)' },
+    { code: 'Malayalam', label: 'Malayalam (മലയാളം)' },
+    { code: 'Marathi', label: 'Marathi (मराठी)' },
+    { code: 'Gujarati', label: 'Gujarati (ગુજરાતી)' },
+    { code: 'Bengali', label: 'Bengali (বাংলা)' },
+    { code: 'Punjabi', label: 'Punjabi (ਪੰਜਾਬੀ)' },
+    { code: 'Spanish', label: 'Spanish (Español)' },
+    { code: 'French', label: 'French (Français)' },
+    { code: 'German', label: 'German (Deutsch)' },
+    { code: 'Arabic', label: 'Arabic (العربية)' }
+];
 
 export default function AINotemaker() {
     // State
@@ -23,8 +53,13 @@ export default function AINotemaker() {
     const [generateNotes, setGenerateNotes] = useState<boolean>(true);
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState<{ summary?: string; notes?: string; chapter?: string } | null>(null);
+    const [originalResult, setOriginalResult] = useState<{ summary?: string; notes?: string; chapter?: string } | null>(null);
+    const [selectedLanguage, setSelectedLanguage] = useState<string>('English');
+    const [isTranslating, setIsTranslating] = useState<boolean>(false);
     const [errorLog, setErrorLog] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+    const previewContainerRef = useRef<HTMLDivElement>(null);
 
     // Handlers
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,6 +89,8 @@ export default function AINotemaker() {
 
         setIsLoading(true);
         setResult(null);
+        setOriginalResult(null);
+        setSelectedLanguage('English');
         setErrorLog(null);
         setErrorMessage(null);
 
@@ -80,6 +117,7 @@ export default function AINotemaker() {
 
             const data = await response.json();
             setResult(data);
+            setOriginalResult(data);
             setActiveTab('preview');
 
             let successMsg = 'Content generated successfully';
@@ -98,80 +136,86 @@ export default function AINotemaker() {
         }
     };
 
+    const handleTranslate = async (targetLang: string) => {
+        setSelectedLanguage(targetLang);
+        if (targetLang === 'English') {
+            if (originalResult) {
+                setResult(originalResult);
+                toast.success('Restored original English notes');
+            }
+            return;
+        }
+
+        if (!originalResult) return;
+
+        setIsTranslating(true);
+        toast.loading(`Translating notes to ${targetLang}...`, { id: 'translate-notemaker' });
+
+        try {
+            const response = await fetch('/api/exam/translate-notes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    summary: originalResult.summary,
+                    notes: originalResult.notes,
+                    targetLanguage: targetLang
+                })
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || 'Translation failed');
+            }
+
+            const translatedData = await response.json();
+            setResult((prev) => ({
+                ...prev,
+                summary: translatedData.summary || prev?.summary,
+                notes: translatedData.notes || prev?.notes
+            }));
+            toast.success(`Notes translated to ${targetLang}`, { id: 'translate-notemaker' });
+        } catch (err: any) {
+            console.error('Translation Error:', err);
+            toast.error(err.message || 'Failed to translate notes', { id: 'translate-notemaker' });
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+
     const handleCopyContent = (text: string) => {
         navigator.clipboard.writeText(text);
         toast.success('Copied to clipboard');
     };
 
-    const handleDownloadPDF = () => {
+    const handleDownloadPDF = async () => {
         if (!result) return;
-
-        const doc = new jsPDF();
-        const pageWidth = doc.internal.pageSize.getWidth();
-        const pageHeight = doc.internal.pageSize.getHeight();
-        const margin = 20;
-        const maxWidth = pageWidth - margin * 2;
-        let yPos = 20;
-
-        const addNewPage = () => {
-            doc.addPage();
-            yPos = 20;
-        };
-
-        // Header
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.text('AI NOTEMAKER', pageWidth / 2, yPos, { align: 'center' });
-        yPos += 10;
-
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Chapter: ${result.chapter || 'Entire Document'}`, pageWidth / 2, yPos, { align: 'center' });
-        yPos += 10;
-        doc.line(margin, yPos, pageWidth - margin, yPos);
-        yPos += 10;
-
-        const printLargeText = (title: string, content: string) => {
-            if (yPos > pageHeight - margin - 20) addNewPage();
-
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text(title, margin, yPos);
-            yPos += 10;
-
-            doc.setFontSize(11);
-            doc.setFont('helvetica', 'normal');
-
-            // Clean markdown markers for PDF
-            const cleanedContent = content
-                .replace(/\r/g, '') // Remove carriage returns first to avoid CRLF issues
-                .replace(/\*\*([\s\S]*?)\*\*/g, '$1') // Remove bold markers (multiline-safe)
-                .replace(/\*([\s\S]*?)\*/g, '$1') // Remove italic markers (multiline-safe)
-                .replace(/^\s*#+\s+/gm, '') // Remove heading markers (even with leading spaces)
-                .replace(/^\s*[\*\-\+]\s+/gm, '• '); // Replace bullets with a clean dot
-
-            const lines = doc.splitTextToSize(cleanedContent, maxWidth);
-
-            for (const line of lines) {
-                if (yPos > pageHeight - margin) {
-                    addNewPage();
-                }
-                doc.text(line, margin, yPos);
-                yPos += 7;
-            }
-            yPos += 10;
-        };
-
-        if (result.summary) {
-            printLargeText('SUMMARY', result.summary);
+        setIsDownloadingPdf(true);
+        toast.loading('Generating PDF...', { id: 'notemaker-pdf' });
+        try {
+            await exportNoteMakerPdf({
+                chapter: result.chapter,
+                summary: result.summary,
+                notes: result.notes,
+                language: selectedLanguage,
+                previewElement: previewContainerRef.current
+            });
+            toast.success('PDF Downloaded successfully', { id: 'notemaker-pdf' });
+        } catch (err: any) {
+            console.error('PDF export failed:', err);
+            toast.error('Failed to generate PDF. Please try again.', { id: 'notemaker-pdf' });
+        } finally {
+            setIsDownloadingPdf(false);
         }
+    };
 
-        if (result.notes) {
-            printLargeText('STRUCTURED NOTES', result.notes);
-        }
-
-        doc.save(`notes-${Date.now()}.pdf`);
-        toast.success('PDF Downloaded');
+    const handlePrintNotes = () => {
+        if (!result) return;
+        printNoteMakerContent({
+            chapter: result.chapter,
+            summary: result.summary,
+            notes: result.notes,
+            language: selectedLanguage
+        });
     };
 
     const renderWithBold = (text: string) => {
@@ -371,15 +415,52 @@ export default function AINotemaker() {
 
                     <TabsContent value='preview' className='space-y-6'>
                         {result && (
-                            <div className='mb-4 flex justify-end gap-2'>
-                                <Button onClick={handleDownloadPDF} variant='outline'>
-                                    <Download className='mr-2 h-4 w-4' /> Download PDF
-                                </Button>
+                            <div className='mb-4 flex flex-wrap items-center justify-between gap-4 rounded-xl border bg-card p-3 shadow-sm'>
+                                <div className='flex items-center gap-3'>
+                                    <div className='flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-1.5'>
+                                        <Languages className='h-4 w-4 text-primary' />
+                                        <span className='font-semibold text-muted-foreground text-xs uppercase tracking-wider'>
+                                            Translate Notes:
+                                        </span>
+                                        <select
+                                            value={selectedLanguage}
+                                            onChange={(e) => handleTranslate(e.target.value)}
+                                            disabled={isTranslating}
+                                            className='cursor-pointer rounded-md bg-transparent font-medium text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50'>
+                                            {LANGUAGES.map((lang) => (
+                                                <option key={lang.code} value={lang.code}>
+                                                    {lang.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {isTranslating && (
+                                        <span className='flex items-center gap-1.5 font-medium text-primary text-xs'>
+                                            <Loader2 className='h-3.5 w-3.5 animate-spin' /> Translating...
+                                        </span>
+                                    )}
+                                </div>
+                                <div className='flex items-center gap-2'>
+                                    <Button onClick={handlePrintNotes} variant='outline' className='font-medium'>
+                                        <Printer className='mr-2 h-4 w-4' /> Print / Save PDF
+                                    </Button>
+                                    <Button onClick={handleDownloadPDF} disabled={isDownloadingPdf} className='font-medium'>
+                                        {isDownloadingPdf ? (
+                                            <>
+                                                <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Generating...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Download className='mr-2 h-4 w-4' /> Download PDF
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
                             </div>
                         )}
 
                         {result ? (
-                            <div className='fade-in mx-auto max-w-5xl animate-in space-y-8 duration-500'>
+                            <div ref={previewContainerRef} className='fade-in mx-auto max-w-5xl animate-in space-y-8 duration-500'>
                                 {/* Summary Card */}
                                 {result.summary && (
                                     <Card className='overflow-hidden'>

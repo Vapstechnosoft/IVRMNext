@@ -9,7 +9,7 @@ import { useAdmissionStandard, useSaveAdmissionStandard } from '@/hooks/preconfi
 import type { IAdmissionStandardPayload } from '@/types/preconfiguration/admission-standard';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw, Save, X } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -55,35 +55,38 @@ const admissionStandardSchema = z.object({
 
 type FormValues = z.infer<typeof admissionStandardSchema>;
 
+const defaultFormValues = {
+    ASC_Adm_AddFieldsFlag: false,
+    ASC_TC_AddFieldsFlag: false,
+    ASC_MaxAgeApl_Flag: false,
+    ASC_MinAgeApl_Flag: false,
+    ASC_TC_Payment: false,
+    ASC_TC_Library: false,
+    ASC_ECS_Flag: false,
+    ASC_ParentsMonthlyIncome_Flag: false,
+    ASC_ParentsAnnualIncome_Flag: false,
+    ASC_Att_DefaultEntry_Type: undefined as any,
+    ASC_Default_Gender: undefined as any,
+    ASC_School_Address: false,
+    ASC_Category_Address: false,
+    ASC_DefaultPhotoUpload: '0',
+    ASC_DefaultSMS_Flag: undefined as any,
+    ASC_Att_Scheduler_Flag: undefined as any,
+    ASC_Att_Default_OrderFlag: '',
+    ASC_Logo_Path: null
+} as FormValues;
+
 export default function AdmissionStandardForm() {
     const { data: response, isLoading, refetchAll } = useAdmissionStandard();
     const saveMutation = useSaveAdmissionStandard();
+    const [resetKey, setResetKey] = useState(0);
 
     const form = useForm<FormValues>({
         resolver: zodResolver(admissionStandardSchema),
-        defaultValues: {
-            ASC_Adm_AddFieldsFlag: false,
-            ASC_TC_AddFieldsFlag: false,
-            ASC_MaxAgeApl_Flag: false,
-            ASC_MinAgeApl_Flag: false,
-            ASC_TC_Payment: false,
-            ASC_TC_Library: false,
-            ASC_ECS_Flag: false,
-            ASC_ParentsMonthlyIncome_Flag: false,
-            ASC_ParentsAnnualIncome_Flag: false,
-            ASC_Att_DefaultEntry_Type: undefined,
-            ASC_Default_Gender: undefined,
-            ASC_School_Address: false,
-            ASC_Category_Address: false,
-            ASC_DefaultPhotoUpload: '0',
-            ASC_DefaultSMS_Flag: undefined,
-            ASC_Att_Scheduler_Flag: undefined,
-            ASC_Att_Default_OrderFlag: '',
-            ASC_Logo_Path: null
-        }
+        defaultValues: defaultFormValues
     });
 
-    useEffect(() => {
+    const handleReset = () => {
         if (response && response.length > 0) {
             const config = response[0];
             form.reset({
@@ -109,7 +112,18 @@ export default function AdmissionStandardForm() {
                 ASC_Att_Default_OrderFlag: config.asC_Att_Default_OrderFlag ? String(config.asC_Att_Default_OrderFlag) : '',
                 ASC_Logo_Path: config.asC_Logo_Path || null
             });
+            setResetKey(prev => prev + 1);
         }
+    };
+
+    const handleClear = () => {
+        const currentId = form.getValues('asC_Id');
+        form.reset({ ...defaultFormValues, asC_Id: currentId });
+        setResetKey(prev => prev + 1);
+    };
+
+    useEffect(() => {
+        handleReset();
     }, [response, form]);
 
     const onSubmit = (values: FormValues) => {
@@ -163,7 +177,7 @@ export default function AdmissionStandardForm() {
             </CardHeader>
             <CardContent className='p-6'>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit, onError)} className='space-y-6'>
+                    <form key={resetKey} onSubmit={form.handleSubmit(onSubmit, onError)} className='space-y-6'>
                         <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                             {/* Left Column */}
                             <div className='space-y-6'>

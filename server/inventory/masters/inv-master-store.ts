@@ -61,6 +61,7 @@ export async function saveInvMasterStore(data: any) {
 }
 
 export async function deactivateInvMasterStore(data: any) {
-    const url = `/INV_MasterStoreFacade/deactive?id=${data.invmsT_Id}`;
+    const id = data?.invmsT_Id ?? data?.invmS_Id ?? data?.INVMST_Id ?? data?.INVMS_Id ?? data?.id ?? data;
+    const url = `/INV_MasterStoreFacade/deactive?id=${id}`;
     return await api.post<any>('inventory', url, {});
 }

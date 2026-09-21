@@ -42,9 +42,9 @@ function ExamLoginPrivilegesPageContent({
 
     return (
         <div className='min-h-screen'>
-            <div className='container space-y-4 p-1'>
+            <div className='container space-y-4 p-4'>
                 {/* Header */}
-                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
+                <div className='mt-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <Button
                         type='button'
                         onClick={openAddForm}

@@ -17,21 +17,21 @@ export const quotaCategoryColumns: ColumnDef<IMasterQuotaCategory>[] = [
     {
         accessorKey: 'acqC_CategoryName',
         header: () => <div className='text-center font-bold text-black'>Category Name</div>,
-        cell: ({ row }) => <div className='text-left font-medium'>{row.original.acqC_CategoryName}</div>,
+        cell: ({ row }) => <div className='text-center font-medium'>{row.original.acqC_CategoryName}</div>,
     },
     {
         accessorKey: 'acqC_CategoryCode',
         header: () => <div className='text-center font-bold text-black'>Category Code</div>,
-        cell: ({ row }) => <div className='text-left'>{row.original.acqC_CategoryCode}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.original.acqC_CategoryCode}</div>,
     },
     {
         accessorKey: 'acqC_CategoryInfo',
         header: () => <div className='text-center font-bold text-black'>Category Info</div>,
-        cell: ({ row }) => <div className='text-left'>{row.original.acqC_CategoryInfo}</div>,
+        cell: ({ row }) => <div className='text-center'>{row.original.acqC_CategoryInfo}</div>,
     },
     {
         id: 'actions',
-        header: () => <div className='font-bold text-black text-center'>Actions</div>,
+        header: () => <div className='font-bold text-black text-left'>Actions</div>,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />,
         size: 100
     }

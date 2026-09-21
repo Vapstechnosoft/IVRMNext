@@ -10,9 +10,13 @@ import { getAcademicYear, getCategory, getTimeTableGenerationGridData } from '@/
 // deputation
 import {
     getAbsentStaff,
+    getAllDetailsViewRecords2,
+    getAcademicYearData as getDeputationAcademicYearData,
     getDeputationDetails,
     getFreeStaffDets,
     getPeriodAlloted,
+    getViewAbsent,
+    getViewDeputation,
     getViewRecordsPopup9,
     saveDeputationDetails
 } from '@/server/timetable/transactions/deputation';
@@ -21,7 +25,10 @@ import type {
     IFreeStaffPayload,
     IPeriodAllotedPayload,
     ISaveDeputationPayload,
-    IViewRecordsPopupPayload
+    IViewAbsentPayload,
+    IViewDeputationPayload,
+    IViewRecords2Payload,
+    IViewRecordsPopup9Payload
 } from '@/types/timetable/Transaction/deputation';
 
 // manual-Period-insersion
@@ -118,6 +125,25 @@ export const useTimeTableGenerationGridData = (searchParams: any) => {
 };
 
 // ================= deputation =================
+
+export const useTimeTableAcademicYear = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TT_ACADEMICYEAR, searchParams ?? {}],
+            queryFn: async () => getDeputationAcademicYearData(),
+            staleTime: 0
+        }),
+
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [TIMETABLE_QUERY_KEYS.MASTER_TT_ACADEMICYEAR]
+            });
+        }
+    };
+};
+
 export const useDeputationDetails = () => {
     return useQuery({
         queryKey: [TIMETABLE_QUERY_KEYS.DEPUTATION_MASTERS],
@@ -137,7 +163,7 @@ export const useAbsentStaffList = (payload: IAbsentStaffPayload, enabled = true)
             const res = await getAbsentStaff(payload);
             return res.data || res;
         },
-        enabled: enabled && !!payload.ttsD_Date
+        enabled: enabled && !!payload.TTSD_Date && !!payload.ASMAY_Id
     });
 };
 
@@ -148,7 +174,7 @@ export const usePeriodAlloted = (payload: IPeriodAllotedPayload, enabled = true)
             const res = await getPeriodAlloted(payload);
             return res.data || res;
         },
-        enabled: enabled && !!payload.hrmE_Id && !!payload.ttsD_Date
+        enabled: enabled && !!payload.HRME_Id && !!payload.TTSD_Date && !!payload.ASMAY_Id
     });
 };
 
@@ -159,18 +185,51 @@ export const useFreeStaffDetails = (payload: IFreeStaffPayload, enabled = true) 
             const res = await getFreeStaffDets(payload);
             return res.data || res;
         },
-        enabled: enabled && !!payload.ttmP_Id && !!payload.ttsD_Date
+        enabled: enabled && !!payload.TTMP_Id && !!payload.TTSD_Date && !!payload.ASMAY_Id
     });
 };
 
-export const useDeputationViewRecords = (payload: IViewRecordsPopupPayload, enabled = true) => {
+export const useAllDetailsViewRecords2 = (payload: IViewRecords2Payload, enabled = true) => {
     return useQuery({
-        queryKey: ['DEPUTATION_VIEW_RECORDS', payload],
+        queryKey: ['DEPUTATION_VIEW_RECORDS_2', payload],
+        queryFn: async () => {
+            const res = await getAllDetailsViewRecords2(payload);
+            return res.data || res;
+        },
+        enabled: enabled && !!payload.HRME_Id && !!payload.ASMAY_Id
+    });
+};
+
+export const useViewRecordsPopup9 = (payload: IViewRecordsPopup9Payload, enabled = true) => {
+    return useQuery({
+        queryKey: ['DEPUTATION_VIEW_RECORDS_9', payload],
         queryFn: async () => {
             const res = await getViewRecordsPopup9(payload);
             return res.data || res;
         },
-        enabled: enabled && !!payload.ttsD_Date
+        enabled: enabled && !!payload.HRME_Id && !!payload.ASMAY_Id && !!payload.TTMD_Id
+    });
+};
+
+export const useViewDeputation = (payload: IViewDeputationPayload, enabled = true) => {
+    return useQuery({
+        queryKey: ['DEPUTATION_VIEW_DEPUTATION', payload],
+        queryFn: async () => {
+            const res = await getViewDeputation(payload);
+            return res.data || res;
+        },
+        enabled: enabled && !!payload.HRME_Id && !!payload.ASMAY_Id
+    });
+};
+
+export const useViewAbsent = (payload: IViewAbsentPayload, enabled = true) => {
+    return useQuery({
+        queryKey: ['DEPUTATION_VIEW_ABSENT', payload],
+        queryFn: async () => {
+            const res = await getViewAbsent(payload);
+            return res.data || res;
+        },
+        enabled: enabled && !!payload.HRME_Id && !!payload.ASMAY_Id
     });
 };
 
@@ -183,11 +242,10 @@ export const useSaveDeputationDetails = () => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [TIMETABLE_QUERY_KEYS.DEPUTATION_MASTERS] });
             queryClient.invalidateQueries({ queryKey: ['DEPUTATION_PERIOD_ALLOTED'] });
-            queryClient.invalidateQueries({ queryKey: ['DEPUTATION_VIEW_RECORDS'] });
+            queryClient.invalidateQueries({ queryKey: ['DEPUTATION_FREE_STAFF'] });
         }
     });
 };
-
 
 // ================= manual-Period-insersion =================
 export const useManualPeriodMasters = () => {
@@ -214,7 +272,7 @@ export const useManualPeriodInsertionReport = (payload: any) => {
             return res.data || res;
         },
         enabled: !!payload && !!payload.asmaY_Id && !!payload.asmcL_Id && !!payload.asms_Id,
-        staleTime: 5 * 60 * 1000,
+        staleTime: 0,
         refetchOnWindowFocus: false
     });
 };

@@ -8,10 +8,10 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-export const useCirculationParameterDetails = (payload: { MI_Id: number; IVRMUL_Id: number }) => {
+export const useCirculationParameterDetails = () => {
     return useQuery({
-        queryKey: ['circulationParameterDetails', payload.MI_Id, payload.IVRMUL_Id],
-        queryFn: () => getCirculationParameterDetails(payload),
+        queryKey: ['circulationParameterDetails'],
+        queryFn: () => getCirculationParameterDetails(),
         meta: {
             errorMessage: 'Failed to load circulation parameter details'
         }
@@ -22,7 +22,7 @@ export const useCirculationData = () => {
     return useMutation({
         mutationFn: getCirculationData,
         onError: (error: any) => {
-            toast.error(error?.message || 'Failed to fetch circulation data');
+            console.warn('Circulation data notice:', error?.message || error);
         }
     });
 };
@@ -41,18 +41,24 @@ export const useSaveCirculationParameter = () => {
 
     return useMutation({
         mutationFn: saveCirculationParameter,
-        onSuccess: (data: any) => {
-            if (data?.returnval === true) {
-                toast.success('Record Saved Successfully');
-            } else if (data?.returnval === false) {
-                toast.error('Failed to save record');
-            } else if (data?.duplicate) {
-                toast.error('Record already exists');
+        onSuccess: (data: any, variables: any) => {
+            const isEditing = Boolean(variables?.lbcpa_Id || variables?.circ_Id || variables?.lbcpA_Id || variables?.lnbcpA_Id || variables?.lbcpaS_Id);
+            if (data?.duplicate) {
+                toast.warning(data?.message || 'Record already exists for this selection');
+            } else if (data?.returnval === false || data?.success === false) {
+                toast.error(data?.message || `Record Not ${isEditing ? 'Updated' : 'Saved'} Successfully!!!`);
+            } else {
+                const message =
+                    (typeof data?.returnval === 'string' && data.returnval.trim())
+                        ? data.returnval
+                        : data?.message || `Record ${isEditing ? 'Updated' : 'Saved'} Successfully!!!`;
+                toast.success(message);
             }
             queryClient.invalidateQueries({ queryKey: ['circulationParameterDetails'] });
         },
-        onError: (error: any) => {
-            toast.error(error?.message || 'Failed to save circulation parameter');
+        onError: (error: any, variables: any) => {
+            const isEditing = Boolean(variables?.lbcpa_Id || variables?.circ_Id || variables?.lbcpA_Id || variables?.lnbcpA_Id || variables?.lbcpaS_Id);
+            toast.error(error?.message || `Record Not ${isEditing ? 'Updated' : 'Saved'} Successfully!!!`);
         }
     });
 };
@@ -62,12 +68,25 @@ export const useToggleCirculationParameterStatus = () => {
 
     return useMutation({
         mutationFn: toggleCirculationParameterStatus,
-        onSuccess: (data: any) => {
-            toast.success('Status Updated Successfully');
+        onSuccess: (data: any, variables: any) => {
+            const isDeactivating = variables?.currentActiveStatus ?? true;
+            const actionWord = isDeactivating ? 'Deactivated' : 'Activated';
+
+            if (data?.success === false || data?.returnval === false) {
+                toast.error(data?.message || `Record Not ${actionWord} Successfully!!!`);
+            } else {
+                const message =
+                    (typeof data?.returnval === 'string' && data.returnval.trim())
+                        ? data.returnval
+                        : data?.message || `Record ${actionWord} Successfully!!!`;
+                toast.success(message);
+            }
             queryClient.invalidateQueries({ queryKey: ['circulationParameterDetails'] });
         },
-        onError: (error: any) => {
-            toast.error(error?.message || 'Failed to update status');
+        onError: (error: any, variables: any) => {
+            const isDeactivating = variables?.currentActiveStatus ?? true;
+            const actionWord = isDeactivating ? 'Deactivated' : 'Activated';
+            toast.error(error?.message || `Record Not ${actionWord} Successfully!!!`);
         }
     });
 };

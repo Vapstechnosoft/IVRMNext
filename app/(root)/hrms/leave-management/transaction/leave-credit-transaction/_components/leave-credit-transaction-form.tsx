@@ -65,32 +65,32 @@ export function LeaveCreditTransactionForm({
     } = useForm<FormData>({
         defaultValues: (editingRow
             ? {
-                  ...editingRow,
-                  selectedTypeIds: [],
-                  selectedDeptIds: [],
-                  selectedDesignationIds: [],
-                  lossOfPayType: '',
-                  lossOfPayAmount: 0
-              }
+                ...editingRow,
+                selectedTypeIds: [],
+                selectedDeptIds: [],
+                selectedDesignationIds: [],
+                lossOfPayType: '',
+                lossOfPayAmount: 0
+            }
             : {
-                  employeeId: 0,
-                  leaveName: '',
-                  hrmL_LeaveType: '',
-                  hrmlY_Id: activeYearId,
-                  fromDate: undefined,
-                  toDate: undefined,
-                  totalDays: 0,
-                  id: 0,
-                  transactionId: 0,
-                  isActive: true,
-                  employeeName: '',
-                  createdAt: new Date(),
-                  selectedTypeIds: [],
-                  selectedDeptIds: [],
-                  selectedDesignationIds: [],
-                  lossOfPayType: '',
-                  lossOfPayAmount: 0
-              }) as unknown as FormData
+                employeeId: 0,
+                leaveName: '',
+                hrmL_LeaveType: '',
+                hrmlY_Id: activeYearId,
+                fromDate: undefined,
+                toDate: undefined,
+                totalDays: 0,
+                id: 0,
+                transactionId: 0,
+                isActive: true,
+                employeeName: '',
+                createdAt: new Date(),
+                selectedTypeIds: [],
+                selectedDeptIds: [],
+                selectedDesignationIds: [],
+                lossOfPayType: '',
+                lossOfPayAmount: 0
+            }) as unknown as FormData
     });
 
     const fromDate = watch('fromDate');
@@ -212,7 +212,7 @@ export function LeaveCreditTransactionForm({
             <div className='grid grid-cols-1 gap-6 md:grid-cols-3'>
                 {/* Type Filter */}
                 <div className='space-y-2'>
-                    <Label className='font-medium text-sm'>Filter by Type:</Label>
+                    <Label className='font-medium text-sm'>Filter by Type: <span className='text-red-500'>*</span></Label>
 
                     <Controller
                         control={control}
@@ -235,7 +235,9 @@ export function LeaveCreditTransactionForm({
                 </div>
                 {/* Department Filter */}
                 <div className='space-y-2'>
-                    <Label className='font-medium text-sm'>Filter by Department:</Label>
+                    <Label className='font-medium text-sm'>
+                        Filter by Department: <span className='text-red-500'>*</span>
+                    </Label>
 
                     <Controller
                         control={control}
@@ -259,7 +261,9 @@ export function LeaveCreditTransactionForm({
                 </div>
                 {/* Designation Filter */}
                 <div className='space-y-2'>
-                    <Label className='font-medium text-sm'>Filter by Designation:</Label>
+                    <Label className='font-medium text-sm'>
+                        Filter by Designation: <span className='text-red-500'>*</span>
+                    </Label>
 
                     <Controller
                         control={control}

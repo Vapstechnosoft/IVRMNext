@@ -59,7 +59,7 @@ export default function UserDetails({
                             readOnly={isUserNameDisabled}
                             disabled={filterData === 'Multiple'}
                         />
-                        {isStaffDataLoading && <Loader2 className='h-6 w-6 animate-spin text-primary' />}
+                        {/* {isStaffDataLoading && <Loader2 className='h-6 w-6 animate-spin text-primary' />} */}
                         <Button
                             type='button'
                             variant='secondary'
@@ -79,7 +79,7 @@ export default function UserDetails({
                             'Password settings will be managed individually for each selected staff.'
                         ) : (
                             <>
-                                Initial password for staff is "<strong>vaps@123</strong>"
+                                Initial password for staff is "<strong>Password@123</strong>"
                             </>
                         )}
                     </p>

@@ -20,11 +20,11 @@ interface ToggleCustomerModalProps {
 
 export function ToggleCustomerModal({ rowData, onClose }: ToggleCustomerModalProps) {
     const { deleteMutation } = useInvMasterCustomer();
-    const isActive = rowData.invmC_ActiveFlg;
+    const isActive = Boolean(rowData?.invmC_ActiveFlg ?? (rowData as any)?.INVMC_ActiveFlg);
 
     const handleConfirm = () => {
         deleteMutation.mutate(
-            { ...rowData, invmC_ActiveFlg: !isActive },
+            { ...rowData, wasActive: isActive },
             {
                 onSuccess: () => {
                     onClose();

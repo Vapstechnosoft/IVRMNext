@@ -965,10 +965,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             setCurrentStep(2);
                         } else {
                             console.error('❌ [DEBUG] Tab 1 - Failed to extract employee ID from response');
-                            toast.error('Failed to get employee ID from response');
+                            toast.error(response?.message || 'Failed to get employee ID from response');
                         }
                     } else {
-                        console.warn('⚠️ [DEBUG] Tab 1 - API returned success: false');
+                        console.warn('⚠️ [DEBUG] Tab 1 - API returned success: false, message:', response?.message);
+                        toast.error(response?.message || 'Failed to save employee details. Please try again.');
                     }
                 },
                 onError: (error: any) => {
@@ -2093,7 +2094,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     <InputText
                                                         label='Last Name'
                                                         placeholder='Enter Last Name'
-                                                        required
+                                                        
                                                         id='lastName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2124,8 +2125,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                        {...register('lastName')}
-                                                        error={errors.lastName?.message as string | undefined}
+                                                        // {...register('lastName')}
+                                                        // error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Employee Code'
@@ -4519,8 +4520,9 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         label='Registration No.'
                                                                         required
                                                                         id={`qualificationDetails.${index}.registrationNo`}
-                                                                        maxLength={50}
+                                                                        
                                                                         {...register(`qualificationDetails.${index}.registrationNo`)}
+                                                                        maxLength={30}
                                                                         error={
                                                                             (errors.qualificationDetails as any)?.[index]?.registrationNo
                                                                                 ?.message

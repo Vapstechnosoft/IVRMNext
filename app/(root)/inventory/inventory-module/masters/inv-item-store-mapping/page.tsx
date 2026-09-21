@@ -18,7 +18,17 @@ export default function InvItemStoreMappingPage(props: { searchParams: SearchPar
     const { data: response, isLoading, error } = useInvItemStoreMapping(searchParams);
     const [isAddFormOpen, setIsAddFormOpen] = useState(false);
 
-    const tableProps = useDataTableProps(response?.data?.get_mapped_items || [], {
+    const is404Error =
+        error &&
+        ((error as any)?.status === 404 ||
+            (error as any)?.response?.status === 404 ||
+            error?.message?.includes('404') ||
+            error?.message?.toLowerCase()?.includes('not found'));
+
+    const mappedItems = response?.data?.get_mapped_items || [];
+    const tableError = is404Error ? null : error;
+
+    const tableProps = useDataTableProps(mappedItems, {
         dataKey: 'get_mapped_items'
     });
 
@@ -66,10 +76,10 @@ export default function InvItemStoreMappingPage(props: { searchParams: SearchPar
                     <div className='p-1'>
                         <GenericDataTable<IInvItemStoreMapping>
                             {...tableProps}
-                            data={response?.data?.get_mapped_items || []}
+                            data={mappedItems}
                             columns={invItemStoreMappingColumns}
                             isLoading={isLoading}
-                            error={error}
+                            error={tableError}
                             loadingMessage='Retrieving mapped items...'
                             noDataTitle='No Mappings Found'
                             noDataDescription='Create a new mapping to associate items with stores.'

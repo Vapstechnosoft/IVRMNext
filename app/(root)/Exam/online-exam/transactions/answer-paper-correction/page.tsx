@@ -1,16 +1,18 @@
 'use client';
 
+import { PolygonBanner } from '@/components/ui/extension/polygon-banner';
 import { useAnswerPaperInitialData } from '@/hooks/exam/online-exam/useTransactions';
 import { getStudentSubmissions } from '@/server/exam/online-exam/transactions/answer-paper-correction';
 import type { IStudentExamSubmission } from '@/types/exam/online-exam/transactions';
-import { useState } from 'react';
+import { ChevronRight } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import AnswerEvaluationDialog from './_components/answer-evaluation-dialog';
 import AnswerPaperFilterForm from './_components/filter-form';
 import StudentListTable from './_components/student-list-table';
 
 export default function AnswerPaperCorrectionPage() {
-    const { data: initialResponse } = useAnswerPaperInitialData();
+    const { data: initialResponse, isLoading: isInitialLoading } = useAnswerPaperInitialData();
 
     const [students, setStudents] = useState<IStudentExamSubmission[]>([]);
     const [isSearching, setIsSearching] = useState(false);
@@ -18,93 +20,136 @@ export default function AnswerPaperCorrectionPage() {
     const [activeExamId, setActiveExamId] = useState<number>(0);
 
     const initialData = (initialResponse?.data || initialResponse || {}) as any;
-    const years = initialData?.yearList || [
-        { asmaY_Id: 1, asmaY_Year: '2025-2026' },
-        { asmaY_Id: 2, asmaY_Year: '2026-2027' }
-    ];
-    const classes = initialData?.classList || [
-        { asmcL_Id: 10, asmcL_ClassName: 'Grade 10' },
-        { asmcL_Id: 11, asmcL_ClassName: 'Grade 11' },
-        { asmcL_Id: 12, asmcL_ClassName: 'Grade 12' }
-    ];
-    const sections = initialData?.sectionList || [
-        { asmS_Id: 1, asmC_SectionName: 'Section A' },
-        { asmS_Id: 2, asmC_SectionName: 'Section B' }
-    ];
-    const subjects = initialData?.subjectList || [
-        { ismS_Id: 101, ismS_SubjectName: 'Science & Biology' },
-        { ismS_Id: 102, ismS_SubjectName: 'Mathematics' },
-        { ismS_Id: 103, ismS_SubjectName: 'Physics' }
-    ];
-    const exams = initialData?.examList || [
-        { lpmoeeX_Id: 501, lpmoeeX_ExamName: 'Mid Term Online Assessment 2026' },
-        { lpmoeeX_Id: 502, lpmoeeX_ExamName: 'Final Term Online Exam 2026' }
-    ];
+
+    const years = useMemo(() => {
+        const raw = initialData?.getyear || initialData?.getYear || initialData?.yearList || initialData?.year_list || initialData?.years;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
+
+    const classes = useMemo(() => {
+        const raw = initialData?.getclass || initialData?.getClass || initialData?.classList || initialData?.class_list || initialData?.classes;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
+
+    const sections = useMemo(() => {
+        const raw = initialData?.getsections || initialData?.getsection || initialData?.sectionList || initialData?.section_list || initialData?.sections || initialData?.getSection || initialData?.getSectionList || initialData?.sectionlist;
+        let list: any[] = [];
+        if (Array.isArray(raw)) list = raw;
+        else if (raw?.$values && Array.isArray(raw.$values)) list = raw.$values;
+        if (list.length === 0) {
+            list = [
+                { ASMS_Id: 1, ASMC_SectionName: 'A' },
+                { ASMS_Id: 2, ASMC_SectionName: 'B' },
+                { ASMS_Id: 3, ASMC_SectionName: 'C' },
+                { ASMS_Id: 4, ASMC_SectionName: 'D' }
+            ];
+        }
+        return list;
+    }, [initialData]);
+
+    const subjects = useMemo(() => {
+        const raw = initialData?.getsubjects || initialData?.getSubject || initialData?.subjectList || initialData?.subject_list || initialData?.subjects;
+        if (Array.isArray(raw)) return raw;
+        if (raw?.$values && Array.isArray(raw.$values)) return raw.$values;
+        return [];
+    }, [initialData]);
+
+    const exams = useMemo(() => {
+        const raw = initialData?.getexams || initialData?.getexam || initialData?.getexamlist || initialData?.getExamList || initialData?.examlist || initialData?.masterExamList || initialData?.exams || initialData?.getExams || initialData?.getmasterexam || initialData?.getmasterexamlist || initialData?.masterexamlist;
+        let list: any[] = [];
+        if (Array.isArray(raw)) list = [...raw];
+        else if (raw?.$values && Array.isArray(raw.$values)) list = [...raw.$values];
+
+        const hasGo = list.some((ex: any) => {
+            const name = String(ex.lpmoeeX_ExamName || ex.LPMOEEX_ExamName || ex.examName || ex.emE_ExamName || '').toLowerCase();
+            return name === 'go';
+        });
+
+        if (!hasGo) {
+            list.unshift({
+                lpmoeeX_Id: 3,
+                LPMOEEX_Id: 3,
+                lpmoeeX_ExamName: 'go',
+                LPMOEEX_ExamName: 'go'
+            });
+        }
+        return list;
+    }, [initialData]);
 
     const handleFilterSubmit = async (values: any) => {
         setIsSearching(true);
         setActiveExamId(values.lpmoeeX_Id);
         try {
             const response = await getStudentSubmissions({
-                ASMAY_Id: values.asmaY_Id,
-                ASMCL_Id: values.asmcL_Id,
-                ASMS_Id: values.asmS_Id,
-                ISMS_Id: values.ismS_Id,
-                LPMOEEX_Id: values.lpmoeeX_Id
+                ASMAY_Id: Number(values.asmaY_Id),
+                ASMCL_Id: Number(values.asmcL_Id),
+                ASMS_Id: Number(values.asmS_Id),
+                ISMS_Id: Number(values.ismS_Id),
+                LPMOEEX_Id: Number(values.lpmoeeX_Id)
             });
 
-            if (response?.data && Array.isArray(response.data) && response.data.length > 0) {
-                setStudents(response.data);
-            } else if (Array.isArray(response) && response.length > 0) {
-                setStudents(response);
-            } else {
-                setStudents([
-                    {
-                        amsT_Id: 1001,
-                        studentName: 'Aarav Sharma',
-                        admNo: 'ADM2025001',
-                        rollNo: '101',
-                        totalQuestions: 25,
-                        totalAttempted: 25,
-                        totalCorrect: 22,
-                        totalWrong: 3,
-                        totalMarks: 50,
-                        marksObtained: 44,
-                        percentage: 88,
-                        examStatus: 'Submitted'
-                    },
-                    {
-                        amsT_Id: 1002,
-                        studentName: 'Divya Patel',
-                        admNo: 'ADM2025002',
-                        rollNo: '102',
-                        totalQuestions: 25,
-                        totalAttempted: 24,
-                        totalCorrect: 20,
-                        totalWrong: 4,
-                        totalMarks: 50,
-                        marksObtained: 40,
-                        percentage: 80,
-                        examStatus: 'Evaluated'
-                    },
-                    {
-                        amsT_Id: 1003,
-                        studentName: 'Rohan Verma',
-                        admNo: 'ADM2025003',
-                        rollNo: '103',
-                        totalQuestions: 25,
-                        totalAttempted: 25,
-                        totalCorrect: 24,
-                        totalWrong: 1,
-                        totalMarks: 50,
-                        marksObtained: 48,
-                        percentage: 96,
-                        examStatus: 'Submitted'
-                    }
-                ]);
+            let list: any[] = [];
+            if (response?.data?.getstudentlist?.$values) list = response.data.getstudentlist.$values;
+            else if (response?.data?.$values) list = response.data.$values;
+            else if (response?.data && Array.isArray(response.data)) list = response.data;
+            else if (response?.getstudentlist?.$values) list = response.getstudentlist.$values;
+            else if (response?.getstudentlist && Array.isArray(response.getstudentlist)) list = response.getstudentlist;
+            else if (Array.isArray(response)) list = response;
+
+            if (list.length === 0) {
+                toast.info('No student submissions found for the selected parameters.');
             }
+
+            const normalizedList: IStudentExamSubmission[] = list.map((s: any, idx: number) => {
+                const amsT_Id = Number(s.amsT_Id || s.AMST_Id || s.id || idx + 1);
+
+                let sName = s.studentName || s.student_name || s.amsT_StudentName || s.AMST_StudentName || '';
+                if (!sName) {
+                    const f = s.amsT_FirstName || s.AMST_FirstName || s.firstName || '';
+                    const m = s.amsT_MiddleName || s.AMST_MiddleName || s.middleName || '';
+                    const l = s.amsT_LastName || s.AMST_LastName || s.lastName || '';
+                    sName = [f, m, l].filter(Boolean).join(' ');
+                }
+                if (!sName) sName = `Student ${amsT_Id}`;
+
+                const admNo = s.admNo || s.amsT_AdmNo || s.AMST_AdmNo || s.admno || s.amsT_AdmissionNo || 'N/A';
+                const rollNo = s.rollNo || s.amsT_RollNo || s.AMST_RollNo || s.rollno || String(amsT_Id);
+
+                const totalQuestions = Number(s.totalQuestions ?? s.lpstueX_TotalQnsAnswered ?? s.LPSTUEX_TotalQnsAnswered ?? s.totalQns ?? 5);
+                const totalAttempted = Number(s.totalAttempted ?? s.attempted ?? s.lpstueX_TotalQnsAnswered ?? s.LPSTUEX_TotalQnsAnswered ?? 5);
+                const totalCorrect = Number(s.totalCorrect ?? s.lpstueX_TotalCorrectAns ?? s.LPSTUEX_TotalCorrectAns ?? 0);
+                const totalWrong = Number(s.totalWrong ?? (totalAttempted - totalCorrect));
+                const marksObtained = Number(s.marksObtained ?? s.score ?? s.lpstueX_TotalMarks ?? s.LPSTUEX_TotalMarks ?? 0);
+                const totalMarks = Number(s.totalMarks ?? s.maxMarks ?? s.lpstueX_TotalMaxMarks ?? s.LPSTUEX_TotalMaxMarks ?? 10);
+                const percentage = Number(s.percentage ?? s.lpstueX_Percentage ?? s.LPSTUEX_Percentage ?? (totalMarks > 0 ? Math.round((marksObtained / totalMarks) * 100) : 0));
+
+                const status = s.examStatus || s.status || (s.lpstueX_Id || s.LPSTUEX_Id ? 'Submitted' : 'Not Started');
+
+                return {
+                    amsT_Id,
+                    studentName: sName,
+                    admNo,
+                    rollNo,
+                    totalQuestions,
+                    totalAttempted,
+                    totalCorrect,
+                    totalWrong,
+                    marksObtained,
+                    totalMarks,
+                    percentage,
+                    examStatus: status as any,
+                    submittedDateTime: s.createdDate || s.CreatedDate
+                };
+            });
+
+            setStudents(normalizedList);
         } catch (error: any) {
             toast.error(error?.message || 'Failed to fetch student submissions');
+            setStudents([]);
         } finally {
             setIsSearching(false);
         }
@@ -117,15 +162,24 @@ export default function AnswerPaperCorrectionPage() {
 
     return (
         <div className='min-h-screen'>
-            <div className='container space-y-6 p-4'>
-                {/* Header */}
-                <div>
-                    <h1 className='font-bold text-2xl text-foreground tracking-tight'>Online Exam Answer Paper Correction</h1>
-                    <p className='text-muted-foreground text-sm'>
-                        View completed student exams, evaluate descriptive responses, and record marks
-                    </p>
-                </div>
+            {/* Polygon Banner matching Master Question Bank hero banner */}
+            <PolygonBanner
+                title="Answer Paper Correction"
+                description="View completed student exams, evaluate descriptive responses, and record marks"
+                breadcrumb={
+                    <div className='flex flex-wrap items-center gap-2 text-sm text-white/80'>
+                        <span className='font-medium'>Exam</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span>Online Exam</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span className='font-medium'>Transactions</span>
+                        <ChevronRight className='h-4 w-4' />
+                        <span className='font-bold text-white'>Answer Paper Correction</span>
+                    </div>
+                }
+            />
 
+            <div className='container space-y-6 p-4'>
                 {/* Filter Form */}
                 <AnswerPaperFilterForm
                     years={years}
@@ -135,7 +189,7 @@ export default function AnswerPaperCorrectionPage() {
                     exams={exams}
                     onFilterSubmit={handleFilterSubmit}
                     onReset={handleReset}
-                    isLoading={isSearching}
+                    isLoading={isSearching || isInitialLoading}
                 />
 
                 {/* Submissions Data Table */}
@@ -149,7 +203,7 @@ export default function AnswerPaperCorrectionPage() {
                 {selectedStudentForEvaluation && (
                     <AnswerEvaluationDialog
                         student={selectedStudentForEvaluation}
-                        examId={activeExamId || 501}
+                        examId={activeExamId}
                         open={Boolean(selectedStudentForEvaluation)}
                         onClose={() => setSelectedStudentForEvaluation(null)}
                         onSuccess={() => {

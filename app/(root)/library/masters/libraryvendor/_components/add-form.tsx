@@ -50,7 +50,7 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                 lmV_VendorName,
                 lmV_Address,
                 lmV_EMailId,
-                lmV_PhoneNo: '',
+                lmV_PhoneNo: lmV_PhoneNo || '',
                 lmV_ActiveFlg: true
             };
 
@@ -131,7 +131,7 @@ export default function AddMasterVendorForm({ onSuccess, className = '' }: AddMa
                         label='Vendor Address'
                         id='lmV_Address'
                         onKeyDown={(e) => {
-                            if (e.key.length === 1 && !/^[a-zA-Z0-9\s]$/.test(e.key)) {
+                            if (e.key.length === 1 && !/^[a-zA-Z0-9\s,./#\-]$/.test(e.key)) {
                                 e.preventDefault();
                             }
                         }}

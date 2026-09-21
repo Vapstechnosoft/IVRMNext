@@ -44,9 +44,17 @@ export async function UpdateOrderedSubjectDetails(data: any) {
     return await api.put<any>('exam', url, data);
 }
 
+import { auth } from '@/lib/auth';
+
 export async function addOrUpdateExamSubjectWizard(data: any) {
+    const session = await auth();
+    const payload = {
+        ...data,
+        MI_Id: data.MI_Id || (session?.mi_id ? Number(session.mi_id) : 0),
+        UserId: data.UserId || (session?.user_id ? Number(session.user_id) : 0)
+    };
     const url = 'exam_subject_mapping';
-    return await api.post<any>('exam', url, data);
+    return await api.post<any>('exam', url, payload);
 }
 
 export async function deleteExamSubjectWizard(ecysE_Id: number) {

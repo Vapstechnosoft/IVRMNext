@@ -75,6 +75,9 @@ function MasterConfigurationPageContent({
                         noDataTitle='No Master Configuration Found'
                         noDataDescription='Get started by creating your first master configuration'
                         errorTitle='Error Loading Master Configuration'
+                        manualPagination={false}
+                        manualSorting={false}
+                        manualFiltering={false}
                     />
                 </CollapsibleSection>
 

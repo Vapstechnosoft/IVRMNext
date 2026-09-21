@@ -489,6 +489,7 @@ export default function PageMappingGrids({
             cell: (item) => (
                 <div className="flex justify-center">
                     <Button
+                        type="button"
                         variant="ghost"
                         size="icon"
                         className="h-6 w-6 text-red-500 hover:bg-red-50 hover:text-red-700"

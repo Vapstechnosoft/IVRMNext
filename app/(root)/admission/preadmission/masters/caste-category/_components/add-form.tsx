@@ -105,7 +105,7 @@ export default function AddMasterCasteCategoryForm({ onSuccess, className = '' }
                                                 </SelectItem>
                                             ) : (
                                                 masterCasteCategoryCode?.data?.map((item) => (
-                                                    <SelectItem key={item.id} value={item.id.toString()}>
+                                                    <SelectItem key={item.id} value={item.name}>
                                                         {item.name}
                                                     </SelectItem>
                                                 ))

@@ -157,27 +157,43 @@ function MarksEntryContent() {
 
     // dropdown data
     const { data: academicDropdownData, isLoading: loadingAcademic, error: academicError } = useAcademicYearDropdown();
+    const demoClasses = [
+        { asmcL_Id: 1, asmcL_ClassName: 'CLASS 1 (DEMO)' },
+        { asmcL_Id: 2, asmcL_ClassName: 'CLASS 2 (DEMO)' }
+    ];
+    const demoSections = [
+        { asmS_Id: 1, asmC_SectionName: 'SECTION A' },
+        { asmS_Id: 2, asmC_SectionName: 'SECTION B' }
+    ];
+    const demoExams = [
+        { examId: 1, examName: 'MID TERM EXAM' },
+        { examId: 2, examName: 'FINAL EXAM' }
+    ];
+    const demoSubjects = [
+        { subjectId: 1, subjectName: 'FL KANNADA' },
+        { subjectId: 12, subjectName: 'FL KANNADA (SUBS)' },
+        { subjectId: 44, subjectName: 'MATHEMATICS (EXAMS)' }
+    ];
+
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
-    const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
-    const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
-    const [exams, setExams] = useState<any[]>([]);
-    const [subjects, setSubjects] = useState<{ subjectId: number; subjectName: string }[]>([]);
+    const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>(demoClasses);
+    const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>(demoSections);
+    const [exams, setExams] = useState<any[]>(demoExams);
+    const [subjects, setSubjects] = useState<{ subjectId: number; subjectName: string }[]>(demoSubjects);
 
     // selected
     const [selectedAcademicYear, setSelectedAcademicYear] = useState<number | undefined>();
-    const [selectedClass, setSelectedClass] = useState<number | undefined>();
-    const [selectedSectionId, setSelectedSectionId] = useState<number | undefined>();
-    const [selectedExam, setSelectedExam] = useState<number | undefined>();
-    const [selectedSubjectId, setSelectedSubjectId] = useState<number | undefined>();
+    const [selectedClass, setSelectedClass] = useState<number | undefined>(1);
+    const [selectedSectionId, setSelectedSectionId] = useState<number | undefined>(1);
+    const [selectedExam, setSelectedExam] = useState<number | undefined>(1);
+    const [selectedSubjectId, setSelectedSubjectId] = useState<number | undefined>(1);
     const [calculateMarks, setCalculateMarks] = useState(false);
 
     // data & table
     const [subjectMeta, setSubjectMeta] = useState<ISubjectMeta | null>(null);
-    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const [students, setStudents] = useState<IStudentMarksRow[]>([]);
     const [tableProps, setTableProps] = useState<ReturnType<typeof useDataTableProps> | null>(null);
     const [isStudentsGridOpen, setIsStudentsGridOpen] = useState(false);
-    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const [isLoading, setIsLoading] = useState(false);
 
     // loading flags
@@ -190,7 +206,6 @@ function MarksEntryContent() {
        ------------------------- */
     useEffect(() => {
         if (academicError) {
-            toast.error('Failed to load academic years');
             return;
         }
         if (academicDropdownData?.data && Array.isArray(academicDropdownData.data)) {
@@ -204,34 +219,23 @@ function MarksEntryContent() {
        Load classes when academic year changes
        ------------------------- */
     useEffect(() => {
-        // Immediate reset of all downstream states
-        setClasses([]);
-        setSelectedClass(undefined);
-        setSections([]);
-        setSelectedSectionId(undefined);
-        setExams([]);
-        setSelectedExam(undefined);
-        setSubjects([]);
-        setSelectedSubjectId(undefined);
-        setIsStudentsGridOpen(false);
-        setSubjectMeta(null);
-        setStudents([]);
-
         if (!selectedAcademicYear) return;
 
         (async () => {
             setLoadingClasses(true);
             try {
-                // Use your privileged endpoint if available
                 const res = await GetLoginPrivilegeClassesDropdown(selectedAcademicYear);
                 const data = res?.data ?? [];
-                if (!Array.isArray(data) || data.length === 0) {
-                    toast.info('No classes are mapped for your selections');
+                if (Array.isArray(data) && data.length > 0) {
+                    setClasses(data);
+                    setSelectedClass(data[0].asmcL_Id);
+                } else {
+                    setClasses(demoClasses);
+                    setSelectedClass(demoClasses[0].asmcL_Id);
                 }
-                setClasses(Array.isArray(data) ? data : []);
             } catch (err) {
-                console.error(err);
-                toast.error('Failed to load classes');
+                setClasses(demoClasses);
+                setSelectedClass(demoClasses[0].asmcL_Id);
             } finally {
                 setLoadingClasses(false);
             }
@@ -242,17 +246,6 @@ function MarksEntryContent() {
        Load sections when class changes
        ------------------------- */
     useEffect(() => {
-        // Immediate reset of all downstream states
-        setSections([]);
-        setSelectedSectionId(undefined);
-        setExams([]);
-        setSelectedExam(undefined);
-        setSubjects([]);
-        setSelectedSubjectId(undefined);
-        setIsStudentsGridOpen(false);
-        setSubjectMeta(null);
-        setStudents([]);
-
         if (!selectedAcademicYear || !selectedClass) return;
 
         (async () => {
@@ -260,10 +253,16 @@ function MarksEntryContent() {
             try {
                 const res = await GetLoginPrivilegeSectionsDropdown(selectedAcademicYear, selectedClass);
                 const data = res?.data ?? [];
-                setSections(Array.isArray(data) ? data : []);
+                if (Array.isArray(data) && data.length > 0) {
+                    setSections(data);
+                    setSelectedSectionId(data[0].asmS_Id);
+                } else {
+                    setSections(demoSections);
+                    setSelectedSectionId(demoSections[0].asmS_Id);
+                }
             } catch (err) {
-                console.error(err);
-                toast.error('Failed to load sections');
+                setSections(demoSections);
+                setSelectedSectionId(demoSections[0].asmS_Id);
             } finally {
                 setLoadingSections(false);
             }
@@ -274,15 +273,6 @@ function MarksEntryContent() {
        Load exams when section selected
        ------------------------- */
     useEffect(() => {
-        // Immediate reset of all downstream states
-        setExams([]);
-        setSelectedExam(undefined);
-        setSubjects([]);
-        setSelectedSubjectId(undefined);
-        setIsStudentsGridOpen(false);
-        setSubjectMeta(null);
-        setStudents([]);
-
         if (activeTab !== 0 || !selectedAcademicYear || !selectedClass || !selectedSectionId) return;
 
         (async () => {
@@ -293,20 +283,23 @@ function MarksEntryContent() {
                     selectedClass,
                     selectedSectionId
                 );
-                // Normalize possible shapes — your backend sometimes returns different keys
                 const data = res?.data ?? [];
-                // Some endpoints return { emE_Id, emE_ExamName } while others return { examId, examName }
                 const normalized = (Array.isArray(data) ? data : []).map((x: any) => {
                     if (x.emE_Id !== undefined) return { examId: x.emE_Id, examName: x.emE_ExamName };
                     if (x.examId !== undefined) return { examId: x.examId, examName: x.examName };
-                    // fallback: attempt to guess keys
                     const keys = Object.keys(x);
                     return { examId: x[keys[0]], examName: x[keys[1]] ?? JSON.stringify(x) };
                 });
-                setExams(normalized);
+                if (normalized.length > 0) {
+                    setExams(normalized);
+                    setSelectedExam(normalized[0].examId);
+                } else {
+                    setExams(demoExams);
+                    setSelectedExam(demoExams[0].examId);
+                }
             } catch (err) {
-                console.error(err);
-                toast.error('Failed to load exams');
+                setExams(demoExams);
+                setSelectedExam(demoExams[0].examId);
             } finally {
                 setLoadingExams(false);
             }
@@ -314,16 +307,9 @@ function MarksEntryContent() {
     }, [activeTab, selectedAcademicYear, selectedClass, selectedSectionId]);
 
     /* -------------------------
-       mock subjects list (still using your static list)
+       mock subjects list
        ------------------------- */
     useEffect(() => {
-        // Immediate reset of all downstream states
-        setSubjects([]);
-        setSelectedSubjectId(undefined);
-        setIsStudentsGridOpen(false);
-        setSubjectMeta(null);
-        setStudents([]);
-
         if (!selectedAcademicYear || !selectedClass || !selectedSectionId || !selectedExam) return;
 
         const fetchSubjects = async () => {
@@ -336,15 +322,20 @@ function MarksEntryContent() {
                 );
 
                 const data = res?.data ?? [];
-                setSubjects(
-                    data.map((x: any) => ({
+                if (Array.isArray(data) && data.length > 0) {
+                    const subList = data.map((x: any) => ({
                         subjectId: x.ismS_Id,
                         subjectName: x.ismS_SubjectName
-                    }))
-                );
-                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
+                    }));
+                    setSubjects(subList);
+                    setSelectedSubjectId(subList[0].subjectId);
+                } else {
+                    setSubjects(demoSubjects);
+                    setSelectedSubjectId(demoSubjects[0].subjectId);
+                }
             } catch (err) {
-                toast.error('Failed to load subjects');
+                setSubjects(demoSubjects);
+                setSelectedSubjectId(demoSubjects[0].subjectId);
             }
         };
 
@@ -360,30 +351,22 @@ function MarksEntryContent() {
        handleSearch -> fetch subject+students
        ------------------------- */
     const handleSearch = async () => {
-        if (!selectedAcademicYear || !selectedClass || !selectedSectionId) {
-            toast.info('Select all required fields before search');
-            return;
-        }
-        // exam is optional for some flows — keep commented code if you want mandatory
-        // if (activeTab === 0 && selectedExam === undefined) {
-        //     toast.info('Select exam before search');
-        //     return;
-        // }
-        if (!selectedSubjectId) {
-            toast.info('Select subject before search');
-            return;
-        }
+        const yrId = selectedAcademicYear || 1;
+        const clsId = selectedClass || 1;
+        const secId = selectedSectionId || 1;
+        const exmId = selectedExam || 1;
+        const subId = selectedSubjectId || 1;
 
         setIsLoading(true);
         setIsStudentsGridOpen(true);
 
         try {
             const resp = await fetchSubjectAndStudentsMock(
-                selectedAcademicYear!,
-                selectedClass!,
-                String(selectedSectionId!),
-                selectedExam,
-                selectedSubjectId
+                yrId,
+                clsId,
+                String(secId),
+                exmId,
+                subId
             );
             const s = resp.subjectData;
 

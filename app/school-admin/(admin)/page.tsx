@@ -136,28 +136,25 @@ export default function AdminDashboardPage() {
 
     React.useEffect(() => {
         const fetchData = async () => {
-            console.log('fetching preadmission data');
             try {
-                const response = await getDashboardCounts();
-                const feesResponse = await GetChairmanDashBoardFeesdata(231);
-                const { data: teacherResponse } = await GetTeacherCount();
-                // console.log('preadmission data raw response', response);
-                console.log('teacherResponse', teacherResponse);
-                const teacherData = Array.isArray(teacherResponse) ? teacherResponse[0] : teacherResponse;
+                const [response, feesResponse, teacherResponse] = await Promise.allSettled([
+                    getDashboardCounts(),
+                    GetChairmanDashBoardFeesdata(),
+                    GetTeacherCount()
+                ]);
+
+                const teacherResult = teacherResponse.status === 'fulfilled' ? teacherResponse.value?.data : null;
+                const teacherData = Array.isArray(teacherResult) ? teacherResult[0] : teacherResult;
                 const totalTeachers = teacherData?.activeEmp?.length || 0;
                 setTeachers(totalTeachers);
 
-                // If the response has a data property (nested wrapper), use it, otherwise use the response itself
-                const finalData = response?.data ? response.data : response;
-
-                console.log('preadmission final data', finalData);
+                const countResult = response.status === 'fulfilled' ? response.value : null;
+                const finalData = countResult?.data ? countResult.data : countResult;
                 setDashboardData(finalData);
 
-                // Format fees data specifically for the FeeDetailsChart
-                const feesDataArray = feesResponse?.data || [];
+                const feesResult = feesResponse.status === 'fulfilled' ? feesResponse.value : null;
+                const feesDataArray = feesResult?.data || [];
                 if (Array.isArray(feesDataArray)) {
-                    console.log('feesDataArray', feesDataArray);
-
                     const totalCollected = feesDataArray.reduce((acc: number, curr: any) => acc + (curr.callected || 0), 0);
                     setTotalFeeCollected(totalCollected);
 
@@ -168,7 +165,6 @@ export default function AdminDashboardPage() {
                         Balance: item.ballance || 0
                     }));
                     setFeeDetailsData(mappedFees);
-                    console.log('mappedFees', mappedFees);
                 }
             } catch (error) {
                 console.error('Error fetching dashboard counts:', error);

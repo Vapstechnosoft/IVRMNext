@@ -24,6 +24,7 @@ export default function StudentProfileDialog({
     const studentList = data.studentList?.[0] || {};
     const studentList1 = data.studentList1?.[0] || {};
     const guardians = data.viewstudentguardiandetails?.[0] || {};
+    const academicYearDetails = data.viewstudentacademicyeardetails?.[0] || {};
 
     const profilePic = viewStudentDetails?.amsT_Photoname || viewStudentDetails?.photoUrl || '';
     const studentName =
@@ -145,15 +146,15 @@ export default function StudentProfileDialog({
                                     <TabsContent value='academic' className='m-0 focus-visible:outline-none focus-visible:ring-0'>
                                         <div className='flex items-start gap-8'>
                                             <div className='flex items-center font-medium text-blue-600'>
-                                                <span>{studentList?.ASMAY_Year || 'N/A'}</span>
+                                                <span>{studentList?.ASMAY_Year || academicYearDetails?.asmaY_Year || 'N/A'}</span>
                                                 <div className='ml-4 h-4 w-4 rounded-full border-2 border-green-500 bg-white' />
                                             </div>
                                             <div className='space-y-2 border-gray-200 border-l-2 pl-4 text-gray-700 text-sm'>
                                                 <p>
-                                                    Class / Section : {studentList?.ASMCL_ClassName || 'N/A'} /{' '}
-                                                    {studentList?.ASMC_SectionName || 'N/A'}
+                                                    Class / Section : {studentList?.ASMCL_ClassName || academicYearDetails?.asmcL_ClassName || 'N/A'} /{' '}
+                                                    {studentList?.ASMC_SectionName || academicYearDetails?.asmC_SectionName || 'N/A'}
                                                 </p>
-                                                <p>Roll No. : {data.viewstudentacademicyeardetails?.[0]?.amaY_RollNo || 'N/A'}</p>
+                                                <p>Roll No. : {academicYearDetails?.amaY_RollNo ?? 'N/A'}</p>
                                             </div>
                                         </div>
                                     </TabsContent>
@@ -245,14 +246,14 @@ export default function StudentProfileDialog({
                                     <TabsContent value='attendance' className='m-0 focus-visible:outline-none focus-visible:ring-0'>
                                         <div className='flex items-start gap-8'>
                                             <div className='flex items-center font-medium text-blue-600'>
-                                                <span>{studentList?.ASMAY_Year || 'N/A'}</span>
+                                                <span>{studentList?.ASMAY_Year || academicYearDetails?.asmaY_Year || 'N/A'}</span>
                                                 <div className='ml-4 h-4 w-4 rounded-full border-2 border-green-500 bg-white' />
                                             </div>
                                             <div className='space-y-2 border-gray-200 border-l-2 pl-4 text-gray-700 text-sm'>
                                                 <p className='font-bold text-blue-700'>CURRENT YEAR</p>
                                                 <p>
-                                                    Class / Section : {studentList?.ASMCL_ClassName || 'N/A'} /{' '}
-                                                    {studentList?.ASMC_SectionName || 'N/A'}
+                                                    Class / Section : {studentList?.ASMCL_ClassName || academicYearDetails?.asmcL_ClassName || 'N/A'} /{' '}
+                                                    {studentList?.ASMC_SectionName || academicYearDetails?.asmC_SectionName || 'N/A'}
                                                 </p>
                                                 <p>Present Days : {studentList?.PRESENTDAYS ?? 'N/A'}</p>
                                                 <p>Working Days : {studentList?.WORKINGDAYS ?? 'N/A'}</p>

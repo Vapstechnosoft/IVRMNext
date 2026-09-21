@@ -48,13 +48,11 @@ export default function AddMasterQuotaForm({ onSuccess }: { onSuccess: () => voi
         toast.promise(promise, {
             loading: 'Saving record...',
             success: (data: any) => {
-                if (data?.message === 'Add' && data?.returnval === true) {
+                if (data?.success) {
                     onSuccess();
-                    return 'Record Saved Successfully';
-                } else if (data?.returnduplicatestatus === 'Duplicate') {
-                    throw new Error('Record Already Exists');
+                    return data.message || 'Record Saved Successfully';
                 }
-                throw new Error('Failed To Save Record');
+                throw new Error(data?.message || 'Failed To Save Record');
             },
             error: (err: any) => err.message || 'Something went wrong'
         });

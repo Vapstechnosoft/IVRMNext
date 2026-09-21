@@ -940,3 +940,19 @@ export const feeMonthlyCollectionReportSchema = z.object({
     fromDate: z.string().min(1, { message: 'From Date is required' }),
     toDate: z.string().min(1, { message: 'To Date is required' })
 });
+
+export const feeChallanReportSchema = z.object({
+    ASMAY_Id: z.number().min(1, { message: 'Academic Year is required' }),
+    ASMCL_Id: z.number().min(1, { message: 'Class is required' }),
+    ASMS_Id: z.number().min(1, { message: 'Section is required' }),
+    fromDate: z.string().min(1, { message: 'From Date is required' }),
+    toDate: z.string().min(1, { message: 'To Date is required' }),
+    receiptsGenerated: z.boolean().default(false)
+});
+
+export const hutchingsBankChallanSchema = z.object({
+    ASMAY_Id: z.number().min(1, { message: 'Academic Year is required' }),
+    AMST_Id: z.number().min(1, { message: 'Search Student is required' }),
+    termIds: z.array(z.number()).min(1, { message: 'Select at least one Term' })
+});
+
