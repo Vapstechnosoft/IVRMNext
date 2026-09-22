@@ -19,6 +19,7 @@ interface RolePrivilegesListProps {
         onPageChange: (page: number) => void;
         onPageSizeChange: (size: number) => void;
     };
+    searchValue?: string;
     onSearch?: (value: string) => void;
 }
 
@@ -28,9 +29,14 @@ export function RolePrivilegesList({
     isLoading = true,
     totalItems,
     pagination = { pageIndex: 1, pageSize: 10, onPageChange: () => {}, onPageSizeChange: () => {} },
+    searchValue = '',
     onSearch
 }: RolePrivilegesListProps) {
-    const [searchTerm, setSearchTerm] = React.useState('');
+    const [searchTerm, setSearchTerm] = React.useState(searchValue);
+
+    React.useEffect(() => {
+        setSearchTerm(searchValue);
+    }, [searchValue]);
 
     const columns: ColumnDef<IRolePrivilegeMapping>[] = [
         {

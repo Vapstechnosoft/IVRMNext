@@ -799,31 +799,64 @@ export async function getUserAccessibleModules() {
 
         const cleanMenuTitle = (text: string): string => {
             if (!text) return '';
-            return text
-                .replace(/\bbaldwin\b\s*/gi, '')
-                .trim();
+            return text.replace(/\bbaldwin\b\s*/gi, '').trim();
         };
 
-        // Filter pages: only keep those whose URL starts with "app."
+        const normalizeKey = (str: string) =>
+            (str || '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]/g, '')
+                .trim();
+
+        const normalizeUrl = (url: string) =>
+            (url || '')
+                .toLowerCase()
+                .replace(/^app\./i, '')
+                .replace(/\/+/g, '/')
+                .replace(/\/$/, '')
+                .trim();
+
+        // Filter and deduplicate pages: only keep unique pages per menuId
         const pagesByMenuId = new Map<number, any[]>();
+        const seenPageTitlesByMenu = new Map<number, Set<string>>();
+        const seenPageUrlsByMenu = new Map<number, Set<string>>();
+
         pages.forEach((page: any) => {
             const url = page.ivrmP_PageURL || '';
-            // if (!url.startsWith('app.')) {
             const menuId = page.menuId;
             if (!pagesByMenuId.has(menuId)) {
                 pagesByMenuId.set(menuId, []);
+                seenPageTitlesByMenu.set(menuId, new Set<string>());
+                seenPageUrlsByMenu.set(menuId, new Set<string>());
             }
             const rawName = page.ivrmmP_PageName || page.ivrmP_PageDisplayName || '';
             const cleanedName = cleanMenuTitle(rawName);
+            const normTitle = normalizeKey(cleanedName);
+            const normUrl = normalizeUrl(url);
+
+            const titleSet = seenPageTitlesByMenu.get(menuId)!;
+            const urlSet = seenPageUrlsByMenu.get(menuId)!;
+
+            // Deduplicate if the same menu already contains this normalized title or URL
+            if (normTitle && titleSet.has(normTitle)) {
+                return;
+            }
+            if (normUrl && normUrl !== '#' && normUrl !== '' && urlSet.has(normUrl)) {
+                return;
+            }
+
+            if (normTitle) titleSet.add(normTitle);
+            if (normUrl && normUrl !== '#' && normUrl !== '') urlSet.add(normUrl);
+
             pagesByMenuId.get(menuId)!.push({
                 id: page.pageId,
                 name: cleanedName,
                 icon: 'Settings',
                 url: page.ivrmP_PageURL,
                 title: cleanedName,
-                description: cleanedName
+                description: cleanedName,
+                order: page.order || 0
             });
-            // }
         });
 
         // Sort helper
@@ -833,8 +866,18 @@ export async function getUserAccessibleModules() {
         function buildSubMenu(parentId: number): any[] {
             const children = (subByParent.get(parentId) || []).sort(sortByOrder);
             const validChildren: any[] = [];
+            const seenSubMenuKeys = new Set<string>();
 
             for (const sub of children) {
+                const subName = cleanMenuTitle(sub.ivrmM_ModuleName);
+                const subKey = normalizeKey(subName);
+                if (subKey && seenSubMenuKeys.has(subKey)) {
+                    continue;
+                }
+                if (subKey) {
+                    seenSubMenuKeys.add(subKey);
+                }
+
                 const hasGrandChildren = subByParent.has(sub.menuId);
                 const itemPages = pagesByMenuId.get(sub.menuId) || [];
 
@@ -843,14 +886,35 @@ export async function getUserAccessibleModules() {
                     subMenuItems = buildSubMenu(sub.menuId);
                 }
 
+                // Filter unique pages to prevent duplicate links
+                const uniquePages: any[] = [];
+                const seenTitleKeys = new Set<string>();
+                const seenUrlKeys = new Set<string>();
+
+                for (const p of itemPages.sort(sortByOrder)) {
+                    const normT = normalizeKey(p.title || p.name || '');
+                    const normU = normalizeUrl(p.url || '');
+
+                    if (normT && seenTitleKeys.has(normT)) {
+                        continue;
+                    }
+                    if (normU && normU !== '#' && normU !== '' && seenUrlKeys.has(normU)) {
+                        continue;
+                    }
+
+                    if (normT) seenTitleKeys.add(normT);
+                    if (normU && normU !== '#' && normU !== '') seenUrlKeys.add(normU);
+                    uniquePages.push(p);
+                }
+
                 // Include this submenu only if it has pages (directly) OR has non-empty submenus
-                if (itemPages.length > 0 || subMenuItems.length > 0) {
+                if (uniquePages.length > 0 || subMenuItems.length > 0) {
                     const menuItem: any = {
                         id: sub.menuId,
-                        name: cleanMenuTitle(sub.ivrmM_ModuleName),
+                        name: subName,
                         icon: mapIcon(sub.ivrmmmI_Icon),
                         sub_menu: subMenuItems,
-                        pages: hasGrandChildren ? [] : itemPages.sort(sortByOrder)
+                        pages: hasGrandChildren ? [] : uniquePages
                     };
                     validChildren.push(menuItem);
                 }

@@ -14,7 +14,7 @@ import {
     useMasterSubExamDropdownList,
     useMasterSubSubjectDropdownList
 } from '@/hooks/exam/exammodule/usemasters';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { getExamAcademicYearDropdown } from '@/server/exam/exam-module/masters/exam';
 import { ExamSubjectWizardSchema, SubSubjectSubExamSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
@@ -30,12 +30,13 @@ import {
 import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory, IMasterGrade, IMasterSubExam, IMasterSubSubject } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { RefreshCw } from 'lucide-react';
+import { ArrowUpDown, RefreshCw, Save, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import SubExamModal from './subexam-model';
 import SubjectTable from './subject-table';
 import SubSubjectModal from './subsubject-modal';
@@ -99,12 +100,34 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     const watchGrade = watch('EMGR_Id');
 
     // modals
+    const [isSetOrderOpen, setIsSetOrderOpen] = useState(false);
     const [subExamModalState, setSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const [subSubjectModalState, setSubSubjectModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
     const [subSubjectSubExamModalState, setSubSubjectSubExamModalState] = useState<{ open: boolean; subject?: any }>({ open: false });
-    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
+    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
+    const [academicYearLoading, setAcademicYearLoading] = useState(false);
     const { data: gradeData, error: gradeError } = useMasterGradeDropdownList();
     const { refetchAll } = useExamSubjectWizard();
+
+    useEffect(() => {
+        const fetchAcademicYears = async () => {
+            try {
+                setAcademicYearLoading(true);
+                const res = await getExamAcademicYearDropdown();
+                const yearData = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+                const formatted = yearData.map((item: any) => ({
+                    asmaY_Id: item.asmaY_Id ?? item.ASMAY_Id ?? 0,
+                    asmaY_Year: item.asmaY_Year ?? item.ASMAY_Year ?? ''
+                })).filter((item: any) => item.asmaY_Id > 0);
+                setAcademicYears(formatted);
+            } catch (err: any) {
+                toast.error(err.message || 'Failed to load academic years');
+            } finally {
+                setAcademicYearLoading(false);
+            }
+        };
+        fetchAcademicYears();
+    }, []);
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
     const { data: masterSubSubject, isLoading: masterSubSubjectLoading } = useMasterSubSubjectDropdownList();
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
@@ -935,7 +958,40 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         setExams([]);
     };
 
+    const handleOpenSetOrderModal = () => {
+        if (!subjects || subjects.length === 0) {
+            toast.error('No subjects available to set order. Please select Category first.');
+            return;
+        }
+        setIsSetOrderOpen(true);
+    };
+
+    const handleSaveSubjectOrder = (updatedData: any[]) => {
+        const orderedSubjects = [...subjects].sort((a, b) => {
+            const indexA = updatedData.findIndex((item) => Number(item.ismS_Id) === Number(a.ismS_Id));
+            const indexB = updatedData.findIndex((item) => Number(item.ismS_Id) === Number(b.ismS_Id));
+            return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+        }).map((sub, idx) => ({
+            ...sub,
+            eyceS_SubjectOrder: idx + 1
+        }));
+
+        setSubjects(orderedSubjects);
+
+        const temp_Subject_Order = updatedData.map((item, index) => ({
+            eyceS_Id: Number(item.eyceS_Id || 0),
+            eycE_Id: Number(item.eycE_Id || rowData?.eycE_Id || 0),
+            ismS_Id: Number(item.ismS_Id),
+            eyceS_SubjectOrder: index + 1
+        }));
+
+        setValue('Temp_Subject_Order', temp_Subject_Order);
+        toast.success('Subject order updated successfully');
+        setIsSetOrderOpen(false);
+    };
+
     const isTopFieldsFilled = watchYear && watchCategory;
+    const hasSelectedExams = (Array.isArray(exams) && exams.some((e) => e.checked)) || Boolean(rowData?.eycE_Id);
 
     return (
         <FormProvider {...methods}>
@@ -973,12 +1029,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                                             <SelectItem value='loading' disabled>
                                                                 Loading Academic Year...
                                                             </SelectItem>
-                                                        ) : academicYearError ? (
-                                                            <SelectItem value='error' disabled>
-                                                                Error loading Academic Year
-                                                            </SelectItem>
                                                         ) : (
-                                                            academicYear?.data?.map((item) => (
+                                                            academicYears.map((item) => (
                                                                 <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                                     {item.asmaY_Year}
                                                                 </SelectItem>
@@ -1215,20 +1267,28 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                             {/* Subject Table */}
                             <div className='mt-6'>
-                                <SubjectTable
-                                    initialSubjects={subjects}
-                                    setParentSubjects={setSubjects}
-                                    showSubExamColumn={watchSubExam ?? false}
-                                    showSubSubjectColumn={watchSubSubject ?? false}
-                                    onOpenSubExamModal={onOpenSubExamModal}
-                                    onOpenSubSubjectModal={onOpenSubSubjectModal}
-                                    onOpenSubSubjectSubExamModal={onOpenSubSubjectSubExamModal}
-                                    gradeList={gradeList}
-                                    selectedGrade={watchGrade}
-                                    onRegisterValidate={(fn) => {
-                                        validateSubjectsRef.current = fn;
-                                    }}
-                                />
+                                {hasSelectedExams ? (
+                                    <SubjectTable
+                                        initialSubjects={subjects}
+                                        setParentSubjects={setSubjects}
+                                        showSubExamColumn={watchSubExam ?? false}
+                                        showSubSubjectColumn={watchSubSubject ?? false}
+                                        onOpenSubExamModal={onOpenSubExamModal}
+                                        onOpenSubSubjectModal={onOpenSubSubjectModal}
+                                        onOpenSubSubjectSubExamModal={onOpenSubSubjectSubExamModal}
+                                        gradeList={gradeList}
+                                        selectedGrade={watchGrade}
+                                        onRegisterValidate={(fn) => {
+                                            validateSubjectsRef.current = fn;
+                                        }}
+                                    />
+                                ) : (
+                                    <div className='flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50/60 p-8 text-center'>
+                                        <p className='font-medium text-gray-500 text-sm'>
+                                            Please select at least one Exam above to display and configure subjects.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className='mt-6 flex w-fit gap-4'>
@@ -1238,10 +1298,39 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                 <Button type='submit' disabled={isSubmitting}>
                                     {isSubmitting ? 'Saving...' : 'Save'}
                                 </Button>
+                                <Button
+                                    type='button'
+                                    onClick={handleOpenSetOrderModal}
+                                    disabled={!subjects || subjects.length === 0}
+                                    className='flex items-center gap-2'>
+                                    <ArrowUpDown className='h-4 w-4' />
+                                    Set Order
+                                </Button>
                             </div>
                         </>
                     )}
                 </CollapsibleSection>
+
+                {isSetOrderOpen && (
+                    <MasterViewDetails
+                        isOpen={isSetOrderOpen}
+                        onClose={() => setIsSetOrderOpen(false)}
+                        data={subjects.map((s, idx) => ({
+                            ...s,
+                            id: Number(s.ismS_Id),
+                            eyceS_SubjectOrder: s.eyceS_SubjectOrder ?? (idx + 1)
+                        }))}
+                        columns={[
+                            { key: 'id', label: 'SLNO', className: 'text-center w-12' },
+                            { key: 'ismS_SubjectName', label: 'Subject Name', className: 'text-left' },
+                            { key: 'ismS_SubjectCode', label: 'Subject Code', className: 'text-left' },
+                            { key: 'eyceS_SubjectOrder', label: 'Exam-Subject Order', className: 'text-center w-36' }
+                        ]}
+                        onSave={handleSaveSubjectOrder}
+                        tableHeight='500px'
+                        title='EXM-SUBJECT ORDER SETTING'
+                    />
+                )}
 
                 {!isEditFormLoading && (
                     <SubExamModal

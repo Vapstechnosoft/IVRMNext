@@ -3,7 +3,7 @@ export interface IMasterRoleType {
     roleType: string;
     name: string;
     masterRoleId?: number;
-    institutionType: string;
+    institutionType?: string;
     activeFlag: number;
     createdDate?: string;
     updatedDate?: string;

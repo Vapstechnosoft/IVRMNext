@@ -22,7 +22,7 @@ export const YearlyCategorySubjectMappingColumns: ColumnDef<IYearlyCategorySubje
     {
         accessorKey: 'asmaY_Year',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
-        cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>
+        cell: ({ row }) => <div>{row.getValue('asmaY_Year') || (row.original as any)?.ASMAY_Year || '-'}</div>
     },
     {
         accessorKey: 'emcA_CategoryName',

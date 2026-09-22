@@ -1,5 +1,6 @@
 'use server';
 
+import { AI_HIGH_TRAFFIC_MESSAGE, formatAiErrorMessage, isAiRateLimitError } from '@/lib/ai-error-handler';
 import type { ClassAnalysis, IndividualAnalysis, StudentPerformance } from '@/types/exam/exam-module/ai-analysis';
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -66,7 +67,10 @@ Identify exactly 5 weak performers and 5 top performers. Focus on overall perfor
 
         if (!response.ok) {
             const error = await response.text();
-            throw new Error(`API Error: ${response.status} - ${error}`);
+            if (response.status === 429 || isAiRateLimitError(error)) {
+                throw new Error(AI_HIGH_TRAFFIC_MESSAGE);
+            }
+            throw new Error(formatAiErrorMessage(error, `API Error: ${response.status}`));
         }
 
         const data = await response.json();
@@ -81,7 +85,10 @@ Identify exactly 5 weak performers and 5 top performers. Focus on overall perfor
         return JSON.parse(content);
     } catch (error: any) {
         console.error('Class Analysis failed:', error);
-        throw new Error(`Class Analysis failed: ${error.message}`);
+        if (isAiRateLimitError(error)) {
+            throw new Error(AI_HIGH_TRAFFIC_MESSAGE);
+        }
+        throw new Error(formatAiErrorMessage(error, 'Class Analysis failed. Please try again.'));
     }
 }
 
@@ -149,7 +156,10 @@ Format your response as JSON with this structure:
 
         if (!response.ok) {
             const error = await response.text();
-            throw new Error(`API Error: ${response.status} - ${error}`);
+            if (response.status === 429 || isAiRateLimitError(error)) {
+                throw new Error(AI_HIGH_TRAFFIC_MESSAGE);
+            }
+            throw new Error(formatAiErrorMessage(error, `API Error: ${response.status}`));
         }
 
         const data = await response.json();
@@ -163,7 +173,10 @@ Format your response as JSON with this structure:
         return JSON.parse(content);
     } catch (error: any) {
         console.error('Individual Analysis failed:', error);
-        throw new Error(`Individual Analysis failed: ${error.message}`);
+        if (isAiRateLimitError(error)) {
+            throw new Error(AI_HIGH_TRAFFIC_MESSAGE);
+        }
+        throw new Error(formatAiErrorMessage(error, 'Individual Analysis failed. Please try again.'));
     }
 }
 
@@ -175,7 +188,6 @@ export async function extractStudentDataFromPdf(base64Pdf: string): Promise<Stud
     try {
         const buffer = Buffer.from(base64Pdf, 'base64');
         // Lazy load pdf-parse
-        // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
         const pdf = require('pdf-parse/lib/pdf-parse.js');
         const data = await pdf(buffer);
         const text = data.text;
@@ -240,7 +252,10 @@ Ensure all scores are numbers. If a score is missing or invalid, skip that subje
 
         if (!response.ok) {
             const error = await response.text();
-            throw new Error(`Groq API Error: ${response.status} - ${error}`);
+            if (response.status === 429 || isAiRateLimitError(error)) {
+                throw new Error(AI_HIGH_TRAFFIC_MESSAGE);
+            }
+            throw new Error(formatAiErrorMessage(error, `Groq API Error: ${response.status}`));
         }
 
         const resData = await response.json();
@@ -257,6 +272,9 @@ Ensure all scores are numbers. If a score is missing or invalid, skip that subje
         }));
     } catch (error: any) {
         console.error('PDF Extraction failed:', error);
-        throw new Error(`Failed to parse PDF: ${error.message}`);
+        if (isAiRateLimitError(error)) {
+            throw new Error(AI_HIGH_TRAFFIC_MESSAGE);
+        }
+        throw new Error(formatAiErrorMessage(error, 'Failed to parse PDF. Please try again.'));
     }
 }

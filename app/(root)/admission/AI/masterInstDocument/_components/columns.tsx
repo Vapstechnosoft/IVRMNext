@@ -84,7 +84,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterInstDocumentList }) {
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, toggle: true, delete: true }}
+            buttons={{ edit: false, toggle: true, delete: true }}
             onEdit={handleEdit}
             onToggle={handleToggle}
             onDelete={handleDelete}

@@ -318,30 +318,25 @@ function StudentSubjectMappingContent() {
 
             // Transform students data
             const transformedStudents = data.map((student: any) => {
-                const nameParts = [
-                    student.amsT_FirstName || student.AMST_FirstName || student.amst_firstname,
-                    student.amsT_MiddleName || student.AMST_MiddleName || student.amst_middlename,
-                    student.amsT_LastName || student.AMST_LastName || student.amst_lastname
-                ]
-                    .filter((part) => part && String(part).trim() !== '' && String(part).trim() !== '0')
-                    .map((part) => String(part).trim());
+                const rawFirstName = student.amsT_FirstName || student.AMST_FirstName || student.amst_firstname || '';
+                const rawMiddleName = student.amsT_MiddleName || student.AMST_MiddleName || student.amst_middlename || '';
+                const rawLastName = student.amsT_LastName || student.AMST_LastName || student.amst_lastname || '';
 
-                const fullName =
-                    (nameParts.length > 0 ? nameParts.join(' ') : '') ||
-                    student.studentName ||
-                    student.studentname ||
-                    student.ambS_StudentName ||
-                    student.amsT_FirstName ||
-                    student.AMST_FirstName ||
-                    '';
+                const hasSeparateNames = Boolean(rawFirstName || rawMiddleName || rawLastName);
+
+                const cleanFirstName = hasSeparateNames
+                    ? (rawFirstName !== '0' ? String(rawFirstName).trim() : '')
+                    : (student.studentName || student.studentname || student.ambS_StudentName || '');
+                const cleanMiddleName = hasSeparateNames && rawMiddleName !== '0' ? String(rawMiddleName).trim() : '';
+                const cleanLastName = hasSeparateNames && rawLastName !== '0' ? String(rawLastName).trim() : '';
 
                 return {
                     amsT_Id: student.amsT_Id || 0,
-                    amsT_FirstName: fullName,
-                    amsT_MiddleName: student.amsT_MiddleName || student.AMST_MiddleName || student.amst_middlename || '',
-                    amsT_LastName: student.amsT_LastName || student.AMST_LastName || student.amst_lastname || '',
-                    amsT_AdmNo: student.amsT_AdmNo || '',
-                    amaY_RollNo: student.amaY_RollNo || 0,
+                    amsT_FirstName: cleanFirstName,
+                    amsT_MiddleName: cleanMiddleName,
+                    amsT_LastName: cleanLastName,
+                    amsT_AdmNo: student.amsT_AdmNo || student.AMST_AdmNo || '',
+                    amaY_RollNo: student.amaY_RollNo || student.AMAY_RollNo || 0,
                     sub_list: (student.sub_list || []).map((sub: any) => ({
                         id: sub.id,
                         name: sub.name,

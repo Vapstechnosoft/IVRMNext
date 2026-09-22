@@ -16,7 +16,7 @@ export function OperationTools() {
     const [isOpen, setIsOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
     const [selectedModuleId, setSelectedModuleId] = React.useState<number | null>(null);
-    const { data: accessibleModules } = useUserAccessibleModules();
+    const { data: accessibleModules, isLoading } = useUserAccessibleModules();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -28,9 +28,7 @@ export function OperationTools() {
     const filteredModules = React.useMemo(() => {
         if (!accessibleModules?.data) return [];
         console.log('accessibleModules', accessibleModules);
-        return accessibleModules.data.filter(
-            (module) => module.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        return accessibleModules.data.filter((module: any) => module.name.toLowerCase().includes(searchQuery.toLowerCase()));
     }, [accessibleModules, searchQuery]);
 
     // Set initial selected module when data loads or search changes
@@ -41,7 +39,7 @@ export function OperationTools() {
     }, [filteredModules, selectedModuleId]);
 
     const selectedModule = React.useMemo(
-        () => accessibleModules?.data?.find((m) => m.id === selectedModuleId),
+        () => accessibleModules?.data?.find((m: any) => m.id === selectedModuleId),
         [accessibleModules, selectedModuleId]
     );
 
@@ -148,56 +146,70 @@ export function OperationTools() {
                             {/* Module List */}
                             <div className='scrollbar-hide flex-1 overflow-y-auto px-4 py-4'>
                                 <div className='space-y-1'>
-                                    {filteredModules.map((module) => {
-                                        const Icon = getIconByName(module.icon) || Boxes;
-                                        const isActive = selectedModuleId === module.id;
-                                        return (
-                                            <button
-                                                key={module.id}
-                                                onMouseEnter={() => setSelectedModuleId(module.id)}
-                                                onClick={() => setSelectedModuleId(module.id)}
-                                                className={cn(
-                                                    'group relative flex w-full items-center gap-4 rounded-3xl p-4 transition-all duration-300',
-                                                    isActive
-                                                        ? 'bg-white shadow-[0_10px_30px_-10px_rgba(255,100,0,0.15)] md:translate-x-2'
-                                                        : 'hover:bg-slate-100/80'
-                                                )}>
-                                                {isActive && (
-                                                    <motion.div
-                                                        layoutId='sidebar-active'
-                                                        className='-translate-y-1/2 absolute top-1/2 left-0 h-8 w-1 rounded-r-full bg-orange-500'
-                                                    />
-                                                )}
-                                                <div
+                                    {isLoading ? (
+                                        <div className='flex flex-col items-center justify-center py-10 space-y-4'>
+                                            <div className='h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent' />
+                                            <p className='text-sm font-medium text-slate-500 animate-pulse'>Loading modules...</p>
+                                        </div>
+                                    ) : filteredModules.length > 0 ? (
+                                        filteredModules.map((module: any) => {
+                                            const Icon = getIconByName(module.icon) || Boxes;
+                                            const isActive = selectedModuleId === module.id;
+                                            return (
+                                                <button
+                                                    key={module.id}
+                                                    onMouseEnter={() => setSelectedModuleId(module.id)}
+                                                    onClick={() => setSelectedModuleId(module.id)}
                                                     className={cn(
-                                                        'flex h-10 w-10 items-center justify-center rounded-2xl transition-colors duration-300',
+                                                        'group relative flex w-full items-center gap-4 rounded-3xl p-4 transition-all duration-300',
                                                         isActive
-                                                            ? 'bg-orange-600 text-white shadow-md shadow-orange-100'
-                                                            : 'bg-white text-slate-400 group-hover:text-orange-600'
+                                                            ? 'bg-white shadow-[0_10px_30px_-10px_rgba(255,100,0,0.15)] md:translate-x-2'
+                                                            : 'hover:bg-slate-100/80'
                                                     )}>
-                                                    <Icon className='h-5 w-5' />
-                                                </div>
-                                                <div className='flex-1 text-left'>
-                                                    <p
-                                                        className={cn(
-                                                            'font-black text-sm tracking-tight transition-colors',
-                                                            isActive ? 'text-slate-900' : 'text-slate-500 group-hover:text-orange-600'
-                                                        )}>
-                                                        {module.name}
-                                                    </p>
-                                                    <p className='font-bold text-[10px] text-slate-400 uppercase tracking-wider'>
-                                                        {module.menu.length} Sections
-                                                    </p>
-                                                </div>
-                                                <ArrowRight
-                                                    className={cn(
-                                                        'h-4 w-4 transition-all',
-                                                        isActive ? 'translate-x-0 text-orange-600 opacity-100' : 'translate-x-4 opacity-0'
+                                                    {isActive && (
+                                                        <motion.div
+                                                            layoutId='sidebar-active'
+                                                            className='-translate-y-1/2 absolute top-1/2 left-0 h-8 w-1 rounded-r-full bg-orange-500'
+                                                        />
                                                     )}
-                                                />
-                                            </button>
-                                        );
-                                    })}
+                                                    <div
+                                                        className={cn(
+                                                            'flex h-10 w-10 items-center justify-center rounded-2xl transition-colors duration-300',
+                                                            isActive
+                                                                ? 'bg-orange-600 text-white shadow-md shadow-orange-100'
+                                                                : 'bg-white text-slate-400 group-hover:text-orange-600'
+                                                        )}>
+                                                        <Icon className='h-5 w-5' />
+                                                    </div>
+                                                    <div className='flex-1 text-left'>
+                                                        <p
+                                                            className={cn(
+                                                                'font-black text-sm tracking-tight transition-colors',
+                                                                isActive ? 'text-slate-900' : 'text-slate-500 group-hover:text-orange-600'
+                                                            )}>
+                                                            {module.name}
+                                                        </p>
+                                                        <p className='font-bold text-[10px] text-slate-400 uppercase tracking-wider'>
+                                                            {module.menu.length} Sections
+                                                        </p>
+                                                    </div>
+                                                    <ArrowRight
+                                                        className={cn(
+                                                            'h-4 w-4 transition-all',
+                                                            isActive
+                                                                ? 'translate-x-0 text-orange-600 opacity-100'
+                                                                : 'translate-x-4 opacity-0'
+                                                        )}
+                                                    />
+                                                </button>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className='flex flex-col items-center justify-center py-10 text-center opacity-50'>
+                                            <Boxes className='h-10 w-10 text-slate-300 mb-3' />
+                                            <p className='text-sm font-medium text-slate-500'>No modules found</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -231,7 +243,7 @@ export function OperationTools() {
                                         exit={{ opacity: 0, x: -20 }}
                                         transition={{ duration: 0.3 }}
                                         className='grid gap-12 sm:grid-cols-1 lg:grid-cols-2'>
-                                        {selectedModule?.menu.map((menu, menuIdx) => (
+                                        {selectedModule?.menu.map((menu: any, menuIdx: number) => (
                                             <div key={menuIdx} className='space-y-8'>
                                                 <div className='flex items-center gap-4'>
                                                     <div className='h-px flex-1 bg-slate-100' />
@@ -242,7 +254,7 @@ export function OperationTools() {
                                                 </div>
 
                                                 <div className='grid gap-6'>
-                                                    {menu.sub_menu.map((subMenu, subIdx) => (
+                                                    {menu.sub_menu.map((subMenu: any, subIdx: number) => (
                                                         <div
                                                             key={subIdx}
                                                             className='group relative rounded-[2rem] border border-slate-100 bg-white p-6 transition-all hover:border-transparent hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)]'>
@@ -250,29 +262,64 @@ export function OperationTools() {
                                                                 {subMenu.name}
                                                             </h5>
                                                             <div className='grid gap-3'>
-                                                                {subMenu.pages.map((page, pageIdx) => {
-                                                                    const PageIcon = getIconByName(page.icon) || Boxes;
-                                                                    return (
-                                                                        <button
-                                                                            key={pageIdx}
-                                                                            onClick={() => handlePageClick(page, menu, subMenu)}
-                                                                            className='group/btn relative flex items-center justify-between overflow-hidden rounded-2xl px-3 py-2 text-left transition-all hover:bg-slate-50 hover:text-orange-600'>
-                                                                            <div className='flex items-center gap-3'>
-                                                                                <div className='flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100/50 text-slate-400 transition-colors group-hover/btn:bg-orange-100 group-hover/btn:text-orange-600'>
-                                                                                    <PageIcon className='h-3.5 w-3.5' />
-                                                                                </div>
-                                                                                <span className='font-medium text-slate-600 text-sm transition-colors group-hover/btn:text-orange-600'>
-                                                                                    {page.title}
-                                                                                </span>
-                                                                            </div>
+                                                                {(() => {
+                                                                    const seenTitles = new Set<string>();
+                                                                    const seenUrls = new Set<string>();
+                                                                    const uniquePages = (subMenu.pages || []).filter((page: any) => {
+                                                                        const rawTitle = page.title || page.name || '';
+                                                                        const normTitle = rawTitle
+                                                                            .toLowerCase()
+                                                                            .replace(/[^a-z0-9]/g, '')
+                                                                            .trim();
+                                                                        const normUrl = (page.url || '')
+                                                                            .toLowerCase()
+                                                                            .replace(/^app\./i, '')
+                                                                            .replace(/\/+/g, '/')
+                                                                            .replace(/\/$/, '')
+                                                                            .trim();
 
-                                                                            {/* Purple Glowing Dot Indicator on the Right */}
-                                                                            <div className='pointer-events-none absolute right-4 flex items-center justify-center opacity-0 transition-all duration-300 group-hover/btn:opacity-100'>
-                                                                                <div className='h-2 w-2 rounded-full bg-purple-500 shadow-[0_0_15px_4px_rgba(168,85,247,0.7)]' />
-                                                                            </div>
-                                                                        </button>
-                                                                    );
-                                                                })}
+                                                                        if (normTitle && seenTitles.has(normTitle)) {
+                                                                            return false;
+                                                                        }
+                                                                        if (
+                                                                            normUrl &&
+                                                                            normUrl !== '#' &&
+                                                                            normUrl !== '' &&
+                                                                            seenUrls.has(normUrl)
+                                                                        ) {
+                                                                            return false;
+                                                                        }
+
+                                                                        if (normTitle) seenTitles.add(normTitle);
+                                                                        if (normUrl && normUrl !== '#' && normUrl !== '')
+                                                                            seenUrls.add(normUrl);
+                                                                        return true;
+                                                                    });
+
+                                                                    return uniquePages.map((page: any, pageIdx: number) => {
+                                                                        const PageIcon = getIconByName(page.icon) || Boxes;
+                                                                        return (
+                                                                            <button
+                                                                                key={page.id ? `page-${page.id}` : pageIdx}
+                                                                                onClick={() => handlePageClick(page, menu, subMenu)}
+                                                                                className='group/btn relative flex items-center justify-between overflow-hidden rounded-2xl px-3 py-2 text-left transition-all hover:bg-slate-50 hover:text-orange-600'>
+                                                                                <div className='flex items-center gap-3'>
+                                                                                    <div className='flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100/50 text-slate-400 transition-colors group-hover/btn:bg-orange-100 group-hover/btn:text-orange-600'>
+                                                                                        <PageIcon className='h-3.5 w-3.5' />
+                                                                                    </div>
+                                                                                    <span className='font-medium text-slate-600 text-sm transition-colors group-hover/btn:text-orange-600'>
+                                                                                        {page.title}
+                                                                                    </span>
+                                                                                </div>
+
+                                                                                {/* Purple Glowing Dot Indicator on the Right */}
+                                                                                <div className='pointer-events-none absolute right-4 flex items-center justify-center opacity-0 transition-all duration-300 group-hover/btn:opacity-100'>
+                                                                                    <div className='h-2 w-2 rounded-full bg-purple-500 shadow-[0_0_15px_4px_rgba(168,85,247,0.7)]' />
+                                                                                </div>
+                                                                            </button>
+                                                                        );
+                                                                    });
+                                                                })()}
                                                             </div>
                                                         </div>
                                                     ))}
@@ -282,7 +329,7 @@ export function OperationTools() {
                                     </motion.div>
                                 </AnimatePresence>
 
-                                {!selectedModule && (
+                                {!selectedModule && !isLoading && (
                                     <div className='flex h-full flex-col items-center justify-center text-center opacity-40'>
                                         <div className='mb-6 rounded-full bg-slate-50 p-10'>
                                             <Boxes className='h-20 w-20 text-slate-200' />
