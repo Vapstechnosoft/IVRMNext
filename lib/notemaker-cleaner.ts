@@ -5,10 +5,25 @@
  * any formatting artifacts that degrade readability.
  */
 
+/**
+ * Normalizes spaced-out characters resulting from PDF kerning/tracking extraction artifacts,
+ * e.g., "R e t r i e v a l" -> "Retrieval", "r e a l   t i m e" -> "real time".
+ */
+export function normalizeSpacedLetters(text: string): string {
+    if (!text) return '';
+    // Fix spaced out characters from PDF tracking/kerning artifacts e.g. "R e t r i e v a l" -> "Retrieval"
+    let res = text.replace(/\b([A-Za-z](?:\s[A-Za-z]){2,})\b/g, (m) => m.replace(/\s+/g, ''));
+    // Fix spacing before punctuation e.g. "word ." -> "word."
+    res = res.replace(/\s+([.,;:!?])/g, '$1');
+    // Collapse consecutive spaces (preserving newlines)
+    res = res.replace(/[^\S\r\n]{2,}/g, ' ');
+    return res;
+}
+
 export function standardizeNoteMarkdown(content: string): string {
     if (!content) return '';
 
-    let text = content.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    let text = normalizeSpacedLetters(content.replace(/\r\n/g, '\n').replace(/\r/g, '\n'));
 
     // 1. Standardize major chapter headers wrapped in asterisks or symbols to standard H1
     // e.g. "*CHAPTER 1 – ...**", "**CHAPTER 1 – ...**", "***CHAPTER 1 – ...***", or starting with bullet dot "• *CHAPTER 1..."

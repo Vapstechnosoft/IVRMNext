@@ -64,10 +64,27 @@ export default function OnlineMcqQuizPage() {
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files?.[0]) {
-            setFile(e.target.files[0]);
-            toast.success('Document uploaded successfully');
+        const selectedFile = e.target.files?.[0];
+        if (!selectedFile) return;
+
+        const lowerName = selectedFile.name.toLowerCase();
+        const validExtensions = ['.pdf', '.doc', '.docx'];
+        const isImage = /\.(png|jpe?g|webp|bmp|gif|svg|tiff)$/i.test(lowerName) || selectedFile.type.startsWith('image/');
+        const isValid = validExtensions.some((ext) => lowerName.endsWith(ext));
+
+        if (isImage || !isValid) {
+            e.target.value = '';
+            setFile(null);
+            toast.error(
+                isImage
+                    ? 'Image files (PNG, JPG) are not accepted. Only PDF and Word documents (.pdf, .doc, .docx) are supported.'
+                    : 'Unsupported file format. Please upload a PDF or Word document (.pdf, .doc, .docx).'
+            );
+            return;
         }
+
+        setFile(selectedFile);
+        toast.success('Document uploaded successfully');
     };
 
     const handleGenerate = async () => {
@@ -706,6 +723,7 @@ export default function OnlineMcqQuizPage() {
                                             )}>
                                             <input
                                                 type='file'
+                                                accept='.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
                                                 className='absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0'
                                                 onChange={handleFileChange}
                                             />
@@ -718,6 +736,9 @@ export default function OnlineMcqQuizPage() {
                                                     {file ? <CheckCircle2 className='h-8 w-8' /> : <Upload className='h-8 w-8' />}
                                                 </div>
                                                 <p className='font-black text-slate-700'>{file ? file.name : 'Choose File'}</p>
+                                                <p className='font-semibold text-slate-400 text-xs'>
+                                                    Only PDF and Word documents (.pdf, .doc, .docx) accepted
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
