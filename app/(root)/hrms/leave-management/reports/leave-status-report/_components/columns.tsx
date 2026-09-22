@@ -18,7 +18,8 @@ export const columns: ColumnDef<LeaveStatusReportData>[] = [
                 <DataTableColumnHeader column={column} title='Sl.No' />
             </div>
         ),
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>
+        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        enableSorting: false
     },
     {
         accessorKey: 'hrmE_EmployeeCode',
@@ -27,7 +28,8 @@ export const columns: ColumnDef<LeaveStatusReportData>[] = [
                 <DataTableColumnHeader column={column} title='Employee Code' />
             </div>
         ),
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('hrmE_EmployeeCode')}</div>
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('hrmE_EmployeeCode')}</div>,
+        enableSorting: false
     },
     {
         accessorKey: 'hrmE_EmployeeName',
@@ -36,7 +38,8 @@ export const columns: ColumnDef<LeaveStatusReportData>[] = [
                 <DataTableColumnHeader column={column} title='Employee Name' />
             </div>
         ),
-        cell: ({ row }) => <div className='font-medium'>{row.getValue('hrmE_EmployeeName')}</div>
+        cell: ({ row }) => <div className='font-medium'>{row.getValue('hrmE_EmployeeName')}</div>,
+        enableSorting: false
     },
     {
         accessorKey: 'hrmL_LeaveName',
@@ -45,7 +48,8 @@ export const columns: ColumnDef<LeaveStatusReportData>[] = [
                 <DataTableColumnHeader column={column} title='Leave Type' />
             </div>
         ),
-        cell: ({ row }) => <div className='text-center'>{row.getValue('hrmL_LeaveName')}</div>
+        cell: ({ row }) => <div className='text-center'>{row.getValue('hrmL_LeaveName')}</div>,
+        enableSorting: false
     },
     {
         accessorKey: 'hrelS_TotalLeaves',
@@ -54,7 +58,8 @@ export const columns: ColumnDef<LeaveStatusReportData>[] = [
                 <DataTableColumnHeader column={column} title='Total Leave' />
             </div>
         ),
-        cell: ({ row }) => <div className='text-center'>{row.getValue('hrelS_TotalLeaves')}</div>
+        cell: ({ row }) => <div className='text-center'>{row.getValue('hrelS_TotalLeaves')}</div>,
+        enableSorting: false
     },
     {
         accessorKey: 'hrelS_TransLeaves',
@@ -63,7 +68,8 @@ export const columns: ColumnDef<LeaveStatusReportData>[] = [
                 <DataTableColumnHeader column={column} title='Leave Used' />
             </div>
         ),
-        cell: ({ row }) => <div className='text-center'>{row.getValue('hrelS_TransLeaves')}</div>
+        cell: ({ row }) => <div className='text-center'>{row.getValue('hrelS_TransLeaves')}</div>,
+        enableSorting: false
     },
     {
         accessorKey: 'hrelS_CBLeaves',
@@ -72,6 +78,7 @@ export const columns: ColumnDef<LeaveStatusReportData>[] = [
                 <DataTableColumnHeader column={column} title='Leave Balance' />
             </div>
         ),
-        cell: ({ row }) => <div className='text-center font-bold'>{row.getValue('hrelS_CBLeaves')}</div>
+        cell: ({ row }) => <div className='text-center font-bold'>{row.getValue('hrelS_CBLeaves')}</div>,
+        enableSorting: false
     }
 ];

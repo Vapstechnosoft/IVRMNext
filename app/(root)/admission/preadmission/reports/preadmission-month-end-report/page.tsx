@@ -3,7 +3,6 @@ import { FileSpreadsheet, Printer, RotateCcw, Save } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
-import * as XLSX from 'xlsx';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/extension/field';
@@ -176,29 +175,34 @@ export default function MonthendreportPage() {
 
     const downloadExcel = async () => {
         try {
-            if (!reportData || reportData.length === 0) {
-                toast.error('No report data found! Please generate the report first.');
+            if (!academicYearId || !selectedMonth || !selectedYear) {
+                toast.error('Please fill all required fields!');
                 return;
             }
 
-            const excelData = reportData.map((item, index) => ({
-                'SL.No': index + 1,
-                'Name': item.name || '',
-                'Count': item.count ?? 0,
-                'SMS Sent': item.sms ?? '---',
-                'Email Sent': item.emailId ?? '---',
-                'Missing Photo': item.missingphoto ?? '---',
-                'Missing Email': item.missingemail ?? '---',
-                'Missing Contact No': item.missingphone ?? '---',
-                'Online': item.online ?? '---',
-                'Offline': item.offline ?? '---'
-            }));
+            const response = await getExcelPreAdmissionMonthEndReport(excelrequestData);
 
-            const worksheet = XLSX.utils.json_to_sheet(excelData);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'Month End Report');
-            
-            XLSX.writeFile(workbook, `MonthEndReport_${selectedMonth}_${selectedYear}.xlsx`);
+            // Ensure we have a Blob
+            const blob =
+                response instanceof Blob
+                    ? response
+                    : new Blob([new Uint8Array(response)], {
+                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                      });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `MonthEndReport_${selectedMonth}_${selectedYear}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+
+            // Cleanup
+            setTimeout(() => {
+                link.remove();
+                window.URL.revokeObjectURL(url);
+            }, 100);
 
             toast.success('Excel downloaded successfully');
         } catch (error) {

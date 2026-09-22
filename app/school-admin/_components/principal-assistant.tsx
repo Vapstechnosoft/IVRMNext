@@ -313,8 +313,8 @@ export function PrincipalAssistant() {
                                                     num.isPositive === undefined
                                                         ? 'bg-slate-100 text-slate-650'
                                                         : num.isPositive
-                                                          ? 'bg-emerald-50 text-emerald-700'
-                                                          : 'bg-red-50 text-red-600'
+                                                            ? 'bg-emerald-50 text-emerald-700'
+                                                            : 'bg-red-50 text-red-600'
                                                 )}>
                                                 {num.change}
                                             </span>

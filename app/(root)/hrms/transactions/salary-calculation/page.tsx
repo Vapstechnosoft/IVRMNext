@@ -16,7 +16,7 @@ import type {
 } from '@/types/hrms/salary-calculation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Calculator, Loader2, Search, X } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -63,11 +63,11 @@ export default function SalaryCalculationPage() {
         tableSearchVariables.page_size,
         parseAsInteger.withOptions({ shallow: false }).withDefault(10)
     );
-    const [sortColumn] = useQueryState(
+    const [sortColumn, setSortColumn] = useQueryState(
         tableSearchVariables.sort_column,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
-    const [sortDirection] = useQueryState(
+    const [sortDirection, setSortDirection] = useQueryState(
         tableSearchVariables.sort_direction,
         parseAsString.withOptions({ shallow: false }).withDefault('')
     );
@@ -111,6 +111,24 @@ export default function SalaryCalculationPage() {
         setHasSearched(false);
     }, [watchedGroupType, watchedDepartment, watchedDesignation]);
 
+    // Clear URL search and pagination params when navigating away (unmount)
+    useEffect(() => {
+        return () => {
+            setSearchTerm(null);
+            setPage(null);
+            setSortColumn(null);
+            setSortDirection(null);
+        };
+    }, [setSearchTerm, setPage, setSortColumn, setSortDirection]);
+
+    // Clear stale URL search params on fresh mount (when user hasn't searched yet)
+    useEffect(() => {
+        if (!hasSearched) {
+            if (searchTerm) setSearchTerm(null);
+            if (page && page !== 1) setPage(null);
+        }
+    }, [hasSearched, searchTerm, page, setSearchTerm, setPage]);
+
     // Core search executor — accepts filter form data + table params
     const executeSearch = useCallback(
         (
@@ -133,12 +151,12 @@ export default function SalaryCalculationPage() {
                 groupTypeIdList: (formData.groupType || []).map((v) => Number(v)),
                 hrmD_IdList: (formData.department || []).map((v) => Number(v)),
                 hrmdeS_IdList: (formData.designation || []).map((v) => Number(v)),
-                // Query params
+                // Query params for server-side pagination & search
                 page: overrides?.page ?? page ?? 1,
                 page_size: overrides?.pageSize ?? pageSize ?? 10,
-                search_query: overrides?.searchQuery ?? searchTerm ?? undefined,
-                sort_column: overrides?.sortCol ?? sortColumn ?? undefined,
-                sort_direction: overrides?.sortDir ?? sortDirection ?? undefined
+                search_query: overrides?.searchQuery ?? (searchTerm || undefined),
+                sort_column: overrides?.sortCol ?? (sortColumn || undefined),
+                sort_direction: overrides?.sortDir ?? (sortDirection || undefined)
             };
             console.log('Search Payload:', payload);
 
@@ -170,8 +188,9 @@ export default function SalaryCalculationPage() {
                     });
 
                     setEmployees(employeesWithStatus);
-                    // Use server total if returned, otherwise fall back to list length
-                    setTotalEmployees((responseData as any).total ?? employeesWithStatus.length);
+                    // Use server total so pagination knows total pages
+                    const serverTotal = (responseData as any).total ?? (responseData as any).totalCount ?? employeesWithStatus.length;
+                    setTotalEmployees(serverTotal);
                     setHasSearched(true);
                     setCurrentSearchData(formData);
 
@@ -179,10 +198,12 @@ export default function SalaryCalculationPage() {
                         setFromDate(`01/${formData.salaryMonth}/${formData.salaryYear}`);
                         setToDate(`Last of ${formData.salaryMonth}/${formData.salaryYear}`);
                     }
-                    if (employeesWithStatus.length === 0) {
-                        toast.info('No employees found matching criteria');
-                    } else {
-                        toast.success(`Search completed successfully. Found ${employeesWithStatus.length} employees`);
+                    if (overrides?.fromForm) {
+                        if (employeesWithStatus.length === 0) {
+                            toast.info('No employees found matching criteria');
+                        } else {
+                            toast.success(`Search completed successfully. Found ${serverTotal} employees`);
+                        }
                     }
                 },
                 onError: () => {
@@ -193,18 +214,27 @@ export default function SalaryCalculationPage() {
                 }
             });
         },
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [page, pageSize, searchTerm, sortColumn, sortDirection]
+        [searchMutation, page, pageSize, searchTerm, sortColumn, sortDirection]
     );
 
-    // Re-trigger search when table params change (only after initial search was done)
+    // Re-trigger search when table params change (page, pageSize, search, sort)
     useEffect(() => {
         if (hasSearched && currentSearchData) {
             executeSearch(currentSearchData);
         }
-        // Only react to table-param changes — not form-level changes
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, pageSize, searchTerm, sortColumn, sortDirection]);
+
+    // Reset to page 1 when search term changes
+    const prevSearchTermRef = useRef(searchTerm);
+    useEffect(() => {
+        if (prevSearchTermRef.current !== searchTerm) {
+            prevSearchTermRef.current = searchTerm;
+            if (page && page !== 1) {
+                setPage(1);
+            }
+        }
+    }, [searchTerm, page, setPage]);
 
     // Memoized options for Select/MultiSelect components
     const groupTypeOptions = useMemo(() => {
@@ -238,23 +268,25 @@ export default function SalaryCalculationPage() {
     const yearOptions = useMemo<MasterDropdown[]>(() => (yearOptionsData?.data || []) as MasterDropdown[], [yearOptionsData]);
 
     const onSubmit: SubmitHandler<SearchForm> = async (data: SearchForm) => {
-        // Reset pagination to page 1 on a fresh search
+        await setSearchTerm(null);
         await setPage(1);
-        executeSearch(data, { page: 1, fromForm: true });
+        executeSearch(data, { page: 1, searchQuery: undefined, fromForm: true });
     };
 
     const handleEmployeeSelect = (employeeId: number, selected: boolean) => {
         if (selected) {
-            setSelectedEmployees([...selectedEmployees, employeeId]);
+            setSelectedEmployees((prev) => [...prev, employeeId]);
         } else {
-            setSelectedEmployees(selectedEmployees.filter((id) => id !== employeeId));
+            setSelectedEmployees((prev) => prev.filter((id) => id !== employeeId));
         }
     };
     const handleSelectAll = (selected: boolean) => {
         if (selected) {
-            setSelectedEmployees(employees.map((emp) => emp.HRME_Id));
+            const pageIds = employees.map((emp) => emp.HRME_Id);
+            setSelectedEmployees((prev) => Array.from(new Set([...prev, ...pageIds])));
         } else {
-            setSelectedEmployees([]);
+            const pageIds = new Set(employees.map((emp) => emp.HRME_Id));
+            setSelectedEmployees((prev) => prev.filter((id) => !pageIds.has(id)));
         }
     };
     const handleGenerateSalary = async () => {
@@ -303,8 +335,8 @@ export default function SalaryCalculationPage() {
         setSelectedEmployees([]);
         setHasSearched(false);
         setCurrentSearchData(null);
-        setSearchTerm('');
-        setPage(1);
+        setSearchTerm(null);
+        setPage(null);
     };
 
     return (
@@ -459,7 +491,7 @@ export default function SalaryCalculationPage() {
                     </form>
                 </CollapsibleSection>
                 {/* Employee List Table */}
-                {hasSearched && employees.length > 0 && (
+                {hasSearched && (
                     <CollapsibleSection
                         defaultOpen={true}
                         variant='default'
@@ -474,8 +506,6 @@ export default function SalaryCalculationPage() {
                             onEmployeeSelect={handleEmployeeSelect}
                             onSelectAll={handleSelectAll}
                             onGenerateSalary={handleGenerateSalary}
-                            fromDate={fromDate}
-                            toDate={toDate}
                             handleReset={handleReset}
                             onPageChange={(newPage) => setPage(newPage)}
                             currentPage={page ?? 1}
@@ -506,8 +536,6 @@ interface SalaryCalculationTableProps {
     onEmployeeSelect: (employeeId: number, selected: boolean) => void;
     onSelectAll: (selected: boolean) => void;
     onGenerateSalary: () => void;
-    fromDate: string;
-    toDate: string;
     handleReset: () => void;
     onPageChange: (page: number) => void;
     currentPage: number;
@@ -521,23 +549,20 @@ function SalaryCalculationTable({
     onEmployeeSelect,
     onSelectAll,
     onGenerateSalary,
-    fromDate,
-    toDate,
     handleReset,
     onPageChange,
     currentPage,
     pageSize
 }: SalaryCalculationTableProps) {
-    // Build server-side table response — search/pagination handled by backend
     const tableResponse = useMemo(() => {
         return {
             success: true,
             data: employees,
             total: totalEmployees,
-            page: 1,
-            page_size: employees.length
+            page: currentPage,
+            page_size: pageSize
         };
-    }, [employees, totalEmployees]);
+    }, [employees, totalEmployees, currentPage, pageSize]);
 
     const tableProps = useDataTableProps(tableResponse);
 
