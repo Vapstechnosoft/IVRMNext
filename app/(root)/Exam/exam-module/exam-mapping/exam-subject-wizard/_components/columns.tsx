@@ -6,7 +6,7 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IExamSubjectWizard } from '@/types/exam/exam-module/exam-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Eye } from 'lucide-react';
+import { ArrowUpDown, Eye } from 'lucide-react';
 import { useCallback } from 'react';
 
 // -------------------------
@@ -77,7 +77,7 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
                     onClick={handleOpenOrderMenu}
                     className='rounded-md p-2 transition hover:bg-muted'
                     title='Set Subject Order'>
-                    <Eye className='h-4 w-4 text-blue-600' />
+                    <ArrowUpDown className='h-4 w-4 text-blue-600' />
                 </button>
             );
         },

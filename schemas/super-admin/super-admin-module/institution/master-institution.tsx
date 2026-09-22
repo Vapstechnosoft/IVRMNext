@@ -98,5 +98,9 @@ export const institutionMasterSchema = {
         mI_MSTeamsGrantType: z.string().optional(),
         mI_MSTeamsScope: z.string().optional(),
         mI_MSTeamsAdminPassword: z.string().optional()
+    }),
+    delete: z.object({
+        mI_Id: z.coerce.number().min(1, 'ID is required')
     })
 };
+

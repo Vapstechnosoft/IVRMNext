@@ -320,122 +320,32 @@ export default function SubSubjectModal({
     // Get form data
     const formData = watch('subsubject_list') || [];
 
-    // Parent max and min marks
-    const parentMaxMarks = useMemo(() => Number(subject?.eyceS_MaxMarks ?? 0), [subject]);
-    const parentMinMarks = useMemo(() => Number(subject?.eyceS_MinMarks ?? 0), [subject]);
-    const parentMarksEntryMax = useMemo(() => Number(subject?.eyceS_MarksEntryMax ?? 0), [subject]);
-
-    // ----------------------------------
-    // Populate initial list
-    // ----------------------------------
-    useEffect(() => {
-        if (!open) return;
-
-        // If subject is empty → clean reset
-        if (!subject) {
-            reset({ subsubject_list: [] });
-            dataRef.current.clear();
-            setValidationErrors({});
-            validationErrorsRef.current = {};
-            setIsLoading(false);
-            return;
-        }
-
-        setIsLoading(true);
-
-        const rawList = subject.list ?? [];
-
-        // Map once (cheap)
-        const mappedList = rawList.map((l: any) => ({
-            emsS_Id: l.emsS_Id,
-            emsS_SubSubjectName: l.emsS_SubSubjectName,
-            emsS_SubSubjectCode: l.emsS_SubSubjectCode,
-            checkedvalue: Boolean(l.checkedvalue),
-
-            eycessS_MaxMarks: l.eycessS_MaxMarks ?? '',
-            eycessS_MinMarks: l.eycessS_MinMarks ?? '',
-            eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? '',
-            emgR_Id: l.emgR_Id ?? '',
-
-            eycessS_ExemptedFlg: l.eycessS_ExemptedFlg,
-            eycessS_ExemptedPer: l.eycessS_ExemptedPer ?? '',
-            eycessS_MarksDisplayFlg: l.eycessS_MarksDisplayFlg,
-            eycessS_GradeDisplayFlg: l.eycessS_GradeDisplayFlg,
-            eycessS_AplResultFlg: l.eycessS_AplResultFlg,
-
-            eycessS_SubSubjectOrder: l.eycessS_SubSubjectOrder ?? 0
-        }));
-
-        // ✅ YOUR REQUIRED SORT STYLE
-        const sortedList = [...mappedList].sort((a, b) => (a.eycessS_SubSubjectOrder ?? 0) - (b.eycessS_SubSubjectOrder ?? 0));
-
-        // Update ref (O(n), fast lookup later)
-        dataRef.current = new Map(sortedList.map((item) => [item.emsS_Id, item]));
-
-        // Update react-hook-form once
-        reset({ subsubject_list: sortedList });
-
-        // Clear validation
-        setValidationErrors({});
-        validationErrorsRef.current = {};
-
-        setIsLoading(false);
-    }, [open, subject, reset]);
-
-    // Filtered data (memoized)
-    const filteredData = useMemo(() => {
-        const allData = formData || [];
-        const term = searchTerm.trim().toLowerCase();
-        if (!term) return allData;
-        return allData.filter((item) => {
-            return (
-                (item.emsS_SubSubjectName ?? '').toString().toLowerCase().includes(term) ||
-                (item.emsS_SubSubjectCode ?? '').toString().toLowerCase().includes(term)
-            );
-        });
-    }, [formData, searchTerm]);
-
-    const totalPages = Math.max(1, Math.ceil(filteredData.length / ITEMS_PER_PAGE));
-
-    useEffect(() => {
-        setCurrentPage((p) => Math.min(Math.max(1, p), totalPages));
-    }, [totalPages]);
-
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredData.length);
-    const paginatedData = useMemo(() => filteredData.slice(startIndex, endIndex), [filteredData, startIndex, endIndex]);
-
-    // ----------------------------------
-    // Optimized Update Function using emsS_Id
-    // ----------------------------------
-    const updateRowValue = useCallback(
-        (emsS_Id: number, field: keyof SubSubject, value: any) => {
-            // Find the index of the item with this emsS_Id
-            const currentList = getValues('subsubject_list') || [];
-            const itemIndex = currentList.findIndex((item) => item.emsS_Id === emsS_Id);
-
-            if (itemIndex === -1) return;
-
-            // Update the value in the form
-            setValue(`subsubject_list.${itemIndex}.${field}`, value, {
-                shouldDirty: true,
-                shouldValidate: false
-            });
-
-            // Update the ref
-            const currentItem = dataRef.current.get(emsS_Id);
-            if (currentItem) {
-                dataRef.current.set(emsS_Id, {
-                    ...currentItem,
-                    [field]: value
-                });
-            }
-
-            // Validate the field
-            validateField(emsS_Id, field, value);
-        },
-        [getValues, setValue]
+    // Parent max and min marks (safe lookup across casings)
+    const parentMaxMarks = useMemo(
+        () => Number(subject?.eyceS_MaxMarks ?? subject?.EYCES_MaxMarks ?? subject?.eycessS_MaxMarks ?? subject?.ismS_Max_Marks ?? 0),
+        [subject]
     );
+    const parentMinMarks = useMemo(
+        () => Number(subject?.eyceS_MinMarks ?? subject?.EYCES_MinMarks ?? subject?.eycessS_MinMarks ?? subject?.ismS_Min_Marks ?? 0),
+        [subject]
+    );
+    const parentMarksEntryMax = useMemo(
+        () =>
+            Number(
+                subject?.eyceS_MarksEntryMax ??
+                    subject?.EYCES_MarksEntryMax ??
+                    subject?.eycessS_MarksEntryMax ??
+                    subject?.eyceS_MaxMarks ??
+                    subject?.EYCES_MaxMarks ??
+                    parentMaxMarks
+            ),
+        [subject, parentMaxMarks]
+    );
+
+    const parentMarksRef = useRef({ max: parentMaxMarks, min: parentMinMarks, entry: parentMarksEntryMax });
+    useEffect(() => {
+        parentMarksRef.current = { max: parentMaxMarks, min: parentMinMarks, entry: parentMarksEntryMax };
+    }, [parentMaxMarks, parentMinMarks, parentMarksEntryMax]);
 
     // ----------------------------------
     // Validation Functions
@@ -445,14 +355,15 @@ export default function SubSubjectModal({
             const item = dataRef.current.get(emsS_Id);
             if (!item) return;
 
+            const { max: currParentMax, entry: currParentEntry } = parentMarksRef.current;
             let error = '';
             const numValue = value === '' ? undefined : Number(value);
 
             // Validation based on field
             switch (field) {
                 case 'eycessS_MaxMarks': {
-                    if (numValue !== undefined && numValue > parentMaxMarks) {
-                        error = `Max marks cannot exceed parent subject max (${parentMaxMarks})`;
+                    if (numValue !== undefined && numValue > currParentMax) {
+                        error = `Max marks cannot exceed parent subject max (${currParentMax})`;
                     }
                     // Validate against min marks
                     const minVal = item.eycessS_MinMarks === '' ? undefined : Number(item.eycessS_MinMarks);
@@ -463,8 +374,8 @@ export default function SubSubjectModal({
                 }
 
                 case 'eycessS_MinMarks': {
-                    if (numValue !== undefined && numValue > parentMaxMarks) {
-                        error = `Min marks cannot exceed parent subject max (${parentMaxMarks})`;
+                    if (numValue !== undefined && numValue > currParentMax) {
+                        error = `Min marks cannot exceed parent subject max (${currParentMax})`;
                     }
                     // Validate against max marks
                     const maxVal = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
@@ -475,8 +386,8 @@ export default function SubSubjectModal({
                 }
 
                 case 'eycessS_MarksEntryMax': {
-                    if (numValue !== undefined && numValue > parentMarksEntryMax) {
-                        error = `Marks entry max cannot exceed parent subject max (${parentMarksEntryMax})`;
+                    if (numValue !== undefined && numValue > currParentEntry) {
+                        error = `Marks entry max cannot exceed parent subject max (${currParentEntry})`;
                     }
                     // Validate against max marks
                     const maxVal2 = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
@@ -568,7 +479,39 @@ export default function SubSubjectModal({
                 });
             }
         },
-        [parentMaxMarks]
+        []
+    );
+
+    // ----------------------------------
+    // Optimized Update Function using emsS_Id
+    // ----------------------------------
+    const updateRowValue = useCallback(
+        (emsS_Id: number, field: keyof SubSubject, value: any) => {
+            // Find the index of the item with this emsS_Id
+            const currentList = getValues('subsubject_list') || [];
+            const itemIndex = currentList.findIndex((item) => item.emsS_Id === emsS_Id);
+
+            if (itemIndex === -1) return;
+
+            // Update the value in the form
+            setValue(`subsubject_list.${itemIndex}.${field}`, value, {
+                shouldDirty: true,
+                shouldValidate: false
+            });
+
+            // Update the ref
+            const currentItem = dataRef.current.get(emsS_Id);
+            if (currentItem) {
+                dataRef.current.set(emsS_Id, {
+                    ...currentItem,
+                    [field]: value
+                });
+            }
+
+            // Validate the field
+            validateField(emsS_Id, field, value);
+        },
+        [getValues, setValue, validateField]
     );
 
     // ----------------------------------

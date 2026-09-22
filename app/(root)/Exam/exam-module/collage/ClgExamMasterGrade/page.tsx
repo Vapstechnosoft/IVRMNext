@@ -1076,11 +1076,10 @@ export default function ClgExamMasterGradePage() {
                                                         <Button
                                                             variant='ghost'
                                                             size='icon'
-                                                            className={`h-8 w-8 ${
-                                                                isActive
-                                                                    ? 'text-green-600 hover:text-green-700 hover:bg-green-50'
-                                                                    : 'text-destructive hover:text-destructive hover:bg-destructive/10'
-                                                            }`}
+                                                            className={`h-8 w-8 ${isActive
+                                                                ? 'text-green-600 hover:text-green-700 hover:bg-green-50'
+                                                                : 'text-destructive hover:text-destructive hover:bg-destructive/10'
+                                                                }`}
                                                             onClick={() => handleToggleActive(record)}
                                                             title={isActive ? 'Deactivate Now' : 'Activate Now'}>
                                                             <Power className='h-4 w-4' />

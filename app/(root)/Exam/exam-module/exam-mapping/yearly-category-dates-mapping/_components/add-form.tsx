@@ -162,6 +162,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         fieldState={fieldState}
                                         label='Exam Start Date'
                                         placeholder='Select Exam Start Date'
+                                        required
                                         //fromDate={today}
                                     />
                                 )}
@@ -176,6 +177,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         fieldState={fieldState}
                                         label='Marks Entry Last Date'
                                         placeholder='Select Marks Entry Last Date'
+                                        required
                                         fromDate={
                                             methods.watch('eyC_ExamEndDate') === '' ? today : new Date(methods.watch('eyC_ExamEndDate'))
                                         }
@@ -192,6 +194,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         fieldState={fieldState}
                                         label='Marks Publish Date'
                                         placeholder='Select Marks Publish Date'
+                                        required
                                         fromDate={
                                             methods.watch('eyC_MarksProcessLastDate') === ''
                                                 ? today
@@ -240,6 +243,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         fieldState={fieldState}
                                         label='Exam End Date'
                                         placeholder='Select Exam End Date'
+                                        required
                                         fromDate={
                                             methods.watch('eyC_ExamStartDate') === '' ? today : new Date(methods.watch('eyC_ExamStartDate'))
                                         }
@@ -256,6 +260,7 @@ export default function AddYearlyCategoryDatesMapping({ onSuccess }: { onSuccess
                                         fieldState={fieldState}
                                         label='Marks Process Last Date'
                                         placeholder='Select Marks Process Last Date'
+                                        required
                                         fromDate={
                                             methods.watch('eyC_MarksEntryLastDate') === ''
                                                 ? today

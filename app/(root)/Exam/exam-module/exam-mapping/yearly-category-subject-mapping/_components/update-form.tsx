@@ -7,7 +7,7 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useYearlyCategorySubjectMapping } from '@/hooks/exam/exammodule/exam-mapping';
 import { useMasterSubjectGroupDropdownList } from '@/hooks/exam/exammodule/usemasters';
-import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { getExamAcademicYearDropdown } from '@/server/exam/exam-module/masters/exam';
 import { categorySubjectMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
 import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
 import {
@@ -53,12 +53,32 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
     const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
     const [subjectGroups, setSubjectGroups] = useState<{ emG_Id: number; emG_GroupName: string }[]>([]);
     const [subjects, setSubjects] = useState<{ ismS_Id: number; ismS_SubjectName: string }[]>([]);
+    const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
+    const [academicYearLoading, setAcademicYearLoading] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isFetchingSubjects, setIsFetchingSubjects] = useState(false);
 
-    const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
     const { data: subjectGroupList, error: subjectGroupError } = useMasterSubjectGroupDropdownList();
-    const academicYears = academicYear?.data ? academicYear.data : [];
+
+    useEffect(() => {
+        const fetchAcademicYears = async () => {
+            try {
+                setAcademicYearLoading(true);
+                const res = await getExamAcademicYearDropdown();
+                const yearData = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
+                const formatted = yearData.map((item: any) => ({
+                    asmaY_Id: item.asmaY_Id ?? item.ASMAY_Id ?? 0,
+                    asmaY_Year: item.asmaY_Year ?? item.ASMAY_Year ?? ''
+                })).filter((item: any) => item.asmaY_Id > 0);
+                setAcademicYears(formatted);
+            } catch (err: any) {
+                toast.error(err.message || 'Failed to load academic years');
+            } finally {
+                setAcademicYearLoading(false);
+            }
+        };
+        fetchAcademicYears();
+    }, []);
 
     useEffect(() => {
         if (subjectGroupError) {
@@ -287,12 +307,8 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
                                                     <SelectItem value='loading' disabled>
                                                         Loading Academic Year...
                                                     </SelectItem>
-                                                ) : academicYearError ? (
-                                                    <SelectItem value='error' disabled>
-                                                        Error loading Academic Year
-                                                    </SelectItem>
                                                 ) : (
-                                                    academicYear?.data?.map((item) => (
+                                                    academicYears.map((item) => (
                                                         <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                             {item.asmaY_Year}
                                                         </SelectItem>

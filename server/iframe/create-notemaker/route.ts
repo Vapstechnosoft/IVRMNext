@@ -1,4 +1,5 @@
-import { Readable } from 'stream';
+import { Readable } from 'node:stream';
+import { formatAiErrorMessage, isAiRateLimitError } from '@/lib/ai-error-handler';
 import Groq from 'groq-sdk';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -19,7 +20,9 @@ function extractChapterContent(fullText: string, chapters: string[]): string {
     // Regex from Question Paper Generator
     const regex = /(?:^|\n)\s*(?:chapter|unit|lesson|module)\s+([0-9]+(?:\.[0-9]+)*)|(?:^|\n)\s*([0-9]+(?:\.[0-9]+)*)\.\s+[A-Za-z]/gi;
 
+    // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
     let match;
+    // biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
     while ((match = regex.exec(fullText)) !== null) {
         const num = match[1] || match[2];
         if (num) {
@@ -112,7 +115,7 @@ export async function POST(req: NextRequest) {
         const formFields: Record<string, string> = {};
 
         await new Promise((resolve, reject) => {
-            bb.on('file', (name: string, file: any, info: any) => {
+            bb.on('file', (_name: string, file: any, info: any) => {
                 const { filename } = info;
                 fileName = filename;
                 const chunks: any[] = [];
@@ -262,6 +265,15 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ summary, notes, chapter });
     } catch (error: any) {
         log(`Error: ${error.message}`);
-        return NextResponse.json({ error: error.message, logs }, { status: 500 });
+        const isRateLimit = isAiRateLimitError(error);
+        const userFacingMessage = formatAiErrorMessage(error, 'Failed to generate study notes');
+
+        return NextResponse.json(
+            {
+                error: userFacingMessage,
+                logs: isRateLimit ? undefined : logs
+            },
+            { status: isRateLimit ? 429 : 500 }
+        );
     }
 }
