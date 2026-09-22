@@ -8,6 +8,7 @@ import type { IMasterInstitution } from '@/types/super-admin/super-admin-module/
 import { Plus, X } from 'lucide-react';
 import AddMasterInstitutionForm from './_components/add-form';
 import { MasterInstitutionColumns } from './_components/columns';
+import ToggleMasterInstitutionForm from './_components/toggle-form';
 
 import { useMasterInstitutionData } from '@/hooks/super-admin/super-admin-module/use-master-institution';
 import { use } from 'react';
@@ -89,16 +90,34 @@ function MasterInstitutionPageContent({
 }
 
 function FormSections({ refetchAll }: { refetchAll: any }) {
-    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext<IMasterInstitution>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterInstitution>();
+
+    const isFormOpen = isAddFormOpen || isEditFormOpen;
+    const closeForm = isEditFormOpen ? closeEditForm : closeAddForm;
+    const formRef = isEditFormOpen ? editFormRef : addFormRef;
+    const title = isEditFormOpen ? 'Edit Master Institution' : 'Add New Master Institution';
+    const description = isEditFormOpen
+        ? 'Update the institution details below'
+        : 'Fill in the details below to create a new institution';
 
     return (
         <>
-            {/* Add Form */}
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
+            {/* Add / Edit Form */}
+            {isFormOpen && (
+                <div ref={formRef}>
                     <CollapsibleSection
-                        title='Add New Master Institution'
-                        description='Fill in the details below to create a new institution'
+                        title={title}
+                        description={description}
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -106,16 +125,25 @@ function FormSections({ refetchAll }: { refetchAll: any }) {
                         <div className='relative'>
                             <Button
                                 type='button'
-                                onClick={closeAddForm}
+                                onClick={closeForm}
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterInstitutionForm onSuccess={closeAddForm} onRefresh={refetchAll} />
+                            <AddMasterInstitutionForm
+                                initialData={isEditFormOpen ? selectedRow : null}
+                                onSuccess={closeForm}
+                                onRefresh={refetchAll}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
+            )}
+
+            {/* Toggle Confirmation Modal */}
+            {isToggleFormOpen && selectedRow && (
+                <ToggleMasterInstitutionForm rowData={selectedRow} onClose={closeToggleForm} onRefresh={refetchAll} />
             )}
         </>
     );

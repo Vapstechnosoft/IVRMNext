@@ -119,8 +119,8 @@ export default function AddMasterMainMenuForm({ onSuccess, initialData }: AddMas
                                             <SelectValue placeholder='Select Module' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {modules.map((module) => (
-                                                <SelectItem key={module.ivrmM_Id} value={module.ivrmM_Id.toString()}>
+                                            {modules.map((module, index) => (
+                                                <SelectItem key={`${module.ivrmM_Id}_${index}`} value={module.ivrmM_Id.toString()}>
                                                     {module.ivrmM_ModuleName}
                                                 </SelectItem>
                                             ))}

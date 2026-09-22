@@ -234,8 +234,8 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                                                     !selectedCountryId
                                                         ? 'Select Country First'
                                                         : loadingStates
-                                                          ? 'Loading...'
-                                                          : 'Select State'
+                                                            ? 'Loading...'
+                                                            : 'Select State'
                                                 }
                                             />
                                         </SelectTrigger>

@@ -1,4 +1,5 @@
 import { Readable } from 'node:stream';
+import { formatAiErrorMessage, isAiRateLimitError } from '@/lib/ai-error-handler';
 import Groq from 'groq-sdk';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -340,12 +341,15 @@ export async function POST(req: NextRequest) {
             log(`Groq Response Error: ${JSON.stringify(error.response.data)}`);
         }
 
+        const isRateLimit = isAiRateLimitError(error);
+        const userFacingMessage = formatAiErrorMessage(error, 'Failed to generate questions');
+
         return NextResponse.json(
             {
-                error: error.message || 'Internal Server Error',
-                details: logs.join('\n')
+                error: userFacingMessage,
+                details: isRateLimit ? undefined : logs.join('\n')
             },
-            { status: 500 }
+            { status: isRateLimit ? 429 : 500 }
         );
     }
 }

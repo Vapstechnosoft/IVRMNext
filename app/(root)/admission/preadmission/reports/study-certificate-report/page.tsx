@@ -94,13 +94,13 @@ export default function CertificateReportPage() {
             searchMutation.mutate(
                 {
                     asmayId: Number(academicYearId),
-                    amstSol: statusMap[studentStatus] || 'S',
+                    amstSol: studentStatus,
                     searchfilter: searchQuery,
-                    flag: 'N' // Default to search by Name for reports
+                    flag: 'N'
                 },
                 {
                     onSuccess: (response: any) => {
-                        const list = response?.data || response?.studentList || response || [];
+                        const list = response?.data?.fillstudlist || response?.data?.studentList || response?.fillstudlist || response?.studentList || response?.data || response || [];
                         setStudentListFromSearch(Array.isArray(list) ? list : []);
                     }
                 }
@@ -116,11 +116,14 @@ export default function CertificateReportPage() {
         (admissionStudents as any)?.data?.fillstudlist ||
         (Array.isArray(admissionStudents) ? admissionStudents : []);
 
-    const students = rawStudents.map((s: any) => ({
-        ...s,
-        studentName:
-            s.studentName || s.amsT_FirstName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
-    }));
+    const students = rawStudents
+        .map((s: any) => ({
+            ...s,
+            amsT_Id: s.amsT_Id || s.AMST_Id,
+            studentName:
+                s.studentName || s.studentnam || s.amsT_FirstName || `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
+        }))
+        .filter((s: any) => !searchQuery || (s.studentName || '').toLowerCase().includes(searchQuery.toLowerCase()));
 
     const [isLoading, setIsLoading] = useState(false);
     const [qrCodeScanner, setQrCodeScanner] = useState('');

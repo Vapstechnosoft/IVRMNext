@@ -13,7 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import { forwardRef } from 'react';
 import { toast } from 'sonner';
 
@@ -77,6 +77,7 @@ interface Payload {
     asmaY_Id: number;
     asmcL_Id: number;
     asmS_Id: number;
+    emcA_Id?: number;
     emG_Id: number;
     emE_Id: number;
     userId: number;
@@ -104,6 +105,7 @@ interface Props {
     asmaY_Id: number;
     asmcL_Id: number;
     asmS_Id: number;
+    emcA_Id?: number;
     emG_Id: number;
     emE_Id: number;
     userId: number;
@@ -115,6 +117,24 @@ export interface StudentMappingTableHandle {
     reset: () => void;
 }
 
+/* ================== HELPER FUNCTIONS ================== */
+const getStudentFullName = (student: { amsT_FirstName?: string; amsT_MiddleName?: string; amsT_LastName?: string }) => {
+    const rawParts = [student.amsT_FirstName, student.amsT_MiddleName, student.amsT_LastName]
+        .filter(Boolean)
+        .map((p) => String(p).trim())
+        .filter((p) => p && p !== '0');
+
+    const words: string[] = [];
+    for (const part of rawParts) {
+        for (const w of part.split(/\s+/)) {
+            if (w) words.push(w);
+        }
+    }
+
+    const uniqueWords = words.filter((w, idx) => idx === 0 || w.toLowerCase() !== words[idx - 1].toLowerCase());
+    return uniqueWords.join(' ');
+};
+
 /* ================== MAIN COMPONENT ================== */
 const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
     (
@@ -124,10 +144,10 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
             onUpdateMapping,
             isloading = false,
             estsU_Id,
-            // mI_Id,
             asmaY_Id,
             asmcL_Id,
             asmS_Id,
+            emcA_Id,
             emG_Id,
             emE_Id,
             userId,
@@ -139,114 +159,18 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
     ) => {
         const [searchTerm, setSearchTerm] = useState('');
         const [localStudents, setLocalStudents] = useState<Student[]>([]);
-        // biome-ignore lint/correctness/noUnusedVariables: <explanation>
-        const [getList, setGetList] = useState<Map<number, Set<number>>>(new Map());
-        // biome-ignore lint/correctness/noUnusedVariables: <explanation>
-        const [getRemovedList, setGetRemovedList] = useState<Map<number, Set<number>>>(new Map());
+        
+        // Fully reactive map: key is `${studentId}_${subjectId}` -> boolean
+        const [checkedState, setCheckedState] = useState<Record<string, boolean>>({});
+        // Initial map to track what was originally checked from the server
+        const [initialState, setInitialState] = useState<Record<string, boolean>>({});
+        
         const [selectedStudents, setSelectedStudents] = useState<Set<number>>(new Set());
         const [disabledStudents, setDisabledStudents] = useState<Set<number>>(new Set());
         const [studentToDelete, setStudentToDelete] = useState<{ id: number; name: string } | null>(null);
         const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-        // Track initial mappings to show delete icon only for initially mapped students
-        const [initialMappedStudents, setInitialMappedStudents] = useState<Set<number>>(new Set());
-
-        // Use refs to track changes without re-rendering
-        const getListRef = useRef<Map<number, Set<number>>>(new Map());
-        const getRemovedListRef = useRef<Map<number, Set<number>>>(new Map());
-
-        // Initialize local state from props (Logic extracted for reuse)
-        const initializeState = useCallback(() => {
-            if (students && students.length > 0) {
-                setLocalStudents(students);
-
-                // Initialize get_list from existing mappings where abc is true
-                const initialGetList = new Map<number, Set<number>>();
-                const initialMapped = new Set<number>();
-
-                students.forEach((student) => {
-                    const activeSubjects = student.sub_list.filter((sub) => sub.abc).map((sub) => sub.id);
-
-                    if (activeSubjects.length > 0) {
-                        initialGetList.set(student.amsT_Id, new Set(activeSubjects));
-                        initialMapped.add(student.amsT_Id);
-                    }
-                });
-
-                setGetList(initialGetList);
-                getListRef.current = new Map(initialGetList);
-                setInitialMappedStudents(initialMapped);
-                setSelectedStudents(new Set());
-
-                // Initialize get_Removed_list as empty
-                setGetRemovedList(new Map());
-                getRemovedListRef.current = new Map();
-                setDisabledStudents(new Set());
-            }
-        }, [students]);
-
-        useEffect(() => {
-            initializeState();
-        }, [initializeState]);
-
-        useImperativeHandle(ref, () => ({
-            reset: () => {
-                initializeState();
-                toast.info('Grid selection reset');
-            }
-        }));
-
-        /** 🔍 SEARCH FILTER */
-        const normalize = (value: string) =>
-            value
-                .trim()
-                .replace(/\s+/g, ' ') // collapse multiple spaces
-                .toLowerCase();
-
-        const filteredStudents = useMemo(() => {
-            const query = normalize(searchTerm);
-            if (!query) return localStudents;
-
-            return localStudents.filter((s) => {
-                const fullName = normalize([s.amsT_FirstName, s.amsT_MiddleName, s.amsT_LastName].filter(Boolean).join(' '));
-                const admNo = normalize(s.amsT_AdmNo || '');
-                const rollNo = String(s.amaY_RollNo || '');
-
-                return fullName.includes(query) || admNo.includes(query) || rollNo.includes(query);
-            });
-        }, [localStudents, searchTerm]);
-
-        /** Get current checked state for a student-subject */
-        const getCurrentCheckedState = useCallback(
-            (studentId: number, subjectId: number): boolean => {
-                const inRemovedList = getRemovedListRef.current.get(studentId)?.has(subjectId) || false;
-                if (inRemovedList) return false;
-                const inGetList = getListRef.current.get(studentId)?.has(subjectId) || false;
-                if (inGetList) return true;
-                const student = localStudents.find((s) => s.amsT_Id === studentId);
-                if (!student) return false;
-
-                const subject = student.sub_list.find((s) => s.id === subjectId);
-                return subject?.abc || false;
-            },
-            [localStudents]
-        );
-
-        /** Get count of checked subjects for a student */
-        const getCheckedSubjectCount = useCallback(
-            (studentId: number): number => {
-                let count = 0;
-                subjects.forEach((subject) => {
-                    if (getCurrentCheckedState(studentId, subject.id)) {
-                        count++;
-                    }
-                });
-                return count;
-            },
-            [subjects, getCurrentCheckedState]
-        );
-
-        /** Create a subject mapping object */
+        /** Create a single subject mapping object for payload */
         const createSubjectMapping = useCallback(
             (subjectId: number, isActive: boolean): StudentSubjectMapping => {
                 const now = new Date().toISOString();
@@ -266,38 +190,73 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
             [subjects, userId]
         );
 
-        /** Send update payload to API */
-        const sendUpdatePayload = useCallback(async () => {
-            try {
-                // Convert Maps to arrays for payload using refs to ensure we have latest data
+        /** Build payload from checkedState, initialState, and disabledStudents */
+        const buildPayload = useCallback(
+            (
+                currentMap: Record<string, boolean>,
+                initMap: Record<string, boolean>,
+                disabledSet: Set<number>
+            ): Payload => {
                 const getListArray: Array<{ amsT_Id: number; sub_list: StudentSubjectMapping[] }> = [];
                 const getRemovedListArray: Array<{ amsT_Id: number; sub_list: StudentSubjectMapping[] }> = [];
 
-                for (const [studentId, subjectIds] of getListRef.current.entries()) {
-                    if (subjectIds && subjectIds.size > 0) {
-                        const subList = Array.from(subjectIds).map((subjectId) => createSubjectMapping(subjectId, true));
+                for (const student of students) {
+                    const studentId = student.amsT_Id;
+
+                    if (disabledSet.has(studentId)) {
+                        // All originally mapped subjects go into get_Removed_list
+                        const removedSubs: StudentSubjectMapping[] = [];
+                        for (const subject of subjects) {
+                            if (initMap[`${studentId}_${subject.id}`]) {
+                                removedSubs.push(createSubjectMapping(subject.id, false));
+                            }
+                        }
+                        if (removedSubs.length > 0) {
+                            getRemovedListArray.push({
+                                amsT_Id: studentId,
+                                sub_list: removedSubs
+                            });
+                        }
+                        continue;
+                    }
+
+                    const activeSubs: StudentSubjectMapping[] = [];
+                    const removedSubs: StudentSubjectMapping[] = [];
+
+                    for (const subject of subjects) {
+                        const isCurrentlyChecked = Boolean(currentMap[`${studentId}_${subject.id}`]);
+                        const wasInitiallyChecked = Boolean(initMap[`${studentId}_${subject.id}`]);
+
+                        if (isCurrentlyChecked) {
+                            activeSubs.push(createSubjectMapping(subject.id, true));
+                        }
+
+                        if (wasInitiallyChecked && !isCurrentlyChecked) {
+                            removedSubs.push(createSubjectMapping(subject.id, false));
+                        }
+                    }
+
+                    if (activeSubs.length > 0) {
                         getListArray.push({
                             amsT_Id: studentId,
-                            sub_list: subList
+                            sub_list: activeSubs
                         });
                     }
-                }
 
-                for (const [studentId, subjectIds] of getRemovedListRef.current.entries()) {
-                    if (subjectIds && subjectIds.size > 0) {
-                        const subList = Array.from(subjectIds).map((subjectId) => createSubjectMapping(subjectId, false));
+                    if (removedSubs.length > 0) {
                         getRemovedListArray.push({
                             amsT_Id: studentId,
-                            sub_list: subList
+                            sub_list: removedSubs
                         });
                     }
                 }
 
-                const payload: Payload = {
+                return {
                     estsU_Id,
                     asmaY_Id,
                     asmcL_Id,
                     asmS_Id,
+                    emcA_Id,
                     emG_Id,
                     emE_Id,
                     userId,
@@ -306,196 +265,235 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                     get_list: getListArray,
                     get_Removed_list: getRemovedListArray
                 };
+            },
+            [
+                students,
+                subjects,
+                createSubjectMapping,
+                estsU_Id,
+                asmaY_Id,
+                asmcL_Id,
+                asmS_Id,
+                emcA_Id,
+                emG_Id,
+                emE_Id,
+                userId,
+                left_Flag,
+                deactive_Flag
+            ]
+        );
 
-                // Send to parent
+        // Initialize local state from props
+        const initializeState = useCallback(() => {
+            if (students && students.length > 0) {
+                setLocalStudents(students);
+
+                const initMap: Record<string, boolean> = {};
+                const curMap: Record<string, boolean> = {};
+                const initialSelected = new Set<number>();
+
+                students.forEach((student) => {
+                    let hasChecked = false;
+                    (student.sub_list || []).forEach((sub) => {
+                        const isChecked = !!sub.abc;
+                        initMap[`${student.amsT_Id}_${sub.id}`] = isChecked;
+                        curMap[`${student.amsT_Id}_${sub.id}`] = isChecked;
+                        if (isChecked) hasChecked = true;
+                    });
+                    if (hasChecked) {
+                        initialSelected.add(student.amsT_Id);
+                    }
+                });
+
+                setInitialState(initMap);
+                setCheckedState(curMap);
+                setSelectedStudents(initialSelected);
+                const disabled = new Set<number>();
+                setDisabledStudents(disabled);
+
                 if (onUpdateMapping) {
-                    await onUpdateMapping(payload);
+                    onUpdateMapping(buildPayload(curMap, initMap, disabled));
                 }
-            } catch (error) {
-                console.error('Error sending update payload:', error);
+            } else {
+                setLocalStudents([]);
+                setCheckedState({});
+                setInitialState({});
+                setSelectedStudents(new Set());
+                setDisabledStudents(new Set());
             }
-        }, [
-            createSubjectMapping,
-            estsU_Id,
-            asmaY_Id,
-            asmcL_Id,
-            asmS_Id,
-            emG_Id,
-            emE_Id,
-            userId,
-            left_Flag,
-            deactive_Flag,
-            onUpdateMapping
-        ]);
+        }, [students, buildPayload, onUpdateMapping]);
+
+        useEffect(() => {
+            initializeState();
+        }, [initializeState]);
+
+        useImperativeHandle(ref, () => ({
+            reset: () => {
+                initializeState();
+                toast.info('Grid selection reset');
+            }
+        }));
+
+        /** 🔍 SEARCH FILTER */
+        const normalize = (value: string) =>
+            value
+                .trim()
+                .replace(/\s+/g, ' ')
+                .toLowerCase();
+
+        const filteredStudents = useMemo(() => {
+            const query = normalize(searchTerm);
+            if (!query) return localStudents;
+
+            return localStudents.filter((s) => {
+                const fullName = normalize(getStudentFullName(s));
+                const admNo = normalize(s.amsT_AdmNo || '');
+                const rollNo = String(s.amaY_RollNo || '');
+
+                return fullName.includes(query) || admNo.includes(query) || rollNo.includes(query);
+            });
+        }, [localStudents, searchTerm]);
+
+        /** Get current checked state for a student-subject */
+        const getCurrentCheckedState = useCallback(
+            (studentId: number, subjectId: number): boolean => {
+                if (disabledStudents.has(studentId)) return false;
+                return Boolean(checkedState[`${studentId}_${subjectId}`]);
+            },
+            [checkedState, disabledStudents]
+        );
 
         /** Handle individual checkbox change */
         const handleIndividualChange = useCallback(
-            async (studentId: number, subjectId: number, checked: boolean) => {
-                // Check if student is not disabled
+            (studentId: number, subjectId: number, checked: boolean) => {
                 if (disabledStudents.has(studentId)) return;
 
-                // Get original state from localStudents
-                const student = localStudents.find((s) => s.amsT_Id === studentId);
-                if (!student) return;
+                const next = { ...checkedState, [`${studentId}_${subjectId}`]: checked };
+                setCheckedState(next);
 
-                const originalSubject = student.sub_list.find((s) => s.id === subjectId);
-                const wasOriginallyChecked = originalSubject?.abc || false;
-
-                if (checked) {
-                    // If we're checking the box
-                    if (!wasOriginallyChecked) {
-                        // Add to get_list (new addition)
-                        setGetList((prev) => {
-                            const newMap = new Map(prev);
-                            const studentSubjects = newMap.get(studentId) || new Set<number>();
-                            studentSubjects.add(subjectId);
-                            newMap.set(studentId, studentSubjects);
-                            getListRef.current = newMap;
-                            return newMap;
-                        });
-
-                        // Remove from get_Removed_list if it was there (undoing a removal)
-                        setGetRemovedList((prev) => {
-                            const newMap = new Map(prev);
-                            const studentSubjects = newMap.get(studentId);
-                            if (studentSubjects) {
-                                studentSubjects.delete(subjectId);
-                                if (studentSubjects.size === 0) {
-                                    newMap.delete(studentId);
-                                } else {
-                                    newMap.set(studentId, studentSubjects);
-                                }
-                            }
-                            getRemovedListRef.current = newMap;
-                            return newMap;
-                        });
-                    } else {
-                        // If it was originally checked, we're just removing it from get_Removed_list (undoing removal)
-                        setGetRemovedList((prev) => {
-                            const newMap = new Map(prev);
-                            const studentSubjects = newMap.get(studentId);
-                            if (studentSubjects) {
-                                studentSubjects.delete(subjectId);
-                                if (studentSubjects.size === 0) {
-                                    newMap.delete(studentId);
-                                } else {
-                                    newMap.set(studentId, studentSubjects);
-                                }
-                            }
-                            getRemovedListRef.current = newMap;
-                            return newMap;
-                        });
-                    }
-                } else {
-                    // If we're unchecking the box
-                    if (wasOriginallyChecked) {
-                        // Add to get_Removed_list (removing an existing mapping)
-                        setGetRemovedList((prev) => {
-                            const newMap = new Map(prev);
-                            const studentSubjects = newMap.get(studentId) || new Set<number>();
-                            studentSubjects.add(subjectId);
-                            newMap.set(studentId, studentSubjects);
-                            getRemovedListRef.current = newMap;
-                            return newMap;
-                        });
-
-                        // Remove from get_list if it was there (undoing an addition)
-                        setGetList((prev) => {
-                            const newMap = new Map(prev);
-                            const studentSubjects = newMap.get(studentId);
-                            if (studentSubjects) {
-                                studentSubjects.delete(subjectId);
-                                if (studentSubjects.size === 0) {
-                                    newMap.delete(studentId);
-                                } else {
-                                    newMap.set(studentId, studentSubjects);
-                                }
-                            }
-                            getListRef.current = newMap;
-                            return newMap;
-                        });
-                    } else {
-                        // If it was originally unchecked, remove from get_list (undoing addition)
-                        setGetList((prev) => {
-                            const newMap = new Map(prev);
-                            const studentSubjects = newMap.get(studentId);
-                            if (studentSubjects) {
-                                studentSubjects.delete(subjectId);
-                                if (studentSubjects.size === 0) {
-                                    newMap.delete(studentId);
-                                } else {
-                                    newMap.set(studentId, studentSubjects);
-                                }
-                            }
-                            getListRef.current = newMap;
-                            return newMap;
-                        });
-                    }
-                }
-
-                sendUpdatePayload();
-            },
-            [localStudents, disabledStudents, sendUpdatePayload]
-        );
-
-        /** Toggle all subjects for all filtered students */
-        const toggleSubjectAll = useCallback(
-            async (subjectId: number, checked: boolean) => {
-                for (const student of filteredStudents) {
-                    if (disabledStudents.has(student.amsT_Id)) {
-                        continue;
-                    }
-
-                    await handleIndividualChange(student.amsT_Id, subjectId, checked);
-                }
-            },
-            [filteredStudents, handleIndividualChange, disabledStudents]
-        );
-
-        /** Check if all students have this subject checked */
-        const isSubjectAllChecked = useCallback(
-            (subjectId: number): boolean => {
-                const activeStudents = filteredStudents.filter((student) => !disabledStudents.has(student.amsT_Id));
-                if (activeStudents.length === 0) return false;
-
-                return activeStudents.every((student) => getCurrentCheckedState(student.amsT_Id, subjectId));
-            },
-            [filteredStudents, disabledStudents, getCurrentCheckedState]
-        );
-
-        /** Handle student selection checkbox change */
-        const handleStudentSelectionChange = useCallback((studentId: number, checked: boolean) => {
-            setSelectedStudents((prev) => {
-                const newSet = new Set(prev);
-                if (checked) {
-                    newSet.add(studentId);
-                } else {
-                    newSet.delete(studentId);
-                }
-                return newSet;
-            });
-        }, []);
-
-        /** Handle select all students checkbox */
-        const handleSelectAllStudents = useCallback(
-            (checked: boolean) => {
+                // Auto-update row selection if at least one subject is checked
                 setSelectedStudents((prev) => {
                     const newSet = new Set(prev);
-                    if (checked) {
-                        filteredStudents.forEach((student) => {
-                            if (!disabledStudents.has(student.amsT_Id)) {
-                                newSet.add(student.amsT_Id);
-                            }
-                        });
+                    const hasAny = subjects.some((s) => (s.id === subjectId ? checked : Boolean(next[`${studentId}_${s.id}`])));
+                    if (hasAny) {
+                        newSet.add(studentId);
                     } else {
-                        filteredStudents.forEach((student) => {
-                            newSet.delete(student.amsT_Id);
-                        });
+                        newSet.delete(studentId);
                     }
                     return newSet;
                 });
+
+                if (onUpdateMapping) {
+                    onUpdateMapping(buildPayload(next, initialState, disabledStudents));
+                }
             },
-            [filteredStudents, disabledStudents]
+            [checkedState, disabledStudents, subjects, onUpdateMapping, buildPayload, initialState]
+        );
+
+        /** Handle student row selection checkbox change */
+        const handleStudentSelectionChange = useCallback(
+            (studentId: number, checked: boolean) => {
+                if (disabledStudents.has(studentId)) return;
+
+                const next = { ...checkedState };
+                subjects.forEach((s) => {
+                    next[`${studentId}_${s.id}`] = checked;
+                });
+
+                setCheckedState(next);
+
+                setSelectedStudents((prev) => {
+                    const newSet = new Set(prev);
+                    if (checked) {
+                        newSet.add(studentId);
+                    } else {
+                        newSet.delete(studentId);
+                    }
+                    return newSet;
+                });
+
+                if (onUpdateMapping) {
+                    onUpdateMapping(buildPayload(next, initialState, disabledStudents));
+                }
+            },
+            [checkedState, disabledStudents, subjects, onUpdateMapping, buildPayload, initialState]
+        );
+
+        /** Toggle all students for a specific subject column */
+        const toggleSubjectAll = useCallback(
+            (subjectId: number, checked: boolean) => {
+                const next = { ...checkedState };
+
+                filteredStudents.forEach((student) => {
+                    if (!disabledStudents.has(student.amsT_Id)) {
+                        next[`${student.amsT_Id}_${subjectId}`] = checked;
+                    }
+                });
+
+                setCheckedState(next);
+
+                // Update selectedStudents
+                setSelectedStudents((prev) => {
+                    const newSet = new Set(prev);
+                    filteredStudents.forEach((student) => {
+                        if (!disabledStudents.has(student.amsT_Id)) {
+                            const hasAny = subjects.some((s) =>
+                                s.id === subjectId ? checked : Boolean(next[`${student.amsT_Id}_${s.id}`])
+                            );
+                            if (hasAny) {
+                                newSet.add(student.amsT_Id);
+                            } else {
+                                newSet.delete(student.amsT_Id);
+                            }
+                        }
+                    });
+                    return newSet;
+                });
+
+                if (onUpdateMapping) {
+                    onUpdateMapping(buildPayload(next, initialState, disabledStudents));
+                }
+            },
+            [checkedState, filteredStudents, disabledStudents, subjects, onUpdateMapping, buildPayload, initialState]
+        );
+
+        /** Check if all filtered active students have a specific subject checked */
+        const isSubjectAllChecked = useCallback(
+            (subjectId: number): boolean => {
+                const activeStudents = filteredStudents.filter((s) => !disabledStudents.has(s.amsT_Id));
+                if (activeStudents.length === 0) return false;
+                return activeStudents.every((s) => Boolean(checkedState[`${s.amsT_Id}_${subjectId}`]));
+            },
+            [filteredStudents, disabledStudents, checkedState]
+        );
+
+        /** Select or Deselect all students and all subjects */
+        const handleSelectAllStudents = useCallback(
+            (checked: boolean) => {
+                const next = { ...checkedState };
+                const newSelected = new Set(selectedStudents);
+
+                filteredStudents.forEach((student) => {
+                    if (!disabledStudents.has(student.amsT_Id)) {
+                        subjects.forEach((s) => {
+                            next[`${student.amsT_Id}_${s.id}`] = checked;
+                        });
+                        if (checked) {
+                            newSelected.add(student.amsT_Id);
+                        } else {
+                            newSelected.delete(student.amsT_Id);
+                        }
+                    }
+                });
+
+                setCheckedState(next);
+                setSelectedStudents(newSelected);
+
+                if (onUpdateMapping) {
+                    onUpdateMapping(buildPayload(next, initialState, disabledStudents));
+                }
+            },
+            [checkedState, selectedStudents, filteredStudents, disabledStudents, subjects, onUpdateMapping, buildPayload, initialState]
         );
 
         /** Check if all filtered students are selected */
@@ -505,17 +503,9 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
             return activeStudents.every((student) => selectedStudents.has(student.amsT_Id));
         }, [filteredStudents, selectedStudents, disabledStudents]);
 
-        /** Check if student has at least one subject checked */
-        const hasAtLeastOneSubjectChecked = useCallback(
-            (studentId: number) => {
-                return getCheckedSubjectCount(studentId) > 0;
-            },
-            [getCheckedSubjectCount]
-        );
-
         /** Handle delete student confirmation */
         const handleDeleteStudent = useCallback((student: Student) => {
-            const fullName = [student.amsT_FirstName, student.amsT_MiddleName, student.amsT_LastName].filter(Boolean).join(' ');
+            const fullName = getStudentFullName(student);
             setStudentToDelete({ id: student.amsT_Id, name: fullName });
             setShowDeleteDialog(true);
         }, []);
@@ -523,35 +513,38 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
         /** Confirm delete student */
         const confirmDeleteStudent = useCallback(() => {
             if (studentToDelete) {
-                // Disable the student row
-                setDisabledStudents((prev) => {
-                    const newSet = new Set(prev);
-                    newSet.add(studentToDelete.id);
-                    return newSet;
-                });
+                const newDisabled = new Set(disabledStudents);
+                newDisabled.add(studentToDelete.id);
+                setDisabledStudents(newDisabled);
 
-                // Remove student from selected list
                 setSelectedStudents((prev) => {
                     const newSet = new Set(prev);
                     newSet.delete(studentToDelete.id);
                     return newSet;
                 });
 
-                // Show success message
-                toast.success(`Student ${studentToDelete.name} has been removed`);
+                const next = { ...checkedState };
+                subjects.forEach((s) => {
+                    delete next[`${studentToDelete.id}_${s.id}`];
+                });
+                setCheckedState(next);
 
+                if (onUpdateMapping) {
+                    onUpdateMapping(buildPayload(next, initialState, newDisabled));
+                }
+
+                toast.success(`Student ${studentToDelete.name} has been removed`);
                 setShowDeleteDialog(false);
                 setStudentToDelete(null);
             }
-        }, [studentToDelete]);
+        }, [studentToDelete, disabledStudents, checkedState, subjects, onUpdateMapping, buildPayload, initialState]);
 
         /** Check if delete icon should be shown for student */
         const shouldShowDeleteIcon = useCallback(
             (student: Student) => {
-                // Only show for initially mapped students who are not already disabled
-                return initialMappedStudents.has(student.amsT_Id) && !disabledStudents.has(student.amsT_Id);
+                return !disabledStudents.has(student.amsT_Id) && (student.sub_list || []).some((s) => s.abc);
             },
-            [initialMappedStudents, disabledStudents]
+            [disabledStudents]
         );
 
         if (isloading) {
@@ -606,7 +599,6 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                                             onCheckedChange={(c) => handleSelectAllStudents(!!c)}
                                             className='h-5 w-5 border-white bg-white data-[state=checked]:bg-white data-[state=checked]:text-primary data-[state=unchecked]:bg-white'
                                         />
-                                        {/* <span>Select Student</span> */}
                                     </div>
                                 </TableHeaderCell>
                                 <TableHeaderCell rowSpan={2}>Student Details</TableHeaderCell>
@@ -639,8 +631,6 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                                     const isDisabled = disabledStudents.has(student.amsT_Id);
                                     const isSelected = selectedStudents.has(student.amsT_Id);
                                     const showDelete = shouldShowDeleteIcon(student);
-                                    // biome-ignore lint/correctness/noUnusedVariables: <explanation>
-                                    const hasSubjectsChecked = hasAtLeastOneSubjectChecked(student.amsT_Id);
 
                                     return (
                                         <tr
@@ -659,8 +649,8 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                                                         className='h-5 w-5'
                                                     />
                                                     {showDelete && (
-                                                        // biome-ignore lint/a11y/useButtonType: <explanation>
                                                         <button
+                                                            type='button'
                                                             onClick={() => handleDeleteStudent(student)}
                                                             disabled={isDisabled}
                                                             className='text-red-500 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50'
@@ -673,9 +663,7 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                                             </TableCell>
                                             <TableCell className={cn(isDisabled && 'opacity-50')}>
                                                 <div className='font-semibold text-gray-800'>
-                                                    {[student.amsT_FirstName, student.amsT_MiddleName, student.amsT_LastName]
-                                                        .filter(Boolean)
-                                                        .join(' ')}
+                                                    {getStudentFullName(student)}
                                                 </div>
                                                 <div className='space-y-0.5 text-gray-600 text-xs'>
                                                     <div>Admission No: {student.amsT_AdmNo}</div>
@@ -694,7 +682,7 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                                                             onCheckedChange={(checked) =>
                                                                 handleIndividualChange(student.amsT_Id, subject.id, !!checked)
                                                             }
-                                                            disabled={!isSelected || isDisabled}
+                                                            disabled={isDisabled}
                                                         />
                                                     </div>
                                                 </TableCell>

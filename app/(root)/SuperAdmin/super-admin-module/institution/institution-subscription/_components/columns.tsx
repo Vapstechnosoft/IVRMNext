@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IInstitutionSubscription } from '@/types/super-admin/super-admin-module/institution/institution-subscription';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
@@ -59,26 +60,32 @@ export const InstitutionSubscriptionColumns: ColumnDef<IInstitutionSubscription>
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Edit/Activate/Deactivate' className='text-center' />,
-        cell: ({ row }) => (
-            <div className='flex items-center justify-center gap-2'>
-                <ActionButtons
-                    rowData={row.original}
-                    buttons={{ edit: true, toggle: true, delete: false }}
-                    toggleConditionKey='misV_ActiveFlag'
-                    onEdit={(data) => console.log('Edit', data)}
-                    onToggle={(data, checked) => console.log('Toggle', data, checked)}
-                />
-                {row.original.misV_ActiveFlag && row.original.misV_ApprovalFlag !== 'P' && (
-                    <Button
-                        variant='ghost'
-                        size='icon'
-                        onClick={() => console.log('Renewal Request', row.original)}
-                        title='Renewal Request'
-                        className='text-green-600 hover:bg-green-50 hover:text-green-700'>
-                        <RefreshCw className='h-4 w-4' />
-                    </Button>
-                )}
-            </div>
-        )
+        cell: ({ row }) => <ActionCell rowData={row.original} />
     }
 ];
+
+function ActionCell({ rowData }: { rowData: IInstitutionSubscription }) {
+    const { openEditForm, openToggleForm } = useFormContext<IInstitutionSubscription>();
+
+    return (
+        <div className='flex items-center justify-center gap-2'>
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: true, toggle: true, delete: false }}
+                toggleConditionKey='misV_ActiveFlag'
+                onEdit={(data) => openEditForm(data)}
+                onToggle={(data) => openToggleForm(data)}
+            />
+            {rowData.misV_ActiveFlag && rowData.misV_ApprovalFlag !== 'P' && (
+                <Button
+                    variant='ghost'
+                    size='icon'
+                    onClick={() => console.log('Renewal Request', rowData)}
+                    title='Renewal Request'
+                    className='text-green-600 hover:bg-green-50 hover:text-green-700'>
+                    <RefreshCw className='h-4 w-4' />
+                </Button>
+            )}
+        </div>
+    );
+}

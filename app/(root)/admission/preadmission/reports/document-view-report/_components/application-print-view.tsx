@@ -35,6 +35,19 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
     const academicYear = data.academic_year || data.academicdrp?.[0]?.asmaY_Year || details.asmaY_Year || '';
     const className = data.asmcL_ClassName || data.studentClass?.[0]?.asmcL_ClassName || details.asmcL_ClassName || '';
     const schoolLogo = data.masterCompany?.[0]?.logo || '';
+    const religion = data.studentReligion?.[0]?.ivrmmR_Name || data.studentReligion?.[0]?.IVRMMR_Name || details.PASR_Religion || '';
+    const caste = data.studentcaste?.[0]?.imC_CasteName || data.studentcaste?.[0]?.IMC_CasteName || details.PASR_Caste || '';
+
+    const residentialAddress = [
+        details.PASR_ConStreet,
+        details.PASR_ConArea,
+        details.PASR_ConCity,
+        data.studentconstate?.[0]?.pasR_ConStaten || details.PASR_ConState,
+        data.studentconcountry?.[0]?.pasR_ConCountryn || details.PASR_ConCountry,
+        details.PASR_ConPincode ? `PIN: ${details.PASR_ConPincode}` : ''
+    ].filter(val => val && val !== '0' && val !== 0).join(', ');
+
+
 
     // Helper to format date
     const formatDate = (dateStr: string) => {
@@ -202,13 +215,13 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
                             <tr>
                                 <td className='border-black border-r border-b font-bold'>Religion & Caste</td>
                                 <td className='border-black border-b'>
-                                    {details.PASR_Religion} / {details.PASR_Caste}
+                                    {religion} / {caste}
                                 </td>
                             </tr>
                             <tr>
                                 <td className='border-black border-r border-b font-bold'>Residential Address</td>
                                 <td className='border-black border-b'>
-                                    {details.PASR_PerStreet}, {details.PASR_PerCity}, {details.PASR_PerState} - {details.PASR_PerPincode}
+                                    {residentialAddress || `${details.PASR_PerStreet || ''} ${details.PASR_PerCity || ''} ${details.PASR_PerState || ''} ${details.PASR_PerPincode || ''}`}
                                 </td>
                             </tr>
                             <tr>

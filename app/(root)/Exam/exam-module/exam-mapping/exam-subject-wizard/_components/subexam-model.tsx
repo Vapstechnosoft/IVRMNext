@@ -325,8 +325,32 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
     // Get form data
     const formData = watch('subexam_list') || [];
 
-    // Parent max marks
-    const parentMaxMarks = useMemo(() => Number(subject?.eyceS_MaxMarks ?? 0), [subject]);
+    // Parent max marks (safe lookup across casings)
+    const parentMaxMarks = useMemo(
+        () => Number(subject?.eyceS_MaxMarks ?? subject?.EYCES_MaxMarks ?? subject?.eycessS_MaxMarks ?? subject?.ismS_Max_Marks ?? 0),
+        [subject]
+    );
+    const parentMinMarks = useMemo(
+        () => Number(subject?.eyceS_MinMarks ?? subject?.EYCES_MinMarks ?? subject?.eycessS_MinMarks ?? subject?.ismS_Min_Marks ?? 0),
+        [subject]
+    );
+    const parentMarksEntryMax = useMemo(
+        () =>
+            Number(
+                subject?.eyceS_MarksEntryMax ??
+                    subject?.EYCES_MarksEntryMax ??
+                    subject?.eycessS_MarksEntryMax ??
+                    subject?.eyceS_MaxMarks ??
+                    subject?.EYCES_MaxMarks ??
+                    parentMaxMarks
+            ),
+        [subject, parentMaxMarks]
+    );
+
+    const parentMarksRef = useRef({ max: parentMaxMarks, min: parentMinMarks, entry: parentMarksEntryMax });
+    useEffect(() => {
+        parentMarksRef.current = { max: parentMaxMarks, min: parentMinMarks, entry: parentMarksEntryMax };
+    }, [parentMaxMarks, parentMinMarks, parentMarksEntryMax]);
 
     // ----------------------------------
     // Populate initial list
@@ -359,27 +383,23 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                 emgR_Id: l.emgR_Id ?? '',
                 eycessS_ExemptedFlg: !!l.eycessS_ExemptedFlg,
                 eycessS_ExemptedPer: l.eycessS_ExemptedPer ?? '',
-                eycessS_ActiveFlg: !!l.eycessS_ActiveFlg,
-                eycessS_GradesFlg: !!l.eycessS_GradesFlg,
-                eycessS_MarksFlg: !!l.eycessS_MarksFlg,
+                eycessS_MarksDisplayFlg: !!l.eycessS_MarksDisplayFlg,
+                eycessS_GradeDisplayFlg: !!l.eycessS_GradeDisplayFlg,
                 eycessS_AplResultFlg: !!l.eycessS_AplResultFlg,
                 eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? '',
-                emsE_SubExamOrder: l.emsE_SubExamOrder
+                emsE_SubExamOrder: l.emsE_SubExamOrder ?? 0
             }));
 
-            //  SORT HERE
-            const sortedList = [...list].sort((a, b) => Number(a.emsE_SubExamOrder ?? 0) - Number(b.emsE_SubExamOrder ?? 0));
+            // ✅ YOUR REQUIRED SORT STYLE
+            const sortedList = [...list].sort((a, b) => (a.emsE_SubExamOrder ?? 0) - (b.emsE_SubExamOrder ?? 0));
 
-            // Update ref
             dataRef.current = new Map(sortedList.map((item) => [item.emsE_Id, item]));
 
-            // Update form
             reset({ subexam_list: sortedList });
-
             setValidationErrors({});
             validationErrorsRef.current = {};
             setIsLoading(false);
-        }, 0);
+        }, 100);
     }, [open, subject, reset]);
 
     // Filtered data (memoized)
@@ -406,38 +426,6 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
     const paginatedData = useMemo(() => filteredData.slice(startIndex, endIndex), [filteredData, startIndex, endIndex]);
 
     // ----------------------------------
-    // Optimized Update Function using emsE_Id
-    // ----------------------------------
-    const updateRowValue = useCallback(
-        (emsE_Id: number, field: keyof SubExamItem, value: any) => {
-            // Find the index of the item with this emsE_Id
-            const currentList = getValues('subexam_list') || [];
-            const itemIndex = currentList.findIndex((item) => item.emsE_Id === emsE_Id);
-
-            if (itemIndex === -1) return;
-
-            // Update the value in the form
-            setValue(`subexam_list.${itemIndex}.${field}`, value, {
-                shouldDirty: true,
-                shouldValidate: false
-            });
-
-            // Update the ref
-            const currentItem = dataRef.current.get(emsE_Id);
-            if (currentItem) {
-                dataRef.current.set(emsE_Id, {
-                    ...currentItem,
-                    [field]: value
-                });
-            }
-
-            // Validate the field
-            validateField(emsE_Id, field, value);
-        },
-        [getValues, setValue]
-    );
-
-    // ----------------------------------
     // Validation Functions
     // ----------------------------------
     const validateField = useCallback(
@@ -445,17 +433,15 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             const item = dataRef.current.get(emsE_Id);
             if (!item) return;
 
-            const currentList = getValues('subexam_list') || [];
-            const _itemIndex = currentList.findIndex((item) => item.emsE_Id === emsE_Id);
-
+            const { max: currParentMax, entry: currParentEntry } = parentMarksRef.current;
             let error = '';
             const numValue = value === '' ? undefined : Number(value);
 
             // Validation based on field
             switch (field) {
                 case 'eycessS_MaxMarks': {
-                    if (numValue !== undefined && numValue > subject.eycessS_MaxMarks) {
-                        error = `Max marks cannot exceed parent subject max (${subject.eycessS_MaxMarks})`;
+                    if (numValue !== undefined && numValue > currParentMax) {
+                        error = `Max marks cannot exceed parent subject max (${currParentMax})`;
                     }
                     // Validate against min marks
                     const minVal = item.eycessS_MinMarks === '' ? undefined : Number(item.eycessS_MinMarks);
@@ -466,8 +452,8 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                 }
 
                 case 'eycessS_MinMarks': {
-                    if (numValue !== undefined && numValue > subject.eycessS_MinMarks) {
-                        error = `Min marks cannot exceed parent subject max (${subject.eycessS_MinMarks})`;
+                    if (numValue !== undefined && numValue > currParentMax) {
+                        error = `Min marks cannot exceed parent subject max (${currParentMax})`;
                     }
                     // Validate against max marks
                     const maxVal = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
@@ -477,17 +463,17 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                     break;
                 }
 
-                case 'eycessS_MarksEntryMax':
-                    if (numValue !== undefined && numValue > subject.eycessS_MarksEntryMax) {
-                        error = `Marks entry max cannot exceed parent subject max (${subject.eycessS_MarksEntryMax})`;
+                case 'eycessS_MarksEntryMax': {
+                    if (numValue !== undefined && numValue > currParentEntry) {
+                        error = `Marks entry max cannot exceed parent subject max (${currParentEntry})`;
                     }
                     // Validate against max marks
-                    // biome-ignore lint/correctness/noSwitchDeclarations: <explanation>
                     const maxVal2 = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
                     if (maxVal2 !== undefined && numValue !== undefined && numValue > maxVal2) {
                         error = 'Marks entry max cannot be greater than Max marks';
                     }
                     break;
+                }
 
                 case 'emgR_Id':
                     if (item.checkedvalue && (!value || value === '')) {
@@ -571,7 +557,39 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                 });
             }
         },
-        [parentMaxMarks, getValues]
+        []
+    );
+
+    // ----------------------------------
+    // Optimized Update Function using emsE_Id
+    // ----------------------------------
+    const updateRowValue = useCallback(
+        (emsE_Id: number, field: keyof SubExamItem, value: any) => {
+            // Find the index of the item with this emsE_Id
+            const currentList = getValues('subexam_list') || [];
+            const itemIndex = currentList.findIndex((item) => item.emsE_Id === emsE_Id);
+
+            if (itemIndex === -1) return;
+
+            // Update the value in the form
+            setValue(`subexam_list.${itemIndex}.${field}`, value, {
+                shouldDirty: true,
+                shouldValidate: false
+            });
+
+            // Update the ref
+            const currentItem = dataRef.current.get(emsE_Id);
+            if (currentItem) {
+                dataRef.current.set(emsE_Id, {
+                    ...currentItem,
+                    [field]: value
+                });
+            }
+
+            // Validate the field
+            validateField(emsE_Id, field, value);
+        },
+        [getValues, setValue, validateField]
     );
 
     // ----------------------------------

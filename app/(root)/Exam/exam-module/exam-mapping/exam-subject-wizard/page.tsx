@@ -142,11 +142,11 @@ function ExamSubjectWizardPageContent({
                             { key: 'id', label: 'SLNO', className: 'text-center w-12' },
                             { key: 'ismS_SubjectName', label: 'Subject Name', className: 'text-left' },
                             { key: 'ismS_SubjectCode', label: 'Subject Code', className: 'text-left' },
-                            { key: 'eyceS_SubjectOrder', label: 'Subject Order', className: 'text-left' }
+                            { key: 'eyceS_SubjectOrder', label: 'Exam-Subject Order', className: 'text-center w-36' }
                         ]}
                         onSave={handleSubjectOrderDetailsSave}
                         tableHeight='500px'
-                        title='Set Master Subject Order'
+                        title='EXM-SUBJECT ORDER SETTING'
                     />
                 )}
 
