@@ -80,11 +80,16 @@ export function DocumentsSection({
             <td className='px-6 py-4'>
                 {doc?.isUploading ? (
                     <span className='flex animate-pulse items-center gap-2 text-blue-600'>
-                        <Spinner size='sm' /> Uploading...
+                        <Spinner size='sm' /> {label.toLowerCase().includes('photo') ? 'AI Validating...' : 'Uploading...'}
                     </span>
                 ) : doc?.path ? (
-                    <span className='flex items-center gap-2 font-medium text-green-600'>
+                    <span className='flex items-center gap-1.5 font-medium text-green-600'>
                         <Check className='h-4 w-4' /> Uploaded
+                        {label.toLowerCase().includes('photo') && (
+                            <span className='ml-1 rounded bg-green-100 px-1.5 py-0.5 font-semibold text-[10px] text-green-800'>
+                                AI Verified
+                            </span>
+                        )}
                     </span>
                 ) : (
                     <span className='flex items-center gap-2 font-medium text-amber-600'>
