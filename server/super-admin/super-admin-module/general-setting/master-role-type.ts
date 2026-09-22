@@ -5,29 +5,56 @@ import type { IMasterRoleType } from '@/types/super-admin/super-admin-module/gen
 import { revalidatePath } from 'next/cache';
 
 export async function getMasterRoleTypes(searchParams: any) {
-    const query = getSearchParamsUrl(searchParams);
+    const params = {
+        ...searchParams,
+        search_column: searchParams.search_column || searchParams.search_columns || (searchParams.search_query ? 'ivrmrT_Role' : '')
+    };
+    const query = getSearchParamsUrl(params);
     const url = `MasterRoleTypeFacade/get_onload_grid_master_role_type?${query}`;
 
     try {
         const response = await api.get<any>('sadmin', url);
         if (response.success && response.data) {
-            const dataList = response.data.pagesdata || [];
-            const mappedData: IMasterRoleType[] = dataList.map((item: any) => ({
-                id: item.ivrmrT_Id,
-                roleType: item.ivrmrT_Role, // "Role Name"
-                name: item.name, // "Role Type"
-                masterRoleId: item.id,
-                activeFlag: item.activeFlag ?? 1, // Defaulting to 1 if missing in snippet
+            const dataList: any[] = Array.isArray(response.data)
+                ? response.data
+                : response.data.pagesdata ||
+                  response.data.gridData ||
+                  response.data.masterRoleTypes ||
+                  response.data.records ||
+                  response.data.$values ||
+                  response.data.data ||
+                  [];
+
+            let mappedData: IMasterRoleType[] = dataList.map((item: any) => ({
+                id: item.ivrmrT_Id ?? item.id ?? 0,
+                roleType: item.ivrmrT_Role ?? item.roleType ?? item.roleName ?? '', // "Role Name"
+                name: item.name ?? item.roleType ?? '', // "Role Type"
+                masterRoleId: item.id ?? item.masterRoleId ?? 0,
+                institutionType: item.ivrmrT_RoleFlag ?? item.flag ?? item.institutionType ?? 'S',
+                activeFlag: item.activeFlag ?? item.ivrmrT_ActiveFlag ?? 1,
                 createdDate: item.createdDate,
                 updatedDate: item.updatedDate
             }));
 
+            // In-memory fallback filter in case backend returns all records
+            if (searchParams.search_query) {
+                const q = String(searchParams.search_query).toLowerCase().trim();
+                const filtered = mappedData.filter(
+                    (item) =>
+                        (item.roleType && item.roleType.toLowerCase().includes(q)) ||
+                        (item.name && item.name.toLowerCase().includes(q))
+                );
+                if (filtered.length !== mappedData.length) {
+                    mappedData = filtered;
+                }
+            }
+
             return {
                 success: true,
                 data: mappedData,
-                total: response.total || mappedData.length,
-                page: response.page || 1,
-                page_size: response.page_size || 10
+                total: searchParams.search_query ? mappedData.length : (response.total ?? response.data?.total ?? mappedData.length),
+                page: response.page ?? response.data?.page ?? 1,
+                page_size: response.page_size ?? response.data?.page_size ?? 10
             };
         }
     } catch (error) {

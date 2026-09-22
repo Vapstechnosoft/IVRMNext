@@ -38,12 +38,16 @@ export async function saveTrustMaster(data: any) {
 export async function activateDeactivateTrustMaster(id: number) {
     const url = `/OrganisationFacade/activate_deactivate_master_organization/${id}`;
     try {
-        const response = await api.post<any>('sadmin', url, {});
+        const response = await api.put<any>('sadmin', url, {});
         return response;
-    } catch (error) {
-        throw error;
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error?.message || (typeof error === 'string' ? error : 'Failed to update status')
+        };
     }
 }
+
 
 export async function getTrustMasterData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});

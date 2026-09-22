@@ -48,13 +48,14 @@ export function useIssueBook() {
 
     return useMutation({
         mutationFn: (data: IIssueBookRequest) => issueBook(data),
-        onSuccess: (response) => {
-            if (response.data?.returnval) {
+        onSuccess: (response: any) => {
+            const res = response?.data || response;
+            if (res?.returnval) {
                 toast.success('Book issued successfully!');
                 queryClient.invalidateQueries({ queryKey: [LIBRARY_QUERY_KEYS.BOOK_TRANSACTION] });
-            } else if (response.data?.duplicate) {
+            } else if (res?.duplicate) {
                 toast.error('Book already assigned');
-            } else if (response.data?.maxmsg === 'exceed') {
+            } else if (res?.maxmsg === 'exceed') {
                 toast.error('Exceeds the number of books that can be issued');
             } else {
                 toast.error('Failed to issue book');
@@ -72,8 +73,9 @@ export function useReturnBook() {
 
     return useMutation({
         mutationFn: (data: IReturnBookRequest) => returnBook(data),
-        onSuccess: (response) => {
-            if (response.data?.returnval) {
+        onSuccess: (response: any) => {
+            const res = response?.data || response;
+            if (res?.returnval) {
                 toast.success('Book returned successfully!');
                 queryClient.invalidateQueries({ queryKey: [LIBRARY_QUERY_KEYS.BOOK_TRANSACTION] });
             } else {
@@ -92,13 +94,14 @@ export function useRenewBook() {
 
     return useMutation({
         mutationFn: (data: IRenewalBookRequest) => renewBook(data),
-        onSuccess: (response) => {
-            if (response.data?.renew) {
+        onSuccess: (response: any) => {
+            const res = response?.data || response;
+            if (res?.renew) {
                 toast.error('Exceeds the renewal limits! Please return this book.');
-            } else if (response.data?.returnval) {
+            } else if (res?.returnval) {
                 toast.success('Book renewed successfully!');
                 queryClient.invalidateQueries({ queryKey: [LIBRARY_QUERY_KEYS.BOOK_TRANSACTION] });
-            } else if (response.data?.duplicate) {
+            } else if (res?.duplicate) {
                 toast.error('Book already assigned');
             } else {
                 toast.error('Failed to renew book');

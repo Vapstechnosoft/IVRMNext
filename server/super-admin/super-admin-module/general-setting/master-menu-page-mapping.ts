@@ -5,9 +5,17 @@ import { api, getSearchParamsUrl } from '@/lib/apiService';
 const FACADE_URL = '/MasterMenuPageMappingFacade';
 
 export async function getOnLoadData(searchParams: any) {
-    const page = searchParams?.page || 1;
-    const pageSize = searchParams?.page_size || 10;
-    const query = getSearchParamsUrl(searchParams);
+    const page = Number(searchParams?.page || 1);
+    const pageSize = Number(searchParams?.page_size || 10);
+    const searchQuery = searchParams?.search_query || searchParams?.search || '';
+
+    const params = {
+        page,
+        page_size: pageSize,
+        ...searchParams,
+        search_column: searchParams?.search_column || (searchQuery ? 'pagename' : '')
+    };
+    const query = getSearchParamsUrl(params);
     const url = `${FACADE_URL}/get_onload_grid?${query}`;
 
     try {
@@ -17,7 +25,7 @@ export async function getOnLoadData(searchParams: any) {
             const rawData = response.data;
             const records = Array.isArray(rawData) ? rawData : rawData.records || rawData.GridDetails || rawData.grid1 || [];
 
-            const mappedRecords = records.map((item: any) => ({
+            let mappedRecords = records.map((item: any) => ({
                 ...item,
                 ivrmmmpM_Id: item.ivrmmmpM_Id ?? item.IVRMMMPM_Id ?? item.ivrmMMPM_Id ?? item.id ?? 0,
                 submenuname:
@@ -26,11 +34,26 @@ export async function getOnLoadData(searchParams: any) {
                 pagename: item.pagename ?? item.IVRMP_PageName ?? item.ivrmP_PageName ?? item.pageName ?? item.ivrmmP_PageName ?? ''
             }));
 
+            // Fallback in-memory filter in case backend returns unfiltered results
+            if (searchQuery) {
+                const q = String(searchQuery).toLowerCase().trim();
+                const filtered = mappedRecords.filter(
+                    (item: any) =>
+                        (item.modulename && item.modulename.toLowerCase().includes(q)) ||
+                        (item.submenuname && item.submenuname.toLowerCase().includes(q)) ||
+                        (item.pagename && item.pagename.toLowerCase().includes(q))
+                );
+                if (filtered.length !== mappedRecords.length) {
+                    mappedRecords = filtered;
+                }
+            }
+
             return {
                 success: true,
                 message: response.message,
                 data: mappedRecords,
-                total: response.total ?? response.data?.total ?? records.length,
+                pages: rawData.pages || response.data?.pages || [],
+                total: searchQuery ? mappedRecords.length : (response.total ?? response.data?.total ?? mappedRecords.length),
                 page: response.page || page,
                 pageSize: response.page_size || pageSize
             };
@@ -40,6 +63,7 @@ export async function getOnLoadData(searchParams: any) {
             success: false,
             message: response.message || 'Failed to fetch data',
             data: [],
+            pages: [],
             total: 0
         };
     } catch (error) {
@@ -48,6 +72,7 @@ export async function getOnLoadData(searchParams: any) {
             success: false,
             message: 'Failed to fetch data',
             data: [],
+            pages: [],
             total: 0
         };
     }

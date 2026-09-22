@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
         const formFields: Record<string, string> = {};
 
         await new Promise((resolve, reject) => {
-            bb.on('file', (name: string, file: any, info: any) => {
+            bb.on('file', (_name: string, file: any, info: any) => {
                 const { filename } = info;
                 fileName = filename;
                 const chunks: any[] = [];
@@ -42,12 +42,33 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
         }
 
+        const lowerFileName = (fileName || '').toLowerCase();
+        const validExtensions = ['.pdf', '.doc', '.docx'];
+        const isImage = /\.(png|jpe?g|webp|bmp|gif|svg|tiff)$/i.test(lowerFileName);
+        const isValid = validExtensions.some((ext) => lowerFileName.endsWith(ext));
+
+        if (isImage || !isValid) {
+            return NextResponse.json(
+                {
+                    error: isImage
+                        ? 'Image files (PNG, JPG) are not accepted. Only PDF and Word documents (.pdf, .doc, .docx) are supported.'
+                        : 'Invalid file format. Only PDF and Word documents (.pdf, .doc, .docx) are supported.'
+                },
+                { status: 400 }
+            );
+        }
+
         const { questionCount, difficulty, topic } = formFields;
 
-        // --- STEP 1: Upload PDF to get Extracted Text ---
-        console.log('Step 1: Uploading PDF to Render...');
+        // --- STEP 1: Upload File to get Extracted Text ---
+        console.info('Step 1: Uploading Document to Render...');
         const formData = new FormData();
-        const blob = new Blob([fileBuffer], { type: 'application/pdf' });
+        const mimeType = lowerFileName.endsWith('.docx')
+            ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            : lowerFileName.endsWith('.doc')
+              ? 'application/msword'
+              : 'application/pdf';
+        const blob = new Blob([fileBuffer], { type: mimeType });
         formData.append('file', blob, fileName);
 
         const uploadRes = await fetch(`${BASE_URL}/upload-pdf`, {
@@ -62,15 +83,15 @@ export async function POST(req: NextRequest) {
         if (!uploadRes.ok || !uploadContentType?.includes('application/json')) {
             const errText = await uploadRes.text();
             console.error('PDF Upload Error Response:', errText);
-            throw new Error(`AI Server (Upload) is currently unavailable or returning HTML. Please try again in 30 seconds.`);
+            throw new Error('AI Server (Upload) is currently unavailable or returning HTML. Please try again in 30 seconds.');
         }
 
         const uploadData = await uploadRes.json();
         const extractedText = uploadData.extracted_text;
-        console.log('PDF Uploaded. Text length:', extractedText?.length);
+        console.info('PDF Uploaded. Text length:', extractedText?.length);
 
         // --- STEP 2: Generate Questions using Extracted Text ---
-        console.log('Step 2: Generating questions...');
+        console.info('Step 2: Generating questions...');
         const genRes = await fetch(`${BASE_URL}/generate-questions`, {
             method: 'POST',
             headers: {
@@ -90,11 +111,11 @@ export async function POST(req: NextRequest) {
         if (!genRes.ok || !genContentType?.includes('application/json')) {
             const errText = await genRes.text();
             console.error('Generation Error Response:', errText);
-            throw new Error(`AI Server (Generation) returned an invalid response. The content might be too large.`);
+            throw new Error('AI Server (Generation) returned an invalid response. The content might be too large.');
         }
 
         const genData = await genRes.json();
-        console.log('Questions generated:', genData.questions?.length);
+        console.info('Questions generated:', genData.questions?.length);
 
         // --- STEP 3: Map Response to Frontend Structure ---
         const mappedQuestions = genData.questions.map((q: any, idx: number) => ({

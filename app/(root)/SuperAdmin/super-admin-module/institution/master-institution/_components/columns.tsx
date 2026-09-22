@@ -2,8 +2,10 @@
 
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import type { IMasterInstitution } from '@/types/super-admin/super-admin-module/institution/master-institution';
 import type { ColumnDef } from '@tanstack/react-table';
+import { useCallback } from 'react';
 
 export const MasterInstitutionColumns: ColumnDef<IMasterInstitution>[] = [
     {
@@ -39,14 +41,34 @@ export const MasterInstitutionColumns: ColumnDef<IMasterInstitution>[] = [
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Edit/Activate/Deactivate' className='text-center' />,
-        cell: ({ row }) => (
-            <ActionButtons
-                rowData={row.original}
-                buttons={{ edit: true, toggle: true, delete: false }}
-                toggleConditionKey='mI_ActiveFlag'
-                onEdit={(data) => console.log('Edit', data)}
-                onToggle={(data, checked) => console.log('Toggle', data, checked)}
-            />
-        )
+        cell: ({ row }) => <ActionCell rowData={row.original} />
     }
 ];
+
+function ActionCell({ rowData }: { rowData: IMasterInstitution }) {
+    const { openEditForm, openToggleForm } = useFormContext<IMasterInstitution>();
+
+    const handleEdit = useCallback(
+        (data: IMasterInstitution) => {
+            openEditForm(data);
+        },
+        [openEditForm]
+    );
+
+    const handleToggle = useCallback(
+        (data: IMasterInstitution) => {
+            openToggleForm(data);
+        },
+        [openToggleForm]
+    );
+
+    return (
+        <ActionButtons
+            rowData={rowData}
+            buttons={{ edit: true, toggle: true, delete: false }}
+            toggleConditionKey='mI_ActiveFlag'
+            onEdit={handleEdit}
+            onToggle={handleToggle}
+        />
+    );
+}

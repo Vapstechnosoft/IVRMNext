@@ -695,6 +695,40 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
     const formRef = useRef<HTMLDivElement>(null);
     const dropdownData = activeTab === 0 ? classTeachersData?.data : employeeData?.data;
 
+    const uniqueDropdownData = useMemo(() => {
+        if (!Array.isArray(dropdownData)) return [];
+        const seen = new Set<string>();
+        const result: any[] = [];
+        for (const item of dropdownData) {
+            if (!item) continue;
+            const empCode = item.hrmE_EmployeeName ? extractCode(item.hrmE_EmployeeName).trim().toLowerCase() : '';
+            const key = empCode || (item.hrmE_EmployeeName ? item.hrmE_EmployeeName.trim().toLowerCase() : String(item.hrmE_Id));
+            if (!seen.has(key) && !seen.has(String(item.hrmE_Id))) {
+                seen.add(key);
+                seen.add(String(item.hrmE_Id));
+                result.push(item);
+            }
+        }
+        return result;
+    }, [dropdownData]);
+
+    const uniqueUserLogins = useMemo(() => {
+        if (!Array.isArray(userLogins)) return [];
+        const seen = new Set<string>();
+        const result: any[] = [];
+        for (const item of userLogins) {
+            if (!item) continue;
+            const empCode = item.hrmE_EmployeeName ? extractCode(item.hrmE_EmployeeName).trim().toLowerCase() : '';
+            const key = empCode || (item.hrmE_EmployeeName ? item.hrmE_EmployeeName.trim().toLowerCase() : String(item.ivrmulF_Id));
+            if (!seen.has(key) && !seen.has(String(item.ivrmulF_Id))) {
+                seen.add(key);
+                seen.add(String(item.ivrmulF_Id));
+                result.push(item);
+            }
+        }
+        return result;
+    }, [userLogins]);
+
     const isLoading = activeTab === 0 ? classTeacherLoading : employeeDataLoading;
 
     // Check for any data loading
@@ -838,16 +872,24 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                     const selectedId = Number(v);
                                                     field.onChange(selectedId);
 
-                                                    const selectedEmployee = dropdownData?.find((e: any) => e.hrmE_Id === selectedId);
+                                                    const selectedEmployee =
+                                                        uniqueDropdownData?.find((e: any) => e.hrmE_Id === selectedId) ||
+                                                        dropdownData?.find((e: any) => e.hrmE_Id === selectedId);
 
                                                     if (!selectedEmployee?.hrmE_EmployeeName) {
                                                         setValue('ivrmulF_Id', 0);
                                                         return;
                                                     }
 
-                                                    const userCode = extractCode(selectedEmployee.hrmE_EmployeeName);
+                                                    const userCode = extractCode(selectedEmployee.hrmE_EmployeeName).trim().toLowerCase();
 
-                                                    const user = userLogins.find((u: any) => extractCode(u.hrmE_EmployeeName) === userCode);
+                                                    const user =
+                                                        uniqueUserLogins.find(
+                                                             (u: any) => extractCode(u.hrmE_EmployeeName).trim().toLowerCase() === userCode
+                                                        ) ||
+                                                        userLogins.find(
+                                                             (u: any) => extractCode(u.hrmE_EmployeeName).trim().toLowerCase() === userCode
+                                                        );
                                                     console.info('user', user);
 
                                                     setValue('ivrmulF_Id', user?.ivrmulF_Id ?? 0);
@@ -859,14 +901,14 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                 <SelectContent>
                                                     {isLoading ? (
                                                         <SelectItem value='loading' disabled>
-                                                            Loading...
+                                                             Loading...
                                                         </SelectItem>
-                                                    ) : !dropdownData || dropdownData.length === 0 ? (
+                                                    ) : !uniqueDropdownData || uniqueDropdownData.length === 0 ? (
                                                         <SelectItem value='empty' disabled>
-                                                            No Employee found
+                                                             No Employee found
                                                         </SelectItem>
                                                     ) : (
-                                                        dropdownData.map((e: any) => (
+                                                        uniqueDropdownData.map((e: any) => (
                                                             <SelectItem key={e.hrmE_Id} value={String(e.hrmE_Id)}>
                                                                 {e.hrmE_EmployeeName}
                                                             </SelectItem>
@@ -968,12 +1010,12 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                         <SelectItem value='0' disabled>
                                                             Loading...
                                                         </SelectItem>
-                                                    ) : userLogins?.length === 0 ? (
+                                                    ) : uniqueUserLogins?.length === 0 ? (
                                                         <SelectItem value='0' disabled>
                                                             No users found
                                                         </SelectItem>
                                                     ) : (
-                                                        userLogins?.map((u: any) => (
+                                                        uniqueUserLogins?.map((u: any) => (
                                                             <SelectItem key={u.ivrmulF_Id} value={String(u.ivrmulF_Id)}>
                                                                 {u.hrmE_EmployeeName}
                                                             </SelectItem>

@@ -467,7 +467,6 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                             />
                         )}
                     />
-                    {errors.amount && <FormError>{errors.amount.message}</FormError>}
                 </div>
 
                 <div className='flex items-center gap-4'>

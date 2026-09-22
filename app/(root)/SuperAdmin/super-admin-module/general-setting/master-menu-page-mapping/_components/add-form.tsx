@@ -194,8 +194,8 @@ export default function AddMasterMenuPageMappingForm({ onSuccess, modules, allPa
                                             <SelectValue placeholder='Select Module' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {modules.map((module) => (
-                                                <SelectItem key={module.ivrmM_Id} value={module.ivrmM_Id.toString()}>
+                                            {modules.map((module, index) => (
+                                                <SelectItem key={`${module.ivrmM_Id}_${index}`} value={module.ivrmM_Id.toString()}>
                                                     {module.ivrmM_ModuleName}
                                                 </SelectItem>
                                             ))}
@@ -224,8 +224,8 @@ export default function AddMasterMenuPageMappingForm({ onSuccess, modules, allPa
                                             <SelectValue placeholder='Select Main Menu' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {mainMenus.map((menu) => (
-                                                <SelectItem key={menu.ivrmmM_Id} value={menu.ivrmmM_Id.toString()}>
+                                            {mainMenus.map((menu, index) => (
+                                                <SelectItem key={`${menu.ivrmmM_Id}_${index}`} value={menu.ivrmmM_Id.toString()}>
                                                     {menu.ivrmmM_MenuName}
                                                 </SelectItem>
                                             ))}
@@ -251,8 +251,8 @@ export default function AddMasterMenuPageMappingForm({ onSuccess, modules, allPa
                                             <SelectValue placeholder='Select Sub Menu' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {displaySubMenus.map((menu) => (
-                                                <SelectItem key={menu.ivrmmS_Id} value={menu.ivrmmS_Id.toString()}>
+                                            {displaySubMenus.map((menu, index) => (
+                                                <SelectItem key={`${menu.ivrmmS_Id}_${index}`} value={menu.ivrmmS_Id.toString()}>
                                                     {menu.ivrmmS_SubMenuName}
                                                 </SelectItem>
                                             ))}

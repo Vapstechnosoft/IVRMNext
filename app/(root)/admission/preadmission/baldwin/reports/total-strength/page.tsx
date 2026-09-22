@@ -674,7 +674,7 @@ export default function TotalStrengthPage() {
                                                                 Section
                                                             </th>
                                                             <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Boys</th>
-                                                            <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Girls</th>
+                                                            {/* <th className='border border-gray-300 px-4 py-2 text-left font-bold'>Girls</th> */}
 
                                                             <th className='border border-gray-300 px-4 py-2 text-right font-bold'>Total</th>
                                                             {/* <th className='border border-gray-300 px-4 py-2 text-right font-semibold'>
@@ -716,9 +716,9 @@ export default function TotalStrengthPage() {
                                                                                 <td className='border border-gray-300 px-4 py-2 text-right'>
                                                                                     {item.boys}
                                                                                 </td>
-                                                                                <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                                {/* <td className='border border-gray-300 px-4 py-2 text-right'>
                                                                                     {item.girls}
-                                                                                </td>
+                                                                                </td> */}
 
                                                                                 <td className='border border-gray-300 px-4 py-2 text-right font-medium'>
                                                                                     {item.totalstudents}
@@ -734,9 +734,9 @@ export default function TotalStrengthPage() {
                                                                             <td className='border border-gray-300 px-4 py-2 text-right font-semibold'>
                                                                                 {calculateClassBoysTotal(groupKey)}
                                                                             </td>
-                                                                            <td className='border border-gray-300 px-4 py-2 text-right font-semibold'>
+                                                                            {/* <td className='border border-gray-300 px-4 py-2 text-right font-semibold'>
                                                                                 {calculateClassGirlsTotal(groupKey)}
-                                                                            </td>
+                                                                            </td> */}
                                                                             <td className='border border-gray-300 px-4 py-2 text-right font-bold'>
                                                                                 {calculateClassTotal(groupKey)}
                                                                             </td>
@@ -752,9 +752,9 @@ export default function TotalStrengthPage() {
                                                                 <td className='border border-gray-300 px-4 py-2 text-right'>
                                                                     {calculateBoysGrandTotal()}
                                                                 </td>
-                                                                <td className='border border-gray-300 px-4 py-2 text-right'>
+                                                                {/* <td className='border border-gray-300 px-4 py-2 text-right'>
                                                                     {calculateGirlsGrandTotal()}
-                                                                </td>
+                                                                </td> */}
                                                                 <td className='border border-gray-300 px-4 py-2 text-right'>
                                                                     {calculateGrandTotal()}
                                                                 </td>
