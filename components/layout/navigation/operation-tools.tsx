@@ -16,7 +16,7 @@ export function OperationTools() {
     const [isOpen, setIsOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
     const [selectedModuleId, setSelectedModuleId] = React.useState<number | null>(null);
-    const { data: accessibleModules } = useUserAccessibleModules();
+    const { data: accessibleModules, isLoading } = useUserAccessibleModules();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -39,7 +39,7 @@ export function OperationTools() {
     }, [filteredModules, selectedModuleId]);
 
     const selectedModule = React.useMemo(
-        () => accessibleModules?.data?.find((m) => m.id === selectedModuleId),
+        () => accessibleModules?.data?.find((m: any) => m.id === selectedModuleId),
         [accessibleModules, selectedModuleId]
     );
 
@@ -329,7 +329,7 @@ export function OperationTools() {
                                     </motion.div>
                                 </AnimatePresence>
 
-                                {!selectedModule && (
+                                {!selectedModule && !isLoading && (
                                     <div className='flex h-full flex-col items-center justify-center text-center opacity-40'>
                                         <div className='mb-6 rounded-full bg-slate-50 p-10'>
                                             <Boxes className='h-20 w-20 text-slate-200' />
