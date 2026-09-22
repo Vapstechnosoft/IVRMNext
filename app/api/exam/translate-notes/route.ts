@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
         }
 
         const response = await client.path('/translate').post({
-            body: itemsToTranslate,
+            body: itemsToTranslate as any,
             queryParameters: {
                 'api-version': '3.0',
                 to: toLang,
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: errDetails }, { status: 502 });
         }
 
-        const results = response.body as any[];
+        const results = response.body as unknown as any[];
         let translatedSummary = summary;
         let translatedNotes = notes;
 
