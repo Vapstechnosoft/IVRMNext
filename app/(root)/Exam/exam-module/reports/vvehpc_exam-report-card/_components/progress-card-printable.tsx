@@ -46,8 +46,8 @@ export default function ProgressCardPrintView({ reportData, institution, subject
                 {reportData.map((student, idx) => (
                     <div
                         key={student.amsT_Id}
-                        className={`card mx-auto my-8 min-h-[297mm] border border-black bg-white p-10 ${idx > 0 ? 'page-break' : ''}`}
-                        style={{ width: '210mm', boxSizing: 'border-box' }}>
+                        className={`card mx-auto my-4 border border-black bg-white p-6 ${idx > 0 ? 'page-break' : ''}`}
+                        style={{ width: '100%', maxWidth: '210mm', boxSizing: 'border-box' }}>
                         {/* School Header */}
                         <div className='mb-4 text-center'>
                             <Image

@@ -15,6 +15,15 @@ const nextConfig: NextConfig = {
     },
 
     experimental: {
+        optimizePackageImports: [
+            'lucide-react',
+            'react-icons',
+            'date-fns',
+            'recharts',
+            'chart.js',
+            '@radix-ui/react-icons',
+            'framer-motion'
+        ],
         serverActions: {
             bodySizeLimit: '500mb'
         }

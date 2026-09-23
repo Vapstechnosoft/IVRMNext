@@ -30,69 +30,96 @@ export default function ProgressCardReportPage() {
         try {
             console.log('Progress Card Report payload:', payload);
             const res = await getExamReportCard(payload);
-            if (!res?.success || !Array.isArray(res?.data) || res.data.length === 0) {
-                //toast.error('No records found');
-                setIsReportVisible(false);
-                //return;
-            }
             console.log('progress card report api response', res);
 
-            const flatRows: any[] = res.data;
+            let flatRows: any[] = [];
+            const rawData = res?.data ?? res;
+            if (Array.isArray(rawData)) {
+                flatRows = rawData;
+            } else if (rawData && typeof rawData === 'object') {
+                if (Array.isArray(rawData.$values)) flatRows = rawData.$values;
+                else if (Array.isArray(rawData.getstudentmarksdetails)) flatRows = rawData.getstudentmarksdetails;
+                else if (Array.isArray(rawData.getstudentmarksdetails?.$values)) flatRows = rawData.getstudentmarksdetails.$values;
+                else if (Array.isArray(rawData.savelist)) flatRows = rawData.savelist;
+                else if (Array.isArray(rawData.savelist?.$values)) flatRows = rawData.savelist.$values;
+                else if (Array.isArray(rawData.studentlist)) flatRows = rawData.studentlist;
+                else if (Array.isArray(rawData.reportlist)) flatRows = rawData.reportlist;
+                else if (Array.isArray(rawData.getstudentdetails)) flatRows = rawData.getstudentdetails;
+                else {
+                    for (const key of Object.keys(rawData)) {
+                        if (Array.isArray(rawData[key]) && rawData[key].length > 0) {
+                            flatRows = rawData[key];
+                            break;
+                        }
+                    }
+                }
+            }
 
-            //const flatRows: any[] = generateStaticData();
+            if (!flatRows || flatRows.length === 0) {
+                toast.error(res?.message || 'No records found for the selected criteria');
+                setIsReportVisible(false);
+                return;
+            }
+
             console.log('progress card report response Data', flatRows);
 
             const studentMap = new Map<number, IExamReportCard>();
             const subjectMap = new Map<number, ISubject>();
 
             flatRows.forEach((row) => {
-                const studentId = row.amsT_Id;
+                const studentId = Number(row.amsT_Id ?? row.AMST_Id ?? 0);
+                if (!studentId) return;
+
+                const ismsId = Number(row.ismS_Id ?? row.ISMS_Id ?? 0);
+                const ismsName = String(row.ismS_SubjectName ?? row.ISMS_SubjectName ?? row.subjectName ?? '');
 
                 // Build unique subjects
-                if (row.ismS_Id && !subjectMap.has(row.ismS_Id)) {
-                    subjectMap.set(row.ismS_Id, {
-                        ismS_Id: row.ismS_Id,
-                        ismS_SubjectName: row.ismS_SubjectName,
-                        eyceS_AplResultFlg: row.eyceS_AplResultFlg ?? true,
-                        eyceS_MarksDisplayFlg: row.eyceS_MarksDisplayFlg ?? true,
-                        eyceS_GradeDisplayFlg: row.eyceS_GradeDisplayFlg ?? true,
-                        eyceS_SubjectOrder: row.eyceS_SubjectOrder ?? 999,
-                        type: row.eyceS_GradeDisplayFlg ? 'Grade' : 'Marks'
+                if (ismsId && !subjectMap.has(ismsId)) {
+                    subjectMap.set(ismsId, {
+                        ismS_Id: ismsId,
+                        ismS_SubjectName: ismsName,
+                        eyceS_AplResultFlg: row.eyceS_AplResultFlg ?? row.EYCES_AplResultFlg ?? true,
+                        eyceS_MarksDisplayFlg: row.eyceS_MarksDisplayFlg ?? row.EYCES_MarksDisplayFlg ?? true,
+                        eyceS_GradeDisplayFlg: row.eyceS_GradeDisplayFlg ?? row.EYCES_GradeDisplayFlg ?? true,
+                        eyceS_SubjectOrder: row.eyceS_SubjectOrder ?? row.EYCES_SubjectOrder ?? 999,
+                        type: (row.eyceS_GradeDisplayFlg ?? row.EYCES_GradeDisplayFlg) ? 'Grade' : 'Marks'
                     });
                 }
 
                 // Initialize student
                 if (!studentMap.has(studentId)) {
+                    const firstName = String(row.amsT_FirstName ?? row.AMST_FirstName ?? row.studentName ?? row.studentname ?? '').trim();
                     studentMap.set(studentId, {
                         amsT_Id: studentId,
-                        amsT_FirstName: row.amsT_FirstName.trim(),
-                        amsT_FatherName: row.amsT_FatherName || 'N/A',
-                        amsT_DOB: row.amsT_DOB,
-                        amaY_RollNo: row.amaY_RollNo,
-                        amsT_AdmNo: row.amsT_AdmNo,
-                        amsT_RegistrationNo: row.amsT_RegistrationNo,
+                        amsT_FirstName: firstName || `Student ${studentId}`,
+                        amsT_FatherName: String(row.amsT_FatherName ?? row.AMST_FatherName ?? 'N/A'),
+                        amsT_DOB: row.amsT_DOB ?? row.AMST_DOB,
+                        amaY_RollNo: row.amaY_RollNo ?? row.AMAY_RollNo,
+                        amsT_AdmNo: row.amsT_AdmNo ?? row.AMST_AdmNo,
+                        amsT_RegistrationNo: row.amsT_RegistrationNo ?? row.AMST_RegistrationNo,
                         sub_list: [],
-                        estmP_TotalMaxMarks: row.estmP_TotalMaxMarks,
-                        estmP_TotalObtMarks: row.estmP_TotalObtMarks,
-                        estmP_Percentage: row.estmP_Percentage,
-                        estmP_TotalGrade: row.estmP_TotalGrade,
-                        estmP_Result: row.estmP_Result,
-                        estmP_ClassRank: row.estmP_ClassRank,
-                        estmP_SectionRank: row.estmP_SectionRank,
-                        classheld: row.asA_ClassHeld,
-                        classatt: row.asA_Class_Attended,
-                        estmP_TotalGradeRemark: row.emgD_Remarks || row.estmP_TotalGradeRemark || 'Good'
+                        estmP_TotalMaxMarks: row.estmP_TotalMaxMarks ?? row.ESTMP_TotalMaxMarks,
+                        estmP_TotalObtMarks: row.estmP_TotalObtMarks ?? row.ESTMP_TotalObtMarks,
+                        estmP_Percentage: row.estmP_Percentage ?? row.ESTMP_Percentage,
+                        estmP_TotalGrade: row.estmP_TotalGrade ?? row.ESTMP_TotalGrade,
+                        estmP_Result: row.estmP_Result ?? row.ESTMP_Result,
+                        estmP_ClassRank: row.estmP_ClassRank ?? row.ESTMP_ClassRank,
+                        estmP_SectionRank: row.estmP_SectionRank ?? row.ESTMP_SectionRank,
+                        classheld: row.asA_ClassHeld ?? row.ASA_ClassHeld,
+                        classatt: row.asA_Class_Attended ?? row.ASA_Class_Attended,
+                        estmP_TotalGradeRemark: row.emgD_Remarks ?? row.EMGD_Remarks ?? row.estmP_TotalGradeRemark ?? 'Good'
                     });
                 }
 
                 // Only add subjects with actual marks
-                if (row.ismS_Id && row.estmpS_MaxMarks > 0) {
+                const maxMarks = Number(row.estmpS_MaxMarks ?? row.ESTMPS_MaxMarks ?? 0);
+                if (ismsId && maxMarks > 0) {
                     studentMap.get(studentId)!.sub_list.push({
-                        ismS_Id: row.ismS_Id,
-                        estmpS_MaxMarks: row.estmpS_MaxMarks,
-                        estmpS_ObtainedMarks: row.estmpS_ObtainedMarks ?? null,
-                        estmpS_ObtainedGrade: row.estmpS_ObtainedGrade || '-',
-                        estmpS_PassFailFlg: row.estmpS_PassFailFlg
+                        ismS_Id: ismsId,
+                        estmpS_MaxMarks: maxMarks,
+                        estmpS_ObtainedMarks: row.estmpS_ObtainedMarks ?? row.ESTMPS_ObtainedMarks ?? null,
+                        estmpS_ObtainedGrade: row.estmpS_ObtainedGrade ?? row.ESTMPS_ObtainedGrade ?? '-',
+                        estmpS_PassFailFlg: row.estmpS_PassFailFlg ?? row.ESTMPS_PassFailFlg
                     });
                 }
             });
@@ -104,19 +131,16 @@ export default function ProgressCardReportPage() {
                 .filter((s) => validSubjectIds.has(s.ismS_Id))
                 .sort((a, b) => (a.eyceS_SubjectOrder ?? 999) - (b.eyceS_SubjectOrder ?? 999));
 
-            const firstRow = flatRows[0];
+            const firstRow = flatRows[0] || {};
 
             setSubjects(filteredSubjects);
             setReportData(Array.from(studentMap.values()));
-            const safeReportData = Array.from(studentMap.values());
-            console.log('reportData', safeReportData);
-            console.log(reportData);
             setHeaderInfo({
-                cla: firstRow.asmcL_ClassName,
-                sec: firstRow.asmC_SectionName
+                cla: firstRow.asmcL_ClassName ?? firstRow.ASMCL_ClassName ?? payload.selectedClassName,
+                sec: firstRow.asmC_SectionName ?? firstRow.ASMC_SectionName ?? payload.selectedSectionName
             });
-            setExamName(firstRow.emE_ExamName || 'Progress Card');
-            setYear(firstRow.asmaY_Year || new Date().getFullYear().toString());
+            setExamName(firstRow.emE_ExamName ?? firstRow.EME_ExamName ?? payload.selectedExamName ?? 'Progress Card');
+            setYear(firstRow.asmaY_Year ?? firstRow.ASMAY_Year ?? payload.selectedYearName ?? new Date().getFullYear().toString());
             setIsReportVisible(true);
             toast.success(`${studentMap.size} progress card(s) generated successfully!`);
         } catch (e: any) {
