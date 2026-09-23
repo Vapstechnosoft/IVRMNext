@@ -46,41 +46,59 @@ function MasterMenuPageMappingPageContent() {
     const [totalItems, setTotalItems] = useState(0);
 
     // NUQS Hooks for URL State Management
-    const [page, setPage] = useQueryState(tableSearchVariables.page.toString(), parseAsInteger.withDefault(1));
-    const [pageSize, setPageSize] = useQueryState(tableSearchVariables.page_size.toString(), parseAsInteger.withDefault(10));
-    const [searchQuery, setSearchQuery] = useQueryState(tableSearchVariables.search.toString(), parseAsString.withDefault(''));
-    const [sortBy, setSortBy] = useQueryState(tableSearchVariables.sort_column.toString(), parseAsString.withDefault(''));
-    const [sortDirection, setSortDirection] = useQueryState(
-        tableSearchVariables.sort_direction.toString(),
-        parseAsString.withDefault('asc')
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [pageSize] = useQueryState(
+        tableSearchVariables.page_size,
+        parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
     );
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
+
+    // Fetch modules once on mount
+    useEffect(() => {
+        getModuleDropdown()
+            .then((moduleRes) => {
+                if (moduleRes.success) {
+                    setModules(moduleRes.data || []);
+                }
+            })
+            .catch((err) => {
+                console.error('Error fetching modules:', err);
+            });
+    }, []);
 
     const fetchData = useCallback(() => {
         setIsLoading(true);
-        const gridPromise = getOnLoadData({
+        getOnLoadData({
             page,
             page_size: pageSize,
             sort_column: sortBy,
             sort_direction: sortDirection,
             search_query: searchQuery
-        });
-
-        const modulePromise = getModuleDropdown();
-
-        Promise.all([gridPromise, modulePromise]).then(([gridRes, moduleRes]) => {
-            if (gridRes.success) {
-                const listData = Array.isArray(gridRes.data) ? gridRes.data : gridRes.data?.GridDetails || gridRes.data?.records || [];
-                setData(listData);
-                setPages(gridRes.data?.pages || []);
-                setTotalItems(gridRes.total || listData.length);
-            }
-
-            if (moduleRes.success) {
-                setModules(moduleRes.data || []);
-            }
-
-            setIsLoading(false);
-        });
+        })
+            .then((gridRes: any) => {
+                if (gridRes.success) {
+                    const listData = Array.isArray(gridRes.data)
+                        ? gridRes.data
+                        : gridRes.data?.GridDetails || gridRes.data?.records || [];
+                    setData(listData);
+                    setPages(gridRes.pages || gridRes.data?.pages || []);
+                    setTotalItems(gridRes.total || listData.length);
+                } else {
+                    toast.error(gridRes.message || 'Failed to load data');
+                }
+            })
+            .catch((err) => {
+                console.error('Fetch error:', err);
+                toast.error('An error occurred while loading data');
+            })
+            .finally(() => {
+                setIsLoading(false);
+            });
     }, [page, pageSize, sortBy, sortDirection, searchQuery]);
 
     useEffect(() => {

@@ -6,24 +6,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-    AlertCircle,
-    BookOpen,
-    Check,
-    Clipboard,
-    Download,
-    FileText,
-    Languages,
-    Layout,
-    Loader2,
-    Printer,
-    StickyNote,
-    Upload
-} from 'lucide-react';
+import { AlertCircle, BookOpen, Check, Clipboard, Download, FileText, Languages, Layout, Loader2, StickyNote, Upload } from 'lucide-react';
 import type React from 'react';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
+import { NoteContentRenderer } from '@/components/ai-notemaker/note-content-renderer';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { formatAiErrorMessage } from '@/lib/ai-error-handler';
+import { standardizeNoteMarkdown } from '@/lib/notemaker-cleaner';
 import { exportNoteMakerPdf, printNoteMakerContent } from '@/lib/notemaker-pdf-export';
 import { toast } from 'sonner';
 
@@ -56,10 +46,8 @@ export default function AINotemaker() {
     const [originalResult, setOriginalResult] = useState<{ summary?: string; notes?: string; chapter?: string } | null>(null);
     const [selectedLanguage, setSelectedLanguage] = useState<string>('English');
     const [isTranslating, setIsTranslating] = useState<boolean>(false);
-    const [errorLog, setErrorLog] = useState<string | null>(null);
+    const [_errorLog, setErrorLog] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
-    const previewContainerRef = useRef<HTMLDivElement>(null);
 
     // Handlers
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,8 +98,8 @@ export default function AINotemaker() {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to generate notes');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(formatAiErrorMessage(errorData.error || 'Failed to generate notes'));
             }
 
             const data = await response.json();
@@ -127,7 +115,7 @@ export default function AINotemaker() {
             toast.success(successMsg);
         } catch (error: any) {
             console.error('Notemaker Error:', error);
-            const displayMessage = error.message || 'Error generating notes. Please try again.';
+            const displayMessage = formatAiErrorMessage(error, 'Error generating notes. Please try again.');
             setErrorMessage(displayMessage);
             toast.error(displayMessage);
         } finally {
@@ -162,8 +150,8 @@ export default function AINotemaker() {
             });
 
             if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(errData.error || 'Translation failed');
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(formatAiErrorMessage(errData.error || 'Translation failed'));
             }
 
             const translatedData = await response.json();
@@ -175,49 +163,89 @@ export default function AINotemaker() {
             toast.success(`Notes translated to ${targetLang}`, { id: 'translate-notemaker' });
         } catch (err: any) {
             console.error('Translation Error:', err);
-            toast.error(err.message || 'Failed to translate notes', { id: 'translate-notemaker' });
+            toast.error(formatAiErrorMessage(err, 'Failed to translate notes'), { id: 'translate-notemaker' });
         } finally {
             setIsTranslating(false);
         }
     };
 
     const handleCopyContent = (text: string) => {
-        navigator.clipboard.writeText(text);
+        navigator.clipboard.writeText(standardizeNoteMarkdown(text));
         toast.success('Copied to clipboard');
     };
 
-    const handleDownloadPDF = async () => {
+    const handleDownloadPDF = () => {
         if (!result) return;
-        setIsDownloadingPdf(true);
-        toast.loading('Generating PDF...', { id: 'notemaker-pdf' });
-        try {
-            await exportNoteMakerPdf({
-                chapter: result.chapter,
-                summary: result.summary,
-                notes: result.notes,
-                language: selectedLanguage,
-                previewElement: previewContainerRef.current
-            });
-            toast.success('PDF Downloaded successfully', { id: 'notemaker-pdf' });
-        } catch (err: any) {
-            console.error('PDF export failed:', err);
-            toast.error('Failed to generate PDF. Please try again.', { id: 'notemaker-pdf' });
-        } finally {
-            setIsDownloadingPdf(false);
+
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20;
+        const maxWidth = pageWidth - margin * 2;
+        let yPos = 20;
+
+        const addNewPage = () => {
+            doc.addPage();
+            yPos = 20;
+        };
+
+        // Header
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('AI NOTEMAKER', pageWidth / 2, yPos, { align: 'center' });
+        yPos += 10;
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Chapter: ${result.chapter || 'Entire Document'}`, pageWidth / 2, yPos, { align: 'center' });
+        yPos += 10;
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 10;
+
+        const printLargeText = (title: string, content: string) => {
+            if (yPos > pageHeight - margin - 20) addNewPage();
+
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text(title, margin, yPos);
+            yPos += 10;
+
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+
+            // Clean markdown markers for PDF
+            const cleanedContent = content
+                .replace(/\r/g, '') // Remove carriage returns first to avoid CRLF issues
+                .replace(/\*\*([\s\S]*?)\*\*/g, '$1') // Remove bold markers (multiline-safe)
+                .replace(/\*([\s\S]*?)\*/g, '$1') // Remove italic markers (multiline-safe)
+                .replace(/^\s*#+\s+/gm, '') // Remove heading markers (even with leading spaces)
+                .replace(/^\s*[\*\-\+]\s+/gm, '• '); // Replace bullets with a clean dot
+
+            const lines = doc.splitTextToSize(cleanedContent, maxWidth);
+
+            for (const line of lines) {
+                if (yPos > pageHeight - margin) {
+                    addNewPage();
+                }
+                doc.text(line, margin, yPos);
+                yPos += 7;
+            }
+            yPos += 10;
+        };
+
+        if (result.summary) {
+            printLargeText('AI SUMMARY', result.summary);
         }
+
+        if (result.notes) {
+            printLargeText('STRUCTURED NOTES', result.notes);
+        }
+
+        doc.save(`notes-${Date.now()}.pdf`);
+        toast.success('PDF Downloaded');
     };
 
-    const handlePrintNotes = () => {
-        if (!result) return;
-        printNoteMakerContent({
-            chapter: result.chapter,
-            summary: result.summary,
-            notes: result.notes,
-            language: selectedLanguage
-        });
-    };
-
-    const renderWithBold = (text: string) => {
+    const _renderWithBold = (text: string) => {
         if (!text) return null;
         const parts = text.split(/(\*\*.*?\*\*)/g);
         return parts.map((part, index) => {
@@ -439,27 +467,14 @@ export default function AINotemaker() {
                                         </span>
                                     )}
                                 </div>
-                                <div className='flex items-center gap-2'>
-                                    <Button onClick={handlePrintNotes} variant='outline' className='font-medium'>
-                                        <Printer className='mr-2 h-4 w-4' /> Print / Save PDF
-                                    </Button>
-                                    <Button onClick={handleDownloadPDF} disabled={isDownloadingPdf} className='font-medium'>
-                                        {isDownloadingPdf ? (
-                                            <>
-                                                <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Generating...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Download className='mr-2 h-4 w-4' /> Download PDF
-                                            </>
-                                        )}
-                                    </Button>
-                                </div>
+                                <Button onClick={handleDownloadPDF} variant='outline' className='font-medium'>
+                                    <Download className='mr-2 h-4 w-4' /> Download PDF
+                                </Button>
                             </div>
                         )}
 
                         {result ? (
-                            <div ref={previewContainerRef} className='fade-in mx-auto max-w-5xl animate-in space-y-8 duration-500'>
+                            <div className='fade-in mx-auto max-w-5xl animate-in space-y-8 duration-500'>
                                 {/* Summary Card */}
                                 {result.summary && (
                                     <Card className='overflow-hidden'>
@@ -476,27 +491,8 @@ export default function AINotemaker() {
                                                 <Clipboard className='h-4 w-4' />
                                             </Button>
                                         </CardHeader>
-                                        <CardContent className='p-8'>
-                                            <div className='prose prose-slate max-w-none text-lg text-muted-foreground leading-relaxed'>
-                                                {result.summary.split('\n').map((line, i) => {
-                                                    const trimmedLine = line.trim();
-                                                    if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
-                                                        return (
-                                                            <div key={i} className='mb-2 ml-4 flex items-start'>
-                                                                <span className='mt-1.5 mr-3 text-primary'>•</span>
-                                                                <span className='flex-1'>
-                                                                    {renderWithBold(trimmedLine.substring(1).trim())}
-                                                                </span>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return (
-                                                        <p key={i} className='mb-3'>
-                                                            {renderWithBold(line)}
-                                                        </p>
-                                                    );
-                                                })}
-                                            </div>
+                                        <CardContent className='p-6 md:p-8'>
+                                            <NoteContentRenderer content={result.summary} variant='summary' />
                                         </CardContent>
                                     </Card>
                                 )}
@@ -520,43 +516,8 @@ export default function AINotemaker() {
                                                 <Clipboard className='h-4 w-4' />
                                             </Button>
                                         </CardHeader>
-                                        <CardContent className='bg-white p-8'>
-                                            <div className='prose prose-blue max-w-none'>
-                                                <div className='whitespace-pre-wrap font-sans text-slate-800'>
-                                                    {result.notes.split('\n').map((line, i) => {
-                                                        const trimmedLine = line.trim();
-                                                        if (
-                                                            trimmedLine.startsWith('#') ||
-                                                            (trimmedLine.toUpperCase() === trimmedLine &&
-                                                                trimmedLine.length > 3 &&
-                                                                !trimmedLine.includes(' '))
-                                                        ) {
-                                                            return (
-                                                                <h3
-                                                                    key={i}
-                                                                    className='mt-6 mb-3 border-b pb-2 font-bold text-primary text-xl'>
-                                                                    {renderWithBold(trimmedLine.replace(/^#+\s*/, ''))}
-                                                                </h3>
-                                                            );
-                                                        }
-                                                        if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
-                                                            return (
-                                                                <li key={i} className='mb-2 ml-4 flex list-none items-start'>
-                                                                    <span className='mt-1.5 mr-2 text-primary'>•</span>
-                                                                    <span className='flex-1'>
-                                                                        {renderWithBold(trimmedLine.substring(1).trim())}
-                                                                    </span>
-                                                                </li>
-                                                            );
-                                                        }
-                                                        return (
-                                                            <p key={i} className='mb-2 leading-relaxed'>
-                                                                {renderWithBold(line)}
-                                                            </p>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
+                                        <CardContent className='bg-white p-6 md:p-8'>
+                                            <NoteContentRenderer content={result.notes} variant='notes' />
                                         </CardContent>
                                         <CardFooter className='justify-center border-t bg-muted/30 py-4'>
                                             <p className='text-muted-foreground text-xs'>Generated by AI Notemaker • Optimized for Exams</p>

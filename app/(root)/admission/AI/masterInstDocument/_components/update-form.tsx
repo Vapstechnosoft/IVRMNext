@@ -69,16 +69,6 @@ export default function UpdateDocumentForm({ selectedRow, onSuccess, className =
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const allowedExtensions = ['.pdf', '.doc', '.docx'];
-            const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-            
-            if (!allowedExtensions.includes(fileExtension)) {
-                toast.error('Only PDF and DOC files are allowed.');
-                e.target.value = ''; // Reset the input
-                setSelectedFile(null);
-                return;
-            }
-
             setSelectedFile(file);
             setValue('fileName', file.name);
             setValue('fileType', file.type || 'unknown');
@@ -147,7 +137,6 @@ export default function UpdateDocumentForm({ selectedRow, onSuccess, className =
                             <input
                                 id="fileUploadUpdate"
                                 type="file"
-                                accept=".pdf,.doc,.docx"
                                 onChange={handleFileChange}
                                 className="block w-full text-sm text-slate-500
                                   file:mr-4 file:py-2 file:px-4

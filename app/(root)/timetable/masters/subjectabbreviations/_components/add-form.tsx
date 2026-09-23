@@ -118,7 +118,11 @@ export default function AddSubjectAbbreviationForm({ onSuccess, buildingname = '
                                     placeholder='Enter Subject Abbreviation'
                                     required
                                     id='ttmsuaB_Abbreviation'
-                                    {...register('ttmsuaB_Abbreviation')}
+                                    {...register('ttmsuaB_Abbreviation', {
+                                        onChange: (e) => {
+                                            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                                        }
+                                    })}
                                     error={errors.ttmsuaB_Abbreviation?.message}
                                     className='w-full transition-colors focus:ring-2 focus:ring-primary/20'
                                 />
