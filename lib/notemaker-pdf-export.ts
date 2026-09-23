@@ -1,6 +1,6 @@
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { standardizeNoteMarkdown } from './notemaker-cleaner';
+import { normalizeSpacedLetters, standardizeNoteMarkdown } from './notemaker-cleaner';
 
 export interface NoteMakerPdfOptions {
     chapter?: string;
@@ -18,7 +18,7 @@ export interface NoteMakerPdfOptions {
  */
 export function sanitizeNoteText(str: string): string {
     if (!str) return '';
-    const normalized = str
+    let normalized = str
         .replace(/\r\n/g, '\n')
         .replace(/\r/g, '\n')
         // Em dashes, en dashes, horizontal bars, minus
@@ -37,6 +37,8 @@ export function sanitizeNoteText(str: string): string {
         .replace(/[\u007E\u223C]/g, '~')
         // Non-breaking spaces and zero-width spaces
         .replace(/[\u00A0\u1680\u202F\u205F\u3000]/g, ' ');
+
+    normalized = normalizeSpacedLetters(normalized);
 
     // Filter control characters cleanly without control regex
     const cleanChars: string[] = [];
@@ -163,6 +165,9 @@ function buildVectorPdf(options: NoteMakerPdfOptions): jsPDF {
     const pageHeight = 297;
     const margin = 18;
     const contentWidth = pageWidth - margin * 2;
+    const maxTextWidth = contentWidth - 4; // 170 mm (leaves safe buffer before right margin)
+    const bulletIndent = 6;
+    const maxBulletWidth = maxTextWidth - bulletIndent; // 164 mm
     const bottomLimit = pageHeight - 20;
     let yPos = 20;
 
@@ -241,7 +246,7 @@ function buildVectorPdf(options: NoteMakerPdfOptions): jsPDF {
                 doc.setTextColor(29, 78, 216); // blue-700
 
                 const headingText = sanitizeNoteText(block.text.replace(/\*\*/g, ''));
-                const splitHeading = doc.splitTextToSize(headingText, contentWidth);
+                const splitHeading = doc.splitTextToSize(headingText, maxTextWidth);
                 for (const hLine of splitHeading) {
                     checkPageBreak(8);
                     doc.text(hLine, margin, yPos);
@@ -259,7 +264,7 @@ function buildVectorPdf(options: NoteMakerPdfOptions): jsPDF {
                 doc.setFontSize(10.5);
                 doc.setTextColor(51, 65, 85);
                 const h3Text = sanitizeNoteText(block.text.replace(/\*\*/g, ''));
-                const splitH3 = doc.splitTextToSize(h3Text, contentWidth);
+                const splitH3 = doc.splitTextToSize(h3Text, maxTextWidth);
                 for (const line of splitH3) {
                     checkPageBreak(7);
                     doc.text(line, margin, yPos);
@@ -272,82 +277,137 @@ function buildVectorPdf(options: NoteMakerPdfOptions): jsPDF {
                 doc.setFillColor(37, 99, 235);
                 doc.circle(margin + 2.5, yPos - 1.2, 0.75, 'F');
 
-                const bulletIndent = 6;
-                const bulletWidth = contentWidth - bulletIndent;
-
                 if (block.leadBold) {
                     const cleanLead = `${sanitizeNoteText(block.leadBold)}: `;
                     const cleanText = sanitizeNoteText(block.text.replace(/\*\*/g, ''));
-                    const fullText = cleanLead + cleanText;
+
+                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(9.5);
+                    const leadWidth = doc.getTextWidth(cleanLead);
 
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(9.5);
-                    doc.setTextColor(51, 65, 85);
 
-                    const lines = doc.splitTextToSize(fullText, bulletWidth);
-                    for (let i = 0; i < lines.length; i++) {
-                        checkPageBreak(6);
-                        if (i === 0) {
-                            // First line: bold the lead
-                            doc.setFont('helvetica', 'bold');
-                            doc.setTextColor(30, 41, 59);
-                            doc.text(cleanLead, margin + bulletIndent, yPos);
-                            const leadWidth = doc.getTextWidth(cleanLead);
+                    const firstLineAvail = maxBulletWidth - leadWidth;
+                    const words = cleanText.trim().split(/\s+/).filter(Boolean);
+                    const line0Words: string[] = [];
+                    let remainingWords: string[] = [];
+                    let packed = false;
 
-                            doc.setFont('helvetica', 'normal');
-                            doc.setTextColor(51, 65, 85);
-                            const firstLineRest = lines[0].slice(cleanLead.length);
-                            if (firstLineRest) {
-                                doc.text(firstLineRest, margin + bulletIndent + leadWidth, yPos);
+                    if (firstLineAvail >= 20) {
+                        for (let i = 0; i < words.length; i++) {
+                            const testStr = line0Words.length === 0 ? words[i] : `${line0Words.join(' ')} ${words[i]}`;
+                            if (doc.getTextWidth(testStr) <= firstLineAvail) {
+                                line0Words.push(words[i]);
+                            } else {
+                                remainingWords = words.slice(i);
+                                packed = true;
+                                break;
                             }
-                        } else {
+                        }
+                        if (!packed) remainingWords = [];
+                    } else {
+                        remainingWords = words;
+                    }
+
+                    // Render Line 0: bold lead + first batch of normal text
+                    checkPageBreak(6);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(30, 41, 59);
+                    doc.text(cleanLead, margin + bulletIndent, yPos);
+
+                    const l0Text = line0Words.join(' ');
+                    if (l0Text) {
+                        doc.setFont('helvetica', 'normal');
+                        doc.setTextColor(51, 65, 85);
+                        doc.text(l0Text, margin + bulletIndent + leadWidth, yPos);
+                    }
+                    yPos += 4.8;
+
+                    // Render remaining lines wrapped strictly to maxBulletWidth
+                    if (remainingWords.length > 0) {
+                        const rest = remainingWords.join(' ');
+                        const subLines = doc.splitTextToSize(rest, maxBulletWidth);
+                        for (const sLine of subLines) {
+                            checkPageBreak(6);
                             doc.setFont('helvetica', 'normal');
                             doc.setTextColor(51, 65, 85);
-                            doc.text(lines[i], margin + bulletIndent, yPos);
+                            doc.text(sLine, margin + bulletIndent, yPos);
+                            yPos += 4.8;
                         }
-                        yPos += 4.8;
                     }
                 } else {
                     const cleanText = sanitizeNoteText(block.text.replace(/\*\*/g, ''));
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(9.5);
                     doc.setTextColor(51, 65, 85);
-                    const lines = doc.splitTextToSize(cleanText, bulletWidth);
+                    const lines = doc.splitTextToSize(cleanText, maxBulletWidth);
                     for (const line of lines) {
                         checkPageBreak(6);
                         doc.text(line, margin + bulletIndent, yPos);
                         yPos += 4.8;
                     }
                 }
-                yPos += 2;
+                yPos += 2.2;
             } else if (block.type === 'lead_bold') {
                 checkPageBreak(12);
                 const cleanLead = `${sanitizeNoteText(block.leadBold)}: `;
                 const cleanText = sanitizeNoteText(block.text.replace(/\*\*/g, ''));
-                const fullText = cleanLead + cleanText;
 
+                doc.setFont('helvetica', 'bold');
                 doc.setFontSize(9.5);
-                const lines = doc.splitTextToSize(fullText, contentWidth);
-                for (let i = 0; i < lines.length; i++) {
-                    checkPageBreak(6);
-                    if (i === 0) {
-                        doc.setFont('helvetica', 'bold');
-                        doc.setTextColor(30, 41, 59);
-                        doc.text(cleanLead, margin, yPos);
-                        const leadWidth = doc.getTextWidth(cleanLead);
+                const leadWidth = doc.getTextWidth(cleanLead);
 
-                        doc.setFont('helvetica', 'normal');
-                        doc.setTextColor(51, 65, 85);
-                        const rest = lines[0].slice(cleanLead.length);
-                        if (rest) {
-                            doc.text(rest, margin + leadWidth, yPos);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9.5);
+
+                const firstLineAvail = maxTextWidth - leadWidth;
+                const words = cleanText.trim().split(/\s+/).filter(Boolean);
+                const line0Words: string[] = [];
+                let remainingWords: string[] = [];
+                let packed = false;
+
+                if (firstLineAvail >= 20) {
+                    for (let i = 0; i < words.length; i++) {
+                        const testStr = line0Words.length === 0 ? words[i] : `${line0Words.join(' ')} ${words[i]}`;
+                        if (doc.getTextWidth(testStr) <= firstLineAvail) {
+                            line0Words.push(words[i]);
+                        } else {
+                            remainingWords = words.slice(i);
+                            packed = true;
+                            break;
                         }
-                    } else {
+                    }
+                    if (!packed) remainingWords = [];
+                } else {
+                    remainingWords = words;
+                }
+
+                // Render Line 0: bold lead + first batch of normal text
+                checkPageBreak(6);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(30, 41, 59);
+                doc.text(cleanLead, margin, yPos);
+
+                const l0Text = line0Words.join(' ');
+                if (l0Text) {
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(51, 65, 85);
+                    doc.text(l0Text, margin + leadWidth, yPos);
+                }
+                yPos += 5;
+
+                // Render remaining lines wrapped strictly to maxTextWidth
+                if (remainingWords.length > 0) {
+                    const rest = remainingWords.join(' ');
+                    const subLines = doc.splitTextToSize(rest, maxTextWidth);
+                    for (const sLine of subLines) {
+                        checkPageBreak(6);
                         doc.setFont('helvetica', 'normal');
                         doc.setTextColor(51, 65, 85);
-                        doc.text(lines[i], margin, yPos);
+                        doc.text(sLine, margin, yPos);
+                        yPos += 5;
                     }
-                    yPos += 5;
                 }
                 yPos += 3;
             } else {
@@ -357,7 +417,7 @@ function buildVectorPdf(options: NoteMakerPdfOptions): jsPDF {
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(9.5);
                 doc.setTextColor(51, 65, 85);
-                const lines = doc.splitTextToSize(cleanText, contentWidth);
+                const lines = doc.splitTextToSize(cleanText, maxTextWidth);
                 for (const line of lines) {
                     checkPageBreak(6);
                     doc.text(line, margin, yPos);

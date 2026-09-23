@@ -105,7 +105,12 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                                                 {institution.mI_Logo && (
                                                     <img src={institution.mI_Logo} alt='Logo' style={{ height: '60px' }} />
                                                 )}
-
+                                                <h1 className='font-bold text-xl uppercase'>{institution.mI_Name}</h1>
+                                                <p className='text-xs'>
+                                                    {institution.mI_Address1}
+                                                    {institution.mI_Address2 && `, ${institution.mI_Address2}`}
+                                                    {institution.mI_Address3 && `, ${institution.mI_Address3}`}
+                                                </p>
                                             </div>
                                         </>
                                     )}
@@ -169,10 +174,10 @@ export const StudentAttendancePrint = React.forwardRef<HTMLDivElement, StudentAt
                                                         (Number(student.Percentage) >= 75
                                                             ? 'Very Good Attendance'
                                                             : Number(student.Percentage) >= 50
-                                                                ? 'Good Attendance'
-                                                                : Number(student.Percentage) >= 35
-                                                                    ? 'Average Attendance'
-                                                                    : 'Poor Attendance')}
+                                                              ? 'Good Attendance'
+                                                              : Number(student.Percentage) >= 35
+                                                                ? 'Average Attendance'
+                                                                : 'Poor Attendance')}
                                                 </td>
                                             </tr>
                                         ))}
