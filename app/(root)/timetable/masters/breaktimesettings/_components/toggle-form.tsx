@@ -32,7 +32,7 @@ export default function ToggleBreakTimeSettingsForm({ rowData, onClose }: Toggle
             const response = await getBreakTimeSettingsToggle(rowData.ttmB_Id);
 
             if (response.success) {
-                toast.success(response.message);
+                toast.success(isActive ? 'Deactivated successfully' : 'Activated successfully');
                 refetchAll();
                 closeDialog();
             } else {
