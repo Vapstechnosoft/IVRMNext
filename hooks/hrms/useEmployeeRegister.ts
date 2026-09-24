@@ -892,16 +892,20 @@ export function useGetEmployeeSalaryDetailsByHead() {
 /**
  * Hook to update employee salary details by head
  */
-export function useUpdateEmployeeSalaryDetailsByHead() {
+export function useUpdateEmployeeSalaryDetailsByHead(options?: { suppressSuccessToast?: boolean; invalidate?: boolean }) {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (data: any) => updateEmployeeSalaryDetailsByHead(data),
         onSuccess: (response) => {
             if (response?.success) {
-                toast.success(response.message || 'Salary detail updated effectively');
-                queryClient.invalidateQueries({
-                    queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
-                });
+                if (!options?.suppressSuccessToast) {
+                    toast.success(response.message || 'Salary detail updated effectively');
+                }
+                if (options?.invalidate) {
+                    queryClient.invalidateQueries({
+                        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
+                    });
+                }
             } else if (response?.message) {
                 toast.info(response.message);
             }

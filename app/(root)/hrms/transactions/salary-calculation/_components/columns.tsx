@@ -43,7 +43,7 @@ export function getSalaryCalculationColumns({
             header: () => (
                 <div className='flex justify-center'>
                     <Checkbox
-                        checked={employees.length > 0 && selectedEmployees.length === employees.length}
+                        checked={employees.length > 0 && employees.every((emp) => selectedEmployees.includes(emp.HRME_Id))}
                         onCheckedChange={(value) => onSelectAll(!!value)}
                         aria-label='Select all'
                     />
@@ -78,12 +78,14 @@ export function getSalaryCalculationColumns({
             enableHiding: false
         },
         {
-            accessorKey: 'HRME_EmployeeFirstName',
+            id: 'employeeName',
+            accessorFn: (row) =>
+                `${row.HRME_EmployeeFirstName || ''} ${row.HRME_EmployeeMiddleName || ''} ${row.HRME_EmployeeLastName || ''}`.trim(),
             header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
             cell: ({ row }) => {
                 const employee = row.original;
                 const fullName =
-                    `${employee.HRME_EmployeeFirstName} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
+                    `${employee.HRME_EmployeeFirstName || ''} ${employee.HRME_EmployeeMiddleName || ''} ${employee.HRME_EmployeeLastName || ''}`.trim();
                 return <div>{fullName}</div>;
             },
             enableSorting: false,

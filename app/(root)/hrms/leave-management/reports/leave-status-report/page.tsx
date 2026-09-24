@@ -413,7 +413,7 @@ function LeaveStatusReportContent() {
                             </Button>
                         </div>
                     }>
-                    <div className='h-[500px] overflow-y-auto print:hidden'>
+                    <div className=' overflow-y-auto print:hidden'>
                         <GenericDataTable
                             data={reportData}
                             columns={columns}
@@ -422,6 +422,7 @@ function LeaveStatusReportContent() {
                             isSearchRequired={false}
                             showSearchColumns={false}
                             isLoading={isPending}
+                            
                         />
                     </div>
                 </CollapsibleSection>
