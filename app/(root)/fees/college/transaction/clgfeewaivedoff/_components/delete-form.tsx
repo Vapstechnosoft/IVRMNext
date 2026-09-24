@@ -5,8 +5,8 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { FormError } from '@/components/ui/extension/field';
 import { useCollegeFeeWaivedOffList } from '@/hooks/fees/college/useTransactions';
 import { collegeFeeWaivedOffSchema } from '@/schemas/fees/college/transactions/clgfeewaivedoff';
-import { deleteCollegeFeeWaivedOff } from '@/server/fees/college/transactions/clgfeewaivedoff';
-import type { ICollegeFeeWaivedOffGrid } from '@/types/fees/college/transactions/clgfeewaivedoff';
+import { deleteCollegeFeeWaivedOff } from '@/server/fees/college/transaction/clgfeewaivedoff';
+import type { ICollegeFeeWaivedOffGrid } from '@/types/fees/college/transaction/clgfeewaivedoff';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
 import { type SubmitHandler, useForm } from 'react-hook-form';
