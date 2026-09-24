@@ -106,7 +106,7 @@ export const gradeDetailsSchema = z
             .refine((v) => v !== null && v !== undefined && String(v).trim() !== '', {
                 message: 'Enter valid Format[For Example 100.00,99.97,......]'
             })
-            .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
+            .refine((v) => /^\d+(\.\d+)?$/.test(String(v).trim()), {
                 message: 'Enter valid Format[For Example 100.00,99.97,......]'
             })
             .transform((v) => Number(v)),
@@ -116,7 +116,7 @@ export const gradeDetailsSchema = z
             .refine((v) => v !== null && v !== undefined && String(v).trim() !== '', {
                 message: 'Enter To[Range]'
             })
-            .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
+            .refine((v) => /^\d+(\.\d+)?$/.test(String(v).trim()), {
                 message: 'Enter valid Format[For Example 100.00,99.97,......]'
             })
             .transform((v) => Number(v)),
@@ -126,13 +126,13 @@ export const gradeDetailsSchema = z
             .refine((v) => v !== null && v !== undefined && String(v).trim() !== '', {
                 message: 'Enter Grade Points'
             })
-            .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
+            .refine((v) => /^\d+(\.\d+)?$/.test(String(v).trim()), {
                 message: 'Enter valid Format[For Example 100.00,99.97,......]'
             })
             .refine(
                 (v) => {
                     const num = Number(v);
-                    return !isNaN(num) && num >= 0 && num <= 10;
+                    return !Number.isNaN(num) && num >= 0 && num <= 10;
                 },
                 {
                     message: 'Grade points must be between 0 and 10'
@@ -152,13 +152,13 @@ export const gradeDetailsSchema = z
             if (v === null || v === undefined) return false;
             if (typeof v === 'string' && v.trim() === '') return false;
             const num = typeof v === 'number' ? v : Number(v);
-            return !isNaN(num) && isFinite(num);
+            return !Number.isNaN(num) && Number.isFinite(num);
         };
 
         if (isValidNumber(from) && isValidNumber(to)) {
             const numFrom = Number(from);
             const numTo = Number(to);
-            if (numFrom > numTo) {
+            if (numFrom >= numTo) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: "'From' value cannot be greater than 'To' value",
@@ -189,7 +189,7 @@ export const masterGradeSchema = {
                 if (v === null || v === undefined) return false;
                 if (typeof v === 'string' && v.trim() === '') return false;
                 const num = typeof v === 'number' ? v : Number(v);
-                return !isNaN(num) && isFinite(num);
+                return !Number.isNaN(num) && Number.isFinite(num);
             };
 
             if (data.emgR_MarksPerFlag === 'P') {
