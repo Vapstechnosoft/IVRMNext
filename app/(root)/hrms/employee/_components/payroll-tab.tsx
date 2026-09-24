@@ -514,8 +514,9 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                 MI_Id: MI_Id || 0
             });
 
-            if (result?.success) {
+            if (result?.success || result?.success === undefined) {
                 refetch();
+                toast.success(result?.message || 'Salary details saved successfully');
                 // Call onSuccess if provided and still mounted
                 if (isMountedRef.current && onSuccess) {
                     onSuccess();
