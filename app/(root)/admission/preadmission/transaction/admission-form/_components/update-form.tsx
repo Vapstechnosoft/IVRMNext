@@ -2336,7 +2336,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 amsT_Tpin: formData.amsT_Tpin ?? '',
                 amsT_GPSTrackingId: formData.amsT_GPSTrackingId ?? '',
                 amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
-                editFlag: !!formData.editFlag,
+                editFlag: (getAmsTIdToUse() ?? 0) > 0,
                 studentPhotoUrl: ''
             };
 

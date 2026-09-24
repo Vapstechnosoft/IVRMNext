@@ -555,8 +555,8 @@ export default function MasterNewSectionPage(props: {
                                                     </td>
                                                 </tr>
                                             ) : (
-                                                leftStudents.map((student) => (
-                                                    <tr key={student.student_id ?? 0} className='hover:bg-gray-50'>
+                                                leftStudents.map((student, index) => (
+                                                    <tr key={`${student.student_id ?? 0}-${index}`} className='hover:bg-gray-50'>
                                                         <td className='p-3 text-sm'>{student.siNo}</td>
                                                         <td className='p-3'>
                                                             <Checkbox
@@ -623,8 +623,8 @@ export default function MasterNewSectionPage(props: {
                                                     </td>
                                                 </tr>
                                             ) : (
-                                                rightStudents.map((student) => (
-                                                    <tr key={student.student_id ?? 0} className='hover:bg-gray-50'>
+                                                rightStudents.map((student, index) => (
+                                                    <tr key={`${student.student_id ?? 0}-${index}`} className='hover:bg-gray-50'>
                                                         <td className='p-3 text-sm'>{student.siNo}</td>
                                                         <td className='p-3'>
                                                             <Checkbox

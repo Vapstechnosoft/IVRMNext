@@ -231,7 +231,7 @@ export default function StudentTCApplyPage() {
     const studentNameData = studentNameListRaw?.data || studentNameListRaw;
 
     const academicList = responseData?.academicList || [];
-    const classList = responseData?.classlist || responseData?.classList || [];
+    const classList = responseData?.classlistnew || responseData?.classlist || responseData?.classList || [];
 
     // Search Results handling
     // API returns { success: true, data: [ ...students ] }
@@ -351,8 +351,8 @@ export default function StudentTCApplyPage() {
                     const libraryDueCount = actualData.library_Due_Amnt || 0;
                     const pdaDueAmount = actualData.pdA_Due || 0;
 
-                    // Flags - support both transnumconfigsettings and admissioncongigurationList
-                    const config = actualData.admissioncongigurationList?.[0] || actualData.transnumconfigsettings?.[0];
+                    // Flags - support both transnumconfigsettings, admTransNumSetting and admissioncongigurationList
+                    const config = actualData.admTransNumSetting?.[0] || actualData.admissioncongigurationList?.[0] || actualData.transnumconfigsettings?.[0];
 
                     // IF admC_TCAllowBalanceFlg is 0, it means balance is NOT allowed (paymentTcFlag = 1)
                     // IF it is 1, balance IS allowed (paymentTcFlag = 0)
@@ -550,7 +550,7 @@ export default function StudentTCApplyPage() {
 
     // Sync TC Config from studentListRaw (getstudenttcdata)
     useEffect(() => {
-        const config = responseData?.admissioncongigurationList?.[0] || responseData?.transnumconfigsettings?.[0];
+        const config = responseData?.admTransNumSetting?.[0] || responseData?.admissioncongigurationList?.[0] || responseData?.transnumconfigsettings?.[0];
         if (config) {
             setTcConfig(config);
         }
@@ -680,6 +680,7 @@ export default function StudentTCApplyPage() {
             last_Class_Studied: formData.last_class,
             returnval: true,
             email_flag: 'Yes',
+            admTransNumSetting: tcConfig || { imN_AutoManualFlag: 'Manual' },
             transnumconfigsettings: tcConfig || { imN_AutoManualFlag: 'Manual' }
         };
 

@@ -44,7 +44,9 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
         try {
             const res = await getCOEMappingDetails();
             const data = (res as any).data || res;
-            setMappingData(data.event_mapping_list || data.mapped_eventlist || []);
+            const list = data.query?.length ? data.query : data.mapped_eventlist?.length ? data.mapped_eventlist : data.event_mapping_list?.length ? data.event_mapping_list : data.completeddate?.length ? data.completeddate : [];
+            const sortedList = [...list].sort((a, b) => (a.coeE_Id || a.COEE_Id || 0) - (b.coeE_Id || b.COEE_Id || 0));
+            setMappingData(sortedList);
         } catch (error) {
             console.error('Failed to fetch mapping details');
         } finally {
@@ -54,9 +56,10 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
 
     useEffect(() => {
         const data = initialData?.data || initialData;
-        const initialMappings = data?.event_mapping_list || data?.mapped_eventlist || [];
+        const initialMappings = data?.query?.length ? data.query : data?.mapped_eventlist?.length ? data.mapped_eventlist : data?.event_mapping_list?.length ? data.event_mapping_list : data?.completeddate?.length ? data.completeddate : [];
         if (initialMappings.length > 0) {
-            setMappingData(initialMappings);
+            const sortedList = [...initialMappings].sort((a, b) => (a.coeE_Id || a.COEE_Id || 0) - (b.coeE_Id || b.COEE_Id || 0));
+            setMappingData(sortedList);
         } else {
             fetchMappings();
         }
@@ -155,6 +158,9 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
                     loadingMessage='Loading mappings...'
                     noDataTitle='No Mapped Events Found'
                     noDataDescription='Map a master event to an academic year to see it here.'
+                    manualPagination={false}
+                    manualFiltering={false}
+                    manualSorting={false}
                 />
             </CollapsibleSection>
 
