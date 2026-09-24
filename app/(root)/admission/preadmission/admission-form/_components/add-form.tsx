@@ -3918,6 +3918,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
+                                                                    maxLength={12}
                                                                 />
                                                             )}
                                                         />
@@ -8377,11 +8378,11 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                                             {isSavingStep ? (
                                                 <>
                                                     <Spinner className='mr-2 h-4 w-4' size='sm' />
-                                                    Saving...
+                                                    {savedAmsTId && savedAmsTId > 0 ? 'Updating...' : 'Saving...'}
                                                 </>
                                             ) : (
                                                 <>
-                                                    Next
+                                                    {savedAmsTId && savedAmsTId > 0 ? 'Update and Proceed' : 'Save and Proceed'}
                                                     <ChevronRight className='ml-2 h-4 w-4' />
                                                 </>
                                             )}

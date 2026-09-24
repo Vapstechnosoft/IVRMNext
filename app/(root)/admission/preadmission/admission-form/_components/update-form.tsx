@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { useAdmissionFormDetails, useGetCasteByCasteCategory } from '@/hooks/admission/admissionForm';
+import { useAdmissionFormDetails, useGetCasteByCasteCategory, useStudentAdmissionFormById } from '@/hooks/admission/admissionForm';
 import {
     useConcessionDropdown,
     useMasterDocument,
@@ -44,6 +44,7 @@ import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 import type { z } from 'zod';
 import { SubjectGroupTable } from './subject-group-table';
 
@@ -164,6 +165,16 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         isLoading: categoryByClassLoading,
         error: categoryByClassError
     } = useStudentCategoryByClass(Number(classIdForCategory) || 0, Number(asmaYId) || 0, 'adm');
+
+    useEffect(() => {
+        if (categoryByClass && (categoryByClass as any).success === false) {
+            Swal.fire({
+                title: 'Warning',
+                text: (categoryByClass as any).message || 'To get Student Category.Please Map Selected Class to Some category',
+                icon: 'warning'
+            });
+        }
+    }, [categoryByClass]);
 
     // Dynamic State Dropdowns
     const studentCountryId = watch('amsT_Nationality');
@@ -597,8 +608,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         return true;
     }, [currentStep, watchedStep1, watchedStep2, watchedStep3, fatherAlive, motherAlive, sameAsResidential, watch]);
 
-    const getAmsTIdToUse = () => savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 0);
-
+    const getAmsTIdToUse = () => {
+        const id = savedAmsTId || Number(getValues('amsT_Id' as any)) || Number(rowData?.amsT_Id) || 0;
+        return id;
+    };
     const initializeFormData = useCallback(
         (sourceData: any) => {
             if (!sourceData) return;
@@ -1307,7 +1320,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     //ignore
                 }
 
-                setSavedAmsTId(Number(payload.amsT_Id ?? payload.amsTId ?? null));
+                setSavedAmsTId(Number(payload.amsT_Id ?? payload.amsTId ?? sourceData?.amsT_Id ?? sourceData?.data?.amsT_Id) || null);
 
                 // Map fourthTab values into the form so the Fourth tab fields populate
                 try {
@@ -1834,13 +1847,18 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
     const _initializedIdRef = useRef<number | null>(null);
 
+    const amsTIdFromRow = rowData?.amsT_Id || rowData?.data?.amsT_Id || rowData?.firstTab?.amsT_Id;
+    const { data: fullFormData, isLoading: isFullFormLoading } = useStudentAdmissionFormById(Number(amsTIdFromRow) || 0);
+
     useEffect(() => {
-        const id = rowData?.amsT_Id || rowData?.data?.amsT_Id || rowData?.firstTab?.amsT_Id;
-        if (!id || id === _initializedIdRef.current) return;
+        const id = amsTIdFromRow;
+        if (!id || !fullFormData || id === _initializedIdRef.current) return;
 
         _initializedIdRef.current = id;
-        initializeFormData(rowData);
-    }, [rowData, initializeFormData]);
+        // Merge rowData and fullFormData just in case, but use fullFormData as primary
+        const dataToInitialize = { ...rowData, ...fullFormData };
+        initializeFormData(dataToInitialize);
+    }, [fullFormData, amsTIdFromRow, initializeFormData, rowData]);
 
     const watchedCasteId = watch('imC_Id' as any);
 
@@ -2232,7 +2250,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             // Build payload expected by server for first tab
 
             const payload = {
-                amsT_Id: Number(formData.amsT_Id ?? 0),
+                amsT_Id: getAmsTIdToUse(),
                 asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0),
                 asmcL_Id: Number(formData.asmcL_Id ?? 0),
                 asmS_Id: Number(formData.asmS_Id ?? 0),
@@ -2346,7 +2364,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 amsT_Tpin: formData.amsT_Tpin ?? '',
                 amsT_GPSTrackingId: formData.amsT_GPSTrackingId ?? '',
                 amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
-                editFlag: !!formData.editFlag,
+                editFlag: (getAmsTIdToUse() ?? 0) > 0,
                 studentPhotoUrl: ''
             };
 
@@ -2370,7 +2388,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             if (!res?.success) {
                 throw new Error(res?.message || 'Failed to save step 1');
             }
-            toast.success('Step 1 saved');
             return res;
         } catch (error) {
             console.error('Error saving first tab:', error);
@@ -2514,6 +2531,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const nextStep = async () => {
         // Prevent multiple simultaneous calls
         if (isSavingStep) return;
+        setIsSavingStep(true);
 
         try {
             console.debug('[Admission] nextStep invoked, currentStep=', currentStep);
@@ -2721,8 +2739,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
             }
 
-            // Set saving state to prevent multiple submissions
-            setIsSavingStep(true);
+            // Saving state is already set at the beginning of nextStep
 
             if (currentStep === 3) {
                 if (!isValid) {
@@ -2981,7 +2998,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                         initialStudentPhotoRef.current = studentPhoto?.amsT_Photoname ?? '';
 
-                        toast.success('Step 1 saved');
+                        toast.success('Step 1 saved successfully');
                         setCurrentStep((prev) => Math.min(prev + 1, steps.length));
                         setIsSavingStep(false);
                         return;
@@ -4424,7 +4441,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
             // Build FormData payload (server expects multipart/form-data)
             const fd = new FormData();
-            const amsTIdToUse = savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 25533);
+            const amsTIdToUse = getAmsTIdToUse();
             fd.append('amsT_Id', String(amsTIdToUse));
             fd.append('hostelRequired', String(Boolean(values.hostelRequired)));
             fd.append('transportRequired', String(Boolean(values.transportRequired)));
@@ -5448,6 +5465,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
+                                                                    maxLength={12}
                                                                 />
                                                             )}
                                                         />
@@ -9933,22 +9951,22 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 type='button'
                                                 onClick={() => toast.error('Please save guardian details before proceeding.')}
                                                 className='cursor-not-allowed opacity-60'>
-                                                Next
+                                                {getAmsTIdToUse() > 0 ? 'Update and Proceed' : 'Save and Proceed'}
                                                 <ChevronRight className='ml-2 h-4 w-4' />
                                             </Button>
                                         ) : (
                                             <Button
                                                 type='button'
                                                 onClick={nextStep}
-                                                disabled={isSavingStep || isSubmitting || !isCurrentStepValid}>
+                                                disabled={isSavingStep || isSubmitting}>
                                                 {isSavingStep ? (
                                                     <>
                                                         <Spinner className='mr-2 h-4 w-4' size='sm' />
-                                                        Saving...
+                                                        {getAmsTIdToUse() > 0 ? 'Updating...' : 'Saving...'}
                                                     </>
                                                 ) : (
                                                     <>
-                                                        Next
+                                                        {getAmsTIdToUse() > 0 ? 'Update and Proceed' : 'Save and Proceed'}
                                                         <ChevronRight className='ml-2 h-4 w-4' />
                                                     </>
                                                 )}

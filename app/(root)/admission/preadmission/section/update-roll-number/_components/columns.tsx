@@ -9,6 +9,8 @@ export interface Student {
     class_name: string;
     section_name: string;
     admission_no: string;
+    amaY_RollNo?: number;
+    new_roll_no?: number;
 }
 
 export const masterUpdateRollNumberColumns: ColumnDef<Student>[] = [
@@ -55,7 +57,11 @@ export const masterUpdateRollNumberColumns: ColumnDef<Student>[] = [
     {
         accessorKey: 'roll_no',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Roll No' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('roll_no')}</div>,
+        cell: ({ row }) => {
+            // Prioritize amaY_RollNo as the backend might be returning roll_no as a serial index during search
+            const rollNo = row.original.amaY_RollNo ?? row.original.roll_no ?? row.original.new_roll_no ?? '';
+            return <div>{rollNo}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     }
