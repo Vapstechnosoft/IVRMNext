@@ -869,72 +869,86 @@ export default function StaffUserCreationPage() {
                                         : !!watchInstitution
                                     : !!watchInstitution && (watchFilterData === 'Multiple' || !!watchStaffId)) && (
                                     <>
-                                        <UserDetails
-                                            categories={categories}
-                                            onCategoryChange={setCategories}
-                                            modules={modules}
-                                            onModuleChange={handleModulesChange}
-                                            onSelectAllCategories={handleSelectAllCategories}
-                                            onSelectAllModules={handleSelectAllModules}
-                                            isUserNameDisabled={isUserNameDisabled}
-                                            onChangeUsernameToggle={() => setIsChangeModalOpen(true)}
-                                            isStaffDataLoading={isStaffDataLoading}
-                                        />
+                                        {isStaffDataLoading ? (
+                                            <div className='flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-200 bg-white p-12 shadow-sm'>
+                                                <div className='flex items-center gap-3 text-primary'>
+                                                    <Loader2 className='h-6 w-6 animate-spin' />
+                                                    <span className='font-semibold text-base'>Loading staff details & module permissions...</span>
+                                                </div>
+                                                <p className='mt-2 text-gray-500 text-xs'>
+                                                    Please wait while user credentials and module configurations are loaded.
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <UserDetails
+                                                    categories={categories}
+                                                    onCategoryChange={setCategories}
+                                                    modules={modules}
+                                                    onModuleChange={handleModulesChange}
+                                                    onSelectAllCategories={handleSelectAllCategories}
+                                                    onSelectAllModules={handleSelectAllModules}
+                                                    isUserNameDisabled={isUserNameDisabled}
+                                                    onChangeUsernameToggle={() => setIsChangeModalOpen(true)}
+                                                    isStaffDataLoading={isStaffDataLoading}
+                                                />
 
-                                        {/* Conditional Rendering of Mapping Grids */}
-                                        {(watchFilterData === 'Single'
-                                            ? isUserNameDisabled || modules.some((module) => module.model) || webPages.length > 0 || savedGrid.length > 0
-                                            : staffList.some((s) => s.Selected) || modules.some((module) => module.model) || webPages.length > 0 || savedGrid.length > 0) && (
-                                            <PageMappingGrids
-                                                webPages={webPages}
-                                                onWebPageUpdate={setWebPages}
-                                                stagedWebPages={stagedWebPages}
-                                                onStagedWebPageUpdate={setStagedWebPages}
-                                                webPageTotal={webPageTotal}
-                                                onWebPageParamsChange={setWebPageParams}
-                                                currentWebPageParams={webPageParams}
-                                                isWebPageLoading={isWebPageLoading}
-                                                savedGridTotal={savedGridTotal}
-                                                onSavedGridParamsChange={setSavedGridParams}
-                                                currentSavedGridParams={savedGridParams}
-                                                isSavedGridLoading={isSavedGridLoading}
-                                                mobilePageTotal={mobilePageTotal}
-                                                onMobilePageParamsChange={setMobilePageParams}
-                                                currentMobilePageParams={mobilePageParams}
-                                                isMobilePageLoading={isMobilePageLoading}
-                                                savedMobilePageTotal={savedMobilePageTotal}
-                                                onSavedMobilePageParamsChange={setSavedMobilePageParams}
-                                                currentSavedMobilePageParams={savedMobilePageParams}
-                                                isSavedMobilePageLoading={isSavedMobilePageLoading}
-                                                mobilePages={mobilePages}
-                                                onMobilePageUpdate={setMobilePages}
-                                                savedGrid={savedGrid}
-                                                onSavedGridUpdate={setSavedGrid}
-                                                savedMobilePages={savedMobilePages}
-                                                onSavedMobileUpdate={setSavedMobilePages}
-                                                showInstitution={!!watchTrust}
-                                            />
-                                        )}
-
-                                        <div className='flex justify-center gap-4'>
-                                            <Button type='submit' className='px-8 shadow-md' size='lg' disabled={isSaving}>
-                                                {isSaving ? (
-                                                    <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                                                ) : (
-                                                    <Save className='mr-2 h-4 w-4' />
+                                                {/* Conditional Rendering of Mapping Grids */}
+                                                {(watchFilterData === 'Single'
+                                                    ? isUserNameDisabled || modules.some((module) => module.model) || webPages.length > 0 || savedGrid.length > 0
+                                                    : staffList.some((s) => s.Selected) || modules.some((module) => module.model) || webPages.length > 0 || savedGrid.length > 0) && (
+                                                    <PageMappingGrids
+                                                        webPages={webPages}
+                                                        onWebPageUpdate={setWebPages}
+                                                        stagedWebPages={stagedWebPages}
+                                                        onStagedWebPageUpdate={setStagedWebPages}
+                                                        webPageTotal={webPageTotal}
+                                                        onWebPageParamsChange={setWebPageParams}
+                                                        currentWebPageParams={webPageParams}
+                                                        isWebPageLoading={isWebPageLoading}
+                                                        savedGridTotal={savedGridTotal}
+                                                        onSavedGridParamsChange={setSavedGridParams}
+                                                        currentSavedGridParams={savedGridParams}
+                                                        isSavedGridLoading={isSavedGridLoading}
+                                                        mobilePageTotal={mobilePageTotal}
+                                                        onMobilePageParamsChange={setMobilePageParams}
+                                                        currentMobilePageParams={mobilePageParams}
+                                                        isMobilePageLoading={isMobilePageLoading}
+                                                        savedMobilePageTotal={savedMobilePageTotal}
+                                                        onSavedMobilePageParamsChange={setSavedMobilePageParams}
+                                                        currentSavedMobilePageParams={savedMobilePageParams}
+                                                        isSavedMobilePageLoading={isSavedMobilePageLoading}
+                                                        mobilePages={mobilePages}
+                                                        onMobilePageUpdate={setMobilePages}
+                                                        savedGrid={savedGrid}
+                                                        onSavedGridUpdate={setSavedGrid}
+                                                        savedMobilePages={savedMobilePages}
+                                                        onSavedMobileUpdate={setSavedMobilePages}
+                                                        showInstitution={!!watchTrust}
+                                                    />
                                                 )}
-                                                {isSaving ? 'Saving...' : 'Save'}
-                                            </Button>
-                                            <Button
-                                                type='button'
-                                                variant='outline'
-                                                onClick={() => methods.reset()}
-                                                className='px-8'
-                                                size='lg'>
-                                                <X className='mr-2 h-4 w-4' />
-                                                Cancel
-                                            </Button>
-                                        </div>
+
+                                                <div className='flex justify-center gap-4'>
+                                                    <Button type='submit' className='px-8 shadow-md' size='lg' disabled={isSaving}>
+                                                        {isSaving ? (
+                                                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                        ) : (
+                                                            <Save className='mr-2 h-4 w-4' />
+                                                        )}
+                                                        {isSaving ? 'Saving...' : 'Save'}
+                                                    </Button>
+                                                    <Button
+                                                        type='button'
+                                                        variant='outline'
+                                                        onClick={() => methods.reset()}
+                                                        className='px-8'
+                                                        size='lg'>
+                                                        <X className='mr-2 h-4 w-4' />
+                                                        Cancel
+                                                    </Button>
+                                                </div>
+                                            </>
+                                        )}
                                     </>
                                 )}
                         </form>
