@@ -29,6 +29,7 @@ export default function AddMasterGradeForm({
         handleSubmit,
         reset,
         watch,
+        trigger,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterGradeSchema.addOrUpdate),
@@ -63,7 +64,7 @@ export default function AddMasterGradeForm({
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
     const gradeName = watch('emgR_GradeName');
-    const marksPerFlag = watch('emgR_MarksPerFlag');
+    const _marksPerFlag = watch('emgR_MarksPerFlag');
 
     useEffect(() => {
         setIsDetailsOpen(!!gradeName?.trim());
@@ -190,7 +191,13 @@ export default function AddMasterGradeForm({
                         name='emgR_MarksPerFlag'
                         control={control}
                         render={({ field }) => (
-                            <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
+                            <RadioGroup
+                                value={field.value}
+                                onValueChange={(val) => {
+                                    field.onChange(val);
+                                    trigger();
+                                }}
+                                className='flex gap-4'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='M' id='marks' />
                                     <Label htmlFor='marks'>Marks</Label>
@@ -247,6 +254,8 @@ export default function AddMasterGradeForm({
                                                         if (value && !/^\d*\.?\d*$/.test(value)) {
                                                             e.target.value = value.replace(/[^\d.]/g, '');
                                                         }
+                                                        trigger(`grade_list.${index}.emgD_To`);
+                                                        trigger(`grade_list.${index}.emgD_From`);
                                                     }
                                                 })}
                                                 placeholder='Enter From'
@@ -279,6 +288,8 @@ export default function AddMasterGradeForm({
                                                         if (value && !/^\d*\.?\d*$/.test(value)) {
                                                             e.target.value = value.replace(/[^\d.]/g, '');
                                                         }
+                                                        trigger(`grade_list.${index}.emgD_From`);
+                                                        trigger(`grade_list.${index}.emgD_To`);
                                                     }
                                                 })}
                                                 placeholder='Enter To'
