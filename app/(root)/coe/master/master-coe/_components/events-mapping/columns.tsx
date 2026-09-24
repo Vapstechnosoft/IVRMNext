@@ -43,6 +43,34 @@ export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
         cell: (info) => <div className='text-center uppercase'>{info.getValue() as string}</div>
     },
     {
+        accessorKey: 'coeE_EStartDate',
+        header: ({ column }) => (
+            <DataTableColumnHeader
+                column={column}
+                title='Start Date'
+                className='justify-center text-center font-bold text-black uppercase'
+            />
+        ),
+        cell: (info) => {
+            const date = info.getValue() as string;
+            return <div className='text-center'>{date ? new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>;
+        }
+    },
+    {
+        accessorKey: 'coeE_EEndDate',
+        header: ({ column }) => (
+            <DataTableColumnHeader
+                column={column}
+                title='End Date'
+                className='justify-center text-center font-bold text-black uppercase'
+            />
+        ),
+        cell: (info) => {
+            const date = info.getValue() as string;
+            return <div className='text-center'>{date ? new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</div>;
+        }
+    },
+    {
         accessorKey: 'images',
         header: () => <div className='text-center font-bold text-black uppercase'>Images</div>,
         cell: ({ row }) => (
@@ -221,7 +249,7 @@ function ActionButtonsCell({ rowData }: { rowData: IEventsMapping }) {
                 buttons={{ edit: true, toggle: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                toggleConditionKey='coeE_ActiveFlag'
+                toggleConditionKey={['coeE_ActiveFlag', 'COEE_ActiveFlag']}
             />
         </div>
     );

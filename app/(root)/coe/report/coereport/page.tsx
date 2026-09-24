@@ -62,6 +62,7 @@ export default function coeReport() {
     });
     const [showReport, setShowReport] = useState(false);
     const [coeReportData, setCoeReportData] = useState<any[]>([]);
+    const [masterCompany, setMasterCompany] = useState<any>(null);
     const componentRef = useRef<HTMLDivElement>(null);
 
     const handleFilterChange = (value: string) => {
@@ -102,7 +103,7 @@ export default function coeReport() {
                     { label: 'Event Start Date', value: 'startDate' },
                     { label: 'Event End Date', value: 'endDate' }
                 ],
-                content: coeReportData.map((row, idx) => ({
+                content: (coeReportData || []).map((row, idx) => ({
                     slNo: idx + 1,
                     coemE_EventName: row.eventName || row.coemE_EventName || 'NA',
                     coemE_EventDesc: row.eventDesc || row.coemE_EventDesc || 'NA',
@@ -160,7 +161,13 @@ export default function coeReport() {
 
             if (response.success) {
                 toast.success(response.message || 'COE Report fetched successfully');
-                setCoeReportData(response.data ?? []);
+                
+                const dataObj = response.data || [];
+                const reportData = dataObj.$values || dataObj.reportlist?.$values || dataObj.reportlist || dataObj.coereport?.$values || dataObj.coereport || (Array.isArray(dataObj) ? dataObj : []);
+                const companyData = dataObj.masterCompany?.$values || dataObj.masterCompany || [];
+                
+                setCoeReportData(reportData);
+                setMasterCompany(companyData.length > 0 ? companyData[0] : null);
                 setShowReport(true);
             } else {
                 toast.error(response.message || 'Failed to fetch COE Report');
@@ -443,8 +450,17 @@ export default function coeReport() {
                             {showReport && (
                                 <CollapsibleSection defaultOpen title='COE Report'>
                                     <div className='mt-6 rounded-lg border bg-white shadow-xl'>
-                                        <div className='border-b bg-primary/5 px-8 py-6 text-center'>
-                                            <h2 className='font-bold text-2xl text-primary'>COE Report</h2>
+                                        <div className='border-b bg-primary/5 px-8 py-6'>
+                                            <div className='flex flex-col items-center justify-center space-y-4'>
+                                                {masterCompany?.logo && (
+                                                    <div className='w-full max-w-2xl'>
+                                                        <img src={masterCompany.logo} alt='Institution Logo' className='h-auto w-full object-contain' />
+                                                    </div>
+                                                )}
+                                                <div className='text-center'>
+                                                    <h2 className='font-bold text-xl text-primary'>COE Report</h2>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div className='overflow-x-auto p-4'>
                                             <table className='w-full border-collapse border border-gray-300 text-sm'>
@@ -458,7 +474,7 @@ export default function coeReport() {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {coeReportData.map((row, idx) => (
+                                                    {(coeReportData || []).map((row, idx) => (
                                                         <tr key={idx}>
                                                             <td className='border border-gray-300 px-2 py-2 text-center'>{idx + 1}</td>
                                                             <td className='border border-gray-300 px-2 py-2 font-medium'>
@@ -476,7 +492,7 @@ export default function coeReport() {
                                                             </td>
                                                         </tr>
                                                     ))}
-                                                    {coeReportData.length === 0 && (
+                                                    {(!coeReportData || coeReportData.length === 0) && (
                                                         <tr>
                                                             <td colSpan={5} className='py-4 text-center font-bold text-red-600'>
                                                                 No records found
@@ -494,7 +510,7 @@ export default function coeReport() {
 
                     {/* Hidden Print Wrapper */}
                     <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '210mm' }}>
-                        <CoeReportPrint ref={componentRef} coeReportData={coeReportData} />
+                        <CoeReportPrint ref={componentRef} coeReportData={coeReportData} masterCompany={masterCompany} />
                     </div>
                 </div>
             </form>

@@ -82,7 +82,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterEvent }) {
                 onToggle={handleToggle}
                 onDelete={handleDelete}
                 onView={handleView}
-                toggleConditionKey='coemE_ActiveFlag'
+                toggleConditionKey={['coemE_ActiveFlag', 'COEME_ActiveFlag']}
             />
         </div>
     );

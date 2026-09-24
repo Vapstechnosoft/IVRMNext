@@ -170,11 +170,19 @@ function LeaveStatusReportContent() {
             console.log('response', response);
             if (response.success && response.data) {
                 console.log('response.data', response.data);
-                if (response.data.length === 0) {
+                const list = Array.isArray(response.data)
+                    ? response.data
+                    : response.data.get_leave_status_report ||
+                      response.data.gridData ||
+                      response.data.leave_status_list ||
+                      response.data.filldata ||
+                      response.data.reportData ||
+                      [];
+                if (list.length === 0) {
                     setReportData([]);
                     toast.info('No data found for selected criteria');
                 } else {
-                    setReportData(response.data);
+                    setReportData(list);
                     toast.success('Report generated successfully');
                 }
             } else {
