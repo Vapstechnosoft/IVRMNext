@@ -134,7 +134,6 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
                     loadingMessage='Loading events...'
                     noDataTitle='No Master Events Found'
                     noDataDescription='Create a new event to get started.'
-                    manualFiltering={false}
                 />
             </CollapsibleSection>
 

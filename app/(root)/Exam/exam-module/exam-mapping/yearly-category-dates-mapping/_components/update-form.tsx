@@ -153,6 +153,7 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
                                         fieldState={fieldState}
                                         label='Exam Start Date'
                                         placeholder='Select Exam Start Date'
+                                        required
                                     />
                                 )}
                             />
@@ -166,6 +167,7 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
                                         fieldState={fieldState}
                                         label='Marks Entry Last Date'
                                         placeholder='Select Marks Entry Last Date'
+                                        required
                                     />
                                 )}
                             />
@@ -179,6 +181,7 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
                                         fieldState={fieldState}
                                         label='Marks Publish Date'
                                         placeholder='Select Marks Publish Date'
+                                        required
                                     />
                                 )}
                             />
@@ -220,6 +223,7 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
                                         fieldState={fieldState}
                                         label='Exam End Date'
                                         placeholder='Select Exam End Date'
+                                        required
                                     />
                                 )}
                             />
@@ -233,6 +237,7 @@ export default function UpdateYearlyCategoryDatesMapping({ selectedRow, onSucces
                                         fieldState={fieldState}
                                         label='Marks Process Last Date'
                                         placeholder='Select Marks Process Last Date'
+                                        required
                                     />
                                 )}
                             />

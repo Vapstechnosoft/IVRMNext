@@ -258,8 +258,8 @@ export default function PrivilegesPage() {
                                 <SelectValue placeholder='Select Role' />
                             </SelectTrigger>
                             <SelectContent>
-                                {roles.map((role) => (
-                                    <SelectItem key={role.ivrmrT_Id} value={role.ivrmrT_Id.toString()}>
+                                {roles.map((role, index) => (
+                                    <SelectItem key={`${role.ivrmrT_Id}_${index}`} value={role.ivrmrT_Id.toString()}>
                                         {role.ivrmrT_Role}
                                     </SelectItem>
                                 ))}
@@ -273,14 +273,14 @@ export default function PrivilegesPage() {
                             Module Pages <span className='text-red-500'>*</span>
                         </Label>
                         <div className='h-40 overflow-y-auto rounded-md border bg-gray-50 p-2'>
-                            {modules.map((mod) => (
-                                <div key={mod.ivrmM_Id} className='mb-2 flex items-center space-x-2'>
+                            {modules.map((mod, index) => (
+                                <div key={`${mod.ivrmM_Id}_${index}`} className='mb-2 flex items-center space-x-2'>
                                     <Checkbox
-                                        id={`mod-${mod.ivrmM_Id}`}
+                                        id={`mod-${mod.ivrmM_Id}-${index}`}
                                         checked={selectedModuleIds.includes(mod.ivrmM_Id)}
                                         onCheckedChange={(c) => handleModuleCheck(mod.ivrmM_Id, c as boolean)}
                                     />
-                                    <Label htmlFor={`mod-${mod.ivrmM_Id}`} className='cursor-pointer font-normal'>
+                                    <Label htmlFor={`mod-${mod.ivrmM_Id}-${index}`} className='cursor-pointer font-normal'>
                                         {mod.ivrmM_ModuleName}
                                     </Label>
                                 </div>
@@ -340,7 +340,11 @@ export default function PrivilegesPage() {
                     onPageChange: (p) => setPage(p),
                     onPageSizeChange: (s) => setPageSize(s)
                 }}
-                onSearch={(term) => setSearchQuery(term)}
+                searchValue={searchQuery}
+                onSearch={(term) => {
+                    setSearchQuery(term || null);
+                    setPage(1);
+                }}
             />
         </div>
     );

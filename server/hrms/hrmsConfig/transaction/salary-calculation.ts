@@ -188,14 +188,49 @@ export async function searchEmployeesBySelection(payload: NewSalaryCalculationSe
         const queryParams: Record<string, string | number> = {};
         if (page !== undefined) queryParams.page = page;
         if (page_size !== undefined) queryParams.page_size = page_size;
-        if (search_query) queryParams.search_query = search_query;
-        if (search_columns) queryParams.search_columns = search_columns;
+        const queryTerm = search_query ? search_query.trim() : '';
+        if (queryTerm) {
+            queryParams.search_query = queryTerm;
+            const col = search_columns || 'all';
+            queryParams.search_column = col;
+            queryParams.search_columns = col;
+        }
         if (sort_column) queryParams.sort_column = sort_column;
         if (sort_direction) queryParams.sort_direction = sort_direction;
 
-        const response = await api.post<SelectionEmployee[]>('hrms', url, bodyFields, {
-            params: queryParams
-        });
+        const config = Object.keys(queryParams).length > 0 ? { params: queryParams } : undefined;
+        let response = await api.post<SelectionEmployee[]>('hrms', url, bodyFields, config);
+
+        // If search returned no records and search_query contains lowercase characters,
+        // retry with uppercase/titlecase because the remote backend database stores employee names in UPPERCASE
+        // and the remote C# backend runs case-sensitive Contains().
+        if (
+            queryTerm &&
+            (!Array.isArray(response?.data) || response.data.length === 0) &&
+            queryTerm !== queryTerm.toUpperCase()
+        ) {
+            const upperParams = {
+                ...queryParams,
+                search_query: queryTerm.toUpperCase()
+            };
+            const upperResponse = await api.post<SelectionEmployee[]>('hrms', url, bodyFields, { params: upperParams });
+            if (Array.isArray(upperResponse?.data) && upperResponse.data.length > 0) {
+                response = upperResponse;
+            } else {
+                const titleQuery = queryTerm.charAt(0).toUpperCase() + queryTerm.slice(1).toLowerCase();
+                if (titleQuery !== queryTerm && titleQuery !== queryTerm.toUpperCase()) {
+                    const titleParams = {
+                        ...queryParams,
+                        search_query: titleQuery
+                    };
+                    const titleResponse = await api.post<SelectionEmployee[]>('hrms', url, bodyFields, { params: titleParams });
+                    if (Array.isArray(titleResponse?.data) && titleResponse.data.length > 0) {
+                        response = titleResponse;
+                    }
+                }
+            }
+        }
+
         // Ensure success: true is returned in the response
         if (response && typeof response === 'object' && 'success' in response) {
             return response;

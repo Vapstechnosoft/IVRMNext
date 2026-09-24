@@ -56,9 +56,21 @@ export default function SubSubjectSubExamModal({
     const [currentPage, setCurrentPage] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Parent marks (defensive)
-    const parentMaxMarks = Number(subject?.EYCES_MaxMarks ?? 0);
-    const parentMinMarks = Number(subject?.EYCES_MinMarks ?? 0);
+    // Parent marks (safe lookup across casings)
+    const parentMaxMarks = Number(
+        subject?.eyceS_MaxMarks ??
+            subject?.EYCES_MaxMarks ??
+            subject?.eycessS_MaxMarks ??
+            subject?.ismS_Max_Marks ??
+            0
+    );
+    const parentMinMarks = Number(
+        subject?.eyceS_MinMarks ??
+            subject?.EYCES_MinMarks ??
+            subject?.eycessS_MinMarks ??
+            subject?.ismS_Min_Marks ??
+            0
+    );
 
     // Populate/reset when subject changes
     // Populate/reset when subject changes
@@ -409,7 +421,7 @@ export default function SubSubjectSubExamModal({
             <DialogContent className='flex h-[90vh] w-full min-w-[80vw] flex-col overflow-hidden pt-0'>
                 {/* Top header */}
                 <DialogHeader className='shrink-0 border-b bg-white pt-4 pb-2'>
-                    <DialogTitle className='text-lg'>{`Map Sub-Subject and Sub-Exam — ${subject.ISMS_SubjectName}`}</DialogTitle>
+                    <DialogTitle className='text-lg'>{`Map Sub-Subject and Sub-Exam — ${subject.ismS_SubjectName || subject.ISMS_SubjectName || ''}`}</DialogTitle>
                     <DialogDescription>Fill details and save sub-exam mapping</DialogDescription>
                 </DialogHeader>
 

@@ -856,7 +856,8 @@ export async function getUserAccessibleModules() {
                 icon: 'Settings',
                 url: page.ivrmP_PageURL,
                 title: cleanedName,
-                description: cleanedName
+                description: cleanedName,
+                order: page.order || 0
             });
         });
 
@@ -883,6 +884,7 @@ export async function getUserAccessibleModules() {
                     .sort(sortByOrder);
 
             const validChildren: any[] = [];
+            const seenSubMenuKeys = new Set<string>();
 
             for (const sub of children) {
 

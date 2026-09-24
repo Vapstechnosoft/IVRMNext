@@ -1,6 +1,6 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
 import type {
     ISavePrivilegesApiRequestDTO,
     ISearchPagesApiRequestDTO,
@@ -164,23 +164,42 @@ export async function deletePrivilege(id: number) {
 }
 
 export async function getRolePrivilegesList(searchParams: any) {
-    const query = new URLSearchParams(searchParams).toString();
+    const params = {
+        ...searchParams,
+        search_column: searchParams.search_column || (searchParams.search_query ? 'ivrmrT_Role' : '')
+    };
+    const query = getSearchParamsUrl(params);
     const url = `${FACADE}/get_onload_grid_master_priviledge?${query}`;
     try {
         const response = await api.get<any>('sadmin', url);
         const resData = response?.data || response;
         if (resData && response.success !== false) {
             const rawList = resData.thirdgriddata || resData.records || resData.gridData || (Array.isArray(resData) ? resData : []);
-            const mappedList = rawList.map((item: any) => ({
+            let mappedList = rawList.map((item: any) => ({
                 ivrmrP_Id: item.IVRMRP_Id ?? item.ivrmrP_Id,
                 ivrmrT_Role: item.ivrmrT_Role ?? item.IVRMRT_Role ?? item.roleName ?? '',
                 ivrmM_ModuleName: item.ivrmM_ModuleName ?? item.IVRMM_ModuleName ?? item.moduleName ?? '',
                 ivrmmP_PageName: item.ivrmmP_PageName ?? item.IVRMMP_PageName ?? item.pageName ?? ''
             }));
+
+            // In-memory fallback filter in case backend returns all records unfiltered
+            if (searchParams.search_query) {
+                const q = String(searchParams.search_query).toLowerCase().trim();
+                const filtered = mappedList.filter(
+                    (item: any) =>
+                        (item.ivrmrT_Role && item.ivrmrT_Role.toLowerCase().includes(q)) ||
+                        (item.ivrmM_ModuleName && item.ivrmM_ModuleName.toLowerCase().includes(q)) ||
+                        (item.ivrmmP_PageName && item.ivrmmP_PageName.toLowerCase().includes(q))
+                );
+                if (filtered.length !== mappedList.length) {
+                    mappedList = filtered;
+                }
+            }
+
             return {
                 success: true,
                 data: mappedList,
-                total: response.total || resData.total || mappedList.length,
+                total: searchParams.search_query ? mappedList.length : (response.total || resData.total || mappedList.length),
                 page: response.page || resData.page || 1,
                 page_size: response.page_size || resData.page_size || 10
             };

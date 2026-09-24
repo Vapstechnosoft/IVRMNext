@@ -116,7 +116,7 @@ export default function BankCashReportPage() {
             {
                 onSuccess: (res) => {
                     if (res.success && res.data) {
-                        setReportData((res.data || []).filter(Boolean));
+                        setReportData(res.data);
                         toast.success('Report generated successfully');
                     } else {
                         toast.error(res.message || 'No data found');
@@ -167,12 +167,12 @@ export default function BankCashReportPage() {
 
         const exportData = reportData.map((item, index) => ({
             slNo: index + 1,
-            employeeName: item?.employeeName || '',
-            bankAcNumber: item?.bankAcNumber || '',
-            hrmbD_IFSCCode: item?.hrmbD_IFSCCode || '',
-            hrmbD_BankName: item?.hrmbD_BankName || '',
-            hrmbD_BranchName: item?.hrmbD_BranchName || '',
-            netSalary: item?.netSalary || 0
+            employeeName: item.employeeName,
+            bankAcNumber: item.bankAcNumber,
+            hrmbD_IFSCCode: item.hrmbD_IFSCCode,
+            hrmbD_BankName: item.hrmbD_BankName,
+            hrmbD_BranchName: item.hrmbD_BranchName,
+            netSalary: item.netSalary
         }));
 
         exportToExcel('BankCashReport', JSON.stringify(exportColumns), JSON.stringify(exportData));
@@ -216,7 +216,7 @@ export default function BankCashReportPage() {
         }
     ];
 
-    const totalNetSalary = reportData.reduce((sum, item) => sum + (item?.netSalary || 0), 0);
+    const totalNetSalary = reportData.reduce((sum, item) => sum + (item.netSalary || 0), 0);
 
     return (
         <div className='container min-h-screen space-y-4 p-2'>
@@ -367,12 +367,6 @@ export default function BankCashReportPage() {
                                             <RadioGroupItem value='Cash' id='cash' />
                                             <Label htmlFor='cash' className='cursor-pointer'>
                                                 Cash
-                                            </Label>
-                                        </div>
-                                        <div className='flex items-center space-x-2'>
-                                            <RadioGroupItem value='Check' id='check' />
-                                            <Label htmlFor='check' className='cursor-pointer'>
-                                                Check
                                             </Label>
                                         </div>
                                     </RadioGroup>

@@ -52,8 +52,8 @@ export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
                     type='image'
                     fetchData={async () => {
                         const res = await getPageDetailsMap(row.original.coeE_Id || (row.original as any).COEE_Id);
-                        const data = (res as any).data || (res as any).event_mapping_list?.[0] || res || {};
-                        return data.edit_images_list || data.images_listCoe || [];
+                        const data = (res as any).event_mapping_list?.[0] || {};
+                        return data.images_listCoe || [];
                     }}
                     trigger={
                         <Button variant='ghost' size='icon' className='h-8 w-8 text-green-600'>
@@ -74,8 +74,10 @@ export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
                     type='video'
                     fetchData={async () => {
                         const res = await getPageDetailsMap(row.original.coeE_Id || (row.original as any).COEE_Id);
-                        const data = (res as any).data || (res as any).event_mapping_list?.[0] || res || {};
-                        return data.edit_videos_list || data.videos_list || [];
+                        const data = (res as any).event_mapping_list?.[0] || {};
+                        return (data.videos_list || []).map((v: any) => ({
+                            COEEV_Videos: v.coeeV_Videos || v.COEEV_Videos || v.COEEV_VideoURL
+                        }));
                     }}
                     trigger={
                         <Button variant='ghost' size='icon' className='h-8 w-8 text-blue-600'>
@@ -96,8 +98,8 @@ export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
                     type='class'
                     fetchData={async () => {
                         const res = await getPageDetailsMap(row.original.coeE_Id || (row.original as any).COEE_Id);
-                        const data = (res as any).data || (res as any).event_mapping_list?.[0] || res || {};
-                        return data.edit_stu_class_list || data.stu_class_list || [];
+                        const data = (res as any).event_mapping_list?.[0] || {};
+                        return data.stu_class_list || [];
                     }}
                     trigger={
                         <Button variant='ghost' size='icon' className='h-8 w-8 text-blue-600'>
@@ -118,8 +120,8 @@ export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
                     type='employee'
                     fetchData={async () => {
                         const res = await getPageDetailsMap(row.original.coeE_Id || (row.original as any).COEE_Id);
-                        const data = (res as any).data || (res as any).event_mapping_list?.[0] || res || {};
-                        return data.edit_emp_type_list || data.emp_type_list || [];
+                        const data = (res as any).event_mapping_list?.[0] || {};
+                        return data.emp_type_list || [];
                     }}
                     trigger={
                         <Button variant='ghost' size='icon' className='h-8 w-8 text-orange-600'>
@@ -140,8 +142,8 @@ export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
                     type='other'
                     fetchData={async () => {
                         const res = await getPageDetailsMap(row.original.coeE_Id || (row.original as any).COEE_Id);
-                        const data = (res as any).data || (res as any).event_mapping_list?.[0] || res || {};
-                        return data.edit_oth_mobilenos_list || data.others_list || [];
+                        const data = (res as any).event_mapping_list?.[0] || {};
+                        return data.others_list || []; // Adjust if different field name
                     }}
                     trigger={
                         <Button variant='ghost' size='icon' className='h-8 w-8 text-red-600'>
@@ -162,8 +164,8 @@ export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
                     type='alumni'
                     fetchData={async () => {
                         const res = await getPageDetailsMap(row.original.coeE_Id || (row.original as any).COEE_Id);
-                        const data = (res as any).data || (res as any).event_mapping_list?.[0] || res || {};
-                        return data.edit_alumni_list || data.alumniClslist || data.alumni_list || [];
+                        const data = (res as any).event_mapping_list?.[0] || {};
+                        return data.alumniClslist || data.alumni_list || [];
                     }}
                     trigger={
                         <Button variant='ghost' size='icon' className='h-8 w-8 text-blue-600'>
