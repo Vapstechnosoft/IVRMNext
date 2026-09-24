@@ -771,11 +771,19 @@ export async function getUserAccessibleModules() {
         const extractArray = (res: any): any[] => {
             if (!res) return [];
             if (Array.isArray(res)) return res;
+
             if (res.data) {
                 if (Array.isArray(res.data)) return res.data;
-                if (res.data.$values && Array.isArray(res.data.$values)) return res.data.$values;
+
+                if (res.data.$values && Array.isArray(res.data.$values)) {
+                    return res.data.$values;
+                }
             }
-            if (res.$values && Array.isArray(res.$values)) return res.$values;
+
+            if (res.$values && Array.isArray(res.$values)) {
+                return res.$values;
+            }
+
             return [];
         };
 
@@ -783,39 +791,66 @@ export async function getUserAccessibleModules() {
         const subModules = extractArray(subModulesRes);
         const pages = extractArray(pageListRes);
 
-        // console.info('main Modules', mainModules);
-        // console.info('subModules', subModules);
-        // console.info('pages', pages);
+        // --------------------------------------------------
+        // Composite key: moduleId + menuId
+        // --------------------------------------------------
+        const getMenuKey = (moduleId: number, menuId: number): string => {
+            return `${moduleId}_${menuId}`;
+        };
 
-        // Build maps for quick lookup
-        const subByParent = new Map<number, any[]>();
+
+        // --------------------------------------------------
+        // Build submodules by moduleId + parentId
+        // --------------------------------------------------
+        const subByParent = new Map<string, any[]>();
+
         subModules.forEach((sub: any) => {
-            const parentId = sub.parentId;
-            if (!subByParent.has(parentId)) {
-                subByParent.set(parentId, []);
+            const moduleId = Number(sub.moduleId);
+            const parentId = Number(sub.parentId);
+
+            const key = getMenuKey(moduleId, parentId);
+
+            if (!subByParent.has(key)) {
+                subByParent.set(key, []);
             }
-            subByParent.get(parentId)!.push(sub);
+
+            subByParent.get(key)!.push(sub);
         });
+
 
         const cleanMenuTitle = (text: string): string => {
             if (!text) return '';
+
             return text
                 .replace(/\bbaldwin\b\s*/gi, '')
                 .trim();
         };
 
-        // Filter pages: only keep those whose URL starts with "app."
-        const pagesByMenuId = new Map<number, any[]>();
+
+        // --------------------------------------------------
+        // Build pages using moduleId + menuId
+        // --------------------------------------------------
+        const pagesByMenuId = new Map<string, any[]>();
+
         pages.forEach((page: any) => {
-            const url = page.ivrmP_PageURL || '';
-            // if (!url.startsWith('app.')) {
-            const menuId = page.menuId;
-            if (!pagesByMenuId.has(menuId)) {
-                pagesByMenuId.set(menuId, []);
+
+            const moduleId = Number(page.moduleId);
+            const menuId = Number(page.menuId);
+
+            const key = getMenuKey(moduleId, menuId);
+
+            if (!pagesByMenuId.has(key)) {
+                pagesByMenuId.set(key, []);
             }
-            const rawName = page.ivrmmP_PageName || page.ivrmP_PageDisplayName || '';
+
+            const rawName =
+                page.ivrmmP_PageName ||
+                page.ivrmP_PageDisplayName ||
+                '';
+
             const cleanedName = cleanMenuTitle(rawName);
-            pagesByMenuId.get(menuId)!.push({
+
+            pagesByMenuId.get(key)!.push({
                 id: page.pageId,
                 name: cleanedName,
                 icon: 'Settings',
@@ -823,56 +858,137 @@ export async function getUserAccessibleModules() {
                 title: cleanedName,
                 description: cleanedName
             });
-            // }
         });
 
-        // Sort helper
-        const sortByOrder = (a: any, b: any) => (a.order || 0) - (b.order || 0);
 
-        // Recursive function to build submenu structure, returns only non-empty submenus
-        function buildSubMenu(parentId: number): any[] {
-            const children = (subByParent.get(parentId) || []).sort(sortByOrder);
+        // --------------------------------------------------
+        // Sort helper
+        // --------------------------------------------------
+        const sortByOrder = (a: any, b: any) =>
+            (a.order || 0) - (b.order || 0);
+
+
+        // --------------------------------------------------
+        // Recursive submenu builder
+        // --------------------------------------------------
+        function buildSubMenu(
+            moduleId: number,
+            parentId: number
+        ): any[] {
+
+            const parentKey = getMenuKey(moduleId, parentId);
+
+            const children =
+                (subByParent.get(parentKey) || [])
+                    .sort(sortByOrder);
+
             const validChildren: any[] = [];
 
             for (const sub of children) {
-                const hasGrandChildren = subByParent.has(sub.menuId);
-                const itemPages = pagesByMenuId.get(sub.menuId) || [];
+
+                const subModuleId = Number(sub.moduleId);
+                const subMenuId = Number(sub.menuId);
+
+                // ------------------------------------------
+                // Pages belong to moduleId + menuId
+                // ------------------------------------------
+                const pageKey = getMenuKey(
+                    subModuleId,
+                    subMenuId
+                );
+
+                const itemPages =
+                    pagesByMenuId.get(pageKey) || [];
+
+
+                // ------------------------------------------
+                // Check child submenu using same moduleId
+                // ------------------------------------------
+                const childKey = getMenuKey(
+                    subModuleId,
+                    subMenuId
+                );
+
+                const hasGrandChildren =
+                    subByParent.has(childKey);
+
 
                 let subMenuItems: any[] = [];
+
                 if (hasGrandChildren) {
-                    subMenuItems = buildSubMenu(sub.menuId);
+                    subMenuItems = buildSubMenu(
+                        subModuleId,
+                        subMenuId
+                    );
                 }
 
-                // Include this submenu only if it has pages (directly) OR has non-empty submenus
-                if (itemPages.length > 0 || subMenuItems.length > 0) {
+
+                // ------------------------------------------
+                // Include only if pages/submenus exist
+                // ------------------------------------------
+                if (
+                    itemPages.length > 0 ||
+                    subMenuItems.length > 0
+                ) {
+
                     const menuItem: any = {
-                        id: sub.menuId,
-                        name: cleanMenuTitle(sub.ivrmM_ModuleName),
-                        icon: mapIcon(sub.ivrmmmI_Icon),
+                        id: subMenuId,
+
+                        name: cleanMenuTitle(
+                            sub.ivrmM_ModuleName
+                        ),
+
+                        icon: mapIcon(
+                            sub.ivrmmmI_Icon
+                        ),
+
                         sub_menu: subMenuItems,
-                        pages: hasGrandChildren ? [] : itemPages.sort(sortByOrder)
+
+                        pages: hasGrandChildren
+                            ? []
+                            : itemPages.sort(sortByOrder)
                     };
+
                     validChildren.push(menuItem);
                 }
             }
+
             return validChildren;
         }
 
-        // Build top-level modules (parentId === 0)
+
+        // --------------------------------------------------
+        // Build top-level modules
+        // --------------------------------------------------
         const topModules = mainModules
-            .filter((m: any) => m.parentId === 0)
+            .filter((m: any) => Number(m.parentId) === 0)
             .sort(sortByOrder)
             .map((m: any) => {
-                const subMenuStructure = buildSubMenu(m.menuId);
-                // Only include the top module if it has at least one valid submenu (with pages)
+
+                const moduleId = Number(m.moduleId);
+                const menuId = Number(m.menuId);
+
+                const subMenuStructure =
+                    buildSubMenu(
+                        moduleId,
+                        menuId
+                    );
+
+                // Only include module if it has valid submenu
                 if (subMenuStructure.length === 0) {
                     return null;
                 }
-                const cleanedModuleName = cleanMenuTitle(m.ivrmM_ModuleName);
+
+                const cleanedModuleName =
+                    cleanMenuTitle(
+                        m.ivrmM_ModuleName
+                    );
+
                 return {
-                    id: m.menuId,
+                    id: menuId,
                     name: cleanedModuleName,
                     icon: mapIcon(m.ivrmmmI_Icon),
+
                     menu: [
                         {
                             id: 1,
@@ -884,6 +1000,7 @@ export async function getUserAccessibleModules() {
                 };
             })
             .filter((module: any) => module !== null);
+
 
         console.log('topModules', topModules);
 
