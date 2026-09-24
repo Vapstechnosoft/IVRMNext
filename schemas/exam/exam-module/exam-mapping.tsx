@@ -337,16 +337,6 @@ export const ExamTermAndExamMappingSchema = {
     })
 };
 
-const isoDateString = z.string().refine(
-    (s) => {
-        // allow empty? YES — require proper ISO-like string only if present
-        if (!s || s.trim() === '') return true;
-        const d = new Date(s);
-        return !Number.isNaN(d.getTime());
-    },
-    { message: 'Invalid date format (expected ISO date string)' }
-);
-
 const ExamItemSchema = z.object({
     EME_Id: z.number().int().nonnegative(), // exam id
     EME_ExamName: z.string().optional(),
@@ -591,6 +581,7 @@ export const categorySubjectMappingSchema = {
         .object({
             userId: z.number().int().positive({ message: 'User Id is required' }).optional(),
             eycG_Id: z.number().optional(),
+            eyC_Id: z.number().optional(),
             mI_Id: z.number().optional(),
             // Core Dropdowns
             asmaY_Id: z.number({ required_error: 'Academic Year is required' }).min(1, { message: 'Please select an Academic Year' }),
