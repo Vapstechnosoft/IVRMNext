@@ -19,7 +19,7 @@ import {
 } from '@/hooks/fees/college/useTransactions';
 import { cn } from '@/lib/utils';
 import { collegeFeeWaivedOffSchema } from '@/schemas/fees/college/transactions/clgfeewaivedoff';
-import { saveCollegeFeeWaivedOff } from '@/server/fees/college/transactions/clgfeewaivedoff';
+import { saveCollegeFeeWaivedOff } from '@/server/fees/college/transaction/clgfeewaivedoff';
 import type {
     ICollegeAcademicYear,
     ICollegeBranch,
@@ -28,7 +28,7 @@ import type {
     ICollegeFeeHeadItem,
     ICollegeSemester,
     ICollegeStudent
-} from '@/types/fees/college/transactions/clgfeewaivedoff';
+} from '@/types/fees/college/transaction/clgfeewaivedoff';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, DollarSign, RotateCcw, Save, Search, Square } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
