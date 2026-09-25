@@ -5,9 +5,10 @@ import React from 'react';
 
 interface CoeReportPrintProps {
     coeReportData: any[];
+    masterCompany?: any;
 }
 
-export const CoeReportPrint = React.forwardRef<HTMLDivElement, CoeReportPrintProps>(({ coeReportData }, ref) => {
+export const CoeReportPrint = React.forwardRef<HTMLDivElement, CoeReportPrintProps>(({ coeReportData, masterCompany }, ref) => {
     const currentDate = format(new Date(), 'dd/MM/yyyy');
 
     return (
@@ -16,7 +17,7 @@ export const CoeReportPrint = React.forwardRef<HTMLDivElement, CoeReportPrintPro
                 {`
                         @media print {
                             @page {
-                                margin: 10mm;
+                                margin: 0;
                                 size: A4 portrait;
                             }
                             body {
@@ -34,6 +35,7 @@ export const CoeReportPrint = React.forwardRef<HTMLDivElement, CoeReportPrintPro
                                 background: white;
                                 z-index: 9999;
                                 color: black;
+                                padding: 10mm;
                             }
                             .print-preview-container * {
                                 visibility: visible !important;
@@ -62,8 +64,26 @@ export const CoeReportPrint = React.forwardRef<HTMLDivElement, CoeReportPrintPro
                             .text-left { text-align: left !important; }
                             .text-center { text-align: center !important; }
                             .header-section {
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                justify-content: center;
+                                padding-bottom: 15px;
+                                border-bottom: 2px solid #e5e7eb;
+                                margin-bottom: 15px;
+                            }
+                            .header-content {
                                 text-align: center;
-                                padding-bottom: 10px;
+                                margin-top: 10px;
+                            }
+                            .header-logo {
+                                width: 100%;
+                                max-width: 800px;
+                            }
+                            .header-logo img {
+                                width: 100%;
+                                height: auto;
+                                object-fit: contain;
                             }
                             .footer-section {
                                 padding-top: 10px;
@@ -85,8 +105,15 @@ export const CoeReportPrint = React.forwardRef<HTMLDivElement, CoeReportPrintPro
                         <td className='no-border'>
                             {/* Header */}
                             <div className='header-section'>
-                                <h2 className='font-bold text-md uppercase'>COE Report</h2>
-                                <p className='mt-2 text-xs'>Date: {currentDate}</p>
+                                {masterCompany?.logo && (
+                                    <div className='header-logo'>
+                                        <img src={masterCompany.logo} alt='Institution Logo' />
+                                    </div>
+                                )}
+                                <div className='header-content'>
+                                    <h2 className='font-bold text-md uppercase mt-1'>COE Report</h2>
+                                    <p className='mt-1 text-xs'>Date: {currentDate}</p>
+                                </div>
                             </div>
                         </td>
                     </tr>
@@ -106,7 +133,7 @@ export const CoeReportPrint = React.forwardRef<HTMLDivElement, CoeReportPrintPro
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {coeReportData.map((row, idx) => (
+                                    {(coeReportData || []).map((row, idx) => (
                                         <tr key={idx}>
                                             <td>{idx + 1}</td>
                                             <td className='text-left font-medium'>{row.eventName ?? row.coemE_EventName ?? 'NA'}</td>
@@ -115,7 +142,7 @@ export const CoeReportPrint = React.forwardRef<HTMLDivElement, CoeReportPrintPro
                                             <td>{row.coeE_EEndDate ? new Date(row.coeE_EEndDate).toISOString().slice(0, 10) : 'NA'}</td>
                                         </tr>
                                     ))}
-                                    {coeReportData.length === 0 && (
+                                    {(!coeReportData || coeReportData.length === 0) && (
                                         <tr>
                                             <td colSpan={5} className='py-4 text-center font-bold'>
                                                 No records found

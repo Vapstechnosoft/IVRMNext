@@ -9,7 +9,6 @@ export interface IMasterEvent {
     COEME_MailFooter: string | null;
     COEME_ActiveFlag: boolean;
     COEME_ManualDefault_Flag: 'Manual' | 'Default';
-    // CamelCase versions from API
     coemE_Id?: number;
     coemE_EventName?: string;
     coemE_EventDesc?: string | null;

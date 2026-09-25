@@ -98,7 +98,7 @@ export async function getViewRecordsMaster(coemE_Id: number) {
 
 export async function deactivateMasterEvent(coemE_Id: number) {
     const url = `/MasterCOE/deactivate?COEME_Id=${coemE_Id}`;
-    return await api.get<any>('alumni', url);
+    return await api.post<any>('alumni', url, {});
 }
 
 export async function getCOEMappingDetails() {

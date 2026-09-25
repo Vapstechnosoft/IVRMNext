@@ -77,11 +77,17 @@ export default function MasterEventsForm({ onSuccess, parameterlist, editData }:
                 toast.success(res.message || (editData ? 'Event updated successfully' : 'Event saved successfully'));
                 form.reset();
                 onSuccess?.();
+            } else if (res.message === 'Record Already Exist' || res.message === 'Duplicate') {
+                toast.warning(res.message);
             } else {
                 toast.error(res.message || 'Failed to save event');
             }
-        } catch (error) {
-            toast.error('An error occurred while saving');
+        } catch (error: any) {
+            if (typeof error === 'string' && (error === 'Record Already Exist' || error === 'Duplicate')) {
+                toast.warning(error);
+            } else {
+                toast.error(typeof error === 'string' ? error : error?.message || 'An error occurred while saving');
+            }
         }
     };
 
