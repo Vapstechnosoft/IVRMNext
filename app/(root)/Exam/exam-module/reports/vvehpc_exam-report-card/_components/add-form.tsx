@@ -189,11 +189,11 @@ export default function ProgressCardReportForm({
 
         const currentDateTime = new Date().toISOString();
         const payload: any = {
-            mI_Id: 0,
             asmaY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
             emE_Id: data.emE_Id,
+            studentList: data.studentList,
             amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
             fromDate: currentDateTime,
             toDate: currentDateTime,
@@ -402,10 +402,15 @@ export default function ProgressCardReportForm({
                                             name='studentList'
                                             render={({ field, fieldState }) => (
                                                 <CustomMultiSelectBox
-                                                    options={students.map((s) => ({
-                                                        label: `${s.studentName?.trim() || 'Unknown'} - ${s.amsT_AdmNo || 'N/A'}`.trim(),
-                                                        value: s.amsT_Id.toString()
-                                                    }))}
+                                                    options={students.map((s) => {
+                                                        const name = s.studentName?.trim() || 'Unknown';
+                                                        const adm = s.amsT_AdmNo ? String(s.amsT_AdmNo).trim() : '';
+                                                        const label = adm && !name.includes(adm) ? `${name} - ${adm}` : name;
+                                                        return {
+                                                            label,
+                                                            value: s.amsT_Id.toString()
+                                                        };
+                                                    })}
                                                     onChange={handleStudentChange}
                                                     value={field.value?.map((s: any) => s.amsT_Id.toString()) ?? []}
                                                     placeholder='Select Students'
