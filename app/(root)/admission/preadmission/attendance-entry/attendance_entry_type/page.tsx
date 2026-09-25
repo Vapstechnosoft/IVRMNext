@@ -53,6 +53,7 @@ function EntryTypePageContent({
                     refetchAll={refetchAll}
                     editingRecord={editingRecord}
                     setEditingRecord={setEditingRecord}
+                    existingRecords={response?.data || []}
                 />
 
                 <EditContext.Provider value={{ setEditingRecord }}>
@@ -87,13 +88,15 @@ function EntryForm({
     onClose: _onClose, // Rename to unused
     refetchAll,
     editingRecord,
-    setEditingRecord
+    setEditingRecord,
+    existingRecords
 }: {
     title: string;
     onClose: () => void;
     refetchAll: () => void;
     editingRecord: IAttendanceEntryTypeList | null;
     setEditingRecord: (record: IAttendanceEntryTypeList | null) => void;
+    existingRecords: any[];
 }) {
     const queryClient = useQueryClient();
     const [selectedAcademicYearId, setSelectedAcademicYearId] = useState<number | undefined>();
@@ -221,6 +224,19 @@ function EntryForm({
             };
             updateMutation.mutate(updatePayload);
         } else {
+            // Check for duplicates
+            const duplicates = selectedClasses.filter(classId => {
+                return existingRecords.some(record => 
+                    record.asmaY_Id === selectedAcademicYearId && 
+                    record.asmcL_Id === Number(classId)
+                );
+            });
+
+            if (duplicates.length > 0) {
+                toast.error('Record already Exists / Duplicate record');
+                return;
+            }
+
             // Create mode - POST request
             const payload = {
                 asmaY_Id: selectedAcademicYearId,
