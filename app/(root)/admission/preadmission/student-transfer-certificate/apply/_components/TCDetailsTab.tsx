@@ -42,7 +42,7 @@ export const TCDetailsTab = ({ formData, setFormData, initialData, onCheckDuplic
                     {/* TC Number */}
                     <div className='grid grid-cols-[180px_1fr] items-center gap-4'>
                         <Label htmlFor='tc_no' className='text-right font-semibold text-indigo-900'>
-                            TC Application No.:
+                            TC Application No.:<span className='text-red-500'>*</span>
                         </Label>
                         <Input
                             id='tc_no'
@@ -139,7 +139,7 @@ export const TCDetailsTab = ({ formData, setFormData, initialData, onCheckDuplic
                         <Input
                             id='working_days'
                             type='number'
-                            value={formData.working_days || ''}
+                            value={formData.working_days ?? ''}
                             onChange={(e) => handleChange('working_days', e.target.value)}
                             disabled={disabled}
                         />
@@ -153,7 +153,7 @@ export const TCDetailsTab = ({ formData, setFormData, initialData, onCheckDuplic
                         <Input
                             id='present_days'
                             type='number'
-                            value={formData.present_days || ''}
+                            value={formData.present_days ?? ''}
                             onChange={(e) => handleChange('present_days', e.target.value)}
                             disabled={disabled}
                         />

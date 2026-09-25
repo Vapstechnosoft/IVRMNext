@@ -136,6 +136,8 @@ function StudentApplicationPageContent({
                             noDataTitle='No Applications Found'
                             noDataDescription='Get started by creating your first applications'
                             errorTitle='Error Loading Applications'
+                            manualFiltering={false}
+                            manualPagination={false}
                         />
                     </div>
                 </CollapsibleSection>

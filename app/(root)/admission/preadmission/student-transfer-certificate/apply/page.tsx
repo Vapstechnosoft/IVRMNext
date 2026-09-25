@@ -464,8 +464,8 @@ export default function StudentTCApplyPage() {
                                 ? new Date(joinedInfo.astC_PromotionDate).toISOString().split('T')[0]
                                 : new Date().toISOString().split('T')[0],
                             admission_date: studentInfo.amst_date ? new Date(studentInfo.amst_date).toISOString().split('T')[0] : '',
-                            working_days: joinedInfo?.astC_WorkingDays || actualData.totalworkingdays || 0,
-                            present_days: joinedInfo?.astC_AttendedDays || actualData.totalpresentdays || 0,
+                            working_days: joinedInfo?.astC_WorkingDays || actualData.studentList1?.[0]?.Classes || actualData.totalworkingdays || 0,
+                            present_days: joinedInfo?.astC_AttendedDays || actualData.studentList1?.[0]?.Attendance || actualData.totalpresentdays || 0,
 
                             // Other Details
                             scholarship: joinedInfo?.astC_Scholarship || '',
@@ -561,10 +561,7 @@ export default function StudentTCApplyPage() {
         const isAutoTC = tcConfig?.imN_AutoManualFlag === 'Auto';
 
         if (tabValue === 'student-details') {
-            // Basic check if data is loaded, though selection already handles this
             if (!formData.last_class) {
-                // toast.error('Student details are not fully loaded');
-                // return false;
             }
             return true;
         }
