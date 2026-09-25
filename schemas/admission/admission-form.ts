@@ -199,7 +199,7 @@ export const studentAdmissionFormSchema = {
             .optional()
             .nullable()
             .refine((val) => !val || /^\d{12}$/.test(val), { message: 'Aadhar number must be exactly 12 digits' }),
-        amsT_ApparNo: z.string().regex(/^\d*$/, 'APAAR ID must contain only numbers').optional().nullable(),
+        amsT_ApparNo: z.string().refine((val) => !val || /^\d{12}$/.test(val), { message: 'APAAR ID must be exactly 12 digits' }).optional().nullable(),
         amsT_LanguageSpoken: z.string().optional().nullable(),
 
         reference_ids: z.array(z.string()).optional(),

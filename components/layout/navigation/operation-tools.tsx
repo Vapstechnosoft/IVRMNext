@@ -190,7 +190,7 @@ export function OperationTools() {
                                                             {module.name}
                                                         </p>
                                                         <p className='font-bold text-[10px] text-slate-400 uppercase tracking-wider'>
-                                                            {module.menu.length} Sections
+                                                            {module.menu.reduce((acc: number, curr: any) => acc + (curr.sub_menu?.length || 0), 0)} Sections
                                                         </p>
                                                     </div>
                                                     <ArrowRight

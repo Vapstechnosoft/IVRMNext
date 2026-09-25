@@ -27,7 +27,7 @@ interface ActionButtonsProps {
         view?: boolean;
         copy?: boolean;
     };
-    toggleConditionKey?: string;
+    toggleConditionKey?: string | string[];
     className?: string;
     size?: 'sm' | 'default' | 'lg';
     variant?: 'default' | 'ghost' | 'outline';
@@ -49,7 +49,9 @@ export function ActionButtons({
 }: ActionButtonsProps) {
     const activeValues = new Set([1, true]);
 
-    const isActive = activeValues.has(rowData?.[toggleConditionKey]);
+    const isActive = Array.isArray(toggleConditionKey)
+        ? toggleConditionKey.some((key) => activeValues.has(rowData?.[key]))
+        : activeValues.has(rowData?.[toggleConditionKey as string]);
 
     const handleEdit = () => {
         if (onEdit) {

@@ -9,7 +9,11 @@ export const printPFForm10 = (reportData: any, institution: any, reportMonth: st
 
     const dataList = reportData?.alldata || reportData?.pfreport || [];
 
-    const tableRows = dataList
+    const tableRows = dataList.length === 0 ? `
+        <tr>
+            <td colspan="7" class="text-center" style="padding: 20px; color: #666;">No records found</td>
+        </tr>
+    ` : dataList
         .map((record: any, index: number) => {
             const empName =
                 `${record.hrmE_EmployeeFirstName || ''} ${record.hrmE_EmployeeMiddleName || ''} ${record.hrmE_EmployeeLastName || ''}`

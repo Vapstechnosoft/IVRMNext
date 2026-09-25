@@ -31,6 +31,7 @@ import { toast } from 'sonner';
 import BirthdayMarquee from './_components/birthday-marquee';
 import CalendarSection from './_components/calendar-section';
 import DashboardTabs from './_components/dashboard-tabs';
+import FullCalendarWidget from './_components/full-calendar-widget';
 import QuickLinkCards from './_components/quick-link-cards';
 import TotalAlumniList from './_components/total-alumni-list';
 
@@ -62,8 +63,6 @@ export default function AlumniDashboardPage() {
                 ]);
 
                 if (dashboardRes.success) {
-                    console.log('Dashboard Data:', dashboardRes.data);
-                    console.log('Batch Data:', dashboardRes.data?.batch);
                     setData(dashboardRes.data!);
 
                     // Prioritize distinct birthday API data if available, else fall back to dashboard's list
@@ -78,7 +77,6 @@ export default function AlumniDashboardPage() {
 
                 // Set COE Events from mapped_eventlist
                 if (coeRes?.success && coeRes?.data?.mapped_eventlist) {
-                    console.log('COE Events Data:', coeRes.data.mapped_eventlist);
                     setCoeEvents(coeRes.data.mapped_eventlist);
                 }
             } catch (error) {
@@ -110,9 +108,7 @@ export default function AlumniDashboardPage() {
     };
 
     const handleViewGallery = async (id: number) => {
-        console.log('handleViewGallery called with id:', id);
         const res = await viewGalleryItem(id);
-        console.log('viewGalleryItem response:', res);
         if (res.success) {
             setGalleryDetail({ open: true, data: res.data || [] });
         } else {
@@ -209,6 +205,9 @@ export default function AlumniDashboardPage() {
             {/* Total Alumni List (Always at bottom for visibility) */}
             {isAdmin && data?.alumnilist && <TotalAlumniList alumni={data.alumnilist} totalCount={data.alumnilist.length} />}
 
+            {/* Event Calendar Full Grid */}
+            <FullCalendarWidget events={coeEvents.length > 0 ? coeEvents : data?.calenderlist || []} />
+
             {/* --- MODALS --- */}
 
             {/* Gallery Modal */}
@@ -267,7 +266,7 @@ export default function AlumniDashboardPage() {
                                             </td>
                                             <td className='p-3 text-center'>
                                                 {item.filecount > 0 && (
-                                                    <button onClick={() => handleViewNotice(item.alntb_id)} className='text-primary'>
+                                                    <button type='button' onClick={() => handleViewNotice(item.alntb_id)} className='text-primary'>
                                                         <Eye className='h-4 w-4' />
                                                     </button>
                                                 )}
@@ -304,6 +303,7 @@ export default function AlumniDashboardPage() {
                                     <td className='p-3 text-center'>{item.NOofstudents}</td>
                                     <td className='p-3 text-center'>
                                         <button
+                                            type='button'
                                             onClick={() => {
                                                 const yearId = item.ASMAY_Id || (item as any).asmay_id;
                                                 const classId = item.ASMCL_Id || (item as any).asmcL_Id || (item as any).asmcl_id;

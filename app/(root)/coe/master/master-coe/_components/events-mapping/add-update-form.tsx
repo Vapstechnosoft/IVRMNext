@@ -10,11 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getPageDetailsMap, saveEventsMapData } from '@/server/coe/masters/master-coe';
 import { uploadDocument } from '@/server/document_upload';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Image as ImageIcon, Plus, RotateCcw, Save, Trash2, Video } from 'lucide-react';
+import { Eye, Image as ImageIcon, Plus, RotateCcw, Save, Trash2, Video } from 'lucide-react';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 import { type EventsMapFormValues, eventsMapSchema } from './schema';
 
 interface EventsMappingFormProps {
@@ -58,7 +58,8 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
     const {
         fields: imageFields,
         append: appendImage,
-        remove: removeImage
+        remove: removeImage,
+        replace: replaceImage
     } = useFieldArray({
         control: form.control,
         name: 'images_listCoe'
@@ -163,7 +164,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                         });
                     }
                 } catch (error) {
-                    toast.error('Failed to fetch mapping details');
+                    Swal.fire({ title: 'Error!', text: 'Failed to fetch mapping details', icon: 'error' });
                 }
             };
             fetchDetails();
@@ -186,14 +187,20 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
 
             const res = await saveEventsMapData(payload);
             if (res.success || res.returnval === true) {
-                toast.success(res.message || (editData ? 'Event mapping updated' : 'Event mapping saved'));
+                Swal.fire({ title: 'Success!', text: res.message || (editData ? 'Event mapping updated' : 'Event mapping saved'), icon: 'success' });
                 form.reset();
                 onSuccess?.();
+            } else if (res.message === 'Record Already Exist' || res.message === 'Duplicate') {
+                Swal.fire({ title: 'Warning!', text: res.message, icon: 'warning' });
             } else {
-                toast.error(res.message || 'Failed to save mapping');
+                Swal.fire({ title: 'Failed!', text: res.message || 'Failed to save mapping', icon: 'error' });
             }
-        } catch (error) {
-            toast.error('An error occurred');
+        } catch (error: any) {
+            if (typeof error === 'string' && (error === 'Record Already Exist' || error === 'Duplicate')) {
+                Swal.fire({ title: 'Warning!', text: error, icon: 'warning' });
+            } else {
+                Swal.fire({ title: 'Error!', text: typeof error === 'string' ? error : error?.message || 'An error occurred while saving', icon: 'error' });
+            }
         }
     };
 
@@ -224,14 +231,14 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
             }
 
             if (url) {
-                appendImage({ COEEI_Images: url });
-                toast.success('File uploaded successfully');
+                replaceImage([{ COEEI_Images: url }]);
+                Swal.fire({ title: 'Success!', text: 'File uploaded successfully', icon: 'success' });
             } else {
-                toast.error('Upload failed: Invalid response format');
+                Swal.fire({ title: 'Failed!', text: 'Upload failed: Invalid response format', icon: 'error' });
                 console.error('Upload response format unknown:', res);
             }
         } catch (error) {
-            toast.error('Upload failed');
+            Swal.fire({ title: 'Error!', text: 'Upload failed', icon: 'error' });
         }
     };
 
@@ -813,7 +820,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                                 mobileInput.value = '';
                                                 emailInput.value = '';
                                             } else {
-                                                toast.error('Please fill all fields before adding');
+                                                Swal.fire({ title: 'Error!', text: 'Please fill all fields before adding', icon: 'error' });
                                             }
                                         }}>
                                         <Plus className='mr-2 h-4 w-4' /> Add
@@ -866,6 +873,17 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                             variant='ghost'
                                             size='icon'
                                             className='h-6 w-6'
+                                            onClick={() => {
+                                                const url = form.watch(`images_listCoe.${idx}.COEEI_Images`);
+                                                if (url) window.open(url, '_blank');
+                                            }}>
+                                            <Eye className='h-3 w-3 text-blue-500' />
+                                        </Button>
+                                        <Button
+                                            type='button'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-6 w-6'
                                             onClick={() => removeImage(idx)}>
                                             <Trash2 className='h-3 w-3 text-destructive' />
                                         </Button>
@@ -896,6 +914,16 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                             </FormItem>
                                         )}
                                     />
+                                    <Button 
+                                        type='button' 
+                                        variant='ghost' 
+                                        size='icon' 
+                                        onClick={() => {
+                                            const url = form.watch(`videos_list.${idx}.COEEV_VideoURL`);
+                                            if (url) window.open(url, '_blank');
+                                        }}>
+                                        <Eye className='h-4 w-4 text-blue-500' />
+                                    </Button>
                                     <Button type='button' variant='ghost' size='icon' onClick={() => removeVideo(idx)}>
                                         <Trash2 className='h-4 w-4 text-destructive' />
                                     </Button>
@@ -925,6 +953,16 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                             </FormItem>
                                         )}
                                     />
+                                    <Button 
+                                        type='button' 
+                                        variant='ghost' 
+                                        size='icon' 
+                                        onClick={() => {
+                                            const url = form.watch(`urldocumentlist.${idx}.IHW_FilePath`);
+                                            if (url) window.open(url, '_blank');
+                                        }}>
+                                        <Eye className='h-4 w-4 text-blue-500' />
+                                    </Button>
                                     <Button type='button' variant='ghost' size='icon' onClick={() => removeUrl(idx)}>
                                         <Trash2 className='h-4 w-4 text-destructive' />
                                     </Button>
