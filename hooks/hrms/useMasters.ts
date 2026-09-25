@@ -23,6 +23,7 @@ import { useMemo } from 'react';
 
 import {
     activateDeactivateMasterEarningsDeductions,
+    getAllDropdownAndDatatableDetails,
     getAmountOrPercentageDropdown,
     getEarningsDeductionsTypeDropdown,
     getMasterEarningsDeductionsById,
@@ -1019,3 +1020,14 @@ export function useFinancialYearDropdown() {
         staleTime: 1000 * 60 * 5
     });
 }
+
+// Hook for Earning and Deduction Dropdown
+export function useEarningAndDeductionDropdown(options?: { enabled?: boolean }) {
+    return useQuery({
+        queryKey: ['earning-and-deduction-list'],
+        queryFn: () => getAllDropdownAndDatatableDetails(),
+        staleTime: 1000 * 60 * 5,
+        enabled: options?.enabled
+    });
+}
+
