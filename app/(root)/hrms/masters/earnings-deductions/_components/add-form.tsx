@@ -9,7 +9,8 @@ import {
     useEarningsDeductionsTypeDropdown,
     useMasterEarningsDeductions,
     useRoundingTypeDropdown,
-    useSalaryComponentTypeDropdown
+    useSalaryComponentTypeDropdown,
+    useEarningAndDeductionDropdown
 } from '@/hooks/hrms/useMasters';
 import { EARNING_DEDUCTION_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import { saveMasterEarningsDeductions } from '@/server/hrms/hrmsConfig/master/earnings-deductions';
@@ -20,8 +21,8 @@ import type {
     ISalaryComponentTypeDropdown
 } from '@/types/hrms/hrms-config/master';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
-import { Save } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Loader2, Save } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -50,6 +51,7 @@ interface AddEarningsDeductionsFormProps {
 export default function AddEarningsDeductionsForm({ onSuccess, className = '' }: AddEarningsDeductionsFormProps) {
     const { refetchAll } = useMasterEarningsDeductions();
     const [resetKey, setResetKey] = useState(0);
+    const [earnDeduList,setEarnDeduList] = useState([]);
 
     // Helper function to map API response to dropdown items
     const mapToDropdownItems = (response: any) => {
@@ -142,10 +144,63 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
         name: 'HRMED_AmountPercentFlag',
         defaultValue: 'Amount'
     });
+
+    const isPercentage = calculationType === 'Percentage' || calculationType?.toLowerCase() === 'percentage';
+
+    const {
+        data: earningAndDeductionDropdownResponse,
+        isLoading: isLoadingEarningAndDeduction
+    } = useEarningAndDeductionDropdown({
+        enabled: isPercentage
+    });
+
+    const [selectedPercentageIds, setSelectedPercentageIds] = useState<number[]>([]);
+    const [percentagePage, setPercentagePage] = useState<number>(1);
+    const pageSize = 10;
+
+    // Filter only items where "hrmeD_AmountPercentFlag": "Percentage"
+    const percentageOfList = useMemo(() => {
+        let rawData: any[] = [];
+        const res = earningAndDeductionDropdownResponse as any;
+        if (!res) return [];
+
+        if (Array.isArray(res)) {
+            rawData = res;
+        } else if (Array.isArray(res?.data?.earningdetectionList)) {
+            rawData = res.data.earningdetectionList;
+        } else if (Array.isArray(res?.data?.EarningdetectionList)) {
+            rawData = res.data.EarningdetectionList;
+        } else if (res?.data?.earningdetectionList?.$values && Array.isArray(res.data.earningdetectionList.$values)) {
+            rawData = res.data.earningdetectionList.$values;
+        } else if (Array.isArray(res?.earningdetectionList)) {
+            rawData = res.earningdetectionList;
+        } else if (Array.isArray(res?.data)) {
+            rawData = res.data;
+        }
+
+        return rawData.filter((item: any) => {
+            const flag = item?.hrmeD_AmountPercentFlag || item?.HRMED_AmountPercentFlag || '';
+            return flag.toLowerCase() === 'percentage';
+        });
+    }, [earningAndDeductionDropdownResponse]);
+
+    const totalPercentagePages = Math.ceil(percentageOfList.length / pageSize) || 1;
+
+    const paginatedPercentageList = useMemo(() => {
+        const startIndex = (percentagePage - 1) * pageSize;
+        return percentageOfList.slice(startIndex, startIndex + pageSize);
+    }, [percentageOfList, percentagePage, pageSize]);
+
+    const togglePercentageSelection = (id: number) => {
+        setSelectedPercentageIds((prev) =>
+            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+        );
+    };
+
     const onSubmit = async (data: MasterEarningsDeductionsInput) => {
         try {
             // Build the request body - map to lowercase field names as per API
-            const payload = {
+            const payload: any = {
                 hrmeD_Id: 0,
                 hrmeD_Name: data.HRMED_Name?.trim() || '',
                 hrmeD_EDTypeFlag: data.HRMED_EDTypeFlag,
@@ -154,14 +209,23 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                 hrmeD_AmountPercent: data.HRMED_AmountPercent,
                 hrmeD_RoundOffFlag: data.HRMED_RoundOffFlag,
                 hrmeD_ReviseFlg: data.HRMED_ReviseFlg ?? true,
-                hrmeD_Order: data.HRMED_Order || 0
+                hrmeD_Order: data.HRMED_Order || 0,
+                perc_OfDTO: isPercentage
+                    ? selectedPercentageIds.map((id) => ({
+                          hrmedP_Id: 0,
+                          hrmeD_Id: 0,
+                          hrmedP_HRMED_Id: id
+                      }))
+                    : []
             };
-            console.log("Payload earcn deduction", payload);
+            console.log("Payload earn deduction", payload);
             const response = await saveMasterEarningsDeductions(payload);
 
             if (response?.success) {
                 toast.success(response?.message || 'Earning/Deduction added successfully');
                 reset();
+                setSelectedPercentageIds([]);
+                setPercentagePage(1);
                 refetchAll();
                 if (onSuccess) {
                     onSuccess();
@@ -176,6 +240,8 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
     };
     const handleReset = () => {
         reset();
+        setSelectedPercentageIds([]);
+        setPercentagePage(1);
         setResetKey((prev) => prev + 1);
     };
     return (
@@ -441,6 +507,155 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                             Revise
                         </Label>
                     </div>
+
+                    {/* Percentage Of Table */}
+                    {isPercentage && (
+                        <div className='col-span-1 md:col-span-2 flex flex-col md:flex-row gap-4 items-start pt-2'>
+                            <div className='w-36 shrink-0 pt-2'>
+                                <Label className='text-sm font-semibold'>
+                                    Percentage Of:<span className='text-destructive'>*</span>
+                                </Label>
+                            </div>
+                            <div className='flex-1 w-full max-w-4xl'>
+                                <div className='border border-[#0056b3] rounded-sm overflow-hidden shadow-sm'>
+                                    <table className='w-full border-collapse text-sm'>
+                                        <thead>
+                                            <tr className='bg-violet-700 text-white text-sm font-bold'>
+                                                <th className='py-2.5 px-4 text-center border-r border-blue-400/30 w-2/5'>Name</th>
+                                                <th className='py-2.5 px-4 text-center border-r border-blue-400/30 w-1/4'>Type</th>
+                                                <th className='py-2.5 px-4 text-center border-r border-blue-400/30 w-1/5'>Amt/Per</th>
+                                                <th className='py-2.5 px-4 text-center w-1/6'>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className='divide-y divide-gray-200 bg-white'>
+                                            {isLoadingEarningAndDeduction ? (
+                                                <tr>
+                                                    <td colSpan={4} className='py-6 text-center text-muted-foreground'>
+                                                        <div className='flex items-center justify-center gap-2'>
+                                                            <Loader2 className='h-4 w-4 animate-spin text-primary' />
+                                                            <span>Loading components...</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ) : paginatedPercentageList.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={4} className='py-6 text-center text-muted-foreground'>
+                                                        No percentage records available.
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                paginatedPercentageList.map((item: any, index: number) => {
+                                                    const id = item.hrmeD_Id ?? item.HRMED_Id ?? index;
+                                                    const isChecked = selectedPercentageIds.includes(id);
+                                                    const name = item.hrmeD_Name ?? item.HRMED_Name ?? '-';
+                                                    const type = item.hrmeD_EarnDedFlag ?? item.HRMED_EarnDedFlag ?? item.hrmeD_EDTypeFlag ?? '-';
+                                                    const amountPercent = item.hrmeD_AmountPercent ?? item.HRMED_AmountPercent ?? '0';
+
+                                                    return (
+                                                        <tr
+                                                            key={id}
+                                                            className={`transition-colors hover:bg-blue-50/50 ${isChecked ? 'bg-blue-50/30' : ''}`}>
+                                                            <td className='py-2.5 px-4 text-left border-r border-gray-200 font-medium text-gray-800'>
+                                                                {name}
+                                                            </td>
+                                                            <td className='py-2.5 px-4 text-center border-r border-gray-200 text-gray-700'>
+                                                                {type}
+                                                            </td>
+                                                            <td className='py-2.5 px-4 text-center border-r border-gray-200 text-gray-700'>
+                                                                {amountPercent} %
+                                                            </td>
+                                                            <td className='py-2.5 px-4 text-center'>
+                                                                <div className='flex items-center justify-center'>
+                                                                    <input
+                                                                        type='checkbox'
+                                                                        checked={isChecked}
+                                                                        onChange={() => togglePercentageSelection(id)}
+                                                                        className='h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer'
+                                                                    />
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Pagination */}
+                                {totalPercentagePages > 1 && (
+                                    <div className='flex items-center gap-1 mt-3'>
+                                        <button
+                                            type='button'
+                                            onClick={() => setPercentagePage(1)}
+                                            disabled={percentagePage === 1}
+                                            className='px-2.5 py-1 text-xs font-semibold bg-[#0066cc] text-white rounded-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0052a3] transition-colors'
+                                            title='First Page'>
+                                            «
+                                        </button>
+                                        <button
+                                            type='button'
+                                            onClick={() => setPercentagePage((p) => Math.max(1, p - 1))}
+                                            disabled={percentagePage === 1}
+                                            className='px-2.5 py-1 text-xs font-semibold bg-[#0066cc] text-white rounded-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0052a3] transition-colors'
+                                            title='Previous Page'>
+                                            ‹
+                                        </button>
+                                        {Array.from({ length: totalPercentagePages }, (_, i) => i + 1)
+                                            .filter((page) => {
+                                                if (totalPercentagePages <= 5) return true;
+                                                if (page === 1 || page === totalPercentagePages) return true;
+                                                return Math.abs(page - percentagePage) <= 1;
+                                            })
+                                            .reduce<(number | string)[]>((acc, page, idx, arr) => {
+                                                if (idx > 0 && typeof arr[idx - 1] === 'number' && (page as number) - (arr[idx - 1] as number) > 1) {
+                                                    acc.push('...');
+                                                }
+                                                acc.push(page);
+                                                return acc;
+                                            }, [])
+                                            .map((page, index) =>
+                                                page === '...' ? (
+                                                    <span
+                                                        key={`ellipsis-${index}`}
+                                                        className='px-2 py-1 text-xs font-semibold bg-[#0066cc] text-white rounded-sm'>
+                                                        ...
+                                                    </span>
+                                                ) : (
+                                                    <button
+                                                        key={`page-${page}`}
+                                                        type='button'
+                                                        onClick={() => setPercentagePage(Number(page))}
+                                                        className={`px-3 py-1 text-xs font-semibold rounded-sm transition-colors ${
+                                                            percentagePage === page
+                                                                ? 'bg-black text-white'
+                                                                : 'bg-[#0066cc] text-white hover:bg-[#0052a3]'
+                                                        }`}>
+                                                        {page}
+                                                    </button>
+                                                )
+                                            )}
+                                        <button
+                                            type='button'
+                                            onClick={() => setPercentagePage((p) => Math.min(totalPercentagePages, p + 1))}
+                                            disabled={percentagePage === totalPercentagePages}
+                                            className='px-2.5 py-1 text-xs font-semibold bg-[#0066cc] text-white rounded-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0052a3] transition-colors'
+                                            title='Next Page'>
+                                            ›
+                                        </button>
+                                        <button
+                                            type='button'
+                                            onClick={() => setPercentagePage(totalPercentagePages)}
+                                            disabled={percentagePage === totalPercentagePages}
+                                            className='px-2.5 py-1 text-xs font-semibold bg-[#0066cc] text-white rounded-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0052a3] transition-colors'
+                                            title='Last Page'>
+                                            »
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
