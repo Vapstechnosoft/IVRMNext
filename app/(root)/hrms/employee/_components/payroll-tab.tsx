@@ -13,7 +13,7 @@ import {
 } from '@/hooks/hrms/useEmployeeRegister';
 import type { EmployeeSalaryDetailItem } from '@/types/hrms/employee-register';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 interface PayrollTabProps {
     employeeId: number | null;
@@ -31,6 +31,14 @@ type EditablePayrollItem = EmployeeSalaryDetailItem & {
 const DEFAULT_EMPTY_ARRAY: any[] = [];
 
 export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSuccess }: PayrollTabProps) {
+    const isMountedRef = useRef(true);
+    useEffect(() => {
+        isMountedRef.current = true;
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
+
     const { data: response, isLoading: isLoadingEmployee, refetch } = useEmployeeById(employeeId);
     const { data: salaryDetailsData, isLoading: isLoadingED } = useEmployeeEarningsDeductions(employeeId);
     const employeemiId = response?.data?.employee?.[0]?.mI_Id;
@@ -43,12 +51,31 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
     const MI_Id = propMI_Id || employeemiId || employeemiId || HRMS_MI_ID;
     const isLoading = isLoadingEmployee || isLoadingED;
 
-    const updateSalaryByHeadMutation = useUpdateEmployeeSalaryDetailsByHead();
+    const updateSalaryByHeadMutation = useUpdateEmployeeSalaryDetailsByHead({ suppressSuccessToast: true });
     // Local state for editable items
     const [earnings, setEarnings] = useState<EditablePayrollItem[]>([]);
     const [deductions, setDeductions] = useState<EditablePayrollItem[]>([]);
     const [arrears, setArrears] = useState<EditablePayrollItem[]>([]);
     const [grossDetails, setGrossDetails] = useState<EditablePayrollItem | null>(null);
+
+    const earningsRef = useRef(earnings);
+    earningsRef.current = earnings;
+    const deductionsRef = useRef(deductions);
+    deductionsRef.current = deductions;
+    const arrearsRef = useRef(arrears);
+    arrearsRef.current = arrears;
+    const grossRef = useRef(grossDetails);
+    grossRef.current = grossDetails;
+
+    const dirtyRowsRef = useRef<{
+        earnings: Set<number>;
+        deductions: Set<number>;
+        arrears: Set<number>;
+    }>({
+        earnings: new Set(),
+        deductions: new Set(),
+        arrears: new Set()
+    });
 
     const getEmployeeSalaryDetailsByHeadMutation = useGetEmployeeSalaryDetailsByHead();
 
@@ -199,10 +226,10 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
     };
     // State for calculation trigger
     const handleCalculateServerSide = async (
-        currentEarnings = earnings,
-        currentDeductions = deductions,
-        currentArrears = arrears,
-        currentGross = grossDetails
+        currentEarnings = earningsRef.current,
+        currentDeductions = deductionsRef.current,
+        currentArrears = arrearsRef.current,
+        currentGross = grossRef.current
     ) => {
         if (!employeemiId) return;
 
@@ -217,14 +244,12 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
         );
 
         const payload = {
-            ...employeemiId,
+            mI_Id: Number(employeemiId),
             employeeEarningsDeductionsDetails: allItems
         };
 
         try {
-            const toastId = toast.loading('Calculating salary details...');
             const result = await getEmployeeSalaryDetailsByHeadMutation.mutateAsync(payload);
-            toast.dismiss(toastId);
 
             const calcResult = result as any;
             if (calcResult?.success && calcResult?.data?.employeeEarningsDeductionsDetails) {
@@ -266,6 +291,11 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                     }
                 });
 
+                earningsRef.current = newEarnings;
+                deductionsRef.current = newDeductions;
+                arrearsRef.current = newArrears;
+                if (newGross) grossRef.current = newGross;
+
                 setEarnings(newEarnings);
                 setDeductions(newDeductions);
                 setArrears(newArrears);
@@ -281,13 +311,6 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
 
     const handleAutoSave = async (item: EditablePayrollItem) => {
         if (!employeeId) return;
-
-        // Skip auto-save if this row hasn't been saved to the DB yet (no valid ID)
-        const hreedId = Number(item.HREED_Id || 0);
-        // if (!hreedId || hreedId <= 0) {
-        //     console.log('[PAYROLL AUTO-SAVE] Skipping: HREED_Id is 0 or missing (unsaved row)');
-        //     return;
-        // }
 
         // Construct payload matching the user's requested structure
         const payload = {
@@ -315,7 +338,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
 
     // Update handlers for earnings
     const updateEarning = (index: number, field: keyof EditablePayrollItem, value: any) => {
-        const updated = [...earnings];
+        const updated = [...earningsRef.current];
         let validatedValue = value;
         // Apply validation based on field type
         if (field === 'localPercentage' || field === 'localApplicablePercentage') {
@@ -324,21 +347,20 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
             validatedValue = validateAmount(String(value));
         }
         updated[index] = { ...updated[index], [field]: validatedValue };
+        earningsRef.current = updated;
         setEarnings(updated);
-        // If checkbox (HREED_ActiveFlag) is toggled, recalculate totals immediately with updated array
+        dirtyRowsRef.current.earnings.add(index);
+
+        // If checkbox (HREED_ActiveFlag) is toggled, recalculate totals immediately on client
         if (field === 'HREED_ActiveFlag') {
-            calculateTotalsWithArrays(updated, deductions, arrears);
-            // Trigger server calc on toggle
-            handleCalculateServerSide(updated, deductions, arrears);
-            // Auto-save toggle status
-            handleAutoSave(updated[index]);
+            calculateTotalsWithArrays(updated, deductionsRef.current, arrearsRef.current);
         }
         return updated;
     };
 
     // Update handlers for deductions
     const updateDeduction = (index: number, field: keyof EditablePayrollItem, value: any) => {
-        const updated = [...deductions];
+        const updated = [...deductionsRef.current];
         let validatedValue = value;
         // Apply validation based on field type
         if (field === 'localPercentage' || field === 'localApplicablePercentage') {
@@ -347,21 +369,20 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
             validatedValue = validateAmount(String(value));
         }
         updated[index] = { ...updated[index], [field]: validatedValue };
+        deductionsRef.current = updated;
         setDeductions(updated);
-        // If checkbox (HREED_ActiveFlag) is toggled, recalculate totals immediately with updated array
+        dirtyRowsRef.current.deductions.add(index);
+
+        // If checkbox (HREED_ActiveFlag) is toggled, recalculate totals immediately on client
         if (field === 'HREED_ActiveFlag') {
-            calculateTotalsWithArrays(earnings, updated, arrears);
-            // Trigger server calc on toggle
-            handleCalculateServerSide(earnings, updated, arrears);
-            // Auto-save toggle status
-            handleAutoSave(updated[index]);
+            calculateTotalsWithArrays(earningsRef.current, updated, arrearsRef.current);
         }
         return updated;
     };
 
     // Update handlers for arrears
     const updateArrear = (index: number, field: keyof EditablePayrollItem, value: any) => {
-        const updated = [...arrears];
+        const updated = [...arrearsRef.current];
         let validatedValue = value;
         // Apply validation based on field type
         if (field === 'localPercentage' || field === 'localApplicablePercentage') {
@@ -370,16 +391,40 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
             validatedValue = validateAmount(String(value));
         }
         updated[index] = { ...updated[index], [field]: validatedValue };
+        arrearsRef.current = updated;
         setArrears(updated);
-        // If checkbox (HREED_ActiveFlag) is toggled, recalculate totals immediately with updated array
+        dirtyRowsRef.current.arrears.add(index);
+
+        // If checkbox (HREED_ActiveFlag) is toggled, recalculate totals immediately on client
         if (field === 'HREED_ActiveFlag') {
-            calculateTotalsWithArrays(earnings, deductions, updated);
-            // Trigger server calc on toggle
-            handleCalculateServerSide(earnings, deductions, updated);
-            // Auto-save toggle status
-            handleAutoSave(updated[index]);
+            calculateTotalsWithArrays(earningsRef.current, deductionsRef.current, updated);
         }
         return updated;
+    };
+
+    // Triggered when focus leaves an entire table row (clicking outside)
+    const handleRowBlur = async (type: 'Earning' | 'Deduction' | 'Arrear', index: number) => {
+        const dirtySet =
+            type === 'Earning'
+                ? dirtyRowsRef.current.earnings
+                : type === 'Deduction'
+                ? dirtyRowsRef.current.deductions
+                : dirtyRowsRef.current.arrears;
+
+        if (!dirtySet.has(index)) return;
+        dirtySet.delete(index);
+
+        const list =
+            type === 'Earning'
+                ? earningsRef.current
+                : type === 'Deduction'
+                ? deductionsRef.current
+                : arrearsRef.current;
+        const item = list[index];
+        if (!item) return;
+
+        await handleCalculateServerSide(earningsRef.current, deductionsRef.current, arrearsRef.current);
+        await handleAutoSave(item);
     };
 
     // Update handlers for gross
@@ -392,12 +437,13 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
         }
 
         const updatedGross = { ...grossDetails, [field]: validatedValue };
+        grossRef.current = updatedGross;
         setGrossDetails(updatedGross);
         return updatedGross;
     };
 
     const onBlurGross = (updated = grossDetails) => {
-        handleCalculateServerSide(earnings, deductions, arrears, updated);
+        handleCalculateServerSide(earningsRef.current, deductionsRef.current, arrearsRef.current, updated);
     };
     // State for calculated totals from API
     const [calculatedTotals, setCalculatedTotals] = useState<{
@@ -413,7 +459,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
     });
     // Calculate totals using client-side calculation
     const calculateTotals = () => {
-        calculateTotalsWithArrays(earnings, deductions, arrears);
+        calculateTotalsWithArrays(earningsRef.current, deductionsRef.current, arrearsRef.current);
     };
     // Calculate totals when earnings, deductions, or arrears change (but not on checkbox toggle - handled separately)
     useEffect(() => {
@@ -442,6 +488,25 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
             return;
         }
 
+        // Flush any pending dirty rows before final submit
+        const pendingSaves: Promise<any>[] = [];
+        dirtyRowsRef.current.earnings.forEach((idx) => {
+            if (earningsRef.current[idx]) pendingSaves.push(handleAutoSave(earningsRef.current[idx]));
+        });
+        dirtyRowsRef.current.deductions.forEach((idx) => {
+            if (deductionsRef.current[idx]) pendingSaves.push(handleAutoSave(deductionsRef.current[idx]));
+        });
+        dirtyRowsRef.current.arrears.forEach((idx) => {
+            if (arrearsRef.current[idx]) pendingSaves.push(handleAutoSave(arrearsRef.current[idx]));
+        });
+        dirtyRowsRef.current.earnings.clear();
+        dirtyRowsRef.current.deductions.clear();
+        dirtyRowsRef.current.arrears.clear();
+
+        if (pendingSaves.length > 0) {
+            await Promise.all(pendingSaves);
+        }
+
         try {
             console.log(`🔍 [PayrollTab] Submitting Final Save for Employee ID: ${employeeId}, MI_Id: ${MI_Id}`);
             const result = await saveEmployeeSalaryDetailsMutation.mutateAsync({
@@ -449,10 +514,11 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                 MI_Id: MI_Id || 0
             });
 
-            if (result?.success) {
-                await refetch();
-                // Call onSuccess if provided
-                if (onSuccess) {
+            if (result?.success || result?.success === undefined) {
+                refetch();
+                toast.success(result?.message || 'Salary details saved successfully');
+                // Call onSuccess if provided and still mounted
+                if (isMountedRef.current && onSuccess) {
                     onSuccess();
                 }
             }
@@ -527,7 +593,14 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                     const isAmountType = normalizedFlag === 'amount';
                                     const isPercentageType = normalizedFlag === 'percentage';
                                     return (
-                                        <TableRow key={item.HREED_Id || index}>
+                                        <TableRow
+                                            key={item.HREED_Id || index}
+                                            onBlur={(e) => {
+                                                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                                                    handleRowBlur('Earning', index);
+                                                }
+                                            }}
+                                        >
                                             <TableCell>
                                                 <Checkbox
                                                     checked={item.HREED_ActiveFlag || false}
@@ -544,8 +617,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     onChange={(e) => updateEarning(index, 'localPercentage', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validatePercentage(e.target.value);
-                                                        const updated = updateEarning(index, 'localPercentage', validated);
-                                                        handleCalculateServerSide(updated, deductions, arrears);
+                                                        updateEarning(index, 'localPercentage', validated);
                                                     }}
                                                     min={0}
                                                     max={100}
@@ -566,9 +638,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     onChange={(e) => updateEarning(index, 'localApplicablePercentage', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validatePercentage(e.target.value);
-                                                        const updated = updateEarning(index, 'localApplicablePercentage', validated);
-                                                        handleCalculateServerSide(updated, deductions, arrears);
-                                                        handleAutoSave(updated[index]);
+                                                        updateEarning(index, 'localApplicablePercentage', validated);
                                                     }}
                                                     min={0}
                                                     max={100}
@@ -584,9 +654,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     onChange={(e) => updateEarning(index, 'localAmount', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validateAmount(e.target.value);
-                                                        const updated = updateEarning(index, 'localAmount', validated);
-                                                        handleCalculateServerSide(updated, deductions, arrears);
-                                                        handleAutoSave(updated[index]);
+                                                        updateEarning(index, 'localAmount', validated);
                                                     }}
                                                     min={0}
                                                     max={999999999999999}
@@ -602,8 +670,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     onChange={(e) => updateEarning(index, 'localMaxAmount', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validateAmount(e.target.value);
-                                                        const updated = updateEarning(index, 'localMaxAmount', validated);
-                                                        handleAutoSave(updated[index]);
+                                                        updateEarning(index, 'localMaxAmount', validated);
                                                     }}
                                                     min={0}
                                                     max={999999999999999}
@@ -659,7 +726,14 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                     const isAmountType = normalizedFlag === 'amount';
                                     const isPercentageType = normalizedFlag === 'percentage';
                                     return (
-                                        <TableRow key={item.HREED_Id || index}>
+                                        <TableRow
+                                            key={item.HREED_Id || index}
+                                            onBlur={(e) => {
+                                                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                                                    handleRowBlur('Deduction', index);
+                                                }
+                                            }}
+                                        >
                                             <TableCell>
                                                 <Checkbox
                                                     checked={item.HREED_ActiveFlag || false}
@@ -676,8 +750,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     onChange={(e) => updateDeduction(index, 'localPercentage', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validatePercentage(e.target.value);
-                                                        const updated = updateDeduction(index, 'localPercentage', validated);
-                                                        handleCalculateServerSide(earnings, updated, arrears);
+                                                        updateDeduction(index, 'localPercentage', validated);
                                                     }}
                                                     min={0}
                                                     max={100}
@@ -698,9 +771,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     onChange={(e) => updateDeduction(index, 'localApplicablePercentage', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validatePercentage(e.target.value);
-                                                        const updated = updateDeduction(index, 'localApplicablePercentage', validated);
-                                                        handleCalculateServerSide(earnings, updated, arrears);
-                                                        handleAutoSave(updated[index]);
+                                                        updateDeduction(index, 'localApplicablePercentage', validated);
                                                     }}
                                                     min={0}
                                                     max={100}
@@ -716,9 +787,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     onChange={(e) => updateDeduction(index, 'localAmount', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validateAmount(e.target.value);
-                                                        const updated = updateDeduction(index, 'localAmount', validated);
-                                                        handleCalculateServerSide(earnings, updated, arrears);
-                                                        handleAutoSave(updated[index]);
+                                                        updateDeduction(index, 'localAmount', validated);
                                                     }}
                                                     min={0}
                                                     max={999999999999999}
@@ -734,8 +803,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     onChange={(e) => updateDeduction(index, 'localMaxAmount', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validateAmount(e.target.value);
-                                                        const updated = updateDeduction(index, 'localMaxAmount', validated);
-                                                        handleAutoSave(updated[index]);
+                                                        updateDeduction(index, 'localMaxAmount', validated);
                                                     }}
                                                     min={0}
                                                     max={999999999999999}
@@ -785,7 +853,14 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                 </TableRow>
                             ) : (
                                 arrears.map((item, index) => (
-                                    <TableRow key={item.HREED_Id || index}>
+                                    <TableRow
+                                        key={item.HREED_Id || index}
+                                        onBlur={(e) => {
+                                            if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                                                handleRowBlur('Arrear', index);
+                                            }
+                                        }}
+                                    >
                                         <TableCell>
                                             <Checkbox
                                                 checked={item.HREED_ActiveFlag || false}
@@ -802,8 +877,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                 onChange={(e) => updateArrear(index, 'localPercentage', e.target.value)}
                                                 onBlur={(e) => {
                                                     const validated = validatePercentage(e.target.value);
-                                                    const updated = updateArrear(index, 'localPercentage', validated);
-                                                    handleCalculateServerSide(earnings, deductions, updated);
+                                                    updateArrear(index, 'localPercentage', validated);
                                                 }}
                                                 min={0}
                                                 max={100}
@@ -824,9 +898,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                 onChange={(e) => updateArrear(index, 'localApplicablePercentage', e.target.value)}
                                                 onBlur={(e) => {
                                                     const validated = validatePercentage(e.target.value);
-                                                    const updated = updateArrear(index, 'localApplicablePercentage', validated);
-                                                    handleCalculateServerSide(earnings, deductions, updated);
-                                                    handleAutoSave(updated[index]);
+                                                    updateArrear(index, 'localApplicablePercentage', validated);
                                                 }}
                                                 min={0}
                                                 max={100}
@@ -842,9 +914,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                 onChange={(e) => updateArrear(index, 'localAmount', e.target.value)}
                                                 onBlur={(e) => {
                                                     const validated = validateAmount(e.target.value);
-                                                    const updated = updateArrear(index, 'localAmount', validated);
-                                                    handleCalculateServerSide(earnings, deductions, updated);
-                                                    handleAutoSave(updated[index]);
+                                                    updateArrear(index, 'localAmount', validated);
                                                 }}
                                                 min={0}
                                                 max={999999999999999}
@@ -860,9 +930,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                 onChange={(e) => updateArrear(index, 'localMaxAmount', e.target.value)}
                                                 onBlur={(e) => {
                                                     const validated = validateAmount(e.target.value);
-                                                    const updated = updateArrear(index, 'localMaxAmount', validated);
-                                                    handleCalculateServerSide(earnings, deductions, arrears);
-                                                    handleAutoSave(updated[index]);
+                                                    updateArrear(index, 'localMaxAmount', validated);
                                                 }}
                                                 min={0}
                                                 max={999999999999999}

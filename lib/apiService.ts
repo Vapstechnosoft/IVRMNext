@@ -140,6 +140,11 @@ class ApiService {
                 // biome-ignore lint/style/useNodejsImportProtocol: <explanation>
                 const https = require('https');
                 config.httpsAgent = new https.Agent({
+                    keepAlive: true,
+                    keepAliveMsecs: 60000,
+                    maxSockets: 50,
+                    maxFreeSockets: 10,
+                    timeout: 60000,
                     rejectUnauthorized: false // Bypass SSL certificate validation for internal backend ports
                 });
             }

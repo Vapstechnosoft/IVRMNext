@@ -709,7 +709,19 @@ export const COLLEGE_QUERY_KEYS = {
     COLLEGE_FEE_PREVILEGE_EDIT: 'college_fee_previlege_edit',
     CLG_REG_NO_FORMAT: 'college_clg_reg_no_format',
     COLLEGE_USERNAME_CREATION: 'college_username_creation',
-    CLG_YEARLY_COURSE_MAPPING: 'college_yearly_course_mapping'
+    CLG_YEARLY_COURSE_MAPPING: 'college_yearly_course_mapping',
+    COLLEGE_FEE_TRANSACTION: 'college_fee_transaction',
+    COLLEGE_FEE_TRANSACTION_ACADEMIC_YEARS: 'college_fee_transaction_academic_years',
+    COLLEGE_LOAN_SCHOLARSHIP_LOAD: 'college_loan_scholarship_load',
+    COLLEGE_LOAN_SCHOLARSHIP_RECORDS: 'college_loan_scholarship_records',
+    COLLEGE_FEE_WAIVED_OFF_LIST: 'college_fee_waived_off_list',
+    COLLEGE_FEE_WAIVED_OFF_COURSES: 'college_fee_waived_off_courses',
+    COLLEGE_FEE_WAIVED_OFF_BRANCHES: 'college_fee_waived_off_branches',
+    COLLEGE_FEE_WAIVED_OFF_SEMESTERS: 'college_fee_waived_off_semesters',
+    COLLEGE_FEE_WAIVED_OFF_STUDENTS: 'college_fee_waived_off_students',
+    COLLEGE_FEE_WAIVED_OFF_GROUPS: 'college_fee_waived_off_groups',
+    COLLEGE_FEE_WAIVED_OFF_HEADS: 'college_fee_waived_off_heads',
+    COLLEGE_FEE_WAIVED_OFF_EDIT: 'college_fee_waived_off_edit'
 };
 export const ONLINE_EXAM_QUERY_KEYS = {
     MASTER_QUESTION: 'online_exam_master_question',

@@ -367,7 +367,13 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                 <Controller
                     name='amount'
                     control={control}
-                    render={({ field }) => <InputNumber value={field.value ?? 0} onChange={(v) => field.onChange(Number(v))} />}
+                    render={({ field }) => (
+                        <InputNumber
+                            value={field.value ?? 0}
+                            onChange={(v) => field.onChange(Number(v))}
+                            error={errors.amount?.message}
+                        />
+                    )}
                 />
             </div>
 

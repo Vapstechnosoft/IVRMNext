@@ -1,4 +1,5 @@
-import { Readable } from 'stream';
+import { Readable } from 'node:stream';
+import { formatAiErrorMessage, isAiRateLimitError } from '@/lib/ai-error-handler';
 import Groq from 'groq-sdk';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -34,7 +35,9 @@ function extractChapterContent(fullText: string, chapters: string[]): string {
     // [A-Za-z] -> Followed by a letter (Title)
     const regex = /(?:^|\n)\s*(?:chapter|unit|lesson|module)\s+([0-9]+(?:\.[0-9]+)*)|(?:^|\n)\s*([0-9]+(?:\.[0-9]+)*)\.\s+[A-Za-z]/gi;
 
+    // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
     let match;
+    // biome-ignore lint/suspicious/noAssignInExpressions: <explanation>
     while ((match = regex.exec(fullText)) !== null) {
         // Group 1 or Group 2 has the number
         const num = match[1] || match[2];
@@ -136,7 +139,7 @@ export async function POST(req: NextRequest) {
         const formFields: Record<string, string> = {};
 
         await new Promise((resolve, reject) => {
-            bb.on('file', (name: string, file: any, info: any) => {
+            bb.on('file', (_name: string, file: any, info: any) => {
                 const { filename } = info;
                 fileName = filename;
                 const chunks: any[] = [];
@@ -329,12 +332,15 @@ export async function POST(req: NextRequest) {
             log(`Groq Response Error: ${JSON.stringify(error.response.data)}`);
         }
 
+        const isRateLimit = isAiRateLimitError(error);
+        const userFacingMessage = formatAiErrorMessage(error, 'Failed to generate questions');
+
         return NextResponse.json(
             {
-                error: error.message || 'Internal Server Error',
-                details: logs.join('\n')
+                error: userFacingMessage,
+                details: isRateLimit ? undefined : logs.join('\n')
             },
-            { status: 500 }
+            { status: isRateLimit ? 429 : 500 }
         );
     }
 }

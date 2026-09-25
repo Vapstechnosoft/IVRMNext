@@ -9,9 +9,9 @@ import {
     getFixingClassDropdown,
     getSectionDropdownByClassCategory,
     getStaffByFixing,
+    getSubjectByFixing,
     saveFixingDayPeriod
 } from '@/server/timetable/constraints/fixing';
-import { getSubjectDropDown } from '@/server/timetable/constraints/labconstraints';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
 import { useState } from 'react';
@@ -91,8 +91,14 @@ export default function DayPeriodAddForm({ academicList, categoryList, dayList, 
 
     const fetchSubjects = async (yearId: number, categoryId: number, classId: number, sectionId: number, staffId: number) => {
         try {
-            const res = await getSubjectDropDown();
-            const list = extractList('subjectlist');
+            const res = await getSubjectByFixing({
+                ASMAY_Id: yearId,
+                TTMC_Id: categoryId,
+                ASMCL_Id: classId,
+                ASMS_Id: sectionId,
+                HRME_Id: staffId
+            });
+            const list = extractList(res, 'subjectlist');
             setSubjectList(filterData(list || [], 'ismS_SubjectName'));
         } catch (error) {
             console.error(error);

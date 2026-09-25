@@ -8,6 +8,7 @@ import type { IInstitutionSubscription } from '@/types/super-admin/super-admin-m
 import { Plus, X } from 'lucide-react';
 import AddInstitutionSubscriptionForm from './_components/add-form';
 import { InstitutionSubscriptionColumns } from './_components/columns';
+import ToggleInstitutionSubscriptionForm from './_components/toggle-form';
 
 import { useInstitutionSubscriptionData } from '@/hooks/super-admin/super-admin-module/use-institution-subscription';
 import { use } from 'react';
@@ -89,21 +90,39 @@ function InstitutionSubscriptionPageContent({
 }
 
 function FormSections({ refetchAll }: { refetchAll: () => void }) {
-    const { isAddFormOpen, closeAddForm, addFormRef } = useFormContext<IInstitutionSubscription>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isToggleFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeToggleForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IInstitutionSubscription>();
+
+    const isFormOpen = isAddFormOpen || isEditFormOpen;
+    const closeForm = isEditFormOpen ? closeEditForm : closeAddForm;
+    const formRef = isEditFormOpen ? editFormRef : addFormRef;
+    const title = isEditFormOpen ? 'Edit Subscription' : 'Add New Subscription';
+    const description = isEditFormOpen
+        ? 'Update the subscription details below'
+        : 'Fill in the details below to create a new subscription';
 
     const handleSuccess = () => {
-        closeAddForm();
+        closeForm();
         refetchAll();
     };
 
     return (
         <>
-            {/* Add Form */}
-            {isAddFormOpen && (
-                <div ref={addFormRef}>
+            {/* Add / Edit Form */}
+            {isFormOpen && (
+                <div ref={formRef}>
                     <CollapsibleSection
-                        title='Add New Subscription'
-                        description='Fill in the details below to create a new subscription'
+                        title={title}
+                        description={description}
                         defaultOpen={true}
                         variant='outline'
                         size='md'
@@ -111,16 +130,29 @@ function FormSections({ refetchAll }: { refetchAll: () => void }) {
                         <div className='relative'>
                             <Button
                                 type='button'
-                                onClick={closeAddForm}
+                                onClick={closeForm}
                                 variant='ghost'
                                 size='sm'
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddInstitutionSubscriptionForm onSuccess={handleSuccess} />
+                            <AddInstitutionSubscriptionForm
+                                initialData={isEditFormOpen ? selectedRow : null}
+                                onSuccess={handleSuccess}
+                                onRefresh={refetchAll}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>
+            )}
+
+            {/* Toggle Confirmation Modal */}
+            {isToggleFormOpen && selectedRow && (
+                <ToggleInstitutionSubscriptionForm
+                    rowData={selectedRow}
+                    onClose={closeToggleForm}
+                    onRefresh={refetchAll}
+                />
             )}
         </>
     );

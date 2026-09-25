@@ -52,7 +52,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
         control,
         name: 'grade_list'
     });
-    const marksPerFlag = watch('emgR_MarksPerFlag');
+    const _marksPerFlag = watch('emgR_MarksPerFlag');
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
@@ -73,16 +73,16 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                 if (result?.data) {
                     const data = Array.isArray(result.data)
                         ? result.data.map((g: any) => ({
-                            emgD_Id: Number(g.emgD_Id ?? 0),
-                            emgR_Id: Number(g.emgR_Id ?? 0),
-                            emgD_Name: g.emgD_Name || '',
-                            emgD_From: Number(g.emgD_From ?? null),
-                            emgD_To: Number(g.emgD_To ?? null),
-                            emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
-                            emgD_Remarks: g.emgD_Remarks || '',
-                            emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
-                            emgR_MarksPerFlag: g.emgR_MarksPerFlag
-                        }))
+                              emgD_Id: Number(g.emgD_Id ?? 0),
+                              emgR_Id: Number(g.emgR_Id ?? 0),
+                              emgD_Name: g.emgD_Name || '',
+                              emgD_From: Number(g.emgD_From ?? null),
+                              emgD_To: Number(g.emgD_To ?? null),
+                              emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                              emgD_Remarks: g.emgD_Remarks || '',
+                              emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
+                              emgR_MarksPerFlag: g.emgR_MarksPerFlag
+                          }))
                         : [];
 
                     const rawFlag = (result.data as any)?.[0]?.emgR_MarksPerFlag ?? gradeData.emgR_MarksPerFlag;
@@ -214,16 +214,16 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             if (result?.data) {
                 const restoredRows = Array.isArray(result.data)
                     ? result.data.map((g: any) => ({
-                        emgD_Id: Number(g.emgD_Id ?? 0),
-                        emgR_Id: Number(g.emgR_Id ?? 0),
-                        emgD_Name: g.emgD_Name || '',
-                        emgD_From: Number(g.emgD_From ?? null),
-                        emgD_To: Number(g.emgD_To ?? null),
-                        emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
-                        emgD_Remarks: g.emgD_Remarks || '',
-                        emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
-                        emgR_MarksPerFlag: g.emgR_MarksPerFlag
-                    }))
+                          emgD_Id: Number(g.emgD_Id ?? 0),
+                          emgR_Id: Number(g.emgR_Id ?? 0),
+                          emgD_Name: g.emgD_Name || '',
+                          emgD_From: Number(g.emgD_From ?? null),
+                          emgD_To: Number(g.emgD_To ?? null),
+                          emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                          emgD_Remarks: g.emgD_Remarks || '',
+                          emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
+                          emgR_MarksPerFlag: g.emgR_MarksPerFlag
+                      }))
                     : [];
 
                 const rawFlag = (result.data as any)?.[0]?.emgR_MarksPerFlag ?? gradeData.emgR_MarksPerFlag;
@@ -286,7 +286,13 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                         name='emgR_MarksPerFlag'
                         control={control}
                         render={({ field }) => (
-                            <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
+                            <RadioGroup
+                                value={field.value}
+                                onValueChange={(val) => {
+                                    field.onChange(val);
+                                    trigger();
+                                }}
+                                className='flex gap-4'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='M' id='marks' />
                                     <Label htmlFor='marks'>Marks</Label>
@@ -341,6 +347,8 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     if (value && !/^\d*\.?\d*$/.test(value)) {
                                                         e.target.value = value.replace(/[^\d.]/g, '');
                                                     }
+                                                    trigger(`grade_list.${index}.emgD_To`);
+                                                    trigger(`grade_list.${index}.emgD_From`);
                                                 }
                                             })}
                                             placeholder='Enter From'
@@ -370,6 +378,8 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     if (value && !/^\d*\.?\d*$/.test(value)) {
                                                         e.target.value = value.replace(/[^\d.]/g, '');
                                                     }
+                                                    trigger(`grade_list.${index}.emgD_From`);
+                                                    trigger(`grade_list.${index}.emgD_To`);
                                                 }
                                             })}
                                             placeholder='Enter To'

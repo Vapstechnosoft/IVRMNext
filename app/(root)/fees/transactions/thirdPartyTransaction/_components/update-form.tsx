@@ -320,7 +320,6 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                         Student Name<span className='text-red-500'>*</span>
                     </Label>
                     <InputText {...register('studentName')} className='min-w-[400px]' error={errors.studentName?.message} />
-                    {errors.studentName && <FormError>{errors.studentName.message}</FormError>}
                 </div>
             )}
 
@@ -395,9 +394,14 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                 <Controller
                     name='amount'
                     control={control}
-                    render={({ field }) => <InputNumber value={field.value ?? 0} onChange={(v) => field.onChange(Number(v))} />}
+                    render={({ field }) => (
+                        <InputNumber
+                            value={field.value ?? 0}
+                            onChange={(v) => field.onChange(Number(v))}
+                            error={errors.amount?.message}
+                        />
+                    )}
                 />
-                {errors.amount && <FormError>{errors.amount.message}</FormError>}
             </div>
 
             {/* Receipt No */}
@@ -413,7 +417,6 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                         error={errors.fyP_Receipt_No?.message}
                         className='min-w-[400px]'
                     />
-                    {errors.fyP_Receipt_No && <FormError>{errors.fyP_Receipt_No.message}</FormError>}
                 </div>
             )}
 
@@ -550,7 +553,6 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                             Cheque No<span className='text-red-500'>*</span>
                         </Label>
                         <InputText {...register('chequeNo')} error={errors.chequeNo?.message} />
-                        {errors.chequeNo && <FormError>{errors.chequeNo.message}</FormError>}
                     </div>
                 </>
             )}
@@ -593,7 +595,6 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                             Card No <span className='text-red-500'>*</span>
                         </Label>
                         <InputText {...register('chequeNo')} placeholder='Enter Card Number' error={errors.chequeNo?.message} />
-                        {errors.chequeNo && <FormError>{errors.chequeNo.message}</FormError>}
                     </div>
                 </>
             )}

@@ -134,7 +134,7 @@ function QualificationStateDropdown({
             control={control}
             render={({ field, fieldState }) => (
                 <div className='flex flex-col gap-1.5'>
-                    <Label>State*</Label>
+                    <Label>State <span className='text-destructive'> *</span></Label>
                     <Select onValueChange={field.onChange} value={field.value || ''}>
                         <SelectTrigger className='h-9'>
                             <SelectValue placeholder='Select State' />
@@ -273,15 +273,15 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     key: Number(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? 0),
                     value: String(
                         item.hrmD_DepartmentName ??
-                            item.HRMD_DepartmentName ??
-                            item.hrmD_Name ??
-                            item.HRMD_Name ??
-                            item.name ??
-                            item.departmentName ??
-                            item.HRMD_ProjectName ??
-                            item.value ??
-                            item.label ??
-                            ''
+                        item.HRMD_DepartmentName ??
+                        item.hrmD_Name ??
+                        item.HRMD_Name ??
+                        item.name ??
+                        item.departmentName ??
+                        item.HRMD_ProjectName ??
+                        item.value ??
+                        item.label ??
+                        ''
                     )
                 };
             })
@@ -321,14 +321,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     ),
                     value: String(
                         item.ivrmmR_Name ??
-                            item.IVRMMR_Name ??
-                            item.hrmR_Name ??
-                            item.name ??
-                            item.religionName ??
-                            item.ReligionName ??
-                            item.value ??
-                            item.label ??
-                            ''
+                        item.IVRMMR_Name ??
+                        item.hrmR_Name ??
+                        item.name ??
+                        item.religionName ??
+                        item.ReligionName ??
+                        item.value ??
+                        item.label ??
+                        ''
                     )
                 };
             })
@@ -371,16 +371,16 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     key: String(item.hrmspL_Id ?? item.HRMSPL_Id ?? item.hrmS_Id ?? item.HRMS_Id ?? item.id ?? item.key ?? ''),
                     value: String(
                         item.hrmspL_SpecialisationName ??
-                            item.HRMSPL_SpecialisationName ??
-                            item.hrmS_SpecialisationName ??
-                            item.HRMS_SpecialisationName ??
-                            item.masterSpecialisationName ??
-                            item.specialisationName ??
-                            item.specializationName ??
-                            item.name ??
-                            item.value ??
-                            item.label ??
-                            'Unknown'
+                        item.HRMSPL_SpecialisationName ??
+                        item.hrmS_SpecialisationName ??
+                        item.HRMS_SpecialisationName ??
+                        item.masterSpecialisationName ??
+                        item.specialisationName ??
+                        item.specializationName ??
+                        item.name ??
+                        item.value ??
+                        item.label ??
+                        'Unknown'
                     )
                 };
             })
@@ -456,12 +456,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     key: String(item.hrmC_Id ?? item.HRMC_Id ?? item.courseId ?? item.id ?? item.key ?? ''),
                     value: String(
                         item.hrmC_CourseName ??
-                            item.HRMC_CourseName ??
-                            item.courseName ??
-                            item.name ??
-                            item.value ??
-                            item.label ??
-                            'Unknown'
+                        item.HRMC_CourseName ??
+                        item.courseName ??
+                        item.name ??
+                        item.value ??
+                        item.label ??
+                        'Unknown'
                     )
                 };
             })
@@ -537,7 +537,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const { control, register, handleSubmit, reset, watch, getValues, setValue, trigger, setError, clearErrors, formState } =
         useForm<FormFields>({
             resolver: zodResolver(employeeRegisterSchemas.update),
-            mode: 'onChange',
+            mode: 'onSubmit',
             reValidateMode: 'onChange',
             defaultValues: formDefaultValues,
             shouldUnregister: false // Ensure values persist when tabs unmount
@@ -730,9 +730,13 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     // MOVED HERE: To ensure 'reset' from useForm is defined
     // Use the onload API which returns comprehensive data + dropdowns
 
+    // Track last loaded employee ID to prevent re-initializing and resetting tabs for the same employee
+    const lastLoadedEmployeeId = useRef<number | null>(null);
+
     // Effect to refetch when selectedRow changes (ensures fresh data on repeated edits)
     useEffect(() => {
-        if (selectedRow?.hrmE_Id) {
+        if (selectedRow?.hrmE_Id && lastLoadedEmployeeId.current !== selectedRow.hrmE_Id) {
+            lastLoadedEmployeeId.current = selectedRow.hrmE_Id;
             console.log('🔄 [UPDATE-FORM] Selected row changed to ID:', selectedRow.hrmE_Id);
             setSavedEmployeeId(selectedRow.hrmE_Id);
             setIsFormInitialized(false); // Reset initialization flag
@@ -740,7 +744,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             setCurrentStep(1); // Reset back to the first tab when a new employee is selected
             refetchEmployee();
         }
-    }, [selectedRow?.hrmE_Id, refetchEmployee]);
+    }, [selectedRow?.hrmE_Id]);
 
     // SAFETY: Re-hydrate arrays when switching tabs if they appear empty but data exists
 
@@ -911,7 +915,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     console.log('✅ [DEBUG] Tab 1 (Employee Information) - Save Success:', response);
                     // Show API response message
                     if (response?.success && response?.message) {
-                        toast.success(response.message);
+                        toast.success("Employee Details Saved Successfully.");
                     } else if (response?.message) {
                         toast.info(response.message);
                     }
@@ -1152,39 +1156,53 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):', experienceList);
             console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience Count:', experienceList.length);
 
-            if (experienceList.length === 0) {
-                console.log('🔍 [DEBUG] Tab 4 - No experiences found, skipping to next step');
+            // Filter valid experiences that have at least some filled information
+            const validExperiences = experienceList.filter(
+                (exp: any) =>
+                    exp &&
+                    ((exp.organisationName && String(exp.organisationName).trim() !== '') ||
+                        (exp.department && String(exp.department).trim() !== '') ||
+                        (exp.designation && String(exp.designation).trim() !== '') ||
+                        exp.hrmeE_Id ||
+                        exp.HRMEE_Id)
+            );
+
+            if (validExperiences.length === 0) {
+                console.log('🔍 [DEBUG] Tab 4 - No experiences to save, skipping to next step');
                 setCurrentStep(5);
                 return;
             }
 
-            // Map experience data to API format (matching API request body format)
-            console.log(
-                '🔍 [DEBUG] Experience IDs Check:',
-                experienceList.map((e: any, i: number) => ({
-                    index: i,
-                    hrmeE_Id: e.hrmeE_Id,
-                    HRMEE_Id: e.HRMEE_Id,
-                    hasId: !!(e.hrmeE_Id || e.HRMEE_Id)
-                }))
-            );
-            const experiencesPayload = experienceList.map((exp: any, index: number) => {
-                const id = exp.hrmeE_Id || exp.HRMEE_Id || 0; // Check both cases
-                console.log(`🔍 [DEBUG] Experience #${index + 1} - ID from form:`, id, 'Full exp:', exp);
+            // Map experience data to API format (matching MasterEmployeeExperienceRequest)
+            const experiencesPayload = validExperiences.map((exp: any, index: number) => {
+                const id = Number(exp.hrmeE_Id || exp.HRMEE_Id || 0);
                 const mapped = {
-                    hrmeE_Id: id, // Use existing ID if updating, 0 for new
+                    hrmeE_Id: id,
+                    HRMEE_Id: id,
                     hrmE_Id: employeeId,
-                    mI_Id: MI_Id,
-                    hrmeE_OrganisationName: exp.organisationName || '',
-                    hrmeE_OrganisationAddress: exp.organisationAddress || '',
-                    hrmeE_Department: exp.department || '',
-                    hrmeE_Designation: exp.designation || '',
-                    hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : '',
-                    hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : '',
+                    HRME_Id: employeeId,
+                    mI_Id: MI_Id || 30,
+                    MI_Id: MI_Id || 30,
+                    hrmeE_OrganisationName: exp.organisationName || exp.hrmeE_OrganisationName || '',
+                    HRMEE_OrganisationName: exp.organisationName || exp.hrmeE_OrganisationName || '',
+                    hrmeE_OrganisationAddress: exp.organisationAddress || exp.hrmeE_OrganisationAddress || '',
+                    HRMEE_OrganisationAddress: exp.organisationAddress || exp.hrmeE_OrganisationAddress || '',
+                    hrmeE_Department: exp.department || exp.hrmeE_Department || '',
+                    HRMEE_Department: exp.department || exp.hrmeE_Department || '',
+                    hrmeE_Designation: exp.designation || exp.hrmeE_Designation || '',
+                    HRMEE_Designation: exp.designation || exp.hrmeE_Designation || '',
+                    hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : null,
+                    HRMEE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : null,
+                    hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : null,
+                    HRMEE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : null,
                     hrmeE_NoOfYears: Number(exp.noOfYears) || 0,
+                    HRMEE_NoOfYears: Number(exp.noOfYears) || 0,
                     hrmeE_NoOfMonths: Number(exp.noOfMonths) || 0,
+                    HRMEE_NoOfMonths: Number(exp.noOfMonths) || 0,
                     hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
-                    hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
+                    HRMEE_AnnualSalary: Number(exp.annualSalary) || 0,
+                    hrmeE_ReasonForLeaving: exp.reasonForLeaving || exp.hrmeE_ReasonForLeaving || '',
+                    HRMEE_ReasonForLeaving: exp.reasonForLeaving || exp.hrmeE_ReasonForLeaving || ''
                 };
                 console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
                     raw: exp,
@@ -1193,15 +1211,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 return mapped;
             });
 
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload Count:', experiencesPayload.length);
             console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload:', experiencesPayload);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):', JSON.stringify(experiencesPayload, null, 2));
-            console.log(
-                '🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails ONCE with array of',
-                experiencesPayload.length,
-                'items'
-            );
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function type:', typeof saveExperienceDetails);
+            console.log('🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails...');
 
             if (!saveExperienceDetails) {
                 console.error('❌ [DEBUG] Tab 4 - saveExperienceDetails is not defined!');
@@ -1209,24 +1220,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 return;
             }
 
-            // Ensure we only call the API once with the entire array
             saveExperienceDetails(experiencesPayload, {
                 onSuccess: (response: any) => {
                     console.log('✅ [DEBUG] Tab 4 (Experience) - Save Success:', response);
-                    console.log('🔍 [DEBUG] Tab 4 - Full API Response:', JSON.stringify(response, null, 2));
-                    console.log('🔍 [DEBUG] Tab 4 - Response Success:', response?.success);
-                    console.log('🔍 [DEBUG] Tab 4 - Response Message:', response?.message);
-                    console.log('🔍 [DEBUG] Tab 4 - Response Data:', response?.data);
-
-                    // Verify experience data was saved
-                    if (response?.data && Array.isArray(response.data)) {
-                        console.log('🔍 [DEBUG] Tab 4 - Response contains experience array, length:', response.data.length);
-                        console.log('🔍 [DEBUG] Tab 4 - Response Experiences:', response.data);
-                    }
-
-                    // Show API response message
-                    if (response?.success) {
-                        if (response.message) toast.success(response.message);
+                    if (response?.success || response?.success === undefined) {
+                        if (response?.message) toast.success(response.message);
                         setCurrentStep(5);
                     } else {
                         console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false', response);
@@ -1235,10 +1233,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                 },
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
-                    console.error('❌ [DEBUG] Tab 4 - Error Details:', JSON.stringify(error, null, 2));
-                    console.error('❌ [DEBUG] Tab 4 - Error Response:', error?.response);
-                    console.error('❌ [DEBUG] Tab 4 - Error Message:', error?.message);
-                    // Show API error message
                     const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
                     toast.error(errorMessage);
                 }
@@ -1387,11 +1381,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             await saveDocumentDetailsAsync(processedDocuments, {
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 5 (Document) - Save Success Response:', response);
-                    if (response?.success) {
-                        // Toast handled by hook or generic success toast
-                        // If hook handles it commit message, we don't need to duplicate success toast here unless logic demands
-                        // But we MUST dismiss the loading toast.
+                    if (response?.success || response?.success === undefined) {
                         toast.dismiss(toastId);
+                        toast.success(response?.message || 'Document details saved successfully');
                         if (currentStep === 5) {
                             setCurrentStep(6);
                         }
@@ -1523,10 +1515,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const availablePermanentStates: IStateDropdown[] = sameAsCommunicationAddress
         ? availableContactStates
         : permanentCountryId
-          ? Array.isArray(permanentStates)
-              ? permanentStates
-              : []
-          : [];
+            ? Array.isArray(permanentStates)
+                ? permanentStates
+                : []
+            : [];
 
     // Copy communication address to permanent address when checkbox is checked
     const prevSameAsAddress = useRef(sameAsCommunicationAddress);
@@ -1847,6 +1839,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
         replaceDocument
     ]);
 
+    // Clear validation errors when switching tabs so new tab starts clean
+    useEffect(() => {
+        clearErrors();
+    }, [currentStep, clearErrors]);
+
     const onFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1954,10 +1951,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             <form
                 onSubmit={(e) => {
                     e.preventDefault();
-                    // Only handle form submit for the last step, otherwise let nextStep handle it
-                    if (currentStep === steps.length) {
-                        onFormSubmit(e);
-                    }
                 }}
                 className='space-y-6'>
                 {/* Main Layout: Vertical Stepper + Form */}
@@ -1982,8 +1975,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-400'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -2039,8 +2032,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-500'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -2203,8 +2196,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                        // {...register('lastName')}
-                                                        // error={errors.lastName?.message as string | undefined}
+                                                    // {...register('lastName')}
+                                                    // error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Employee Code'
@@ -3174,17 +3167,17 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-muted-foreground text-sm'>
                                                                     {field.value
                                                                         ? (() => {
-                                                                              try {
-                                                                                  const date = new Date(field.value);
-                                                                                  return date.toLocaleDateString('en-GB', {
-                                                                                      day: '2-digit',
-                                                                                      month: '2-digit',
-                                                                                      year: 'numeric'
-                                                                                  });
-                                                                              } catch {
-                                                                                  return field.value;
-                                                                              }
-                                                                          })()
+                                                                            try {
+                                                                                const date = new Date(field.value);
+                                                                                return date.toLocaleDateString('en-GB', {
+                                                                                    day: '2-digit',
+                                                                                    month: '2-digit',
+                                                                                    year: 'numeric'
+                                                                                });
+                                                                            } catch {
+                                                                                return field.value;
+                                                                            }
+                                                                        })()
                                                                         : 'Pick date of retirement'}
                                                                 </div>
                                                                 {fieldState?.error && (
@@ -3779,11 +3772,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             </div>
                                                             {(errors.bankDetails ||
                                                                 (watch('modeOfPayment') === 'Bank' && bankFields.length === 0)) && (
-                                                                <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                    {(errors.bankDetails as any)?.message ||
-                                                                        'Bank Details are required when Mode of Payment is Bank'}
-                                                                </div>
-                                                            )}
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {(errors.bankDetails as any)?.message ||
+                                                                            'Bank Details are required when Mode of Payment is Bank'}
+                                                                    </div>
+                                                                )}
                                                             <div className='rounded-lg border bg-card'>
                                                                 <div className='rounded-t-lg bg-gray-200 px-4 py-2 text-gray-900'>
                                                                     <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
@@ -3894,7 +3887,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                             </SelectTrigger>
                                                                                             <SelectContent>
                                                                                                 {(options?.contactTypes || []).length ===
-                                                                                                0 ? (
+                                                                                                    0 ? (
                                                                                                     <SelectItem value='no-options' disabled>
                                                                                                         No options available
                                                                                                     </SelectItem>
@@ -3914,8 +3907,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                         .map((item: any) => {
                                                                                                             const val = getSafeValue(
                                                                                                                 item.key ||
-                                                                                                                    item.value ||
-                                                                                                                    item.id
+                                                                                                                item.value ||
+                                                                                                                item.id
                                                                                                             );
                                                                                                             if (!val) return null;
                                                                                                             return (
@@ -3931,8 +3924,8 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                                         item.name ||
                                                                                                                         String(
                                                                                                                             item.key ||
-                                                                                                                                item.value ||
-                                                                                                                                item.id
+                                                                                                                            item.value ||
+                                                                                                                            item.id
                                                                                                                         )}
                                                                                                                 </SelectItem>
                                                                                                             );
@@ -4440,10 +4433,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         {/* Row 1: Qualification, Course */}
                                                                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                             <InputText
-                                                                                label='Qualification *'
+                                                                                label='Qualification'
                                                                                 id={`qualificationDetails.${index}.qualification`}
                                                                                 maxLength={50}
                                                                                 {...register(`qualificationDetails.${index}.qualification`)}
+                                                                                required
                                                                             />
                                                                             <Controller
                                                                                 name={`qualificationDetails.${index}.course`}
@@ -4452,7 +4446,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                     const courses = options?.courses || [];
                                                                                     return (
                                                                                         <div className='flex flex-col gap-1.5'>
-                                                                                            <Label>Course *</Label>
+                                                                                            <Label>Course<span className='text-destructive'> *</span></Label>
                                                                                             <Select
                                                                                                 onValueChange={field.onChange}
                                                                                                 value={field.value || ''}>
@@ -4480,9 +4474,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                                 ) => {
                                                                                                                     return (
                                                                                                                         course.key !=
-                                                                                                                            null &&
+                                                                                                                        null &&
                                                                                                                         course.key !==
-                                                                                                                            undefined &&
+                                                                                                                        undefined &&
                                                                                                                         course.key !== 0
                                                                                                                     );
                                                                                                                 }
@@ -4520,22 +4514,24 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         {/* Row 2: College, University */}
                                                                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                             <InputText
-                                                                                label='College *'
+                                                                                label='College'
                                                                                 id={`qualificationDetails.${index}.college`}
                                                                                 maxLength={100}
                                                                                 {...register(`qualificationDetails.${index}.college`)}
+                                                                                required
                                                                             />
                                                                             <InputText
-                                                                                label='University *'
+                                                                                label='University'
                                                                                 id={`qualificationDetails.${index}.university`}
                                                                                 maxLength={100}
                                                                                 {...register(`qualificationDetails.${index}.university`)}
+                                                                                required
                                                                             />
                                                                         </div>
                                                                         {/* Row 3: Year Of Passing, Country, State */}
                                                                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                                                                             <InputText
-                                                                                label='Year Of Passing *'
+                                                                                label='Year Of Passing '
                                                                                 id={`qualificationDetails.${index}.yearOfPassing`}
                                                                                 maxLength={4}
                                                                                 onKeyDown={(e) => {
@@ -4566,13 +4562,14 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                     }
                                                                                 }}
                                                                                 {...register(`qualificationDetails.${index}.yearOfPassing`)}
+                                                                                required
                                                                             />
                                                                             <Controller
                                                                                 name={`qualificationDetails.${index}.qualificationCountry`}
                                                                                 control={control}
                                                                                 render={({ field, fieldState }) => (
                                                                                     <div className='flex flex-col gap-1.5'>
-                                                                                        <Label>Country*</Label>
+                                                                                        <Label>Country<span className='text-destructive'> *</span></Label>
                                                                                         <Select
                                                                                             onValueChange={(value) => {
                                                                                                 field.onChange(value);
@@ -4650,12 +4647,13 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                         {/* Row 4: Registration No., Result */}
                                                                         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                                             <InputText
-                                                                                label='Registration No. *'
+                                                                                label='Registration No'
                                                                                 id={`qualificationDetails.${index}.registrationNo`}
-                                                                               
+
                                                                                 {...register(
                                                                                     `qualificationDetails.${index}.registrationNo`
                                                                                 )}
+                                                                                required
                                                                                 maxLength={30}
                                                                                 error={
                                                                                     (errors.qualificationDetails as any)?.[index]
@@ -4663,9 +4661,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 }
                                                                             />
                                                                             <InputText
-                                                                                label='Result *'
+                                                                                label='Result'
                                                                                 id={`qualificationDetails.${index}.result`}
                                                                                 maxLength={20}
+                                                                                required
                                                                                 {...register(`qualificationDetails.${index}.result`)}
                                                                                 error={
                                                                                     (errors.qualificationDetails as any)?.[index]?.result
@@ -4680,7 +4679,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                 control={control}
                                                                                 render={({ field, fieldState }) => (
                                                                                     <div className='flex flex-col gap-1.5'>
-                                                                                        <Label>CGPA Or Percentage *</Label>
+                                                                                        <Label>CGPA Or Percentage <span className='text-destructive'>*</span></Label>
                                                                                         <Select
                                                                                             onValueChange={(val) => {
                                                                                                 field.onChange(val);
@@ -4803,7 +4802,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                     const specialisations = options?.specialisations || [];
                                                                                     return (
                                                                                         <div className='flex flex-col gap-1.5'>
-                                                                                            <Label>Area Of Specialization*</Label>
+                                                                                            <Label>Area Of Specialization<span className='text-destructive'> *</span></Label>
                                                                                             <Select
                                                                                                 onValueChange={field.onChange}
                                                                                                 value={field.value || ''}>
@@ -4819,7 +4818,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                                                                 return (
                                                                                                                     spec.key != null &&
                                                                                                                     spec.key !==
-                                                                                                                        undefined &&
+                                                                                                                    undefined &&
                                                                                                                     spec.key !== 0
                                                                                                                 );
                                                                                                             }
@@ -5284,15 +5283,16 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                             </div>
                                                             <div className='grid grid-cols-1 gap-3 md:grid-cols-2'>
                                                                 <InputText
-                                                                    label='Document Name *'
+                                                                    label='Document Name '
                                                                     id={`documentList.${index}.documentName`}
                                                                     maxLength={255}
                                                                     {...register(`documentList.${index}.documentName`)}
                                                                     placeholder='Enter document name'
                                                                     error={(errors.documentList as any)?.[index]?.documentName?.message}
+                                                                    required
                                                                 />
                                                                 <InputText
-                                                                    label='Description *'
+                                                                    label='Description '
                                                                     id={`documentList.${index}.documentDescription`}
                                                                     maxLength={400}
                                                                     {...register(`documentList.${index}.documentDescription`)}
@@ -5300,9 +5300,10 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                     error={
                                                                         (errors.documentList as any)?.[index]?.documentDescription?.message
                                                                     }
+                                                                    required
                                                                 />
                                                                 <div className='space-y-2 md:col-span-2'>
-                                                                    <Label>Upload Document</Label>
+                                                                    <Label>Upload Document<span className='text-red-500'> *</span></Label>
                                                                     <div className='flex items-center gap-2'>
                                                                         <input
                                                                             type='file'
@@ -5705,7 +5706,6 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                 employeeId={savedEmployeeId}
                                                 employeeCode={watch('employeeCode')}
                                                 MI_Id={30}
-                                                onSuccess={onSuccess}
                                             />
                                         ) : (
                                             <div className='rounded-md border p-6 text-center text-muted-foreground'>

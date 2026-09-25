@@ -17,6 +17,7 @@ import { useEffect, useState } from 'react';
 
 import { Spinner } from '@/components/ui/spinner';
 import { useDocumentDownload, useStudentApplicationForm } from '@/hooks/admission/preadmission/useTransactions';
+import { ApplicationFormCell } from '../../../../preadmission/transactions/document-view/_components/columns';
 import { toast } from 'sonner';
 import PaymentDialog from './payment-dialog';
 import ToggleStudentApplicationForm from './toggle-form';
@@ -94,108 +95,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
         ),
         cell: ({ row }) => {
             const appId = row.original.pasr_id;
-            const [showPdfModal, setShowPdfModal] = useState(false);
-            const [pdfBase64, setPdfBase64] = useState<string | null>(null);
-            const [iframeLoading, setIframeLoading] = useState(false);
-
-            const { mutate: downloadDocument, isPending: isLoading } = useDocumentDownload();
-
-            const handleViewClick = () => {
-                setShowPdfModal(true);
-                // Only fetch when user clicks
-                if (!pdfBase64) {
-                    downloadDocument(appId, {
-                        onSuccess: (data) => {
-                            const base64 =
-                                typeof data?.data === 'string'
-                                    ? data.data
-                                    : Array.isArray(data?.data)
-                                      ? ((data.data[0] as unknown as string) ?? null)
-                                      : null;
-                            setPdfBase64(base64);
-                        },
-                        onError: (error) => {
-                            console.error('Failed to load document:', error);
-                            setPdfBase64(null);
-                        }
-                    });
-                }
-            };
-
-            useEffect(() => {
-                if (showPdfModal && pdfBase64) {
-                    setIframeLoading(true);
-                }
-                if (!showPdfModal) {
-                    setIframeLoading(false);
-                }
-            }, [showPdfModal, pdfBase64]);
-
-            return (
-                <>
-                    <Button variant='link' className='p-0 text-blue-600 hover:underline' onClick={handleViewClick}>
-                        View Application
-                    </Button>
-
-                    {showPdfModal && (
-                        <Dialog
-                            open={showPdfModal}
-                            onOpenChange={(open) => {
-                                setShowPdfModal(open);
-                                if (!open) {
-                                    setPdfBase64(null);
-                                }
-                            }}>
-                            <DialogContent
-                                className='flex h-[90vh] max-w-5xl flex-col p-0'
-                                onInteractOutside={(e) => {
-                                    e.preventDefault();
-                                }}>
-                                <DialogHeader className='p-0'>
-                                    <DialogTitle className='pt-3 text-center font-bold text-lg'>Pre Admission Application Form</DialogTitle>
-                                </DialogHeader>
-                                <div className='relative min-h-0 flex-1 overflow-hidden'>
-                                    {/* Spinner while loading PDF */}
-                                    {(isLoading || iframeLoading) && (
-                                        <div className='absolute inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm'>
-                                            <div className='transition-all'>
-                                                <div className='flex flex-col items-center'>
-                                                    <Spinner size='lg' className='text-primary' />
-                                                    <p className='mt-3 font-medium text-gray-700 text-sm'>Loading document...</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {/* PDF Viewer */}
-                                    <div className='relative h-full min-h-0 w-full'>
-                                        {pdfBase64 ? <div className='absolute top-3 right-3 z-30 flex gap-3' /> : null}
-
-                                        {typeof pdfBase64 === 'string' && pdfBase64 ? (
-                                            <iframe
-                                                src={
-                                                    pdfBase64.startsWith('data:') || pdfBase64.startsWith('http')
-                                                        ? pdfBase64
-                                                        : `data:application/pdf;base64,${pdfBase64}`
-                                                }
-                                                title='Pre Admission Application Form'
-                                                className='h-full min-h-0 w-full border-0'
-                                                style={{ display: iframeLoading ? 'none' : 'block' }}
-                                                onLoad={() => setIframeLoading(false)}
-                                            />
-                                        ) : (
-                                            <div className='flex h-full items-center justify-center'>
-                                                <div className='text-gray-500 text-sm'>
-                                                    {isLoading ? 'Loading...' : 'No document available'}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    )}
-                </>
-            );
+            return <ApplicationFormCell pasrId={appId} rowData={row.original as any} />;
         },
         enableSorting: false
     },

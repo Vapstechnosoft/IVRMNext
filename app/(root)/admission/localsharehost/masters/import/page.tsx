@@ -28,16 +28,9 @@ export default function StudentImportPage() {
     const performValidation = async (data: any[]) => {
         setIsValidating(true);
         try {
-            const dataToValidate = {
-                asmaY_Id: 231,
-                stuStatus: 'Active',
-                newlstget1: data.map((item) => ({
-                    ...item,
-                    asmaY_Id: 231,
-                    stuStatus: 'Active'
-                }))
-            };
-            const response = await checkImportValidation(dataToValidate);
+            // Ensure data is a plain object to avoid Next.js Server Action errors
+            const plainData = JSON.parse(JSON.stringify(data));
+            const response = await checkImportValidation({ newlstget1: plainData });
 
             if (response.stuStatus && response.stuStatus !== '') {
                 Swal.fire({
@@ -47,6 +40,15 @@ export default function StudentImportPage() {
                     confirmButtonColor: '#3085d6'
                 });
                 setImportedData([]); // Clear data if validation fails as per legacy logic
+                setHeaders([]);
+            } else if (response.success === false && response.message) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Failed',
+                    text: response.message,
+                    confirmButtonColor: '#3085d6'
+                });
+                setImportedData([]);
                 setHeaders([]);
             } else {
                 setIsValidated(true);
@@ -68,26 +70,26 @@ export default function StudentImportPage() {
 
         setIsSaving(true);
         try {
-            const dataToSave = {
-                asmaY_Id: 231,
-                stuStatus: 'Active',
-                newlstget1: importedData.map((item) => ({
-                    ...item,
-                    asmaY_Id: 231,
-                    stuStatus: 'Active'
-                }))
+            const payload = {
+                // Ensure data is a plain object to avoid Next.js Server Action errors
+                newlstget1: JSON.parse(JSON.stringify(importedData))
             };
-            const response = await saveImportedData(dataToSave);
+            const response = await saveImportedData(payload);
 
             // Support legacy responses where success is indicated by 'true' at the start of message or stuStatus
             const responseMessage = String(response.message || response.stuStatus || '');
             const isSuccess = response.success || response.stuStatus === 'true' || responseMessage.toLowerCase().startsWith('true');
+            
+            let displayMessage = responseMessage;
+            if (displayMessage.toLowerCase().startsWith('true')) {
+                displayMessage = displayMessage.substring(4).trim();
+            }
 
             if (isSuccess) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Import Result',
-                    text: responseMessage
+                    text: displayMessage || ('Failed And Saved Count ' + (response.returnMsg || ''))
                 }).then(() => {
                     window.location.reload();
                 });
@@ -95,7 +97,7 @@ export default function StudentImportPage() {
                 Swal.fire({
                     icon: 'error',
                     title: 'Save Failed',
-                    text: responseMessage || 'An error occurred while saving the data'
+                    text: displayMessage || 'An error occurred while saving the data'
                 });
             }
         } catch (error) {

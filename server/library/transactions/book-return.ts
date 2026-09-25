@@ -41,7 +41,12 @@ export async function getBookTransactionDetails(data: {
 export async function issueBook(data: IIssueBookRequest) {
     try {
         const url = `${FACADE}/Savedata`;
-        return await api.post<{ returnval: boolean; duplicate: boolean; maxmsg: string }>('library', url, data);
+        const res = await api.post<{ returnval: boolean; duplicate: boolean; maxmsg: string }>('library', url, data);
+        return {
+            returnval: Boolean((res as any)?.returnval ?? (res as any)?.data?.returnval ?? false),
+            duplicate: Boolean((res as any)?.duplicate ?? (res as any)?.data?.duplicate ?? false),
+            maxmsg: String((res as any)?.maxmsg ?? (res as any)?.data?.maxmsg ?? '')
+        };
     } catch (err: any) {
         console.warn(`POST ${FACADE}/Savedata failed:`, err?.message || err);
         return { returnval: false, duplicate: false, maxmsg: 'Failed to issue book' };
@@ -106,7 +111,12 @@ export async function returnBook(data: IReturnBookRequest) {
 export async function renewBook(data: IRenewalBookRequest) {
     try {
         const url = `${FACADE}/renewaldata`;
-        return await api.post<{ returnval: boolean; duplicate: boolean; renew: boolean }>('library', url, data);
+        const res = await api.post<{ returnval: boolean; duplicate: boolean; renew: boolean }>('library', url, data);
+        return {
+            returnval: Boolean((res as any)?.returnval ?? (res as any)?.data?.returnval ?? false),
+            duplicate: Boolean((res as any)?.duplicate ?? (res as any)?.data?.duplicate ?? false),
+            renew: Boolean((res as any)?.renew ?? (res as any)?.data?.renew ?? false)
+        };
     } catch (err: any) {
         console.warn(`POST ${FACADE}/renewaldata failed:`, err?.message || err);
         return { returnval: false, duplicate: false, renew: false };

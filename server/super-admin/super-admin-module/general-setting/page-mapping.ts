@@ -33,8 +33,8 @@ export async function getAvailablePages(searchParams: any) {
         typeof searchParams === 'number' || typeof searchParams === 'string'
             ? { ivrmM_Id: searchParams }
             : searchParams && typeof searchParams === 'object'
-              ? searchParams
-              : {};
+                ? searchParams
+                : {};
 
     const query = getSearchParamsUrl(paramsObj);
     const url = `MasterPageModuleMappingFacade/get_master_page_details_onchange_of_modulename?${query}`;

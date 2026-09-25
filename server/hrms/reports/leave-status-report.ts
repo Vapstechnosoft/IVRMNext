@@ -3,16 +3,16 @@
 import { api } from '@/lib/apiService';
 
 export interface LeaveStatusReportRequest {
-    hrmlY_Id: string;
+    hrmlY_Id: string | number;
     hrml_Ids: string;
     hrme_Ids: string;
 }
 
 export async function getLeaveStatusReport(data: LeaveStatusReportRequest) {
     console.log('data', data);
-    const url = `/api/LeaveStatusReport/get_leave_status_report/${data.hrmlY_Id}/${data.hrml_Ids}/${data.hrme_Ids}`;
+    const url = `/api/LeaveStatusReport/get_leave_status_report`;
     try {
-        const response = await api.get<any>('hmslms', url);
+        const response = await api.post<any>('hmslms', url, data);
         if (response.success) {
             return {
                 success: true,
@@ -34,3 +34,4 @@ export async function getLeaveStatusReport(data: LeaveStatusReportRequest) {
         };
     }
 }
+

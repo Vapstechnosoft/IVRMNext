@@ -21,35 +21,87 @@ export const MasterExamColumns: ColumnDef<IMasterExam>[] = [
         enableSorting: false
     },
     {
-        accessorKey: 'emE_ExamName',
+        id: 'emE_ExamName',
+        accessorFn: (row: any) => row.emE_ExamName ?? row.eme_ExamName ?? row.EME_ExamName ?? '',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Name' />,
-        cell: ({ row }) => <div>{row.getValue('emE_ExamName')}</div>,
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            const val = row.getValue('emE_ExamName') || rowData?.emE_ExamName || rowData?.eme_ExamName || rowData?.EME_ExamName || '-';
+            return <div>{val}</div>;
+        },
         enableSorting: true
     },
     {
-        accessorKey: 'emE_IVRSExamName',
+        id: 'emE_IVRSExamName',
+        accessorFn: (row: any) => row.emE_IVRSExamName ?? row.eme_IVRSExamName ?? row.EME_IVRSExamName ?? '',
         header: ({ column }) => <DataTableColumnHeader column={column} title='IVRS Exam Name' />,
-        cell: ({ row }) => <div>{row.getValue('emE_IVRSExamName')}</div>
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            const val = row.getValue('emE_IVRSExamName') || rowData?.emE_IVRSExamName || rowData?.eme_IVRSExamName || rowData?.EME_IVRSExamName || '-';
+            return <div>{val}</div>;
+        }
     },
     {
-        accessorKey: 'emE_ExamDescription',
+        id: 'emE_ExamDescription',
+        accessorFn: (row: any) =>
+            row.emE_ExamDescription ??
+            row.emE_ExamDiscription ??
+            row.eme_ExamDescription ??
+            row.emE_Examdescription ??
+            row.emE_ExamDesc ??
+            row.eme_examdescription ??
+            row.EME_ExamDescription ??
+            row.EME_ExamDiscription ??
+            row.examDescription ??
+            '',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Description' />,
-        cell: ({ row }) => <div>{row.getValue('emE_ExamDescription')}</div>
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            const val =
+                row.getValue('emE_ExamDescription') ||
+                rowData?.emE_ExamDescription ||
+                rowData?.emE_ExamDiscription ||
+                rowData?.eme_ExamDescription ||
+                rowData?.emE_Examdescription ||
+                rowData?.emE_ExamDesc ||
+                rowData?.eme_examdescription ||
+                rowData?.EME_ExamDescription ||
+                rowData?.EME_ExamDiscription ||
+                rowData?.examDescription ||
+                '-';
+            return <div>{val}</div>;
+        },
+        enableSorting: true
     },
     {
-        accessorKey: 'emE_ExamCode',
+        id: 'emE_ExamCode',
+        accessorFn: (row: any) => row.emE_ExamCode ?? row.eme_ExamCode ?? row.EME_ExamCode ?? '',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Code' />,
-        cell: ({ row }) => <div>{row.getValue('emE_ExamCode')}</div>
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            const val = row.getValue('emE_ExamCode') || rowData?.emE_ExamCode || rowData?.eme_ExamCode || rowData?.EME_ExamCode || '-';
+            return <div>{val}</div>;
+        }
     },
     {
-        accessorKey: 'emE_FinalExamFlag',
+        id: 'emE_FinalExamFlag',
+        accessorFn: (row: any) => row.emE_FinalExamFlag ?? row.eme_FinalExamFlag ?? row.EME_FinalExamFlag ?? false,
         header: ({ column }) => <DataTableColumnHeader column={column} title='Final Exam Flag' />,
-        cell: ({ row }) => getStatusBadge(row.getValue('emE_FinalExamFlag') === true ? 'yes' : 'no')
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            const val = row.getValue('emE_FinalExamFlag') ?? rowData?.emE_FinalExamFlag ?? rowData?.eme_FinalExamFlag ?? rowData?.EME_FinalExamFlag;
+            return getStatusBadge(val === true || val === 1 || val === 'true' ? 'yes' : 'no');
+        }
     },
     {
-        accessorKey: 'emE_ExamOrder',
+        id: 'emE_ExamOrder',
+        accessorFn: (row: any) => row.emE_ExamOrder ?? row.eme_ExamOrder ?? row.EME_ExamOrder ?? '',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Exam Order' />,
-        cell: ({ row }) => <div>{row.getValue('emE_ExamOrder')}</div>
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            const val = row.getValue('emE_ExamOrder') ?? rowData?.emE_ExamOrder ?? rowData?.eme_ExamOrder ?? rowData?.EME_ExamOrder ?? '-';
+            return <div>{val}</div>;
+        }
     },
     {
         id: 'actions',

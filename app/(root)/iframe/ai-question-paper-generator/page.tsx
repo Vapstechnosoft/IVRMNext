@@ -14,6 +14,7 @@ import jsPDF from 'jspdf';
 import { AlertCircle, Check, CheckCircle2, Download, FileText, Loader2, Plus, Trash2, Upload } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
+import { formatAiErrorMessage, isAiRateLimitError } from '@/lib/ai-error-handler';
 import { toast } from 'sonner';
 
 interface Question {
@@ -191,20 +192,24 @@ export default function AIQuestionPaperGenerator() {
             if (!response.ok) {
                 const errorText = await response.text();
                 // biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
-                let errorData;
+                let errorData: any;
                 try {
                     errorData = JSON.parse(errorText);
                 } catch (e) {
-                    // Start of non-JSON error (e.g. HTML 500 page)
                     console.error('Non-JSON Error Response:', errorText);
-                    throw new Error(`Server Error (${response.status}): ${response.statusText}`);
+                    throw new Error(formatAiErrorMessage(errorText, `Server Error (${response.status}): ${response.statusText}`));
                 }
 
-                const errorMessage = errorData.error || 'Failed to generate questions';
-                const errorDetails = errorData.details || '';
+                const rawErrorMessage = errorData?.error || 'Failed to generate questions';
+                const formattedMessage = formatAiErrorMessage(rawErrorMessage);
+                const isRateLimit = response.status === 429 || isAiRateLimitError(rawErrorMessage) || isAiRateLimitError(errorData?.details);
 
-                setErrorLog(errorDetails);
-                throw new Error(errorMessage);
+                if (!isRateLimit && errorData?.details) {
+                    setErrorLog(errorData.details);
+                } else {
+                    setErrorLog(null);
+                }
+                throw new Error(formattedMessage);
             }
 
             const data = await response.json();
@@ -213,16 +218,17 @@ export default function AIQuestionPaperGenerator() {
             toast.success('Question paper generated successfully');
         } catch (error: any) {
             console.error('Generation Error:', error);
-            // Display internal details if available, otherwise standard message
-            const displayMessage = error.message || 'Error generating question paper. Please try again.';
+            const isRateLimit = isAiRateLimitError(error);
+            const displayMessage = formatAiErrorMessage(error, 'Error generating question paper. Please try again.');
 
             setErrorMessage(displayMessage);
-            if (!errorLog && error.stack) {
-                // Fallback if no server log
+            if (isRateLimit) {
+                setErrorLog(null);
+            } else if (!errorLog && error.stack) {
                 setErrorLog(error.stack);
             }
 
-            toast.error(displayMessage, { duration: 5000 }); // Longer validation for reading
+            toast.error(displayMessage, { duration: 5000 });
         } finally {
             setIsLoading(false);
         }

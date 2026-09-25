@@ -10,8 +10,10 @@
         "build": "cross-env NODE_OPTIONS=--max-old-space-size=8096 next build",
         "start": "next start -p 8080",
         "lint": "biome lint .",
-        "local": "env-cmd -f .env.local next dev --turbopack",
-        "dev": "env-cmd -f .env.dev next dev --turbopack",
+        "local": "cross-env NODE_OPTIONS=--max-old-space-size=8096 env-cmd -f .env.local next dev --turbopack",
+        "local:webpack": "cross-env NODE_OPTIONS=--max-old-space-size=8096 env-cmd -f .env.local next dev",
+        "dev": "cross-env NODE_OPTIONS=--max-old-space-size=8096 env-cmd -f .env.dev next dev --turbopack",
+        "dev:webpack": "cross-env NODE_OPTIONS=--max-old-space-size=8096 env-cmd -f .env.dev next dev",
         "qa": "env-cmd -f .env.qa next dev",
         "prod": "env-cmd -f .env.prod next dev",
         "uat": "env-cmd -f .env.uat next dev",
@@ -72,6 +74,7 @@
         "clean-build": "rm -rf .next && npm ci --legacy-peer-deps && cross-env NODE_OPTIONS=\"--max-old-space-size=12288\" npm run build-dev"
     },
     "dependencies": {
+        "@azure-rest/ai-translation-text": "^2.0.0",
         "@babel/runtime": "^7.28.6",
         "@dnd-kit/core": "^6.3.1",
         "@dnd-kit/modifiers": "^9.0.0",

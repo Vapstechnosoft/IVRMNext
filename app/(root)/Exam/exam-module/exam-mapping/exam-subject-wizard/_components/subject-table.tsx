@@ -24,19 +24,22 @@ export const BaseExamSubjectSchema = {
             ismS_SubjectCode: z.string().min(1, { message: 'Subject code is required' }),
 
             // -------- MARKS UPDATED HERE --------
-            // If val is '' or undefined or NaN or 0 → treat as undefined
+            // If val is '' or undefined or null or NaN → treat as undefined
             eyceS_MaxMarks: z.preprocess((val) => {
+                if (val === '' || val === undefined || val === null) return undefined;
                 const num = Number(val);
-                return !val || Number.isNaN(num) || num === 0 ? undefined : num;
-            }, z.number().min(1).max(100).optional()),
+                return Number.isNaN(num) ? undefined : num;
+            }, z.number().min(0).max(100).optional()),
             eyceS_MinMarks: z.preprocess((val) => {
+                if (val === '' || val === undefined || val === null) return undefined;
                 const num = Number(val);
-                return !val || Number.isNaN(num) || num === 0 ? undefined : num;
-            }, z.number().min(1).max(100).optional()),
+                return Number.isNaN(num) ? undefined : num;
+            }, z.number().min(0).max(100).optional()),
             eyceS_MarksEntryMax: z.preprocess((val) => {
+                if (val === '' || val === undefined || val === null) return undefined;
                 const num = Number(val);
-                return !val || Number.isNaN(num) || num === 0 ? undefined : num;
-            }, z.number().min(1).max(100).optional()),
+                return Number.isNaN(num) ? undefined : num;
+            }, z.number().min(0).max(100).optional()),
             // -------------------------------------
 
             eyceS_SubExamFlg: z.boolean().optional().default(false),
@@ -204,15 +207,9 @@ const SubjectTableRow = React.memo(
         validateRowWithZod
     }: SubjectTableRowProps) => {
         const isChecked = !!s.checkedvalue;
-        const hasMaxMarks =
-            s.eyceS_MaxMarks !== '' && s.eyceS_MaxMarks !== null && s.eyceS_MaxMarks !== undefined && s.eyceS_MaxMarks !== 0;
-        const hasMinMarks =
-            s.eyceS_MinMarks !== '' && s.eyceS_MinMarks !== null && s.eyceS_MinMarks !== undefined && s.eyceS_MinMarks !== 0;
-        const hasEntryMax =
-            s.eyceS_MarksEntryMax !== '' &&
-            s.eyceS_MarksEntryMax !== null &&
-            s.eyceS_MarksEntryMax !== undefined &&
-            s.eyceS_MarksEntryMax !== 0;
+        const hasMaxMarks = s.eyceS_MaxMarks !== '' && s.eyceS_MaxMarks !== null && s.eyceS_MaxMarks !== undefined;
+        const hasMinMarks = s.eyceS_MinMarks !== '' && s.eyceS_MinMarks !== null && s.eyceS_MinMarks !== undefined;
+        const hasEntryMax = s.eyceS_MarksEntryMax !== '' && s.eyceS_MarksEntryMax !== null && s.eyceS_MarksEntryMax !== undefined;
 
         const canToggleSubFlags = isChecked && hasMaxMarks && hasMinMarks && hasEntryMax;
 
@@ -242,7 +239,11 @@ const SubjectTableRow = React.memo(
                 <td className='w-28 border p-2 align-top'>
                     <Input
                         disabled={!isChecked}
-                        value={s.eyceS_MaxMarks === '' || s.eyceS_MaxMarks === 0 ? '' : String(s.eyceS_MaxMarks)}
+                        value={
+                            s.eyceS_MaxMarks === '' || s.eyceS_MaxMarks === null || s.eyceS_MaxMarks === undefined
+                                ? ''
+                                : String(s.eyceS_MaxMarks)
+                        }
                         onChange={(e) => {
                             const raw = e.target.value.replace(/\D/g, '');
                             updateSubjectField(s.ismS_Id, 'eyceS_MaxMarks', raw === '' ? '' : Number(raw));
@@ -274,7 +275,11 @@ const SubjectTableRow = React.memo(
                 <td className='w-24 border p-2 align-top'>
                     <Input
                         disabled={!isChecked}
-                        value={s.eyceS_MinMarks === '' || s.eyceS_MinMarks === 0 ? '' : String(s.eyceS_MinMarks)}
+                        value={
+                            s.eyceS_MinMarks === '' || s.eyceS_MinMarks === null || s.eyceS_MinMarks === undefined
+                                ? ''
+                                : String(s.eyceS_MinMarks)
+                        }
                         onChange={(e) => {
                             const raw = e.target.value.replace(/\D/g, '');
                             updateSubjectField(s.ismS_Id, 'eyceS_MinMarks', raw === '' ? '' : Number(raw));
@@ -305,7 +310,11 @@ const SubjectTableRow = React.memo(
                 <td className='w-28 border p-2 align-top'>
                     <Input
                         disabled={!isChecked}
-                        value={s.eyceS_MarksEntryMax === '' || s.eyceS_MarksEntryMax === 0 ? '' : String(s.eyceS_MarksEntryMax)}
+                        value={
+                            s.eyceS_MarksEntryMax === '' || s.eyceS_MarksEntryMax === null || s.eyceS_MarksEntryMax === undefined
+                                ? ''
+                                : String(s.eyceS_MarksEntryMax)
+                        }
                         onChange={(e) => {
                             const raw = e.target.value.replace(/\D/g, '');
                             updateSubjectField(s.ismS_Id, 'eyceS_MarksEntryMax', raw === '' ? '' : Number(raw));
@@ -843,9 +852,7 @@ export default function SubjectTableWithValidation({
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'minMarks') {
             const numOrEmpty = value === '' ? '' : Number(value);
-            setSubjects((s) =>
-                s.map((row) => (row.checkedvalue ? { ...row, eyceS_MinMarks: numOrEmpty } : row))
-            );
+            setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_MinMarks: numOrEmpty } : row)));
 
             setTimeout(() => {
                 setErrors((prevErrs) => {
@@ -871,9 +878,7 @@ export default function SubjectTableWithValidation({
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'maxEntry') {
             const numOrEmpty = value === '' ? '' : Number(value);
-            setSubjects((s) =>
-                s.map((row) => (row.checkedvalue ? { ...row, eyceS_MarksEntryMax: numOrEmpty } : row))
-            );
+            setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_MarksEntryMax: numOrEmpty } : row)));
 
             setTimeout(() => {
                 setErrors((prevErrs) => {
@@ -911,24 +916,51 @@ export default function SubjectTableWithValidation({
             const errorsForRow: Record<string, string> = {};
 
             // ---- REQUIRED checks for selected rows ----
-            if (!row.eyceS_MaxMarks || Number(row.eyceS_MaxMarks) <= 0) {
+            if (
+                row.eyceS_MaxMarks === '' ||
+                row.eyceS_MaxMarks === null ||
+                row.eyceS_MaxMarks === undefined ||
+                Number(row.eyceS_MaxMarks) < 0
+            ) {
                 errorsForRow.eyceS_MaxMarks = 'Max marks is required';
             }
 
-            if (!row.eyceS_MinMarks || Number(row.eyceS_MinMarks) <= 0) {
+            if (
+                row.eyceS_MinMarks === '' ||
+                row.eyceS_MinMarks === null ||
+                row.eyceS_MinMarks === undefined ||
+                Number(row.eyceS_MinMarks) < 0
+            ) {
                 errorsForRow.eyceS_MinMarks = 'Min marks is required';
             }
 
-            if (!row.eyceS_MarksEntryMax || Number(row.eyceS_MarksEntryMax) <= 0) {
+            if (
+                row.eyceS_MarksEntryMax === '' ||
+                row.eyceS_MarksEntryMax === null ||
+                row.eyceS_MarksEntryMax === undefined ||
+                Number(row.eyceS_MarksEntryMax) < 0
+            ) {
                 errorsForRow.eyceS_MarksEntryMax = 'Max entry marks is required';
             }
 
             // ---- Cross-field validation (only if all present) ----
-            if (row.eyceS_MinMarks && row.eyceS_MaxMarks && Number(row.eyceS_MinMarks) > Number(row.eyceS_MaxMarks)) {
+            if (
+                row.eyceS_MinMarks !== '' &&
+                row.eyceS_MaxMarks !== '' &&
+                row.eyceS_MinMarks !== null &&
+                row.eyceS_MaxMarks !== null &&
+                Number(row.eyceS_MinMarks) > Number(row.eyceS_MaxMarks)
+            ) {
                 errorsForRow.eyceS_MinMarks = 'Min marks must be ≤ Max marks';
             }
 
-            if (row.eyceS_MarksEntryMax && row.eyceS_MaxMarks && Number(row.eyceS_MarksEntryMax) > Number(row.eyceS_MaxMarks)) {
+            if (
+                row.eyceS_MarksEntryMax !== '' &&
+                row.eyceS_MaxMarks !== '' &&
+                row.eyceS_MarksEntryMax !== null &&
+                row.eyceS_MaxMarks !== null &&
+                Number(row.eyceS_MarksEntryMax) > Number(row.eyceS_MaxMarks)
+            ) {
                 errorsForRow.eyceS_MarksEntryMax = 'Max entry marks cannot exceed Max marks';
             }
 
@@ -962,14 +994,6 @@ export default function SubjectTableWithValidation({
         },
         [onOpenSubSubjectSubExamModal, showSubExamColumn, onOpenSubExamModal, showSubSubjectColumn, onOpenSubSubjectModal]
     );
-
-    // ---------- small UX helpers ----------
-    const renderFieldError = (rowId: number, field: string) => {
-        if (!errors[rowId]) return null;
-        const msg = errors[rowId][field];
-        if (!msg) return null;
-        return <div className='mt-1 text-red-500 text-xs'>{msg}</div>;
-    };
 
     useEffect(() => {
         onRegisterValidate?.(validateSelectedSubjects);
@@ -1049,11 +1073,7 @@ export default function SubjectTableWithValidation({
                                     <div className='flex flex-col items-center'>
                                         <div className='mb-1 text-[13px]'>Max. Marks</div>
                                         <Input
-                                            value={
-                                                globalHeader.maxMarks === '' || Number(globalHeader.maxMarks) === 0
-                                                    ? ''
-                                                    : globalHeader.maxMarks
-                                            }
+                                            value={globalHeader.maxMarks}
                                             onChange={(e) => {
                                                 const val = e.target.value;
                                                 if (/^\d*$/.test(val)) handleHeaderChange('maxMarks', val);
@@ -1069,11 +1089,7 @@ export default function SubjectTableWithValidation({
                                     <div className='flex flex-col items-center'>
                                         <div className='mb-1 text-[13px]'>Min. Marks</div>
                                         <Input
-                                            value={
-                                                globalHeader.minMarks === '' || Number(globalHeader.minMarks) === 0
-                                                    ? ''
-                                                    : globalHeader.minMarks
-                                            }
+                                            value={globalHeader.minMarks}
                                             onChange={(e) => {
                                                 const val = e.target.value;
                                                 if (/^\d*$/.test(val)) handleHeaderChange('minMarks', val);
@@ -1089,11 +1105,7 @@ export default function SubjectTableWithValidation({
                                     <div className='flex flex-col items-center'>
                                         <div className='mb-1 text-[13px]'>Max. Entry Marks</div>
                                         <Input
-                                            value={
-                                                globalHeader.maxEntry === '' || Number(globalHeader.maxEntry) === 0
-                                                    ? ''
-                                                    : globalHeader.maxEntry
-                                            }
+                                            value={globalHeader.maxEntry}
                                             onChange={(e) => {
                                                 const val = e.target.value;
                                                 if (/^\d*$/.test(val)) handleHeaderChange('maxEntry', val);

@@ -1,4 +1,4 @@
-import { createCustomStringSchema, deleteIdSchema } from '@/schemas/validationSchemas';
+import { createCustomStringSchema } from '@/schemas/validationSchemas';
 import { z } from 'zod';
 
 export const institutionSubscriptionSchema = {
@@ -12,10 +12,10 @@ export const institutionSubscriptionSchema = {
         misV_SubscriptionNo: z.string().optional()
     }),
     toggle: z.object({
-        misV_Id: deleteIdSchema('misV_Id'),
+        misV_Id: z.coerce.number().min(1, 'ID is required'),
         misV_ActiveFlag: z.boolean()
     }),
     delete: z.object({
-        misV_Id: deleteIdSchema('misV_Id')
+        misV_Id: z.coerce.number().min(1, 'ID is required')
     })
 };

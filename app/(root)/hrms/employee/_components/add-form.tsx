@@ -245,8 +245,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         formState // Expose formState directly
     } = useForm<FormFields>({
         resolver: zodResolver(employeeRegisterSchemas.add),
-        mode: 'onChange'
-        // defaultValues: formDefaultValues // We need to move defaultValues here or define them before useForm
+        mode: 'onSubmit',
+        reValidateMode: 'onChange'
     });
 
     const { errors, isSubmitting } = formState;
@@ -321,15 +321,15 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     key: String(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? ''),
                     value: String(
                         item.hrmD_DepartmentName ??
-                            item.HRMD_DepartmentName ??
-                            item.hrmD_Name ??
-                            item.HRMD_Name ??
-                            item.name ??
-                            item.departmentName ??
-                            item.HRMD_ProjectName ??
-                            item.value ??
-                            item.label ??
-                            ''
+                        item.HRMD_DepartmentName ??
+                        item.hrmD_Name ??
+                        item.HRMD_Name ??
+                        item.name ??
+                        item.departmentName ??
+                        item.HRMD_ProjectName ??
+                        item.value ??
+                        item.label ??
+                        ''
                     )
                 };
             })
@@ -363,14 +363,14 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     ),
                     value: String(
                         item.ivrmmR_Name ??
-                            item.IVRMMR_Name ??
-                            item.hrmR_Name ??
-                            item.name ??
-                            item.religionName ??
-                            item.ReligionName ??
-                            item.value ??
-                            item.label ??
-                            ''
+                        item.IVRMMR_Name ??
+                        item.hrmR_Name ??
+                        item.name ??
+                        item.religionName ??
+                        item.ReligionName ??
+                        item.value ??
+                        item.label ??
+                        ''
                     )
                 };
             })
@@ -453,16 +453,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     key: String(item.hrmspL_Id ?? item.HRMSPL_Id ?? item.hrmS_Id ?? item.HRMS_Id ?? item.id ?? item.key ?? ''),
                     value: String(
                         item.hrmspL_SpecialisationName ??
-                            item.HRMSPL_SpecialisationName ??
-                            item.hrmS_SpecialisationName ??
-                            item.HRMS_SpecialisationName ??
-                            item.masterSpecialisationName ??
-                            item.specialisationName ??
-                            item.specializationName ??
-                            item.name ??
-                            item.value ??
-                            item.label ??
-                            'Unknown'
+                        item.HRMSPL_SpecialisationName ??
+                        item.hrmS_SpecialisationName ??
+                        item.HRMS_SpecialisationName ??
+                        item.masterSpecialisationName ??
+                        item.specialisationName ??
+                        item.specializationName ??
+                        item.name ??
+                        item.value ??
+                        item.label ??
+                        'Unknown'
                     )
                 };
             })
@@ -958,7 +958,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         const employeeId =
                             response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
                         console.log('🔍 [DEBUG] Tab 1 - Extracted Employee ID:', employeeId);
-
+                        toast.success(response?.message || 'Employee details saved successfully');
                         if (employeeId && employeeId > 0) {
                             setSavedEmployeeId(employeeId);
                             console.log('✅ [DEBUG] Tab 1 - Employee ID saved to state:', employeeId);
@@ -975,6 +975,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 1 (Employee Information) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 1 - Error Details:', JSON.stringify(error, null, 2));
+                    toast.error(error?.response?.data?.message || error?.message || 'Failed to save employee details');
                 }
             });
         } else if (currentStepId === 2) {
@@ -1115,15 +1116,19 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     if (response?.success) {
                         if (addressMismatches.length > 0) {
                             toast.warning(`Address fields may not have been saved completely. Please verify.`);
+                        } else {
+                            toast.success(response?.message || 'Address details saved successfully');
                         }
                         setCurrentStep(3);
                     } else {
                         console.warn('⚠️ [DEBUG] Tab 2 - API returned success: false');
+                        toast.error(response?.message || 'Failed to save address details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 2 (Address Information) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 2 - Error Details:', JSON.stringify(error, null, 2));
+                    toast.error(error?.response?.data?.message || error?.message || 'Failed to save address details');
                 }
             });
         } else if (currentStepId === 3) {
@@ -1253,6 +1258,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     if (response?.success === false && !response?.message) {
                         console.warn('⚠️ [DEBUG] Tab 3 - API returned success: false');
                         toast.warning('Qualification saved but API returned success: false. Please verify the data was saved.');
+                    } else {
+                        toast.success(response?.message || 'Qualification details saved successfully');
                     }
 
                     setCurrentStep(4);
@@ -1260,6 +1267,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 3 (Qualification) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 3 - Error Details:', JSON.stringify(error, null, 2));
+                    toast.error(error?.response?.data?.message || error?.message || 'Failed to save qualification details');
                 }
             });
         } else if (currentStepId === 4) {
@@ -1283,33 +1291,53 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):', experienceList);
             console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience Count:', experienceList.length);
 
-            if (experienceList.length === 0) {
-                console.error('❌ [DEBUG] Tab 4 - No experiences found');
-                setError('experienceDetails', {
-                    type: 'required',
-                    message: 'Please add at least one experience'
-                });
+            // Filter valid experiences that have at least some filled information
+            const validExperiences = experienceList.filter(
+                (exp: any) =>
+                    exp &&
+                    ((exp.organisationName && String(exp.organisationName).trim() !== '') ||
+                        (exp.department && String(exp.department).trim() !== '') ||
+                        (exp.designation && String(exp.designation).trim() !== '') ||
+                        exp.hrmeE_Id ||
+                        exp.HRMEE_Id)
+            );
+
+            if (validExperiences.length === 0) {
+                console.log('🔍 [DEBUG] Tab 4 - No experiences to save, skipping to next step');
+                setCurrentStep(5);
                 return;
             }
 
-            // Map experience data to API format (matching API request body format)
-            const experiencesPayload = experienceList.map((exp: any, index: number) => {
-                const id = exp.hrmeE_Id || exp.HRMEE_Id || 0;
+            // Map experience data to API format (matching MasterEmployeeExperienceRequest)
+            const experiencesPayload = validExperiences.map((exp: any, index: number) => {
+                const id = Number(exp.hrmeE_Id || exp.HRMEE_Id || 0);
                 const mapped = {
-                    hrmeE_Id: id, // Use existing ID if updating, 0 for new
+                    hrmeE_Id: id,
+                    HRMEE_Id: id,
                     hrmE_Id: savedEmployeeId,
-                    mI_Id: 30, // Default MI_Id
-                    MI_Id: 30, // PascalCase fallback
-                    hrmeE_OrganisationName: exp.organisationName || '',
-                    hrmeE_OrganisationAddress: exp.organisationAddress || '',
-                    hrmeE_Department: exp.department || '',
-                    hrmeE_Designation: exp.designation || '',
-                    hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : '',
-                    hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : '',
+                    HRME_Id: savedEmployeeId,
+                    mI_Id: HRMS_MI_ID || 30,
+                    MI_Id: HRMS_MI_ID || 30,
+                    hrmeE_OrganisationName: exp.organisationName || exp.hrmeE_OrganisationName || '',
+                    HRMEE_OrganisationName: exp.organisationName || exp.hrmeE_OrganisationName || '',
+                    hrmeE_OrganisationAddress: exp.organisationAddress || exp.hrmeE_OrganisationAddress || '',
+                    HRMEE_OrganisationAddress: exp.organisationAddress || exp.hrmeE_OrganisationAddress || '',
+                    hrmeE_Department: exp.department || exp.hrmeE_Department || '',
+                    HRMEE_Department: exp.department || exp.hrmeE_Department || '',
+                    hrmeE_Designation: exp.designation || exp.hrmeE_Designation || '',
+                    HRMEE_Designation: exp.designation || exp.hrmeE_Designation || '',
+                    hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : null,
+                    HRMEE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : null,
+                    hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : null,
+                    HRMEE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : null,
                     hrmeE_NoOfYears: Number(exp.noOfYears) || 0,
+                    HRMEE_NoOfYears: Number(exp.noOfYears) || 0,
                     hrmeE_NoOfMonths: Number(exp.noOfMonths) || 0,
+                    HRMEE_NoOfMonths: Number(exp.noOfMonths) || 0,
                     hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
-                    hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
+                    HRMEE_AnnualSalary: Number(exp.annualSalary) || 0,
+                    hrmeE_ReasonForLeaving: exp.reasonForLeaving || exp.hrmeE_ReasonForLeaving || '',
+                    HRMEE_ReasonForLeaving: exp.reasonForLeaving || exp.hrmeE_ReasonForLeaving || ''
                 };
                 console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
                     raw: exp,
@@ -1319,10 +1347,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             });
 
             console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload:', experiencesPayload);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):', JSON.stringify(experiencesPayload, null, 2));
             console.log('🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails...');
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function type:', typeof saveExperienceDetails);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function:', saveExperienceDetails);
 
             if (!saveExperienceDetails) {
                 console.error('❌ [DEBUG] Tab 4 - saveExperienceDetails is not defined!');
@@ -1334,70 +1359,18 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 saveExperienceDetails(experiencesPayload, {
                     onSuccess: (response: any) => {
                         console.log('✅ [DEBUG] Tab 4 (Experience) - Save Success:', response);
-                        console.log('🔍 [DEBUG] Tab 4 - Full API Response:', JSON.stringify(response, null, 2));
-                        console.log('🔍 [DEBUG] Tab 4 - Response Success:', response?.success);
-                        console.log('🔍 [DEBUG] Tab 4 - Response Message:', response?.message);
-                        console.log('🔍 [DEBUG] Tab 4 - Response Data:', response?.data);
-
-                        // Verify experience data was saved
-                        if (response?.data && Array.isArray(response.data)) {
-                            console.log('🔍 [DEBUG] Tab 4 - Response contains experience array, length:', response.data.length);
-                            console.log('🔍 [DEBUG] Tab 4 - Response Experiences:', response.data);
-
-                            // Compare sent vs received
-                            if (response.data.length === experiencesPayload.length) {
-                                console.log('✅ [DEBUG] Tab 4 - Experience count matches!');
-                                experiencesPayload.forEach((sent: any, index: number) => {
-                                    const received = response.data[index];
-                                    if (received) {
-                                        console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Comparison:`, {
-                                            sent: sent,
-                                            received: received
-                                        });
-
-                                        // Check key fields
-                                        const keyFields = [
-                                            'hrmE_Id',
-                                            'hrmeE_OrganisationName',
-                                            'hrmeE_Department',
-                                            'hrmeE_Designation',
-                                            'hrmeE_NoOfYears'
-                                        ];
-                                        const mismatches: string[] = [];
-                                        keyFields.forEach((field) => {
-                                            if (sent[field as keyof typeof sent] !== received[field as keyof typeof received]) {
-                                                mismatches.push(
-                                                    `${field}: Sent="${sent[field as keyof typeof sent]}" vs Received="${received[field as keyof typeof received]}"`
-                                                );
-                                            }
-                                        });
-
-                                        if (mismatches.length > 0) {
-                                            console.warn(`⚠️ [DEBUG] Tab 4 - Experience #${index + 1} mismatches:`, mismatches);
-                                        } else {
-                                            console.log(`✅ [DEBUG] Tab 4 - Experience #${index + 1} key fields match!`);
-                                        }
-                                    }
-                                });
-                            } else {
-                                console.warn(
-                                    `⚠️ [DEBUG] Tab 4 - Experience count mismatch: Sent=${experiencesPayload.length}, Received=${response.data.length}`
-                                );
-                            }
+                        if (response?.success || response?.success === undefined) {
+                            toast.success(response?.message || 'Experience details saved successfully');
+                            setCurrentStep(5);
                         } else {
-                            console.warn('⚠️ [DEBUG] Tab 4 - Response data is not an array or is missing');
+                            console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false', response);
+                            toast.error(response?.message || 'Failed to save experience details');
                         }
-
-                        if (response?.success === false && !response?.message) {
-                            console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false');
-                            toast.warning('Experience saved but API returned success: false. Please verify the data was saved.');
-                        }
-
-                        setCurrentStep(5);
                     },
                     onError: (error: any) => {
                         console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
-                        console.error('❌ [DEBUG] Tab 4 - Error Details:', JSON.stringify(error, null, 2));
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
+                        toast.error(errorMessage);
                     }
                 });
             } catch (error) {
@@ -1466,14 +1439,17 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 (saveDocumentDetails as any)(documentsPayload, {
                     onSuccess: (response: any) => {
                         console.log('✅ [API DEBUG] Tab 5 (Document) - Save Success Response:', response);
-                        if (response?.success) {
+                        if (response?.success || response?.success === undefined) {
+                            toast.success(response?.message || 'Document details saved successfully');
                             setCurrentStep(6);
                         } else {
                             console.error('❌ [API DEBUG] Tab 5 (Document) - API returned success: false', response);
+                            toast.error(response?.message || 'Failed to save document details');
                         }
                     },
                     onError: (error: any) => {
                         console.error('❌ [API DEBUG] Tab 5 (Document) - API Error:', error);
+                        toast.error(error?.response?.data?.message || error?.message || 'Failed to save document details');
                     }
                 });
             } catch (err) {
@@ -1493,14 +1469,17 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             saveMedicalDetails(payload, {
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 6 (Medical) - Save Success Response:', response);
-                    if (response?.success) {
+                    if (response?.success || response?.success === undefined) {
+                        toast.success(response?.message || 'Medical details saved successfully');
                         setCurrentStep(7);
                     } else {
                         console.error('❌ [API DEBUG] Tab 6 (Medical) - API returned success: false', response);
+                        toast.error(response?.message || 'Failed to save medical details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [API DEBUG] Tab 6 (Medical) - API Error:', error);
+                    toast.error(error?.response?.data?.message || error?.message || 'Failed to save medical details');
                 }
             });
         } else if (currentStepId === 7) {
@@ -1515,7 +1494,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             saveOtherDetails(payload, {
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 7 (Other) - Save Success Response:', response);
-                    if (response?.success) {
+                    if (response?.success || response?.success === undefined) {
+                        // toast.success(response?.message || 'Other details saved successfully');
                         // Call salary details save API as requested by user
                         if (savedEmployeeId) {
                             saveSalaryDetails(
@@ -1527,9 +1507,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                     },
                                     onError: (salaryError: any) => {
                                         console.error('❌ [API DEBUG] Tab 7 (Salary Save) - Error:', salaryError);
-                                        // Still move to next step but with a warning?
-                                        // User said "i want to call one api because i want to save salaary details"
-                                        // So it might be critical.
+                                        // Still move to next step
                                         setCurrentStep(8);
                                     }
                                 }
@@ -1539,10 +1517,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         }
                     } else {
                         console.error('❌ [API DEBUG] Tab 7 (Other) - API returned success: false', response);
+                        toast.error(response?.message || 'Failed to save other details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [API DEBUG] Tab 7 (Other) - API Error:', error);
+                    toast.error(error?.response?.data?.message || error?.message || 'Failed to save other details');
                 }
             });
         } else {
@@ -1645,10 +1625,10 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const availablePermanentStates: IStateDropdown[] = sameAsCommunicationAddress
         ? availableContactStates
         : permanentCountryId
-          ? Array.isArray(permanentStates)
-              ? permanentStates
-              : []
-          : [];
+            ? Array.isArray(permanentStates)
+                ? permanentStates
+                : []
+            : [];
 
     // Sync communication address to permanent address when "Same As Communication Address" is checked
     useEffect(() => {
@@ -1804,6 +1784,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         name: 'documentList'
     });
 
+    // Clear validation errors when switching tabs so new tab starts clean
+    useEffect(() => {
+        clearErrors();
+    }, [currentStep, clearErrors]);
+
     // Custom submit handler - now only handles the final step or redirects to nextStep
     const onFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1911,8 +1896,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-400'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1961,8 +1946,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                              ? 'border-green-500 bg-green-500 text-white'
-                                                              : 'border-gray-300 bg-white text-gray-500'
+                                                                ? 'border-green-500 bg-green-500 text-white'
+                                                                : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -2094,7 +2079,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                     <InputText
                                                         label='Last Name'
                                                         placeholder='Enter Last Name'
-                                                        
+
                                                         id='lastName'
                                                         maxLength={50}
                                                         onKeyDown={(e) => {
@@ -2125,8 +2110,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                        // {...register('lastName')}
-                                                        // error={errors.lastName?.message as string | undefined}
+                                                    // {...register('lastName')}
+                                                    // error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText
                                                         label='Employee Code'
@@ -3204,8 +3189,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                             item.name ||
                                                                                                             String(
                                                                                                                 item.key ||
-                                                                                                                    item.value ||
-                                                                                                                    item.id
+                                                                                                                item.value ||
+                                                                                                                item.id
                                                                                                             )}
                                                                                                     </SelectItem>
                                                                                                 );
@@ -3302,8 +3287,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                             item.name ||
                                                                                                             String(
                                                                                                                 item.key ||
-                                                                                                                    item.value ||
-                                                                                                                    item.id
+                                                                                                                item.value ||
+                                                                                                                item.id
                                                                                                             )}
                                                                                                     </SelectItem>
                                                                                                 );
@@ -3659,11 +3644,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                             </div>
                                                             {(errors.bankDetails ||
                                                                 (watch('modeOfPayment') === 'Bank' && bankFields.length === 0)) && (
-                                                                <div className='font-medium text-[0.8rem] text-destructive'>
-                                                                    {(errors.bankDetails as any)?.message ||
-                                                                        'Bank Details are required when Mode of Payment is Bank'}
-                                                                </div>
-                                                            )}
+                                                                    <div className='font-medium text-[0.8rem] text-destructive'>
+                                                                        {(errors.bankDetails as any)?.message ||
+                                                                            'Bank Details are required when Mode of Payment is Bank'}
+                                                                    </div>
+                                                                )}
                                                             <div className='rounded-lg border bg-card'>
                                                                 <div className='rounded-t-lg bg-gray-200 px-4 py-2 text-gray-900'>
                                                                     <div className='grid grid-cols-5 gap-2 font-semibold text-sm'>
@@ -3751,8 +3736,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                         (item: any) => {
                                                                                                             const val = getSafeValue(
                                                                                                                 item.key ||
-                                                                                                                    item.value ||
-                                                                                                                    item.id
+                                                                                                                item.value ||
+                                                                                                                item.id
                                                                                                             );
                                                                                                             if (!val) return null;
                                                                                                             return (
@@ -3768,8 +3753,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                                                                         item.name ||
                                                                                                                         String(
                                                                                                                             item.key ||
-                                                                                                                                item.value ||
-                                                                                                                                item.id
+                                                                                                                            item.value ||
+                                                                                                                            item.id
                                                                                                                         )}
                                                                                                                 </SelectItem>
                                                                                                             );
@@ -4520,7 +4505,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                         label='Registration No.'
                                                                         required
                                                                         id={`qualificationDetails.${index}.registrationNo`}
-                                                                        
+
                                                                         {...register(`qualificationDetails.${index}.registrationNo`)}
                                                                         maxLength={30}
                                                                         error={
@@ -5512,7 +5497,6 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                 employeeId={savedEmployeeId}
                                                 employeeCode={watch('employeeCode')}
                                                 MI_Id={30}
-                                                onSuccess={onSuccess}
                                             />
                                         ) : (
                                             <div className='rounded-md border p-6 text-center text-muted-foreground'>

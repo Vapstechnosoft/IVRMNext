@@ -174,7 +174,7 @@ export default function StudentTCApplyPage() {
         bpl_card_no: '',
 
         // Initialize Other Details
-        fee_concession: '',
+        fee_concession: 'General',
         last_exam_details: '',
         result: '',
         failed_details: '',
@@ -231,7 +231,7 @@ export default function StudentTCApplyPage() {
     const studentNameData = studentNameListRaw?.data || studentNameListRaw;
 
     const academicList = responseData?.academicList || [];
-    const classList = responseData?.classlist || responseData?.classList || [];
+    const classList = responseData?.classlistnew || responseData?.classlist || responseData?.classList || [];
 
     // Search Results handling
     // API returns { success: true, data: [ ...students ] }
@@ -351,8 +351,8 @@ export default function StudentTCApplyPage() {
                     const libraryDueCount = actualData.library_Due_Amnt || 0;
                     const pdaDueAmount = actualData.pdA_Due || 0;
 
-                    // Flags - support both transnumconfigsettings and admissioncongigurationList
-                    const config = actualData.admissioncongigurationList?.[0] || actualData.transnumconfigsettings?.[0];
+                    // Flags - support both transnumconfigsettings, admTransNumSetting and admissioncongigurationList
+                    const config = actualData.admTransNumSetting?.[0] || actualData.admissioncongigurationList?.[0] || actualData.transnumconfigsettings?.[0];
 
                     // IF admC_TCAllowBalanceFlg is 0, it means balance is NOT allowed (paymentTcFlag = 1)
                     // IF it is 1, balance IS allowed (paymentTcFlag = 0)
@@ -464,6 +464,8 @@ export default function StudentTCApplyPage() {
                                 ? new Date(joinedInfo.astC_PromotionDate).toISOString().split('T')[0]
                                 : new Date().toISOString().split('T')[0],
                             admission_date: studentInfo.amst_date ? new Date(studentInfo.amst_date).toISOString().split('T')[0] : '',
+                            working_days: joinedInfo?.astC_WorkingDays || actualData.studentList1?.[0]?.Classes || actualData.totalworkingdays || 0,
+                            present_days: joinedInfo?.astC_AttendedDays || actualData.studentList1?.[0]?.Attendance || actualData.totalpresentdays || 0,
 
                             // Other Details
                             scholarship: joinedInfo?.astC_Scholarship || '',
@@ -485,27 +487,27 @@ export default function StudentTCApplyPage() {
                             // Personal Details (Mapping from studentInfo)
                             dob: studentInfo.amst_dob ? new Date(studentInfo.amst_dob).toISOString().split('T')[0] : '',
                             dob_words: studentInfo.amst_dob_words || '',
-                            bank_ifsc: studentInfo.amst_student_bank_ifsc_code || '',
+                            bank_ifsc: studentInfo.amst_stubankifsc_code || '',
                             birth_place: studentInfo.amst_birthplace || '',
-                            birth_cert_no: studentInfo.amst_birthcertificateno || '',
-                            caste_cert_no: studentInfo.castecertno || '', // Verify field name
-                            age: studentInfo.age || 0, // Calculate if needed, assume data has it or default 0
+                            birth_cert_no: studentInfo.amst_birthcertno || '',
+                            caste_cert_no: studentInfo.amst_stucastecertino || '',
+                            age: studentInfo.pasr_age || 0,
                             gender: studentInfo.amst_sex || '',
-                            mother_tongue: studentInfo.mothertongue || '',
-                            nationality: studentInfo.nationality || '',
-                            mobile: studentInfo.amst_mobile || '',
+                            mother_tongue: studentInfo.amst_mothertongue || '',
+                            nationality: studentInfo.amst_nationality || '',
+                            mobile: studentInfo.amst_mobileno || '',
                             email: studentInfo.amst_emailid || '',
                             aadhar_no: studentInfo.amst_aadharno || '',
-                            blood_group: studentInfo.bloodgroup || '',
-                            bank_ac_no: studentInfo.amst_student_bank_account_no || '',
+                            blood_group: studentInfo.amst_bloodgroup || '',
+                            bank_ac_no: studentInfo.amst_stubankaccno || '',
                             bpl_card_no: studentInfo.amst_bplcardno || '',
 
                             // Other Details (New sections)
-                            fee_concession: joinedInfo?.astC_FeeConcession || '',
+                            fee_concession: joinedInfo?.astC_FeeConcession || 'General',
                             last_exam_details: joinedInfo?.astC_LastExamDetails || '',
                             result: joinedInfo?.astC_Result || '',
                             failed_details: joinedInfo?.astC_FailedDetails || '',
-                            ncc_cadet: joinedInfo?.astC_NCC || 'no'
+                            ncc_cadet: joinedInfo?.astC_NCC || 'No'
                         }));
                     }
                 } else {
@@ -548,7 +550,7 @@ export default function StudentTCApplyPage() {
 
     // Sync TC Config from studentListRaw (getstudenttcdata)
     useEffect(() => {
-        const config = responseData?.admissioncongigurationList?.[0] || responseData?.transnumconfigsettings?.[0];
+        const config = responseData?.admTransNumSetting?.[0] || responseData?.admissioncongigurationList?.[0] || responseData?.transnumconfigsettings?.[0];
         if (config) {
             setTcConfig(config);
         }
@@ -559,10 +561,7 @@ export default function StudentTCApplyPage() {
         const isAutoTC = tcConfig?.imN_AutoManualFlag === 'Auto';
 
         if (tabValue === 'student-details') {
-            // Basic check if data is loaded, though selection already handles this
             if (!formData.last_class) {
-                // toast.error('Student details are not fully loaded');
-                // return false;
             }
             return true;
         }
@@ -659,8 +658,8 @@ export default function StudentTCApplyPage() {
                 formData.Medically_Exam_Flag === 'yes'
                     ? 'Fit'
                     : formData.Medically_Exam_Flag === 'no'
-                      ? 'Unfit'
-                      : formData.Medically_Exam_Flag,
+                        ? 'Unfit'
+                        : formData.Medically_Exam_Flag,
             astC_NCCDetails: formData.ncc_cadet === 'yes' ? 'Yes' : 'No',
             astC_ExtraActivities: formData.extracurricular,
             astC_Conduct: formData.conduct,
@@ -678,6 +677,7 @@ export default function StudentTCApplyPage() {
             last_Class_Studied: formData.last_class,
             returnval: true,
             email_flag: 'Yes',
+            admTransNumSetting: tcConfig || { imN_AutoManualFlag: 'Manual' },
             transnumconfigsettings: tcConfig || { imN_AutoManualFlag: 'Manual' }
         };
 

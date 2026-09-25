@@ -131,11 +131,12 @@ function ViewApplicationButton({ pasrId }: { pasrId: number }) {
             downloadDocument(pasrId, {
                 onSuccess: (data) => {
                     const base64 =
-                        typeof data?.data === 'string'
+                        (data?.data as any)?.pdfbase64 || (data?.data as any)?.pdfBase64 ||
+                        (typeof data?.data === 'string'
                             ? data.data
                             : Array.isArray(data?.data)
                               ? ((data.data[0] as unknown as string) ?? null)
-                              : null;
+                              : null);
                     setPdfBase64(base64);
                 },
                 onError: (error) => {

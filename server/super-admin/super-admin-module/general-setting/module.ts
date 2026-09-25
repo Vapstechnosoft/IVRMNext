@@ -45,49 +45,88 @@ export async function saveMasterModule(data: any) {
 }
 
 export async function getMasterModules(searchParams: any) {
-    const query = getSearchParamsUrl(searchParams);
-    const url = `MastersModuleFacade/get_master_module_onload_grid?${query}`;
+    try {
+        const params = {
+            ...searchParams,
+            search_column: searchParams.search_column || searchParams.search_columns || (searchParams.search_query ? 'ivrmM_ModuleName' : '')
+        };
+        const query = getSearchParamsUrl(params);
+        const url = `MastersModuleFacade/get_master_module_onload_grid?${query}`;
 
-    const response = await api.get<any>('sadmin', url);
+        const response = await api.get<any>('sadmin', url);
 
-    if (response.success && response.data?.masterModulesname) {
+        if (response.success && response.data?.masterModulesname) {
+            let dataList = response.data.masterModulesname as IMasterModule[];
+
+            if (searchParams.search_query) {
+                const q = String(searchParams.search_query).toLowerCase().trim();
+                const filtered = dataList.filter(
+                    (item) =>
+                        (item.ivrmM_ModuleName && item.ivrmM_ModuleName.toLowerCase().includes(q)) ||
+                        (item.ivrmM_ModuleDesc && item.ivrmM_ModuleDesc.toLowerCase().includes(q))
+                );
+                if (filtered.length !== dataList.length) {
+                    dataList = filtered;
+                }
+            }
+
+            return {
+                success: true,
+                data: dataList,
+                message: response.message,
+                total: searchParams.search_query ? dataList.length : (response.data.total ?? response.total ?? dataList.length),
+                page: response.data.page ?? response.page,
+                page_size: response.data.page_size ?? response.page_Size
+            };
+        }
+
         return {
-            success: true,
-            data: response.data.masterModulesname as IMasterModule[],
-            message: response.message,
-            total: response.data.total ?? response.total,
-            page: response.data.page ?? response.page,
-            page_size: response.data.page_size ?? response.page_Size
+            success: false,
+            data: [],
+            message: response?.message || 'Failed to fetch data',
+            total: 0,
+            page: 0,
+            page_size: 0
+        };
+    } catch (error: any) {
+        console.error('getMasterModules error:', error);
+        return {
+            success: false,
+            data: [],
+            message: error?.message || 'Failed to fetch data',
+            total: 0,
+            page: 0,
+            page_size: 0
         };
     }
-
-    return {
-        success: false,
-        data: [],
-        message: response.message || 'Failed to fetch data',
-        total: 0,
-        page: 0,
-        page_size: 0
-    };
 }
 
 export async function getMasterModuleById(id: number) {
-    const url = `MastersModuleFacade/get_details_byID/${id}`;
-    const response = await api.get<any>('sadmin', url);
+    try {
+        const url = `MastersModuleFacade/get_details_byID/${id}`;
+        const response = await api.get<any>('sadmin', url);
 
-    if (response.success && response.data?.masterModulesname && response.data.masterModulesname.length > 0) {
+        if (response.success && response.data?.masterModulesname && response.data.masterModulesname.length > 0) {
+            return {
+                success: true,
+                data: response.data.masterModulesname[0] as IMasterModule,
+                message: response.message
+            };
+        }
+
         return {
-            success: true,
-            data: response.data.masterModulesname[0] as IMasterModule,
-            message: response.message
+            success: false,
+            data: null,
+            message: response?.message || 'Failed to fetch details'
+        };
+    } catch (error: any) {
+        console.error('getMasterModuleById error:', error);
+        return {
+            success: false,
+            data: null,
+            message: error?.message || 'Failed to fetch details'
         };
     }
-
-    return {
-        success: false,
-        data: null,
-        message: response.message || 'Failed to fetch details'
-    };
 }
 
 export async function activateDeactivateMasterModule(id: number) {

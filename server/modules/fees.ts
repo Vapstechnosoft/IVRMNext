@@ -374,6 +374,14 @@ export const feesModule: IUserAccessibleModules = {
                             url: '/fees/transactions/studentfeeenablepartialpayment',
                             title: 'Student Fee Enable Partial Payment',
                             description: 'Manage Student Fee Enable Partial Payment'
+                        },
+                        {
+                            id: 520,
+                            name: 'College Fee Waived Off',
+                            icon: 'BadgeIndianRupee',
+                            url: '/fees/college/transaction/clgfeewaivedoff',
+                            title: 'College Fee Waived Off',
+                            description: 'Manage College Fee Waived Off Details'
                         }
                     ]
                 },

@@ -304,7 +304,7 @@ function DataTableInner<TData, TValue>(
 
                             <TableBody>
                                 {table.getRowModel().rows?.length ? (
-                                    (table.getRowModel().rows.length > pageSize
+                                    (isPaginationRequired && table.getRowModel().rows.length > pageSize
                                         ? table.getRowModel().rows.slice(0, pageSize)
                                         : table.getRowModel().rows
                                     ).map((row) => (

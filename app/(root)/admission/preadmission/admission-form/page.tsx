@@ -9,29 +9,20 @@ import type { IadmissionStudentApplicationList } from '@/types/admission/admissi
 import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
+import { useQueryState } from 'nuqs';
 import React, { useEffect, useState } from 'react';
 import AddStudentAdmissionForm from './_components/add-form';
 import { studentApplicationColumns } from './_components/columns';
 import ApplicationFormSuccessDialog from './_components/success-dialog';
-import AiInsightDialog from './_components/ai-insight-dialog';
+
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function StudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = (React as any).use(props.searchParams);
-
-    // Only pass asmay_id to the API so client-side changes don't trigger refetches or backend errors
-    const apiSearchParams = React.useMemo(() => {
-        return {
-            asmay_id: searchParams?.asmay_id
-        };
-    }, [searchParams?.asmay_id]);
-
     const { data: activePreadmission } = useGetAllAdmissionLists();
-    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(apiSearchParams);
+    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(searchParams);
     const { data: masterConfig } = useAcademicYearMasterConfiguration(0);
 
     return (
@@ -42,7 +33,6 @@ export default function StudentApplicationPage(props: {
                 error={error}
                 refetch={refetch}
                 masterConfig={masterConfig}
-                searchParams={searchParams}
             />
         </FormProvider>
     );
@@ -52,62 +42,24 @@ function StudentApplicationPageContent({
     response,
     isLoading,
     error,
-    refetch,
-    masterConfig,
-    searchParams
+    refetch
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     refetch: () => void;
     masterConfig: any;
-    searchParams: any;
 }) {
     const { openAddForm } = useFormContext();
-
-    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
-    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
-    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
-    
-    const page = currentPage || 1;
-
-    const filteredData = React.useMemo(() => {
-        let result = response?.data?.studentList || [];
-        if (searchQuery) {
-            const query = searchQuery.toLowerCase();
-            result = result.filter((row: any) =>
-                Object.values(row).some(
-                    (val) => val !== null && val !== undefined && String(val).toLowerCase().includes(query)
-                )
-            );
-        }
-        return result;
-    }, [response, searchQuery]);
-
-    const paginatedData = React.useMemo(() => {
-        const start = (page - 1) * pageSize;
-        const end = start + pageSize;
-        return filteredData.slice(start, end);
-    }, [filteredData, page, pageSize]);
-
     const tableProps = useDataTableProps(
-        response?.data && response.data.studentList
-            ? { ...response, data: paginatedData, total: filteredData.length }
-            : response
+        response?.data && response.data.studentList ? { ...response, data: response.data.studentList } : response
     );
     const [isSuccessOpen, setSuccessOpen] = useState(false);
-    const [isAiInsightOpen, setAiInsightOpen] = useState(false);
     const [successType, setSuccessType] = useState<'create' | 'update'>('create');
-    const [aiInsightMsg, setAiInsightMsg] = useState<string | undefined>(undefined);
-    const [aiSeatStatusMsg, setAiSeatStatusMsg] = useState<string | undefined>(undefined);
     const session = useSession();
 
-    useEffect(() => {
-        // Don't force a full page reload when session role is temporarily undefined.
-        // Session handling should be addressed centrally; avoid reloads here.
-    }, [session?.data?.role]);
+    useEffect(() => { }, [session?.data?.role]);
 
-    // Listen for global admission changes and refetch the table when they occur
     useEffect(() => {
         const handler = () => refetch();
         window.addEventListener('admission:changed', handler as EventListener);
@@ -116,13 +68,8 @@ function StudentApplicationPageContent({
 
     const onCloseSuccessDialog = () => {
         setSuccessOpen(false);
-        if (aiInsightMsg) {
-            setAiInsightOpen(true);
-        } else {
-            refetch();
-        }
+        refetch();
     };
-
     const [selectedYear, setSelectedYear] = useQueryState('asmay_id', { defaultValue: '' });
 
     return (
@@ -149,7 +96,7 @@ function StudentApplicationPageContent({
                         onClick={openAddForm}
                         className='w-fit shadow-md transition-all duration-200 hover:scale-105 hover:shadow-lg'>
                         <Plus className='h-4 w-4' />
-                        Add AdmissionForm
+                        Add New Admission Form
                     </Button>
                 </div>
                 {isSuccessOpen && (
@@ -157,26 +104,16 @@ function StudentApplicationPageContent({
                         isOpen={isSuccessOpen}
                         title={successType === 'update' ? 'Application Updated Successfully' : 'Application Submitted Successfully'}
                         message={successType === 'update' ? 'Application updated successfully' : 'Successfully submitted application form'}
-                        onClose={onCloseSuccessDialog}
-                    />
-                )}
-                {isAiInsightOpen && aiInsightMsg && (
-                    <AiInsightDialog
-                        isOpen={isAiInsightOpen}
-                        insight={aiInsightMsg}
-                        seatStatus={aiSeatStatusMsg}
                         onClose={() => {
-                            setAiInsightOpen(false);
+                            onCloseSuccessDialog();
                             refetch();
                         }}
                     />
                 )}
                 {/* Forms */}
                 <FormSections
-                    setSuccess={(type: 'create' | 'update', insight?: string, seatStatus?: string) => {
+                    setSuccess={(type: 'create' | 'update') => {
                         setSuccessType(type);
-                        setAiInsightMsg(insight);
-                        setAiSeatStatusMsg(seatStatus);
                         setSuccessOpen(true);
                     }}
                     refetch={refetch}
@@ -199,6 +136,8 @@ function StudentApplicationPageContent({
                             noDataTitle='No Applications Found'
                             noDataDescription='Get started by creating your first applications'
                             errorTitle='Error Loading Applications'
+                            manualFiltering={false}
+                            manualPagination={false}
                         />
                     </div>
                 </CollapsibleSection>
@@ -215,7 +154,7 @@ function FormSections({
     setSuccess,
     refetch
 }: {
-    setSuccess: (type: 'create' | 'update', insight?: string, seatStatus?: string) => void;
+    setSuccess: (type: 'create' | 'update') => void;
     refetch: () => void;
 }) {
     const { isAddFormOpen, closeAddForm, addFormRef, isEditFormOpen, closeEditForm, editFormRef, selectedRow } = useFormContext();
@@ -226,7 +165,7 @@ function FormSections({
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title='Admission Application'
+                        title='Add New Admission Form'
                         description='Fill in the details below to create a new admission application'
                         defaultOpen={true}
                         variant='outline'
@@ -242,12 +181,9 @@ function FormSections({
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
                             <AddStudentAdmissionForm
-                                onSuccess={(res) => {
+                                onSuccess={() => {
                                     closeAddForm();
-                                    // Extract the AI insight from whatever property the backend decides to use
-                                    const insight = res?.data?.aiInsight || res?.aiInsight || res?.ai_message || res?.insight;
-                                    const seatStatus = res?.data?.aiSeatStatus;
-                                    setSuccess('create', insight && typeof insight === 'string' ? insight : undefined, seatStatus);
+                                    setSuccess('create');
                                     refetch();
                                 }}
                             />
@@ -277,11 +213,9 @@ function FormSections({
                             </Button>
                             <UpdateStudentAdmissionForm
                                 rowData={selectedRow}
-                                onSuccess={(res) => {
+                                onSuccess={() => {
                                     closeEditForm();
-                                    const insight = res?.data?.aiInsight || res?.aiInsight || res?.ai_message || res?.insight;
-                                    const seatStatus = res?.data?.aiSeatStatus;
-                                    setSuccess('update', insight && typeof insight === 'string' ? insight : undefined, seatStatus);
+                                    setSuccess('update');
                                     refetch();
                                 }}
                                 onClose={closeEditForm}
