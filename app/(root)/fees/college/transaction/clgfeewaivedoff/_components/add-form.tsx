@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
+    useCollegeAcademicYears,
     useCollegeBranches,
     useCollegeCourses,
     useCollegeFeeGroups,
@@ -118,9 +119,10 @@ export default function AddCollegeFeeWaivedOffForm({ onSuccess, pageData, classN
     const watchedRefundType = watch('filterrefund');
 
     // 1. Academic Years list
+    const { data: academicData, isLoading: isAcademicLoading } = useCollegeAcademicYears();
     const academicYears: ICollegeAcademicYear[] = useMemo(() => {
-        return extractArrayData<ICollegeAcademicYear>(pageData, ['yearlist', 'adcyear', 'years']);
-    }, [pageData]);
+        return extractArrayData<ICollegeAcademicYear>(academicData, ['yearlist', 'adcyear', 'years']);
+    }, [academicData]);
 
     // 2. Courses Hook
     const selectedYearNum = watchedYearId ? Number(watchedYearId) : undefined;

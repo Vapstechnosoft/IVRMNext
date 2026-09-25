@@ -21,11 +21,8 @@ export async function getCollegeFeeWaivedOffAllDetails(searchParams?: ApiSearchp
 }
 
 export async function getCollegeCourses(asmaY_Id: number) {
-    const url = '/CLGFeeOpeningBalanceFacade/get_courses';
-    return await api.post<{ courselist?: ICollegeCourse[] } | ICollegeCourse[]>('fees', url, {
-        ASMAY_Id: asmaY_Id,
-        asmaY_Id: asmaY_Id
-    });
+    const url = `/CommonCollegeFee/getcourses/${asmaY_Id}`;
+    return await api.get<{ courselist?: ICollegeCourse[]; courses?: ICollegeCourse[] } | ICollegeCourse[]>('fees', url);
 }
 
 export async function getCollegeBranches(asmaY_Id: number, amcO_Id: number) {
