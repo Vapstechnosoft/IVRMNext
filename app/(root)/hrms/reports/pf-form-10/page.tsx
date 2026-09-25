@@ -100,13 +100,18 @@ function PFForm10Content() {
             },
             {
                 onSuccess: (res) => {
-                    if (res.success && res.data && res?.data?.pfreport && res?.data?.pfreport.length > 0) {
+                    if (res.success && res.data) {
                         setReportData(res.data);
                         setReportMonth(monthName);
                         setReportYear(yearInt.toString());
-                        toast.success('Report generated successfully');
+                        
+                        if (res?.data?.pfreport && res?.data?.pfreport.length > 0) {
+                            toast.success('Report generated successfully');
+                        } else {
+                            toast.warning('No data found for this selected criteria');
+                        }
                     } else {
-                        toast.warning(res.message || 'No data found for this selected criteria');
+                        toast.error(res.message || 'Failed to generate report');
                     }
                 }
             }
@@ -114,7 +119,7 @@ function PFForm10Content() {
     };
 
     const handlePrint = () => {
-        if (!reportData || !reportData.pfreport || reportData.pfreport.length === 0) {
+        if (!reportData) {
             toast.error('No data to print');
             return;
         }
@@ -200,7 +205,7 @@ function PFForm10Content() {
                 </form>
             </CollapsibleSection>
 
-            {reportData && reportData?.pfreport?.length > 0 && (
+            {reportData && (
                 <CollapsibleSection
                     title='Report Details'
                     defaultOpen={true}

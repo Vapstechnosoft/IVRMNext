@@ -57,7 +57,7 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
     const tableData = (() => {
         const data = initialData?.data || initialData;
         if (Array.isArray(data)) return data;
-        return data?.master_eventlist || data?.master_event_list || [];
+        return data?.master_eventlist || data?.master_event_list || data?.query || [];
     })();
 
     const parameterlist = (() => {
@@ -134,6 +134,7 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
                     loadingMessage='Loading events...'
                     noDataTitle='No Master Events Found'
                     noDataDescription='Create a new event to get started.'
+                    manualPagination={false}
                 />
             </CollapsibleSection>
 
