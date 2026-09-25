@@ -6,7 +6,7 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useCollegeFeeWaivedOffList } from '@/hooks/fees/college/useTransactions';
-import type { ICollegeFeeWaivedOffGrid } from '@/types/fees/college/transactions/clgfeewaivedoff';
+import type { ICollegeFeeWaivedOffGrid } from '@/types/fees/college/transaction/clgfeewaivedoff';
 import { Plus, X } from 'lucide-react';
 import { use, useMemo } from 'react';
 import AddCollegeFeeWaivedOffForm from './_components/add-form';
@@ -69,7 +69,7 @@ function CollegeFeeWaivedOffPageContent({
                 {/* Header Actions */}
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
                     <div className='flex items-center gap-3'>
-                        <h1 className='font-bold text-2xl text-foreground tracking-tight'>College Fee Waived Off</h1>
+                        <h1 className='font-bold text-2xl text-foreground tracking-tight'></h1>
                         {totalRecords > 0 && (
                             <Badge variant='secondary' className='font-semibold text-xs'>
                                 Total Records: {totalRecords}

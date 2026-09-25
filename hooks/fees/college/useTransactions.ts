@@ -8,7 +8,7 @@ import {
     getCollegeHeads,
     getCollegeSemesters,
     getCollegeStudents
-} from '@/server/fees/college/transactions/clgfeewaivedoff';
+} from '@/server/fees/college/transaction/clgfeewaivedoff';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 

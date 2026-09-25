@@ -10,8 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useCollegeFeeWaivedOffEdit, useCollegeFeeWaivedOffList } from '@/hooks/fees/college/useTransactions';
 import { cn } from '@/lib/utils';
 import { collegeFeeWaivedOffSchema } from '@/schemas/fees/college/transactions/clgfeewaivedoff';
-import { saveCollegeFeeWaivedOff } from '@/server/fees/college/transactions/clgfeewaivedoff';
-import type { ICollegeFeeGroup, ICollegeFeeHeadItem, ICollegeFeeWaivedOffGrid } from '@/types/fees/college/transactions/clgfeewaivedoff';
+import { saveCollegeFeeWaivedOff } from '@/server/fees/college/transaction/clgfeewaivedoff';
+import type { ICollegeFeeGroup, ICollegeFeeHeadItem, ICollegeFeeWaivedOffGrid } from '@/types/fees/college/transaction/clgfeewaivedoff';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { DollarSign, RotateCcw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';

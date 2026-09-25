@@ -379,7 +379,7 @@ export const feesModule: IUserAccessibleModules = {
                             id: 520,
                             name: 'College Fee Waived Off',
                             icon: 'BadgeIndianRupee',
-                            url: '/fees/college/transactions/clgfeewaivedoff',
+                            url: '/fees/college/transaction/clgfeewaivedoff',
                             title: 'College Fee Waived Off',
                             description: 'Manage College Fee Waived Off Details'
                         }

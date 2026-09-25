@@ -3,7 +3,7 @@
 import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import type { ICollegeFeeWaivedOffGrid } from '@/types/fees/college/transactions/clgfeewaivedoff';
+import type { ICollegeFeeWaivedOffGrid } from '@/types/fees/college/transaction/clgfeewaivedoff';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { useCallback } from 'react';
