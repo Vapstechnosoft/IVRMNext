@@ -208,11 +208,11 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                 hrmeD_AmountPercentFlag: data.HRMED_AmountPercentFlag,
                 hrmeD_AmountPercent: data.HRMED_AmountPercent,
                 hrmeD_RoundOffFlag: data.HRMED_RoundOffFlag,
-                hrmeD_ReviseFlg: data.HRMED_ReviseFlg ?? true,
+                hrmeD_ReviseFlg: data.HRMED_ReviseFlg ?? false,
                 hrmeD_Order: data.HRMED_Order || 0,
                 perc_OfDTO: isPercentage
                     ? selectedPercentageIds.map((id) => ({
-                          hrmedP_Id: 0,
+                        //   hrmedP_Id: 0,
                           hrmeD_Id: 0,
                           hrmedP_HRMED_Id: id
                       }))
@@ -555,7 +555,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                                         <tr
                                                             key={id}
                                                             className={`transition-colors hover:bg-blue-50/50 ${isChecked ? 'bg-blue-50/30' : ''}`}>
-                                                            <td className='py-2.5 px-4 text-left border-r border-gray-200 font-medium text-gray-800'>
+                                                            <td className='py-2.5 px-4 text-center border-r border-gray-200 font-medium text-gray-800'>
                                                                 {name}
                                                             </td>
                                                             <td className='py-2.5 px-4 text-center border-r border-gray-200 text-gray-700'>
