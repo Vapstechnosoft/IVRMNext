@@ -444,7 +444,7 @@ export default function StudentTCApplyPage() {
                             reason: joinedInfo?.astC_LeavingReason || '',
                             remarks: joinedInfo?.astC_Remarks || '',
                             conduct: joinedInfo?.astC_Conduct || 'Good',
-                            last_class: studentInfo.asmcl_classname || '',
+                            last_class: studentInfo.classstudying || studentInfo.classStudying || studentInfo.asmcl_classname || '',
                             academic_year_join: joinedInfo?.asmaY_Year ? joinedInfo.asmaY_Year.toString() : studentInfo.asmay_year || '',
 
                             // Dates

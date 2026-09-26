@@ -124,6 +124,7 @@ export interface IadmissionFormDetails {
     allStreams: IadmissionStream[];
     stfDetails: any[];
     allCompSubject: any[];
+    documentList?: any[];
 }
 
 export interface IadmissionStudentApplicationList {
