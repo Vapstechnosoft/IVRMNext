@@ -382,6 +382,22 @@ export const feesModule: IUserAccessibleModules = {
                             url: '/fees/college/transaction/clgfeewaivedoff',
                             title: 'College Fee Waived Off',
                             description: 'Manage College Fee Waived Off Details'
+                        },
+                        {
+                            id: 521,
+                            name: 'College Fee Refundable',
+                            icon: 'BadgeIndianRupee',
+                            url: '/fees/college/transaction/clgfeerefundable',
+                            title: 'College Fee Refundable',
+                            description: 'Manage College Fee Refundable Details'
+                        },
+                        {
+                            id: 522,
+                            name: 'College Fee Cheque Bounce',
+                            icon: 'BadgeIndianRupee',
+                            url: '/fees/college/transaction/clgfeechequebounce',
+                            title: 'College Fee Cheque Bounce',
+                            description: 'Manage College Fee Cheque Bounce Details'
                         }
                     ]
                 },
