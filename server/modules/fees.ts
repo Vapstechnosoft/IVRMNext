@@ -398,6 +398,14 @@ export const feesModule: IUserAccessibleModules = {
                             url: '/fees/college/transaction/clgfeechequebounce',
                             title: 'College Fee Cheque Bounce',
                             description: 'Manage College Fee Cheque Bounce Details'
+                        },
+                        {
+                            id: 523,
+                            name: 'College Fee Opening Balance',
+                            icon: 'BadgeIndianRupee',
+                            url: '/fees/college/transaction/clgfeeopeningbalance',
+                            title: 'College Fee Opening Balance',
+                            description: 'Manage College Fee Opening Balance Details'
                         }
                     ]
                 },
