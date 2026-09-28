@@ -58,18 +58,25 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
           .no-print {
             display: none !important;
           }
-          .page-break-before {
-            page-break-before: always !important;
+          .progress-card-sheet {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            page-break-after: always !important;
+            break-after: page !important;
+            margin: 0 !important;
+            padding: 5mm 6mm !important;
+            border: 1px solid black !important;
+            box-sizing: border-box !important;
           }
           table {
             width: 100% !important;
             border-collapse: collapse !important;
-            font-size: 12px !important;
+            font-size: 11px !important;
           }
           th,
           td {
             border: 1px solid black !important;
-            padding: 6px 4px !important;
+            padding: 3px 4px !important;
             text-align: center !important;
           }
           th {
@@ -80,7 +87,7 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
           }
           @page {
             size: A4 portrait;
-            margin: 10mm;
+            margin: 6mm !important;
           }
         }
         @media screen {
@@ -103,43 +110,42 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                 {reportData.map((report, index) => (
                     <div
                         key={report.amsT_FirstName + index}
-                        className={`bg-white ${index > 0 ? 'page-break-before' : ''}`}
-                        style={{ border: '0.1px solid black', margin: '15mm', padding: '10mm' }}>
+                        className='progress-card-sheet mx-auto my-6 max-w-[210mm] border border-black bg-white p-6 shadow-sm'>
                         {/* School Header Image */}
-                        <div className='mb-4 text-center'>
+                        <div className='mb-2 text-center'>
                             <Image
                                 src={institution?.mI_Logo || 'https://kusumadata.blob.core.windows.net/files/30/Vidya%20Vikas%20Marks.jpg'}
                                 alt={institution?.mI_Name || 'School Header'}
                                 width={800}
-                                height={200}
-                                className='inline-block border border-black'
+                                height={120}
+                                className='inline-block max-h-[100px] w-auto border border-black object-contain'
                                 unoptimized
                             />
                         </div>
 
                         {/* Student Details */}
-                        <div className='my-6 text-center'>
-                            <div className='inline-block bg-[#c6dff7] px-16 py-2 font-bold text-xl'>STUDENT DETAILS</div>
+                        <div className='my-2 text-center'>
+                            <div className='inline-block bg-[#c6dff7] px-12 py-1 font-bold text-base'>STUDENT DETAILS</div>
                         </div>
 
-                        <div className='border border-black p-4 text-sm'>
+                        <div className='border border-black p-2.5 text-xs'>
                             <table className='w-full'>
                                 <tbody>
                                     <tr>
-                                        <td className='w-1/4 py-1 font-bold'>Name of the Student</td>
-                                        <td className='py-1'>
+                                        <td className='w-1/4 py-0.5 font-bold'>Name of the Student</td>
+                                        <td className='py-0.5'>
                                             : <strong>{report.amsT_FirstName}</strong>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className='py-1 font-bold'>Father Name</td>
-                                        <td className='py-1'>
+                                        <td className='py-0.5 font-bold'>Father Name</td>
+                                        <td className='py-0.5'>
                                             : <strong>{report.amsT_FatherName || 'N/A'}</strong>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className='py-1 font-bold'>Grade</td>
-                                        <td className='py-1'>
+                                        <td className='py-0.5 font-bold'>Grade</td>
+                                        <td className='py-0.5'>
                                             :{' '}
                                             <strong>
                                                 {headerInfo.cla} {headerInfo.sec}
@@ -147,14 +153,14 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className='py-1 font-bold'>Roll No</td>
-                                        <td className='py-1'>
+                                        <td className='py-0.5 font-bold'>Roll No</td>
+                                        <td className='py-0.5'>
                                             : <strong>{report.amaY_RollNo ?? 'N/A'}</strong>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td className='py-1 font-bold'>Date Of Birth</td>
-                                        <td className='py-1'>
+                                        <td className='py-0.5 font-bold'>Date Of Birth</td>
+                                        <td className='py-0.5'>
                                             : <strong>{formatDate(report.amsT_DOB)}</strong>
                                         </td>
                                     </tr>
@@ -163,16 +169,15 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                         </div>
 
                         {/* Exam Title */}
-                        <div className='my-6 text-center'>
-                            <h3 className='font-bold text-xl leading-6'>
-                                {examName} - {year} <br />
-                                <br />
-                                STATEMENT OF MARKS & GRADE
+                        <div className='my-2 text-center'>
+                            <h3 className='font-bold text-base leading-snug'>
+                                {examName} - {year}
                             </h3>
+                            <p className='font-bold text-sm tracking-wide'>STATEMENT OF MARKS &amp; GRADE</p>
                         </div>
 
                         {/* Marks Table */}
-                        <table className='table-bordered w-full text-center text-sm'>
+                        <table className='table-bordered w-full text-center text-xs'>
                             <thead>
                                 <tr>
                                     <th colSpan={6} className='bg-[#c6dff7] text-left'>
@@ -202,7 +207,7 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                                     return (
                                         <tr key={subj.ismS_Id}>
                                             <td>{i + 1}</td>
-                                            <td colSpan={2} className='pl-4 text-left'>
+                                            <td colSpan={2} className='pl-3 text-left'>
                                                 {subj.ismS_SubjectName}
                                             </td>
                                             <td className='bg-[#c6dff7]'>{mark?.estmpS_MaxMarks ?? '-'}</td>
@@ -250,7 +255,7 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                                     </th>
                                 </tr>
                                 <tr>
-                                    <td colSpan={6} className='h-20 pl-4 text-left align-top'>
+                                    <td colSpan={6} className='h-12 pl-3 text-left align-top'>
                                         <strong>Remarks :</strong>
                                     </td>
                                 </tr>
@@ -258,32 +263,24 @@ export default function ProgressCardReport({ reportData, institution, subjects, 
                         </table>
 
                         {/* Grading Scale */}
-                        <div className='my-6 text-center font-bold text-sm'>
+                        <div className='my-2 text-center font-bold text-xs'>
                             Grading: A+={' > '}=90% to 100%, A={' > '}=80% to 89%, B+={' > '}=70% to 79%, B={' > '}=60% to 69%, C={' > '}
                             =40% to 59%, D={' > '}=0% to 39%
                         </div>
 
                         {/* Signatures */}
-                        <div className='mt-12 grid grid-cols-3 text-center text-sm'>
+                        <div className='mt-4 grid grid-cols-3 text-center text-xs'>
                             <div>
-                                <div className='mx-auto h-16 w-32 border-black border-t' />
-                                <p>Class Teacher Signature</p>
+                                <div className='mx-auto h-10 w-28 border-black border-t' />
+                                <p className='font-semibold'>Class Teacher Signature</p>
                             </div>
                             <div>
-                                <div className='mx-auto h-16 w-32 border-black border-t' />
-                                {/* <Image
-                                    src='https://dcampusstrg.blob.core.windows.net/files/17/NAACDocumentsUpload/5176b5e3-d100-4fb0-92fc-2fcc2b902ae2.jpg'
-                                    alt='Principal'
-                                    width={120}
-                                    height={80}
-                                    className='-mt-12 mx-auto'
-                                    unoptimized
-                                /> */}
-                                <p>Principal Signature</p>
+                                <div className='mx-auto h-10 w-28 border-black border-t' />
+                                <p className='font-semibold'>Principal Signature</p>
                             </div>
                             <div>
-                                <div className='mx-auto h-16 w-32 border-black border-t' />
-                                <p>Parent Signature</p>
+                                <div className='mx-auto h-10 w-28 border-black border-t' />
+                                <p className='font-semibold'>Parent Signature</p>
                             </div>
                         </div>
                     </div>

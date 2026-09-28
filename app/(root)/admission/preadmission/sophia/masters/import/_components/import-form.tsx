@@ -38,7 +38,7 @@ export default function ImportForm({ onDataLoaded, onClear }: ImportFormProps) {
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
 
-            const jsonData = XLSX.utils.sheet_to_json(worksheet);
+            const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
             const headers = XLSX.utils.sheet_to_json(worksheet, { header: 1 })[0] as string[];
 
             if (jsonData.length === 0) {
@@ -46,7 +46,34 @@ export default function ImportForm({ onDataLoaded, onClear }: ImportFormProps) {
                 return;
             }
 
-            onDataLoaded(jsonData, headers);
+            // Helper to convert Excel serial date to DD-MM-YYYY
+            const formatExcelDate = (val: any) => {
+                if (typeof val === 'number') {
+                    // Excel epoch is 1900-01-01
+                    const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const year = date.getFullYear();
+                    return `${day}/${month}/${year}`;
+                }
+                return val;
+            };
+
+            const formattedData = jsonData.map((row) => {
+                const newRow = { ...row };
+                for (const key of Object.keys(newRow)) {
+                    const lowerKey = key.toLowerCase();
+                    // Identify fields that are dates
+                    if (lowerKey.includes('date') || lowerKey === 'dob') {
+                        newRow[key] = formatExcelDate(newRow[key]);
+                    } else if (typeof newRow[key] === 'number') {
+                        newRow[key] = String(newRow[key]);
+                    }
+                }
+                return newRow;
+            });
+
+            onDataLoaded(formattedData, headers);
         };
         reader.readAsBinaryString(file);
     };

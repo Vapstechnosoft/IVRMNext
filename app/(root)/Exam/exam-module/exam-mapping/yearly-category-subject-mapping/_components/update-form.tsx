@@ -7,15 +7,16 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useYearlyCategorySubjectMapping } from '@/hooks/exam/exammodule/exam-mapping';
 import { useMasterSubjectGroupDropdownList } from '@/hooks/exam/exammodule/usemasters';
-import { getExamAcademicYearDropdown } from '@/server/exam/exam-module/masters/exam';
 import { categorySubjectMappingSchema } from '@/schemas/exam/exam-module/exam-mapping';
-import { getCategoryDropDownByAcademicYearlist } from '@/server/exam/exam-module/exam-mapping/yearly-category-dates-mapping';
+import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     addOrUpdateYearlyCategorySubjectMapping,
     getYearlyCategorySubjectMappingDetails
 } from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
+import { getExamAcademicYearDropdown } from '@/server/exam/exam-module/masters/exam';
 import { getMasterSubjectGroupDetails } from '@/server/exam/exam-module/masters/subject-group';
 import type { IYearlyCategorySubjectMapping, IYearlyCategorySubjectMappingViewDetails } from '@/types/exam/exam-module/exam-mapping';
+import type { ICategory } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -37,6 +38,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
         defaultValues: {
             userId: 0,
             eycG_Id: rowData?.eycG_Id || 0,
+            eyC_Id: rowData?.eyC_Id || 0,
             // mI_Id: 30,
             asmaY_Id: rowData?.asmaY_Id || 0,
             emcA_Id: rowData?.emcA_Id || 0,
@@ -50,7 +52,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
     const { control, handleSubmit, reset, setValue, formState } = methods;
     const { errors, isSubmitting } = formState;
 
-    const [categories, setCategories] = useState<{ emcA_Id: number; emcA_CategoryName: string }[]>([]);
+    const [categories, setCategories] = useState<ICategory[]>([]);
     const [subjectGroups, setSubjectGroups] = useState<{ emG_Id: number; emG_GroupName: string }[]>([]);
     const [subjects, setSubjects] = useState<{ ismS_Id: number; ismS_SubjectName: string }[]>([]);
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
@@ -66,10 +68,12 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
                 setAcademicYearLoading(true);
                 const res = await getExamAcademicYearDropdown();
                 const yearData = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res : [];
-                const formatted = yearData.map((item: any) => ({
-                    asmaY_Id: item.asmaY_Id ?? item.ASMAY_Id ?? 0,
-                    asmaY_Year: item.asmaY_Year ?? item.ASMAY_Year ?? ''
-                })).filter((item: any) => item.asmaY_Id > 0);
+                const formatted = yearData
+                    .map((item: any) => ({
+                        asmaY_Id: item.asmaY_Id ?? item.ASMAY_Id ?? 0,
+                        asmaY_Year: item.asmaY_Year ?? item.ASMAY_Year ?? ''
+                    }))
+                    .filter((item: any) => item.asmaY_Id > 0);
                 setAcademicYears(formatted);
             } catch (err: any) {
                 toast.error(err.message || 'Failed to load academic years');
@@ -100,8 +104,8 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
         if (!selectedYearId) return;
         async function fetchCategories() {
             try {
-                const { data: cats } = await getCategoryDropDownByAcademicYearlist(selectedYearId);
-                setCategories(Array.isArray(cats) ? cats : []);
+                const { data: cats } = await getCategoryDropDowByExamYearCategoryList(selectedYearId);
+                setCategories(Array.isArray(cats) ? (cats as ICategory[]) : []);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
             }
@@ -133,6 +137,7 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
         reset({
             userId: 1,
             eycG_Id: rowData.eycG_Id ?? 0,
+            eyC_Id: rowData.eyC_Id ?? 0,
             // mI_Id: 30,
             asmaY_Id: rowData.asmaY_Id ?? 0,
             emcA_Id: rowData.emcA_Id ?? 0,
@@ -194,7 +199,13 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
 
     const onSubmit = async (data: FormFields) => {
         try {
-            const res: any = await addOrUpdateYearlyCategorySubjectMapping(data);
+            const selectedCat = categories.find((c) => c.emcA_Id === data.emcA_Id);
+            const payload = {
+                ...data,
+                eyC_Id: data.eyC_Id || rowData?.eyC_Id || selectedCat?.eyC_Id || 0,
+                eycG_Id: rowData?.eycG_Id || data.eycG_Id || 0
+            };
+            const res: any = await addOrUpdateYearlyCategorySubjectMapping(payload);
             const isSuccess =
                 res?.success === true ||
                 res?.returnval === true ||
@@ -333,7 +344,14 @@ export default function UpdateCategorySubjectMappingForm({ rowData, onSuccess }:
                                         <Select
                                             key={field.value} // <— forces remount when value changes
                                             value={field.value && field.value !== 0 ? String(field.value) : undefined}
-                                            onValueChange={(val) => field.onChange(Number(val))}>
+                                            onValueChange={(val) => {
+                                                const catId = Number(val);
+                                                const selected = categories.find((c) => c.emcA_Id === catId);
+                                                if (selected?.eyC_Id) {
+                                                    setValue('eyC_Id', selected.eyC_Id);
+                                                }
+                                                field.onChange(catId);
+                                            }}>
                                             <SelectTrigger>
                                                 <SelectValue placeholder='Select Category' />
                                             </SelectTrigger>
