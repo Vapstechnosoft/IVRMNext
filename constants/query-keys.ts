@@ -721,7 +721,12 @@ export const COLLEGE_QUERY_KEYS = {
     COLLEGE_FEE_WAIVED_OFF_STUDENTS: 'college_fee_waived_off_students',
     COLLEGE_FEE_WAIVED_OFF_GROUPS: 'college_fee_waived_off_groups',
     COLLEGE_FEE_WAIVED_OFF_HEADS: 'college_fee_waived_off_heads',
-    COLLEGE_FEE_WAIVED_OFF_EDIT: 'college_fee_waived_off_edit'
+    COLLEGE_FEE_WAIVED_OFF_EDIT: 'college_fee_waived_off_edit',
+    COLLEGE_FEE_REFUNDABLE_LIST: 'college_fee_refundable_list',
+    COLLEGE_FEE_REFUNDABLE_STUDENTS: 'college_fee_refundable_students',
+    COLLEGE_FEE_REFUNDABLE_STUDENT_BY_AMST: 'college_fee_refundable_student_by_amst',
+    COLLEGE_FEE_REFUNDABLE_GROUPS: 'college_fee_refundable_groups',
+    COLLEGE_FEE_REFUNDABLE_HEADS: 'college_fee_refundable_heads'
 };
 export const ONLINE_EXAM_QUERY_KEYS = {
     MASTER_QUESTION: 'online_exam_master_question',
