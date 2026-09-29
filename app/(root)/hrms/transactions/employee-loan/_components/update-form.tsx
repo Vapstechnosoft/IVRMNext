@@ -1,45 +1,44 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
+import { useEmployeeLoan, useEmployeeLoanMasters, useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
-import { EMPLOYEE_LOAN_VALIDATION } from '@/lib/validation/hrms-transaction-validation';
+import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import { getEmployeeLoanById } from '@/server/hrms/hrmsConfig/transaction/employee-loan';
 import type { EmployeeLoanItem, EmployeeLoanMastersResponse } from '@/types/hrms/employee-loan';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, Save } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
-interface EmployeeLoanForm {
-    employeeId: number;
-    loanTypeId: number;
-    amount: number;
-    installments: number;
-    startDate: string;
-    modeOfPayment?: string;
-    referenceNo?: string;
-    loanInterest?: number;
-    loanEMI?: number;
-}
+import type { z } from 'zod';
+
+type EmployeeLoanForm = z.infer<typeof hrmsTransactionSchemas.employeeLoan.form>;
+
 interface UpdateFormProps {
     selectedRow: EmployeeLoanItem | null;
-    onloadData: EmployeeLoanMastersResponse | undefined;
-    onSuccess: () => void;
+    onloadData?: EmployeeLoanMastersResponse | undefined;
+    onSuccess?: () => void;
     className?: string;
 }
+
 export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSuccess, className = '' }: UpdateFormProps) {
+    const { refetchAll } = useEmployeeLoan();
     const { mutate: saveLoan, isPending } = useSaveEmployeeLoan();
+    const { data: fetchedMasters } = useEmployeeLoanMasters();
+    const masters = onloadData || fetchedMasters;
+
     // Memoize arrays to prevent unnecessary re-renders
-    const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
-    const loanTypes = useMemo(() => onloadData?.masterloandropdown || [], [onloadData?.masterloandropdown]);
-    const paymentModes = useMemo(() => onloadData?.modeOfPaymentdropdown || [], [onloadData?.modeOfPaymentdropdown]);
-    // Debug logging
+    const employees = useMemo(() => masters?.employeedropdown || [], [masters?.employeedropdown]);
+    const loanTypes = useMemo(() => masters?.masterloandropdown || [], [masters?.masterloandropdown]);
+    const paymentModes = useMemo(() => masters?.modeOfPaymentdropdown || [], [masters?.modeOfPaymentdropdown]);
+
     const {
         register,
         handleSubmit,
@@ -47,27 +46,30 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
         control,
         setValue,
         watch,
-        formState: { errors, isSubmitting }
+        formState: { errors, isSubmitting, isDirty }
     } = useForm<EmployeeLoanForm>({
+        resolver: zodResolver(hrmsTransactionSchemas.employeeLoan.form),
         mode: 'onChange',
         defaultValues: {
-            employeeId: 0,
-            loanTypeId: 0,
-            amount: 0,
-            installments: 0,
-            startDate: format(new Date(), 'yyyy-MM-dd'),
-            modeOfPayment: '',
-            referenceNo: '',
-            loanInterest: 0,
-            loanEMI: 0
+            employeeId: selectedRow?.HRME_Id || 0,
+            loanTypeId: selectedRow?.HRMLN_Id || 0,
+            amount: selectedRow?.HREL_LoanAmount || 0,
+            installments: Number(selectedRow?.HREL_LoanInsallments) || 0,
+            startDate: selectedRow?.HREL_AppliedDate ? format(new Date(selectedRow.HREL_AppliedDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+            modeOfPayment: selectedRow?.HREL_ModeOfPayment || '',
+            referenceNo: String(selectedRow?.HREL_ReferenceNo || ''),
+            loanInterest: selectedRow?.HREL_LoanInterest || 0,
+            loanEMI: Number(selectedRow?.HREL_LaonEMI) || 0
         }
     });
+
     // Watch employeeId to enable/disable loan fields
     const watchedEmployeeId = useWatch({
         control,
         name: 'employeeId',
-        defaultValue: 0
+        defaultValue: selectedRow?.HRME_Id || 0
     });
+
     const isEmployeeSelected = watchedEmployeeId && watchedEmployeeId > 0;
 
     useEffect(() => {
@@ -75,17 +77,15 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
         const fetchLoanDetails = async () => {
             if (selectedRow) {
                 try {
-                    console.log('Fetching details for Loan ID:', selectedRow.HREL_Id);
                     const response = await getEmployeeLoanById(selectedRow.HREL_Id);
 
                     if (isMounted && response.success && response.data) {
                         const loan = response.data;
-                        console.log('Fetched Loan Details:', loan);
                         reset({
                             employeeId: loan.HRME_Id || 0,
                             loanTypeId: loan.HRMLN_Id || 0,
                             amount: loan.HREL_LoanAmount || 0,
-                            installments: Number(loan.HREL_LoanInsallments),
+                            installments: Number(loan.HREL_LoanInsallments) || 0,
                             startDate: loan.HREL_AppliedDate ? format(new Date(loan.HREL_AppliedDate), 'yyyy-MM-dd') : '',
                             modeOfPayment: loan.HREL_ModeOfPayment || '',
                             referenceNo: String(loan.HREL_ReferenceNo || ''),
@@ -105,6 +105,7 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
             isMounted = false;
         };
     }, [selectedRow, reset]);
+
     const onSubmit: SubmitHandler<EmployeeLoanForm> = async (data: EmployeeLoanForm) => {
         if (!selectedRow) {
             toast.error('No row selected for update');
@@ -112,11 +113,10 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
         }
         const loanData = {
             HREL_Id: selectedRow.HREL_Id,
-            MI_Id: HRMS_MI_ID,
+            MI_Id: selectedRow.MI_Id || 0,
             HRME_Id: data.employeeId,
-            roleId: 2,
             HRMLN_Id: data.loanTypeId,
-            HREL_AppliedDate: data.startDate,
+            HREL_AppliedDate: new Date(data.startDate).toISOString(),
             HREL_LoanAmount: data.amount,
             HREL_LoanInsallments: data.installments,
             HREL_LoanStatus: selectedRow.HREL_LoanStatus,
@@ -134,13 +134,19 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
         saveLoan(loanData, {
             onSuccess: () => {
                 toast.success('Employee loan updated successfully!');
-                onSuccess();
+                refetchAll();
+                onSuccess?.();
             },
             onError: (error: any) => {
                 toast.error(error.message || 'Failed to update employee loan');
             }
         });
     };
+
+    const handleReset = () => {
+        reset();
+    };
+
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -148,10 +154,11 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                     <Controller
                         name='employeeId'
                         control={control}
-                        rules={EMPLOYEE_LOAN_VALIDATION.employeeId}
                         render={({ field }) => (
                             <div className='space-y-2'>
-                                <Label>Employee *</Label>
+                                <Label>
+                                    Employee <span className='text-destructive'>*</span>
+                                </Label>
                                 <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString()}>
                                     <SelectTrigger
                                         className={cn(
@@ -166,7 +173,7 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                                                 .filter((emp) => emp?.HRME_Id != null)
                                                 .map((employee) => (
                                                     <SelectItem key={employee.HRME_Id} value={employee.HRME_Id.toString()}>
-                                                        {employee.HRME_EmployeeFirstName}
+                                                        {employee.employeeName || employee.HRME_EmployeeFirstName}
                                                     </SelectItem>
                                                 ))
                                         ) : (
@@ -179,11 +186,12 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                         )}
                     />
                     <div className='space-y-2'>
-                        <Label>Applied Date *</Label>
+                        <Label>
+                            Applied Date <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='startDate'
                             control={control}
-                            rules={EMPLOYEE_LOAN_VALIDATION.appliedDate}
                             render={({ field }) => (
                                 <Popover>
                                     <PopoverTrigger asChild>
@@ -213,11 +221,13 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                 </div>
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <div className='space-y-2'>
-                        <Label>Loan Type *</Label>
+                        <Label>
+                            Loan Type <span className='text-destructive'>*</span>
+                        </Label>
                         <Select
                             key={`loan-type-${loanTypes.length}`}
                             onValueChange={(value) => {
-                                setValue('loanTypeId', Number(value));
+                                setValue('loanTypeId', Number(value), { shouldDirty: true });
                             }}
                             value={watch('loanTypeId')?.toString() || ''}>
                             <SelectTrigger>
@@ -229,12 +239,12 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                                         .filter((type) => type && type.HRMLN_Id !== undefined && type.HRMLN_Id !== null)
                                         .map((loanType) => (
                                             <SelectItem key={`loan-${loanType.HRMLN_Id}`} value={loanType.HRMLN_Id.toString()}>
-                                                {`${loanType.HRML_LoanType} (Max: ₹${loanType.HRML_Max?.toLocaleString() || 0})`}
+                                                {`${loanType.HRML_LoanType} `}
                                             </SelectItem>
                                         ))
                                 ) : (
                                     <div className='p-2 text-muted-foreground text-sm'>
-                                        {onloadData === undefined ? 'Loading loan types...' : 'No loan types available'}
+                                        {masters === undefined ? 'Loading loan types...' : 'No loan types available'}
                                     </div>
                                 )}
                             </SelectContent>
@@ -244,10 +254,11 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                     <Controller
                         name='modeOfPayment'
                         control={control}
-                        rules={EMPLOYEE_LOAN_VALIDATION.modeOfPayment}
                         render={({ field }) => (
                             <div className='space-y-2'>
-                                <Label>Mode Of Payment *</Label>
+                                <Label>
+                                    Mode Of Payment <span className='text-destructive'>*</span>
+                                </Label>
                                 <Select onValueChange={field.onChange} value={field.value}>
                                     <SelectTrigger>
                                         <SelectValue placeholder='--Select--' />
@@ -271,7 +282,6 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                     <Controller
                         name='referenceNo'
                         control={control}
-                        rules={EMPLOYEE_LOAN_VALIDATION.referenceNo}
                         render={({ field }) => (
                             <div className='space-y-2'>
                                 <Label>Reference No.</Label>
@@ -288,63 +298,67 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                 </div>
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <InputText
-                        label='Loan Amount *'
+                        label='Loan Amount '
                         type='number'
                         id='amount'
                         step='0.01'
                         placeholder='Enter loan amount (max 10 digits including decimals)'
-                        {...register('amount', EMPLOYEE_LOAN_VALIDATION.loanAmount)}
+                        {...register('amount', { valueAsNumber: true })}
                         error={errors.amount?.message}
                         disabled={!isEmployeeSelected}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        required
                     />
                     <InputText
-                        label='Loan Interest *'
+                        label='Loan Interest '
                         type='number'
                         id='loanInterest'
                         step='0.01'
                         placeholder='Enter loan interest (max 5 digits including decimals)'
-                        {...register('loanInterest', EMPLOYEE_LOAN_VALIDATION.loanInterest)}
+                        {...register('loanInterest', { valueAsNumber: true })}
                         error={errors.loanInterest?.message}
                         disabled={!isEmployeeSelected}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        required
                     />
                 </div>
                 <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
                     <InputText
-                        label='Loan Installments (IN MONTHS) *'
+                        label='Loan Installments (IN MONTHS) '
                         type='number'
                         id='installments'
                         placeholder='Enter loan installments (max 4 digits)'
-                        {...register('installments', EMPLOYEE_LOAN_VALIDATION.loanInstallments)}
+                        {...register('installments', { valueAsNumber: true })}
                         error={errors.installments?.message}
                         disabled={!isEmployeeSelected}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        required
                     />
                     <InputText
-                        label='Loan EMI *'
+                        label='Loan EMI '
                         type='number'
                         id='loanEMI'
                         step='0.01'
                         placeholder='Enter loan EMI (max 10 digits including decimals)'
-                        {...register('loanEMI', EMPLOYEE_LOAN_VALIDATION.loanEMI)}
+                        {...register('loanEMI', { valueAsNumber: true })}
                         error={errors.loanEMI?.message}
                         disabled={!isEmployeeSelected}
                         className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        required
                     />
                 </div>
                 <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
                     <Button
                         type='button'
                         variant='outline'
-                        onClick={onSuccess}
+                        onClick={handleReset}
                         disabled={isSubmitting || isPending}
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Cancel
+                        Reset
                     </Button>
                     <Button
                         type='submit'
-                        disabled={isSubmitting || isPending}
+                        disabled={isSubmitting || isPending || !isDirty}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting || isPending}
                         loadingText='Updating...'>
@@ -353,6 +367,7 @@ export default function UpdateEmployeeLoanForm({ selectedRow, onloadData, onSucc
                             Update Employee Loan
                         </div>
                     </Button>
+                    {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
                 </div>
             </form>
         </div>

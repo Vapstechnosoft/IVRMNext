@@ -86,8 +86,8 @@ export default function AddStudentCountReportForm({
             const payload = {
                 type: data.type,
                 report_type: Number(data.report_type),
-                from_date: data.type === 'between' && data.from_date ? new Date(data.from_date).toISOString() : new Date().toISOString(),
-                to_date: data.type === 'between' && data.to_date ? new Date(data.to_date).toISOString() : new Date().toISOString(),
+                from_date: data.type === 'between' && data.from_date ? format(new Date(data.from_date), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+                to_date: data.type === 'between' && data.to_date ? format(new Date(data.to_date), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
                 asmay_id: data.asmaY_Id || 0,
                 asmcl_id: data.asmcL_Id || 0
             };
@@ -274,7 +274,7 @@ export default function AddStudentCountReportForm({
                                                                 mode='single'
                                                                 selected={field.value ? new Date(field.value) : undefined}
                                                                 onSelect={(date: Date | undefined) => {
-                                                                    field.onChange(date?.toISOString() ?? '');
+                                                                    field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
                                                                     setIsFromDateOpen(false);
                                                                 }}
                                                                 captionLayout='dropdown'
@@ -311,7 +311,7 @@ export default function AddStudentCountReportForm({
                                                                 mode='single'
                                                                 selected={field.value ? new Date(field.value) : undefined}
                                                                 onSelect={(date: Date | undefined) => {
-                                                                    field.onChange(date?.toISOString() ?? '');
+                                                                    field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
                                                                     setIsToDateOpen(false);
                                                                 }}
                                                                 captionLayout='dropdown'

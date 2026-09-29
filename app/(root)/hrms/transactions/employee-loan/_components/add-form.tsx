@@ -1,12 +1,12 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { CalendarYear } from '@/components/ui/calendar_year';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HRMS_MI_ID } from '@/constants/hrms-config';
-import { useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
+import { useEmployeeLoan, useEmployeeLoanMasters, useSaveEmployeeLoan } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
 import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { EmployeeLoanMastersResponse } from '@/types/hrms/employee-loan';
@@ -17,21 +17,26 @@ import { useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
+
 type EmployeeLoanForm = z.infer<typeof hrmsTransactionSchemas.employeeLoan.form>;
+
 interface AddFormProps {
-    onloadData: EmployeeLoanMastersResponse | undefined;
-    onSuccess: () => void;
+    onloadData?: EmployeeLoanMastersResponse | undefined;
+    onSuccess?: () => void;
     className?: string;
 }
+
 export default function AddEmployeeLoanForm({ onloadData, onSuccess, className = '' }: AddFormProps) {
+    const { refetchAll } = useEmployeeLoan();
     const { mutate: saveLoan, isPending } = useSaveEmployeeLoan();
+    const { data: fetchedMasters } = useEmployeeLoanMasters();
+    const masters = onloadData || fetchedMasters;
+
     // Memoize arrays to prevent unnecessary re-renders
-    const employees = useMemo(() => onloadData?.employeedropdown || [], [onloadData?.employeedropdown]);
-    const loanTypes = useMemo(() => onloadData?.masterloandropdown || [], [onloadData?.masterloandropdown]);
-    const paymentModes = useMemo(() => onloadData?.modeOfPaymentdropdown || [], [onloadData?.modeOfPaymentdropdown]);
-    // Debug logging for loan types
-    if (loanTypes && loanTypes.length > 0) {
-    }
+    const employees = useMemo(() => masters?.employeedropdown || [], [masters?.employeedropdown]);
+    const loanTypes = useMemo(() => masters?.masterloandropdown || [], [masters?.masterloandropdown]);
+    const paymentModes = useMemo(() => masters?.modeOfPaymentdropdown || [], [masters?.modeOfPaymentdropdown]);
+
     const {
         register,
         handleSubmit,
@@ -55,18 +60,20 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
             loanEMI: 0
         }
     });
+
     // Watch employeeId to enable/disable loan fields
     const watchedEmployeeId = useWatch({
         control,
         name: 'employeeId',
         defaultValue: 0
     });
+
     const isEmployeeSelected = watchedEmployeeId && watchedEmployeeId > 0;
+
     const onSubmit: SubmitHandler<EmployeeLoanForm> = async (data: EmployeeLoanForm) => {
-        console.log(' form data', data);
         const loanData = {
             HREL_Id: 0,
-            MI_Id: HRMS_MI_ID,
+            MI_Id: 0,
             HRME_Id: data.employeeId,
             HREL_AppliedDate: new Date(data.startDate).toISOString(),
             HREL_EmpLoanId: '',
@@ -78,18 +85,24 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
             HREL_ModeOfPayment: data.modeOfPayment || '',
             HREL_ReferenceNo: data.referenceNo || ''
         };
-        console.log('loanData', loanData);
+
         saveLoan(loanData, {
             onSuccess: () => {
                 toast.success('Employee loan created successfully!');
                 reset();
-                onSuccess();
+                refetchAll();
+                onSuccess?.();
             },
             onError: (error: any) => {
                 toast.error(error.message || 'Failed to create employee loan');
             }
         });
     };
+
+    const handleReset = () => {
+        reset();
+    };
+
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -115,8 +128,8 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                                             employees
                                                 .filter((emp) => emp?.HRME_Id != null)
                                                 .map((employee) => (
-                                                    <SelectItem key={employee.HRME_Id} value={employee.HRME_Id.toString()}>
-                                                        {employee.HRME_EmployeeFirstName}
+                                                 <SelectItem key={employee.HRME_Id} value={employee.HRME_Id.toString()}>
+                                                        {employee.employeeName || employee.HRME_EmployeeFirstName}
                                                     </SelectItem>
                                                 ))
                                         ) : (
@@ -187,7 +200,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                                         ))
                                 ) : (
                                     <div className='p-2 text-muted-foreground text-sm'>
-                                        {onloadData === undefined ? 'Loading loan types...' : 'No loan types available'}
+                                        {masters === undefined ? 'Loading loan types...' : 'No loan types available'}
                                     </div>
                                 )}
                             </SelectContent>
@@ -294,7 +307,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                     <Button
                         type='button'
                         variant='outline'
-                        onClick={() => reset()}
+                        onClick={handleReset}
                         disabled={isSubmitting || isPending}
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
@@ -307,7 +320,7 @@ export default function AddEmployeeLoanForm({ onloadData, onSuccess, className =
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Add Employee Loan
+                            Save Employee Loan
                         </div>
                     </Button>
                 </div>

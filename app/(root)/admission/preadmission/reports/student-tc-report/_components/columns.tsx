@@ -98,6 +98,7 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
             header: ({ column }) => <DataTableColumnHeader column={column} title={fieldId} className='font-bold text-black' />,
             cell: ({ row }) => <div>{row.getValue(fieldId) || 'N/A'}</div>,
             enableSorting: true,
+            sortingFn: 'alphanumeric',
             enableHiding: true
         };
     }
@@ -115,6 +116,7 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
             return <div>{String(value) || 'N/A'}</div>;
         },
         enableSorting: true,
+        sortingFn: 'alphanumeric',
         enableHiding: true
     };
 };

@@ -51,8 +51,6 @@ export default function MonthendreportPage() {
         { id: 11, name: 'November' },
         { id: 12, name: 'December' }
     ];
-    const yearList = [2023, 2024, 2025, 2026, 2027];
-
     interface ReportItem {
         name: string;
         count?: number; // optional
@@ -67,6 +65,9 @@ export default function MonthendreportPage() {
     const { data: academicYearOptions, isLoading: academicYearLoading } = useAcademicYearDropdown();
     const { data: categoryOptions, isLoading: categoryLoading } = useMasterCategoryDropdown();
     const { refetch } = useMonthEndReport(requestData, false);
+
+    const selectedAcademicYear = academicYearOptions?.data?.find((item: any) => item.asmaY_Id === academicYearId);
+    const yearList = selectedAcademicYear ? selectedAcademicYear.asmaY_Year.split('-').map((y: string) => Number(y.trim())) : [];
     // Handle Reset
     const handleReset = () => {
         setAcademicYearId(0);

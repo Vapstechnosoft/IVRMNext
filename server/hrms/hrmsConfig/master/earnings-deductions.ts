@@ -126,3 +126,21 @@ export async function getSalaryComponentTypeDropdown() {
     const url = '/api/MasterDropDown/GetSalaryComponentType';
     return await api.get<ISalaryComponentTypeDropdown[]>('hrms', url);
 }
+
+/**
+ * Get all dropdown and datatable details from MasterEarningsDeductions
+ * GET /api/MasterEarningsDeductions/GetAllDropdownAndDatatableDetails
+ */
+export async function getAllDropdownAndDatatableDetails() {
+    try {
+        const url = '/api/MasterEarningsDeductions/GetAllDropdownAndDatatableDetails';
+        return await api.get<any>('hrms', url);
+    } catch (error: any) {
+        console.error('🔴 [getAllDropdownAndDatatableDetails] Error:', error);
+        return {
+            success: false,
+            message: error?.message || 'Failed to fetch dropdown details',
+            data: []
+        };
+    }
+}

@@ -149,24 +149,7 @@ export default function StudyCertificateReportPage(props: {
     const dailyDate = useWatch({ control, name: 'dailyDate' });
     const selectionMode = useWatch({ control, name: 'selectionMode' });
 
-    const [searchValue, setSearchValue] = useState(String(searchParams?.search_query || ''));
 
-    useEffect(() => {
-        const timeout = setTimeout(() => {
-            const currentQuery = String(searchParams?.search_query || '');
-            if (searchValue !== currentQuery) {
-                const params = new URLSearchParams(window.location.search);
-                if (searchValue) {
-                    params.set('search_query', searchValue);
-                    params.set('page', '1');
-                } else {
-                    params.delete('search_query');
-                }
-                router.push(`${pathname}?${params.toString()}`, { scroll: false });
-            }
-        }, 500);
-        return () => clearTimeout(timeout);
-    }, [searchValue, searchParams?.search_query, pathname, router]);
 
     const apiSearchParams: ApiSearchparams | undefined = searchParams
         ? {
@@ -174,7 +157,7 @@ export default function StudyCertificateReportPage(props: {
               page_size: Number(searchParams.page_size) || 10,
               sort_column: String(searchParams.sort_column || ''),
               sort_direction: String(searchParams.sort_direction || 'asc'),
-              search_query: String(searchParams.search_query || ''),
+              search_query: '',
               search_columns: String(searchParams.search_columns || '')
           }
         : undefined;
@@ -208,7 +191,23 @@ export default function StudyCertificateReportPage(props: {
 
     const parsedStudentsAttendance = useMemo(() => {
         if (!studentsAttendance) return null;
-        const list = (studentsAttendance as any)?.data?.studentAttendanceList;
+        
+        const getListData = (resp: any): any[] => {
+            if (!resp) return [];
+            const payload = resp.data;
+            if (payload) {
+                if (Array.isArray(payload.studentAttendanceList)) return payload.studentAttendanceList;
+                if (Array.isArray(payload)) return payload;
+                if (payload.data && Array.isArray(payload.data.studentAttendanceList)) return payload.data.studentAttendanceList;
+                if (Array.isArray(payload.data)) return payload.data;
+            }
+            if (Array.isArray(resp.studentAttendanceList)) return resp.studentAttendanceList;
+            if (Array.isArray(resp)) return resp;
+            return [];
+        };
+
+        const list = getListData(studentsAttendance);
+        
         return {
             ...studentsAttendance,
             data: {
@@ -378,7 +377,22 @@ export default function StudyCertificateReportPage(props: {
         try {
             const res = await refetch();
             const reportData = res.data as any;
-            const records = reportData?.data?.studentAttendanceList || [];
+            
+            const getListData = (resp: any): any[] => {
+                if (!resp) return [];
+                const payload = resp.data;
+                if (payload) {
+                    if (Array.isArray(payload.studentAttendanceList)) return payload.studentAttendanceList;
+                    if (Array.isArray(payload)) return payload;
+                    if (payload.data && Array.isArray(payload.data.studentAttendanceList)) return payload.data.studentAttendanceList;
+                    if (Array.isArray(payload.data)) return payload.data;
+                }
+                if (Array.isArray(resp.studentAttendanceList)) return resp.studentAttendanceList;
+                if (Array.isArray(resp)) return resp;
+                return [];
+            };
+
+            const records = getListData(reportData);
 
             if (records.length > 0) {
                 setShowGrid(true);
@@ -472,11 +486,12 @@ export default function StudyCertificateReportPage(props: {
             const activeMonth = monthList.find((m) => m.id === month)?.name;
 
             // Prepare headers
+            const emptyCols = Array(11).fill('');
             const reportHeaders = [
-                ['STUDENT ATTENDANCE REPORT'],
-                [`Academic Year: ${activeYear || 'N/A'}`],
-                [`Class: ${activeClass || 'N/A'}`, `Section: ${activeSection || 'N/A'}`],
-                [activeMonth ? `Month: ${activeMonth}` : ''],
+                [...emptyCols, 'STUDENT ATTENDANCE REPORT'],
+                [...emptyCols, `Academic Year: ${activeYear || 'N/A'}`],
+                [...emptyCols, `Class: ${activeClass || 'N/A'}`, `Section: ${activeSection || 'N/A'}`],
+                [...emptyCols, activeMonth ? `Month: ${activeMonth}` : ''],
                 [] // Empty row
             ];
 
@@ -495,7 +510,7 @@ export default function StudyCertificateReportPage(props: {
 
                 if (monthDateWise) {
                     for (const day of excelDays) {
-                        baseData.push(row[`_${day}`] || '');
+                        baseData.push(row[`_${day}`] || row[day] || 'NE');
                     }
                 }
 
@@ -722,45 +737,32 @@ export default function StudyCertificateReportPage(props: {
                         className='slide-in-from-top-4 animate-in shadow-lg duration-300'>
                         {/* Institution Header */}
                         {(parsedStudentsAttendance as any)?.data?.institutionDetails?.[0] && (
-                            <div className='mb-6 border-b pb-6 text-center'>
-                                <div className='flex flex-col items-center gap-4'>
+                            <div className='mb-4 border-b pb-4 text-center text-black'>
+                                <div className='flex flex-col items-center gap-1'>
                                     {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Logo && (
                                         <img
                                             src={(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Logo}
                                             alt='Logo'
-                                            className='h-24 w-auto object-contain'
+                                            className='mb-2 max-h-[80px] w-auto object-contain'
                                         />
                                     )}
-                                    <div>
-                                        <h1 className='font-bold text-2xl uppercase'>
-                                            {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Name}
-                                        </h1>
-                                        <p className='text-muted-foreground text-sm'>
-                                            {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address1}
-                                            {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address2 &&
-                                                `, ${(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address2}`}
-                                            {(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address3 &&
-                                                `, ${(parsedStudentsAttendance as any).data.institutionDetails[0].mI_Address3}`}
-                                        </p>
-                                        <h2 className='mt-2 font-bold text-lg tracking-wide'>STUDENT ATTENDANCE REPORT</h2>
-                                        <div className='mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 font-semibold text-sm'>
-                                            {academicYearId && (
-                                                <span>
-                                                    Academic Year:{' '}
-                                                    {academicYears?.data?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year}
-                                                </span>
-                                            )}
-                                            {classId && (
-                                                <span>
-                                                    Class: {classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName}
-                                                </span>
-                                            )}
-                                            {sectionId && (
-                                                <span>
-                                                    Section: {sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName}
-                                                </span>
-                                            )}
-                                        </div>
+                                    <div className='mt-2 flex flex-wrap justify-center gap-x-6 gap-y-2 font-bold text-[13px]'>
+                                        {academicYearId && (
+                                            <span>
+                                                Academic Year:{' '}
+                                                {academicYears?.data?.find((y: any) => y.asmaY_Id === academicYearId)?.asmaY_Year}
+                                            </span>
+                                        )}
+                                        {classId && (
+                                            <span>
+                                                Class: {classes?.data?.find((c: any) => c.asmcL_Id === classId)?.asmcL_ClassName}
+                                            </span>
+                                        )}
+                                        {sectionId && (
+                                            <span>
+                                                Section: {sections?.data?.find((s: any) => s.asmS_Id === sectionId)?.asmC_SectionName}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -789,29 +791,15 @@ export default function StudyCertificateReportPage(props: {
                         {/* Report Header Info */}
                         <div className='mb-2 flex flex-col gap-2'>
                             <div className='flex items-center justify-between'>
-                                <div className='flex items-center gap-2 font-bold text-sm'>
+                                <div className='flex items-center gap-2 font-bold text-sm text-black'>
                                     Total Grid Records :{' '}
-                                    <span className='inline-flex h-6 items-center justify-center rounded-full bg-gray-500 px-2 text-white text-xs'>
+                                    <span className='inline-flex h-6 items-center justify-center rounded-full bg-slate-500 px-2 text-white text-xs'>
                                         {(parsedStudentsAttendance as any)?.total || 0}
                                     </span>
                                 </div>
-                                <div className='flex items-center gap-0'>
-                                    <div className='relative'>
-                                        <input
-                                            type='text'
-                                            placeholder='search here...'
-                                            className='h-8 w-64 border border-gray-300 px-2 text-xs focus:outline-none'
-                                            value={searchValue}
-                                            onChange={(e) => setSearchValue(e.target.value)}
-                                        />
-                                        <div className='absolute top-0 right-0 flex h-8 w-8 items-center justify-center border border-gray-300 border-l-0 bg-gray-50'>
-                                            <Search className='h-4 w-4 text-gray-500' />
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
-                            <div className='font-bold text-[11px] uppercase'>
-                                Note : P - Present , A - Absent , HO - Holiday , NE - Not Entered
+                            <div className='font-bold text-[11px] text-black uppercase'>
+                                NOTE : P - PRESENT , A - ABSENT , HO - HOLIDAY , NE - NOT ENTERED
                             </div>
                         </div>
 
@@ -820,6 +808,7 @@ export default function StudyCertificateReportPage(props: {
                                 {...tableProps}
                                 ref={tableRef}
                                 columns={columns}
+                                getRowId={(row: any) => row.RowNo ? String(row.RowNo) : crypto.randomUUID()}
                                 isLoading={isLoading}
                                 error={error}
                                 showViewOptions={false}
@@ -828,6 +817,7 @@ export default function StudyCertificateReportPage(props: {
                                 noDataTitle='No Data Found'
                                 noDataDescription='No Student Attendance Reports found.'
                                 errorTitle='Error Loading Student Attendance Reports'
+                                manualFiltering={false}
                             />
                         </div>
 
@@ -864,7 +854,7 @@ function RadioField({ name, control, options, disabled }: any) {
                         field.onChange(isNaN(num) || v.trim() === '' ? v : num);
                     }}
                     disabled={disabled}
-                    className={`flex justify-center gap-4 rounded border p-3 ${disabled ? 'pointer-events-none opacity-50' : ''}`}>
+                    className={`flex h-10 w-full items-center justify-center gap-4 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}>
                     {options.map((opt: any) => {
                         const id = `radio-${name}-${opt.value}`;
                         return (
@@ -898,8 +888,8 @@ function SelectField({ label, name, control, options, labelKey, valueKey, error,
                             <SelectValue placeholder={`Select ${label}`} />
                         </SelectTrigger>
                         <SelectContent>
-                            {options?.map((o: any) => (
-                                <SelectItem key={o[valueKey]} value={String(o[valueKey])}>
+                            {options?.map((o: any, index: number) => (
+                                <SelectItem key={`${o[valueKey]}-${index}`} value={String(o[valueKey])}>
                                     {o[labelKey]}
                                 </SelectItem>
                             ))}

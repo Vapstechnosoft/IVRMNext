@@ -642,25 +642,23 @@ export default function TotalStrengthPage() {
                                                 const { schoolName, logoUrl } = getMasterCompanyInfo();
                                                 if (!schoolName && !logoUrl) return null;
                                                 return (
-                                                    <div className='mb-2 flex flex-col items-center justify-center gap-3 border-b pb-4 text-center sm:flex-row sm:text-left'>
-                                                        {logoUrl && (
-                                                            <img
-                                                                src={logoUrl}
-                                                                alt={schoolName || 'Institution Logo'}
-                                                                style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
-                                                                className='w-full'
-                                                            />
-                                                        )}
-                                                        {schoolName && (
-                                                            <div>
-                                                                <h2 className='font-bold text-gray-900 text-lg uppercase'>{schoolName}</h2>
+                                                    <div className='mb-4 border-b pb-4 text-center text-black'>
+                                                        <div className='flex flex-col items-center gap-1'>
+                                                            {logoUrl && (
+                                                                <img
+                                                                    src={logoUrl}
+                                                                    alt={schoolName || 'Institution Logo'}
+                                                                    className='mb-2 max-h-[80px] w-auto object-contain'
+                                                                />
+                                                            )}
+                                                            <div className='mt-2 flex flex-wrap justify-center gap-x-6 gap-y-2 font-bold text-[13px]'>
                                                                 {selectedAcademicYearName && (
-                                                                    <p className='font-medium text-gray-500 text-xs'>
-                                                                        Total Strength Report - {selectedAcademicYearName}
-                                                                    </p>
+                                                                    <span>
+                                                                        Academic Year: {selectedAcademicYearName}
+                                                                    </span>
                                                                 )}
                                                             </div>
-                                                        )}
+                                                        </div>
                                                     </div>
                                                 );
                                             })()}
