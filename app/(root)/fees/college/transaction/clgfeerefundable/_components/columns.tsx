@@ -62,11 +62,7 @@ export const collegeFeeRefundableColumns: ColumnDef<ICollegeFeeRefundableGrid>[]
         accessorKey: 'fcR_RefundNo',
         id: 'fcR_RefundNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Refund No' />,
-        cell: ({ row }) => (
-            <div className='font-medium text-foreground'>
-                {row.original.fcR_RefundNo || 'N.A'}
-            </div>
-        ),
+        cell: ({ row }) => <div className='font-medium text-foreground'>{row.original.fcR_RefundNo || 'N.A'}</div>,
         enableSorting: true,
         enableHiding: true
     },
@@ -104,11 +100,7 @@ function CollegeFeeRefundableActionButtonsCell({ rowData }: { rowData: ICollegeF
 
     return (
         <div className='flex justify-center'>
-            <ActionButtons
-                rowData={rowData}
-                buttons={{ edit: false, toggle: false, delete: true }}
-                onDelete={handleDelete}
-            />
+            <ActionButtons rowData={rowData} buttons={{ edit: false, toggle: false, delete: true }} onDelete={handleDelete} />
         </div>
     );
 }

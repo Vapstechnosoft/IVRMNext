@@ -84,39 +84,6 @@ export default function AddCourseForm({ onSuccess, className = '' }: AddCourseFo
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
 
-                        <InputTextarea
-                            label='Description'
-                            required
-                            id='hrmC_QualificationDesc'
-                            placeholder='Enter description'
-                            maxLength={150}
-                            {...register('hrmC_QualificationDesc')}
-                            error={errors.hrmC_QualificationDesc?.message}
-                            className='transition-colors focus:ring-2 focus:ring-primary/20'
-                            minHeight={20}
-                        />
-
-                        <Controller
-                            name='hrmC_Order'
-                            control={control}
-                            render={({ field }) => (
-                                <InputNumber
-                                    label='Order'
-                                    id='hrmC_Order'
-                                    placeholder='Enter order'
-                                    value={field.value ?? undefined}
-                                    onChange={(value) => {
-                                        const numValue =
-                                            value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
-                                        field.onChange(numValue);
-                                    }}
-                                    onBlur={field.onBlur}
-                                    error={errors.hrmC_Order?.message}
-                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
-                                />
-                            )}
-                        />
-
                         <div className='flex items-center gap-4 pt-7'>
                             <div className='flex items-center gap-2'>
                                 <Controller
@@ -151,6 +118,40 @@ export default function AddCourseForm({ onSuccess, className = '' }: AddCourseFo
                                 </label>
                             </div>
                         </div>
+                        <InputTextarea
+                            label='Description'
+                            required
+                            id='hrmC_QualificationDesc'
+                            placeholder='Enter description'
+                            maxLength={150}
+                            {...register('hrmC_QualificationDesc')}
+                            error={errors.hrmC_QualificationDesc?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                            minHeight={20}
+                        />
+
+                        {/* <Controller
+                            name='hrmC_Order'
+                            control={control}
+                            render={({ field }) => (
+                                <InputNumber
+                                    label='Order'
+                                    id='hrmC_Order'
+                                    placeholder='Enter order'
+                                    value={field.value ?? undefined}
+                                    onChange={(value) => {
+                                        const numValue =
+                                            value !== null && value !== undefined && !Number.isNaN(value) ? Number(value) : undefined;
+                                        field.onChange(numValue);
+                                    }}
+                                    onBlur={field.onBlur}
+                                    error={errors.hrmC_Order?.message}
+                                    className='transition-colors focus:ring-2 focus:ring-primary/20'
+                                />
+                            )}
+                        /> */}
+
+                        
                     </div>
                 </div>
 

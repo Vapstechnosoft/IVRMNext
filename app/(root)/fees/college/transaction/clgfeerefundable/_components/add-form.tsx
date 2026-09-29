@@ -3,23 +3,19 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
-    useCollegeAcademicYears,
-    useCollegeBranches,
-    useCollegeCourses,
-    useCollegeSemesters
-} from '@/hooks/fees/college/useTransactions';
-import {
     useCollegeFeeRefundableHeads,
     useCollegeFeeRefundableList,
     useCollegeFeeRefundableStudentByAmst,
     useCollegeFeeRefundableStudents
 } from '@/hooks/fees/college/useCollegeFeeRefundable';
+import { useCollegeAcademicYears, useCollegeBranches, useCollegeCourses, useCollegeSemesters } from '@/hooks/fees/college/useTransactions';
 import { cn } from '@/lib/utils';
 import { collegeFeeRefundableSchema } from '@/schemas/fees/college/transactions/clgfeerefundable';
 import { saveCollegeFeeRefundable } from '@/server/fees/college/transaction/clgfeerefundable';
@@ -30,7 +26,6 @@ import type {
 } from '@/types/fees/college/transaction/clgfeerefundable';
 import type { ICollegeBranch, ICollegeCourse, ICollegeSemester } from '@/types/fees/college/transaction/clgfeewaivedoff';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { CheckSquare, Eye, RotateCcw, Save, Search, Square } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
@@ -123,22 +118,38 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
     // Courses
     const selectedYearNum = watchedYearId ? Number(watchedYearId) : undefined;
     const { data: coursesData, isLoading: isCoursesLoading } = useCollegeCourses(selectedYearNum);
-    const courses: ICollegeCourse[] = useMemo(() => extractArrayData<ICollegeCourse>(coursesData, ['courselist', 'courses']), [coursesData]);
+    const courses: ICollegeCourse[] = useMemo(
+        () => extractArrayData<ICollegeCourse>(coursesData, ['courselist', 'courses']),
+        [coursesData]
+    );
 
     // Branches
     const selectedCourseNum = watchedCourseId ? Number(watchedCourseId) : undefined;
     const { data: branchesData, isLoading: isBranchesLoading } = useCollegeBranches(selectedYearNum, selectedCourseNum);
-    const branches: ICollegeBranch[] = useMemo(() => extractArrayData<ICollegeBranch>(branchesData, ['branchlist', 'branches']), [branchesData]);
+    const branches: ICollegeBranch[] = useMemo(
+        () => extractArrayData<ICollegeBranch>(branchesData, ['branchlist', 'branches']),
+        [branchesData]
+    );
 
     // Semesters
     const selectedBranchNum = watchedBranchId ? Number(watchedBranchId) : undefined;
-    const { data: semestersData, isLoading: isSemestersLoading } = useCollegeSemesters(selectedYearNum, selectedCourseNum, selectedBranchNum);
-    const semesters: ICollegeSemester[] = useMemo(() => extractArrayData<ICollegeSemester>(semestersData, ['semisterlist', 'semesters']), [semestersData]);
+    const { data: semestersData, isLoading: isSemestersLoading } = useCollegeSemesters(
+        selectedYearNum,
+        selectedCourseNum,
+        selectedBranchNum
+    );
+    const semesters: ICollegeSemester[] = useMemo(
+        () => extractArrayData<ICollegeSemester>(semestersData, ['semisterlist', 'semesters']),
+        [semestersData]
+    );
 
     // Students
     const selectedSemNum = watchedSemId ? Number(watchedSemId) : undefined;
     const { data: studentsData, isLoading: isStudentsLoading } = useCollegeFeeRefundableStudents(
-        selectedYearNum, selectedCourseNum, selectedBranchNum, selectedSemNum
+        selectedYearNum,
+        selectedCourseNum,
+        selectedBranchNum,
+        selectedSemNum
     );
     const students: ICollegeFeeRefundableStudent[] = useMemo(
         () => extractArrayData<ICollegeFeeRefundableStudent>(studentsData, ['studentlist', 'students']),
@@ -184,7 +195,7 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                 heads.map((h) => ({
                     ...h,
                     isSelected: Boolean(h.isSelected || h.selected),
-                    refundAmount: h.fcR_RefundAmount ? String(h.fcR_RefundAmount) : (h.FR_RefundAmount ? String(h.FR_RefundAmount) : ''),
+                    refundAmount: h.fcR_RefundAmount ? String(h.fcR_RefundAmount) : h.FR_RefundAmount ? String(h.FR_RefundAmount) : '',
                     isRefundOver: Boolean(h.isRefundOver || h.Selected1)
                 }))
             );
@@ -264,9 +275,7 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
     };
 
     const toggleRefundOver = (index: number) => {
-        setFeeHeadsState((prev) =>
-            prev.map((head, idx) => (idx === index ? { ...head, isRefundOver: !head.isRefundOver } : head))
-        );
+        setFeeHeadsState((prev) => prev.map((head, idx) => (idx === index ? { ...head, isRefundOver: !head.isRefundOver } : head)));
     };
 
     const handleReset = () => {
@@ -325,7 +334,9 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                     fmG_Id: Number(item.fmG_Id),
                     fcR_RefundAmount: Number(item.fcR_RefundAmount)
                 })),
-                selectedRefundOverList: feeHeadsState.filter((h) => h.isSelected && h.isRefundOver).map((item) => ({ fcsS_Id: Number(item.fcsS_Id) }))
+                selectedRefundOverList: feeHeadsState
+                    .filter((h) => h.isSelected && h.isRefundOver)
+                    .map((item) => ({ fcsS_Id: Number(item.fcsS_Id) }))
             };
 
             const response = await saveCollegeFeeRefundable(payload);
@@ -355,15 +366,16 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                 const failedFields = Object.keys(errs).join(', ');
                 toast.error(`Validation failed on: ${failedFields}`);
             })}
-            className={cn('space-y-6', className)}
-        >
+            className={cn('space-y-6', className)}>
             <div className='grid gap-6 lg:grid-cols-2'>
                 {/* Left: Academic & Student Dropdowns */}
                 <Card className='border-border/60 shadow-sm'>
                     <CardContent className='space-y-4 pt-5'>
                         {/* Academic Year */}
                         <div className='space-y-1.5'>
-                            <Label htmlFor='asmaY_Id' isRequired>Academic Year</Label>
+                            <Label htmlFor='asmaY_Id' isRequired>
+                                Academic Year
+                            </Label>
                             <Controller
                                 control={control}
                                 name='asmaY_Id'
@@ -380,7 +392,9 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                                             setGroupList([]);
                                             setFeeHeadsState([]);
                                         }}>
-                                        <SelectTrigger id='asmaY_Id'><SelectValue placeholder='Select Academic Year' /></SelectTrigger>
+                                        <SelectTrigger id='asmaY_Id'>
+                                            <SelectValue placeholder='Select Academic Year' />
+                                        </SelectTrigger>
                                         <SelectContent>
                                             {academicYears.map((ay: any) => (
                                                 <SelectItem key={ay.asmaY_Id} value={String(ay.asmaY_Id)}>
@@ -396,7 +410,9 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
 
                         {/* Course */}
                         <div className='space-y-1.5'>
-                            <Label htmlFor='amcO_Id' isRequired>Course</Label>
+                            <Label htmlFor='amcO_Id' isRequired>
+                                Course
+                            </Label>
                             <Controller
                                 control={control}
                                 name='amcO_Id'
@@ -431,7 +447,9 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
 
                         {/* Branch */}
                         <div className='space-y-1.5'>
-                            <Label htmlFor='amB_Id' isRequired>Branch</Label>
+                            <Label htmlFor='amB_Id' isRequired>
+                                Branch
+                            </Label>
                             <Controller
                                 control={control}
                                 name='amB_Id'
@@ -465,7 +483,9 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
 
                         {/* Semester */}
                         <div className='space-y-1.5'>
-                            <Label htmlFor='amsE_Id' isRequired>Semester</Label>
+                            <Label htmlFor='amsE_Id' isRequired>
+                                Semester
+                            </Label>
                             <Controller
                                 control={control}
                                 name='amsE_Id'
@@ -498,7 +518,9 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
 
                         {/* Student */}
                         <div className='space-y-1.5'>
-                            <Label htmlFor='amcsT_Id' isRequired>Student Name</Label>
+                            <Label htmlFor='amcsT_Id' isRequired>
+                                Student Name
+                            </Label>
                             <Controller
                                 control={control}
                                 name='amcsT_Id'
@@ -545,10 +567,10 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                                     <DialogHeader>
                                         <DialogTitle>Student Fee Details</DialogTitle>
                                     </DialogHeader>
-                                    <div className='max-h-[60vh] overflow-y-auto space-y-4 pt-2'>
+                                    <div className='max-h-[60vh] space-y-4 overflow-y-auto pt-2'>
                                         {studentStats.length > 0 && (
                                             <div className='space-y-2'>
-                                                <h4 className='font-semibold text-sm text-foreground'>Payment Receipt Statistics</h4>
+                                                <h4 className='font-semibold text-foreground text-sm'>Payment Receipt Statistics</h4>
                                                 <Table>
                                                     <TableHeader>
                                                         <TableRow className='bg-muted/40'>
@@ -567,7 +589,10 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                                                                         : 'N.A'}
                                                                 </TableCell>
                                                                 <TableCell className='text-right font-semibold text-emerald-600'>
-                                                                    &#8377; {Number(stat.fyP_TotalPaidAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                                    &#8377;{' '}
+                                                                    {Number(stat.fyP_TotalPaidAmount || 0).toLocaleString('en-IN', {
+                                                                        minimumFractionDigits: 2
+                                                                    })}
                                                                 </TableCell>
                                                             </TableRow>
                                                         ))}
@@ -578,7 +603,7 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
 
                                         {feeHeadsState.length > 0 && (
                                             <div className='space-y-2'>
-                                                <h4 className='font-semibold text-sm text-foreground'>Fee Head Details</h4>
+                                                <h4 className='font-semibold text-foreground text-sm'>Fee Head Details</h4>
                                                 <Table>
                                                     <TableHeader>
                                                         <TableRow className='bg-muted/40'>
@@ -594,10 +619,16 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                                                                 <TableCell className='font-medium'>{head.fmH_FeeName}</TableCell>
                                                                 <TableCell>{head.ftI_Name}</TableCell>
                                                                 <TableCell className='text-right font-medium text-amber-600'>
-                                                                    &#8377; {Number(head.fcsS_ToBePaid || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                                    &#8377;{' '}
+                                                                    {Number(head.fcsS_ToBePaid || 0).toLocaleString('en-IN', {
+                                                                        minimumFractionDigits: 2
+                                                                    })}
                                                                 </TableCell>
                                                                 <TableCell className='text-right font-medium text-emerald-600'>
-                                                                    &#8377; {Number(head.fcsS_PaidAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                                                    &#8377;{' '}
+                                                                    {Number(head.fcsS_PaidAmount || 0).toLocaleString('en-IN', {
+                                                                        minimumFractionDigits: 2
+                                                                    })}
                                                                 </TableCell>
                                                             </TableRow>
                                                         ))}
@@ -623,12 +654,20 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                     <CardContent className='space-y-4 pt-5'>
                         {/* Refund Date */}
                         <div className='space-y-1.5'>
-                            <Label htmlFor='fcR_Date' isRequired>Refund Date</Label>
+                            <Label htmlFor='fcR_Date' isRequired>
+                                Refund Date
+                            </Label>
                             <Controller
                                 control={control}
                                 name='fcR_Date'
                                 render={({ field }) => (
-                                    <DatePicker date={field.value} setDate={(d) => { if (d) field.onChange(d); }} placeholder='Select Date' />
+                                    <DatePicker
+                                        date={field.value}
+                                        setDate={(d) => {
+                                            if (d) field.onChange(d);
+                                        }}
+                                        placeholder='Select Date'
+                                    />
                                 )}
                             />
                             <FormError>{errors.fcR_Date?.message}</FormError>
@@ -636,20 +675,22 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
 
                         {/* Refund No */}
                         <div className='space-y-1.5'>
-                            <Label htmlFor='fcR_RefundNo' isRequired>Voucher No</Label>
+                            <Label htmlFor='fcR_RefundNo' isRequired>
+                                Voucher No
+                            </Label>
                             <Controller
                                 control={control}
                                 name='fcR_RefundNo'
-                                render={({ field }) => (
-                                    <InputText id='fcR_RefundNo' placeholder='Enter Voucher No' {...field} />
-                                )}
+                                render={({ field }) => <InputText id='fcR_RefundNo' placeholder='Enter Voucher No' {...field} />}
                             />
                             <FormError>{errors.fcR_RefundNo?.message}</FormError>
                         </div>
 
                         {/* Mode of Payment */}
                         <div className='space-y-1.5'>
-                            <Label htmlFor='fcR_ModeOfPayment' isRequired>Mode of Payment</Label>
+                            <Label htmlFor='fcR_ModeOfPayment' isRequired>
+                                Mode of Payment
+                            </Label>
                             <Controller
                                 control={control}
                                 name='fcR_ModeOfPayment'
@@ -660,7 +701,9 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                                         </SelectTrigger>
                                         <SelectContent>
                                             {MODE_OF_PAYMENT_OPTIONS.map((m) => (
-                                                <SelectItem key={m} value={m}>{m}</SelectItem>
+                                                <SelectItem key={m} value={m}>
+                                                    {m}
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -688,7 +731,13 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                                         control={control}
                                         name='fcR_ChequeDDDate'
                                         render={({ field }) => (
-                                            <DatePicker date={field.value} setDate={(d) => { if (d) field.onChange(d); }} placeholder='Select Date' />
+                                            <DatePicker
+                                                date={field.value}
+                                                setDate={(d) => {
+                                                    if (d) field.onChange(d);
+                                                }}
+                                                placeholder='Select Date'
+                                            />
                                         )}
                                     />
                                 </div>
@@ -697,9 +746,7 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                                     <Controller
                                         control={control}
                                         name='fcR_Bank'
-                                        render={({ field }) => (
-                                            <InputText id='fcR_Bank' placeholder='Enter Bank Name' {...field} />
-                                        )}
+                                        render={({ field }) => <InputText id='fcR_Bank' placeholder='Enter Bank Name' {...field} />}
                                     />
                                 </div>
                             </div>
@@ -737,11 +784,15 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                                         className='flex flex-row gap-6'>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='NonRefunable' id='r_nonrefundable' />
-                                            <Label htmlFor='r_nonrefundable' className='cursor-pointer font-medium'>Non Refundable</Label>
+                                            <Label htmlFor='r_nonrefundable' className='cursor-pointer font-medium'>
+                                                Non Refundable
+                                            </Label>
                                         </div>
                                         <div className='flex items-center space-x-2'>
                                             <RadioGroupItem value='Refunable' id='r_refundable' />
-                                            <Label htmlFor='r_refundable' className='cursor-pointer font-medium'>Refundable</Label>
+                                            <Label htmlFor='r_refundable' className='cursor-pointer font-medium'>
+                                                Refundable
+                                            </Label>
                                         </div>
                                     </RadioGroup>
                                 )}
@@ -759,12 +810,23 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                             <div className='flex items-center justify-between'>
                                 <Label isRequired>Fee Group List</Label>
                                 {groupList.length > 0 && (
-                                    <Button type='button' variant='ghost' size='sm' onClick={toggleAllGroups}
+                                    <Button
+                                        type='button'
+                                        variant='ghost'
+                                        size='sm'
+                                        onClick={toggleAllGroups}
                                         className='h-7 px-2 text-primary text-xs hover:bg-primary/10'>
-                                        {selectedGroupIds.length === groupList.length
-                                            ? <><Square className='mr-1.5 h-3.5 w-3.5' />Deselect All</>
-                                            : <><CheckSquare className='mr-1.5 h-3.5 w-3.5' />Select All</>
-                                        }
+                                        {selectedGroupIds.length === groupList.length ? (
+                                            <>
+                                                <Square className='mr-1.5 h-3.5 w-3.5' />
+                                                Deselect All
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CheckSquare className='mr-1.5 h-3.5 w-3.5' />
+                                                Select All
+                                            </>
+                                        )}
                                     </Button>
                                 )}
                             </div>
@@ -795,12 +857,17 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                                                     onClick={() => toggleGroup(Number(grp.fmG_Id))}
                                                     className={cn(
                                                         'flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors',
-                                                        isChecked ? 'bg-primary/10 font-medium text-primary' : 'text-foreground hover:bg-accent/50'
+                                                        isChecked
+                                                            ? 'bg-primary/10 font-medium text-primary'
+                                                            : 'text-foreground hover:bg-accent/50'
                                                     )}>
-                                                    <div className={cn(
-                                                        'flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors',
-                                                        isChecked ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground/40'
-                                                    )}>
+                                                    <div
+                                                        className={cn(
+                                                            'flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors',
+                                                            isChecked
+                                                                ? 'border-primary bg-primary text-primary-foreground'
+                                                                : 'border-muted-foreground/40'
+                                                        )}>
                                                         {isChecked && <CheckSquare className='h-3 w-3' />}
                                                     </div>
                                                     <span className='truncate'>{grp.fmG_GroupName}</span>
@@ -879,7 +946,9 @@ export default function AddCollegeFeeRefundableForm({ onSuccess, pageData, class
                                                 </TableCell>
                                                 <TableCell className='font-medium text-foreground'>{head.fmH_FeeName}</TableCell>
                                                 <TableCell>
-                                                    <span className='rounded bg-muted px-2 py-0.5 font-medium text-xs'>{head.ftI_Name}</span>
+                                                    <span className='rounded bg-muted px-2 py-0.5 font-medium text-xs'>
+                                                        {head.ftI_Name}
+                                                    </span>
                                                 </TableCell>
                                                 <TableCell className='text-right font-medium text-amber-600 dark:text-amber-400'>
                                                     &#8377; {excessAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}

@@ -2,12 +2,12 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DatePicker } from '@/components/ui/date-picker';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
-import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCollegeFeeRefundableList } from '@/hooks/fees/college/useCollegeFeeRefundable';
 import type { ICollegeFeeRefundableGrid } from '@/types/fees/college/transaction/clgfeerefundable';
@@ -79,7 +79,10 @@ function CollegeFeeRefundablePageContent({
                     item.amcsT_FirstName || item.AMCST_FirstName || '',
                     item.amcsT_MiddleName || '',
                     item.amcsT_LastName || ''
-                ].filter(Boolean).join(' ').toLowerCase();
+                ]
+                    .filter(Boolean)
+                    .join(' ')
+                    .toLowerCase();
                 return fullName.includes(text.toLowerCase().trim());
             } else if (field === '1') {
                 if (!text.trim()) return true;
@@ -163,29 +166,30 @@ function CollegeFeeRefundablePageContent({
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-
                     {/* IVRM Custom Search Bar */}
-                    <div className='mb-4 rounded-lg border bg-card p-4 space-y-4 shadow-sm'>
-                        <div className='flex flex-wrap items-center gap-6 text-sm font-medium'>
+                    <div className='mb-4 space-y-4 rounded-lg border bg-card p-4 shadow-sm'>
+                        <div className='flex flex-wrap items-center gap-6 font-medium text-sm'>
                             <div className='flex items-center gap-2'>
                                 <span className='font-semibold text-muted-foreground'>Total Grid Records :</span>
-                                <Badge variant='secondary' className='bg-primary/10 text-primary font-bold px-2.5 py-0.5 text-xs'>
+                                <Badge variant='secondary' className='bg-primary/10 px-2.5 py-0.5 font-bold text-primary text-xs'>
                                     {totalRecords}
                                 </Badge>
                             </div>
                             {appliedFilter && (
                                 <div className='flex items-center gap-2'>
                                     <span className='font-semibold text-muted-foreground'>Total Records Searched :</span>
-                                    <Badge variant='outline' className='bg-emerald-50 text-emerald-700 border-emerald-300 font-bold px-2.5 py-0.5 text-xs'>
+                                    <Badge
+                                        variant='outline'
+                                        className='border-emerald-300 bg-emerald-50 px-2.5 py-0.5 font-bold text-emerald-700 text-xs'>
                                         {totalSearchedRecords}
                                     </Badge>
                                 </div>
                             )}
                         </div>
 
-                        <div className='grid grid-cols-1 md:grid-cols-12 gap-3 items-end pt-1 border-t'>
-                            <div className='md:col-span-4 space-y-1.5'>
-                                <Label className='text-xs font-semibold'>Search For:</Label>
+                        <div className='grid grid-cols-1 items-end gap-3 border-t pt-1 md:grid-cols-12'>
+                            <div className='space-y-1.5 md:col-span-4'>
+                                <Label className='font-semibold text-xs'>Search For:</Label>
                                 <Select
                                     value={searchField}
                                     onValueChange={(val) => {
@@ -207,10 +211,10 @@ function CollegeFeeRefundablePageContent({
                             </div>
 
                             {searchField !== '' && (
-                                <div className='md:col-span-5 space-y-1.5'>
+                                <div className='space-y-1.5 md:col-span-5'>
                                     {(searchField === '0' || searchField === '1') && (
                                         <>
-                                            <Label className='text-xs font-semibold'>
+                                            <Label className='font-semibold text-xs'>
                                                 {searchField === '0' ? 'Search Text (Student Name):' : 'Search Text (Head Name):'}
                                             </Label>
                                             <InputText
@@ -223,7 +227,7 @@ function CollegeFeeRefundablePageContent({
                                     )}
                                     {searchField === '2' && (
                                         <>
-                                            <Label className='text-xs font-semibold'>Search Amount:</Label>
+                                            <Label className='font-semibold text-xs'>Search Amount:</Label>
                                             <InputText
                                                 type='number'
                                                 value={searchAmount}
@@ -235,20 +239,16 @@ function CollegeFeeRefundablePageContent({
                                     )}
                                     {searchField === '3' && (
                                         <>
-                                            <Label className='text-xs font-semibold'>Search Date:</Label>
-                                            <DatePicker
-                                                date={searchDate}
-                                                setDate={setSearchDate}
-                                                placeholder='Select search date'
-                                            />
+                                            <Label className='font-semibold text-xs'>Search Date:</Label>
+                                            <DatePicker date={searchDate} setDate={setSearchDate} placeholder='Select search date' />
                                         </>
                                     )}
                                 </div>
                             )}
 
                             {searchField !== '' && (
-                                <div className='md:col-span-3 flex items-center gap-2'>
-                                    <Button type='button' size='sm' onClick={handleSearch} className='h-9 text-xs shadow-sm min-w-24'>
+                                <div className='flex items-center gap-2 md:col-span-3'>
+                                    <Button type='button' size='sm' onClick={handleSearch} className='h-9 min-w-24 text-xs shadow-sm'>
                                         <Search className='mr-1.5 h-3.5 w-3.5' /> Search
                                     </Button>
                                     <Button
@@ -256,7 +256,7 @@ function CollegeFeeRefundablePageContent({
                                         variant='outline'
                                         size='sm'
                                         onClick={handleCancelSearch}
-                                        className='h-9 text-xs min-w-24 hover:bg-destructive/10 hover:text-destructive'>
+                                        className='h-9 min-w-24 text-xs hover:bg-destructive/10 hover:text-destructive'>
                                         <X className='mr-1.5 h-3.5 w-3.5' /> Cancel
                                     </Button>
                                 </div>
@@ -287,14 +287,8 @@ function CollegeFeeRefundablePageContent({
 }
 
 function FormSections({ pageData }: { pageData?: any }) {
-    const {
-        isAddFormOpen,
-        selectedRow,
-        isDeleteFormOpen,
-        closeAddForm,
-        closeDeleteForm,
-        addFormRef
-    } = useFormContext<ICollegeFeeRefundableGrid>();
+    const { isAddFormOpen, selectedRow, isDeleteFormOpen, closeAddForm, closeDeleteForm, addFormRef } =
+        useFormContext<ICollegeFeeRefundableGrid>();
 
     return (
         <>
