@@ -35,6 +35,16 @@ export const fileToBase64 = (file: File): Promise<string> => {
 };
 
 /**
+ * Normalize contact type flag ('default', 'alternate', 'Y', '1') to dropdown values ('Default', 'Alternate')
+ */
+export function normalizeContactType(flag?: string | null): string {
+    if (!flag) return 'Default';
+    const lower = String(flag).trim().toLowerCase();
+    if (lower === 'alternate') return 'Alternate';
+    return 'Default';
+}
+
+/**
  * Map form data to API format for SavePersonalDetails
  * Uses lowercase field names and sends null for empty strings
  */
@@ -141,18 +151,18 @@ export function mapFormDataToApiFormat(
         hrmE_EPFNotApplicableFlg: !data.epf,
         hrmE_AllowSoftwareAccessFlg: true,
         // Mobile list nested inside employee
-        mobile_list_dto: (data.mobileDetails || []).map((mob: any, idx: number) => ({
+        mobile_list_dto: (data.mobileDetails || []).map((mob: any) => ({
             hrmemnO_Id: mob.hrmemnO_Id || 0,
             hrmE_Id: employeeId,
             hrmemnO_MobileNo: Number(mob.mobileNo) || 0,
-            hrmemnO_DeFaultFlag: idx === 0 ? 'Y' : mob.type || 'Default'
+            hrmemnO_DeFaultFlag: String(mob.type).trim().toLowerCase() === 'alternate' ? 'alternate' : 'default'
         })),
         // Email list nested inside employee
-        email_list_dto: (data.emailDetails || []).map((email: any, idx: number) => ({
+        email_list_dto: (data.emailDetails || []).map((email: any) => ({
             hrmeeM_Id: email.hrmeeM_Id || 0,
             hrmE_Id: employeeId,
             hrmeM_EmailId: email.emailId || '',
-            hrmeM_DeFaultFlag: idx === 0 ? 'Y' : email.type || 'Default'
+            hrmeM_DeFaultFlag: String(email.type).trim().toLowerCase() === 'alternate' ? 'alternate' : 'default'
         }))
     };
 
@@ -960,8 +970,12 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     let mobileDetails =
         mobileData.length > 0
             ? mobileData.map((mobile: any, idx: number) => {
-                const rawFlag = getValue(mobile, 'hrmemnO_DeFaultFlag') || getValue(mobile, 'hrmemno_DeFaultFlag') || '';
-                const resolvedType = rawFlag === 'Y' ? 'Default' : rawFlag || 'Default';
+                const rawFlag =
+                    getValue(mobile, 'hrmemnO_DeFaultFlag') ||
+                    getValue(mobile, 'hrmemno_DeFaultFlag') ||
+                    getValue(mobile, 'hrmemno_DefaultFlag') ||
+                    getValue(mobile, 'hrmemnO_DefaultFlag') ||
+                    '';
 
                 const mapped = {
                     hrmemnO_Id: getValue(mobile, 'hrmemnO_Id') || getValue(mobile, 'hrmemno_Id') || 0,
@@ -971,7 +985,7 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
                         getValue(mobile, 'hrmem_MobileNo') ||
                         getValue(mobile, 'hrmE_MobileNo')
                     ),
-                    type: resolvedType
+                    type: normalizeContactType(rawFlag)
                 };
                 console.log(`  - mobile[${idx}] mapped to:`, mapped);
                 return mapped;
@@ -1003,11 +1017,16 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
     const emailDetails =
         emailData.length > 0
             ? emailData.map((email: any) => {
-                const rawEmailFlag = getValue(email, 'hrmem_DeFaultFlag') || '';
+                const rawEmailFlag =
+                    getValue(email, 'hrmem_DeFaultFlag') ||
+                    getValue(email, 'hrmeM_DeFaultFlag') ||
+                    getValue(email, 'hrmem_DefaultFlag') ||
+                    getValue(email, 'hrmeM_DefaultFlag') ||
+                    '';
                 return {
                     hrmeeM_Id: getValue(email, 'hrmeeM_Id') || getValue(email, 'hrmeM_Id') || 0,
                     emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
-                    type: rawEmailFlag === 'Y' ? 'Default' : rawEmailFlag || 'Default'
+                    type: normalizeContactType(rawEmailFlag)
                 };
             })
             : v('hrmE_EmailId') || v('hrme_EmailId') || v('EmailId')
@@ -1357,11 +1376,19 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
     }
     const mobileDetails =
         Array.isArray(mobileData) && mobileData.length > 0
-            ? mobileData.map((mobile: any) => ({
-                hrmemnO_Id: getValue(mobile, 'hrmemnO_Id') || getValue(mobile, 'hrmemno_Id') || 0, // ADDED: ID preservation
-                mobileNo: numToString(getValue(mobile, 'hrmemno_MobileNo') || getValue(mobile, 'hrmemnO_MobileNo')),
-                type: getValue(mobile, 'hrmemno_DeFaultFlag') || 'Default'
-            }))
+            ? mobileData.map((mobile: any) => {
+                const rawFlag =
+                    getValue(mobile, 'hrmemnO_DeFaultFlag') ||
+                    getValue(mobile, 'hrmemno_DeFaultFlag') ||
+                    getValue(mobile, 'hrmemno_DefaultFlag') ||
+                    getValue(mobile, 'hrmemnO_DefaultFlag') ||
+                    '';
+                return {
+                    hrmemnO_Id: getValue(mobile, 'hrmemnO_Id') || getValue(mobile, 'hrmemno_Id') || 0, // ADDED: ID preservation
+                    mobileNo: numToString(getValue(mobile, 'hrmemno_MobileNo') || getValue(mobile, 'hrmemnO_MobileNo')),
+                    type: normalizeContactType(rawFlag)
+                };
+            })
             : v('hrmE_MobileNo')
                 ? [{ hrmemnO_Id: 0, mobileNo: numToString(v('hrmE_MobileNo')), type: 'Default' }]
                 : [{ hrmemnO_Id: 0, mobileNo: '', type: 'Default' }];
@@ -1379,11 +1406,19 @@ export function mapApiResponseToTab1Fields(apiData: any): Partial<FormFields> {
     }
     const emailDetails =
         Array.isArray(emailData) && emailData.length > 0
-            ? emailData.map((email: any) => ({
-                hrmeeM_Id: getValue(email, 'hrmeeM_Id') || getValue(email, 'hrmeM_Id') || 0, // ADDED: ID preservation
-                emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
-                type: getValue(email, 'hrmem_DeFaultFlag') || 'Default'
-            }))
+            ? emailData.map((email: any) => {
+                const rawEmailFlag =
+                    getValue(email, 'hrmem_DeFaultFlag') ||
+                    getValue(email, 'hrmeM_DeFaultFlag') ||
+                    getValue(email, 'hrmem_DefaultFlag') ||
+                    getValue(email, 'hrmeM_DefaultFlag') ||
+                    '';
+                return {
+                    hrmeeM_Id: getValue(email, 'hrmeeM_Id') || getValue(email, 'hrmeM_Id') || 0, // ADDED: ID preservation
+                    emailId: getValue(email, 'hrmem_EmailId') || getValue(email, 'hrmeM_EmailId') || '',
+                    type: normalizeContactType(rawEmailFlag)
+                };
+            })
             : v('hrmE_EmailId')
                 ? [{ hrmeeM_Id: 0, emailId: v('hrmE_EmailId'), type: 'Default' }]
                 : [{ hrmeeM_Id: 0, emailId: '', type: 'Default' }];
