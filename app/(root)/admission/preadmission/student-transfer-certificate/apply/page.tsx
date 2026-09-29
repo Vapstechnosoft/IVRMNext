@@ -486,7 +486,17 @@ export default function StudentTCApplyPage() {
                             Medically_Exam_Flag: joinedInfo?.astC_MedicallyExam || 'no',
                             qual_class: joinedInfo?.astC_Qual_Class || '',
                             // Personal Details (Mapping from studentInfo)
-                            dob: studentInfo.amst_dob ? new Date(studentInfo.amst_dob).toISOString().split('T')[0] : '',
+                            dob: studentInfo.amst_dob
+                                ? (() => {
+                                      const clean = String(studentInfo.amst_dob).split('T')[0].trim();
+                                      const match = clean.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                                      if (match) return `${match[3]}-${match[2]}-${match[1]}`;
+                                      const d = new Date(studentInfo.amst_dob);
+                                      return isNaN(d.getTime())
+                                          ? clean
+                                          : `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+                                  })()
+                                : '',
                             dob_words: studentInfo.amst_dob_words || '',
                             bank_ifsc: studentInfo.amst_stubankifsc_code || '',
                             birth_place: studentInfo.amst_birthplace || '',
@@ -999,9 +1009,12 @@ export default function StudentTCApplyPage() {
                         size='lg'
                         className='pb-6 shadow-lg'>
                         {selectedStudentDetails && selectedStudentDetails.studentList && (
-                            <div className='mb-4'>
-                                <StudentHeaderSummary student={selectedStudentDetails.studentList[0]} />
-                            </div>
+                                <StudentHeaderSummary
+                                    student={{
+                                        ...selectedStudentDetails.studentList[0],
+                                        asmaY_Year_Join: selectedStudentDetails.getjoineddetails?.[0]?.asmaY_Year
+                                    }}
+                                />
                         )}
 
                         <Tabs
