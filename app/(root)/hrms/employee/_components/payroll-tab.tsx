@@ -534,7 +534,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
     return (
         <div className='space-y-6'>
             {/* Gross Salary Details */}
-            {grossDetails && (
+            {(
                 <div className='rounded-md border bg-white p-4'>
                     <div className='flex items-center gap-4'>
                         <h3 className='min-w-[150px] font-semibold text-base text-gray-900 uppercase'>GROSS SALARY:</h3>
@@ -543,7 +543,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                             <Input
                                 type='number'
                                 className='h-9 w-40 text-right'
-                                value={grossDetails.localAmount ?? grossDetails.HREED_Amount ?? 0}
+                                value={grossDetails?.localAmount ?? grossDetails?.HREED_Amount ?? 0}
                                 onChange={(e) => updateGross('localAmount', e.target.value)}
                                 onBlur={(e) => {
                                     const validated = validateAmount(e.target.value);
