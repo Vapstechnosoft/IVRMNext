@@ -514,7 +514,7 @@ export const courseMasterSchema = z.object({
     hrmC_QulaificationName: z
         .string({ message: 'Qualification Name is required' })
         .max(100, { message: 'Qualification Name must not exceed 100 characters' })
-        .regex(/^[A-Za-z0-9\s]+$/, {
+        .regex(/^[A-Za-z0-9.\s]+$/, {
             message: 'Qualification Name must contain only alphanumeric characters and spaces'
         })
         .refine(

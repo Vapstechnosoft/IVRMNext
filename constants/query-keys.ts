@@ -726,7 +726,18 @@ export const COLLEGE_QUERY_KEYS = {
     COLLEGE_FEE_REFUNDABLE_STUDENTS: 'college_fee_refundable_students',
     COLLEGE_FEE_REFUNDABLE_STUDENT_BY_AMST: 'college_fee_refundable_student_by_amst',
     COLLEGE_FEE_REFUNDABLE_GROUPS: 'college_fee_refundable_groups',
-    COLLEGE_FEE_REFUNDABLE_HEADS: 'college_fee_refundable_heads'
+    COLLEGE_FEE_REFUNDABLE_HEADS: 'college_fee_refundable_heads',
+    COLLEGE_FEE_CHEQUE_BOUNCE_LIST: 'college_fee_cheque_bounce_list',
+    COLLEGE_FEE_CHEQUE_BOUNCE_COURSES: 'college_fee_cheque_bounce_courses',
+    COLLEGE_FEE_CHEQUE_BOUNCE_BRANCHES: 'college_fee_cheque_bounce_branches',
+    COLLEGE_FEE_CHEQUE_BOUNCE_SEMESTERS: 'college_fee_cheque_bounce_semesters',
+    COLLEGE_FEE_CHEQUE_BOUNCE_STUDENTS: 'college_fee_cheque_bounce_students',
+    COLLEGE_FEE_CHEQUE_BOUNCE_RECEIPTS: 'college_fee_cheque_bounce_receipts',
+    COLLEGE_FEE_OPENING_BALANCE_LIST: 'college_fee_opening_balance_list',
+    COLLEGE_FEE_OPENING_BALANCE_GROUPS: 'college_fee_opening_balance_groups',
+    COLLEGE_FEE_OPENING_BALANCE_HEADS: 'college_fee_opening_balance_heads',
+    COLLEGE_FEE_OPENING_BALANCE_INSTALLMENTS: 'college_fee_opening_balance_installments',
+    COLLEGE_FEE_OPENING_BALANCE_STUDENTS: 'college_fee_opening_balance_students'
 };
 export const ONLINE_EXAM_QUERY_KEYS = {
     MASTER_QUESTION: 'online_exam_master_question',
