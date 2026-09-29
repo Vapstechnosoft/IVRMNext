@@ -12,10 +12,11 @@ import { useClassTeacherReport } from '@/hooks/admission/preadmission/useReports
 import { getExcelClassTeacherReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { GetClassTeacherReport } from '@/server/admission/preadmission/reports/student_yearly_attendance';
 import type { IClassTeacherReportList } from '@/types/admission/preadmission/reports';
-import { FileText, Printer, RotateCcw, X } from 'lucide-react';
 import React, { useMemo, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
+import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
+import { FileText, Printer, RotateCcw, X } from 'lucide-react';
 import { ClassTeacherReportPrint } from './_components/class-teacher-report-print';
 import { getClassTeacherReportColumns } from './_components/columns';
 
@@ -38,6 +39,7 @@ export default function ClassTeacherReportPage(props: {
 
     const [selectedStudents, setSelectedStudents] = useState<IClassTeacherReportList[]>([]);
     const [printData, setPrintData] = useState<IClassTeacherReportList[]>([]);
+    const { data: session } = useSession();
 
     const flagMapping = {
         class_teacher: 3,
@@ -94,8 +96,8 @@ export default function ClassTeacherReportPage(props: {
                 response instanceof Blob
                     ? response
                     : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    });
 
             // Create download link
             const url = window.URL.createObjectURL(blob);
@@ -202,6 +204,45 @@ export default function ClassTeacherReportPage(props: {
             handlePrintContent();
         }, 500);
     };
+
+    const selectedAcademicYearName = academicYearOptions?.data?.find((y) => y.asmaY_Id === academicYearId)?.asmaY_Year;
+
+    const getMasterCompanyInfo = () => {
+        if (!response) return { schoolName: '', logoUrl: '' };
+
+        const findLogo = (obj: any): string => {
+            if (!obj || typeof obj !== 'object') return '';
+            const potentialLogos = [obj.logo, obj.mI_Logo, obj.amC_logo, obj.mi_logo, obj.logopath, obj.mI_LogoPath, obj.institution_logo];
+            for (const logo of potentialLogos) {
+                if (typeof logo === 'string' && (logo.startsWith('http') || logo.startsWith('https'))) {
+                    return logo;
+                }
+            }
+            if (Array.isArray(obj)) {
+                for (const item of obj) {
+                    const found = findLogo(item);
+                    if (found) return found;
+                }
+            } else {
+                for (const key in obj) {
+                    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                        const found = findLogo(obj[key]);
+                        if (found) return found;
+                    }
+                }
+            }
+            return '';
+        };
+
+        let logoUrl = findLogo(response);
+        if (!logoUrl && session?.mi_logo) {
+            logoUrl = session.mi_logo;
+        }
+
+        return { logoUrl, schoolName: session?.mi_name || '' };
+    };
+
+    const { logoUrl, schoolName } = getMasterCompanyInfo();
 
     return (
         <div className='min-h-screen p-8'>
@@ -387,7 +428,14 @@ export default function ClassTeacherReportPage(props: {
                     pointerEvents: 'none',
                     zIndex: -1
                 }}>
-                <ClassTeacherReportPrint ref={componentRef} data={printData} reportType={reportType} />
+                <ClassTeacherReportPrint 
+                    ref={componentRef} 
+                    data={printData} 
+                    reportType={reportType} 
+                    academicYearName={selectedAcademicYearName}
+                    schoolName={schoolName}
+                    logoUrl={logoUrl}
+                />
             </div>
         </div>
     );

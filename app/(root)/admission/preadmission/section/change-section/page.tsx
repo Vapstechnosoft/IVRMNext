@@ -95,22 +95,43 @@ export default function MasterChangeSectionPage(props: {
     const {
         data: leftStudentsData,
         isLoading: leftStudentsLoading,
-        isError: leftStudentsError
+        isError: leftStudentsError,
+        refetch: refetchLeftStudents,
+        refetchAll: refetchAllLeft
     } = useMasterStudents(Number(leftAcademicYear), Number(leftClassAdmitted), Number(leftSection));
 
     const {
         data: rightStudentsData,
         isLoading: rightStudentsLoading,
-        isError: rightStudentsError
+        isError: rightStudentsError,
+        refetch: refetchRightStudents,
+        refetchAll: refetchAllRight
     } = useMasterChangeSectionTable(searchParams, Number(leftAcademicYear), Number(rightClass), Number(rightSection));
 
     const tableProps = useDataTableProps(rightStudentsData);
 
+    const getStudentId = (student: any): number => {
+        if (!student) return 0;
+        return Number(
+            student.student_id ??
+            student.amsT_Id ??
+            student.amst_Id ??
+            student.amST_Id ??
+            student.asysT_Id ??
+            0
+        );
+    };
+
     const recalculateSiNo = (students: Student[]): Student[] => {
-        return students.map((student, index) => ({
-            ...student,
-            amaY_RollNo: index + 1
-        }));
+        return students.map((student, index) => {
+            const id = getStudentId(student);
+            return {
+                ...student,
+                student_id: id,
+                amsT_Id: id,
+                amaY_RollNo: index + 1
+            };
+        });
     };
 
     useEffect(() => {
@@ -150,10 +171,6 @@ export default function MasterChangeSectionPage(props: {
     useEffect(() => {
         setRightSelectAll(rightStudents.length > 0 && rightSelectedStudents.size === rightStudents.length);
     }, [rightSelectedStudents, rightStudents]);
-
-    useEffect(() => {
-        setLeftSelectAll(leftStudents.length > 0 && leftSelectedStudents.size === leftStudents.length);
-    }, [leftSelectedStudents, leftStudents]);
 
     const handleLeftAcademicYearChange = (value: string) => {
         const numValue = Number(value);
@@ -330,25 +347,54 @@ export default function MasterChangeSectionPage(props: {
 
     const onSubmit = async (data: FormFields) => {
         try {
+            let studentsToTransfer = [...rightStudents];
+
+            if (studentsToTransfer.length === 0 && leftSelectedStudents.size > 0) {
+                studentsToTransfer = leftStudents.filter((s) => leftSelectedStudents.has(s.student_id));
+            }
+
+            if (studentsToTransfer.length === 0) {
+                toast.error('Please select at least one student to change section');
+                return;
+            }
+
+            const payloadStudents = studentsToTransfer
+                .map((student) => ({
+                    amsT_Id: getStudentId(student)
+                }))
+                .filter((s) => s.amsT_Id > 0);
+
+            if (payloadStudents.length === 0) {
+                toast.error('Selected student IDs are invalid.');
+                return;
+            }
+
             const payload = {
                 asmaY_Id: data.leftAcademicYear,
                 asmcL_Id: Number(data.leftClassAdmitted),
                 olD_ASMS_Id: Number(data.leftSection),
                 neW_ASMS_Id: Number(data.rightSection),
-                students: rightStudents.map((student) => ({
-                    amsT_Id: student.student_id
-                }))
+                students: payloadStudents
             };
 
             const response = await addOrUpdateMasterChangeSection(payload);
             if (response.success) {
-                toast.success(response.message || 'Section transfer completed successfully!');
-                reset();
+                toast.success(response.message || 'Change Section Allotment saved successfully!');
+                setRightStudents([]);
+                setRightSelectedStudents(new Set());
+                setLeftSelectedStudents(new Set());
+                setLeftSelectAll(false);
+                setRightSelectAll(false);
+
+                refetchLeftStudents();
+                refetchRightStudents();
+                refetchAllLeft();
+                refetchAllRight();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to save section transfer.');
             }
         } catch (_error: any) {
-            // Igonre
+            toast.error('An unexpected error occurred while saving.');
         }
     };
 

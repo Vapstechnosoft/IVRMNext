@@ -5,7 +5,7 @@ import type { ApiSearchparams } from '@/types';
 import type { IAttendanceEntryTypeList } from '@/types/admission/preadmission/attendance_entry';
 
 export async function getAttendanceEntryType(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'asmcL_ClassName,asaeT_EntryType');
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'mI_Name,asmcL_ClassName,asmaY_Year,asaeT_Att_Type');
     const url = `/attendance_entry_type?${urlParams}`;
     return await api.get<IAttendanceEntryTypeList[]>('admission', url);
 }

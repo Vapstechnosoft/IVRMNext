@@ -616,6 +616,7 @@ export default function StudentTcReportPage(props: {
                             noDataTitle='No Data Found'
                             noDataDescription='No records found for the selected criteria.'
                             errorTitle='Error Loading TC Report'
+                            manualSorting={false}
                         />
                     </CollapsibleSection>
                 )}
