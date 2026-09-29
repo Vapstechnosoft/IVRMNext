@@ -52,7 +52,8 @@ export type ApiBaseUrlKey =
     | 'transport'
     | 'pettycashandassettracking'
     | 'hrmsrecruitment'
-    | 'collegepreadmission';
+    | 'collegepreadmission'
+    | 'visitors';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -88,7 +89,15 @@ class ApiService {
             hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             college: process.env.NEXT_PUBLIC_COLLEGE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             collegepreadmission: process.env.NEXT_PUBLIC_COLLEGEPREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-
+            visitors:
+                process.env.NEXT_PUBLIC_VISITORS_API_BASE_URL ||
+                (process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL
+                    ? process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL.endsWith('/api')
+                        ? process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL
+                        : `${process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL}/api`
+                    : '') ||
+                process.env.NEXT_PUBLIC_API_BASE_URL ||
+                ''
         };
 
         // Debug: info base URLs in development
@@ -111,6 +120,15 @@ class ApiService {
                 'https://localhost:50258/api'
             );
         }
+        if (key === 'visitors' || key === 'hrmsfrontoffice') {
+            return (
+                process.env.NEXT_PUBLIC_VISITORS_API_BASE_URL ||
+                process.env.VISITORS_API_BASE_URL ||
+                process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL ||
+                process.env.HRMS_FRONTOFFICE_BASE_URL ||
+                'http://localhost:50198/api'
+            );
+        }
         return typeof key === 'string' && key in this.baseUrls ? this.baseUrls[key as ApiBaseUrlKey] : this.baseUrls.default;
     }
 
@@ -118,7 +136,7 @@ class ApiService {
         const baseURL = this.getBaseUrl(key);
         if (!this.instances.has(key)) {
             // Check if this is a localhost URL in development mode
-            const isLocalhost =
+            const _isLocalhost =
                 baseURL &&
                 (baseURL.includes('localhost') ||
                     baseURL.includes('127.0.0.1') ||

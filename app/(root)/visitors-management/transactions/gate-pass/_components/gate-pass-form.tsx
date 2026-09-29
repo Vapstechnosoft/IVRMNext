@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,18 +10,24 @@ import { useGatePass } from '@/hooks/visitors-management/transactions/useGatePas
 import { type GatePassSchema, gatePassSchema } from '@/schemas/visitors-management/transactions';
 import type { GatePassTransactionData } from '@/types/visitors-management/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Briefcase, GraduationCap, Send } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 
 interface GatePassFormProps {
     onSuccess: () => void;
     initialData?: GatePassTransactionData | null;
+    onCancel?: () => void;
 }
 
-export default function GatePassForm({ onSuccess, initialData }: GatePassFormProps) {
-    const { saveGatePass, data: loadedData } = useGatePass();
+export default function GatePassForm({ onSuccess, initialData, onCancel }: GatePassFormProps) {
+    const { saveGatePass, data: loadedData, isSaving } = useGatePass();
     const students = loadedData?.studentlist || [];
     const employees = loadedData?.emplist || [];
+
+    const [studentSearch, _setStudentSearch] = useState('');
+    const [employeeSearch, _setEmployeeSearch] = useState('');
 
     const form = useForm<GatePassSchema>({
         resolver: zodResolver(gatePassSchema),
@@ -52,10 +59,8 @@ export default function GatePassForm({ onSuccess, initialData }: GatePassFormPro
         }
     }, [initialData, form]);
 
-    // Reset hidden fields when type changes for cleaner data
     useEffect(() => {
         if (!initialData) {
-            // Only auto-clear when not in edit mode init (or user switched type manually)
             if (gatePassType === 'student') {
                 form.setValue('employeeId', undefined);
             } else {
@@ -64,11 +69,29 @@ export default function GatePassForm({ onSuccess, initialData }: GatePassFormPro
         }
     }, [gatePassType, form, initialData]);
 
+    const _filteredStudents = useMemo(() => {
+        if (!studentSearch.trim()) return students;
+        const q = studentSearch.toLowerCase();
+        return students.filter(
+            (s) =>
+                (s.amsT_FirstName || '').toLowerCase().includes(q) ||
+                (s.amsT_AdmNo || '').toLowerCase().includes(q) ||
+                (s.asmcL_ClassName || '').toLowerCase().includes(q) ||
+                (s.asmC_SectionName || '').toLowerCase().includes(q)
+        );
+    }, [students, studentSearch]);
+
+    const _filteredEmployees = useMemo(() => {
+        if (!employeeSearch.trim()) return employees;
+        const q = employeeSearch.toLowerCase();
+        return employees.filter((e) => (e.hrmE_EmployeeFirstName || '').toLowerCase().includes(q));
+    }, [employees, employeeSearch]);
+
     const onSubmit = async (data: GatePassSchema) => {
         try {
             await saveGatePass(data);
             form.reset({
-                gatePassType: data.gatePassType, // Keep the selected type
+                gatePassType: data.gatePassType,
                 studentId: undefined,
                 employeeId: undefined,
                 remarks: ''
@@ -82,63 +105,66 @@ export default function GatePassForm({ onSuccess, initialData }: GatePassFormPro
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-                {/* Type Selection */}
-                <FormField
-                    control={form.control}
-                    name='gatePassType'
-                    render={({ field }) => (
-                        <FormItem className='space-y-3'>
-                            <FormLabel>Gate Pass Type</FormLabel>
-                            <FormControl>
-                                <RadioGroup
-                                    onValueChange={field.onChange}
-                                    defaultValue={field.value}
-                                    value={field.value}
-                                    className='flex flex-row space-x-4'>
-                                    <FormItem className='flex items-center space-x-3 space-y-0'>
-                                        <FormControl>
-                                            <RadioGroupItem value='student' />
-                                        </FormControl>
-                                        <FormLabel className='font-normal'>Student Gate Pass</FormLabel>
-                                    </FormItem>
-                                    <FormItem className='flex items-center space-x-3 space-y-0'>
-                                        <FormControl>
-                                            <RadioGroupItem value='employee' />
-                                        </FormControl>
-                                        <FormLabel className='font-normal'>Employee Gate Pass</FormLabel>
-                                    </FormItem>
-                                </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+                {/* 1. Gate Pass Type Selection matching Template */}
+                <div className='max-w-lg rounded-lg border bg-muted/10 p-3'>
+                    <Label className='mb-2 block font-semibold text-muted-foreground text-xs uppercase tracking-wider'>
+                        Gate Pass Type <span className='text-destructive'>*</span>
+                    </Label>
+                    <FormField
+                        control={form.control}
+                        name='gatePassType'
+                        render={({ field }) => (
+                            <RadioGroup onValueChange={field.onChange} value={field.value} className='flex items-center gap-6 pt-1'>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='student' id='gp-std' />
+                                    <Label htmlFor='gp-std' className='flex cursor-pointer items-center gap-1.5 font-medium text-xs'>
+                                        <GraduationCap className='h-4 w-4 text-primary' />
+                                        Student Gate Pass
+                                    </Label>
+                                </div>
+                                <div className='flex items-center space-x-2'>
+                                    <RadioGroupItem value='employee' id='gp-emp' />
+                                    <Label htmlFor='gp-emp' className='flex cursor-pointer items-center gap-1.5 font-medium text-xs'>
+                                        <Briefcase className='h-4 w-4 text-primary' />
+                                        Employee Gate Pass
+                                    </Label>
+                                </div>
+                            </RadioGroup>
+                        )}
+                    />
+                </div>
 
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+                {/* 2. Selection Inputs Grid */}
+                <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
                     {gatePassType === 'student' && (
                         <FormField
                             control={form.control}
                             name='studentId'
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>
-                                        Student <span className='text-red-500'>*</span>
+                                <FormItem className='space-y-1.5'>
+                                    <FormLabel className='font-semibold text-xs'>
+                                        Student <span className='text-destructive'>*</span>
                                     </FormLabel>
                                     <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <FormControl>
-                                            <SelectTrigger>
+                                            <SelectTrigger className='h-9 text-xs'>
                                                 <SelectValue placeholder='Select Student' />
                                             </SelectTrigger>
                                         </FormControl>
-                                        <SelectContent>
-                                            {students.map((stu) => (
-                                                <SelectItem key={stu.amsT_Id} value={stu.amsT_Id.toString()}>
-                                                    {stu.amsT_FirstName}: {stu.amsT_AdmNo}: {stu.asmcL_ClassName}: {stu.asmC_SectionName}
-                                                </SelectItem>
-                                            ))}
+                                        <SelectContent className='max-h-64'>
+                                            {students.length === 0 ? (
+                                                <div className='p-2 text-center text-muted-foreground text-xs'>No students found</div>
+                                            ) : (
+                                                students.map((stu) => (
+                                                    <SelectItem key={stu.amsT_Id} value={stu.amsT_Id.toString()} className='text-xs'>
+                                                        {stu.amsT_FirstName} ({stu.amsT_AdmNo}) - {stu.asmcL_ClassName}{' '}
+                                                        {stu.asmC_SectionName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    <FormMessage className='text-xs' />
                                 </FormItem>
                             )}
                         />
@@ -149,25 +175,29 @@ export default function GatePassForm({ onSuccess, initialData }: GatePassFormPro
                             control={form.control}
                             name='employeeId'
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>
-                                        Employee <span className='text-red-500'>*</span>
+                                <FormItem className='space-y-1.5'>
+                                    <FormLabel className='font-semibold text-xs'>
+                                        Employee <span className='text-destructive'>*</span>
                                     </FormLabel>
                                     <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <FormControl>
-                                            <SelectTrigger>
+                                            <SelectTrigger className='h-9 text-xs'>
                                                 <SelectValue placeholder='Select Employee' />
                                             </SelectTrigger>
                                         </FormControl>
-                                        <SelectContent>
-                                            {employees.map((emp) => (
-                                                <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
-                                                    {emp.hrmE_EmployeeFirstName}
-                                                </SelectItem>
-                                            ))}
+                                        <SelectContent className='max-h-64'>
+                                            {employees.length === 0 ? (
+                                                <div className='p-2 text-center text-muted-foreground text-xs'>No employees found</div>
+                                            ) : (
+                                                employees.map((emp) => (
+                                                    <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()} className='text-xs'>
+                                                        {emp.hrmE_EmployeeFirstName}
+                                                    </SelectItem>
+                                                ))
+                                            )}
                                         </SelectContent>
                                     </Select>
-                                    <FormMessage />
+                                    <FormMessage className='text-xs' />
                                 </FormItem>
                             )}
                         />
@@ -177,25 +207,38 @@ export default function GatePassForm({ onSuccess, initialData }: GatePassFormPro
                         control={form.control}
                         name='remarks'
                         render={({ field }) => (
-                            <FormItem className='col-span-1 md:col-span-2'>
-                                <FormLabel>
-                                    Remarks <span className='text-red-500'>*</span>
+                            <FormItem className='space-y-1.5 sm:col-span-2'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    Remarks <span className='text-destructive'>*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <Textarea {...field} placeholder='Enter Remarks' maxLength={250} />
+                                    <Textarea {...field} placeholder='Enter Remarks' maxLength={250} rows={2} className='text-xs' />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className='text-xs' />
                             </FormItem>
                         )}
                     />
                 </div>
 
-                <div className='flex justify-center gap-4'>
-                    <Button type='submit' className='w-40'>
-                        {initialData ? 'Update' : 'Generate'} Gate Pass
-                    </Button>
-                    <Button type='button' variant='outline' className='w-40' onClick={() => onSuccess()}>
+                {/* 3. Action Buttons matching Screenshot 1 */}
+                <div className='flex flex-wrap items-center gap-3 border-t pt-4 sm:justify-start'>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={() => {
+                            form.reset();
+                            if (onCancel) onCancel();
+                        }}
+                        disabled={isSaving}
+                        className='h-9 rounded-2xl border-gray-300 px-5 text-xs transition-all duration-200 hover:scale-105'>
                         Cancel
+                    </Button>
+                    <Button
+                        type='submit'
+                        disabled={isSaving}
+                        className='h-9 rounded-2xl bg-[#EE7854] px-5 text-white text-xs shadow-sm transition-all duration-200 hover:scale-105 hover:bg-[#d96643]'>
+                        <Send className='mr-1.5 h-3.5 w-3.5' />
+                        {isSaving ? 'Processing...' : initialData ? 'Update Gate Pass' : 'Generate Gate Pass'}
                     </Button>
                 </div>
             </form>
