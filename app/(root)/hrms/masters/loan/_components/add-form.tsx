@@ -8,6 +8,7 @@ import { hrmsMasterSchemas } from '@/schemas/hrms/masters';
 import { addOrUpdateMasterLoan } from '@/server/hrms/hrmsConfig/master/loan';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -21,6 +22,7 @@ interface AddLoanFormProps {
 
 export default function AddLoanForm({ onSuccess, className = '' }: AddLoanFormProps) {
     const { refetchAll } = useMasterLoan();
+    const [resetKey, setResetKey] = useState(0);
 
     const {
         register,
@@ -32,7 +34,8 @@ export default function AddLoanForm({ onSuccess, className = '' }: AddLoanFormPr
         resolver: zodResolver(hrmsMasterSchemas.loan.add),
         mode: 'onChange',
         defaultValues: {
-            hrmL_Max: undefined as any
+            hrmL_LoanType: '',
+            hrmL_Max: undefined
         }
     });
 
@@ -48,7 +51,11 @@ export default function AddLoanForm({ onSuccess, className = '' }: AddLoanFormPr
 
             if (response?.success) {
                 toast.success(response?.message || 'Loan type saved successfully');
-                reset();
+                reset({
+                    hrmL_LoanType: '',
+                    hrmL_Max: undefined
+                });
+                setResetKey((prev) => prev + 1);
                 refetchAll();
                 onSuccess?.();
             } else {
@@ -60,7 +67,11 @@ export default function AddLoanForm({ onSuccess, className = '' }: AddLoanFormPr
     };
 
     const handleReset = () => {
-        reset();
+        reset({
+            hrmL_LoanType: '',
+            hrmL_Max: undefined
+        });
+        setResetKey((prev) => prev + 1);
     };
 
     return (
@@ -84,11 +95,12 @@ export default function AddLoanForm({ onSuccess, className = '' }: AddLoanFormPr
                             control={control}
                             render={({ field }) => (
                                 <InputNumber
+                                    key={resetKey}
                                     label='Maximum Amount'
                                     required
                                     id='hrmL_Max'
                                     placeholder='Enter maximum amount'
-                                    value={field.value ?? undefined}
+                                    value={field.value}
                                     maxDigits={10}
                                     onChange={(value) => {
                                         const numValue =
