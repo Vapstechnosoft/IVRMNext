@@ -218,9 +218,9 @@ export default function AddCollegeFeeWaivedOffForm({ onSuccess, pageData, classN
         const activeList = feeHeadsState
             .filter((h) => h.isSelected && Number(h.waivedOffAmount) > 0)
             .map((h) => ({
-                fmG_Id: Number(h.fmG_Id),
-                fmH_Id: Number(h.fmH_Id),
-                ftI_Id: Number(h.ftI_Id),
+                fmG_Id: Number(h.fmG_Id || 0),
+                fmH_Id: Number(h.fmH_Id || 0),
+                ftI_Id: Number(h.ftI_Id || 0),
                 fcmaS_Id: Number(h.fcmaS_Id || 0),
                 fcswO_WaivedOffAmount: Number(h.waivedOffAmount),
                 fmH_FeeName: h.fmH_FeeName,
@@ -323,15 +323,24 @@ export default function AddCollegeFeeWaivedOffForm({ onSuccess, pageData, classN
 
             const payload = {
                 fcswO_Id: Number(formData.fcswO_Id || 0),
+                FCSWO_Id: Number(formData.fcswO_Id || 0),
                 asmaY_Id: Number(formData.asmaY_Id),
+                ASMAY_Id: Number(formData.asmaY_Id),
                 amcsT_Id: Number(formData.amcsT_Id),
+                AMCST_Id: Number(formData.amcsT_Id),
                 fcswO_Date: new Date(formData.fcswO_Date).toISOString(),
+                FCSWO_Date: new Date(formData.fcswO_Date).toISOString(),
                 checkedlist: formData.checkedlist.map((item) => ({
                     fmG_Id: Number(item.fmG_Id),
+                    FMG_Id: Number(item.fmG_Id),
                     fmH_Id: Number(item.fmH_Id),
+                    FMH_Id: Number(item.fmH_Id),
                     ftI_Id: Number(item.ftI_Id),
+                    FTI_Id: Number(item.ftI_Id),
                     fcmaS_Id: Number(item.fcmaS_Id || 0),
-                    fcswO_WaivedOffAmount: Number(item.fcswO_WaivedOffAmount)
+                    FCMAS_Id: Number(item.fcmaS_Id || 0),
+                    fcswO_WaivedOffAmount: Number(item.fcswO_WaivedOffAmount),
+                    FCSWO_WaivedOffAmount: Number(item.fcswO_WaivedOffAmount)
                 }))
             };
 
@@ -358,8 +367,14 @@ export default function AddCollegeFeeWaivedOffForm({ onSuccess, pageData, classN
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className={cn('space-y-6', className)}>
-            <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+        <form
+            onSubmit={handleSubmit(onSubmit, (errs) => {
+                console.log('Form errors:', errs);
+                const failedFields = Object.keys(errs).join(', ');
+                toast.error(`Validation failed on: ${failedFields}. Check console for details.`);
+            })}
+            className={cn('space-y-6', className)}>
+            <div className='grid gap-6 lg:grid-cols-2'>
                 {/* Left Column: Academic & Student Dropdowns */}
                 <Card className='border-border/60 shadow-sm'>
                     <CardContent className='space-y-4 pt-5'>
@@ -778,7 +793,7 @@ export default function AddCollegeFeeWaivedOffForm({ onSuccess, pageData, classN
             ) : null}
 
             {/* Form Actions */}
-            <div className='flex flex-wrap items-center justify-center gap-3 pt-2'>
+            <div className='flex items-center justify-center gap-3 pt-2'>
                 <Button
                     type='submit'
                     isLoading={isSubmitting}

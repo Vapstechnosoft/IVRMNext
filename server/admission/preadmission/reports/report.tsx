@@ -6,14 +6,23 @@ import type { IConcessionDropDown } from '@/types/admission/preadmission/masters
 import { format } from 'date-fns';
 const formatDate = (date?: Date | null) => (date ? format(date, 'yyyy-MM-dd') : undefined);
 export async function getStudentTcReport(data: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, ',ivrmmR_Name');
-    const url = `/StudentTcReport/GetAdmissionTcReport?${urlParams}`;
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, '');
     
-    // Merge searchParams into the body payload so the backend [FromBody] can read it
+    // Strip search_query from URL to prevent backend from filtering/crashing
+    const cleanUrlParams = new URLSearchParams(urlParams);
+    cleanUrlParams.delete('search_query');
+    cleanUrlParams.delete('search_column');
+    
+    const url = `/StudentTcReport/GetAdmissionTcReport?${cleanUrlParams.toString()}`;
+    
+    // Strip pagination and search from body payload
     const payload = {
         ...data,
         ...searchParams,
     };
+    delete payload.search_query;
+    delete payload.search_column;
+    
     return await api.post<any>('admission', url, payload);
 }
 export async function getMonthEndReport(data: any) {

@@ -329,7 +329,6 @@ export default function StudentTCApplyPage() {
 
         // Reset Blocked Status on new selection
         setIsBlocked(false);
-        setTcConfig(null);
 
         // Use detailsMutation (getStudentTCDetails POST)
         detailsMutation.mutate(payload, {
@@ -385,8 +384,10 @@ export default function StudentTCApplyPage() {
                         });
                     }
 
-                    // Store Config
-                    setTcConfig(config || null);
+                    // Store Config only if present in this request, else rely on the list request config
+                    if (config) {
+                        setTcConfig(config);
+                    }
 
                     // --- 2. Approval Workflow Check ---
                     // "acertapP_ApprovaReqlFlg"
@@ -444,7 +445,7 @@ export default function StudentTCApplyPage() {
                             reason: joinedInfo?.astC_LeavingReason || '',
                             remarks: joinedInfo?.astC_Remarks || '',
                             conduct: joinedInfo?.astC_Conduct || 'Good',
-                            last_class: studentInfo.asmcl_classname || '',
+                            last_class: studentInfo.classstudying || studentInfo.classStudying || studentInfo.asmcl_classname || '',
                             academic_year_join: joinedInfo?.asmaY_Year ? joinedInfo.asmaY_Year.toString() : studentInfo.asmay_year || '',
 
                             // Dates
@@ -548,17 +549,18 @@ export default function StudentTCApplyPage() {
         }
     }, [formData.qual_class]);
 
-    // Sync TC Config from studentListRaw (getstudenttcdata)
+    // Sync TC Config from studentListRaw (getstudenttcdata) or studentNameData
     useEffect(() => {
-        const config = responseData?.admTransNumSetting?.[0] || responseData?.admissioncongigurationList?.[0] || responseData?.transnumconfigsettings?.[0];
+        const config = responseData?.admTransNumSetting?.[0] || responseData?.admissioncongigurationList?.[0] || responseData?.transnumconfigsettings?.[0]
+            || studentNameData?.admTransNumSetting?.[0] || studentNameData?.admissioncongigurationList?.[0] || studentNameData?.transnumconfigsettings?.[0];
         if (config) {
             setTcConfig(config);
         }
-    }, [responseData]);
+    }, [responseData, studentNameData]);
 
     // Validation for Next Button
     const validateTab = (tabValue: string) => {
-        const isAutoTC = tcConfig?.imN_AutoManualFlag === 'Auto';
+        const isAutoTC = tcConfig?.imN_AutoManualFlag?.toLowerCase() === 'auto';
 
         if (tabValue === 'student-details') {
             if (!formData.last_class) {
@@ -621,7 +623,7 @@ export default function StudentTCApplyPage() {
     };
 
     const handleSave = () => {
-        const isAutoTC = tcConfig?.imN_AutoManualFlag === 'Auto';
+        const isAutoTC = tcConfig?.imN_AutoManualFlag?.toLowerCase() === 'auto';
 
         if (
             (!isAutoTC && !formData.tc_no) ||
@@ -1119,8 +1121,8 @@ export default function StudentTCApplyPage() {
                                     </div>
                                     <div className='grid grid-cols-2 gap-4 text-sm'>
                                         {/* Row 1 */}
-                                        <div className='font-semibold'>Class:</div>
-                                        <div>{formData.last_class}</div>
+                                        <div className='font-semibold'>Current Class:</div>
+                                        <div>{selectedStudent?.class || formData.last_class}</div>
                                         <div className='font-semibold'>TC No.:</div>
                                         <div>{formData.tc_no}</div>
 

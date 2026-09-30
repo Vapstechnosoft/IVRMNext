@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -31,8 +32,8 @@ export default function StudentCountReportPage(props: {
     const [filterPayload, setFilterPayload] = useState<any>({
         report_type: 1,
         type: 'between',
-        from_date: new Date().toISOString(),
-        to_date: new Date().toISOString(),
+        from_date: format(new Date(), 'yyyy-MM-dd'),
+        to_date: format(new Date(), 'yyyy-MM-dd'),
         asmay_id: 0,
         asmcl_id: 0
     });

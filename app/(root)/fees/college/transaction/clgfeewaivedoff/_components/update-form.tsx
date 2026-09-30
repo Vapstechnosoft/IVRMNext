@@ -211,15 +211,24 @@ export default function UpdateCollegeFeeWaivedOffForm({ selectedRow, onSuccess, 
 
             const payload = {
                 fcswO_Id: editId,
+                FCSWO_Id: editId,
                 asmaY_Id: Number(formData.asmaY_Id || selectedRow.asmaY_Id),
+                ASMAY_Id: Number(formData.asmaY_Id || selectedRow.asmaY_Id),
                 amcsT_Id: Number(formData.amcsT_Id || selectedRow.amcsT_Id),
+                AMCST_Id: Number(formData.amcsT_Id || selectedRow.amcsT_Id),
                 fcswO_Date: new Date(formData.fcswO_Date).toISOString(),
+                FCSWO_Date: new Date(formData.fcswO_Date).toISOString(),
                 checkedlist: formData.checkedlist.map((item) => ({
                     fmG_Id: Number(item.fmG_Id),
+                    FMG_Id: Number(item.fmG_Id),
                     fmH_Id: Number(item.fmH_Id),
+                    FMH_Id: Number(item.fmH_Id),
                     ftI_Id: Number(item.ftI_Id),
+                    FTI_Id: Number(item.ftI_Id),
                     fcmaS_Id: Number(item.fcmaS_Id || 0),
-                    fcswO_WaivedOffAmount: Number(item.fcswO_WaivedOffAmount)
+                    FCMAS_Id: Number(item.fcmaS_Id || 0),
+                    fcswO_WaivedOffAmount: Number(item.fcswO_WaivedOffAmount),
+                    FCSWO_WaivedOffAmount: Number(item.fcswO_WaivedOffAmount)
                 }))
             };
 
@@ -252,8 +261,14 @@ export default function UpdateCollegeFeeWaivedOffForm({ selectedRow, onSuccess, 
     }
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className={cn('space-y-6', className)}>
-            <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+        <form
+            onSubmit={handleSubmit(onSubmit, (errs) => {
+                console.log('Form errors:', errs);
+                const failedFields = Object.keys(errs).join(', ');
+                toast.error(`Validation failed on: ${failedFields}. Check console for details.`);
+            })}
+            className={cn('space-y-6', className)}>
+            <div className='grid gap-6 lg:grid-cols-2'>
                 {/* Left Column: Readonly Info */}
                 <Card className='border-border/60 shadow-sm'>
                     <CardContent className='space-y-4 pt-5'>
@@ -442,7 +457,7 @@ export default function UpdateCollegeFeeWaivedOffForm({ selectedRow, onSuccess, 
             )}
 
             {/* Form Actions */}
-            <div className='flex flex-wrap items-center justify-center gap-3 pt-2'>
+            <div className='flex items-center justify-center gap-3 pt-2'>
                 <Button
                     type='submit'
                     isLoading={isSubmitting}
