@@ -57,7 +57,7 @@ import {
     saveSalaryUpdation,
     updateEmployeesEarningsAndDeductions
 } from '@/server/hrms/hrmsConfig/transaction/salary-updation';
-import type { ApiSearchparams } from '@/types';
+
 import type {
     EmployeeDetailsResponse,
     EmployeeLoanDeleteRequest,
@@ -124,14 +124,32 @@ import type {
     SalaryUpdationSaveRequest,
     SalaryUpdationSaveResponse
 } from '@/types/hrms/salary-updation';
+import type { ApiSearchparams } from '@/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 // ============================================================================
 // EMPLOYEE LOAN
 // ============================================================================
-export function useEmployeeLoanMasters(payload: EmployeeLoanOnloadRequest) {
+export function useEmployeeLoan(searchParams?: ApiSearchparams) {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, searchParams ?? {}],
+            queryFn: async () => getEmployeeLoanGrid(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST]
+            });
+        }
+    };
+}
+
+export function useEmployeeLoanMasters(payload?: EmployeeLoanOnloadRequest) {
     return useQuery<EmployeeLoanMastersResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'masters', payload], // Using same base key to keep unrelated cache clear simple
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'masters', payload ?? {}], // Using same base key to keep unrelated cache clear simple
         queryFn: () =>
             getEmployeeLoanMasters(payload).then((res: any) => {
                 if (!res.success) {
@@ -140,23 +158,31 @@ export function useEmployeeLoanMasters(payload: EmployeeLoanOnloadRequest) {
                 return res.data!;
             }),
         staleTime: 1000 * 60 * 5,
-        enabled: !!(payload.MIID || payload.roleId)
+        enabled: true
     });
 }
 
-export function useEmployeeLoanGrid(payload: EmployeeLoanOnloadRequest) {
-    return useQuery<EmployeeLoanGridResponse, Error>({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'grid', payload],
-        queryFn: () =>
-            getEmployeeLoanGrid(payload).then((res: any) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }),
-        staleTime: 1000 * 60 * 1, // Short stale time for list data
-        enabled: true
-    });
+export function useEmployeeLoanGrid(payload?: EmployeeLoanOnloadRequest | ApiSearchparams) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery<any, Error>({
+            queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST, 'grid', payload ?? {}],
+            queryFn: () =>
+                getEmployeeLoanGrid(payload).then((res: any) => {
+                    if (!res.success) {
+                        throw new Error(res.message);
+                    }
+                    return res;
+                }),
+            staleTime: 1000 * 60 * 1, // Short stale time for list data
+            enabled: true
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.EMPLOYEE_LOAN_LIST]
+            });
+        }
+    };
 }
 
 export function useSaveEmployeeLoan() {
@@ -249,18 +275,43 @@ export function useActivateDeactivateEmployeeLoan() {
 // SALARY ADVANCE
 // ============================================================================
 
-export function useSalaryAdvanceGrid(pageSize = 100) {
-    return useQuery<SalaryAdvanceGridItem[], Error>({
-        queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'grid', pageSize],
-        queryFn: () =>
-            getSalaryAdvanceGrid(pageSize).then((res: any) => {
-                if (!res.success) {
-                    throw new Error(res.message);
-                }
-                return res.data!;
-            }),
-        staleTime: 1000 * 60 * 5
-    });
+export function useSalaryAdvance(searchParams?: ApiSearchparams) {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, searchParams ?? {}],
+            queryFn: async () => getSalaryAdvanceGrid(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST]
+            });
+        }
+    };
+}
+
+export function useSalaryAdvanceGrid(pageSizeOrSearchParams?: number | ApiSearchparams) {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery<any, Error>({
+            queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'grid', pageSizeOrSearchParams ?? {}],
+            queryFn: () =>
+                getSalaryAdvanceGrid(pageSizeOrSearchParams as any).then((res: any) => {
+                    if (!res.success) {
+                        throw new Error(res.message);
+                    }
+                    return res;
+                }),
+            staleTime: 1000 * 60 * 5
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST]
+            });
+        }
+    };
 }
 
 export function useSalaryAdvanceEmployeeDropdown() {

@@ -1,4 +1,5 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { FormError, Label } from '@/components/ui/extension/field';
@@ -6,7 +7,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveYearDropdown, useMonthDropdown } from '@/hooks/hrms/useMasters';
-import { useSaveSalaryAdvance } from '@/hooks/hrms/useTransactions';
+import { useSalaryAdvance, useSalaryAdvanceEmployeeDropdown, useSaveSalaryAdvance } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
 import type { SalaryAdvanceEmployeeDropdownItem, SalaryAdvanceGridItem } from '@/types/hrms/salary-advance';
 import { format } from 'date-fns';
@@ -28,19 +29,21 @@ interface SalaryAdvanceForm {
 
 interface UpdateFormProps {
     selectedRow: SalaryAdvanceGridItem | null;
-    employeeDropdown: SalaryAdvanceEmployeeDropdownItem[] | undefined;
-    onSuccess: () => void;
+    employeeDropdown?: SalaryAdvanceEmployeeDropdownItem[] | undefined;
+    onSuccess?: () => void;
     className?: string;
 }
 
 export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown, onSuccess, className = '' }: UpdateFormProps) {
+    const { refetchAll } = useSalaryAdvance();
     const { mutate: saveAdvance, isPending } = useSaveSalaryAdvance();
+    const { data: empData } = useSalaryAdvanceEmployeeDropdown();
 
     // Fetch other dropdowns from masters
     const { data: leaveYearsData } = useLeaveYearDropdown();
     const { data: monthsData } = useMonthDropdown();
 
-    // Hardcoded mode of payments as they are standard and might not have a specific hook yet
+    // Mode of payments list
     const modeOfPayments = useMemo(
         () => [
             { id: 'Cash', name: 'Cash' },
@@ -50,7 +53,7 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
         []
     );
 
-    const employees = useMemo(() => employeeDropdown || [], [employeeDropdown]);
+    const employees = useMemo(() => employeeDropdown || empData || [], [employeeDropdown, empData]);
     const leaveYears = useMemo(() => (leaveYearsData as any)?.data || [], [leaveYearsData]);
     const months = useMemo(() => (monthsData as any)?.data || [], [monthsData]);
 
@@ -70,7 +73,6 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                 referenceNo: ''
             };
 
-        // Try to find matching year if possible (though we prefer immediate binding)
         let yearValue = String(selectedRow.hresA_AdvYear ?? '');
         const matchingYear = (leaveYears as any[]).find(
             (y: any) => String(y.hrmlY_LeaveYear) === yearValue || String(y.HRMLY_LeaveYear) === yearValue
@@ -88,7 +90,7 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
             entryDate: selectedRow.hresA_EntryDate ? format(new Date(selectedRow.hresA_EntryDate), 'yyyy-MM-dd') : '',
             advanceYear: yearValue,
             advanceMonth: String(selectedRow.hresA_AdvMonth || ''),
-            appliedAmount: selectedRow.hresA_AppliedAmount,
+            appliedAmount: selectedRow.hresA_AppliedAmount || 0,
             remarks: selectedRow.hresA_Remarks || '',
             modeOfPayment: normalizedPaymentMode,
             referenceNo: String(selectedRow.hresA_ReferenceNo || '')
@@ -100,57 +102,20 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
         handleSubmit,
         reset,
         control,
-        watch,
         setValue,
-        formState: { errors, isSubmitting }
+        formState: { errors, isSubmitting, isDirty }
     } = useForm<SalaryAdvanceForm>({
         mode: 'onChange',
         defaultValues: initialValues
     });
 
-    const watchedEntryDate = watch('entryDate');
-
-    // Sync form when selectedRow changes (handles cases where form stays mounted)
+    // Sync form when selectedRow changes
     useEffect(() => {
         if (selectedRow && lastBoundIdRef.current !== selectedRow.hresA_Id) {
             reset(initialValues);
             lastBoundIdRef.current = selectedRow.hresA_Id;
         }
     }, [selectedRow, initialValues, reset]);
-
-    // Auto-select year and month based on entry date ONLY for new entries or if changed manually
-    // We'll skip this if we're just loading an existing record
-    useEffect(() => {
-        if (watchedEntryDate && !selectedRow) {
-            try {
-                const entryDate = new Date(watchedEntryDate);
-                if (!Number.isNaN(entryDate.getTime())) {
-                    const year = entryDate.getFullYear();
-                    const month = entryDate.getMonth() + 1;
-
-                    const matchingYear = (leaveYears as any[]).find(
-                        (y: any) => String(y.hrmlY_LeaveYear) === String(year) || String(y.HRMLY_LeaveYear) === String(year)
-                    );
-                    const yearVal = matchingYear.hrmlY_LeaveYear || matchingYear.HRMLY_LeaveYear;
-                    if (yearVal !== undefined && yearVal !== null) {
-                        setValue('advanceYear', String(yearVal));
-                    }
-
-                    const matchingMonth = (months as any[]).find(
-                        (m: any) =>
-                            m.IVRM_Month_Id === month ||
-                            m.key === month ||
-                            m.value?.toLowerCase() === format(entryDate, 'MMMM').toLowerCase()
-                    );
-                    if (matchingMonth) {
-                        setValue('advanceMonth', matchingMonth.IVRM_Month_Name || matchingMonth.value);
-                    }
-                }
-            } catch (_error) {
-                // Silently handle date parsing errors
-            }
-        }
-    }, [watchedEntryDate, leaveYears, months, setValue, selectedRow]);
 
     const onSubmit: SubmitHandler<SalaryAdvanceForm> = async (data: SalaryAdvanceForm) => {
         if (!selectedRow) {
@@ -166,9 +131,9 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
             HRESA_AdvMonth: data.advanceMonth,
             HRESA_AppliedAmount: data.appliedAmount,
             HRESA_Remarks: data.remarks,
-            HRESA_ActiveFlag: true,
+            HRESA_ActiveFlag: selectedRow.hresA_ActiveFlag ?? true,
             HRESA_AdvStatus: selectedRow.hresA_AdvStatus || '',
-            HRESA_SanctinedAmount: null,
+            HRESA_SanctinedAmount: selectedRow.hresA_SanctinedAmount,
             HRESA_ModeOfPayment: data.modeOfPayment,
             HRESA_ReferenceNo: Number(data.referenceNo) || 0
         };
@@ -176,7 +141,8 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
         saveAdvance(payload, {
             onSuccess: () => {
                 toast.success('Salary advance updated successfully!');
-                onSuccess();
+                refetchAll();
+                onSuccess?.();
             },
             onError: (error: any) => {
                 toast.error(error.message || 'Failed to update salary advance');
@@ -184,12 +150,18 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
         });
     };
 
+    const handleReset = () => {
+        reset(initialValues);
+    };
+
     return (
         <div className={className}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                     <div className='space-y-2'>
-                        <Label>Employee *</Label>
+                        <Label>
+                            Employee <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='employeeId'
                             control={control}
@@ -214,7 +186,9 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                         {errors.employeeId && <FormError>{errors.employeeId.message}</FormError>}
                     </div>
                     <div className='space-y-2'>
-                        <Label>Entry Date *</Label>
+                        <Label>
+                            Entry Date <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='entryDate'
                             control={control}
@@ -246,7 +220,9 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                         {errors.entryDate && <FormError>{errors.entryDate.message}</FormError>}
                     </div>
                     <div className='space-y-2'>
-                        <Label>Advance Year *</Label>
+                        <Label>
+                            Advance Year <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='advanceYear'
                             control={control}
@@ -273,7 +249,9 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                         {errors.advanceYear && <FormError>{errors.advanceYear.message}</FormError>}
                     </div>
                     <div className='space-y-2'>
-                        <Label>Advance Month *</Label>
+                        <Label>
+                            Advance Month <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='advanceMonth'
                             control={control}
@@ -300,7 +278,9 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                         {errors.advanceMonth && <FormError>{errors.advanceMonth.message}</FormError>}
                     </div>
                     <div className='space-y-2'>
-                        <Label>Applied Amount *</Label>
+                        <Label>
+                            Applied Amount <span className='text-destructive'>*</span>
+                        </Label>
                         <InputText
                             type='number'
                             step='any'
@@ -316,7 +296,9 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                         />
                     </div>
                     <div className='space-y-2'>
-                        <Label>Mode of Payment *</Label>
+                        <Label>
+                            Mode of Payment <span className='text-destructive'>*</span>
+                        </Label>
                         <Controller
                             name='modeOfPayment'
                             control={control}
@@ -351,14 +333,14 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                     <Button
                         type='button'
                         variant='outline'
-                        onClick={onSuccess}
+                        onClick={handleReset}
                         disabled={isSubmitting || isPending}
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
-                        Cancel
+                        Reset
                     </Button>
                     <Button
                         type='submit'
-                        disabled={isSubmitting || isPending}
+                        disabled={isSubmitting || isPending || !isDirty}
                         className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                         isLoading={isSubmitting || isPending}
                         loadingText='Updating...'>
@@ -367,6 +349,7 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                             Update Salary Advance
                         </div>
                     </Button>
+                    {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
                 </div>
             </form>
         </div>

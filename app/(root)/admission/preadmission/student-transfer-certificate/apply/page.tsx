@@ -329,7 +329,6 @@ export default function StudentTCApplyPage() {
 
         // Reset Blocked Status on new selection
         setIsBlocked(false);
-        setTcConfig(null);
 
         // Use detailsMutation (getStudentTCDetails POST)
         detailsMutation.mutate(payload, {
@@ -386,8 +385,10 @@ export default function StudentTCApplyPage() {
                         });
                     }
 
-                    // Store Config
-                    setTcConfig(config || null);
+                    // Store Config only if present in this request, else rely on the list request config
+                    if (config) {
+                        setTcConfig(config);
+                    }
 
                     // --- 2. Approval Workflow Check ---
                     // "acertapP_ApprovaReqlFlg"
@@ -445,7 +446,11 @@ export default function StudentTCApplyPage() {
                             reason: joinedInfo?.astC_LeavingReason || '',
                             remarks: joinedInfo?.astC_Remarks || '',
                             conduct: joinedInfo?.astC_Conduct || 'Good',
+<<<<<<< HEAD
                             last_class: studentInfo.asmcl_classname || studentInfo.asmcL_ClassName || studentInfo.ASMCL_ClassName || '',
+=======
+                            last_class: studentInfo.classstudying || studentInfo.classStudying || studentInfo.asmcl_classname || '',
+>>>>>>> b5c02c1ad6c7cb9346c0202c72cef4c3433056f1
                             academic_year_join: joinedInfo?.asmaY_Year ? joinedInfo.asmaY_Year.toString() : studentInfo.asmay_year || '',
 
                             // Dates
@@ -486,7 +491,17 @@ export default function StudentTCApplyPage() {
                             Medically_Exam_Flag: joinedInfo?.astC_MedicallyExam || 'no',
                             qual_class: joinedInfo?.astC_Qual_Class || '',
                             // Personal Details (Mapping from studentInfo)
-                            dob: studentInfo.amst_dob ? new Date(studentInfo.amst_dob).toISOString().split('T')[0] : '',
+                            dob: studentInfo.amst_dob
+                                ? (() => {
+                                      const clean = String(studentInfo.amst_dob).split('T')[0].trim();
+                                      const match = clean.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                                      if (match) return `${match[3]}-${match[2]}-${match[1]}`;
+                                      const d = new Date(studentInfo.amst_dob);
+                                      return isNaN(d.getTime())
+                                          ? clean
+                                          : `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+                                  })()
+                                : '',
                             dob_words: studentInfo.amst_dob_words || '',
                             bank_ifsc: studentInfo.amst_stubankifsc_code || '',
                             birth_place: studentInfo.amst_birthplace || '',
@@ -549,17 +564,18 @@ export default function StudentTCApplyPage() {
         }
     }, [formData.qual_class]);
 
-    // Sync TC Config from studentListRaw (getstudenttcdata)
+    // Sync TC Config from studentListRaw (getstudenttcdata) or studentNameData
     useEffect(() => {
-        const config = responseData?.admTransNumSetting?.[0] || responseData?.admissioncongigurationList?.[0] || responseData?.transnumconfigsettings?.[0];
+        const config = responseData?.admTransNumSetting?.[0] || responseData?.admissioncongigurationList?.[0] || responseData?.transnumconfigsettings?.[0]
+            || studentNameData?.admTransNumSetting?.[0] || studentNameData?.admissioncongigurationList?.[0] || studentNameData?.transnumconfigsettings?.[0];
         if (config) {
             setTcConfig(config);
         }
-    }, [responseData]);
+    }, [responseData, studentNameData]);
 
     // Validation for Next Button
     const validateTab = (tabValue: string) => {
-        const isAutoTC = tcConfig?.imN_AutoManualFlag === 'Auto';
+        const isAutoTC = tcConfig?.imN_AutoManualFlag?.toLowerCase() === 'auto';
 
         if (tabValue === 'student-details') {
             if (!formData.last_class) {
@@ -622,7 +638,7 @@ export default function StudentTCApplyPage() {
     };
 
     const handleSave = () => {
-        const isAutoTC = tcConfig?.imN_AutoManualFlag === 'Auto';
+        const isAutoTC = tcConfig?.imN_AutoManualFlag?.toLowerCase() === 'auto';
 
         if (
             (!isAutoTC && !formData.tc_no) ||
@@ -998,9 +1014,12 @@ export default function StudentTCApplyPage() {
                         size='lg'
                         className='pb-6 shadow-lg'>
                         {selectedStudentDetails && selectedStudentDetails.studentList && (
-                            <div className='mb-4'>
-                                <StudentHeaderSummary student={selectedStudentDetails.studentList[0]} />
-                            </div>
+                                <StudentHeaderSummary
+                                    student={{
+                                        ...selectedStudentDetails.studentList[0],
+                                        asmaY_Year_Join: selectedStudentDetails.getjoineddetails?.[0]?.asmaY_Year
+                                    }}
+                                />
                         )}
 
                         <Tabs
@@ -1109,6 +1128,7 @@ export default function StudentTCApplyPage() {
                         </Tabs>
 
                         {/* Preview Modal */}
+<<<<<<< HEAD
                         {openPreview && (() => {
                             const studentInfoPreview = selectedStudentDetails?.studentList?.[0] || selectedStudentDetails?.studentListById?.[0] || {};
                             return (
@@ -1119,6 +1139,60 @@ export default function StudentTCApplyPage() {
                                             <Button variant='ghost' size='icon' onClick={() => setOpenPreview(false)}>
                                                 <XCircle className='h-5 w-5' />
                                             </Button>
+=======
+                        {openPreview && (
+                            <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
+                                <div className='max-h-[80vh] w-[800px] overflow-y-auto rounded-lg bg-white p-6 shadow-xl'>
+                                    <div className='mb-4 flex items-center justify-between border-b pb-2'>
+                                        <h2 className='font-bold text-xl'>Student TC Details - Preview</h2>
+                                        <Button variant='ghost' size='icon' onClick={() => setOpenPreview(false)}>
+                                            <XCircle className='h-5 w-5' />
+                                        </Button>
+                                    </div>
+                                    <div className='grid grid-cols-2 gap-4 text-sm'>
+                                        {/* Row 1 */}
+                                        <div className='font-semibold'>Current Class:</div>
+                                        <div>{selectedStudent?.class || formData.last_class}</div>
+                                        <div className='font-semibold'>TC No.:</div>
+                                        <div>{formData.tc_no}</div>
+
+                                        {/* Row 2 */}
+                                        <div className='font-semibold'>Section:</div>
+                                        <div>{selectedStudent?.section}</div>
+                                        <div className='font-semibold'>TC Application Date:</div>
+                                        <div>{formData.app_date}</div>
+
+                                        {/* Row 3 */}
+                                        <div className='font-semibold'>Father Name:</div>
+                                        <div>{selectedStudentDetails?.studentListById?.[0]?.father || '-'}</div>
+                                        <div className='font-semibold'>Leaving Reason:</div>
+                                        <div>{formData.reason}</div>
+
+                                        {/* Row 4 */}
+                                        <div className='font-semibold'>Category:</div>
+                                        <div>{selectedStudentDetails?.studentListById?.[0]?.AMC_Name || '-'}</div>
+                                        <div className='font-semibold'>TC Date:</div>
+                                        <div>{formData.tc_date}</div>
+
+                                        {/* Row 5 */}
+                                        <div className='font-semibold'>Admission Academic Year:</div>
+                                        <div>{formData.academic_year_join}</div>
+                                        <div className='font-semibold'>Last Date Of Attendance:</div>
+                                        <div>{formData.last_date_attendance}</div>
+
+                                        {/* Row 6 */}
+                                        <div className='font-semibold'>Registration No.:</div>
+                                        <div>{selectedStudentDetails?.studentListById?.[0]?.AMST_RegistrationNo || '-'}</div>
+                                        <div className='font-semibold'>No. Of School Days:</div>
+                                        <div>{formData.working_days}</div>
+
+                                        {/* Row 7 */}
+                                        <div className='font-semibold'>Date Of Admission:</div>
+                                        <div>
+                                            {selectedStudentDetails?.studentListById?.[0]?.AMST_Date
+                                                ? new Date(selectedStudentDetails.studentListById[0].AMST_Date).toLocaleDateString()
+                                                : '-'}
+>>>>>>> b5c02c1ad6c7cb9346c0202c72cef4c3433056f1
                                         </div>
                                         <div className='grid grid-cols-2 gap-4 text-sm'>
                                             {/* Row 1 */}

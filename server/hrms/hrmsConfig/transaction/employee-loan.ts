@@ -1,5 +1,6 @@
 'use server';
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type { ApiResponse } from '@/types/hrms/employee-loan';
 import type {
     EmployeeDetailsResponse,
@@ -29,7 +30,7 @@ export async function getEmployeeLoanMasters(payload?: EmployeeLoanOnloadRequest
     const requestBody = {
         page: 1,
         page_size: 10,
-        MIID: payload?.MIID ?? 30,
+        MIID: payload?.MIID ?? 0,
         LoginUserId: payload?.LoginUserId ?? 0,
         UserRole: payload?.UserRole ?? ''
     };
@@ -125,12 +126,13 @@ export async function getEmployeeLoanMasters(payload?: EmployeeLoanOnloadRequest
  * Get Employee Loan Grid Data (New REST API)
  * GET /api/HREmpLoan
  */
-export async function getEmployeeLoanGrid(payload: EmployeeLoanOnloadRequest): Promise<ApiResponse<EmployeeLoanGridResponse>> {
-    const queryString = new URLSearchParams();
-    if (payload.page) queryString.append('page', payload.page!.toString());
-    if (payload.page_size) queryString.append('page_size', payload.page_size!.toString());
+export async function getEmployeeLoanGrid(searchParams?: ApiSearchparams | EmployeeLoanOnloadRequest): Promise<any> {
+    const urlParams = getSearchParamsUrl(
+        searchParams as ApiSearchparams ?? {},
+        'EmployeeFullName,HRME_EmployeeCode,HRML_LoanType,HREL_LoanAmount,HREL_LoanInsallments,HREL_LaonEMI,HREL_AppliedDate,HREL_TotalPending'
+    );
 
-    const url = `/api/HREmpLoan?${queryString.toString()}`;
+    const url = `/api/HREmpLoan?${urlParams}`;
 
     try {
         const response = await api.get<any>('hrms', url);
@@ -139,55 +141,54 @@ export async function getEmployeeLoanGrid(payload: EmployeeLoanOnloadRequest): P
             return {
                 success: false,
                 message: response.message || 'Failed to load grid data',
-                data: null
+                data: [],
+                total: 0
             };
         }
 
-        const mappedItems: EmployeeLoanItem[] = Array.isArray(response.data)
-            ? response.data.map((item: any) => ({
-                  HREL_Id: item.hreL_Id,
-                  MI_Id: item.mI_Id || 0,
-                  HRME_Id: item.hrmE_Id || 0,
-                  EmployeeFullName: item.employeeFullName || '', // Added
-                  HRME_EmployeeCode: item.masterEmployee?.hrmE_EmployeeCode,
-                  HRME_EmployeeFirstName: item.employeeFullName, // Use full name as fallback
-                  HRMLN_Id: item.hrmlN_Id || 0,
-                  HRML_LoanType: item.hrmL_LoanType, // Added
-                  HREL_AppliedDate: item.hreL_AppliedDate,
-                  HREL_EmpLoanId: item.hreL_EmpLoanId,
-                  HREL_LoanAmount: item.hreL_LoanAmount || 0,
-                  HREL_LoanInsallments: item.hreL_LoanInsallments,
-                  HREL_LaonEMI: item.hreL_LaonEMI,
-                  HREL_LoanStatus: item.hreL_LoanStatus,
-                  HREL_SanctionedAmount: item.hreL_SanctionedAmount || 0,
-                  HREL_TotalPrincipalPaid: item.hreL_TotalPrincipalPaid || 0,
-                  HREL_TotalInterestPaid: item.hreL_TotalInterestPaid || 0,
-                  HREL_TotalPending: item.hreL_TotalPending || 0,
-                  HREL_LoanInterest: item.hreL_LoanInterest || 0,
-                  HREL_ModeOfPayment: item.hreL_ModeOfPayment,
-                  HREL_ReferenceNo: item.hreL_ReferenceNo,
-                  HREL_ActiveFlag: item.hreL_ActiveFlag,
-                  HREL_NoofInstallment: item.hreL_NoofInstallment,
-                  CreatedDate: item.createdDate,
-                  UpdatedDate: item.updatedDate
-              }))
-            : [];
+        const rawList = Array.isArray(response.data) ? response.data : (response.data.emploanList || []);
+        const mappedItems: EmployeeLoanItem[] = rawList.map((item: any) => ({
+            HREL_Id: item.hreL_Id,
+            MI_Id: item.mI_Id || 0,
+            HRME_Id: item.hrmE_Id || 0,
+            EmployeeFullName: item.employeeFullName || '',
+            HRME_EmployeeCode: item.masterEmployee?.hrmE_EmployeeCode,
+            HRME_EmployeeFirstName: item.employeeFullName,
+            HRMLN_Id: item.hrmlN_Id || 0,
+            HRML_LoanType: item.hrmL_LoanType,
+            HREL_AppliedDate: item.hreL_AppliedDate,
+            HREL_EmpLoanId: item.hreL_EmpLoanId,
+            HREL_LoanAmount: item.hreL_LoanAmount || 0,
+            HREL_LoanInsallments: item.hreL_LoanInsallments,
+            HREL_LaonEMI: item.hreL_LaonEMI,
+            HREL_LoanStatus: item.hreL_LoanStatus,
+            HREL_SanctionedAmount: item.hreL_SanctionedAmount || 0,
+            HREL_TotalPrincipalPaid: item.hreL_TotalPrincipalPaid || 0,
+            HREL_TotalInterestPaid: item.hreL_TotalInterestPaid || 0,
+            HREL_TotalPending: item.hreL_TotalPending || 0,
+            HREL_LoanInterest: item.hreL_LoanInterest || 0,
+            HREL_ModeOfPayment: item.hreL_ModeOfPayment,
+            HREL_ReferenceNo: item.hreL_ReferenceNo,
+            HREL_ActiveFlag: item.hreL_ActiveFlag,
+            HREL_NoofInstallment: item.hreL_NoofInstallment,
+            CreatedDate: item.createdDate,
+            UpdatedDate: item.updatedDate
+        }));
 
         return {
             success: true,
             message: 'Data loaded successfully',
-            data: {
-                emploanList: mappedItems,
-                total: response.total || 0,
-                page: Number(response.page) || 1,
-                page_size: Number(response.page_size) || 10
-            }
+            data: mappedItems,
+            total: response.total || mappedItems.length,
+            page: Number(response.page) || 1,
+            page_size: Number(response.page_size || response.page_Size) || 10
         };
     } catch (error: any) {
         return {
             success: false,
             message: error?.message || 'Failed to load grid data',
-            data: null
+            data: [],
+            total: 0
         };
     }
 }
@@ -307,6 +308,15 @@ export async function getEmployeeLoanById(hrelId: number): Promise<ApiResponse<E
             data: null
         };
     }
+}
+
+/**
+ * Toggle employee loan status by ID
+ * PUT /api/HREmpLoan/toggle_employee_loan/{hrel_id}
+ */
+export async function toggleEmployeeLoan(id: number) {
+    const url = `/api/HREmpLoan/toggle_employee_loan/${id}`;
+    return await api.put('hrms', url);
 }
 
 /**

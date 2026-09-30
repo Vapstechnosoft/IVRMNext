@@ -33,11 +33,15 @@ export const StudentHeaderSummary = ({ student }: StudentHeaderSummaryProps) => 
                         <InfoRow label='Admission No.' value={student.admno || student.amsT_AdmNo} />
                         <InfoRow
                             label='Class/Section'
-                            value={`${val(student.asmcl_classname || student.asmcL_ClassName)} / ${val(student.asmc_sectionname || student.asmC_SectionName)}`}
+                            value={
+                                student.classstudying || student.classStudying
+                                    ? String(student.classstudying || student.classStudying).replace(/\s*:\s*/, ' / ')
+                                    : `${val(student.asmcl_classname || student.asmcL_ClassName)} / ${val(student.asmc_sectionname || student.asmC_SectionName)}`
+                            }
                         />
                         <InfoRow
                             label='Joined Year / Class'
-                            value={`${val(student.asmay_year || student.asmaY_Year)} / ${val(student.classstudying || student.classStudying)}`}
+                            value={`${val(student.asmaY_Year_Join || student.asmay_year_join || student.joinedyear || student.joinyear || student.academic_year_join || student.asmaY_Year || student.asmay_year)} / ${val(student.joinclass || student.joinedclass || student.asmcl_classname || student.asmcL_ClassName)}${student.asmc_sectionname || student.asmC_SectionName ? ` / ${val(student.asmc_sectionname || student.asmC_SectionName)}` : ''}`}
                         />
                         <InfoRow label='Father Name' value={student.father || student.amsT_FatherName} />
                         <InfoRow label='Category' value={student.amc_name || student.amC_Name || student.AMC_Name || student.asmcC_CategoryName || student.categoryName} />
@@ -47,8 +51,8 @@ export const StudentHeaderSummary = ({ student }: StudentHeaderSummaryProps) => 
                                 student.amst_dob
                                     ? new Date(student.amst_dob).toLocaleDateString()
                                     : student.amsT_Dob
-                                      ? new Date(student.amsT_Dob).toLocaleDateString()
-                                      : '-'
+                                        ? new Date(student.amsT_Dob).toLocaleDateString()
+                                        : '-'
                             }
                         />
                         <InfoRow label='DOB Words' value={student.amst_dob_words || student.amsT_DOB_Words} />

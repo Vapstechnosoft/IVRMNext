@@ -26,8 +26,8 @@ function StatusCard({ icon, count, label, iconColor, iconBgColor }: StatusCardPr
                     </div>
 
                     {/* Count and Label Section */}
-                    <div className='flex-1 text-nowrap'>
-                        <p className='font-medium text-muted-foreground text-sm'>{label}</p>
+                    <div className='flex-1 text-left'>
+                        <p className='font-medium text-muted-foreground text-sm leading-tight'>{label}</p>
                     </div>
                 </div>
             </CardContent>

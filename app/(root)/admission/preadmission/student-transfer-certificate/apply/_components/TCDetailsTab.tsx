@@ -40,19 +40,21 @@ export const TCDetailsTab = ({ formData, setFormData, initialData, onCheckDuplic
                     </div>
 
                     {/* TC Number */}
-                    <div className='grid grid-cols-[180px_1fr] items-center gap-4'>
-                        <Label htmlFor='tc_no' className='text-right font-semibold text-indigo-900'>
-                            TC Application No.:<span className='text-red-500'>*</span>
-                        </Label>
-                        <Input
-                            id='tc_no'
-                            value={formData.tc_no || ''}
-                            onChange={(e) => handleChange('tc_no', e.target.value)}
-                            onBlur={(e) => onCheckDuplicate && onCheckDuplicate(e.target.value)}
-                            placeholder='Enter TC Number'
-                            disabled={disabled || tcConfig?.imN_AutoManualFlag === 'Auto'}
-                        />
-                    </div>
+                    {tcConfig?.imN_AutoManualFlag?.toLowerCase() !== 'auto' && (
+                        <div className='grid grid-cols-[180px_1fr] items-center gap-4'>
+                            <Label htmlFor='tc_no' className='text-right font-semibold text-indigo-900'>
+                                TC Application No.:<span className='text-red-500'>*</span>
+                            </Label>
+                            <Input
+                                id='tc_no'
+                                value={formData.tc_no || ''}
+                                onChange={(e) => handleChange('tc_no', e.target.value)}
+                                onBlur={(e) => onCheckDuplicate && onCheckDuplicate(e.target.value)}
+                                placeholder='Enter TC Number'
+                                disabled={disabled}
+                            />
+                        </div>
+                    )}
 
                     {/* TC Application Date */}
                     <div className='grid grid-cols-[180px_1fr] items-center gap-4'>
