@@ -10,6 +10,8 @@ export function EmployeeStrengthReportTemplate({
     const { institutionDetails, employeeDetails, totalWorkingEmployees, totalLeftEmployees } = data;
     const totalEmployeesSum = employeeDetails?.reduce((sum: number, item: any) => sum + (item.totalEmployees || 0), 0) || 0;
 
+    let total = totalWorkingEmployees + totalLeftEmployees
+
     return (
         <div id='print-content' className='space-y-6 p-8 font-sans'>
             {/* Header */}
@@ -59,12 +61,13 @@ export function EmployeeStrengthReportTemplate({
             </table>
 
             {/* Summary Box */}
-            <div className='mt-8 ml-auto grid w-1/2 grid-cols-2 gap-4'>
-                <div className='flex justify-between border border-black bg-gray-50 p-2'>
+            <div className='mt-8 ml-auto grid  grid-cols-3 gap-4'>
+            
+                <div className='flex bg-gray-50 p-2 gap-2'>
                     <span>Total Working Employees:</span>
                     <span className='font-bold'>{totalWorkingEmployees}</span>
                 </div>
-                <div className='flex justify-between border border-black bg-gray-50 p-2'>
+                <div className='flex bg-gray-50 p-2 gap-2'>
                     <span>Total Left Employees:</span>
                     <span className='font-bold'>{totalLeftEmployees}</span>
                 </div>
