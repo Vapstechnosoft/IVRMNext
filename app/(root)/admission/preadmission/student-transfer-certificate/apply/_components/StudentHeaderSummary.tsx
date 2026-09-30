@@ -40,7 +40,7 @@ export const StudentHeaderSummary = ({ student }: StudentHeaderSummaryProps) => 
                             value={`${val(student.asmay_year || student.asmaY_Year)} / ${val(student.classstudying || student.classStudying)}`}
                         />
                         <InfoRow label='Father Name' value={student.father || student.amsT_FatherName} />
-                        <InfoRow label='Category' value={student.imc_castename || student.casteName} />
+                        <InfoRow label='Category' value={student.amc_name || student.amC_Name || student.AMC_Name || student.asmcC_CategoryName || student.categoryName} />
                         <InfoRow
                             label='DOB'
                             value={

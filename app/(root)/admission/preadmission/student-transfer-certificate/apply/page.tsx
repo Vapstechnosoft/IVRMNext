@@ -338,6 +338,7 @@ export default function StudentTCApplyPage() {
                 // Configuration flags should come from response, not initialDataMutation
                 // Default to checking dues (flag = 1) if not present
                 const actualData = response.data || response;
+                console.log("TC API Response actualData:", actualData);
 
                 if (
                     actualData?.studentList?.length > 0 ||
@@ -444,7 +445,7 @@ export default function StudentTCApplyPage() {
                             reason: joinedInfo?.astC_LeavingReason || '',
                             remarks: joinedInfo?.astC_Remarks || '',
                             conduct: joinedInfo?.astC_Conduct || 'Good',
-                            last_class: studentInfo.asmcl_classname || '',
+                            last_class: studentInfo.asmcl_classname || studentInfo.asmcL_ClassName || studentInfo.ASMCL_ClassName || '',
                             academic_year_join: joinedInfo?.asmaY_Year ? joinedInfo.asmaY_Year.toString() : studentInfo.asmay_year || '',
 
                             // Dates
@@ -476,7 +477,7 @@ export default function StudentTCApplyPage() {
                             games_played: joinedInfo?.astC_ExtraActivities || '', // Mapping extra activities to games played as fallback or check specific field
 
                             // New UI Fields
-                            caste: studentInfo.imc_castename || '',
+                            caste: studentInfo.imc_castename || studentInfo.imC_CasteName || studentInfo.IMC_CasteName || '',
                             mediumOfInstruction: joinedInfo?.astC_MediumOfINStruction || '',
 
                             // Flags
@@ -836,8 +837,8 @@ export default function StudentTCApplyPage() {
                                                                         id: student.amsT_Id,
                                                                         admNo: displayAdmNo,
                                                                         studentName: displayName,
-                                                                        class: student.asmcL_ClassName || '',
-                                                                        section: student.asmS_SectionName || '',
+                                                                        class: student.asmcL_ClassName || student.asmcl_classname || student.ASMCL_ClassName || '',
+                                                                        section: student.asmS_SectionName || student.asms_sectionname || student.ASMC_SectionName || '',
                                                                         classId: student.asmcL_Id,
                                                                         sectionId: student.asmS_Id
                                                                     };
@@ -1108,86 +1109,89 @@ export default function StudentTCApplyPage() {
                         </Tabs>
 
                         {/* Preview Modal */}
-                        {openPreview && (
-                            <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
-                                <div className='max-h-[80vh] w-[800px] overflow-y-auto rounded-lg bg-white p-6 shadow-xl'>
-                                    <div className='mb-4 flex items-center justify-between border-b pb-2'>
-                                        <h2 className='font-bold text-xl'>Student TC Details - Preview</h2>
-                                        <Button variant='ghost' size='icon' onClick={() => setOpenPreview(false)}>
-                                            <XCircle className='h-5 w-5' />
-                                        </Button>
-                                    </div>
-                                    <div className='grid grid-cols-2 gap-4 text-sm'>
-                                        {/* Row 1 */}
-                                        <div className='font-semibold'>Class:</div>
-                                        <div>{formData.last_class}</div>
-                                        <div className='font-semibold'>TC No.:</div>
-                                        <div>{formData.tc_no}</div>
-
-                                        {/* Row 2 */}
-                                        <div className='font-semibold'>Section:</div>
-                                        <div>{selectedStudent?.section}</div>
-                                        <div className='font-semibold'>TC Application Date:</div>
-                                        <div>{formData.app_date}</div>
-
-                                        {/* Row 3 */}
-                                        <div className='font-semibold'>Father Name:</div>
-                                        <div>{selectedStudentDetails?.studentListById?.[0]?.father || '-'}</div>
-                                        <div className='font-semibold'>Leaving Reason:</div>
-                                        <div>{formData.reason}</div>
-
-                                        {/* Row 4 */}
-                                        <div className='font-semibold'>Category:</div>
-                                        <div>{selectedStudentDetails?.studentListById?.[0]?.AMC_Name || '-'}</div>
-                                        <div className='font-semibold'>TC Date:</div>
-                                        <div>{formData.tc_date}</div>
-
-                                        {/* Row 5 */}
-                                        <div className='font-semibold'>Admission Academic Year:</div>
-                                        <div>{formData.academic_year_join}</div>
-                                        <div className='font-semibold'>Last Date Of Attendance:</div>
-                                        <div>{formData.last_date_attendance}</div>
-
-                                        {/* Row 6 */}
-                                        <div className='font-semibold'>Registration No.:</div>
-                                        <div>{selectedStudentDetails?.studentListById?.[0]?.AMST_RegistrationNo || '-'}</div>
-                                        <div className='font-semibold'>No. Of School Days:</div>
-                                        <div>{formData.working_days}</div>
-
-                                        {/* Row 7 */}
-                                        <div className='font-semibold'>Date Of Admission:</div>
-                                        <div>
-                                            {selectedStudentDetails?.studentListById?.[0]?.AMST_Date
-                                                ? new Date(selectedStudentDetails.studentListById[0].AMST_Date).toLocaleDateString()
-                                                : '-'}
+                        {openPreview && (() => {
+                            const studentInfoPreview = selectedStudentDetails?.studentList?.[0] || selectedStudentDetails?.studentListById?.[0] || {};
+                            return (
+                                <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
+                                    <div className='max-h-[80vh] w-[800px] overflow-y-auto rounded-lg bg-white p-6 shadow-xl'>
+                                        <div className='mb-4 flex items-center justify-between border-b pb-2'>
+                                            <h2 className='font-bold text-xl'>Student TC Details - Preview</h2>
+                                            <Button variant='ghost' size='icon' onClick={() => setOpenPreview(false)}>
+                                                <XCircle className='h-5 w-5' />
+                                            </Button>
                                         </div>
-                                        <div className='font-semibold'>No. Of Attended Days:</div>
-                                        <div>{formData.present_days}</div>
+                                        <div className='grid grid-cols-2 gap-4 text-sm'>
+                                            {/* Row 1 */}
+                                            <div className='font-semibold'>Class:</div>
+                                            <div>{formData.last_class}</div>
+                                            <div className='font-semibold'>TC No.:</div>
+                                            <div>{formData.tc_no}</div>
 
-                                        {/* Row 8 */}
-                                        <div className='font-semibold'>Date Of Promotion:</div>
-                                        <div>{formData.promotion_date}</div>
-                                        <div className='font-semibold'>Qualified for which class:</div>
-                                        <div>{formData.qual_class}</div>
+                                            {/* Row 2 */}
+                                            <div className='font-semibold'>Section:</div>
+                                            <div>{studentInfoPreview.asmc_sectionname || studentInfoPreview.asmC_SectionName || studentInfoPreview.asmS_SectionName || studentInfoPreview.asms_sectionname || selectedStudent?.section || '-'}</div>
+                                            <div className='font-semibold'>TC Application Date:</div>
+                                            <div>{formData.app_date}</div>
 
-                                        {/* Row 9 */}
-                                        <div className='font-semibold'>Last Class Studied:</div>
-                                        <div>{formData.last_class}</div>
-                                        <div className='font-semibold'>Conduct / Character:</div>
-                                        <div>{formData.conduct}</div>
+                                            {/* Row 3 */}
+                                            <div className='font-semibold'>Father Name:</div>
+                                            <div>{studentInfoPreview.father || studentInfoPreview.amsT_FatherName || studentInfoPreview.amst_fathername || studentInfoPreview.pasr_fathername || '-'}</div>
+                                            <div className='font-semibold'>Leaving Reason:</div>
+                                            <div>{formData.reason}</div>
 
-                                        {/* Row 10 */}
-                                        <div className='font-semibold'>Caste:</div>
-                                        <div>{selectedStudentDetails?.studentListById?.[0]?.IMC_CasteName || '-'}</div>
-                                        <div className='font-semibold'>Fee Due:</div>
-                                        <div>{selectedStudentDetails?.studentListById?.[0]?.feetobepaid || 0}</div>
-                                    </div>
-                                    <div className='mt-6 flex justify-end'>
-                                        <Button onClick={() => setOpenPreview(false)}>Close</Button>
+                                            {/* Row 4 */}
+                                            <div className='font-semibold'>Category:</div>
+                                            <div>{studentInfoPreview.amc_name || studentInfoPreview.amC_Name || studentInfoPreview.AMC_Name || studentInfoPreview.asmcC_CategoryName || studentInfoPreview.categoryName || '-'}</div>
+                                            <div className='font-semibold'>TC Date:</div>
+                                            <div>{formData.tc_date}</div>
+
+                                            {/* Row 5 */}
+                                            <div className='font-semibold'>Admission Academic Year:</div>
+                                            <div>{formData.academic_year_join}</div>
+                                            <div className='font-semibold'>Last Date Of Attendance:</div>
+                                            <div>{formData.last_date_attendance}</div>
+
+                                            {/* Row 6 */}
+                                            <div className='font-semibold'>Registration No.:</div>
+                                            <div>{studentInfoPreview.amst_registrationno || studentInfoPreview.amsT_RegistrationNo || '-'}</div>
+                                            <div className='font-semibold'>No. Of School Days:</div>
+                                            <div>{formData.working_days}</div>
+
+                                            {/* Row 7 */}
+                                            <div className='font-semibold'>Date Of Admission:</div>
+                                            <div>
+                                                {studentInfoPreview.AMST_Date || studentInfoPreview.amst_date
+                                                    ? new Date(studentInfoPreview.AMST_Date || studentInfoPreview.amst_date).toLocaleDateString()
+                                                    : '-'}
+                                            </div>
+                                            <div className='font-semibold'>No. Of Attended Days:</div>
+                                            <div>{formData.present_days}</div>
+
+                                            {/* Row 8 */}
+                                            <div className='font-semibold'>Date Of Promotion:</div>
+                                            <div>{formData.promotion_date}</div>
+                                            <div className='font-semibold'>Qualified for which class:</div>
+                                            <div>{formData.qual_class}</div>
+
+                                            {/* Row 9 */}
+                                            <div className='font-semibold'>Last Class Studied:</div>
+                                            <div>{formData.last_class}</div>
+                                            <div className='font-semibold'>Conduct / Character:</div>
+                                            <div>{formData.conduct}</div>
+
+                                            {/* Row 10 */}
+                                            <div className='font-semibold'>Caste:</div>
+                                            <div>{formData.caste || '-'}</div>
+                                            <div className='font-semibold'>Fee Due:</div>
+                                            <div>{studentInfoPreview.feetobepaid || 0}</div>
+                                        </div>
+                                        <div className='mt-6 flex justify-end'>
+                                            <Button onClick={() => setOpenPreview(false)}>Close</Button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            );
+                        })()}
                     </CollapsibleSection>
                 )}
             </div>
