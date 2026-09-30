@@ -65,10 +65,7 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
         amsC_Id: sectionId
     });
 
-    const { data: receiptData, isLoading: loadingReceipts } = useFeeChequeBounceReceipts({
-        ASMAY_Id: asmayId,
-        AMST_Id: studentId
-    });
+    const { data: receiptData, isLoading: loadingReceipts } = useFeeChequeBounceReceipts(studentId, asmayId);
 
     // Reset dependent fields when parents change
     useEffect(() => {
@@ -242,7 +239,7 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
                                     <SelectValue placeholder={loadingReceipts ? 'Loading...' : 'Select Receipt No'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {receiptData?.data?.fillreceipt?.map((rec: any) => (
+                                    {receiptData?.data?.map((rec: any) => (
                                         <SelectItem key={rec.fyP_ID} value={String(rec.fyP_ID)}>
                                             {rec.fyP_Receipt_No}
                                         </SelectItem>
