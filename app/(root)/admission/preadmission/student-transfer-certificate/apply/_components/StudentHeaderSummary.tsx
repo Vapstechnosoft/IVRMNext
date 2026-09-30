@@ -44,7 +44,7 @@ export const StudentHeaderSummary = ({ student }: StudentHeaderSummaryProps) => 
                             value={`${val(student.asmaY_Year_Join || student.asmay_year_join || student.joinedyear || student.joinyear || student.academic_year_join || student.asmaY_Year || student.asmay_year)} / ${val(student.joinclass || student.joinedclass || student.asmcl_classname || student.asmcL_ClassName)}${student.asmc_sectionname || student.asmC_SectionName ? ` / ${val(student.asmc_sectionname || student.asmC_SectionName)}` : ''}`}
                         />
                         <InfoRow label='Father Name' value={student.father || student.amsT_FatherName} />
-                        <InfoRow label='Category' value={student.imc_castename || student.casteName} />
+                        <InfoRow label='Category' value={student.amc_name || student.amC_Name || student.AMC_Name || student.asmcC_CategoryName || student.categoryName} />
                         <InfoRow
                             label='DOB'
                             value={
