@@ -21,46 +21,34 @@ export async function getCollegeFeeWaivedOffAllDetails(searchParams?: ApiSearchp
 }
 
 export async function getCollegeCourses(asmaY_Id: number) {
-    const url = '/CLGFeeOpeningBalanceFacade/get_courses';
-    return await api.post<{ courselist?: ICollegeCourse[] } | ICollegeCourse[]>('fees', url, {
-        ASMAY_Id: asmaY_Id,
-        asmaY_Id: asmaY_Id
-    });
+    const url = `/CommonCollegeFee/getcourses/${asmaY_Id}`;
+    return await api.get<{ courselist?: ICollegeCourse[]; courses?: ICollegeCourse[] } | ICollegeCourse[]>('fees', url);
 }
 
 export async function getCollegeBranches(asmaY_Id: number, amcO_Id: number) {
-    const url = '/CLGFeeOpeningBalanceFacade/get_branches';
+    const url = '/CommonCollegeFee/getbranches';
     return await api.post<{ branchlist?: ICollegeBranch[] } | ICollegeBranch[]>('fees', url, {
-        ASMAY_Id: asmaY_Id,
-        asmaY_Id: asmaY_Id,
-        AMCO_Id: amcO_Id,
-        amcO_Id: amcO_Id
+        asmayId: asmaY_Id,
+        amcoIds: [amcO_Id]
     });
 }
 
 export async function getCollegeSemesters(asmaY_Id: number, amcO_Id: number, amB_Id: number) {
-    const url = '/CLGFeeOpeningBalanceFacade/get_semisters';
+    const url = '/CommonCollegeFee/getsemesters';
     return await api.post<{ semisterlist?: ICollegeSemester[] } | ICollegeSemester[]>('fees', url, {
-        ASMAY_Id: asmaY_Id,
         asmaY_Id: asmaY_Id,
-        AMCO_Id: amcO_Id,
-        amcO_Id: amcO_Id,
-        AMB_Id: amB_Id,
-        amB_Id: amB_Id
+        amcO_Ids: [amcO_Id],
+        amB_Ids: [amB_Id]
     });
 }
 
 export async function getCollegeStudents(asmaY_Id: number, amcO_Id: number, amB_Id: number, amsE_Id: number) {
-    const url = '/CLGFeeWaivedOffFacade/get_students';
+    const url = '/CollegemasterstudentconcessionFacade/get_student';
     return await api.post<{ studentlist?: ICollegeStudent[] } | ICollegeStudent[]>('fees', url, {
-        ASMAY_Id: asmaY_Id,
         asmaY_Id: asmaY_Id,
-        AMCO_Id: amcO_Id,
         amcO_Id: amcO_Id,
-        AMB_Id: amB_Id,
         amB_Id: amB_Id,
-        AMSE_Id: amsE_Id,
-        amsE_Id: amsE_Id
+        amS_Id: [amsE_Id]
     });
 }
 
@@ -81,14 +69,16 @@ export async function getCollegeHeads(payload: {
     filterrefund: string;
     multiplegroup: string;
 }) {
-    const url = '/CLGFeeWaivedOffFacade/get_heads';
-    return await api.post<{ headlist?: ICollegeFeeHeadItem[] } | ICollegeFeeHeadItem[]>('fees', url, {
-        ASMAY_Id: payload.ASMAY_Id,
-        asmaY_Id: payload.ASMAY_Id,
-        AMCST_Id: payload.AMCST_Id,
-        amcsT_Id: payload.AMCST_Id,
-        filterrefund: payload.filterrefund,
-        multiplegroup: payload.multiplegroup
+    const url = '/CommonCollegeFee/getfeeheads';
+    return await api.get<{ headlist?: ICollegeFeeHeadItem[] } | ICollegeFeeHeadItem[]>('fees', url, {
+        params: {
+            ASMAY_Id: payload.ASMAY_Id,
+            asmaY_Id: payload.ASMAY_Id,
+            AMCST_Id: payload.AMCST_Id,
+            amcsT_Id: payload.AMCST_Id,
+            filterrefund: payload.filterrefund,
+            multiplegroup: payload.multiplegroup
+        }
     });
 }
 

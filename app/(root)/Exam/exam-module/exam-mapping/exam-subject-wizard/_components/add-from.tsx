@@ -28,7 +28,11 @@ import {
     getSubjectsByCategory
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
 import { getExamAcademicYearDropdown } from '@/server/exam/exam-module/masters/exam';
-import type { IExamSubjectWizard } from '@/types/exam/exam-module/exam-mapping';
+import {
+    getYearlyCategorySubjectMapping,
+    getYearlyCategorySubjectMappingDetails
+} from '@/server/exam/exam-module/exam-mapping/yearly-category-subject-mapping';
+import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory, IMasterGrade, IMasterSubExam, IMasterSubSubject } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowUpDown, RefreshCw } from 'lucide-react';
@@ -327,12 +331,60 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
         (async () => {
             try {
-                const [subjRes, detailsRes] = await Promise.all([
+                const [subjRes, detailsRes, catMappingRes] = await Promise.all([
                     getSubjectsByCategory(Number(watchCategory)),
-                    rowData?.eycE_Id ? getExamSubjectWizardDetails(Number(rowData.eycE_Id)) : Promise.resolve(null)
+                    rowData?.eycE_Id ? getExamSubjectWizardDetails(Number(rowData.eycE_Id)) : Promise.resolve(null),
+                    getYearlyCategorySubjectMapping({ page: 1, page_size: 100 }).catch(() => null)
                 ]);
 
-                const subj = subjRes?.data;
+                let subj = Array.isArray(subjRes?.data) ? [...subjRes.data] : [];
+
+                // Filter subjects to strictly those mapped under the CURRENT / LATEST active Category Subject Mapping for this category & academic year
+                const catMappings = Array.isArray(catMappingRes?.data)
+                    ? catMappingRes.data
+                    : Array.isArray((catMappingRes as any)?.data?.data)
+                      ? (catMappingRes as any).data.data
+                      : [];
+
+                const activeGroupsForCat = catMappings
+                    .filter((m: any) => {
+                        const eycId = m.eyC_Id ?? m.EYC_Id;
+                        const asmayId = m.asmaY_Id ?? m.ASMAY_Id;
+                        const activeFlg = m.eycG_ActiveFlg ?? m.EYCG_ActiveFlg ?? true;
+                        const isCatMatch = Number(eycId) === Number(watchCategory);
+                        const isYearMatch = watchYear ? Number(asmayId) === Number(watchYear) : true;
+                        return isCatMatch && isYearMatch && Boolean(activeFlg);
+                    })
+                    .sort((a: any, b: any) => {
+                        const idA = Number(a.eycG_Id ?? a.EYCG_Id ?? 0);
+                        const idB = Number(b.eycG_Id ?? b.EYCG_Id ?? 0);
+                        return idB - idA; // latest group first
+                    });
+
+                if (activeGroupsForCat.length > 0) {
+                    try {
+                        // Use the current / latest active category group mapping
+                        const latestGroup = activeGroupsForCat[0];
+                        const eycId = latestGroup.eyC_Id ?? latestGroup.EYC_Id;
+                        const eycgId = latestGroup.eycG_Id ?? latestGroup.EYCG_Id;
+                        const asmayId = latestGroup.asmaY_Id ?? latestGroup.ASMAY_Id ?? Number(watchYear);
+
+                        const gRes = await getYearlyCategorySubjectMappingDetails(Number(eycId), Number(eycgId), Number(asmayId));
+                        const list = Array.isArray(gRes?.data) ? gRes.data : [];
+                        const activeSubjectIds = new Set<number>();
+                        for (const item of list) {
+                            const id = Number(item.ismS_Id ?? item.ISMS_Id);
+                            if (id) activeSubjectIds.add(id);
+                        }
+
+                        if (activeSubjectIds.size > 0) {
+                            subj = subj.filter((s: any) => activeSubjectIds.has(Number(s.ismS_Id ?? s.ISMS_Id)));
+                        }
+                    } catch (detailErr) {
+                        console.warn('Failed to filter by latest group details:', detailErr);
+                    }
+                }
+
                 const formattedSubjects = Array.isArray(subj)
                     ? subj.map((s: any) => ({
                           ismS_Id: s.ismS_Id,

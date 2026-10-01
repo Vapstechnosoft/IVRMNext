@@ -695,37 +695,43 @@ export default function AddNoticeBoardForm({
                             <Controller
                                 control={control}
                                 name='asmcL_Id'
-                                render={({ field }) => (
-                                    <CustomMultiSelectBox
-                                        label='Classes'
-                                        isRequired
-                                        options={(classList || []).map((c: any) => ({
-                                            label: c.asmcL_ClassName || c.asmcl_classname || c.asmcL_className || '',
-                                            value: (c.asmcL_Id || c.asmcl_Id || c.asmcL_id || '').toString()
-                                        }))}
-                                        value={field.value?.map((v) => v.asmcL_Id?.toString()).filter((id): id is string => !!id) || []}
-                                        onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmcL_Id: Number(v) })))}
-                                        isSearchRequired
-                                    />
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-1'>
+                                        <CustomMultiSelectBox
+                                            label='Classes'
+                                            isRequired
+                                            options={(classList || []).map((c: any) => ({
+                                                label: c.asmcL_ClassName || c.asmcl_classname || c.asmcL_className || '',
+                                                value: (c.asmcL_Id || c.asmcl_Id || c.asmcL_id || '').toString()
+                                            }))}
+                                            value={field.value?.map((v) => v.asmcL_Id?.toString()).filter((id): id is string => !!id) || []}
+                                            onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmcL_Id: Number(v) })))}
+                                            isSearchRequired
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
                             <Controller
                                 control={control}
                                 name='asmS_Id'
-                                render={({ field }) => (
-                                    <CustomMultiSelectBox
-                                        label='Sections'
-                                        options={(sections || [])
-                                            .map((s: any) => ({
-                                                label: s.ASMC_SectionName || s.asmC_SectionName || s.asmc_sectionname || '',
-                                                value: (s.ASMS_Id || s.asmS_Id || s.asms_Id || '').toString()
-                                            }))
-                                            .filter((opt) => opt.value)}
-                                        value={field.value?.map((v) => v.asmS_Id?.toString()).filter((id): id is string => !!id) || []}
-                                        onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmS_Id: Number(v) })))}
-                                        isSearchRequired
-                                        disabled={!asmcL_Id?.length}
-                                    />
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-1'>
+                                        <CustomMultiSelectBox
+                                            label='Sections'
+                                            options={(sections || [])
+                                                .map((s: any) => ({
+                                                    label: s.ASMC_SectionName || s.asmC_SectionName || s.asmc_sectionname || '',
+                                                    value: (s.ASMS_Id || s.asmS_Id || s.asms_Id || '').toString()
+                                                }))
+                                                .filter((opt) => opt.value)}
+                                            value={field.value?.map((v) => v.asmS_Id?.toString()).filter((id): id is string => !!id) || []}
+                                            onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmS_Id: Number(v) })))}
+                                            isSearchRequired
+                                            disabled={!asmcL_Id?.length}
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
                             {/* <Controller
@@ -748,29 +754,32 @@ export default function AddNoticeBoardForm({
                             <Controller
                                 control={control}
                                 name='amsT_Id'
-                                render={({ field }) => (
-                                    <CustomMultiSelectBox
-                                        label='Students'
-                                        options={Array.from(
-                                            new Map(
-                                                (students || []).map((s: any) => [
-                                                    (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString(),
-                                                    s
-                                                ])
-                                            ).values()
-                                        )
-                                            .map((s: any) => ({
-                                                label:
-                                                    `${s.studentname || s.AMST_FirstName || s.amsT_FirstName || s.amst_firstname || ''}${s.AMST_AdmNo || s.amst_admno ? ` (${s.AMST_AdmNo || s.amst_admno})` : ''}` ||
-                                                    '',
-                                                value: (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString()
-                                            }))
-                                            .filter((opt) => opt.value)}
-                                        value={field.value?.map((v) => v.amsT_Id?.toString()).filter((id): id is string => !!id) || []}
-                                        onChange={(vals) => field.onChange((vals || []).map((v) => ({ amsT_Id: Number(v) })))}
-                                        isSearchRequired
-                                        disabled={!asmS_Id?.length}
-                                    />
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-1'>
+                                        <CustomMultiSelectBox
+                                            label='Students'
+                                            options={Array.from(
+                                                new Map(
+                                                    (students || []).map((s: any) => [
+                                                        (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString(),
+                                                        s
+                                                    ])
+                                                ).values()
+                                            )
+                                                .map((s: any) => ({
+                                                    label:
+                                                        `${s.studentname || s.AMST_FirstName || s.amsT_FirstName || s.amst_firstname || ''}${s.AMST_AdmNo || s.amst_admno ? ` (${s.AMST_AdmNo || s.amst_admno})` : ''}` ||
+                                                        '',
+                                                    value: (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString()
+                                                }))
+                                                .filter((opt) => opt.value)}
+                                            value={field.value?.map((v) => v.amsT_Id?.toString()).filter((id): id is string => !!id) || []}
+                                            onChange={(vals) => field.onChange((vals || []).map((v) => ({ amsT_Id: Number(v) })))}
+                                            isSearchRequired
+                                            disabled={!asmS_Id?.length}
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
                         </div>

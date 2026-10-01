@@ -17,15 +17,15 @@ export default function PreviewTable({ data, headers, isLoading }: PreviewTableP
         const baseColumns: ColumnDef<any>[] = [
             {
                 accessorKey: 'slno',
-                header: 'SLNO',
-                cell: ({ row }) => row.index + 1
+                header: () => <div className="text-center font-bold">SLNO</div>,
+                cell: ({ row }) => <div className="text-center">{row.index + 1}</div>
             }
         ];
 
         const dynamicColumns: ColumnDef<any>[] = headers.map((header) => ({
             accessorKey: header,
-            header: header,
-            cell: ({ row }) => row.getValue(header) ?? '-'
+            header: () => <div className="text-center font-bold">{header}</div>,
+            cell: ({ row }) => <div className="text-center">{String(row.getValue(header) ?? '-')}</div>
         }));
 
         return [...baseColumns, ...dynamicColumns];

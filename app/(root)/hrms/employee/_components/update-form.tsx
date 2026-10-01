@@ -751,12 +751,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     // Define local mapping helpers that were missing
     const mapFormDataToApiFormatLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
         // Fallback to employeeIdFromDetails if savedEmployeeId is not yet set
-        const empId = savedEmployeeId || 0;
+        const empId = savedEmployeeId || selectedRow?.hrmE_Id || 0;
         return mapFormDataToApiFormat(data, empId, selectedPhoto);
     };
 
     const mapFormDataToApiFormatWithoutAddressLocal = (data: FormFields): SavePersonalDetailsApiRequest => {
-        const empId = savedEmployeeId || 0;
+        const empId = savedEmployeeId || selectedRow?.hrmE_Id || 0;
         return mapFormDataToApiFormatWithoutAddress(data, empId, selectedPhoto);
     };
 
@@ -913,11 +913,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             savePersonalDetails(payload as any, {
                 onSuccess: (response: any) => {
                     console.log('✅ [DEBUG] Tab 1 (Employee Information) - Save Success:', response);
-                    // Show API response message
-                    if (response?.success && response?.message) {
-                        toast.success("Employee Details Saved Successfully.");
-                    } else if (response?.message) {
-                        toast.info(response.message);
+                    if (response?.success === false) {
+                        toast.error(response?.message || 'Failed to save employee details');
+                        return;
+                    }
+                    if (response?.message) {
+                        toast.success(response.message || 'Employee Details Saved Successfully.');
                     }
                     // API returns hrmE_Id (lowercase) in response
                     const employeeId =
@@ -981,40 +982,13 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             savePersonalDetails(payload as any, {
                 onSuccess: (response: any) => {
                     console.log('✅ [DEBUG] Tab 2 (Address Information) - Save Success:', response);
-                    console.log('🔍 [DEBUG] Tab 2 - Full API Response:', JSON.stringify(response, null, 2));
-                    console.log('🔍 [DEBUG] Tab 2 - Response Success:', response?.success);
-                    console.log('🔍 [DEBUG] Tab 2 - Response Message:', response?.message);
-                    console.log('🔍 [DEBUG] Tab 2 - Response Data:', response?.data);
-
-                    // Show API response message
-                    if (response?.success && response?.message) {
-                        toast.success(response.message);
-                    } else if (response?.message) {
-                        toast.info(response.message);
-                    } else if (response?.success === false) {
-                        console.warn('⚠️ [DEBUG] Tab 2 - API returned success: false');
-                        toast.warning('Address saved but API returned success: false. Please verify the data was saved.');
+                    if (response?.success === false) {
+                        toast.error(response?.message || 'Failed to save address details');
+                        return;
                     }
-
-                    // Verify address fields were sent
-                    console.log('🔍 [DEBUG] Tab 2 - Verification - Address fields sent in payload:');
-                    console.log('  Contact:', {
-                        street: payload.employee.hrmE_LocStreet,
-                        area: payload.employee.hrmE_LocArea,
-                        city: payload.employee.hrmE_LocCity,
-                        stateId: payload.employee.hrmE_LocStateId,
-                        countryId: payload.employee.hrmE_LocCountryId,
-                        pincode: payload.employee.hrmE_LocPincode
-                    });
-                    console.log('  Permanent:', {
-                        street: payload.employee.hrmE_PerStreet,
-                        area: payload.employee.hrmE_PerArea,
-                        city: payload.employee.hrmE_PerCity,
-                        stateId: payload.employee.hrmE_PerStateId,
-                        countryId: payload.employee.hrmE_PerCountryId,
-                        pincode: payload.employee.hrmE_PerPincode
-                    });
-
+                    if (response?.message) {
+                        toast.success(response.message);
+                    }
                     setCurrentStep(3);
                 },
                 onError: (error: any) => {
@@ -2196,7 +2170,7 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                    // {...register('lastName')}
+                                                    {...register('lastName')}
                                                     // error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText

@@ -1,6 +1,7 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type {
     ApiResponse,
     EmployeeSalaryAdvanceDetails,
@@ -14,15 +15,21 @@ import type {
  * Get salary advance grid data
  * GET /api/TransHREmpSalaryAdvance/get_salary_advance_grid
  */
-export async function getSalaryAdvanceGrid(pageSize = 100) {
-    const url = `/api/TransHREmpSalaryAdvance/get_salary_advance_grid?page_size=${pageSize}`;
+export async function getSalaryAdvanceGrid(searchParams?: ApiSearchparams | number) {
+    const params = typeof searchParams === 'number' ? { page_size: searchParams } : (searchParams ?? {});
+    const urlParams = getSearchParamsUrl(
+        params as ApiSearchparams,
+        'hrmE_Id,employeeName,hresA_AdvYear,hresA_AdvMonth,hresA_ReferenceNo,hresA_AppliedAmount,hresA_Remarks,hresA_AdvStatus'
+    );
+    const url = `/api/TransHREmpSalaryAdvance/get_salary_advance_grid?${urlParams}`;
     try {
-        return await api.get<ApiResponse<SalaryAdvanceGridItem[]>>('hrms', url);
+        return await api.get<any>('hrms', url);
     } catch (error: any) {
         return {
             success: false,
             message: error?.message || 'Failed to fetch salary advance grid',
-            data: []
+            data: [],
+            total: 0
         };
     }
 }
