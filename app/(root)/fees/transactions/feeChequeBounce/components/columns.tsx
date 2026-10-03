@@ -1,71 +1,83 @@
+// app/fee-preadmission-transaction/_components/columns.tsx
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { Trash2 } from 'lucide-react';
+import { useCallback } from 'react';
 
 export const feeChequeBounceColumns: ColumnDef<any>[] = [
     {
-        accessorKey: 'slno',
-        header: 'SLNO',
-        cell: ({ row }) => row.index + 1
+        accessorKey: 'fcB_Id',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No' className='w-full pl-6' />,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div className='w-full pl-6'>{pageIndex * pageSize + row.index + 1}</div>;
+        },
+        enableSorting: false,
+        enableHiding: false
     },
     {
         accessorKey: 'asmaY_Year',
-        header: 'Academic Year'
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year' />,
+        cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>
     },
     {
-        accessorKey: 'asmaY_From_Date',
-        header: 'From Date',
-        cell: ({ row }) => {
-            const date = row.original.asmaY_From_Date;
-            return date ? format(new Date(date), 'dd-MM-yyyy') : '-';
-        }
-    },
-    {
-        accessorKey: 'asmaY_To_Date',
-        header: 'To Date',
-        cell: ({ row }) => {
-            const date = row.original.asmaY_To_Date;
-            return date ? format(new Date(date), 'dd-MM-yyyy') : '-';
-        }
-    },
-    {
-        accessorKey: 'asmaY_AcademicYearCode',
-        header: 'Year Code'
-    },
-    {
-        accessorKey: 'is_Active',
-        header: 'Status',
+        accessorKey: 'fcB_DATE',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
         cell: ({ row }) => (
-            <span
-                className={`inline-flex items-center rounded-full px-2 py-1 font-medium text-xs ${row.original.is_Active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                {row.original.is_Active ? 'Active' : 'Inactive'}
-            </span>
+            <div>
+                {new Date(row.getValue('fcB_DATE')).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                })}
+            </div>
         )
     },
     {
+        accessorKey: 'aamsT_FirstName',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' />,
+        cell: ({ row }) => {
+            const first = row.original.amsT_FirstName || '';
+            const middle = row.original.amsT_MiddleName || '';
+            const last = row.original.amsT_LastName || '';
+
+            return <div>{`${first} ${middle} ${last}`.trim()}</div>;
+        }
+    },
+
+    {
+        accessorKey: 'fyP_Receipt_No',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Receipt No.' />,
+        cell: ({ row }) => <div>{row.getValue('fyP_Receipt_No')}</div>
+    },
+    {
         id: 'actions',
-        header: 'Action',
-        cell: ({ row }) => <ActionButtons row={row.original} />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
+        accessorFn: (row: any) => row,
+        enableSorting: false,
+        cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
 
-function ActionButtons({ row }: { row: any }) {
-    const { openDeleteForm } = useFormContext<any>();
+function ActionButtonsCell({ rowData }: { rowData: any }) {
+    const { openEditForm, openDeleteForm } = useFormContext<any>();
+
+    const handleEdit = useCallback((data: any) => openEditForm(data), [openEditForm]);
+
+    const handleDelete = useCallback((data: any) => openDeleteForm(data), [openDeleteForm]);
 
     return (
-        <div className='flex items-center justify-center gap-2'>
-            <Button
-                variant='ghost'
-                size='icon'
-                onClick={() => openDeleteForm(row)}
-                className='h-8 w-8 text-destructive hover:bg-destructive/10'
-                title='Delete'>
-                <Trash2 className='h-4 w-4' />
-            </Button>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <ActionButtons
+                rowData={rowData}
+                buttons={{ edit: false, toggle: false, delete: true }}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+            />
         </div>
     );
 }
