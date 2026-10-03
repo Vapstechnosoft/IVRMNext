@@ -4,21 +4,47 @@ import { Button } from '@/components/ui/button';
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
-import { useFeeChequeBounceInitialData } from '@/hooks/fees/useTrasactions';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useFeeChequeBounceAcademicYear, useFeeChequeBounceInitialData } from '@/hooks/fees/useTrasactions';
+import type { IFeeAcademicYearDropdownList } from '@/types/fees/reports/reports';
 import type { IFeeChequeBounceGrid } from '@/types/fees/transactions/feeChequeBounce';
 import { Plus, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useMemo, useState } from 'react';
 import AddFeeChequeBounceForm from './components/add-form';
 import { feeChequeBounceColumns } from './components/columns';
 import DeleteFeeChequeBounceForm from './components/delete-form';
-import SearchFeeChequeBounceForm from './components/search-form';
 
-export default function FeeChequeBouncePage() {
-    const { data: response, isLoading, error } = useFeeChequeBounceInitialData();
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export default function FeeChequeBouncePage(props: { searchParams: SearchParams }) {
+    const searchParams = use(props.searchParams);
+    const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
 
+    const { data: academicYearResponse, isLoading: loadingYears } = useFeeChequeBounceAcademicYear();
+
+    const academicYears = useMemo<IFeeAcademicYearDropdownList[]>(() => {
+        const list = academicYearResponse?.data || [];
+        return Array.isArray(list) ? list : [];
+    }, [academicYearResponse]);
+
+    useEffect(() => {
+        if (!loadingYears && academicYears.length > 0 && selectedAsmayId === null) {
+            setSelectedAsmayId(Number(academicYears[academicYears.length - 1].asmaY_Id));
+        }
+    }, [academicYears, loadingYears, selectedAsmayId]);
+
+    const { data: response, isLoading, error } = useFeeChequeBounceInitialData(searchParams, Number(selectedAsmayId) ?? 0);
     return (
         <FormProvider<IFeeChequeBounceGrid>>
-            <FeeChequeBouncePageContent response={response} isLoading={isLoading} error={error} />
+            <FeeChequeBouncePageContent
+                response={response}
+                isLoading={isLoading}
+                error={error}
+                academicYears={academicYears}
+                loadingYears={loadingYears}
+                selectedAsmayId={selectedAsmayId}
+                setSelectedAsmayId={setSelectedAsmayId}
+            />
         </FormProvider>
     );
 }
@@ -26,37 +52,57 @@ export default function FeeChequeBouncePage() {
 function FeeChequeBouncePageContent({
     response,
     isLoading,
-    error
+    error,
+    academicYears,
+    loadingYears,
+    selectedAsmayId,
+    setSelectedAsmayId
 }: {
     response: any;
     isLoading: boolean;
     error: any;
+    academicYears: any[];
+    loadingYears: boolean;
+    selectedAsmayId: number | null;
+    setSelectedAsmayId: (id: number | null) => void;
 }) {
     const { openAddForm } = useFormContext<IFeeChequeBounceGrid>();
     const [tableData, setTableData] = useState<any[]>([]);
 
     useEffect(() => {
-        // Feed the year array from API response to the grid
-        const yearData = response?.data?.year || response?.year || [];
-        if (Array.isArray(yearData)) {
-            setTableData(yearData);
+        // Feed alldata or year array from API response to the grid
+        const alldata = response?.data || response?.alldata || response?.data?.year || response?.year || [];
+        if (Array.isArray(alldata)) {
+            setTableData(alldata);
         }
     }, [response]);
 
-    const handleSearchResults = (results: any[]) => {
-        setTableData(results);
-    };
-
-    const tableProps = useDataTableProps(tableData);
-
-    // Extract asmayId from the year array in the API response
-    const asmayId = response?.data?.year?.[0]?.asmaY_Id || response?.data?.fillyear?.[0]?.asmaY_Id || 0;
-
+    const tableProps = useDataTableProps(response);
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between'>
-                    <h2 className='font-bold text-2xl tracking-tight'>Fee Cheque Bounce</h2>
+                    <div className='flex items-center gap-4 rounded-lg border bg-white px-4 py-3 shadow-sm'>
+                        <Label className='whitespace-nowrap font-medium text-sm'>
+                            Academic Year <span className='text-red-500'>*</span>
+                        </Label>
+                        <Select
+                            value={selectedAsmayId ? String(selectedAsmayId) : ''}
+                            onValueChange={(v) => setSelectedAsmayId(Number(v))}
+                            disabled={loadingYears}>
+                            <SelectTrigger className='w-64'>
+                                <SelectValue placeholder={loadingYears ? 'Loading...' : 'Select Academic Year'} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {academicYears?.map((yr: any) => (
+                                    <SelectItem key={yr.asmaY_Id} value={String(yr.asmaY_Id)}>
+                                        {yr.asmaY_Year}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
                     <Button
                         type='button'
                         onClick={openAddForm}
@@ -66,9 +112,9 @@ function FeeChequeBouncePageContent({
                     </Button>
                 </div>
 
-                <CollapsibleSection title='Search Records' defaultOpen={false}>
+                {/* <CollapsibleSection title='Search Records' defaultOpen={false}>
                     <SearchFeeChequeBounceForm asmayId={asmayId} onSearchResults={handleSearchResults} />
-                </CollapsibleSection>
+                </CollapsibleSection> */}
 
                 <CollapsibleSection
                     title='Cheque Bounce List'
