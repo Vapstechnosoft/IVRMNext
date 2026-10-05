@@ -407,12 +407,54 @@ export default function FeeInstallemntReport() {
     //     exportToExcelAll(groupedRows, installments, 'Fee Consolidated Report');
     // };
 
+    const selectedCatg = watch('catg');
+    const selectedCon = watch('con');
+    const termwise = watch('termswise');
+    const installmentIds = watch('installmentIds');
+
+    const toggleInstallment = (id: number) => {
+        const current = installmentIds ?? [];
+        const updated = current.includes(id) ? current.filter((x) => x !== id) : [...current, id];
+        setValue('installmentIds', updated, {
+            shouldDirty: true,
+            shouldValidate: true
+        });
+    };
+
+    const selectedInstallmentData = useMemo(
+        () => feeInstallments.filter((inst) => installmentIds?.includes(inst.ftI_Id)),
+        [installmentIds, feeInstallments]
+    );
+
+    const selectedInstallmentDataall = useMemo(
+        () => feeInstallments,
+        [feeInstallments]
+    );
+
+    const effectiveInstallments = useMemo(() => {
+        if (selectedInstallmentData.length > 0) return selectedInstallmentData;
+        if (selectedInstallmentDataall.length > 0) return selectedInstallmentDataall;
+        if (feeInstallments.length > 0) return feeInstallments;
+        const instMap = new Map<number, string>();
+        reportData.forEach((row) => {
+            if (row.installments) {
+                Object.keys(row.installments).forEach((key) => {
+                    const id = Number(key);
+                    if (id && !instMap.has(id)) {
+                        instMap.set(id, row.installments[key]?.installmentName || `Installment ${id}`);
+                    }
+                });
+            }
+        });
+        return Array.from(instMap.entries()).map(([ftI_Id, ftI_Name]) => ({ ftI_Id, ftI_Name }));
+    }, [selectedInstallmentData, selectedInstallmentDataall, feeInstallments, reportData]);
+
     const getColumns = () => {
         // CONSOLIDATE
         if (selectedCatg === 'Consolidate') {
             return [
                 'Sl No',
-                'Terms Name',
+                selectedCon === 'Classwise' ? 'Class Name' : 'Terms Name',
                 'Today Paid Count',
                 'Today Collection',
                 'Still Now Paid Count',
@@ -436,8 +478,8 @@ export default function FeeInstallemntReport() {
             'Concession'
         ];
 
-        selectedInstallmentData.forEach((inst: any) => {
-            const name = inst.ftI_InstallmentName;
+        effectiveInstallments.forEach((inst: any) => {
+            const name = inst.ftI_Name || inst.ftI_InstallmentName || `Installment ${inst.ftI_Id}`;
             cols.push(
                 `${name} Net`,
                 `${name} Paid`,
@@ -460,7 +502,7 @@ export default function FeeInstallemntReport() {
         if (selectedCatg === 'Consolidate') {
             return reportData.map((row: any) => ({
                 'Sl No': row.slNo,
-                'Terms Name': row.termsName,
+                [selectedCon === 'Classwise' ? 'Class Name' : 'Terms Name']: row.termsName,
                 'Today Paid Count': row.todayPaidCount,
                 'Today Collection': row.todayCollection,
                 'Still Now Paid Count': row.stillNowPaidCount,
@@ -475,19 +517,19 @@ export default function FeeInstallemntReport() {
             const data: any = {
                 'Sl No': index + 1,
                 'Student Name': row.studentName,
-                'Admission No': row.admissionNo,
+                'Admission No': row.admissionNo || row.admNo,
                 Class: row.className,
-                Section: row.section,
-                Term: row.term,
-                'Payable Amount': row.payableAmount,
-                'Paid Amount': row.paidAmount,
-                Balance: row.balanceAmount,
-                Concession: row.concessionAmount
+                Section: row.section || row.sectionName,
+                Term: row.term || '',
+                'Payable Amount': row.payableAmount || row.total || 0,
+                'Paid Amount': row.paidAmount || 0,
+                Balance: row.balanceAmount || row.balance || 0,
+                Concession: row.concessionAmount || 0
             };
 
-            selectedInstallmentData.forEach((inst: any) => {
-                const instData = row.installments?.[inst.ftI_Id] || {};
-                const name = inst.ftI_InstallmentName;
+            effectiveInstallments.forEach((inst: any) => {
+                const instData = row.installments?.[inst.ftI_Id] || row.installments?.[String(inst.ftI_Id)] || {};
+                const name = inst.ftI_Name || inst.ftI_InstallmentName || `Installment ${inst.ftI_Id}`;
 
                 data[`${name} Net`] = instData.net || 0;
                 data[`${name} Paid`] = instData.paid || 0;
@@ -515,41 +557,6 @@ export default function FeeInstallemntReport() {
 
         printTableInstallmentReport(columns, rows);
     };
-
-    const selectedCatg = watch('catg');
-
-    const selectedCon = watch('con');
-
-    const termwise = watch('termswise');
-
-    // const toggleInstallment = (id: number) =>
-    //     setFilters((prev) => ({
-    //         ...prev,
-    //         installmentIds: prev.installmentIds.includes(id) ? prev.installmentIds.filter((x) => x !== id) : [...prev.installmentIds, id]
-    //     }));
-
-    const installmentIds = watch('installmentIds');
-
-    const toggleInstallment = (id: number) => {
-        const current = installmentIds ?? [];
-
-        const updated = current.includes(id) ? current.filter((x) => x !== id) : [...current, id];
-
-        setValue('installmentIds', updated, {
-            shouldDirty: true,
-            shouldValidate: true
-        });
-    };
-
-    const selectedInstallmentData = useMemo(
-        () => feeInstallments.filter((inst) => installmentIds?.includes(inst.ftI_Id)),
-        [installmentIds, feeInstallments]
-    );
-
-    const selectedInstallmentDataall = useMemo(
-        () => feeInstallments.filter(() => feeInstallments.map((t) => t.ftI_Id)),
-        [installmentIds, feeInstallments]
-    );
 
     //    const toggleHeads = (id: number) =>
     //         setFilters((prev) => ({
@@ -755,20 +762,32 @@ export default function FeeInstallemntReport() {
                 }
 
                 case 'Class': {
-                    // Set header_list from all installments (arrlstinst1 in AngularJS)
+                    // Set header_list from installments
                     if (termwise !== 1) {
-                        // feeInstallments.forEach((inst) => {
-                        //     header_list.push(inst);
-                        // });
                         feeInstallments.forEach((inst) => {
                             if (installmentIds?.includes(inst.ftI_Id)) {
                                 header_list.push(inst);
                                 albumNameArraygroupids.push({
+                                    columnID: String(inst.ftI_Id),
+                                    columnName: inst.ftI_Name,
                                     ftI_Id: String(inst.ftI_Id),
                                     ftI_Name: inst.ftI_Name
                                 });
                             }
                         });
+
+                        // Fallback to all installments if none specifically selected
+                        if (albumNameArraygroupids.length === 0) {
+                            feeInstallments.forEach((inst) => {
+                                header_list.push(inst);
+                                albumNameArraygroupids.push({
+                                    columnID: String(inst.ftI_Id),
+                                    columnName: inst.ftI_Name,
+                                    ftI_Id: String(inst.ftI_Id),
+                                    ftI_Name: inst.ftI_Name
+                                });
+                            });
+                        }
                     }
 
                     // Get class name
@@ -1010,228 +1029,288 @@ export default function FeeInstallemntReport() {
             // setReportData(transformedData);
 
             const transformReportData = (apiData: any, selectedInstallmentData: any[]) => {
-                if (!apiData || !apiData.data || !apiData.data.list) return [];
+                let parsed: any = apiData;
+                if (typeof apiData === 'string') {
+                    try {
+                        parsed = JSON.parse(apiData);
+                    } catch (e) {
+                        console.error('Failed to parse apiData JSON:', e);
+                    }
+                }
+
+                // Extract list from various possible response structures
+                let list: any[] = [];
+                if (Array.isArray(parsed)) {
+                    list = parsed;
+                } else if (Array.isArray(parsed?.data)) {
+                    list = parsed.data;
+                } else if (Array.isArray(parsed?.data?.list)) {
+                    list = parsed.data.list;
+                } else if (Array.isArray(parsed?.list)) {
+                    list = parsed.list;
+                } else if (Array.isArray(parsed?.data?.reportdatelist)) {
+                    list = parsed.data.reportdatelist;
+                } else if (Array.isArray(parsed?.reportdatelist)) {
+                    list = parsed.reportdatelist;
+                } else if (Array.isArray(parsed?.data?.fillstudent)) {
+                    list = parsed.data.fillstudent;
+                } else if (Array.isArray(parsed?.fillstudent)) {
+                    list = parsed.fillstudent;
+                } else if (Array.isArray(parsed?.data?.studentlist)) {
+                    list = parsed.data.studentlist;
+                } else if (Array.isArray(parsed?.studentlist)) {
+                    list = parsed.studentlist;
+                }
+
+                if (!list || list.length === 0) return [];
 
                 // Group students by ID first
-                const studentsMap: { [key: number]: any } = {};
+                const studentsMap: { [key: string]: any } = {};
 
-                apiData.data.list.forEach((record: any) => {
-                    const studentId = record.amsT_Id;
+                list.forEach((record: any, idx: number) => {
+                    const studentId = String(
+                        record.amsT_Id ??
+                        record.AMST_Id ??
+                        record.amst_Id ??
+                        record.studentId ??
+                        record.amsT_ID ??
+                        `student_${idx}`
+                    );
 
                     if (!studentsMap[studentId]) {
                         studentsMap[studentId] = {
                             ...record,
-                            installments: {} as { [key: number]: any }
+                            id: record.amsT_Id ?? record.AMST_Id ?? record.amst_Id ?? idx + 1,
+                            amsT_Id: record.amsT_Id ?? record.AMST_Id ?? record.amst_Id,
+                            amaY_RollNo: record.amaY_RollNo ?? record.AMAY_RollNo ?? record.rollNo ?? idx + 1,
+                            amsT_FirstName: (
+                                record.amsT_FirstName ??
+                                record.AMST_FirstName ??
+                                record.studentName ??
+                                record.StudentName ??
+                                ''
+                            ).trim(),
+                            amsT_AdmNo: record.amsT_AdmNo ?? record.AMST_AdmNo ?? record.admNo ?? record.AdmNo ?? '',
+                            asmcL_ClassName: record.asmcL_ClassName ?? record.ASMCL_ClassName ?? record.className ?? '',
+                            asmC_SectionName: record.asmC_SectionName ?? record.ASMC_SectionName ?? record.sectionName ?? '',
+                            balance: record.balance ?? record.BALANCE ?? record.balanceAmount ?? 0,
+                            netamount: record.netamount ?? record.NETAMOUNT ?? record.netAmount ?? record.net ?? 0,
+                            installments: {} as { [key: string]: any }
                         };
                     }
 
-                    // Store this installment data
-                    studentsMap[studentId].installments[record.ftI_Id] = {
-                        net: record.netamount || 0,
-                        paid: record.paid || 0,
-                        balance: record.balance || 0,
-                        concession: record.concession || 0,
-                        fine: record.fine || 0,
-                        waiver: record.waivedoff || 0,
-                        opening: 0,
-                        net2: record.netamount || 0,
-                        paid2: record.paid || 0,
-                        balance2: record.balance || 0
+                    const instId = record.ftI_Id ?? record.FTI_Id ?? record.fti_Id ?? record.columnID ?? record.FTI_ID;
+                    const instName = record.ftI_Name ?? record.FTI_Name ?? record.columnName ?? record.ftI_InstallmentName ?? '';
+
+                    const instData = {
+                        net: Number(record.netamount ?? record.netAmount ?? record.NETAMOUNT ?? record.net ?? 0),
+                        paid: Number(record.paid ?? record.PAID ?? record.paidAmount ?? 0),
+                        balance: Number(record.balance ?? record.BALANCE ?? record.balanceAmount ?? 0),
+                        concession: Number(record.concession ?? record.CONCESSION ?? record.concessionAmount ?? 0),
+                        fine: Number(record.fine ?? record.FINE ?? record.fineAmount ?? 0),
+                        waiver: Number(record.waivedoff ?? record.waivedOff ?? record.WAIVEDOFF ?? record.waiver ?? 0),
+                        opening: Number(record.openingBalance ?? record.opening ?? record.OPENING ?? 0),
+                        net2: Number(record.netamount ?? record.netAmount ?? record.NETAMOUNT ?? record.net ?? 0),
+                        paid2: Number(record.paid ?? record.PAID ?? record.paidAmount ?? 0),
+                        balance2: Number(record.balance ?? record.BALANCE ?? record.balanceAmount ?? 0),
+                        installmentName: instName
                     };
+
+                    if (instId !== undefined && instId !== null) {
+                        studentsMap[studentId].installments[String(instId)] = instData;
+                        studentsMap[studentId].installments[Number(instId)] = instData;
+                    }
                 });
 
-                // Get selected installment IDs
-                const selectedInstallmentIds = selectedInstallmentData.map((inst) => inst.ftI_Id);
+                // Determine active installments
+                const effectiveInsts = selectedInstallmentData && selectedInstallmentData.length > 0
+                    ? selectedInstallmentData
+                    : (selectedInstallmentDataall && selectedInstallmentDataall.length > 0
+                        ? selectedInstallmentDataall
+                        : feeInstallments);
 
-                // Convert to array, calculate totals, and filter students
+                // Convert to array and calculate totals
                 const allStudents = Object.values(studentsMap).map((student: any, index: number) => {
                     let totalBalance = 0;
                     let totalAmount = 0;
-                    let hasSelectedInstallmentData = false; // Track if student has data for selected installments
 
-                    const studentRow = {
-                        id: student.amsT_Id || index + 1,
+                    const studentRow: any = {
+                        id: student.amsT_Id || student.id || index + 1,
                         rollNo: student.amaY_RollNo || index + 1,
-                        studentName: (student.amsT_FirstName || '').trim(),
-                        admNo: student.amsT_AdmNo || '',
-                        className: student.asmcL_ClassName || '',
-                        sectionName: student.asmC_SectionName || '',
+                        studentName: (student.amsT_FirstName || student.studentName || '').trim(),
+                        admNo: student.amsT_AdmNo || student.admNo || '',
+                        className: student.asmcL_ClassName || student.className || '',
+                        sectionName: student.asmC_SectionName || student.sectionName || '',
                         balance: 0,
                         total: 0,
-                        installments: {} as { [key: number]: any }
+                        installments: {} as { [key: string]: any }
                     };
 
-                    // Only add data for selected installments
-                    selectedInstallmentData.forEach((inst: any) => {
-                        const instData = student.installments[inst.ftI_Id];
+                    if (effectiveInsts.length > 0) {
+                        effectiveInsts.forEach((inst: any) => {
+                            const keyStr = String(inst.ftI_Id);
+                            const instData = student.installments[keyStr] || student.installments[inst.ftI_Id];
 
-                        if (instData) {
-                            // Student has data for this selected installment
-                            studentRow.installments[inst.ftI_Id] = instData;
-                            totalBalance += instData.balance || 0;
-                            totalAmount += instData.net || 0;
-                            hasSelectedInstallmentData = true; // Mark that student has data
-                        } else {
-                            // Student doesn't have data - show zeros
-                            studentRow.installments[inst.ftI_Id] = {
-                                net: 0,
-                                paid: 0,
-                                balance: 0,
-                                concession: 0,
-                                fine: 0,
-                                waiver: 0,
-                                opening: 0,
-                                net2: 0,
-                                paid2: 0,
-                                balance2: 0
-                            };
-                        }
-                    });
+                            if (instData) {
+                                studentRow.installments[keyStr] = instData;
+                                studentRow.installments[inst.ftI_Id] = instData;
+                                totalBalance += Number(instData.balance || 0);
+                                totalAmount += Number(instData.net || 0);
+                            } else {
+                                const emptyInst = {
+                                    net: 0,
+                                    paid: 0,
+                                    balance: 0,
+                                    concession: 0,
+                                    fine: 0,
+                                    waiver: 0,
+                                    opening: 0,
+                                    net2: 0,
+                                    paid2: 0,
+                                    balance2: 0
+                                };
+                                studentRow.installments[keyStr] = emptyInst;
+                                studentRow.installments[inst.ftI_Id] = emptyInst;
+                            }
+                        });
+                    } else {
+                        // If no installment catalog, retain student's own installments
+                        Object.keys(student.installments).forEach((key) => {
+                            const instData = student.installments[key];
+                            studentRow.installments[key] = instData;
+                            totalBalance += Number(instData.balance || 0);
+                            totalAmount += Number(instData.net || 0);
+                        });
+                    }
 
-                    studentRow.balance = totalBalance;
-                    studentRow.total = totalAmount;
+                    studentRow.balance = totalBalance || student.balance || 0;
+                    studentRow.total = totalAmount || student.netamount || 0;
 
-                    // Add a flag to track if this student should be included
-                    return {
-                        ...studentRow,
-                        _hasSelectedInstallmentData: hasSelectedInstallmentData
-                    };
+                    return studentRow;
                 });
 
-                // Filter out students who don't have any data for selected installments
-                const filteredStudents = allStudents.filter((student) => student._hasSelectedInstallmentData);
-
-                // Remove the temporary flag
-                const finalResult = filteredStudents.map(({ _hasSelectedInstallmentData, ...student }) => student);
-
-                return finalResult;
+                return allStudents;
             };
 
-            // Transform the API data
-            let transformedData: any;
-            //const transformedData = transformReportData(apiData, selectedInstallmentData);
+            // Transform the API data using effective installments
+            const activeInstallments = effectiveInstallments.length > 0 ? effectiveInstallments : feeInstallments;
+            const transformedData = transformReportData(apiData, activeInstallments);
 
-            if (selectedCatg === 'transport') {
-                if (selectedInstallmentData.length === 0) {
-                    transformedData = transformReportData(apiData, selectedInstallmentDataall);
+            let responseJson: any = apiData;
+            if (typeof apiData === 'string') {
+                try {
+                    responseJson = JSON.parse(apiData);
+                } catch (e) {
+                    console.error('Failed to parse apiData JSON:', e);
                 }
-            } else {
-                transformedData = transformReportData(apiData, selectedInstallmentData);
             }
 
-            const responseJson = typeof apiData === 'string' ? JSON.parse(apiData) : apiData;
-
             if (selectedCatg === 'Consolidate') {
-                if (responseJson?.data?.list && Array.isArray(responseJson.data.list)) {
+                let consList: any[] = [];
+                if (Array.isArray(responseJson)) consList = responseJson;
+                else if (Array.isArray(responseJson?.data)) consList = responseJson.data;
+                else if (Array.isArray(responseJson?.data?.list)) consList = responseJson.data.list;
+                else if (Array.isArray(responseJson?.list)) consList = responseJson.list;
+                else if (Array.isArray(responseJson?.data?.reportdatelist)) consList = responseJson.data.reportdatelist;
+                else if (Array.isArray(responseJson?.reportdatelist)) consList = responseJson.reportdatelist;
+
+                if (consList.length > 0) {
                     toast.success('Report generated successfully');
-                    // Create a map to group and sum data by fmT_Id
                     const consolidatedMap = new Map();
 
-                    responseJson.data.list.forEach((item: any) => {
-                        const termId = item.fmT_Id;
+                    consList.forEach((item: any) => {
+                        const isClasswise = data.con === 'Classwise';
+                        const groupKey = isClasswise
+                            ? (item.asmcL_Id ?? item.ASMCL_Id ?? item.className ?? item.asmcL_ClassName ?? item.fmT_Id ?? Math.random())
+                            : (item.fmT_Id ?? item.FMT_Id ?? item.termsName ?? Math.random());
+                        const groupName = isClasswise
+                            ? (item.asmcL_ClassName ?? item.className ?? item.ASMCL_ClassName ?? item.fmT_Name ?? 'Class')
+                            : (item.fmT_Name ?? item.FMT_Name ?? item.termsName ?? 'Term');
 
-                        if (!consolidatedMap.has(termId)) {
-                            // First entry for this term
-                            consolidatedMap.set(termId, {
-                                id: termId,
+                        if (!consolidatedMap.has(groupKey)) {
+                            consolidatedMap.set(groupKey, {
+                                id: groupKey,
                                 slNo: consolidatedMap.size + 1,
-                                termsName: item.fmT_Name,
-                                todayPaidCount: item.todayPaidCount || 0,
-                                todayCollection: item.todayCollection || 0,
-                                stillNowPaidCount: item.tillNowPaidCount || 0,
-                                stillNowCollection: item.tillNowTotalCollection || 0,
-                                totalStrength: item.totalStrength || 0,
+                                termsName: groupName,
+                                todayPaidCount: item.todayPaidCount || item.todaypaidcount || 0,
+                                todayCollection: item.todayCollection || item.todaycollection || 0,
+                                stillNowPaidCount: item.tillNowPaidCount || item.stillNowPaidCount || item.tillnowpaidcount || 0,
+                                stillNowCollection: item.tillNowTotalCollection || item.stillNowCollection || item.tillnowtotalcollection || 0,
+                                totalStrength: item.totalStrength || item.totalstrength || 0,
                                 defaulters: item.defaulters || 0
                             });
                         } else {
-                            // Sum up the existing data
-                            const existing = consolidatedMap.get(termId);
-                            existing.todayPaidCount += item.todayPaidCount || 0;
-                            existing.todayCollection += item.todayCollection || 0;
-                            existing.stillNowPaidCount += item.tillNowPaidCount || 0;
-                            existing.stillNowCollection += item.tillNowTotalCollection || 0;
-                            existing.totalStrength += item.totalStrength || 0;
+                            const existing = consolidatedMap.get(groupKey);
+                            existing.todayPaidCount += item.todayPaidCount || item.todaypaidcount || 0;
+                            existing.todayCollection += item.todayCollection || item.todaycollection || 0;
+                            existing.stillNowPaidCount += item.tillNowPaidCount || item.stillNowPaidCount || item.tillnowpaidcount || 0;
+                            existing.stillNowCollection += item.tillNowTotalCollection || item.stillNowCollection || item.tillnowtotalcollection || 0;
+                            existing.totalStrength += item.totalStrength || item.totalstrength || 0;
                             existing.defaulters += item.defaulters || 0;
                         }
                     });
 
-                    // Convert map to array
                     const consolidatedData = Array.from(consolidatedMap.values());
                     setReportData(consolidatedData);
                     setShowReport(true);
                 } else {
-                    // Fallback to static data
                     setReportData([]);
                     toast.error('No data found');
                 }
-            } else if ((selectedCatg === 'Category' || selectedCatg === 'Class') && !termwise) {
+            } else if ((selectedCatg === 'Category' || selectedCatg === 'Class' || selectedCatg === 'transport' || selectedCatg === 'GroupWise') && !termwise) {
                 if (transformedData != null && transformedData.length > 0) {
                     toast.success('Report generated successfully');
                     setReportData(transformedData);
                     setShowReport(true);
                 } else {
-                    // Fallback to static data
                     setReportData([]);
                     toast.error('No data found');
                 }
-            } else if (selectedCatg === 'Category' && termwise) {
-                const transformReportDatanew = (apiData: any[]) => {
-                    return apiData.map((item, index) => ({
-                        id: index, // Use unique ID
+            } else if ((selectedCatg === 'Category' || selectedCatg === 'Class') && termwise) {
+                const transformReportDatanew = (rawItems: any[]) => {
+                    return rawItems.map((item, index) => ({
+                        id: item.amsT_Id ?? item.AMST_Id ?? index,
                         slNo: index + 1,
-                        studentName: item.studentName || '',
-                        admissionNo: item.admno || '',
-                        className: item.asmcL_ClassName || '',
-                        section: item.asmC_SectionName || '',
-                        term: item.fmT_Name || '',
-                        payableAmount: item.payableAmount || 0,
-                        paidAmount: item.paidAmount || 0,
-                        balanceAmount: item.balance || 0,
-                        adjustedAmount: item.adjustedAmount || 0,
-                        concessionAmount: item.concessionAmount || 0,
-                        waivedAmount: item.waivedAmount || 0,
-                        refundAmount: item.refundAmount || 0
+                        studentName: (item.studentName ?? item.amsT_FirstName ?? item.AMST_FirstName ?? '').trim(),
+                        admissionNo: item.admno ?? item.admNo ?? item.amsT_AdmNo ?? item.AMST_AdmNo ?? '',
+                        className: item.asmcL_ClassName ?? item.ASMCL_ClassName ?? item.className ?? '',
+                        section: item.asmC_SectionName ?? item.ASMC_SectionName ?? item.sectionName ?? '',
+                        term: item.fmT_Name ?? item.FMT_Name ?? item.term ?? '',
+                        payableAmount: item.payableAmount ?? item.netamount ?? item.NETAMOUNT ?? item.net ?? 0,
+                        paidAmount: item.paidAmount ?? item.paid ?? item.PAID ?? 0,
+                        balanceAmount: item.balance ?? item.BALANCE ?? 0,
+                        adjustedAmount: item.adjustedAmount ?? item.adjusted ?? 0,
+                        concessionAmount: item.concessionAmount ?? item.concession ?? item.CONCESSION ?? 0,
+                        waivedAmount: item.waivedAmount ?? item.waivedoff ?? item.WAIVEDOFF ?? 0,
+                        refundAmount: item.refundAmount ?? item.refund ?? 0
                     }));
                 };
                 let dataToTransform: any[] = [];
+                if (Array.isArray(responseJson)) dataToTransform = responseJson;
+                else if (Array.isArray(responseJson?.data)) dataToTransform = responseJson.data;
+                else if (Array.isArray(responseJson?.data?.list)) dataToTransform = responseJson.data.list;
+                else if (Array.isArray(responseJson?.list)) dataToTransform = responseJson.list;
+                else if (Array.isArray(responseJson?.data?.reportdatelist)) dataToTransform = responseJson.data.reportdatelist;
+                else if (Array.isArray(responseJson?.reportdatelist)) dataToTransform = responseJson.reportdatelist;
+                else if (Array.isArray(responseJson?.data?.fillstudent)) dataToTransform = responseJson.data.fillstudent;
+                else if (Array.isArray(responseJson?.fillstudent)) dataToTransform = responseJson.fillstudent;
 
-                if (apiData && (apiData as any).data?.list && Array.isArray((apiData as any).data.list)) {
-                    dataToTransform = (apiData as any).data.list;
-                }
                 const transformedDatanew = transformReportDatanew(dataToTransform);
-                setReportData(transformedDatanew);
-                setShowReport(true);
-
                 if (transformedDatanew != null && transformedDatanew.length > 0) {
                     toast.success('Report generated successfully');
                     setReportData(transformedDatanew);
                     setShowReport(true);
                 } else {
-                    // Fallback to static data
-                    setReportData([]);
-                    toast.error('No data found');
-                }
-            } else if (selectedCatg === 'transport') {
-                if (transformedData != null && transformedData.length > 0) {
-                    toast.success('Report generated successfully');
-                    setReportData(transformedData);
-                    setShowReport(true);
-                } else {
-                    // Fallback to static data
                     setReportData([]);
                     toast.error('No data found');
                 }
             }
-            // For demo, use static data
-            // if (selectedCatg === 'Consolidate') {
-            //     setReportData(staticConsolidateData);
-            // } else {
-            //     setReportData(staticReportData);
-            // }
         } catch (error: any) {
             console.error('Error generating report:', error);
             toast.error(error.message || 'Failed to generate report');
             setShowReport(false);
+        } finally {
+            setReportLoading(false);
         }
 
         // finally {
@@ -2056,24 +2135,29 @@ export default function FeeInstallemntReport() {
                                                                 
                                                             }`} */}
 
-                                                        {['Consolidate', 'Category', 'transport', 'otherCategory'].includes(selectedCatg) &&
+                                                        {['Consolidate', 'Category', 'Class', 'transport', 'otherCategory', 'GroupWise'].includes(selectedCatg) &&
                                                             (selectedCatg === 'Consolidate'
                                                                 ? 'CONSOLIDATE REPORT'
                                                                 : selectedCatg === 'Category'
-                                                                  ? `REPORT FOR ${
-                                                                        categorydropdowndata?.data?.find(
-                                                                            (cat) => cat.fmcC_Id === watch('fmcc_id')
-                                                                        )?.fmcC_ClassCategoryName || ''
-                                                                    }${
-                                                                        watch('sectionId')
-                                                                            ? ` ${
-                                                                                  sections.find((sec) => sec.asmS_Id === watch('sectionId'))
-                                                                                      ?.asmC_SectionName || ''
-                                                                              }`
-                                                                            : ''
+                                                                    ? `REPORT FOR ${categorydropdowndata?.data?.find(
+                                                                        (cat) => cat.fmcC_Id === watch('fmcc_id')
+                                                                    )?.fmcC_ClassCategoryName || ''
+                                                                    }${watch('sectionId')
+                                                                        ? ` ${sections.find((sec) => sec.asmS_Id === watch('sectionId'))
+                                                                            ?.asmC_SectionName || ''
+                                                                        }`
+                                                                        : ''
                                                                     }`
-                                                                  : // Add other header formats for other categories here
-                                                                    `REPORT FOR ${selectedCatg.toUpperCase()}`)}
+                                                                    : selectedCatg === 'Class'
+                                                                        ? `REPORT FOR ${classes.find((cls) => cls.asmcL_Id === watch('classId'))
+                                                                            ?.asmcL_ClassName || 'CLASS'
+                                                                        }${watch('sectionId')
+                                                                            ? ` ${sections.find((sec) => sec.asmS_Id === watch('sectionId'))
+                                                                                ?.asmC_SectionName || ''
+                                                                            }`
+                                                                            : ''
+                                                                        }`
+                                                                        : `REPORT FOR ${selectedCatg.toUpperCase()}`)}
                                                     </h2>
 
                                                     <div className='flex gap-2'>
@@ -2093,9 +2177,9 @@ export default function FeeInstallemntReport() {
 
                                                 {/* Detailed Student Table for Category/Class Wise (Non-Terms Wise) */}
                                                 {showReport &&
-                                                    (selectedCatg === 'Category' || selectedCatg === 'Class') &&
+                                                    (selectedCatg === 'Category' || selectedCatg === 'Class' || selectedCatg === 'GroupWise') &&
                                                     termwise !== 1 &&
-                                                    selectedInstallmentData.length > 0 && (
+                                                    reportData.length > 0 && (
                                                         <div className='overflow-x-auto px-8 pb-8'>
                                                             <table className='w-full border-collapse border border-gray-300 text-sm'>
                                                                 <thead className='bg-primary text-white'>
@@ -2140,17 +2224,17 @@ export default function FeeInstallemntReport() {
                                                                             className='border px-2 py-2 text-center font-semibold'>
                                                                             total
                                                                         </th>
-                                                                        {selectedInstallmentData.map((inst) => (
+                                                                        {effectiveInstallments.map((inst) => (
                                                                             <th
                                                                                 key={inst.ftI_Id}
                                                                                 colSpan={7}
                                                                                 className='border px-2 py-2 text-center font-semibold'>
-                                                                                {inst.ftI_Name}
+                                                                                {inst.ftI_Name || `Installment ${inst.ftI_Id}`}
                                                                             </th>
                                                                         ))}
                                                                     </tr>
                                                                     <tr>
-                                                                        {selectedInstallmentData.map((inst) => (
+                                                                        {effectiveInstallments.map((inst) => (
                                                                             <React.Fragment key={`${inst.ftI_Id}-sub`}>
                                                                                 <th className='border px-2 py-2 text-center font-semibold'>
                                                                                     NetAmount
@@ -2173,15 +2257,6 @@ export default function FeeInstallemntReport() {
                                                                                 <th className='border px-2 py-2 text-center font-semibold'>
                                                                                     OpeningBalance
                                                                                 </th>
-                                                                                {/* <th className='border px-2 py-2 text-center font-semibold'>
-                                                                                    Net
-                                                                                </th>
-                                                                                <th className='border px-2 py-2 text-center font-semibold'>
-                                                                                    Paid
-                                                                                </th>
-                                                                                <th className='border px-2 py-2 text-center font-semibold'>
-                                                                                    Balance
-                                                                                </th> */}
                                                                             </React.Fragment>
                                                                         ))}
                                                                     </tr>
@@ -2209,8 +2284,8 @@ export default function FeeInstallemntReport() {
                                                                             <td className='border px-2 py-2 text-right'>
                                                                                 {row.total?.toLocaleString() || '-'}
                                                                             </td>
-                                                                            {selectedInstallmentData.map((inst) => {
-                                                                                const instData = row.installments?.[inst.ftI_Id];
+                                                                            {effectiveInstallments.map((inst) => {
+                                                                                const instData = row.installments?.[inst.ftI_Id] || row.installments?.[String(inst.ftI_Id)];
                                                                                 return (
                                                                                     <React.Fragment key={`${row.id}-${inst.ftI_Id}`}>
                                                                                         <td className='border px-2 py-2 text-right'>
@@ -2234,15 +2309,6 @@ export default function FeeInstallemntReport() {
                                                                                         <td className='border px-2 py-2 text-right'>
                                                                                             {instData?.opening?.toLocaleString() || '-'}
                                                                                         </td>
-                                                                                        {/* <td className='border px-2 py-2 text-right'>
-                                                                                            {instData?.net2?.toLocaleString() || '-'}
-                                                                                        </td>
-                                                                                        <td className='border px-2 py-2 text-right'>
-                                                                                            {instData?.paid2?.toLocaleString() || '-'}
-                                                                                        </td>
-                                                                                        <td className='border px-2 py-2 text-right'>
-                                                                                            {instData?.balance2?.toLocaleString() || '-'}
-                                                                                        </td> */}
                                                                                     </React.Fragment>
                                                                                 );
                                                                             })}
@@ -2450,7 +2516,7 @@ export default function FeeInstallemntReport() {
                                                     </div>
                                                 )}
 
-                                                {showReport && selectedCatg === 'Category' && termwise && (
+                                                {showReport && (selectedCatg === 'Category' || selectedCatg === 'Class') && termwise && (
                                                     <div className='mt-8 overflow-hidden rounded-lg border bg-white shadow-lg'>
                                                         <div className='overflow-x-auto pb-8'>
                                                             <table
