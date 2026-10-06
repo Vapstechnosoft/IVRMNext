@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, Plus, Printer, Search, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
@@ -35,6 +35,12 @@ export default function SchoolTpinGeneration() {
 
     const [isGeneratedModalOpen, setIsGeneratedModalOpen] = useState(false);
     const [isNotGeneratedModalOpen, setIsNotGeneratedModalOpen] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
+    const [logoUrl, setLogoUrl] = useState<string>('/images/Clients/Hutchings/ProgressReports/hhlogo.png');
+
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
 
     const printRef = useRef<HTMLDivElement>(null);
 
@@ -43,8 +49,8 @@ export default function SchoolTpinGeneration() {
     const academicYears: any[] = Array.isArray(initialDetails?.data)
         ? initialDetails.data
         : Array.isArray(initialDetails?.getyearlist)
-          ? initialDetails.getyearlist
-          : [];
+            ? initialDetails.getyearlist
+            : [];
 
     const searchMutation = useSearchSchoolTpinGenerationMutation();
     const generateMutation = useGenerateSchoolTpinMutation();
@@ -69,6 +75,12 @@ export default function SchoolTpinGeneration() {
                     let notGen: any[] = [];
                     let gen: any[] = [];
                     const responseData = res?.data || res;
+
+                    if (responseData?.masterCompany && responseData.masterCompany.length > 0 && responseData.masterCompany[0].logo) {
+                        setLogoUrl(responseData.masterCompany[0].logo);
+                    } else {
+                        setLogoUrl('/images/Clients/Hutchings/ProgressReports/hhlogo.png');
+                    }
 
                     if (responseData?.studentList || responseData?.studentList1) {
                         const allStudents = [...(responseData.studentList || []), ...(responseData.studentList1 || [])];
@@ -194,22 +206,26 @@ export default function SchoolTpinGeneration() {
             cell: (info: any) => <div className='text-center'>{info.row.index + 1}</div>
         },
         {
-            accessorKey: 'studentname',
+            id: 'studentname',
+            accessorFn: (row: any) => row.studentname || row.studentName || row.StudentName || row.amsT_FirstName || row.AMST_FirstName,
             header: () => <div className='text-center font-bold text-black'>Student Name</div>,
             cell: (info: any) => <div className='text-center'>{info.getValue()}</div>
         },
         {
-            accessorKey: 'admno',
+            id: 'admno',
+            accessorFn: (row: any) => row.admno || row.admNo || row.AdmNo || row.amsT_AdmNo || row.AMST_AdmNo,
             header: () => <div className='text-center font-bold text-black'>Admno</div>,
             cell: (info: any) => <div className='text-center'>{info.getValue()}</div>
         },
         {
-            accessorKey: 'classname',
+            id: 'classname',
+            accessorFn: (row: any) => row.classname || row.className || row.ClassName || row.asmcL_ClassName || row.ASMCL_ClassName,
             header: () => <div className='text-center font-bold text-black'>Class</div>,
             cell: (info: any) => <div className='text-center'>{info.getValue()}</div>
         },
         {
-            accessorKey: 'sectionname',
+            id: 'sectionname',
+            accessorFn: (row: any) => row.sectionname || row.sectionName || row.SectionName || row.asmC_SectionName || row.ASMC_SectionName,
             header: () => <div className='text-center font-bold text-black'>Section</div>,
             cell: (info: any) => <div className='text-center'>{info.getValue()}</div>
         }
@@ -218,7 +234,8 @@ export default function SchoolTpinGeneration() {
     const generatedStudentColumns = [
         ...studentColumns,
         {
-            accessorKey: 'tpin',
+            id: 'tpin',
+            accessorFn: (row: any) => row.tpin || row.Tpin || row.TPIN || row.amsT_TPIN || row.AMST_TPIN,
             header: () => <div className='text-center font-bold text-black'>Tpin</div>,
             cell: (info: any) => <div className='text-center'>{info.getValue()}</div>
         }
@@ -297,6 +314,7 @@ export default function SchoolTpinGeneration() {
                         <GenericDataTable
                             data={reportData}
                             columns={mainColumns}
+                            totalItems={reportData.length}
                             isLoading={searchMutation.isPending}
                             isPaginationRequired={true}
                             isSearchRequired={true}
@@ -318,6 +336,7 @@ export default function SchoolTpinGeneration() {
                         <GenericDataTable
                             data={notGeneratedList}
                             columns={studentColumns}
+                            totalItems={notGeneratedList.length}
                             isLoading={false}
                             isPaginationRequired={true}
                             isSearchRequired={true}
@@ -346,10 +365,13 @@ export default function SchoolTpinGeneration() {
                     <DialogHeader>
                         <DialogTitle>Tpin Generated Students List</DialogTitle>
                     </DialogHeader>
+
+                    {/* SCREEN VERSION ONLY IN DIALOG */}
                     <div className='mt-4'>
                         <GenericDataTable
                             data={generatedList}
                             columns={generatedStudentColumns}
+                            totalItems={generatedList.length}
                             isLoading={false}
                             isPaginationRequired={true}
                             isSearchRequired={true}
@@ -358,6 +380,7 @@ export default function SchoolTpinGeneration() {
                             manualFiltering={false}
                         />
                     </div>
+                    
                     <DialogFooter className='mt-4 flex gap-2'>
                         <Button variant='outline' onClick={() => setIsGeneratedModalOpen(false)}>
                             Close
@@ -369,33 +392,53 @@ export default function SchoolTpinGeneration() {
                 </DialogContent>
             </Dialog>
 
-            {/* Print Section */}
+            {/* Print Layout */}
             <div className='hidden'>
-                <div ref={printRef} className='p-8 font-sans'>
+                <div ref={printRef} className='p-8'>
                     <div className='mb-6 text-center'>
-                        <h4 className='font-bold text-xl'>Tpin Generated Student List</h4>
-                        <p className='text-md'>Academic Year: {selectedYearName}</p>
+                        <div className='mb-4 flex items-center justify-center gap-4'>
+                            <img 
+                                src={logoUrl}
+                                alt='School Logo' 
+                                className='h-[80px] w-auto'
+                                onError={(e) => {
+                                    e.currentTarget.src = '/assets/tunbridge_logo.png';
+                                }}
+                            />
+                            <div>
+                                <h1
+                                    className='text-[32px] font-bold text-[#1a365d] leading-tight'
+                                    style={{
+                                        fontFamily: "'Monotype Corsiva', 'Apple Chancery', cursive, serif"
+                                    }}>
+                                    Hutchings High School & Junior College
+                                </h1>
+                                <p className='mt-1 text-sm'>7, Phayre Road, Pune - 411 040</p>
+                                <p className='text-sm'>Telephone : 020 - 26353892</p>
+                            </div>
+                        </div>
+                        <h2 className='mb-2 font-bold text-xl uppercase'>Tpin Generated Student List</h2>
                     </div>
                     <table className='mt-4 w-full border-collapse border border-gray-300 text-sm'>
                         <thead>
                             <tr className='bg-gray-100'>
-                                <th className='border border-gray-300 p-2 text-center'>SLNO</th>
+                                <th className='border border-gray-300 p-2 text-center'>Sl.No</th>
                                 <th className='border border-gray-300 p-2 text-left'>Student Name</th>
                                 <th className='border border-gray-300 p-2 text-left'>Admno</th>
-                                <th className='border border-gray-300 p-2 text-left'>Class</th>
+                                <th className='border border-gray-300 p-2 text-center'>Class</th>
                                 <th className='border border-gray-300 p-2 text-left'>Section</th>
-                                <th className='border border-gray-300 p-2 text-left'>Tpin</th>
+                                <th className='border border-gray-300 p-2 text-center'>Tpin</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {generatedList.map((user, index) => (
+                            {(Array.isArray(generatedList) ? generatedList : []).map((user, index) => (
                                 <tr key={index}>
                                     <td className='border border-gray-300 p-2 text-center'>{index + 1}</td>
-                                    <td className='border border-gray-300 p-2 text-left'>{user.studentname}</td>
-                                    <td className='border border-gray-300 p-2 text-left'>{user.admno}</td>
-                                    <td className='border border-gray-300 p-2 text-left'>{user.classname}</td>
-                                    <td className='border border-gray-300 p-2 text-left'>{user.sectionname}</td>
-                                    <td className='border border-gray-300 p-2 text-left'>{user.tpin}</td>
+                                    <td className='border border-gray-300 p-2 text-left'>{user.studentname || user.studentName || user.StudentName || user.amsT_FirstName || user.AMST_FirstName}</td>
+                                    <td className='border border-gray-300 p-2 text-left'>{user.admno || user.admNo || user.AdmNo || user.amsT_AdmNo || user.AMST_AdmNo}</td>
+                                    <td className='border border-gray-300 p-2 text-center'>{user.classname || user.className || user.ClassName || user.asmcL_ClassName || user.ASMCL_ClassName}</td>
+                                    <td className='border border-gray-300 p-2 text-left'>{user.sectionname || user.sectionName || user.SectionName || user.asmC_SectionName || user.ASMC_SectionName}</td>
+                                    <td className='border border-gray-300 p-2 text-center'>{user.tpin || user.Tpin || user.TPIN || user.amsT_TPIN || user.AMST_TPIN}</td>
                                 </tr>
                             ))}
                         </tbody>

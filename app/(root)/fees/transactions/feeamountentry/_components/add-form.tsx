@@ -132,7 +132,7 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                         const details = Array.isArray(response.data) ? response.data : [response.data];
                         const normalizedDetails = details.map((item: any) => ({
                             ...item,
-                            fmA_Amount: item.fmA_Amount === 0 || item.fmA_Amount === '0' ? '' : (item.fmA_Amount ?? '')
+                            fmA_Amount: item.fmA_Amount === '0' ? '' : (item.fmA_Amount ?? '')
                         }));
                         setFeeGridData(normalizedDetails);
 
@@ -254,7 +254,12 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
     // 🔹 Submit Handler
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         const invalidRows = feeGridData.filter(
-            (item) => item.fmA_Amount === undefined || item.fmA_Amount === null || item.fmA_Amount === '' || isNaN(Number(item.fmA_Amount)) || Number(item.fmA_Amount) < 0
+            (item) =>
+                item.fmA_Amount === undefined ||
+                item.fmA_Amount === null ||
+                item.fmA_Amount === '' ||
+                Number.isNaN(Number(item.fmA_Amount)) ||
+                Number(item.fmA_Amount) < 0
         );
 
         if (invalidRows.length > 0) {
@@ -493,7 +498,9 @@ export default function AddAmountEntryForm({ onSuccess, headname = '' }: AddAmou
                                             <InputText
                                                 type='text'
                                                 inputMode='numeric' // brings up number keyboard on mobile
-                                                value={row.fmA_Amount !== undefined && row.fmA_Amount !== null ? String(row.fmA_Amount) : ''}
+                                                value={
+                                                    row.fmA_Amount !== undefined && row.fmA_Amount !== null ? String(row.fmA_Amount) : ''
+                                                }
                                                 onChange={(e) => {
                                                     const value = e.target.value.trim();
 

@@ -10,7 +10,7 @@ export async function getInitialData(pageId = 2) {
 
 export async function getAlumniMembershipInitialData(flag: boolean) {
     const url = `/AlumniMembership/get_intial_data?flag=${flag}`;
-    return await api.get<{ success: boolean; data: IAlumnusInitialData; message: string }>('alumni', url);
+    return await api.get<{ success: boolean; data: IAlumnusInitialData[]; message: string }>('alumni', url);
 }
 
 export async function getStudentList(asmaY_Id: number) {

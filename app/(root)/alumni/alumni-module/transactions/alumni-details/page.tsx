@@ -7,7 +7,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
 import { getAlumniMembershipInitialData, getAlumniStudentData, getStudentList } from '@/server/alumni/alumni-membership';
-import type { IAlumniStudentDetail, IClass, ICountry, IDistrict, IMemberCategory, IState, IYear } from '@/types/alumni/alumni-membership';
+import type { IAlumniDetailObject, IAlumniStudentDetail, IClass, ICountry, IDistrict, IMemberCategory, IState, IYear } from '@/types/alumni/alumni-membership';
 import { Loader2, Plus, Search, XCircle } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -36,20 +36,59 @@ export default function AlumnusMembershipPage() {
         setInitialLoading(true);
         const res = await getAlumniMembershipInitialData(true);
         if (res.success) {
-            const data = Array.isArray((res as any).data) ? (res as any).data[0] : (res as any).data;
+            const data = Array.isArray(res.data) ? res.data[0] : res.data;
             setYears(data.fillyear || []);
             setClasses(data.fillclass || []);
             setCategories(data.membercategory || []);
             setCountries(data.countryDrpDown || []);
             setStates(data.statedropdown || []);
             setDistricts(data.districtdropdown || []);
-            setAlumniList(data.alumnilist || data.alumnilistnew || data.studentDetails || []);
             setIsAdmin(!data.alumnitrue);
+
+            // Map retObject1 (all alumni) to the IAlumniStudentDetail shape used by the table
+            if (data.retObject1 && data.retObject1.length > 0) {
+                const mapped: IAlumniStudentDetail[] = data.retObject1.map((item: IAlumniDetailObject) => {
+                    const stateName = item.city ? item.city.split(':')[0] : undefined;
+                    const cityName = item.almst_concity || (item.city && item.city.includes(':') ? item.city.split(':')[1] : undefined);
+                    return {
+                        mI_Id: 0,
+                        almsT_Id: item.almst_id,
+                        almsT_FirstName: item.studentname,
+                        almsT_AdmNo: item.almst_admno || '',
+                        almsT_DOB: item.almst_dob || '',
+                        almsT_MobileNo: item.almst_mobileno ? Number(item.almst_mobileno) : 0,
+                        almsT_emailId: item.almst_emailid || '',
+                        almsT_FatherName: item.almst_fathername || '',
+                        almsT_ConCity: cityName || '',
+                        almsT_BloodGroup: item.almst_bloodgroup || '',
+                        almsT_ActiveFlag: item.almst_activeflag,
+                        city: item.city || undefined,
+                        ivrmmS_Name: stateName || undefined,
+                        asmaY_Id_Join: item.asmay_id_join,
+                        asmaY_Id_Left: item.asmay_id_left,
+                        asmcL_Id_Join: item.asmcl_id_join,
+                        asmcL_Id_Left: item.asmcl_id_left,
+                        asmaY_Year_Join: item.joinyear,
+                        asmaY_Year_Left: item.leftyear,
+                        asmcL_ClassName_Join: item.asmcl_classname,
+                        asmcL_ClassName_Left: item.leftclass,
+                        joinyear: item.joinyear,
+                        leftyear: item.leftyear,
+                        asmcl_classname: item.asmcl_classname,
+                        leftclass: item.leftclass,
+                    };
+                });
+                setAlumniList(mapped);
+            } else {
+                // Fallback to legacy field names
+                setAlumniList(data.alumnilist || data.alumnilistnew || (data.studentDetails as IAlumniStudentDetail[]) || []);
+            }
         } else {
             toast.error(res.message || 'Failed to load initial data');
         }
         setInitialLoading(false);
     }, []);
+
 
     useEffect(() => {
         fetchInitial();
@@ -64,13 +103,14 @@ export default function AlumnusMembershipPage() {
         setStudentListLoading(true);
         const res = await getStudentList(Number.parseInt(yearId));
         if (res.success) {
-            // Handle various backend response structures
             if (Array.isArray(res.data)) {
                 setStudentList(res.data);
             } else if (res.data && typeof res.data === 'object') {
                 const data = res.data;
-                const list = data.fillstudent || data.stu_name || data.studentDetails || [];
-                setStudentList(Array.isArray(list) ? list : []);
+                const fillstudent = Array.isArray(data.fillstudent) ? data.fillstudent : [];
+                const stuName = Array.isArray(data.stu_name) ? data.stu_name : [];
+                const studentDetails = Array.isArray(data.studentDetails) ? data.studentDetails : [];
+                setStudentList([...fillstudent, ...stuName, ...studentDetails]);
             } else {
                 setStudentList([]);
             }
@@ -200,8 +240,8 @@ function PageContent({
             const fatherName = (item.almsT_FatherName || '').toLowerCase();
             const mobile = (item.almsT_MobileNo || '').toString();
             const email = (item.almsT_emailId || '').toLowerCase();
-            const leftYear = (item.asmaY_Year_Left || item.asmaY_Year || '').toString();
-            const leftClass = (item.asmcL_ClassName_Left || item.asmcL_ClassName || '').toLowerCase();
+            const leftYear = (item.asmaY_Year_Left || item.leftyear || item.yearleft || item.asmaY_Year || '').toString();
+            const leftClass = (item.asmcL_ClassName_Left || item.leftclass || item.classnameleft || item.asmcL_ClassName || '').toLowerCase();
 
             return (
                 name.includes(filters.name.toLowerCase()) &&
@@ -236,6 +276,7 @@ function PageContent({
                     <CollapsibleSection
                         title={isEditFormOpen ? 'Edit Alumnus' : 'Add New Alumnus'}
                         defaultOpen={true}
+                        isOpen={true}
                         variant='outline'
                         className='shadow-lg'>
                         <div className='relative'>
@@ -449,6 +490,9 @@ function PageContent({
                             isLoading={false}
                             totalItems={filteredAlumniList.length}
                             columnPinning={{ right: ['actions'] }}
+                            manualPagination={false}
+                            manualSorting={false}
+                            manualFiltering={false}
                         />
                     </CollapsibleSection>
                 </div>

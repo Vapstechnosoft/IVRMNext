@@ -12,8 +12,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
-import { Loader2, Search, Save, X } from 'lucide-react';
-import { getCourses, getBranches, getSemesters, getSubjects, saveData } from '@/server/college/CollegeAdmission/Transactions/attendance-subject-maxperiod';
+import { Loader2, Search, Save, X, Trash2, Eye, Power } from 'lucide-react';
+import { getCourses, getBranches, getSemesters, getSubjects, saveData, deleteData, getModalDetails, deactivateData } from '@/server/college/CollegeAdmission/Transactions/attendance-subject-maxperiod';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const filterSchema = z.object({
     academicYear: z.string().min(1, 'Academic Year is required'),
@@ -42,6 +43,10 @@ export const AttendanceSubjectMaxPeriodWrapper = ({ initialData }: AttendanceSub
     const [allDetails, setAllDetails] = useState<any[]>(initialData?.alldetails || []);
     const [selectAll, setSelectAll] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    
+    // Modal State
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalData, setModalData] = useState<any[]>([]);
 
     const form = useForm<z.infer<typeof filterSchema>>({
         resolver: zodResolver(filterSchema),
@@ -194,16 +199,16 @@ export const AttendanceSubjectMaxPeriodWrapper = ({ initialData }: AttendanceSub
         }
 
         const subData = selectedSubjects.map(s => ({
-            ISMS_Id: s.ismS_Id,
-            ACASMP_MaxPeriod: Number(s.maxPeriod)
+            ismS_Id: s.ismS_Id,
+            acasmP_MaxPeriod: Number(s.maxPeriod)
         }));
 
         const data = {
-            ASMAY_Id: Number(values.academicYear),
-            AMCO_Id: Number(values.course),
-            AMB_Id: Number(values.branch),
-            AMSE_Id: Number(values.semester),
-            ACMS_Id: Number(values.section),
+            asmaY_Id: Number(values.academicYear),
+            amcO_Id: Number(values.course),
+            amB_Id: Number(values.branch),
+            amsE_Id: Number(values.semester),
+            acmS_Id: Number(values.section),
             sub_data: subData
         };
 
@@ -214,6 +219,53 @@ export const AttendanceSubjectMaxPeriodWrapper = ({ initialData }: AttendanceSub
             handleClear();
         } else {
             toast.error('Failed to Save/Update Record');
+        }
+        setIsLoading(false);
+    };
+
+    const handleDelete = async (id: number) => {
+        if (!confirm('Are you sure you want to delete this record?')) return;
+        setIsLoading(true);
+        const res = await deleteData(id);
+        if (res?.data?.returnval) {
+            toast.success('Record Deleted Successfully');
+            setAllDetails(allDetails.filter(d => d.acasmP_Id !== id));
+        } else {
+            toast.error('Failed to Delete Record');
+        }
+        setIsLoading(false);
+    };
+
+    const handleView = async (item: any) => {
+        setIsLoading(true);
+        const res = await getModalDetails(
+            item.asmaY_Id,
+            item.amcO_Id,
+            item.amB_Id,
+            item.amsE_Id,
+            item.acmS_Id
+        );
+        if (res?.data?.showmodaldetails) {
+            setModalData(res.data.showmodaldetails);
+            setIsModalOpen(true);
+        } else {
+            toast.error('Failed to fetch modal details or no details found.');
+        }
+        setIsLoading(false);
+    };
+
+    const handleDeactivate = async (id: number, currentStatus: boolean) => {
+        const action = currentStatus ? 'Deactivate' : 'Activate';
+        if (!confirm(`Are you sure you want to ${action} this record?`)) return;
+        setIsLoading(true);
+        const res = await deactivateData(id);
+        if (res?.data?.returnval) {
+            toast.success(`Record ${action}d Successfully`);
+            setAllDetails(allDetails.map(d => 
+                d.acasmP_Id === id ? { ...d, acasmP_ActiveFlag: !currentStatus } : d
+            ));
+        } else {
+            toast.error(`Failed to ${action} Record`);
         }
         setIsLoading(false);
     };
@@ -474,6 +526,8 @@ export const AttendanceSubjectMaxPeriodWrapper = ({ initialData }: AttendanceSub
                                         <TableHead>Section</TableHead>
                                         <TableHead>Subject</TableHead>
                                         <TableHead>Max Period</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -486,6 +540,47 @@ export const AttendanceSubjectMaxPeriodWrapper = ({ initialData }: AttendanceSub
                                             <TableCell>{item.acmS_SectionName}</TableCell>
                                             <TableCell>{item.ismS_SubjectName}</TableCell>
                                             <TableCell>{item.acasmP_MaxPeriod}</TableCell>
+                                            <TableCell>
+                                                {item.acasmP_ActiveFlag ? (
+                                                    <span className="text-green-600 font-medium">Active</span>
+                                                ) : (
+                                                    <span className="text-red-600 font-medium">Inactive</span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon" 
+                                                        onClick={() => handleView(item)}
+                                                        disabled={isLoading}
+                                                        className="text-primary hover:bg-primary/10"
+                                                        title="View Details"
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon" 
+                                                        onClick={() => handleDeactivate(item.acasmP_Id, item.acasmP_ActiveFlag)}
+                                                        disabled={isLoading}
+                                                        className={item.acasmP_ActiveFlag ? "text-amber-600 hover:bg-amber-600/10" : "text-green-600 hover:bg-green-600/10"}
+                                                        title={item.acasmP_ActiveFlag ? "Deactivate" : "Activate"}
+                                                    >
+                                                        <Power className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon" 
+                                                        onClick={() => handleDelete(item.acasmP_Id)}
+                                                        disabled={isLoading}
+                                                        className="text-destructive hover:bg-destructive/10"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -494,6 +589,42 @@ export const AttendanceSubjectMaxPeriodWrapper = ({ initialData }: AttendanceSub
                     </CardContent>
                 </Card>
             )}
+
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Subject Max-Period Details</DialogTitle>
+                    </DialogHeader>
+                    <div className="mt-4">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>SL.No.</TableHead>
+                                    <TableHead>Course</TableHead>
+                                    <TableHead>Branch</TableHead>
+                                    <TableHead>Semester</TableHead>
+                                    <TableHead>Section</TableHead>
+                                    <TableHead>Subject</TableHead>
+                                    <TableHead>Max Period</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {modalData.map((item, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{index + 1}</TableCell>
+                                        <TableCell>{item.amcO_CourseName}</TableCell>
+                                        <TableCell>{item.amB_BranchName}</TableCell>
+                                        <TableCell>{item.amsE_SEMName}</TableCell>
+                                        <TableCell>{item.acmS_SectionName}</TableCell>
+                                        <TableCell>{item.ismS_SubjectName}</TableCell>
+                                        <TableCell>{item.acasmP_MaxPeriod}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
