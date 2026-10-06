@@ -330,6 +330,15 @@ export default function AddCollegeFeeOpeningBalanceForm({ onSuccess, pageData, c
             return;
         }
 
+        const hasInvalidAmount = selectedStudents.some(
+            (stu) => (Number(stu.FCMOB_Student_Due) || 0) <= 0 && (Number(stu.FCMOB_Institution_Due) || 0) <= 0
+        );
+
+        if (hasInvalidAmount) {
+            toast.error('Please enter Student Due or Institution Due amount for all selected students!');
+            return;
+        }
+
         try {
             setIsSaving(true);
             const payload: ICollegeFeeOpeningBalanceSavePayload = {

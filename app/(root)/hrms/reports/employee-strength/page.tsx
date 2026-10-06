@@ -109,6 +109,8 @@ function EmployeeStrengthReportContent() {
     const handleExport = () => {
         const dataForExport =
             reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : []);
+        const { totalLeftEmployees, totalWorkingEmployees } = reportData;
+        const total = totalLeftEmployees + totalWorkingEmployees;
         if (!dataForExport || dataForExport.length === 0) {
             toast.error('No data to export');
             return;
@@ -126,6 +128,27 @@ function EmployeeStrengthReportContent() {
             ...row,
             slNo: index + 1
         }));
+        // Add summary rows after existing content
+        processedContent.push(
+            {
+                slNo: '',
+                groupTypeName: 'Total',
+                designationName: '',
+                totalEmployees: total ?? 0
+            },
+            {
+                slNo: '',
+                groupTypeName: 'Total Working Employees',
+                designationName: '',
+                totalEmployees: totalWorkingEmployees ?? 0
+            },
+            {
+                slNo: '',
+                groupTypeName: 'Total Left Employees',
+                designationName: '',
+                totalEmployees: totalLeftEmployees ?? 0
+            }
+        );
 
         exportToExcel('EmployeeStrengthReport', JSON.stringify(exportColumns), JSON.stringify(processedContent));
     };
@@ -336,8 +359,8 @@ function EmployeeStrengthReportContent() {
                         )}
                     </div>
 
-                    <div className='flex justify-end gap-2'>
-                        <Button type='button' variant='outline' onClick={() => setValue('groupType', [])}>
+                    <div className='flex w-full justify-center gap-2 '>
+                        <Button type='button' variant='outline' className='w-32' onClick={() => setValue('groupType', [])}>
                             Cancel
                         </Button>
                         <Button type='submit' disabled={isPending} className='w-32'>
