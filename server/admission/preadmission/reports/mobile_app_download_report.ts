@@ -16,5 +16,5 @@ export async function getMobileAppDownloadReport(params: {
     optionflag: string;
 }) {
     const url = `/InteractionDelete/mobreport?optionflag=${params.optionflag}&ASMAY_Id=${params.ASMAY_Id}&fromdate=${params.fromdate}&todate=${params.todate}&Active=${params.Active}&DeActive=${params.DeActive}&Left=${params.Left}`;
-    return await api.post<any>('admission', url, {});
+    return await api.post<any>('admission', url, params);
 }

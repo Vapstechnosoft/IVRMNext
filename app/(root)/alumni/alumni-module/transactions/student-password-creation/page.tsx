@@ -262,7 +262,11 @@ export default function StudentPasswordCreationPage() {
                                     <Button
                                         variant='outline'
                                         className='w-32 border-green-600 text-green-600 hover:bg-green-50'
-                                        onClick={() =>
+                                        onClick={() => {
+                                            const formattedData = selectedStudents.map(s => ({
+                                                ...s,
+                                                mobile: Number(s.amsT_MobileNo) || Number(s.amsT_FatherMobleNo) || Number(s.amsT_MotherMobileNo) || ''
+                                            }));
                                             exportToExcel(
                                                 'Student_Credentials',
                                                 JSON.stringify([
@@ -272,12 +276,12 @@ export default function StudentPasswordCreationPage() {
                                                     { label: 'Password', value: 'password' },
                                                     { label: 'Class', value: 'asmcL_ClassName' },
                                                     { label: 'Section', value: 'asmC_SectionName' },
-                                                    { label: 'Mobile', value: 'amsT_MobileNo' },
+                                                    { label: 'Mobile', value: 'mobile' },
                                                     { label: 'Email', value: 'amsT_emailId' }
                                                 ]),
-                                                JSON.stringify(selectedStudents)
-                                            )
-                                        }
+                                                JSON.stringify(formattedData)
+                                            );
+                                        }}
                                         disabled={selectedStudents.length === 0}>
                                         <FileSpreadsheet className='mr-2 h-4 w-4' /> EXCEL
                                     </Button>
