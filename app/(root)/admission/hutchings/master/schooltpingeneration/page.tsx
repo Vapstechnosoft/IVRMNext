@@ -300,6 +300,9 @@ export default function SchoolTpinGeneration() {
                             isLoading={searchMutation.isPending}
                             isPaginationRequired={true}
                             isSearchRequired={true}
+                            manualPagination={false}
+                            manualSorting={false}
+                            manualFiltering={false}
                         />
                     </div>
                 </CollapsibleSection>
@@ -318,6 +321,9 @@ export default function SchoolTpinGeneration() {
                             isLoading={false}
                             isPaginationRequired={true}
                             isSearchRequired={true}
+                            manualPagination={false}
+                            manualSorting={false}
+                            manualFiltering={false}
                         />
                     </div>
                     <DialogFooter className='mt-4 flex gap-2'>
@@ -347,6 +353,9 @@ export default function SchoolTpinGeneration() {
                             isLoading={false}
                             isPaginationRequired={true}
                             isSearchRequired={true}
+                            manualPagination={false}
+                            manualSorting={false}
+                            manualFiltering={false}
                         />
                     </div>
                     <DialogFooter className='mt-4 flex gap-2'>
