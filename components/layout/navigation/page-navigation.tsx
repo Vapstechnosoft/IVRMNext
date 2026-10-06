@@ -36,7 +36,15 @@ export function PageNavigation() {
                 setPageName(currentPage.name);
                 setPageTitle(currentPage.title || '');
                 setPageDescription(currentPage.description || '');
+            } else {
+                setPageName('');
+                setPageTitle('');
+                setPageDescription('');
             }
+        } else {
+            setPageName('');
+            setPageTitle('');
+            setPageDescription('');
         }
     }, [activeNavigation, pathname]);
 
@@ -58,7 +66,25 @@ export function PageNavigation() {
         }
     }, [pathname, activeNavigation]);
 
-    if (!activeNavigation) {
+    const customBannerRoutes = [
+        '/visitors-management/transactions/gate-pass',
+        '/visitors-management/transactions/visitor-appointment',
+        '/visitors-management/reports/gate-pass-report',
+        '/Naac/lp-online-exam/lp-master-complexities',
+        '/Exam/online-exam/transactions/publish-to-student',
+        '/Exam/online-exam/transactions/answer-paper-correction',
+        '/Exam/online-exam/master-question',
+        '/Exam/online-exam/reports/online-exam-report',
+        '/Naac/lp-online-exam/lp-master-oe-exam'
+    ];
+
+    if (customBannerRoutes.some((route) => pathname?.toLowerCase().includes(route.toLowerCase()))) {
+        return null;
+    }
+
+    const isMatchingCurrentPath = activeNavigation?.pages?.some((page: any) => page.url === pathname);
+
+    if (!activeNavigation || !isMatchingCurrentPath || !pageTitle) {
         return null;
     }
 

@@ -88,6 +88,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         maxHeight = '600px',
         getRowId,
         onPageChange,
+        manualPagination,
         manualSorting,
         manualFiltering,
         compact = false,
@@ -174,15 +175,10 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     showExportOptions={showExportOptions}
                     maxSelectableRows={maxSelectableRows}
                     manualPagination={manualPagination}
-<<<<<<< HEAD
                     manualSorting={effectiveManualSorting}
                     manualFiltering={effectiveManualFiltering}
-=======
-                    manualSorting={manualSorting}
-                    manualFiltering={manualFiltering}
                     compact={compact}
                     headerTheme={headerTheme}
->>>>>>> 7bc34adc7 (feat(visitors): update gate pass report, visitor appointment, and staff gate pass pages)
                     onRowSelectionChange={(selectedRows) => {
                         if (onRowSelectionChange) {
                             onRowSelectionChange(selectedRows);
@@ -304,11 +300,6 @@ export function useDataTableProps(
         extractedData = sortDataByAcademicYear(extractedData);
     }
 
-<<<<<<< HEAD
-=======
-    const rawData = response?.[dataKey];
-    const extractedData = Array.isArray(rawData) ? rawData : Array.isArray(response) ? response : [];
->>>>>>> 7bc34adc7 (feat(visitors): update gate pass report, visitor appointment, and staff gate pass pages)
     const message = response?.[messageKey];
     const isNoRecordsFound =
         typeof message === 'string' &&

@@ -42,8 +42,14 @@ export const getColumns = ({ onEdit }: ColumnProps): ColumnDef<GatePassTransacti
         accessorKey: 'dateTime',
         header: 'Date Time',
         cell: ({ row }) => {
-            const date = new Date(row.getValue('dateTime'));
-            return date.toLocaleString();
+            const raw = row.getValue('dateTime') as string;
+            if (!raw) return '-';
+            try {
+                const date = new Date(raw);
+                return Number.isNaN(date.getTime()) ? raw : date.toLocaleString();
+            } catch {
+                return raw;
+            }
         }
     },
     {

@@ -2,17 +2,18 @@
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useGatePass } from '@/hooks/visitors-management/transactions/useGatePass';
+import { cn } from '@/lib/utils';
 import { type GatePassSchema, gatePassSchema } from '@/schemas/visitors-management/transactions';
 import type { GatePassTransactionData } from '@/types/visitors-management/transactions';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Briefcase, GraduationCap, Send } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { useEffect } from 'react';
+import { Briefcase, Check, ChevronsUpDown, GraduationCap, Search, Send } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 interface GatePassFormProps {
@@ -26,8 +27,10 @@ export default function GatePassForm({ onSuccess, initialData, onCancel }: GateP
     const students = loadedData?.studentlist || [];
     const employees = loadedData?.emplist || [];
 
-    const [studentSearch, _setStudentSearch] = useState('');
-    const [employeeSearch, _setEmployeeSearch] = useState('');
+    const [studentSearch, setStudentSearch] = useState('');
+    const [employeeSearch, setEmployeeSearch] = useState('');
+    const [studentOpen, setStudentOpen] = useState(false);
+    const [employeeOpen, setEmployeeOpen] = useState(false);
 
     const form = useForm<GatePassSchema>({
         resolver: zodResolver(gatePassSchema),
@@ -69,7 +72,7 @@ export default function GatePassForm({ onSuccess, initialData, onCancel }: GateP
         }
     }, [gatePassType, form, initialData]);
 
-    const _filteredStudents = useMemo(() => {
+    const filteredStudents = useMemo(() => {
         if (!studentSearch.trim()) return students;
         const q = studentSearch.toLowerCase();
         return students.filter(
@@ -81,10 +84,15 @@ export default function GatePassForm({ onSuccess, initialData, onCancel }: GateP
         );
     }, [students, studentSearch]);
 
-    const _filteredEmployees = useMemo(() => {
+    const filteredEmployees = useMemo(() => {
         if (!employeeSearch.trim()) return employees;
         const q = employeeSearch.toLowerCase();
-        return employees.filter((e) => (e.hrmE_EmployeeFirstName || '').toLowerCase().includes(q));
+        return employees.filter(
+            (e) =>
+                (e.hrmE_EmployeeFirstName || '').toLowerCase().includes(q) ||
+                (e.hrmD_DepartmentName || '').toLowerCase().includes(q) ||
+                (e.hrmdeS_DesignationName || '').toLowerCase().includes(q)
+        );
     }, [employees, employeeSearch]);
 
     const onSubmit = async (data: GatePassSchema) => {
@@ -102,10 +110,13 @@ export default function GatePassForm({ onSuccess, initialData, onCancel }: GateP
         }
     };
 
+    const selectedStudent = students.find((s) => s.amsT_Id === form.watch('studentId'));
+    const selectedEmployee = employees.find((e) => e.hrmE_Id === form.watch('employeeId'));
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-                {/* 1. Gate Pass Type Selection matching Template */}
+                {/* 1. Gate Pass Type Selection */}
                 <div className='max-w-lg rounded-lg border bg-muted/10 p-3'>
                     <Label className='mb-2 block font-semibold text-muted-foreground text-xs uppercase tracking-wider'>
                         Gate Pass Type <span className='text-destructive'>*</span>
@@ -141,29 +152,83 @@ export default function GatePassForm({ onSuccess, initialData, onCancel }: GateP
                             control={form.control}
                             name='studentId'
                             render={({ field }) => (
-                                <FormItem className='space-y-1.5'>
+                                <FormItem className='flex flex-col space-y-1.5'>
                                     <FormLabel className='font-semibold text-xs'>
                                         Student <span className='text-destructive'>*</span>
                                     </FormLabel>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                        <FormControl>
-                                            <SelectTrigger className='h-9 text-xs'>
-                                                <SelectValue placeholder='Select Student' />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent className='max-h-64'>
-                                            {students.length === 0 ? (
-                                                <div className='p-2 text-center text-muted-foreground text-xs'>No students found</div>
-                                            ) : (
-                                                students.map((stu) => (
-                                                    <SelectItem key={stu.amsT_Id} value={stu.amsT_Id.toString()} className='text-xs'>
-                                                        {stu.amsT_FirstName} ({stu.amsT_AdmNo}) - {stu.asmcL_ClassName}{' '}
-                                                        {stu.asmC_SectionName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                    <Popover open={studentOpen} onOpenChange={setStudentOpen}>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant='outline'
+                                                    aria-expanded={studentOpen}
+                                                    className={cn(
+                                                        'h-9 w-full justify-between rounded-md font-normal text-xs',
+                                                        !field.value && 'text-muted-foreground'
+                                                    )}>
+                                                    {selectedStudent ? (
+                                                        <span className='truncate text-left'>
+                                                            {selectedStudent.amsT_FirstName}{' '}
+                                                            {selectedStudent.amsT_AdmNo ? `(${selectedStudent.amsT_AdmNo})` : ''} -{' '}
+                                                            {selectedStudent.asmcL_ClassName || ''} {selectedStudent.asmC_SectionName || ''}
+                                                        </span>
+                                                    ) : (
+                                                        'Select Student'
+                                                    )}
+                                                    <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-[380px] p-2' align='start'>
+                                            <div className='flex items-center border-b px-1 pb-2'>
+                                                <Search className='mr-2 h-4 w-4 shrink-0 opacity-50' />
+                                                <Input
+                                                    placeholder='Search student name, adm no, class...'
+                                                    value={studentSearch}
+                                                    onChange={(e) => setStudentSearch(e.target.value)}
+                                                    className='h-8 border-0 px-1 text-xs focus-visible:ring-0 focus-visible:ring-offset-0'
+                                                    autoFocus
+                                                />
+                                            </div>
+                                            <div className='max-h-60 overflow-y-auto pt-2'>
+                                                {filteredStudents.length === 0 ? (
+                                                    <div className='py-6 text-center text-muted-foreground text-xs'>No students found</div>
+                                                ) : (
+                                                    filteredStudents.map((stu) => {
+                                                        const isSelected = field.value === stu.amsT_Id;
+                                                        return (
+                                                            <div
+                                                                key={stu.amsT_Id}
+                                                                onClick={() => {
+                                                                    field.onChange(stu.amsT_Id);
+                                                                    setStudentOpen(false);
+                                                                }}
+                                                                className={cn(
+                                                                    'flex cursor-pointer items-center justify-between rounded-sm px-2 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground',
+                                                                    isSelected && 'bg-accent/80 font-medium'
+                                                                )}>
+                                                                <div className='flex flex-col'>
+                                                                    <span className='font-medium text-foreground'>
+                                                                        {stu.amsT_FirstName}{' '}
+                                                                        {stu.amsT_AdmNo && (
+                                                                            <span className='font-normal text-muted-foreground'>
+                                                                                ({stu.amsT_AdmNo})
+                                                                            </span>
+                                                                        )}
+                                                                    </span>
+                                                                    <span className='text-[11px] text-muted-foreground'>
+                                                                        {stu.asmcL_ClassName || 'Class'} -{' '}
+                                                                        {stu.asmC_SectionName || 'Section'}
+                                                                    </span>
+                                                                </div>
+                                                                {isSelected && <Check className='h-4 w-4 shrink-0 text-primary' />}
+                                                            </div>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
                                     <FormMessage className='text-xs' />
                                 </FormItem>
                             )}
@@ -175,28 +240,78 @@ export default function GatePassForm({ onSuccess, initialData, onCancel }: GateP
                             control={form.control}
                             name='employeeId'
                             render={({ field }) => (
-                                <FormItem className='space-y-1.5'>
+                                <FormItem className='flex flex-col space-y-1.5'>
                                     <FormLabel className='font-semibold text-xs'>
                                         Employee <span className='text-destructive'>*</span>
                                     </FormLabel>
-                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
-                                        <FormControl>
-                                            <SelectTrigger className='h-9 text-xs'>
-                                                <SelectValue placeholder='Select Employee' />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent className='max-h-64'>
-                                            {employees.length === 0 ? (
-                                                <div className='p-2 text-center text-muted-foreground text-xs'>No employees found</div>
-                                            ) : (
-                                                employees.map((emp) => (
-                                                    <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()} className='text-xs'>
-                                                        {emp.hrmE_EmployeeFirstName}
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                    <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
+                                        <PopoverTrigger asChild>
+                                            <FormControl>
+                                                <Button
+                                                    variant='outline'
+                                                    aria-expanded={employeeOpen}
+                                                    className={cn(
+                                                        'h-9 w-full justify-between rounded-md font-normal text-xs',
+                                                        !field.value && 'text-muted-foreground'
+                                                    )}>
+                                                    {selectedEmployee ? (
+                                                        <span className='truncate text-left'>
+                                                            {selectedEmployee.hrmE_EmployeeFirstName}
+                                                            {selectedEmployee.hrmD_DepartmentName
+                                                                ? ` (${selectedEmployee.hrmD_DepartmentName})`
+                                                                : ''}
+                                                        </span>
+                                                    ) : (
+                                                        'Select Employee'
+                                                    )}
+                                                    <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                                                </Button>
+                                            </FormControl>
+                                        </PopoverTrigger>
+                                        <PopoverContent className='w-[380px] p-2' align='start'>
+                                            <div className='flex items-center border-b px-1 pb-2'>
+                                                <Search className='mr-2 h-4 w-4 shrink-0 opacity-50' />
+                                                <Input
+                                                    placeholder='Search employee name, department...'
+                                                    value={employeeSearch}
+                                                    onChange={(e) => setEmployeeSearch(e.target.value)}
+                                                    className='h-8 border-0 px-1 text-xs focus-visible:ring-0 focus-visible:ring-offset-0'
+                                                    autoFocus
+                                                />
+                                            </div>
+                                            <div className='max-h-60 overflow-y-auto pt-2'>
+                                                {filteredEmployees.length === 0 ? (
+                                                    <div className='py-6 text-center text-muted-foreground text-xs'>No employees found</div>
+                                                ) : (
+                                                    filteredEmployees.map((emp) => {
+                                                        const isSelected = field.value === emp.hrmE_Id;
+                                                        return (
+                                                            <div
+                                                                key={emp.hrmE_Id}
+                                                                onClick={() => {
+                                                                    field.onChange(emp.hrmE_Id);
+                                                                    setEmployeeOpen(false);
+                                                                }}
+                                                                className={cn(
+                                                                    'flex cursor-pointer items-center justify-between rounded-sm px-2 py-1.5 text-xs hover:bg-accent hover:text-accent-foreground',
+                                                                    isSelected && 'bg-accent/80 font-medium'
+                                                                )}>
+                                                                <div className='flex flex-col'>
+                                                                    <span className='font-medium text-foreground'>
+                                                                        {emp.hrmE_EmployeeFirstName}
+                                                                    </span>
+                                                                    <span className='text-[11px] text-muted-foreground'>
+                                                                        {emp.hrmdeS_DesignationName || emp.hrmD_DepartmentName || 'Staff'}
+                                                                    </span>
+                                                                </div>
+                                                                {isSelected && <Check className='h-4 w-4 shrink-0 text-primary' />}
+                                                            </div>
+                                                        );
+                                                    })
+                                                )}
+                                            </div>
+                                        </PopoverContent>
+                                    </Popover>
                                     <FormMessage className='text-xs' />
                                 </FormItem>
                             )}
@@ -220,7 +335,7 @@ export default function GatePassForm({ onSuccess, initialData, onCancel }: GateP
                     />
                 </div>
 
-                {/* 3. Action Buttons matching Screenshot 1 */}
+                {/* 3. Action Buttons */}
                 <div className='flex flex-wrap items-center gap-3 border-t pt-4 sm:justify-start'>
                     <Button
                         type='button'
