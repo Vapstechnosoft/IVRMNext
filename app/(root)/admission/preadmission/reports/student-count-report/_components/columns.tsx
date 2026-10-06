@@ -4,9 +4,10 @@ import type { IMasterStudentCountReportList } from '@/types/admission/preadmissi
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 const formatDate = (date: unknown): string => {
-    if (typeof date !== 'string') return 'N/A';
     if (!date) return 'N/A';
-    return format(new Date(date), 'dd-MM-yyyy');
+    const parsedDate = new Date(date as any);
+    if (isNaN(parsedDate.getTime())) return 'N/A';
+    return format(parsedDate, 'dd-MM-yyyy');
 };
 export const getStudentCountReportColumns = (): ColumnDef<IMasterStudentCountReportList>[] => {
     return [

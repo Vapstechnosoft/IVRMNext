@@ -8,7 +8,7 @@ import type {
     ICollegeFeeRefundableSavePayload,
     ICollegeFeeRefundableStudent
 } from '@/types/fees/college/transaction/clgfeerefundable';
-import { getCollegeCourses, getCollegeBranches, getCollegeSemesters } from './clgfeewaivedoff';
+import { getCollegeBranches, getCollegeCourses, getCollegeSemesters } from './clgfeewaivedoff';
 
 export { getCollegeCourses, getCollegeBranches, getCollegeSemesters };
 

@@ -307,6 +307,7 @@ const baseEmployeeRegisterSchema = z.object({
     mobileDetails: z
         .array(
             z.object({
+                hrmemnO_Id: z.number().optional(),
                 mobileNo: z
                     .string()
                     .min(1, 'Mobile No. Required')
@@ -319,6 +320,7 @@ const baseEmployeeRegisterSchema = z.object({
     emailDetails: z
         .array(
             z.object({
+                hrmeeM_Id: z.number().optional(),
                 emailId: z
                     .string()
                     .min(1, 'Email ID is required')

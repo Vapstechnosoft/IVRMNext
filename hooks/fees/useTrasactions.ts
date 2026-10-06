@@ -1143,8 +1143,6 @@ export const useFeeTransactionListStThomas = (asmaY_Id: number, searchParams?: A
 };
 
 //cheque bounce
-
-//academic year for cheque bounce
 export const useFeeChequeBounceAcademicYear = () => {
     const queryClient = useQueryClient();
 
@@ -1156,12 +1154,11 @@ export const useFeeChequeBounceAcademicYear = () => {
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({
-                queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_ACADEMIC_YEAR]
+                queryKey: [FEES_QUERY_KEYS.FEE_DEFAULTER_REPORT]
             });
         }
     };
 };
-
 //class
 export const useFeeChequeBounceClass = (data: any) => {
     const queryClient = useQueryClient();
@@ -1216,13 +1213,13 @@ export const useFeeChequeBounceStudent = (data: any) => {
     };
 };
 
-export const useFeeChequeBounceInitialData = () => {
+export const useFeeChequeBounceInitialData = (searchParams?: ApiSearchparams, asmay_Id?: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_DROPDOWNS],
-            queryFn: async () => getFeeChequeBounceInitialData(),
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_DROPDOWNS, searchParams ?? {}, asmay_Id],
+            queryFn: async () => getFeeChequeBounceInitialData(searchParams, asmay_Id),
             staleTime: 0
         }),
         refetchAll: () => {
@@ -1285,15 +1282,15 @@ export const useFeeChequeBounceStudents = () => {
     };
 };
 
-export const useFeeChequeBounceReceipts = (data?: any) => {
+export const useFeeChequeBounceReceipts = (amst_id: number, asmay_id: number) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_RECEIPTS, data],
-            queryFn: async () => getFeeChequeBounceReceipts(data),
+            queryKey: [FEES_QUERY_KEYS.FEE_CHEQUE_BOUNCE_RECEIPTS, amst_id, asmay_id],
+            queryFn: async () => getFeeChequeBounceReceipts(amst_id, asmay_id),
             staleTime: 0,
-            enabled: !!data?.AMST_Id
+            enabled: !!amst_id && !!asmay_id
         }),
         refetchAll: () => {
             return queryClient.invalidateQueries({

@@ -90,7 +90,9 @@ export default function DeleteCollegeFeeRefundableForm({ rowData, onClose, onSuc
                     <FormError>{errors.root?.message}</FormError>
                 </AdaptiveBody>
                 <AdaptiveFooter>
-                    <Button variant='secondary' onClick={closeDialog} type='button'>Cancel</Button>
+                    <Button variant='secondary' onClick={closeDialog} type='button'>
+                        Cancel
+                    </Button>
                     <Button type='submit' isLoading={isSubmitting} variant='destructive'>
                         <Trash2 className='mr-2 h-4 w-4' />
                         Delete

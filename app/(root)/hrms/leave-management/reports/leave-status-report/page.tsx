@@ -65,7 +65,7 @@ function LeaveStatusReportContent() {
 
     // Data Hooks
     const { data: yearsData, isLoading: yearsLoading } = useLeaveYearDropdown();
-    const { data: leavesData } = useMasterLeaveDropdown();
+    const { data: leavesData, isLoading: leavesLoading } = useMasterLeaveDropdown();
     const { data: groupTypesData, isLoading: groupTypesLoading } = useReportGroupTypes();
     const { data: departmentsData, isLoading: departmentsLoading } = useReportDepartments(groupTypeIds.toString());
     const { data: designationsData, isLoading: designationsLoading } = useReportDesignations(groupTypeIds.toString(), deptIds.toString());
@@ -75,14 +75,19 @@ function LeaveStatusReportContent() {
         desigIds
     );
     console.log('employeesData', employeesData);
+    console.log("leavesData",leavesData);
     // Transforms
     const leavesDataTransformed = useMemo(() => {
-        return (
-            leavesData?.data?.map((lv: any) => ({
-                id: lv.hrmL_Id || lv.key || lv.id,
-                name: lv.hrmL_LeaveName || lv.value || lv.name
-            })) || []
-        ).filter((lv: any) => lv.id != null);
+    const list = Array.isArray(leavesData?.data)
+        ? leavesData.data
+        : [];
+
+    return list
+        .map((lv: any) => ({
+            id: lv.key,
+            name: lv.value
+        }))
+        .filter((lv: any) => lv.id != null);
     }, [leavesData]);
 
     // Transforms

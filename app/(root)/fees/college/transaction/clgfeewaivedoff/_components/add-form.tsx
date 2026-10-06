@@ -184,11 +184,11 @@ export default function AddCollegeFeeWaivedOffForm({ onSuccess, pageData, classN
     const { data: headsData, isLoading: isHeadsLoading } = useCollegeFeeHeads(
         selectedYearNum && selectedStudentNum && watchedRefundType && multipleGroupString
             ? {
-                ASMAY_Id: selectedYearNum,
-                AMCST_Id: selectedStudentNum,
-                filterrefund: watchedRefundType,
-                multiplegroup: multipleGroupString
-            }
+                  ASMAY_Id: selectedYearNum,
+                  AMCST_Id: selectedStudentNum,
+                  filterrefund: watchedRefundType,
+                  multiplegroup: multipleGroupString
+              }
             : undefined
     );
 
@@ -373,8 +373,7 @@ export default function AddCollegeFeeWaivedOffForm({ onSuccess, pageData, classN
                 const failedFields = Object.keys(errs).join(', ');
                 toast.error(`Validation failed on: ${failedFields}. Check console for details.`);
             })}
-            className={cn('space-y-6', className)}
-        >
+            className={cn('space-y-6', className)}>
             <div className='grid gap-6 lg:grid-cols-2'>
                 {/* Left Column: Academic & Student Dropdowns */}
                 <Card className='border-border/60 shadow-sm'>

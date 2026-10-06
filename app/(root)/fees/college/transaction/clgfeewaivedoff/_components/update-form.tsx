@@ -260,7 +260,6 @@ export default function UpdateCollegeFeeWaivedOffForm({ selectedRow, onSuccess, 
         );
     }
 
-
     return (
         <form
             onSubmit={handleSubmit(onSubmit, (errs) => {
@@ -268,8 +267,7 @@ export default function UpdateCollegeFeeWaivedOffForm({ selectedRow, onSuccess, 
                 const failedFields = Object.keys(errs).join(', ');
                 toast.error(`Validation failed on: ${failedFields}. Check console for details.`);
             })}
-            className={cn('space-y-6', className)}
-        >
+            className={cn('space-y-6', className)}>
             <div className='grid gap-6 lg:grid-cols-2'>
                 {/* Left Column: Readonly Info */}
                 <Card className='border-border/60 shadow-sm'>

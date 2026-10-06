@@ -19,6 +19,7 @@ interface UserDetailsProps {
     isUserNameDisabled?: boolean;
     onChangeUsernameToggle?: () => void;
     isStaffDataLoading?: boolean;
+    isAdmin?: boolean;
 }
 
 export default function UserDetails({
@@ -30,7 +31,8 @@ export default function UserDetails({
     onSelectAllModules,
     isUserNameDisabled = false,
     onChangeUsernameToggle,
-    isStaffDataLoading = false
+    isStaffDataLoading = false,
+    isAdmin = false
 }: UserDetailsProps) {
     const { register, watch } = useFormContext();
     const filterData = watch('filterData');
@@ -48,87 +50,65 @@ export default function UserDetails({
     return (
         <div className='grid grid-cols-1 gap-8 rounded-lg border border-gray-100 bg-white p-6 shadow-sm md:grid-cols-2'>
             {/* User Credentials */}
-            <div className={`space-y-6 ${filterData === 'Multiple' ? 'pointer-events-none opacity-40 grayscale' : ''}`}>
+            <div className={`space-y-6 ${!isAdmin && filterData === 'Multiple' ? 'pointer-events-none opacity-40 grayscale' : ''}`}>
                 <div className='space-y-2'>
-                    <Label className='font-semibold text-sm'>User Name:</Label>
+                    <Label className='font-semibold text-sm'>User Name: <span className='text-red-500'>*</span></Label>
                     <div className='flex items-center gap-2'>
                         <Input
                             {...register('userName')}
                             className='bg-gray-50 uppercase placeholder:text-gray-500 placeholder:normal-case'
-                            placeholder={filterData === 'Multiple' ? 'N/A FOR MULTIPLE' : 'USERNAME'}
+                            placeholder={!isAdmin && filterData === 'Multiple' ? 'N/A FOR MULTIPLE' : 'ENTER USERNAME'}
                             readOnly={isUserNameDisabled}
-                            disabled={filterData === 'Multiple'}
+                            disabled={!isAdmin && filterData === 'Multiple'}
                         />
-                        {/* {isStaffDataLoading && <Loader2 className='h-6 w-6 animate-spin text-primary' />} */}
-                        <Button
-                            type='button'
-                            variant='secondary'
-                            onClick={onChangeUsernameToggle}
-                            disabled={filterData === 'Multiple' || !isUserNameDisabled}
-                            size='sm'
-                            className='font-bold text-[10px] uppercase'>
-                            <UserCog className='mr-2 h-3.5 w-3.5' />
-                            Change Username
-                        </Button>
+                        {!isAdmin && (
+                            <Button
+                                type='button'
+                                variant='secondary'
+                                onClick={onChangeUsernameToggle}
+                                disabled={filterData === 'Multiple' || !isUserNameDisabled}
+                                size='sm'
+                                className='font-bold text-[10px] uppercase'>
+                                <UserCog className='mr-2 h-3.5 w-3.5' />
+                                Change Username
+                            </Button>
+                        )}
                     </div>
                 </div>
 
                 <div className='rounded-md border-orange-400 border-l-4 bg-orange-50 p-4'>
                     <p className='font-medium text-orange-800 text-sm'>
-                        {filterData === 'Multiple' ? (
+                        {!isAdmin && filterData === 'Multiple' ? (
                             'Password settings will be managed individually for each selected staff.'
                         ) : (
                             <>
-                                Initial password for staff is "<strong>Password@123</strong>"
+                                Initial password is "<strong>Password@123</strong>"
                             </>
                         )}
                     </p>
                 </div>
             </div>
 
-            {/* Selection Lists */}
-            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-                {/* Categories */}
-                {/* <div className='space-y-2'>
-                    <Label className='flex items-center justify-between font-semibold text-sm'>
-                        Select Category:
-                        <span onClick={onSelectAllCategories} className='cursor-pointer text-[10px] text-primary hover:underline'>
-                            Select All/Unselect All
-                        </span>
-                    </Label>
-                    <div className='rounded-md border bg-gray-50 p-2'>
-                        <ScrollArea className='h-40'>
-                            {categories.map((cat) => (
-                                <div key={cat.amC_Id} className='flex items-center space-x-2 rounded p-1 transition-colors hover:bg-white'>
-                                    <Checkbox
-                                        id={`cat-${cat.amC_Id}`}
-                                        checked={cat.catid}
-                                        onCheckedChange={(checked) => handleCategoryCheck(cat.amC_Id, !!checked)}
-                                    />
-                                    <label htmlFor={`cat-${cat.amC_Id}`} className='cursor-pointer select-none text-xs'>
-                                        {cat.amC_Name}
-                                    </label>
-                                </div>
-                            ))}
-                        </ScrollArea>
-                    </div>
-                </div> */}
-
-                {/* Modules */}
-                <div className='space-y-2'>
-                    <Label className='flex items-center justify-between font-semibold text-sm'>
-                        Select Module:
-                        <span onClick={onSelectAllModules} className='cursor-pointer text-[10px] text-primary hover:underline'>
-                            Select All/Unselect All
-                        </span>
-                    </Label>
-                    <div className='rounded-md border bg-gray-50 p-2'>
-                        <ScrollArea className='h-40'>
-                            {modules.length === 0 && <p className='text-center text-gray-500'>Please Select Staff to view modules.</p>}
+            {/* Selection Lists (Modules) */}
+            <div className='space-y-2'>
+                <Label className='flex items-center justify-between font-semibold text-sm'>
+                    Select Module:
+                    <span onClick={onSelectAllModules} className='cursor-pointer text-[10px] text-primary hover:underline'>
+                        Select All/Unselect All
+                    </span>
+                </Label>
+                <div className='rounded-md border bg-gray-50 p-2'>
+                    <ScrollArea className='h-40'>
+                        {modules.length === 0 && (
+                            <p className='p-4 text-center text-gray-500 text-xs'>
+                                {isAdmin ? 'No modules found for selected institution.' : 'Please Select Staff to view modules.'}
+                            </p>
+                        )}
+                        <div className='grid grid-cols-1 gap-1 sm:grid-cols-2'>
                             {modules.map((mod) => (
                                 <div
                                     key={mod.ivrmM_Id}
-                                    className='flex items-center space-x-2 rounded p-1 transition-colors hover:bg-white'>
+                                    className='flex items-center space-x-2 rounded p-1.5 transition-colors hover:bg-white'>
                                     <Checkbox
                                         id={`mod-${mod.ivrmM_Id}`}
                                         checked={mod.model}
@@ -139,8 +119,8 @@ export default function UserDetails({
                                     </label>
                                 </div>
                             ))}
-                        </ScrollArea>
-                    </div>
+                        </div>
+                    </ScrollArea>
                 </div>
             </div>
         </div>

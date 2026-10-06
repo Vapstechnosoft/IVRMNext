@@ -1,17 +1,12 @@
 import { COLLEGE_QUERY_KEYS } from '@/constants/query-keys';
 import {
-    deleteCollegeFeeRefundable,
-    getCollegeBranches,
-    getCollegeCourses,
     getCollegeFeeRefundableAllDetails,
     getCollegeFeeRefundableOnSelectGroup,
     getCollegeFeeRefundableStudent,
-    getCollegeFeeRefundableStudentListByAmst,
-    getCollegeSemesters
+    getCollegeFeeRefundableStudentListByAmst
 } from '@/server/fees/college/transaction/clgfeerefundable';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getCollegeFeePrivilegeAcademicYears } from '@/server/fees/college/masters/masterclgfeeprevilege';
 
 // Re-export academic years hook (shared with waivedoff)
 export { useCollegeAcademicYears, useCollegeCourses, useCollegeBranches, useCollegeSemesters } from './useTransactions';
@@ -38,12 +33,7 @@ export const useCollegeFeeRefundableList = (searchParams?: ApiSearchparams) => {
 };
 
 // 2. Students by year/course/branch/semester
-export const useCollegeFeeRefundableStudents = (
-    asmaY_Id?: number,
-    amcO_Id?: number,
-    amB_Id?: number,
-    amsE_Id?: number
-) => {
+export const useCollegeFeeRefundableStudents = (asmaY_Id?: number, amcO_Id?: number, amB_Id?: number, amsE_Id?: number) => {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
@@ -67,7 +57,12 @@ export const useCollegeFeeRefundableStudentByAmst = (payload?: {
     const queryClient = useQueryClient();
     return {
         ...useQuery({
-            queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_REFUNDABLE_STUDENT_BY_AMST, payload?.amcsT_Id, payload?.asmaY_Id, payload?.filterrefund],
+            queryKey: [
+                COLLEGE_QUERY_KEYS.COLLEGE_FEE_REFUNDABLE_STUDENT_BY_AMST,
+                payload?.amcsT_Id,
+                payload?.asmaY_Id,
+                payload?.filterrefund
+            ],
             queryFn: async () => {
                 if (!payload?.amcsT_Id || !payload?.asmaY_Id || !payload?.filterrefund) return null;
                 return getCollegeFeeRefundableStudentListByAmst({
@@ -93,7 +88,13 @@ export const useCollegeFeeRefundableHeads = (payload?: {
     const groupKey = payload?.multiplegroupF?.join(',') ?? '';
     return {
         ...useQuery({
-            queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_REFUNDABLE_HEADS, payload?.asmaY_Id, payload?.amcsT_Id, payload?.filterrefund, groupKey],
+            queryKey: [
+                COLLEGE_QUERY_KEYS.COLLEGE_FEE_REFUNDABLE_HEADS,
+                payload?.asmaY_Id,
+                payload?.amcsT_Id,
+                payload?.filterrefund,
+                groupKey
+            ],
             queryFn: async () => {
                 if (!payload?.asmaY_Id || !payload?.amcsT_Id || !payload?.filterrefund || !payload?.multiplegroupF?.length) return null;
                 return getCollegeFeeRefundableOnSelectGroup({

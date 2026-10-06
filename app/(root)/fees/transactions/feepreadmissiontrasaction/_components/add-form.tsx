@@ -766,10 +766,17 @@ export default function AddFeePreAdmissionTransactionForm({ onSuccess }: AddFeeP
                                         </label>
                                         <input
                                             id='chequeNoInput'
-                                            type='text'
+                                            type='number'
                                             name='chequeNo'
                                             value={paymentData.chequeNo}
                                             onChange={handleChange}
+                                            onKeyDown={(e) => {
+                                                if (['e', 'E', '+', '-', '.'].includes(e.key)) {
+                                                    e.preventDefault();
+                                                }
+                                            }}
+                                            inputMode='numeric'
+                                            pattern='[0-9]*'
                                             className='w-2/3 rounded border border-gray-300 px-2 py-1'
                                             placeholder='Enter number'
                                         />

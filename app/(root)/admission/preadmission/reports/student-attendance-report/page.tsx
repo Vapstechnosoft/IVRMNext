@@ -149,24 +149,7 @@ export default function StudyCertificateReportPage(props: {
     const dailyDate = useWatch({ control, name: 'dailyDate' });
     const selectionMode = useWatch({ control, name: 'selectionMode' });
 
-    const [searchValue, setSearchValue] = useState(String(searchParams?.search_query || ''));
 
-    useEffect(() => {
-        const timeout = setTimeout(() => {
-            const currentQuery = String(searchParams?.search_query || '');
-            if (searchValue !== currentQuery) {
-                const params = new URLSearchParams(window.location.search);
-                if (searchValue) {
-                    params.set('search_query', searchValue);
-                    params.set('page', '1');
-                } else {
-                    params.delete('search_query');
-                }
-                router.push(`${pathname}?${params.toString()}`, { scroll: false });
-            }
-        }, 500);
-        return () => clearTimeout(timeout);
-    }, [searchValue, searchParams?.search_query, pathname, router]);
 
     const apiSearchParams: ApiSearchparams | undefined = searchParams
         ? {
@@ -174,7 +157,7 @@ export default function StudyCertificateReportPage(props: {
               page_size: Number(searchParams.page_size) || 10,
               sort_column: String(searchParams.sort_column || ''),
               sort_direction: String(searchParams.sort_direction || 'asc'),
-              search_query: String(searchParams.search_query || ''),
+              search_query: '',
               search_columns: String(searchParams.search_columns || '')
           }
         : undefined;
@@ -503,11 +486,12 @@ export default function StudyCertificateReportPage(props: {
             const activeMonth = monthList.find((m) => m.id === month)?.name;
 
             // Prepare headers
+            const emptyCols = Array(11).fill('');
             const reportHeaders = [
-                ['STUDENT ATTENDANCE REPORT'],
-                [`Academic Year: ${activeYear || 'N/A'}`],
-                [`Class: ${activeClass || 'N/A'}`, `Section: ${activeSection || 'N/A'}`],
-                [activeMonth ? `Month: ${activeMonth}` : ''],
+                [...emptyCols, 'STUDENT ATTENDANCE REPORT'],
+                [...emptyCols, `Academic Year: ${activeYear || 'N/A'}`],
+                [...emptyCols, `Class: ${activeClass || 'N/A'}`, `Section: ${activeSection || 'N/A'}`],
+                [...emptyCols, activeMonth ? `Month: ${activeMonth}` : ''],
                 [] // Empty row
             ];
 
@@ -526,7 +510,7 @@ export default function StudyCertificateReportPage(props: {
 
                 if (monthDateWise) {
                     for (const day of excelDays) {
-                        baseData.push(row[`_${day}`] || '');
+                        baseData.push(row[`_${day}`] || row[day] || 'NE');
                     }
                 }
 
@@ -833,6 +817,7 @@ export default function StudyCertificateReportPage(props: {
                                 noDataTitle='No Data Found'
                                 noDataDescription='No Student Attendance Reports found.'
                                 errorTitle='Error Loading Student Attendance Reports'
+                                manualFiltering={false}
                             />
                         </div>
 

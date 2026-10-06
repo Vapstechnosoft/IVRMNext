@@ -2110,7 +2110,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                    // {...register('lastName')}
+                                                    {...register('lastName')}
                                                     // error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText

@@ -51,7 +51,12 @@ export const thirdPartyTransactionSchema = {
             chequeDate: z.string().optional(),
             // chequeNo: z.string().optional(),
             //chequeNo: z.string().min(13, 'Minimum 13 characters for Cheque Number is required').max(19, 'Cheque Number is too long'),
-            chequeNo: z.string().optional(),
+            //TASK/21407/2026-2027--- Done by Doddaranga swamy
+            chequeNo: z
+                .string()
+                .min(13, 'Cheque number must be at least 13 characters')
+                .max(16, 'Cheque number must not exceed 16 characters')
+                .optional(),
             bankName: z.string().optional()
         })
         .superRefine((data, ctx) => {
