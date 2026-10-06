@@ -35,7 +35,7 @@ export function StudentAnalysisView({ student, analysis }: StudentAnalysisViewPr
                     <TabsTrigger value='improvement'>⚠️ Improve</TabsTrigger>
                     <TabsTrigger value='strong'>✅ Strong</TabsTrigger>
                     <TabsTrigger value='overall'>📊 Overall</TabsTrigger>
-                    <TabsTrigger value='prediction'>🔮 Prediction</TabsTrigger>
+                    <TabsTrigger value='prediction'>🔮 Prediction</TabsTrigger> 
                 </TabsList>
 
                 <TabsContent value='weakest' className='mt-4'>
