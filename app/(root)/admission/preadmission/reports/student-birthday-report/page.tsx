@@ -9,6 +9,8 @@ import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 import { z } from 'zod';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -89,7 +91,21 @@ export default function StudentBirthdayReportPage() {
     const [allReportData, setAllReportData] = useState<any[]>([]);
     const [isPrinting, setIsPrinting] = useState(false);
 
-    const { data: reportData, isLoading, refetch } = useStudentBirthdayReportDetails(filterPayload, undefined, showGrid);
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withDefault(10));
+    const [search] = useQueryState(tableSearchVariables.search, parseAsString.withDefault(''));
+    const [sortColumn] = useQueryState(tableSearchVariables.sort_column, parseAsString.withDefault(''));
+    const [sortDirection] = useQueryState(tableSearchVariables.sort_direction, parseAsString.withDefault(''));
+
+    const searchParams = {
+        page,
+        page_size: pageSize,
+        search_query: search,
+        sort_column: sortColumn,
+        sort_direction: sortDirection
+    };
+
+    const { data: reportData, isLoading, refetch } = useStudentBirthdayReportDetails(filterPayload, searchParams, showGrid);
 
     const printRef = useRef<HTMLDivElement>(null);
     const handlePrint = useReactToPrint({
