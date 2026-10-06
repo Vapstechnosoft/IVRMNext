@@ -87,11 +87,10 @@ export async function getPurchaseDonateReportData(data: IPurchaseDonateReportReq
         const url = `${FACADE}/getdata/${circFlag}/${lbcpAFlg}`;
 
         const payload = {
-            mI_Id: miId,
-            MI_Id: miId,
+
             circ_Flag: circFlag,
             lbcpA_Flg: lbcpAFlg,
-            IVRMUL_Id: ivrmulId
+          
         };
 
         let response: any;

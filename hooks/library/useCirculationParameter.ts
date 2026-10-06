@@ -11,7 +11,10 @@ import { toast } from 'sonner';
 export const useCirculationParameterDetails = () => {
     return useQuery({
         queryKey: ['circulationParameterDetails'],
-        queryFn: () => getCirculationParameterDetails(),
+        queryFn: async () => {
+            const res = await getCirculationParameterDetails();
+            return res ?? {};
+        },
         staleTime: 0,
         meta: {
             errorMessage: 'Failed to load circulation parameter details'

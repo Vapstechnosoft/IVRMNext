@@ -11,7 +11,7 @@ import {
     useVendorDropdown
 } from '@/hooks/library/useBookRegister';
 import { bookRegisterSchema } from '@/schemas/library/bookRegister';
-import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
+import type { BookRegisterInitialData, BookRegisterPayload } from '@/types/library/masters/bookRegister';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -123,7 +123,7 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
     const { data: publisherData } = usePublisherDropdown();
 
     const dropdownData = useMemo(() => {
-        const base = initialDataRes || {};
+        const base: BookRegisterInitialData = initialDataRes || {};
         const cat = (base.categorylist && base.categorylist.length > 0) ? base.categorylist : (categoryData && categoryData.length > 0) ? categoryData : [];
         const dept = (base.deptlist && base.deptlist.length > 0) ? base.deptlist : (departmentData && departmentData.length > 0) ? departmentData : [];
         const subj = (base.subjectlist && base.subjectlist.length > 0) ? base.subjectlist : (subjectData && subjectData.length > 0) ? subjectData : [];

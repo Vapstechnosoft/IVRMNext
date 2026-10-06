@@ -27,10 +27,11 @@ export async function getBookTransactionDetails(data: {
     ASMAY_Id?: number;
     ASMCL_Id?: number;
     ASMS_Id?: number;
-}) {
+}): Promise<IBookTransactionInitialData> {
     try {
         const url = `${FACADE}/Get_Student_Details1`;
-        return await api.post<IBookTransactionInitialData>('library', url, data);
+        const res = await api.post<IBookTransactionInitialData>('library', url, data);
+        return ((res as any)?.data || res || {}) as IBookTransactionInitialData;
     } catch (err: any) {
         console.warn(`POST ${FACADE}/Get_Student_Details1 failed:`, err?.message || err);
         return {} as IBookTransactionInitialData;
@@ -519,7 +520,7 @@ export async function getBookDetailsOnLoad(data?: any) {
         let asmayId = Number(data?.ASMAY_Id ?? data?.asmaY_Id ?? 0);
 
         try {
-            const session = await auth();
+            const session = (await auth()) as any;
             if (!miId && session?.mi_id) miId = Number(session.mi_id);
             if (!userId) {
                 userId = Number(session?.ivrmuL_Id ?? session?.user_id ?? session?.userId ?? session?.roleId ?? 0);

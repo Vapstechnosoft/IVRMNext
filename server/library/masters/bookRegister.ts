@@ -1,39 +1,22 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
-import { auth } from '@/lib/auth';
 import { ensureArray } from '@/lib/utils';
 import type { ApiSearchparams } from '@/types';
-import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
+import type { BookRegisterInitialData, BookRegisterPayload } from '@/types/library/masters/bookRegister';
 
 const BASE_URL = 'BookRegister/';
 
-export async function getBookRegisterList(params?: ApiSearchparams | { IVRMUL_Id?: number; searchParams?: ApiSearchparams }) {
+export async function getBookRegisterList(params?: ApiSearchparams | { searchParams?: ApiSearchparams }) {
     try {
-        const session = await auth();
-        let ivrmulId = 21602;
-        let searchParams: ApiSearchparams | undefined;
-
-        if (params && typeof params === 'object') {
-            if ('IVRMUL_Id' in params && params.IVRMUL_Id) {
-                ivrmulId = params.IVRMUL_Id;
-                searchParams = params.searchParams;
-            } else if ('searchParams' in params) {
-                searchParams = (params as any).searchParams;
-            } else {
-                searchParams = params as ApiSearchparams;
-            }
+        const url = 'BookTransaction/Get_Student_Details1';
+        let response: any;
+        try {
+            response = await api.post<any>('library', url, {});
+        } catch {
+            response = await api.get<any>('library', url);
         }
-
-        if (session?.ivrmuL_Id) {
-            ivrmulId = Number(session.ivrmuL_Id) || ivrmulId;
-        } else if (session?.user_id) {
-            ivrmulId = Number(session.user_id) || ivrmulId;
-        }
-
-        const urlParams = getSearchParamsUrl(searchParams ?? {}, 'lmB_BookTitle');
-        const url = `BookRegister/book-register-main-load/${ivrmulId}${urlParams ? `?${urlParams}` : ''}`;
-        return await api.get<any>('library', url);
+        return response;
     } catch (error: any) {
         return { success: false, message: error?.message || 'Failed to fetch book register data', data: [] };
     }
@@ -45,10 +28,6 @@ export async function saveBookRegister(data: BookRegisterPayload) {
 
 export async function saveBookRegisterTable1(data: BookRegisterPayload) {
     try {
-        const session = await auth();
-        const miId = session?.mi_id ? Number(session.mi_id) : (data.mI_Id || 0);
-        const userId = session?.user_id ? Number(session.user_id) : (session?.roleId ? Number(session.roleId) : 1);
-
         let entryDateIso = new Date().toISOString();
         if (data.lmB_EntryDate) {
             try {
@@ -83,9 +62,7 @@ export async function saveBookRegisterTable1(data: BookRegisterPayload) {
             LMB_BookNo: String(data.lmB_BookNo || (data as any).LMB_BookNo || '').trim(),
             LMBKF_KeyFactor: String(data.lmBkf_KeyFactor || (data as any).LMBKF_KeyFactor || '').trim(),
             LMBKF_PageNo: String(data.lmBkf_PageNo !== undefined && data.lmBkf_PageNo !== null ? data.lmBkf_PageNo : (data as any).LMBKF_PageNo || ''),
-            LMAL_Id: Number(data.lmAL_Id || (data as any).LMAL_Id || (data as any).lmaL_Id || 0),
-            MI_Id: miId,
-            UserId: userId
+            LMAL_Id: Number(data.lmAL_Id || (data as any).LMAL_Id || (data as any).lmaL_Id || 0)
         };
 
         const response = await api.post<any>('library', `${BASE_URL}Table1Savedata`, payload);
@@ -98,10 +75,6 @@ export async function saveBookRegisterTable1(data: BookRegisterPayload) {
 
 export async function saveBookRegisterTable2(data: BookRegisterPayload) {
     try {
-        const session = await auth();
-        const miId = session?.mi_id ? Number(session.mi_id) : (data.mI_Id || 0);
-        const userId = session?.user_id ? Number(session.user_id) : (session?.roleId ? Number(session.roleId) : 1);
-
         const purchaseTypeMap: Record<string, string> = {
             Purchased: 'Purchased',
             Donated: 'Donated',
@@ -110,7 +83,8 @@ export async function saveBookRegisterTable2(data: BookRegisterPayload) {
             D: 'Donated',
             S: 'Specimen'
         };
-        const mappedPurchaseType = purchaseTypeMap[data.lmB_PurOrDonated] || purchaseTypeMap[(data as any).LMB_PurOrDonated] || 'Purchased';
+        const purchaseType = String(data.lmB_PurOrDonated || (data as any).LMB_PurOrDonated || '').trim();
+        const mappedPurchaseType = purchaseTypeMap[purchaseType] || 'Purchased';
 
         let purchaseDateIso = new Date().toISOString();
         if (data.purchase_Date) {
@@ -153,9 +127,7 @@ export async function saveBookRegisterTable2(data: BookRegisterPayload) {
             LMB_PurOrDonated: mappedPurchaseType,
             LMB_DonorAddress: (data.lmB_DonorAddress || (data as any).LMB_DonorAddress) ? String(data.lmB_DonorAddress || (data as any).LMB_DonorAddress).trim() : null,
             LMV_Id: Number(data.lmV_Id || (data as any).LMV_Id || 0),
-            LMAL_Id: Number(data.lmAL_Id || (data as any).LMAL_Id || 0),
-            MI_Id: miId,
-            UserId: userId
+            LMAL_Id: Number(data.lmAL_Id || (data as any).LMAL_Id || 0)
         };
 
         const response = await api.post<any>('library', `${BASE_URL}Table2Savedata`, payload);
@@ -168,10 +140,6 @@ export async function saveBookRegisterTable2(data: BookRegisterPayload) {
 
 export async function saveBookRegisterTable3(data: BookRegisterPayload) {
     try {
-        const session = await auth();
-        const miId = session?.mi_id ? Number(session.mi_id) : (data.mI_Id || 0);
-        const userId = session?.user_id ? Number(session.user_id) : (session?.roleId ? Number(session.roleId) : 1);
-
         const purchaseTypeMap: Record<string, string> = {
             Purchased: 'Purchased',
             Donated: 'Donated',
@@ -180,7 +148,8 @@ export async function saveBookRegisterTable3(data: BookRegisterPayload) {
             D: 'Donated',
             S: 'Specimen'
         };
-        const mappedPurchaseType = purchaseTypeMap[data.lmB_PurOrDonated] || purchaseTypeMap[(data as any).LMB_PurOrDonated] || 'Purchased';
+        const purchaseType = String(data.lmB_PurOrDonated || (data as any).LMB_PurOrDonated || '').trim();
+        const mappedPurchaseType = purchaseTypeMap[purchaseType] || 'Purchased';
 
         let purchaseDateIso = new Date().toISOString();
         if (data.purchase_Date) {
@@ -225,9 +194,7 @@ export async function saveBookRegisterTable3(data: BookRegisterPayload) {
             LMBA_AuthorLastName: String(data.lmB_AuthorLastName || (data as any).LMBA_AuthorLastName || (data as any).lmaU_AuthorLastName || '').trim(),
             LMBA_AuthorMiddleName: String(data.lmB_AuthorMiddleName || (data as any).LMBA_AuthorMiddleName || (data as any).lmaU_AuthorMiddleName || '').trim(),
             LMV_Id: Number(data.lmV_Id || (data as any).LMV_Id || 0),
-            LMAL_Id: Number(data.lmAL_Id || (data as any).LMAL_Id || 0),
-            MI_Id: miId,
-            UserId: userId
+            LMAL_Id: Number(data.lmAL_Id || (data as any).LMAL_Id || 0)
         };
 
         const response = await api.post<any>('library', `${BASE_URL}Table3Savedata`, payload);
@@ -404,12 +371,8 @@ export async function getVendorDropdown() {
     }
 }
 
-export async function getInitialData(ivrmulIdParam?: number) {
+export async function getInitialData(): Promise<BookRegisterInitialData> {
     try {
-        const session = await auth();
-        const ivrmulId = ivrmulIdParam || (session?.ivrmuL_Id ? Number(session.ivrmuL_Id) : 21602);
-
-        // Fetch all dropdowns in parallel with graceful fallbacks
         const [
             categoryRes,
             departmentRes,
@@ -431,7 +394,7 @@ export async function getInitialData(ivrmulIdParam?: number) {
             api.get<any>('library', 'BookRegister/rack-dropdown'),
             api.get<any>('library', 'BookRegister/language-dropdown'),
             api.get<any>('library', 'BookRegister/vendor-dropdown'),
-            api.get<any>('library', `BookRegister/book-register-main-load/${ivrmulId}`)
+            api.post<any>('library', 'BookTransaction/Get_Student_Details1', {})
         ]);
 
         const categoryData = categoryRes.status === 'fulfilled' ? extractDataArray(categoryRes.value, 'categorylist') : [];
@@ -449,10 +412,10 @@ export async function getInitialData(ivrmulIdParam?: number) {
 
         // Fallback to mainLoad lists if individual endpoints returned empty
         const finalCategory = categoryData.length > 0 ? categoryData : extractDataArray(mainLoadData?.categorylist || mainLoadData?.categoryList || mainLoadData?.m_categorylist, 'categorylist');
-        const finalDept = departmentData.length > 0 ? departmentData : extractDataArray(mainLoadData?.deptlist || mainLoadData?.deptList || mainLoadData?.departmentlist, 'deptlist');
-        const finalSubject = subjectData.length > 0 ? subjectData : extractDataArray(mainLoadData?.subjectlist || mainLoadData?.subjectList, 'subjectlist');
-        const finalLib = libraryData.length > 0 ? libraryData : extractDataArray(mainLoadData?.liblist || mainLoadData?.libList || mainLoadData?.librarylist, 'liblist');
-        const finalAuthor = authorData.length > 0 ? authorData : extractDataArray(mainLoadData?.authorlist || mainLoadData?.authorList, 'authorlist');
+        const finalDept = departmentData.length > 0 ? departmentData : extractDataArray(mainLoadData?.deptlist || mainLoadData?.deptList || mainLoadData?.departmentlist || mainLoadData?.filldepartment, 'deptlist');
+        const finalSubject = subjectData.length > 0 ? subjectData : extractDataArray(mainLoadData?.subjectlist || mainLoadData?.subjectList || mainLoadData?.mstersubjectlist, 'subjectlist');
+        const finalLib = libraryData.length > 0 ? libraryData : extractDataArray(mainLoadData?.liblist || mainLoadData?.libList || mainLoadData?.librarylist || mainLoadData?.msterliblist, 'liblist');
+        const finalAuthor = authorData.length > 0 ? authorData : extractDataArray(mainLoadData?.authorlist || mainLoadData?.authorList || mainLoadData?.authorname, 'authorlist');
         const finalPublisher = publisherData.length > 0 ? publisherData : extractDataArray(mainLoadData?.publisherlist || mainLoadData?.publisherList, 'publisherlist');
         const finalRack = rackData.length > 0 ? rackData : extractDataArray(mainLoadData?.racklist || mainLoadData?.rackList, 'racklist');
         const finalLang = languageData.length > 0 ? languageData : extractDataArray(mainLoadData?.langlist || mainLoadData?.langList || mainLoadData?.languagelist, 'langlist');

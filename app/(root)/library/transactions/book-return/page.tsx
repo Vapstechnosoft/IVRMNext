@@ -15,6 +15,8 @@ export default function BookReturnTransactionPage() {
         bookcat_type: 'book'
     });
 
+    const tableData = ((data as any)?.alldata || (data as any)?.data?.alldata || []) as IBookReturnList[];
+
     return (
         <div className='container mx-auto space-y-6 py-6'>
             <CollapsibleSection
@@ -37,7 +39,7 @@ export default function BookReturnTransactionPage() {
                 variant='default'
                 size='lg'
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable columns={BookReturnColumns} data={(data?.alldata || []) as IBookReturnList[]} isLoading={isLoading} />
+                <GenericDataTable columns={BookReturnColumns} data={tableData} isLoading={isLoading} />
             </CollapsibleSection>
         </div>
     );

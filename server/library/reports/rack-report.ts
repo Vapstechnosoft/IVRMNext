@@ -230,37 +230,21 @@ export async function getRackReportInitialData(): Promise<IRackReportInitialData
 
 export async function getRackReportData(data: IRackReportRequest) {
     try {
-        const session = await auth();
-
         const rackVal =
             data.LMRA_Id !== undefined && data.LMRA_Id !== null && String(data.LMRA_Id).trim() !== '' ? String(data.LMRA_Id).trim() : 'ALL';
         const lmalId = Number(data.LMAL_Id || 0);
 
-        // API URL format: /RackReport/rack-get_report/ALL/2 or /RackReport/rack-get_report/{LMRA_Id}/{LMAL_Id}
-        const url = `/${FACADE}/rack-get_report/${rackVal}/${lmalId}`;
-
-        const payload = {
-            LMAL_Id: lmalId,
-            lmaL_Id: lmalId,
-            LMRA_Id: rackVal === 'ALL' ? 'ALL' : Number(rackVal),
-            lmrA_Id: rackVal === 'ALL' ? 'ALL' : Number(rackVal),
-            MI_Id: session?.mi_id,
-            mI_Id: session?.mi_id,
-            IVRMUL_Id: session?.roleId || 0
-        };
+        // API URL format: RackReport/rack-get_report/ALL/3 or RackReport/rack-get_report/{LMRA_Id}/{LMAL_Id}
+        const url = `${FACADE}/rack-get_report/${rackVal}/${lmalId}`;
 
         let response: any;
         try {
-            response = await api.post<any>('library', url, payload);
-        } catch (postErr: any) {
+            response = await api.get<any>('library', url);
+        } catch (getErr: any) {
             try {
-                response = await api.get<any>('library', url, { params: payload });
+                response = await api.post<any>('library', url, {});
             } catch {
-                try {
-                    response = await api.get<any>('library', url);
-                } catch {
-                    throw postErr;
-                }
+                throw getErr;
             }
         }
 
@@ -295,3 +279,4 @@ export async function getRackReportData(data: IRackReportRequest) {
         };
     }
 }
+

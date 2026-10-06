@@ -173,3 +173,30 @@ export interface BookRegisterPayload {
     AUTHOR_FullName?: string;
     lmbanO_AccessionNo?: string;
 }
+
+export interface BookRegisterInitialData {
+    success?: boolean;
+    message?: string;
+    categorylist?: any[];
+    categoryList?: any[];
+    deptlist?: any[];
+    deptList?: any[];
+    subjectlist?: any[];
+    subjectList?: any[];
+    liblist?: any[];
+    libList?: any[];
+    authorlist?: any[];
+    authorList?: any[];
+    publisherlist?: any[];
+    publisherList?: any[];
+    racklist?: any[];
+    rackList?: any[];
+    langlist?: any[];
+    langList?: any[];
+    vendorlist?: any[];
+    vendorList?: any[];
+    accessorieslist?: any[];
+    accessoriesList?: any[];
+    [key: string]: any;
+}
+

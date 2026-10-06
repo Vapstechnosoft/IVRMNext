@@ -1,7 +1,6 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import { auth } from '@/lib/auth';
 import type { IAvailableBooksReportInitialData, IAvailableBooksReportRequest } from '@/types/library/reports/available-books-report';
 import { format } from 'date-fns';
 
@@ -9,7 +8,7 @@ const FACADE = 'AvailableBooksReport';
 
 export async function getAvailableBooksReportInitialData() {
     try {
-        const url = `/${FACADE}/getdetails`;
+        const url = `${FACADE}/getdetails`;
         return await api.get<IAvailableBooksReportInitialData>('library', url);
     } catch (error: any) {
         console.error('Error fetching initial data:', error);
@@ -19,8 +18,6 @@ export async function getAvailableBooksReportInitialData() {
 
 export async function getAvailableBooksReportData(data: IAvailableBooksReportRequest) {
     try {
-        const session = await auth();
-
         const type = data.Type || data.type || 'ALL';
         const type2 = data.Type2 || data.type2 || 'ALL';
         const lmdId = data.LMD_Id !== undefined && data.LMD_Id !== null ? data.LMD_Id : data.lmD_Id !== undefined ? data.lmD_Id : 0;
@@ -59,33 +56,16 @@ export async function getAvailableBooksReportData(data: IAvailableBooksReportReq
             }
         }
 
-        // URL format: /api/AvailableBooksReport/get-report/ALL/ALL/3/2022-03-09/2026-03-09/true/2
-        const url = `/${FACADE}/get-report/${type}/${type2}/${lmdId}/${fromDate}/${toDate}/${statuscount}/${lmalId}`;
-
-        const payload = {
-            Type: type,
-            type: type,
-            Type2: type2,
-            type2: type2,
-            LMD_Id: lmdId,
-            lmD_Id: lmdId,
-            LMAL_Id: lmalId,
-            lmaL_Id: lmalId,
-            MI_Id: session?.mi_id,
-            mI_Id: session?.mi_id,
-            IVRMUL_Id: session?.roleId || (session as any)?.ivrmuL_Id || 0,
-            statuscount: statuscount === 'true',
-            Fromdate: fromDate,
-            ToDate: toDate
-        };
+        // URL format: AvailableBooksReport/get-report/ALL/ALL/3/2026-10-10/2026-10-10/true/2
+        const url = `${FACADE}/get-report/${type}/${type2}/${lmdId}/${fromDate}/${toDate}/${statuscount}/${lmalId}`;
 
         let response: any;
         try {
-            response = await api.post<any>('library', url, payload);
+            response = await api.get<any>('library', url);
         } catch (err: any) {
-            if (typeof err === 'string' && (err.includes('405') || err.includes('Method Not Allowed'))) {
-                response = await api.get<any>('library', url);
-            } else {
+            try {
+                response = await api.post<any>('library', url, {});
+            } catch {
                 throw err;
             }
         }
@@ -101,3 +81,4 @@ export async function getAvailableBooksReportData(data: IAvailableBooksReportReq
         };
     }
 }
+

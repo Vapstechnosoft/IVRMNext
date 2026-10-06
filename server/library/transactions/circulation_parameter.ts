@@ -13,69 +13,32 @@ function is405Error(err: any): boolean {
 }
 
 export const getCirculationParameterDetails = async () => {
-    const endpoints = [
-        `${FACADE}/getdetails/0`,
-        `${FACADE}/getdetails`,
-        `${FACADE}/culationtransaction-getdetails`,
-        `${FACADE}/circulationtransaction-getdetails`,
-        `${FACADE}/Circulationtransaction-getdetails`,
-        `${FACADE}Facade/getdetails/0`,
-        `${FACADE}Facade/getdetails`
-    ];
-
-    for (const ep of endpoints) {
+    const url = `${FACADE}/culationtransaction-getdetails`;
+    try {
+        const res = await api.get<any>('library', url);
+        if (res !== undefined && res !== null) return res;
+    } catch {
         try {
-            const res = await api.get<any>('library', ep);
-            if (res) return res;
-        } catch {
-            // try next endpoint
+            const res = await api.post<any>('library', url, {});
+            if (res !== undefined && res !== null) return res;
+        } catch (err: any) {
+            console.warn('CirculationParameter/culationtransaction-getdetails error:', err?.message || err);
         }
     }
-
-    try {
-        return await api.post<any>('library', `${FACADE}/getdetails`, {});
-    } catch {
-        return { success: false, message: 'Failed to load circulation parameter details' };
-    }
+    return { success: false, message: 'Failed to load circulation parameter details' };
 };
 
 export const getCirculationData = async (payload?: any) => {
-    const session = await auth();
-    const miId = payload?.MI_Id || payload?.mI_Id || (session?.mi_id ? Number(session.mi_id) : 0);
-    const userId =
-        payload?.IVRMUL_Id ||
-        payload?.ivrmuL_Id ||
-        (session?.ivrmuL_Id
-            ? Number(session.ivrmuL_Id)
-            : session?.user_id
-              ? Number(session.user_id)
-              : session?.roleId
-                ? Number(session.roleId)
-                : 0);
-
-    const requestPayload = {
-        MI_Id: miId,
-        mI_Id: miId,
-        IVRMUL_Id: userId,
-        ivrmuL_Id: userId,
-        ...payload
-    };
-
+    const url = `${FACADE}/culationtransaction-getdetails`;
     try {
-        return await api.post<any>('library', `${FACADE}/get-circulation-data`, requestPayload);
-    } catch (err: any) {
-        if (is405Error(err)) {
-            try {
-                return await api.get<any>('library', `${FACADE}/get-circulation-data`, { params: requestPayload });
-            } catch {
-                try {
-                    return await api.post<any>('library', `${FACADE}/get_circulation_data`, requestPayload);
-                } catch {
-                    return await api.get<any>('library', `${FACADE}/get_circulation_data`, { params: requestPayload });
-                }
-            }
+        return await api.post<any>('library', url, payload || {});
+    } catch {
+        try {
+            return await api.get<any>('library', url, { params: payload });
+        } catch (err: any) {
+            console.error('Failed in getCirculationData:', err);
+            throw err;
         }
-        throw err;
     }
 };
 
@@ -115,13 +78,13 @@ export const saveCirculationParameter = async (payload: any) => {
     const miId = Number(payload?.mi_Id ?? payload?.MI_Id ?? payload?.mI_Id ?? (session?.mi_id ? Number(session.mi_id) : 1));
     const userId = Number(
         payload?.ivrmul_Id ??
-            payload?.IVRMUL_Id ??
-            payload?.ivrmuL_Id ??
-            (session?.ivrmuL_Id
-                ? Number(session.ivrmuL_Id)
-                : session?.user_id
-                  ? Number(session.user_id)
-                  : session?.roleId
+        payload?.IVRMUL_Id ??
+        payload?.ivrmuL_Id ??
+        ((session as any)?.ivrmuL_Id
+            ? Number((session as any).ivrmuL_Id)
+            : (session as any)?.user_id
+                ? Number((session as any).user_id)
+                : session?.roleId
                     ? Number(session.roleId)
                     : 1)
     );
@@ -138,12 +101,12 @@ export const saveCirculationParameter = async (payload: any) => {
     const issuer = String(payload?.issuertype1 ?? payload?.schclgflag ?? 'STUDENT').toUpperCase();
     const catgName = String(
         payload?.catgname ??
-            payload?.bookType ??
-            payload?.LMB_BookType ??
-            payload?.lmB_BookType ??
-            payload?.categoryName ??
-            payload?.LMC_CategoryName ??
-            'Issue'
+        payload?.bookType ??
+        payload?.LMB_BookType ??
+        payload?.lmB_BookType ??
+        payload?.categoryName ??
+        payload?.LMC_CategoryName ??
+        'Issue'
     );
     const bookFlag = String(
         payload?.bookflag ?? payload?.LMB_BookTypeflag ?? payload?.lmB_BookTypeflag ?? payload?.BOOKFLAG ?? 'BP'
@@ -161,9 +124,8 @@ export const saveCirculationParameter = async (payload: any) => {
         issuertype1: issuer,
         catgname: catgName,
         bookflag: bookFlag,
-        lbcpa_ExcludeHolidayFlg: excludeHoliday,
-        ivrmul_Id: userId,
-        mi_Id: miId
+        lbcpa_ExcludeHolidayFlg: excludeHoliday
+
     };
 
     if (hrmdId > 0 || issuer === 'DEPARTMENT') {
