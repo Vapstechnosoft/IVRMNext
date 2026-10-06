@@ -1,5 +1,4 @@
 import FeeOnlinePaymentClient from './_components/fee-online-payment-client';
-import { getFeeOnlinePaymentLoadData } from './actions';
 
 export default async function FeeOnlinePaymentPage() {
     return (
