@@ -10,15 +10,33 @@ export interface IBookArrivalReportInitialData {
 }
 
 export interface IBookArrivalReportRequest {
-    p_type: string;
-    p_type2: string;
-    p_lmd_id: string | number;
+    Type?: string;
+    type?: string;
+    Type2?: string;
+    type2?: string;
+    LMD_Id?: string | number;
+    lmD_Id?: string | number;
+    Fromdate?: string;
+    fromdate?: string;
+    fromDate?: string;
+    FromDate?: string;
+    ToDate?: string;
+    todate?: string;
+    toDate?: string;
+    Todate?: string;
+    LMAL_Id?: number;
+    lmaL_Id?: number;
+    // Backward compatibility / optional properties
+    p_type?: string;
+    p_type2?: string;
+    p_lmd_id?: string | number;
     p_fromdate?: string;
     p_todate?: string;
-    p_lmal_id: number;
+    p_lmal_id?: number;
     p_lms_id?: string | number;
     subjectsthomos?: boolean;
     stthomosSubject?: Array<{ lmS_Id: number }>;
+    [key: string]: any;
 }
 
 export interface IBookArrivalReportGridData {
@@ -39,7 +57,9 @@ export interface IBookArrivalReportGridData {
 
 export interface IBookArrivalReportResponse {
     success: boolean;
-    message: string;
+    message?: string;
     data: IBookArrivalReportGridData[];
     reportlist?: IBookArrivalReportGridData[];
+    griddata?: IBookArrivalReportGridData[];
+    alldata?: IBookArrivalReportGridData[];
 }

@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { IPurchaseDonateReportRequest } from '@/types/library/reports/purchase-donate-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileSpreadsheet, LayoutGrid, Loader2, Printer, X } from 'lucide-react';
+import { FileSpreadsheet, Loader2, Printer, Search, X } from 'lucide-react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -105,25 +105,28 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
                 </div>
             </div>
 
-            {/* Action Buttons - Matches Screenshot style */}
+            {/* Action Buttons */}
             <div className='flex flex-row flex-wrap items-center justify-center gap-4 pt-4'>
                 <Button
                     type='submit'
-                    className='h-10 w-fit min-w-[140px] rounded-lg bg-[#3f51b5] px-6 font-bold text-white text-xs uppercase tracking-wider shadow-md hover:bg-[#303f9f]'
+                    className='!w-auto h-9 min-w-[120px] rounded-md bg-[#4251b1] px-6 py-2 font-medium text-white text-xs shadow-sm hover:bg-[#35418e]'
                     disabled={isLoading}>
-                    {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <LayoutGrid className='mr-2 h-4 w-4' />}
+                    {isLoading ? <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <Search className='mr-1.5 h-3.5 w-3.5' />}
                     REPORT
                 </Button>
 
                 <Button
                     type='button'
-                    className='h-10 w-fit min-w-[140px] rounded-lg bg-[#ff5722] px-6 font-bold text-white text-xs uppercase tracking-wider shadow-md hover:bg-[#e64a19]'
+                    className='!w-auto h-9 min-w-[120px] rounded-md bg-[#ff5a30] px-6 py-2 font-medium text-white text-xs shadow-sm hover:bg-[#e64d26]'
                     onClick={() => {
-                        reset();
+                        reset({
+                            book_Flag: 'Purchased',
+                            LMB_BookType: ''
+                        });
                         onCancel();
                     }}
                     disabled={isLoading}>
-                    <X className='mr-2 h-4 w-4' />
+                    <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>
 
@@ -132,16 +135,16 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
                         <Button
                             type='button'
                             onClick={onPrint}
-                            className='h-10 w-fit min-w-[140px] rounded-lg bg-[#3f51b5] px-6 font-bold text-white text-xs uppercase tracking-wider shadow-md hover:bg-[#303f9f]'>
-                            <Printer className='mr-2 h-4 w-4' />
+                            className='!w-auto h-9 min-w-[120px] rounded-md bg-[#4251b1] px-6 py-2 font-medium text-white text-xs shadow-sm hover:bg-[#35418e]'>
+                            <Printer className='mr-1.5 h-3.5 w-3.5' />
                             PRINT
                         </Button>
 
                         <Button
                             type='button'
                             onClick={onExport}
-                            className='h-10 w-fit min-w-[140px] rounded-lg bg-[#3f51b5] px-6 font-bold text-white text-xs uppercase tracking-wider shadow-md hover:bg-[#303f9f]'>
-                            <FileSpreadsheet className='mr-2 h-4 w-4' />
+                            className='!w-auto h-9 min-w-[140px] rounded-md bg-[#4251b1] px-6 py-2 font-medium text-white text-xs shadow-sm hover:bg-[#35418e]'>
+                            <FileSpreadsheet className='mr-1.5 h-3.5 w-3.5' />
                             EXPORT TO EXCEL
                         </Button>
                     </>

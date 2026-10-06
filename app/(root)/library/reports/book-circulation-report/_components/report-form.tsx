@@ -269,7 +269,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
     return (
         <form
             onSubmit={handleSubmit(onSubmit)}
-            className='mx-auto max-w-5xl space-y-4 rounded-lg border-[#4255a7] border-t-4 bg-[#fdfdfd] p-4 shadow-xl ring-1 ring-slate-200'>
+            className='mx-auto max-w-5xl space-y-4 rounded-lg border bg-white p-6 shadow-sm'>
             {/* Header Row: Library Name and Member Type */}
             <div className='grid grid-cols-1 gap-6 border-slate-100 border-b pb-2 md:grid-cols-2'>
                 <div className='flex items-center gap-3'>
