@@ -464,7 +464,9 @@ export default function FeeDefaulterReport() {
         }
     };
     const totalBalance = filteredData.reduce((sum, r) => sum + r.totalBalance, 0);
-    const selectedBalance = filteredData.filter((r) => selectedIds.includes(r.id)).reduce((sum, r) => sum + r.totalBalance, 0);
+    const selectedBalance = studentGroupreportData
+        .filter((row) => selectedIds.includes(row.id))
+        .reduce((sum, row) => sum + (Number(row.totalBalance) || 0), 0);
 
     const handleExportExcelforFeeGroupWise = () => {
         const rowsToExport = studentGroupreportData.filter((r) => selectedIds.includes(r.id));
