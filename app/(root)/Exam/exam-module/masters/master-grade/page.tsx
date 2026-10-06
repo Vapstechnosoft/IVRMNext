@@ -6,7 +6,6 @@ import { FormProvider, useFormContext } from '@/components/ui/form/form-provider
 import { useMasterGrade } from '@/hooks/exam/exammodule/usemasters';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
 import { Plus, X } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
 import AddMasterGradeForm from './_components/add-form';
 import { MasterGradeColumns } from './_components/grade-columns';
 import MasterGradeDetailsPage from './_components/grade-details-view';
@@ -14,9 +13,7 @@ import ToggleMasterGradeForm from './_components/toggle-form';
 import UpdateMasterGradeForm from './_components/update-form';
 
 export default function MasterGradePage() {
-    const searchParams = useSearchParams();
-    const params = Object.fromEntries(searchParams.entries());
-    const { data: response, isLoading, error, refetchAll: refetchGrid } = useMasterGrade(params);
+    const { data: response, isLoading, error, refetchAll: refetchGrid } = useMasterGrade();
 
     return (
         <FormProvider<IMasterGrade>>
@@ -70,6 +67,8 @@ function MasterGradePageContent({
                         noDataTitle='No Master Grades Found'
                         noDataDescription='Get started by creating your first master grade'
                         errorTitle='Error Loading Grades'
+                        manualFiltering={false}
+                        manualPagination={false}
                     />
                 </CollapsibleSection>
 
