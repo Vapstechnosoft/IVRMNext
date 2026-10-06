@@ -1,11 +1,20 @@
 'use client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useBookRegister, useBookRegisterInitialData } from '@/hooks/library/useBookRegister';
+import {
+    useBookRegister,
+    useBookRegisterInitialData,
+    useCategoryDropdown,
+    useDepartmentDropdown,
+    useLibraryDropdown,
+    usePublisherDropdown,
+    useSubjectDropdown,
+    useVendorDropdown
+} from '@/hooks/library/useBookRegister';
 import { bookRegisterSchema } from '@/schemas/library/bookRegister';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import TabAuthorDetails from './TabAuthorDetails';
@@ -44,11 +53,11 @@ function normalizeBookData(data: any): BookRegisterPayload {
         lmB_BillNo: data.lmB_BillNo || data.LMB_BillNo || '',
         voucher_No: data.voucher_No || data.Voucher_No || '',
         lmB_PurOrDonated:
-            data.lmB_PurOrDonated === 'Purchased' || data.LMB_PurOrDonated === 'Purchased'
+            data.lmB_PurOrDonated === 'Purchased' || data.LMB_PurOrDonated === 'Purchased' || data.source_Type === 'Purchased' || data.Source_Type === 'Purchased'
                 ? 'P'
-                : data.lmB_PurOrDonated === 'Donated' || data.LMB_PurOrDonated === 'Donated'
+                : data.lmB_PurOrDonated === 'Donated' || data.LMB_PurOrDonated === 'Donated' || data.source_Type === 'Donated' || data.Source_Type === 'Donated'
                   ? 'D'
-                  : data.lmB_PurOrDonated === 'Specimen' || data.LMB_PurOrDonated === 'Specimen'
+                  : data.lmB_PurOrDonated === 'Specimen' || data.LMB_PurOrDonated === 'Specimen' || data.source_Type === 'Specimen' || data.Source_Type === 'Specimen'
                     ? 'S'
                     : data.lmB_PurOrDonated || data.LMB_PurOrDonated || 'P',
         donor_Id: data.donor_Id || data.Donor_Id || '',
@@ -63,9 +72,9 @@ function normalizeBookData(data: any): BookRegisterPayload {
         index_Page: data.index_Page ?? data.Index_Page ?? '',
 
         lmAU_Id: Number(data.lmAU_Id || data.LMAU_Id || data.lmau_Id || 0),
-        lmB_AuthorFirstName: data.lmB_AuthorFirstName || data.LMB_AuthorFirstName || '',
-        lmB_AuthorMiddleName: data.lmB_AuthorMiddleName || data.LMB_AuthorMiddleName || '',
-        lmB_AuthorLastName: data.lmB_AuthorLastName || data.LMB_AuthorLastName || '',
+        lmB_AuthorFirstName: data.lmB_AuthorFirstName || data.LMB_AuthorFirstName || data.lmaU_AuthorFirstName || data.LMAU_AuthorFirstName || '',
+        lmB_AuthorMiddleName: data.lmB_AuthorMiddleName || data.LMB_AuthorMiddleName || data.lmaU_AuthorMiddleName || data.LMAU_AuthorMiddleName || '',
+        lmB_AuthorLastName: data.lmB_AuthorLastName || data.LMB_AuthorLastName || data.lmaU_AuthorLastName || data.LMAU_AuthorLastName || '',
 
         lmbanO_AvialableStatus: data.lmbanO_AvialableStatus || data.LMBANO_AvialableStatus || 'Available',
         lRM_Id: Number(data.lRM_Id || data.LRM_Id || data.lrm_Id || 0),
@@ -84,9 +93,9 @@ function normalizeBookData(data: any): BookRegisterPayload {
         mB_ActiveFlag: data.mB_ActiveFlag !== undefined ? !!data.mB_ActiveFlag : !!data.MB_ActiveFlag,
         lmB_StudentPhoto: data.lmB_StudentPhoto || data.Book_Image || '',
 
-        accessionList: Array.isArray(data.accessionList)
+        accessionList: Array.isArray(data.accessionList) && data.accessionList.length > 0
             ? data.accessionList
-            : Array.isArray(data.accessionlist)
+            : Array.isArray(data.accessionlist) && data.accessionlist.length > 0
               ? data.accessionlist
               : [
                     {
@@ -104,8 +113,41 @@ function normalizeBookData(data: any): BookRegisterPayload {
 }
 
 export default function BookRegisterForm({ initialData, onSuccess }: { initialData?: BookRegisterPayload; onSuccess: () => void }) {
-    const { saveMutation, saveTable1Mutation, saveTable2Mutation } = useBookRegister();
-    const { data: dropdownData, isLoading: isLoadingDropdowns } = useBookRegisterInitialData();
+    const { saveMutation, saveTable1Mutation, saveTable2Mutation, saveTable3Mutation } = useBookRegister();
+    const { data: initialDataRes, isLoading: isLoadingDropdowns } = useBookRegisterInitialData();
+    const { data: categoryData } = useCategoryDropdown();
+    const { data: departmentData } = useDepartmentDropdown();
+    const { data: subjectData } = useSubjectDropdown();
+    const { data: libraryData } = useLibraryDropdown();
+    const { data: vendorData } = useVendorDropdown();
+    const { data: publisherData } = usePublisherDropdown();
+
+    const dropdownData = useMemo(() => {
+        const base = initialDataRes || {};
+        const cat = (base.categorylist && base.categorylist.length > 0) ? base.categorylist : (categoryData && categoryData.length > 0) ? categoryData : [];
+        const dept = (base.deptlist && base.deptlist.length > 0) ? base.deptlist : (departmentData && departmentData.length > 0) ? departmentData : [];
+        const subj = (base.subjectlist && base.subjectlist.length > 0) ? base.subjectlist : (subjectData && subjectData.length > 0) ? subjectData : [];
+        const lib = (base.liblist && base.liblist.length > 0) ? base.liblist : (libraryData && libraryData.length > 0) ? libraryData : [];
+        const vend = (vendorData && vendorData.length > 0) ? vendorData : (base.vendorlist && base.vendorlist.length > 0) ? base.vendorlist : [];
+        const pub = (publisherData && publisherData.length > 0) ? publisherData : (base.publisherlist && base.publisherlist.length > 0) ? base.publisherlist : [];
+
+        return {
+            ...base,
+            categorylist: cat,
+            categoryList: cat,
+            deptlist: dept,
+            deptList: dept,
+            subjectlist: subj,
+            subjectList: subj,
+            liblist: lib,
+            libList: lib,
+            vendorlist: vend,
+            vendorList: vend,
+            publisherlist: pub,
+            publisherList: pub
+        };
+    }, [initialDataRes, categoryData, departmentData, subjectData, libraryData, vendorData, publisherData]);
+
     const [activeTab, setActiveTab] = useState('bookDetails');
 
     const form = useForm<BookRegisterPayload>({
@@ -115,6 +157,7 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
             : {
                   lmB_BookTitle: '',
                   lmB_BookType: '',
+                  lmB_PublishedYear: '',
                   lmB_EntryDate: new Date(),
                   purchase_Date: new Date(),
                   lmbanO_AvialableStatus: 'Available',
@@ -137,13 +180,31 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
             attachementList: cleanedAttachments
         };
 
-        saveMutation.mutate(payload, {
-            onSuccess: (res) => {
-                if (res.success) {
-                    toast.success(res.message || 'Record saved successfully');
+        saveTable3Mutation.mutate(payload, {
+            onSuccess: (res: any) => {
+                const responseData = res?.data ?? res;
+                const returnVal = responseData?.returnval ?? responseData?.returnVal ?? res?.returnval;
+
+                if (returnVal === 'Duplicate' || returnVal === 'duplicate' || res?.message?.toLowerCase()?.includes('duplicate')) {
+                    toast.error(responseData?.message || res?.message || 'Duplicate record found');
+                    return;
+                }
+
+                const isSuccess =
+                    res?.success === true ||
+                    returnVal === true ||
+                    returnVal === 'save' ||
+                    returnVal === 'update' ||
+                    returnVal === 'saved' ||
+                    returnVal === 'updated' ||
+                    (res?.status && res.status >= 200 && res.status < 300) ||
+                    (typeof res === 'object' && res?.success !== false && !res?.error);
+
+                if (isSuccess) {
+                    toast.success(responseData?.message || res?.message || 'Record saved successfully');
                     onSuccess();
                 } else {
-                    toast.error(res.message || 'Failed to save record');
+                    toast.error(res?.message || responseData?.message || 'Failed to save record');
                 }
             },
             onError: (err: any) => {
@@ -185,20 +246,44 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
             }
 
             saveTable1Mutation.mutate(form.getValues(), {
-                onSuccess: (res) => {
-                    if (res.success) {
-                        toast.success(res.message || 'Book details saved successfully');
+                onSuccess: (res: any) => {
+                    const responseData = res?.data ?? res;
+                    const returnVal = responseData?.returnval ?? responseData?.returnVal ?? res?.returnval;
+
+                    if (returnVal === 'Duplicate' || returnVal === 'duplicate' || res?.message?.toLowerCase()?.includes('duplicate')) {
+                        toast.error(responseData?.message || res?.message || 'Duplicate record found');
+                        return;
+                    }
+
+                    const isSuccess =
+                        res?.success === true ||
+                        returnVal === true ||
+                        returnVal === 'save' ||
+                        returnVal === 'update' ||
+                        returnVal === 'saved' ||
+                        returnVal === 'updated' ||
+                        (res?.status && res.status >= 200 && res.status < 300) ||
+                        (typeof res === 'object' && res?.success !== false && !res?.error);
+
+                    if (isSuccess) {
+                        toast.success(responseData?.message || res?.message || 'Book details saved successfully');
                         const savedBookId =
-                            (res as any).data?.bookDetails?.lmB_Id ||
-                            (res as any).data?.bookDetails?.LMB_Id ||
-                            (res as any).data?.lmB_Id ||
-                            (res as any).data?.LMB_Id;
+                            responseData?.bookDetails?.lmB_Id ||
+                            responseData?.bookDetails?.LMB_Id ||
+                            responseData?.lmb_Id ||
+                            responseData?.LMB_Id ||
+                            responseData?.lmB_Id ||
+                            responseData?.bookdetails?.[0]?.lmB_Id ||
+                            responseData?.bookdetails?.[0]?.LMB_Id ||
+                            responseData?.bookDetailsList?.[0]?.lmB_Id ||
+                            responseData?.bookDetailsList?.[0]?.LMB_Id;
+
                         if (savedBookId) {
                             form.setValue('lmB_Id', Number(savedBookId));
                         }
                         setActiveTab('purchaseDetails');
                     } else {
-                        toast.error(res.message || 'Failed to save book details');
+                        toast.error(res?.message || responseData?.message || 'Failed to save book details');
                     }
                 },
                 onError: (err: any) => {
@@ -233,12 +318,30 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
             }
 
             saveTable2Mutation.mutate(form.getValues(), {
-                onSuccess: (res) => {
-                    if (res.success) {
-                        toast.success(res.message || 'Purchase details saved successfully');
+                onSuccess: (res: any) => {
+                    const responseData = res?.data ?? res;
+                    const returnVal = responseData?.returnval ?? responseData?.returnVal ?? res?.returnval;
+
+                    if (returnVal === 'Duplicate' || returnVal === 'duplicate' || res?.message?.toLowerCase()?.includes('duplicate')) {
+                        toast.error(responseData?.message || res?.message || 'Duplicate record found');
+                        return;
+                    }
+
+                    const isSuccess =
+                        res?.success === true ||
+                        returnVal === true ||
+                        returnVal === 'save' ||
+                        returnVal === 'update' ||
+                        returnVal === 'saved' ||
+                        returnVal === 'updated' ||
+                        (res?.status && res.status >= 200 && res.status < 300) ||
+                        (typeof res === 'object' && res?.success !== false && !res?.error);
+
+                    if (isSuccess) {
+                        toast.success(responseData?.message || res?.message || 'Purchase details saved successfully');
                         setActiveTab('authorDetails');
                     } else {
-                        toast.error(res.message || 'Failed to save purchase details');
+                        toast.error(res?.message || responseData?.message || 'Failed to save purchase details');
                     }
                 },
                 onError: (err: any) => {
@@ -302,6 +405,7 @@ export default function BookRegisterForm({ initialData, onSuccess }: { initialDa
                                 onPrevious={handlePrevious}
                                 onCancel={() => onSuccess()}
                                 onClear={handleClear}
+                                isSaving={saveTable3Mutation.isPending}
                             />
                         </TabsContent>
                     </div>

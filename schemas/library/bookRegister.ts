@@ -13,7 +13,11 @@ export const bookRegisterSchema = {
         lmD_Id: z.number({ required_error: 'Department is required' }).min(1),
         binding_Type: z.string().optional(),
         lmB_Edition: z.string().optional(),
-        lmB_PublishedYear: z.union([z.string(), z.number()]).refine((val) => !!val, 'Published Year is required'),
+        lmB_PublishedYear: z
+            .union([z.string(), z.number()])
+            .refine((val) => val !== undefined && val !== null && String(val).trim().length > 0, {
+                message: 'Publish Year is required'
+            }),
         lmB_EntryDate: z.union([z.date(), z.string()]),
         mB_Call_No: z.string().optional(),
         lmB_ISBNNo: createOptionalStringSchema('ISBN No', 1, 50),

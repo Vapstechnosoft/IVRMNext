@@ -12,6 +12,7 @@ export const useCirculationParameterDetails = () => {
     return useQuery({
         queryKey: ['circulationParameterDetails'],
         queryFn: () => getCirculationParameterDetails(),
+        staleTime: 0,
         meta: {
             errorMessage: 'Failed to load circulation parameter details'
         }
@@ -42,14 +43,16 @@ export const useSaveCirculationParameter = () => {
     return useMutation({
         mutationFn: saveCirculationParameter,
         onSuccess: (data: any, variables: any) => {
-            const isEditing = Boolean(variables?.lbcpa_Id || variables?.circ_Id || variables?.lbcpA_Id || variables?.lnbcpA_Id || variables?.lbcpaS_Id);
+            const isEditing = Boolean(
+                variables?.lbcpa_Id || variables?.circ_Id || variables?.lbcpA_Id || variables?.lnbcpA_Id || variables?.lbcpaS_Id
+            );
             if (data?.duplicate) {
                 toast.warning(data?.message || 'Record already exists for this selection');
-            } else if (data?.returnval === false || data?.success === false) {
+            } else if (data?.success === false || data?.status === false) {
                 toast.error(data?.message || `Record Not ${isEditing ? 'Updated' : 'Saved'} Successfully!!!`);
             } else {
                 const message =
-                    (typeof data?.returnval === 'string' && data.returnval.trim())
+                    typeof data?.returnval === 'string' && data.returnval.trim()
                         ? data.returnval
                         : data?.message || `Record ${isEditing ? 'Updated' : 'Saved'} Successfully!!!`;
                 toast.success(message);
@@ -57,7 +60,9 @@ export const useSaveCirculationParameter = () => {
             queryClient.invalidateQueries({ queryKey: ['circulationParameterDetails'] });
         },
         onError: (error: any, variables: any) => {
-            const isEditing = Boolean(variables?.lbcpa_Id || variables?.circ_Id || variables?.lbcpA_Id || variables?.lnbcpA_Id || variables?.lbcpaS_Id);
+            const isEditing = Boolean(
+                variables?.lbcpa_Id || variables?.circ_Id || variables?.lbcpA_Id || variables?.lnbcpA_Id || variables?.lbcpaS_Id
+            );
             toast.error(error?.message || `Record Not ${isEditing ? 'Updated' : 'Saved'} Successfully!!!`);
         }
     });
@@ -72,13 +77,22 @@ export const useToggleCirculationParameterStatus = () => {
             const isDeactivating = variables?.currentActiveStatus ?? true;
             const actionWord = isDeactivating ? 'Deactivated' : 'Activated';
 
-            if (data?.success === false || data?.returnval === false) {
+            const isSuccess =
+                data?.success === true ||
+                data?.returnval === true ||
+                (typeof data?.returnval === 'string' && data.returnval.trim().length > 0) ||
+                (typeof data?.message === 'string' &&
+                    (data.message.toLowerCase().includes('success') ||
+                        data.message.toLowerCase().includes('activated') ||
+                        data.message.toLowerCase().includes('deactivated')));
+
+            if (!isSuccess && (data?.success === false || data?.status === false)) {
                 toast.error(data?.message || `Record Not ${actionWord} Successfully!!!`);
             } else {
                 const message =
-                    (typeof data?.returnval === 'string' && data.returnval.trim())
+                    typeof data?.returnval === 'string' && data.returnval.trim()
                         ? data.returnval
-                        : data?.message || `Record ${actionWord} Successfully!!!`;
+                        : data?.message || `Record ${actionWord} Successfully!`;
                 toast.success(message);
             }
             queryClient.invalidateQueries({ queryKey: ['circulationParameterDetails'] });

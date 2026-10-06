@@ -22,9 +22,8 @@ export async function getBookCirculationReportInitialData() {
     }
 
     const url = `${FACADE}/circulation-getdetails`;
-    console.log(`[circulation-getdetails] calling GET with MI_Id: ${session.mi_id}`);
 
-    let response;
+    let response: any;
     let getError = null;
     try {
         response = await api.get<any>('library', url, {
@@ -32,7 +31,6 @@ export async function getBookCirculationReportInitialData() {
                 MI_Id: session.mi_id
             }
         });
-        console.log('[circulation-getdetails] GET Response status/success:', response?.success, response?.message);
     } catch (e: any) {
         getError = e?.message || String(e);
         console.warn('[circulation-getdetails] GET failed, attempting POST fallback:', getError);
@@ -43,7 +41,6 @@ export async function getBookCirculationReportInitialData() {
     let finalData = data;
 
     if (!response || getError) {
-        console.log('[circulation-getdetails] Trying POST fallback...');
         try {
             const postResponse = await api.post<any>('library', url, {
                 MI_Id: session.mi_id
@@ -52,8 +49,8 @@ export async function getBookCirculationReportInitialData() {
             if (postData) {
                 finalData = postData;
             }
-        } catch (e: any) {
-            console.log('[circulation-getdetails] POST fallback failed:', e?.message || String(e));
+        } catch (postErr: any) {
+            console.warn('[circulation-getdetails] POST fallback failed:', postErr?.message || String(postErr));
         }
     }
 
@@ -73,7 +70,6 @@ export async function getBookCirculationReportInitialData() {
 
     // Merge or fallback to get-master-library-list if libraries or classes are empty
     if (finalLibList.length === 0 || finalClassList.length === 0) {
-        console.log('[circulation-getdetails] Library or Class list is empty. Fetching from MasterLibrary...');
         try {
             const masterLibUrl = `/MasterLibrary/get-master-library-list?page=1&page_size=100&sort_column=lmaL_LibraryName&sort_direction=asc&mI_Id=${session.mi_id}`;
             const masterLibRes = await api.get<any>('library', masterLibUrl);

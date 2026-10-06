@@ -1,18 +1,19 @@
 export interface BookRegister {
     lmB_Id: number;
-    mI_Id: number;
+    mI_Id?: number;
+    lmbanO_Id?: number;
     lmB_BookTitle: string;
     mB_Subtitle?: string;
-    lmC_Id: number;
-    lmB_BookType: string;
-    lmS_Id: number;
-    lmD_Id: number;
+    lmC_Id?: number;
+    lmB_BookType?: string;
+    lmS_Id?: number;
+    lmD_Id?: number;
     binding_Type?: string;
     lmB_Edition?: string;
-    lmB_PublishedYear: string;
-    lmB_EntryDate: Date;
+    lmB_PublishedYear?: string | number;
+    lmB_EntryDate?: Date | string;
     mB_Call_No?: string;
-    lmB_ISBNNo: string;
+    lmB_ISBNNo?: string;
     lmB_ClassNo?: string;
     lmB_VolNo?: string;
     mB_Pages?: number;
@@ -20,13 +21,13 @@ export interface BookRegister {
     lmBkf_KeyFactor?: string;
     lmBkf_PageNo?: number;
     lmB_BookNo?: string;
-    lmAL_Id: number;
+    lmAL_Id?: number;
 
-    purchase_Date: Date;
-    lmL_Id: number;
+    purchase_Date?: Date | string;
+    lmL_Id?: number;
     lmB_BillNo?: string;
     voucher_No?: string;
-    lmB_PurOrDonated: string;
+    lmB_PurOrDonated?: string;
     donor_Id?: string;
     lmB_DonorAddress?: string;
     currencyType?: string;
@@ -35,19 +36,23 @@ export interface BookRegister {
     mB_Keywords?: string;
     lmP_Id?: number;
     mB_Remarks?: string;
-    bibliography_Page?: string;
-    index_Page?: string;
+    bibliography_Page?: string | boolean;
+    index_Page?: string | boolean;
 
     lmAU_Id?: number;
     lmB_AuthorFirstName?: string;
     lmB_AuthorMiddleName?: string;
     lmB_AuthorLastName?: string;
+    authoR_FullName?: string;
+    lmaU_AuthorFirstName?: string;
+    lmaU_AuthorMiddleName?: string;
+    lmaU_AuthorLastName?: string;
 
-    lmbanO_AvialableStatus: string;
-    lRM_Id: number;
-    lSM_Id: number;
-    lRAM_Id: number;
-    lmrA_Id: number;
+    lmbanO_AvialableStatus?: string;
+    lRM_Id?: number;
+    lSM_Id?: number;
+    lRAM_Id?: number;
+    lmrA_Id?: number;
 
     lmB_Price?: number;
     mB_Disc_Type?: string;
@@ -87,18 +92,19 @@ export interface AttachmentDTO {
 export interface BookRegisterPayload {
     lmB_Id?: number;
     mI_Id?: number;
+    lmbanO_Id?: number;
     lmB_BookTitle: string;
     mB_Subtitle?: string;
-    lmC_Id: number;
-    lmB_BookType: string;
-    lmS_Id: number;
-    lmD_Id: number;
+    lmC_Id?: number;
+    lmB_BookType?: string;
+    lmS_Id?: number;
+    lmD_Id?: number;
     binding_Type?: string;
     lmB_Edition?: string;
-    lmB_PublishedYear: string | number;
-    lmB_EntryDate: Date | string;
+    lmB_PublishedYear?: string | number;
+    lmB_EntryDate?: Date | string;
     mB_Call_No?: string;
-    lmB_ISBNNo: string;
+    lmB_ISBNNo?: string;
     lmB_ClassNo?: string;
     lmB_VolNo?: string;
     mB_Pages?: number;
@@ -106,13 +112,13 @@ export interface BookRegisterPayload {
     lmBkf_KeyFactor?: string;
     lmBkf_PageNo?: number;
     lmB_BookNo?: string;
-    lmAL_Id: number;
+    lmAL_Id?: number;
 
-    purchase_Date: Date | string;
-    lmL_Id: number;
+    purchase_Date?: Date | string;
+    lmL_Id?: number;
     lmB_BillNo?: string;
     voucher_No?: string;
-    lmB_PurOrDonated: string;
+    lmB_PurOrDonated?: string;
     donor_Id?: string;
     lmB_DonorAddress?: string;
     currencyType?: string;
@@ -121,19 +127,23 @@ export interface BookRegisterPayload {
     mB_Keywords?: string;
     lmP_Id?: number;
     mB_Remarks?: string;
-    bibliography_Page?: string;
-    index_Page?: string;
+    bibliography_Page?: string | boolean;
+    index_Page?: string | boolean;
 
     lmAU_Id?: number;
     lmB_AuthorFirstName?: string;
     lmB_AuthorMiddleName?: string;
     lmB_AuthorLastName?: string;
+    authoR_FullName?: string;
+    lmaU_AuthorFirstName?: string;
+    lmaU_AuthorMiddleName?: string;
+    lmaU_AuthorLastName?: string;
 
-    lmbanO_AvialableStatus: string;
-    lRM_Id: number;
-    lSM_Id: number;
-    lRAM_Id: number;
-    lmrA_Id: number;
+    lmbanO_AvialableStatus?: string;
+    lRM_Id?: number;
+    lSM_Id?: number;
+    lRAM_Id?: number;
+    lmrA_Id?: number;
 
     lmB_Price?: number;
     mB_Disc_Type?: string;
@@ -151,4 +161,15 @@ export interface BookRegisterPayload {
     lmB_FirstSummary?: string;
     lmB_SecondSummary?: string;
     lmB_ThirdSummary?: string | number;
+
+    // For List Display join fields
+    lmC_CategoryName?: string;
+    lmS_SubjectName?: string;
+    lmD_DepartmentName?: string;
+    lmP_PublisherName?: string;
+    lmL_LanguageName?: string;
+    lmV_VendorName?: string;
+    lmrA_RackName?: string;
+    AUTHOR_FullName?: string;
+    lmbanO_AccessionNo?: string;
 }

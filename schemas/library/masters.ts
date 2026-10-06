@@ -213,7 +213,9 @@ export const masterAccessoriesSchema = {
         mI_Id: z.number().optional(),
         lmaC_AccessoriesName: z.string().min(1, 'Accessories Name is required'),
         lmaC_AccessoriesDesc: z.string().min(1, 'Accessories Description is required'),
-        lmaC_ActiveFlg: z.boolean().optional()
+        lmaC_ActiveFlg: z.boolean().optional(),
+        createdDate: z.string().optional(),
+        updatedDate: z.string().optional()
     }),
     delete: z.object({
         lmaC_Id: z.coerce.number()

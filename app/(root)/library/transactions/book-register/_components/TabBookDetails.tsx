@@ -38,10 +38,11 @@ export default function TabBookDetails({
     const lmB_StudentPhoto = useWatch({ control, name: 'lmB_StudentPhoto' });
 
     // Flexible list access
-    const categoryList = dropdownData?.categorylist || dropdownData?.categoryList || [];
-    const deptList = dropdownData?.deptlist || dropdownData?.deptList || [];
-    const subjectList = dropdownData?.subjectlist || dropdownData?.subjectList || [];
-    const libList = dropdownData?.liblist || dropdownData?.libList || [];
+    const rawData = dropdownData?.data || dropdownData;
+    const categoryList = rawData?.categorylist || rawData?.categoryList || dropdownData?.categorylist || dropdownData?.categoryList || [];
+    const deptList = rawData?.deptlist || rawData?.deptList || dropdownData?.deptlist || dropdownData?.deptList || [];
+    const subjectList = rawData?.subjectlist || rawData?.subjectList || dropdownData?.subjectlist || dropdownData?.subjectList || [];
+    const libList = rawData?.liblist || rawData?.libList || dropdownData?.liblist || dropdownData?.libList || [];
 
     return (
         <div className='flex flex-col gap-6'>
@@ -64,8 +65,10 @@ export default function TabBookDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
+                                        <SelectItem value='Text Book'>Text Book</SelectItem>
                                         <SelectItem value='Issue'>Issue</SelectItem>
                                         <SelectItem value='Issuable'>Issuable</SelectItem>
+                                        <SelectItem value='Reference'>Reference</SelectItem>
                                         <SelectItem value='NotIssuable'>Not Issuable</SelectItem>
                                         <SelectItem value='ReferenceonlyIssuable'>Reference only Issuable</SelectItem>
                                         <SelectItem value='ReferenceonlyNon-Issuable'>Reference only Non-Issuable</SelectItem>
@@ -89,8 +92,9 @@ export default function TabBookDetails({
                                         <SelectValue placeholder='--Select Field--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value='Perfect Bound'>Perfect Bound</SelectItem>
+                                        <SelectItem value='Hard Bound'>Hard Bound</SelectItem>
                                         <SelectItem value='Hardbound'>Hardbound</SelectItem>
+                                        <SelectItem value='Perfect Bound'>Perfect Bound</SelectItem>
                                         <SelectItem value='Spiral'>Spiral</SelectItem>
                                         <SelectItem value='Stitched'>Stitched</SelectItem>
                                     </SelectContent>
@@ -101,7 +105,21 @@ export default function TabBookDetails({
                     </div>
 
                     <InputText label='Book ISBN NO' {...register('lmB_ISBNNo')} error={errors.lmB_ISBNNo?.message} />
-                    <InputText label='Call No' {...register('mB_Call_No')} error={errors.mB_Call_No?.message} />
+                    <InputText
+                        label='Call No'
+                        id='mB_Call_No'
+                        maxLength={10}
+                        onKeyDown={(e) => {
+                            if (e.key.length === 1 && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                                e.preventDefault();
+                            }
+                        }}
+                        onInput={(e: React.FormEvent<HTMLInputElement>) => {
+                            e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '').slice(0, 10);
+                        }}
+                        {...register('mB_Call_No')}
+                        error={errors.mB_Call_No?.message}
+                    />
                     <InputText label='Class No' {...register('lmB_ClassNo')} error={errors.lmB_ClassNo?.message} />
                     <InputText label='Pages' type='number' {...register('mB_Pages')} error={errors.mB_Pages?.message} />
 
@@ -121,19 +139,32 @@ export default function TabBookDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {deptList.map((item: any) => {
+                                        {deptList.map((item: any, idx: number) => {
                                             const deptId =
-                                                item.lmD_Id || item.lmd_Id || item.hrmD_Id || item.HRMD_Id || item.id || item.value;
+                                                item.lmD_Id ??
+                                                item.lmd_Id ??
+                                                item.LMD_Id ??
+                                                item.lmd_id ??
+                                                item.hrmD_Id ??
+                                                item.HRMD_Id ??
+                                                item.hrmd_id ??
+                                                item.departmentId ??
+                                                item.id ??
+                                                item.value;
                                             const deptName =
                                                 item.lmD_DepartmentName ||
                                                 item.lmd_DepartmentName ||
+                                                item.LMD_DepartmentName ||
+                                                item.lmd_departmentname ||
                                                 item.hrmD_DepartmentName ||
                                                 item.HRMD_DepartmentName ||
+                                                item.departmentName ||
                                                 item.name ||
                                                 item.label ||
-                                                item.departmentName;
+                                                String(deptId);
+                                            if (deptId === undefined || deptId === null) return null;
                                             return (
-                                                <SelectItem key={deptId} value={deptId?.toString()}>
+                                                <SelectItem key={`${deptId}-${idx}`} value={deptId.toString()}>
                                                     {deptName}
                                                 </SelectItem>
                                             );
@@ -160,11 +191,33 @@ export default function TabBookDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {categoryList.map((item: any) => (
-                                            <SelectItem key={item.lmC_Id} value={item.lmC_Id.toString()}>
-                                                {item.lmC_CategoryName}
-                                            </SelectItem>
-                                        ))}
+                                        {categoryList.map((item: any, idx: number) => {
+                                            const catId =
+                                                item.lmC_Id ??
+                                                item.lmc_Id ??
+                                                item.LMC_Id ??
+                                                item.lmc_id ??
+                                                item.categoryId ??
+                                                item.lmC_ID ??
+                                                item.id ??
+                                                item.value;
+                                            const catName =
+                                                item.lmC_CategoryName ||
+                                                item.lmc_CategoryName ||
+                                                item.LMC_CategoryName ||
+                                                item.lmc_categoryname ||
+                                                item.categoryName ||
+                                                item.name ||
+                                                item.label ||
+                                                item.lmC_CategoryCode ||
+                                                String(catId);
+                                            if (catId === undefined || catId === null) return null;
+                                            return (
+                                                <SelectItem key={`${catId}-${idx}`} value={catId.toString()}>
+                                                    {catName}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                             )}
@@ -187,17 +240,27 @@ export default function TabBookDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {subjectList.map((item: any) => {
-                                            const subId = item.lmS_Id || item.lms_Id || item.LMS_Id || item.id || item.value;
+                                        {subjectList.map((item: any, idx: number) => {
+                                            const subId =
+                                                item.lmS_Id ??
+                                                item.lms_Id ??
+                                                item.LMS_Id ??
+                                                item.lms_id ??
+                                                item.subjectId ??
+                                                item.id ??
+                                                item.value;
                                             const subName =
                                                 item.lmS_SubjectName ||
                                                 item.lms_SubjectName ||
                                                 item.LMS_SubjectName ||
+                                                item.lms_subjectname ||
+                                                item.subjectName ||
                                                 item.name ||
                                                 item.label ||
-                                                item.subjectName;
+                                                String(subId);
+                                            if (subId === undefined || subId === null) return null;
                                             return (
-                                                <SelectItem key={subId} value={subId?.toString()}>
+                                                <SelectItem key={`${subId}-${idx}`} value={subId.toString()}>
                                                     {subName}
                                                 </SelectItem>
                                             );
@@ -241,7 +304,13 @@ export default function TabBookDetails({
                         {errors.lmB_EntryDate && <FormError>{errors.lmB_EntryDate.message}</FormError>}
                     </div>
 
-                    <InputText label='Publish-Year' {...register('lmB_PublishedYear')} error={errors.lmB_PublishedYear?.message} />
+                    <InputText
+                        label='Publish-Year'
+                        required
+                        placeholder='Enter Publish Year'
+                        {...register('lmB_PublishedYear')}
+                        error={errors.lmB_PublishedYear?.message}
+                    />
                     <InputText label='Edition' {...register('lmB_Edition')} error={errors.lmB_Edition?.message} />
                     <InputText label='Volume No' {...register('lmB_VolNo')} error={errors.lmB_VolNo?.message} />
                     <InputText label='Book KeyFactor' {...register('lmBkf_KeyFactor')} error={errors.lmBkf_KeyFactor?.message} />
@@ -262,17 +331,29 @@ export default function TabBookDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {libList.map((item: any) => {
-                                            const libId = item.lmaL_Id || item.lmal_Id || item.LMAL_Id || item.id || item.value;
+                                        {libList.map((item: any, idx: number) => {
+                                            const libId =
+                                                item.lmAL_Id ??
+                                                item.lmaL_Id ??
+                                                item.lmal_Id ??
+                                                item.LMAL_Id ??
+                                                item.lmal_id ??
+                                                item.libraryId ??
+                                                item.id ??
+                                                item.value;
                                             const libName =
                                                 item.lmaL_LibraryName ||
                                                 item.lmal_LibraryName ||
                                                 item.LMAL_LibraryName ||
+                                                item.lmAL_LibraryName ||
+                                                item.lmal_libraryname ||
+                                                item.libraryName ||
                                                 item.name ||
                                                 item.label ||
-                                                item.libraryName;
+                                                String(libId);
+                                            if (libId === undefined || libId === null) return null;
                                             return (
-                                                <SelectItem key={libId} value={libId?.toString()}>
+                                                <SelectItem key={`${libId}-${idx}`} value={libId.toString()}>
                                                     {libName}
                                                 </SelectItem>
                                             );

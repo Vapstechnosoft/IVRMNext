@@ -521,9 +521,12 @@ export async function getBookDetailsOnLoad(data?: any) {
         try {
             const session = await auth();
             if (!miId && session?.mi_id) miId = Number(session.mi_id);
-            if (!userId && session?.ivrmuL_Id) userId = Number(session.ivrmuL_Id);
-            else if (!userId && session?.user_id) userId = Number(session.user_id);
-            if (!asmayId && session?.asmaY_Id) asmayId = Number(session.asmaY_Id);
+            if (!userId) {
+                userId = Number(session?.ivrmuL_Id ?? session?.user_id ?? session?.userId ?? session?.roleId ?? 0);
+            }
+            if (!asmayId) {
+                asmayId = Number(session?.asmay_id ?? session?.asmaY_Id ?? session?.ASMAY_Id ?? 0);
+            }
         } catch (authErr) {
             console.warn('Session reading note in getBookDetailsOnLoad:', authErr);
         }
@@ -546,17 +549,17 @@ export async function getBookDetailsOnLoad(data?: any) {
             api.post<any>('library', `${FACADE}/Get_Student_Details1`, payload)
         ]);
 
-        const bookDetails = bookDetailsRes.status === 'fulfilled' ? bookDetailsRes.value : {};
-        const studentDetails = studentDetailsRes.status === 'fulfilled' ? studentDetailsRes.value : {};
+        const bookDetails: any = bookDetailsRes.status === 'fulfilled' ? bookDetailsRes.value : {};
+        const studentDetails: any = studentDetailsRes.status === 'fulfilled' ? studentDetailsRes.value : {};
 
-        const bookData =
+        const bookData: any =
             bookDetails?.data && typeof bookDetails.data === 'object' && !Array.isArray(bookDetails.data)
                 ? bookDetails.data
                 : bookDetails?.result && typeof bookDetails.result === 'object' && !Array.isArray(bookDetails.result)
                 ? bookDetails.result
                 : bookDetails || {};
 
-        const studentData =
+        const studentData: any =
             studentDetails?.data && typeof studentDetails.data === 'object' && !Array.isArray(studentDetails.data)
                 ? studentDetails.data
                 : studentDetails?.result && typeof studentDetails.result === 'object' && !Array.isArray(studentDetails.result)

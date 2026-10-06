@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,36 +30,96 @@ interface ReportFormProps {
 }
 
 export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) => {
-    const { data: monthEndData, isLoading: isInitialLoading } = useLibraryMonthEndReportInitialData();
+    const { data: monthEndData } = useLibraryMonthEndReportInitialData();
     const initialData = (monthEndData as any)?.data || monthEndData;
 
     const {
         control,
         handleSubmit,
         setValue,
+        watch,
         formState: { errors },
         reset
     } = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: {}
+        defaultValues: {
+            LMRA_Id: undefined,
+            IE_Name: '',
+            year: ''
+        }
     });
+
+    const watchAsmayId = watch('ASMAY_Id');
+
+    // Auto-select single items
+    useEffect(() => {
+        if (Array.isArray(initialData?.acdlist) && initialData.acdlist.length === 1 && !watchAsmayId) {
+            const firstAcd = initialData.acdlist[0];
+            setValue('ASMAY_Id', firstAcd.asmaY_Id);
+            const yearMatch = firstAcd.asmaY_Year?.match(/\d{4}/);
+            if (yearMatch) {
+                setValue('year', yearMatch[0]);
+            }
+        }
+    }, [initialData, watchAsmayId, setValue]);
 
     const onSubmit = (values: z.infer<typeof formSchema>) => {
         onSearch({
             ASMAY_Id: values.ASMAY_Id,
             IVRM_Month_Id: values.IVRM_Month_Id,
             year: values.year,
-            LMRA_Id: values.LMRA_Id,
-            IE_Name: values.IE_Name
+            LMRA_Id: values.LMRA_Id || 0,
+            IE_Name: values.IE_Name || ''
         });
     };
 
     return (
-        <form
-            onSubmit={handleSubmit(onSubmit)}
-            className='mx-auto max-w-5xl space-y-6 rounded-lg border border-t-4 border-t-orange-400 bg-white p-8 shadow-sm'>
-            <div className='mb-6 flex justify-center'>
-                <div className='w-full max-w-2xl space-y-6'>
+        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <div className='mx-auto max-w-2xl space-y-6'>
+                    {/* Library Name (if available) */}
+                    {Array.isArray(initialData?.msterliblist1) && initialData.msterliblist1.length > 0 && (
+                        <div className='flex items-center gap-4'>
+                            <Label className='min-w-[150px] text-right font-medium text-sm'>Library Name:</Label>
+                            <div className='flex-1'>
+                                <Controller
+                                    control={control}
+                                    name='LMRA_Id'
+                                    render={({ field }) => (
+                                        <Select
+                                            onValueChange={(val) => field.onChange(Number(val))}
+                                            value={field.value?.toString()}>
+                                            <SelectTrigger className='w-full border-muted-foreground/30'>
+                                                <SelectValue placeholder='Select' />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {initialData.msterliblist1.map((item: any) => {
+                                                    const id =
+                                                        item.lmrA_Id ??
+                                                        item.lmaL_Id ??
+                                                        item.LMRA_Id ??
+                                                        item.LMAL_Id ??
+                                                        item.id ??
+                                                        0;
+                                                    const name =
+                                                        item.lmaL_LibraryName ??
+                                                        item.lmrA_RackName ??
+                                                        item.libraryName ??
+                                                        item.name ??
+                                                        'Library';
+                                                    return (
+                                                        <SelectItem key={id} value={id.toString()}>
+                                                            {name}
+                                                        </SelectItem>
+                                                    );
+                                                })}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    )}
+
                     {/* Academic Year */}
                     <div className='flex items-center gap-4'>
                         <Label className='min-w-[150px] text-right font-medium text-sm'>
@@ -71,8 +132,16 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={(val) => {
-                                            field.onChange(val);
-                                            setValue('year', '');
+                                            field.onChange(Number(val));
+                                            const selectedAcd = initialData?.acdlist?.find(
+                                                (a: any) => a.asmaY_Id.toString() === val.toString()
+                                            );
+                                            if (selectedAcd?.asmaY_Year) {
+                                                const yearMatch = selectedAcd.asmaY_Year.match(/\d{4}/);
+                                                if (yearMatch) {
+                                                    setValue('year', yearMatch[0]);
+                                                }
+                                            }
                                         }}
                                         value={field.value?.toString()}>
                                         <SelectTrigger className='w-full border-muted-foreground/30'>
@@ -103,7 +172,7 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
                                 control={control}
                                 name='IVRM_Month_Id'
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value?.toString()}>
+                                    <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
                                         <SelectTrigger className='w-full border-muted-foreground/30'>
                                             <SelectValue placeholder='Select' />
                                         </SelectTrigger>
@@ -164,7 +233,6 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
                         </div>
                     </div>
                 </div>
-            </div>
 
             <hr className='my-6 border-muted-foreground/20' />
 
@@ -172,14 +240,14 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
             <div className='flex items-center justify-center gap-4'>
                 <Button
                     type='submit'
-                    className='h-8 w-auto min-w-[120px] rounded-sm bg-[#4251b1] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#35418e]'
+                    className='!w-auto h-9 min-w-[120px] rounded-md bg-[#4251b1] px-6 py-2 font-medium text-white text-xs shadow-sm hover:bg-[#35418e]'
                     disabled={isLoading}>
                     {isLoading ? <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <Search className='mr-1.5 h-3.5 w-3.5' />}
                     REPORT
                 </Button>
                 <Button
                     type='button'
-                    className='h-8 w-auto min-w-[120px] rounded-sm bg-[#ff5a30] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#e64d26]'
+                    className='!w-auto h-9 min-w-[120px] rounded-md bg-[#ff5a30] px-6 py-2 font-medium text-white text-xs shadow-sm hover:bg-[#e64d26]'
                     onClick={() => reset()}
                     disabled={isLoading}>
                     <X className='mr-1.5 h-3.5 w-3.5' />
@@ -188,7 +256,7 @@ export const ReportForm = ({ onSearch, onPrint, isLoading }: ReportFormProps) =>
                 {onPrint && (
                     <Button
                         type='button'
-                        className='h-8 w-auto min-w-[120px] rounded-sm bg-[#1a73e8] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#1557b0]'
+                        className='!w-auto h-9 min-w-[120px] rounded-md bg-[#4251b1] px-6 py-2 font-medium text-white text-xs shadow-sm hover:bg-[#35418e]'
                         onClick={onPrint}
                         disabled={isLoading}>
                         <Printer className='mr-1.5 h-3.5 w-3.5' />

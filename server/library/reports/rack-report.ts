@@ -1,19 +1,42 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IRackReportInitialData, IRackReportRequest, IRackReportResponse } from '@/types/library/reports/rack-report';
+import { auth } from '@/lib/auth';
+import type { IRackReportGridData, IRackReportInitialData, IRackReportRequest } from '@/types/library/reports/rack-report';
 
 const FACADE = 'RackReport';
 
-const extractList = (list: any) => {
+const extractList = (list: any): any[] => {
     if (!list) return [];
     if (Array.isArray(list)) return list;
 
-    if (list && typeof list === 'object' && '$values' in list) return list.$values;
+    if (list && typeof list === 'object' && '$values' in list && Array.isArray(list.$values)) {
+        return list.$values;
+    }
 
-    const actual = list.data || list.$values || list;
+    const actual =
+        list.data ||
+        list.reportlist ||
+        list.reportList ||
+        list.griddata ||
+        list.gridList ||
+        list.alldata ||
+        list.rackreport ||
+        list.rackreportlist ||
+        list.racklist ||
+        list.msterRacklist ||
+        list.lib_list ||
+        list.libraryList ||
+        list.libList ||
+        list.msterliblist1 ||
+        list.library_list ||
+        list.get_report ||
+        list.$values;
+
     if (Array.isArray(actual)) return actual;
-    if (actual && typeof actual === 'object' && '$values' in actual) return actual.$values;
+    if (actual && typeof actual === 'object' && '$values' in actual && Array.isArray(actual.$values)) {
+        return actual.$values;
+    }
 
     return [];
 };
@@ -50,91 +73,225 @@ const normalizeRackList = (list: any[]) => {
             rack.rackname ??
             rack.rackName ??
             rack.name;
+        const lmrA_FloorName = rack.lmrA_FloorName ?? rack.lmra_FloorName ?? rack.LMRA_FloorName ?? rack.floorName ?? rack.floor_Name ?? '';
         return {
             ...rack,
-            lmrA_Id: Number(lmrA_Id),
-            lmrA_RackName: String(lmrA_RackName || '')
+            lmrA_Id: lmrA_Id !== undefined && lmrA_Id !== null ? (Number.isNaN(Number(lmrA_Id)) ? String(lmrA_Id) : Number(lmrA_Id)) : '',
+            lmrA_RackName: String(lmrA_RackName || ''),
+            lmrA_FloorName: String(lmrA_FloorName || '')
         };
     });
 };
 
+const normalizeGridItem = (item: any): IRackReportGridData => {
+    if (!item || typeof item !== 'object') return item;
+    return {
+        lmbanO_AccessionNo:
+            item.lmbanO_AccessionNo ??
+            item.LMBANO_AccessionNo ??
+            item.lmbano_AccessionNo ??
+            item.accessionNo ??
+            item.AccessionNo ??
+            item.accessionno ??
+            '',
+        lmB_BookTitle:
+            item.lmB_BookTitle ??
+            item.LMB_BookTitle ??
+            item.lmb_BookTitle ??
+            item.bookTitle ??
+            item.BookTitle ??
+            item.title ??
+            item.book_Title ??
+            '',
+        rack_Name:
+            item.rack_Name ??
+            item.Rack_Name ??
+            item.rackName ??
+            item.RackName ??
+            item.lmrA_RackName ??
+            item.LMRA_RackName ??
+            item.lmra_RackName ??
+            item.lmra_rackname ??
+            item.rack_name ??
+            '',
+        lmra_FloorName:
+            item.lmra_FloorName ?? item.lmrA_FloorName ?? item.LMRA_FloorName ?? item.floorName ?? item.FloorName ?? item.floor_Name ?? '',
+        lmb_BookType: item.lmb_BookType ?? item.lmB_BookType ?? item.LMB_BookType ?? item.bookType ?? item.BookType ?? item.book_Type ?? '',
+        rack_Location:
+            item.rack_Location ??
+            item.Rack_Location ??
+            item.lmrA_Location ??
+            item.LMRA_Location ??
+            item.lmra_Location ??
+            item.location ??
+            item.Location ??
+            item.rack_location ??
+            '',
+        lmbano_AvialableStatus:
+            item.lmbano_AvialableStatus ??
+            item.lmbanO_AvialableStatus ??
+            item.LMBANO_AvialableStatus ??
+            item.lmbano_AvailableStatus ??
+            item.bookStatus ??
+            item.BookStatus ??
+            item.status ??
+            item.Status ??
+            item.availableStatus ??
+            item.avialableStatus ??
+            '',
+        authorName: item.authorName ?? item.AuthorName ?? item.lma_AuthorName ?? item.LMA_AuthorName ?? item.name ?? item.Name ?? '',
+        lmD_DepartmentName: item.lmD_DepartmentName ?? item.LMD_DepartmentName ?? item.departmentName ?? item.department_Name ?? '',
+        lmP_PublisherName: item.lmP_PublisherName ?? item.LMP_PublisherName ?? item.publisherName ?? item.publisher_Name ?? '',
+        lmS_SubjectName: item.lmS_SubjectName ?? item.LMS_SubjectName ?? item.subjectName ?? item.subject_Name ?? '',
+        ...item
+    };
+};
+
 export async function getRackReportLibraries() {
-    const url = 'AvailableBooksReport/getdetails';
-    const response = await api.get<any>('library', url);
+    try {
+        const url = 'AvailableBooksReport/getdetails';
+        const response = await api.get<any>('library', url);
 
-    // Safely extract the inner data object
-    let data: any = {};
-    if (response) {
-        if (response.data && typeof response.data === 'object') {
-            data = response.data;
-        } else {
-            data = response;
+        let data: any = {};
+        if (response) {
+            data = response.data && typeof response.data === 'object' ? response.data : response;
         }
-    }
 
-    const libList = data.libraryList || data.lib_list || data.libList || data.msterliblist1 || data.library_list || data || [];
-    const list = extractList(libList);
-    return normalizeLibraryList(list);
+        const libList = data.libraryList || data.lib_list || data.libList || data.msterliblist1 || data.library_list || data || [];
+        const list = extractList(libList);
+        return normalizeLibraryList(list);
+    } catch (error) {
+        console.error('Error fetching rack report libraries:', error);
+        return [];
+    }
 }
 
-export async function getRackReportInitialData() {
-    const url = 'RackReport/library_RackReport_getdetails';
-    const response = await api.get<any>('library', url);
+export async function getRackReportInitialData(): Promise<IRackReportInitialData> {
+    try {
+        const session = await auth();
+        const miId = session?.mi_id;
 
-    // Safely extract the inner data object
-    let data: any = {};
-    if (response) {
-        if (response.data && typeof response.data === 'object') {
-            data = response.data;
-        } else {
-            data = response;
+        let data: any = {};
+        try {
+            const url = `/${FACADE}/library_RackReport_getdetails`;
+            const response = await api.get<any>('library', url, { params: { MI_Id: miId } });
+            data = response?.data && typeof response.data === 'object' ? response.data : response || {};
+        } catch {
+            try {
+                const url = `/${FACADE}/getdetails`;
+                const response = await api.get<any>('library', url, { params: { MI_Id: miId } });
+                data = response?.data && typeof response.data === 'object' ? response.data : response || {};
+            } catch {
+                console.warn('RackReport getdetails fallback');
+            }
         }
+
+        let libList = extractList(data.lib_list || data.libraryList || data.libList || data.msterliblist1 || data.library_list || []);
+        let racklist = extractList(data.racklist || data.msterRacklist || data.rackList || data.masterRackList || []);
+
+        if (libList.length === 0) {
+            try {
+                const libRes = await api.get<any>('library', 'AvailableBooksReport/getdetails');
+                const libData = libRes?.data && typeof libRes.data === 'object' ? libRes.data : libRes || {};
+                libList = extractList(libData.libraryList || libData.lib_list || libData.libList || libData.msterliblist1 || []);
+            } catch (e) {
+                console.warn('Failed to fetch fallback libraries:', e);
+            }
+        }
+
+        if (racklist.length === 0) {
+            try {
+                const rackRes = await api.get<any>('library', `/RackDetails/get-master-rack-list?page=1&page_size=200&mI_Id=${miId || 0}`);
+                const rData = rackRes?.data && typeof rackRes.data === 'object' ? rackRes.data : rackRes || {};
+                racklist = extractList(rData.list || rData.racklist || rData.data || (Array.isArray(rData) ? rData : []));
+            } catch (e) {
+                console.warn('Failed to fetch fallback racks:', e);
+            }
+        }
+
+        return {
+            lib_list: normalizeLibraryList(libList),
+            racklist: normalizeRackList(racklist),
+            booklist: extractList(data.booklist || data.msterbooklist || data.book_list || []),
+            subjectlist: extractList(data.subjectlist || data.mstersubjectlist || data.subject_list || []),
+            floorlist: extractList(data.floorlist || [])
+        };
+    } catch (error: any) {
+        console.error('Error in getRackReportInitialData:', error);
+        return {
+            lib_list: [],
+            racklist: [],
+            booklist: [],
+            subjectlist: [],
+            floorlist: []
+        };
     }
-
-    // Extract all lists safely from the data object
-    const libList = data.lib_list || data.libraryList || data.libList || data.msterliblist1 || data.library_list || [];
-    const racklist = data.racklist || data.msterRacklist || [];
-    const booklist = data.booklist || data.msterbooklist || data.book_list || [];
-    const subjectlist = data.subjectlist || data.mstersubjectlist || data.subject_list || [];
-    const floorlist = data.floorlist || [];
-
-    return {
-        lib_list: normalizeLibraryList(extractList(libList)),
-        racklist: normalizeRackList(extractList(racklist)),
-        booklist: extractList(booklist),
-        subjectlist: extractList(subjectlist),
-        floorlist: extractList(floorlist)
-    } as IRackReportInitialData;
 }
 
 export async function getRackReportData(data: IRackReportRequest) {
-    // Exact URL as requested: api/RackReport/get-rackReport-report
-    // Note: 'api/' is usually handled by the base URL in apiService
-    const url = `${FACADE}/get-rackReport-report`;
+    try {
+        const session = await auth();
 
-    // Exactly as requested by user: { "LMAL_Id": 2, "LMRA_Id": 4 }
-    const payload = {
-        LMAL_Id: Number(data.LMAL_Id),
-        LMRA_Id: Number(data.LMRA_Id)
-    };
+        const rackVal =
+            data.LMRA_Id !== undefined && data.LMRA_Id !== null && String(data.LMRA_Id).trim() !== '' ? String(data.LMRA_Id).trim() : 'ALL';
+        const lmalId = Number(data.LMAL_Id || 0);
 
-    const response = await api.post<any>('library', url, payload);
-    const responseData = response.data || response;
+        // API URL format: /RackReport/rack-get_report/ALL/2 or /RackReport/rack-get_report/{LMRA_Id}/{LMAL_Id}
+        const url = `/${FACADE}/rack-get_report/${rackVal}/${lmalId}`;
 
-    let reportlist: any[] = [];
+        const payload = {
+            LMAL_Id: lmalId,
+            lmaL_Id: lmalId,
+            LMRA_Id: rackVal === 'ALL' ? 'ALL' : Number(rackVal),
+            lmrA_Id: rackVal === 'ALL' ? 'ALL' : Number(rackVal),
+            MI_Id: session?.mi_id,
+            mI_Id: session?.mi_id,
+            IVRMUL_Id: session?.roleId || 0
+        };
 
-    // Handle the specific response structure: { success: true, message: "Success", data: [...] }
-    if (responseData.data && Array.isArray(responseData.data)) {
-        reportlist = responseData.data;
-    } else if (Array.isArray(responseData)) {
-        reportlist = responseData;
-    } else if (responseData.reportlist) {
-        reportlist = extractList(responseData.reportlist);
-    } else if (responseData.griddata) {
-        reportlist = extractList(responseData.griddata);
+        let response: any;
+        try {
+            response = await api.post<any>('library', url, payload);
+        } catch (postErr: any) {
+            try {
+                response = await api.get<any>('library', url, { params: payload });
+            } catch {
+                try {
+                    response = await api.get<any>('library', url);
+                } catch {
+                    throw postErr;
+                }
+            }
+        }
+
+        const responseData = response?.data ?? response;
+
+        const rawList = extractList(
+            responseData?.reportlist ||
+                responseData?.reportList ||
+                responseData?.griddata ||
+                responseData?.gridList ||
+                responseData?.alldata ||
+                responseData?.rackreport ||
+                responseData?.rackreportlist ||
+                responseData?.data ||
+                responseData
+        );
+
+        const normalizedList = rawList.map(normalizeGridItem);
+
+        return {
+            success: true,
+            data: normalizedList,
+            reportlist: normalizedList
+        };
+    } catch (error: any) {
+        console.error('Error in getRackReportData:', error);
+        return {
+            success: false,
+            message: error?.message || 'Failed to fetch rack report data',
+            data: [],
+            reportlist: []
+        };
     }
-
-    return {
-        reportlist: Array.isArray(reportlist) ? reportlist : []
-    } as IRackReportResponse;
 }
