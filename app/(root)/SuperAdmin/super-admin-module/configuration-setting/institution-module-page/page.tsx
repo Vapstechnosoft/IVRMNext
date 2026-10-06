@@ -165,6 +165,7 @@ export default function InstitutionModulePage() {
                 console.log('Module Selected:', selectedModule, 'Fetching Page List...');
                 const response = await getPageList(Number(selectedModule));
                 if (response.success && response.data?.pageList) {
+                    console.log(selectedModule,'---', 'Page List Response:', response);
                     setPageListData(response.data.pageList);
                 } else {
                     setPageListData([]);
