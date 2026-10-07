@@ -157,6 +157,7 @@ export default function MasterPromotionSectionPage(props: {
 
                     if (response?.data) {
                         const convertedStudents = response.data.map(convertApiStudentToInternal);
+                        convertedStudents.sort((a, b) => a.studentName.localeCompare(b.studentName));
                         const studentsWithSiNo = recalculateSiNo(convertedStudents);
                         setLeftStudents(studentsWithSiNo);
                         setShowLeftTable(true);
@@ -415,7 +416,8 @@ export default function MasterPromotionSectionPage(props: {
         }));
 
         setLeftStudents(recalculateSiNo(remainingLeft));
-        setRightStudents(recalculateSiNo([...rightStudents, ...updatedStudents]));
+        const sortedRight = [...rightStudents, ...updatedStudents].sort((a, b) => a.studentName.localeCompare(b.studentName));
+        setRightStudents(recalculateSiNo(sortedRight));
         setLeftSelectedStudents(new Set());
 
         toast.success(`Moved ${studentsToMove.length} student(s) to destination`);
@@ -438,7 +440,8 @@ export default function MasterPromotionSectionPage(props: {
             sectionName: getSectionDisplay(leftSection)
         }));
 
-        setLeftStudents(recalculateSiNo([...leftStudents, ...updatedStudents]));
+        const sortedLeft = [...leftStudents, ...updatedStudents].sort((a, b) => a.studentName.localeCompare(b.studentName));
+        setLeftStudents(recalculateSiNo(sortedLeft));
         setRightStudents(recalculateSiNo(remainingRight));
         setRightSelectedStudents(new Set());
 

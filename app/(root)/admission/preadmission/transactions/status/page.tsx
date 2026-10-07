@@ -28,6 +28,7 @@ import * as XLSX from 'xlsx';
 import AddressBookView from './_components/address-book-view';
 import { getStatusColumns } from './_components/columns';
 import StatusPrintView from './_components/status-print-view';
+import Swal from 'sweetalert2';
 
 export default function PreadmissionStatusPage() {
     const { data: activePreadmission } = useActivePreadmissionDetails();
@@ -239,14 +240,30 @@ export default function PreadmissionStatusPage() {
             });
 
             if (res?.success) {
-                toast.success(res.message || 'Status updated successfully');
                 setShowConfirmModal(false);
-                window.location.reload();
+                Swal.fire({
+                    title: 'Success!',
+                    text: res.message || 'Status updated successfully',
+                    icon: 'success',
+                    confirmButtonText: 'Ok'
+                }).then(() => {
+                    window.location.reload();
+                });
             } else {
-                toast.error(res?.message || 'Failed to update status');
+                Swal.fire({
+                    title: 'Error!',
+                    text: res?.message || 'Failed to update status',
+                    icon: 'error',
+                    confirmButtonText: 'Ok'
+                });
             }
         } catch (error) {
-            toast.error('An error occurred while saving');
+            Swal.fire({
+                title: 'Error!',
+                text: 'An error occurred while saving',
+                icon: 'error',
+                confirmButtonText: 'Ok'
+            });
         }
     };
 
@@ -605,7 +622,7 @@ export default function PreadmissionStatusPage() {
             )}
 
             <Dialog open={showOtpModal} onOpenChange={setShowOtpModal}>
-                <DialogContent>
+                <DialogContent onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle className='text-center text-destructive'>OTP Selection</DialogTitle>
                     </DialogHeader>
@@ -646,7 +663,7 @@ export default function PreadmissionStatusPage() {
             </Dialog>
 
             <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
-                <DialogContent className='max-w-4xl'>
+                <DialogContent className='max-w-4xl' onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle className='text-center text-destructive'>Selected Students for Status Update</DialogTitle>
                     </DialogHeader>

@@ -34,7 +34,7 @@ export const useAcademicYears = () => {
     };
 };
 
-export const useStudentInformation = (academicYearId: number | null) => {
+export const useStudentInformation = (academicYearId: number | null, feeConfig: any, amst_Id: number) => {
     const queryClient = useQueryClient();
 
     return {
@@ -42,7 +42,7 @@ export const useStudentInformation = (academicYearId: number | null) => {
             queryKey: [STAFF_PORTAL_QUERY_KEYS.FEE_STUDENT_INFORMATION, academicYearId],
             queryFn: async () => {
                 if (!academicYearId) return null;
-                return getStudentInformation(academicYearId);
+                return getStudentInformation(academicYearId, feeConfig, amst_Id);
             },
             enabled: !!academicYearId
         }),
