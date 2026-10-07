@@ -16,10 +16,10 @@ import {
 } from '@/hooks/exam/exammodule/usemasters';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { ExamSubjectWizardSchema, SubSubjectSubExamSchema } from '@/schemas/exam/exam-module/exam-mapping';
-import { getCategoryDropDowByExamYearCategoryList } from '@/server/exam/exam-module/exam-mapping/exam-subject-group-mapping';
 import {
     addOrUpdateExamSubjectWizard,
     getExamDropdownForWizardSubjectMapping,
+    getExamSubjectWizardCategories,
     getExamSubjectWizardDetails,
     getSubExamsMappedList,
     getSubSubjectSubExamList,
@@ -27,7 +27,7 @@ import {
     getSubSubjectsMappedList,
     getSubjectsByCategory
 } from '@/server/exam/exam-module/exam-mapping/exam-subject-wizard';
-import type { IExamSubjectWizard, IExamSubjectWizardDetails } from '@/types/exam/exam-module/exam-mapping';
+import type { IExamSubjectWizard } from '@/types/exam/exam-module/exam-mapping';
 import type { ICategory, IMasterGrade, IMasterSubExam, IMasterSubSubject } from '@/types/exam/exam-module/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw } from 'lucide-react';
@@ -148,11 +148,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             toast.error(gradeError.message || 'Failed to load grade list');
             setGradeList([]);
         } else {
-            const rawGrades = Array.isArray(gradeData?.data)
-                ? gradeData.data
-                : Array.isArray(gradeData)
-                    ? gradeData
-                    : [];
+            const rawGrades = Array.isArray(gradeData?.data) ? gradeData.data : Array.isArray(gradeData) ? gradeData : [];
             if (rawGrades.length > 0) {
                 const formattedGrades: IMasterGrade[] = rawGrades.map((item: any) => ({
                     emgR_Id: item.emgR_Id?.toString() ?? '',
@@ -190,12 +186,38 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
     // when academic year changes -> fetch categories for that year
     useEffect(() => {
-        if (!watchYear) return;
+        if (!watchYear) {
+            setCategories([]);
+            return;
+        }
         async function fetchRelated() {
             try {
                 setCategoriesLoading(true);
-                const { data: cats } = await getCategoryDropDowByExamYearCategoryList(Number(watchYear));
-                setCategories(Array.isArray(cats) ? cats : []);
+                const res = await getExamSubjectWizardCategories(Number(watchYear));
+                const cats = Array.isArray(res?.data) ? [...res.data] : Array.isArray(res) ? [...res] : [];
+
+                // If editing and rowData category exists, ensure it is in the list
+                if (rowData?.emcA_CategoryName && (rowData.eyC_Id || rowData.emcA_Id)) {
+                    const rowEycId = Number(rowData.eyC_Id || rowData.emcA_Id);
+                    const rowEmcaId = Number(rowData.emcA_Id || rowData.eyC_Id);
+                    const existingIndex = cats.findIndex(
+                        (c: any) =>
+                            Number(c.eyC_Id) === rowEycId ||
+                            Number(c.emcA_Id) === rowEmcaId ||
+                            (c.emcA_CategoryName && c.emcA_CategoryName.toLowerCase() === rowData.emcA_CategoryName?.toLowerCase())
+                    );
+                    if (existingIndex >= 0) {
+                        cats[existingIndex].eyC_Id = cats[existingIndex].eyC_Id || rowEycId;
+                        cats[existingIndex].emcA_Id = cats[existingIndex].emcA_Id || rowEmcaId;
+                    } else {
+                        cats.push({
+                            eyC_Id: rowEycId,
+                            emcA_Id: rowEmcaId,
+                            emcA_CategoryName: rowData.emcA_CategoryName
+                        });
+                    }
+                }
+                setCategories(cats);
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
                 setCategories([]);
@@ -204,56 +226,71 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             }
         }
         fetchRelated();
-    }, [watchYear]);
+    }, [watchYear, rowData]);
 
-    // when category (and EMCA_Id) changes -> fetch exams and subjects
+    // when category (and EMCA_Id) changes -> fetch exams
     useEffect(() => {
-        if (!watchCategory) return;
+        const eycId = Number(watchCategory || 0);
+        const emcaId = Number(watchEMCA_ID || 0);
+        const catId = eycId || emcaId;
+        if (!catId) {
+            setExams([]);
+            return;
+        }
 
         // Fetch exams only when Category or EMCA changes
         (async () => {
             try {
-                const { data: ex } = await getExamDropdownForWizardSubjectMapping(Number(watchCategory));
+                const altId = emcaId && emcaId !== catId ? emcaId : eycId && eycId !== catId ? eycId : undefined;
+                const res = await getExamDropdownForWizardSubjectMapping(catId, altId);
+                const rawEx = (res as any)?.data ?? res;
+                const exList = Array.isArray(rawEx)
+                    ? rawEx
+                    : Array.isArray(rawEx?.exam_list)
+                      ? rawEx.exam_list
+                      : Array.isArray(rawEx?.exams)
+                        ? rawEx.exams
+                        : Array.isArray(rawEx?.data?.exam_list)
+                          ? rawEx.data.exam_list
+                          : Array.isArray(rawEx?.data?.$values)
+                            ? rawEx.data.$values
+                            : Array.isArray(rawEx?.$values)
+                              ? rawEx.$values
+                              : [];
 
-                const mappedExams = Array.isArray(ex)
-                    ? ex.map((e: any) => ({
-                        EME_Id: e.emE_Id ?? e.EME_Id,
-                        EME_ExamName: e.emE_ExamName ?? e.EME_ExamName,
-                        checked: rowData?.emE_Id === (e.emE_Id ?? e.EME_Id)
-                    }))
-                    : [];
+                const mappedExams = exList.map((e: any) => ({
+                    EME_Id: e.emE_Id ?? e.EME_Id,
+                    EME_ExamName: e.emE_ExamName ?? e.EME_ExamName,
+                    checked: rowData?.emE_Id === (e.emE_Id ?? e.EME_Id)
+                }));
 
                 // If rowData exists, merge it into mappedExams
-                if (rowData) {
+                if (rowData?.emE_Id) {
                     const rowExam = {
                         EME_Id: rowData.emE_Id,
-                        EME_ExamName: rowData.emE_ExamName,
+                        EME_ExamName: rowData.emE_ExamName || 'Mapped Exam',
                         checked: true
                     };
 
-                    // Avoid duplicate entry
-                    const examExists = mappedExams.some((ex) => ex.EME_Id === rowExam.EME_Id);
-
+                    const examExists = mappedExams.some((ex: any) => ex.EME_Id === rowExam.EME_Id);
                     const updatedExams = examExists
-                        ? mappedExams.map((ex) => (ex.EME_Id === rowExam.EME_Id ? { ...ex, checked: true } : ex))
+                        ? mappedExams.map((ex: any) => (ex.EME_Id === rowExam.EME_Id ? { ...ex, checked: true } : ex))
                         : [rowExam, ...mappedExams];
 
                     setExams(updatedExams);
-
-                    // If you want to update the form:
-                    // setValue('exams_list', [{ EME_Id: rowData.emE_Id }]);
                 } else {
                     setExams(mappedExams);
                 }
 
-                if (mappedExams.length === 0) toast.info('No Exams mapped to this Category.');
-                // biome-ignore lint/correctness/noUnusedVariables: <explanation>
-            } catch (err) {
+                if (mappedExams.length === 0 && !rowData?.emE_Id) {
+                    toast.info('No Exams mapped to this Category.');
+                }
+            } catch {
                 setExams([]);
                 toast.error('Failed to load exams.');
             }
         })();
-    }, [watchCategory, rowData]);
+    }, [watchCategory, watchEMCA_ID, rowData]);
 
     // Sync exams checklist state with react-hook-form exams_list state once form finishes loading
     useEffect(() => {
@@ -265,7 +302,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     useEffect(() => {
         if (formState.isSubmitted) {
             // 1️ No subject selected
-            const hasSelectedSubject = Array.isArray(subjects) && subjects.some((s: any) => s.checkedvalue === true);
+            const _hasSelectedSubject = Array.isArray(subjects) && subjects.some((s: any) => s.checkedvalue === true);
             // if (!hasSelectedSubject) {
             //     toast.error('Select at least one subject before saving');
             //     return; // stop here — don’t show other errors
@@ -308,39 +345,62 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
     }, [formState.isSubmitted, formState.errors, getValues]);
     // Setting Subjects & Populating Saved Data on Edit
     useEffect(() => {
-        if (!watchCategory || !watchEMCA_ID) return;
+        const eycId = Number(watchCategory || 0);
+        const emcaId = Number(watchEMCA_ID || 0);
+        const catId = eycId || emcaId;
+        if (!catId) return;
 
         (async () => {
             try {
+                const altId = emcaId && emcaId !== catId ? emcaId : eycId && eycId !== catId ? eycId : undefined;
                 const [subjRes, detailsRes] = await Promise.all([
-                    getSubjectsByCategory(Number(watchCategory)),
+                    getSubjectsByCategory(catId, altId),
                     rowData?.eycE_Id ? getExamSubjectWizardDetails(Number(rowData.eycE_Id)) : Promise.resolve(null)
                 ]);
 
-                const subj = subjRes?.data;
+                const rawSubj = (subjRes as any)?.data ?? subjRes;
+                const subj = Array.isArray(rawSubj)
+                    ? rawSubj
+                    : Array.isArray(rawSubj?.subject_list)
+                      ? rawSubj.subject_list
+                      : Array.isArray(rawSubj?.subjectlist)
+                        ? rawSubj.subjectlist
+                        : Array.isArray(rawSubj?.subjectList)
+                          ? rawSubj.subjectList
+                          : Array.isArray(rawSubj?.subjects)
+                            ? rawSubj.subjects
+                            : Array.isArray(rawSubj?.get_subjects)
+                              ? rawSubj.get_subjects
+                              : Array.isArray(rawSubj?.data?.subject_list)
+                                ? rawSubj.data.subject_list
+                                : Array.isArray(rawSubj?.data?.$values)
+                                  ? rawSubj.data.$values
+                                  : Array.isArray(rawSubj?.$values)
+                                    ? rawSubj.$values
+                                    : [];
                 const formattedSubjects = Array.isArray(subj)
                     ? subj.map((s: any) => ({
-                        ismS_Id: s.ismS_Id,
-                        ismS_SubjectName: s.ismS_SubjectName,
-                        ismS_SubjectCode: s.ismS_SubjectCode,
-                        ismS_Max_Marks: s.ismS_Max_Marks,
-                        ismS_Min_Marks: s.ismS_Min_Marks,
-                        ismS_OrderFlag: s.ismS_OrderFlag,
-                        eyceS_MarksEntryMax: 0,
-                        emgr_Id: watchGrade ?? 0,
-                        eyceS_Id: s.eyceS_Id ?? s.EYCES_d ?? 0,
-                        eyceS_SubExamFlg: false,
-                        eyceS_SubSubjectFlg: false,
-                        eyceS_ActiveFlg: true,
-                        eyceS_MarksGradeEntryFlg: 'M',
-                        eyceS_MarksDisplayFlg: false,
-                        eyceS_GradeDisplayFlg: false,
-                        eyceS_AplResultFlg: false,
-                        subExamConfig: [],
-                        subSubjectConfig: [],
-                        subSubjectSubExamConfig: [],
-                        exam_Subject_PT_GradeList: []
-                    }))
+                          ismS_Id: s.ismS_Id,
+                          ismS_SubjectName: s.ismS_SubjectName,
+                          ismS_SubjectCode: s.ismS_SubjectCode,
+                          ismS_Max_Marks: s.ismS_Max_Marks,
+                          ismS_Min_Marks: s.ismS_Min_Marks,
+                          ismS_OrderFlag: s.ismS_OrderFlag,
+                          eyceS_MarksEntryMax: 0,
+                          emgr_Id: watchGrade ?? 0,
+                          eyceS_Id: s.eyceS_Id ?? s.EYCES_d ?? 0,
+                          eyceS_SubExamFlg: false,
+                          eyceS_SubSubjectFlg: false,
+                          eyceS_ActiveFlg: true,
+                          eyceS_MarksGradeEntryFlg: 'M',
+                          eyceS_MarksDisplayFlg: false,
+                          eyceS_GradeDisplayFlg: false,
+                          eyceS_AplResultFlg: false,
+                          subExamConfig: [],
+                          subSubjectConfig: [],
+                          subSubjectSubExamConfig: [],
+                          exam_Subject_PT_GradeList: []
+                      }))
                     : [];
 
                 if (rowData?.eycE_Id) {
@@ -356,9 +416,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     const updatedSubjects: any[] = [];
 
                     for (const s of formattedSubjects) {
-                        const dataObject = data.find(
-                            (d: any) => Number(d.ismS_Id ?? d.ISMS_Id ?? d.isms_Id) === Number(s.ismS_Id)
-                        );
+                        const dataObject = data.find((d: any) => Number(d.ismS_Id ?? d.ISMS_Id ?? d.isms_Id) === Number(s.ismS_Id));
 
                         const isChecked = Boolean(dataObject);
 
@@ -369,21 +427,46 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             ismS_SubjectName: dataObject?.ismS_SubjectName ?? dataObject?.ISMS_SubjectName ?? s.ismS_SubjectName,
                             ismS_SubjectCode: dataObject?.ismS_SubjectCode ?? dataObject?.ISMS_SubjectCode ?? s.ismS_SubjectCode,
                             eyceS_MaxMarks: isChecked
-                                ? (dataObject?.eyceS_MaxMarks ?? dataObject?.EYCES_MaxMarks ?? dataObject?.ECYSES_MaxMarks ?? s.ismS_Max_Marks ?? 0)
+                                ? (dataObject?.eyceS_MaxMarks ??
+                                  dataObject?.EYCES_MaxMarks ??
+                                  dataObject?.ECYSES_MaxMarks ??
+                                  s.ismS_Max_Marks ??
+                                  0)
                                 : 0,
                             eyceS_MinMarks: isChecked
-                                ? (dataObject?.eyceS_MinMarks ?? dataObject?.EYCES_MinMarks ?? dataObject?.ECYSES_MinMarks ?? s.ismS_Min_Marks ?? 0)
+                                ? (dataObject?.eyceS_MinMarks ??
+                                  dataObject?.EYCES_MinMarks ??
+                                  dataObject?.ECYSES_MinMarks ??
+                                  s.ismS_Min_Marks ??
+                                  0)
                                 : 0,
                             eyceS_MarksEntryMax: isChecked
-                                ? (dataObject?.eyceS_MarksEntryMax ?? dataObject?.EYCES_MarksEntryMax ?? dataObject?.ECYSES_MarksEntryMax ?? 0)
+                                ? (dataObject?.eyceS_MarksEntryMax ??
+                                  dataObject?.EYCES_MarksEntryMax ??
+                                  dataObject?.ECYSES_MarksEntryMax ??
+                                  0)
                                 : 0,
                             eyceS_SubExamFlg: Boolean(dataObject?.eyceS_SubExamFlg ?? dataObject?.EYCES_SubExamFlg ?? s.eyceS_SubExamFlg),
-                            eyceS_SubSubjectFlg: Boolean(dataObject?.eyceS_SubSubjectFlg ?? dataObject?.EYCES_SubSubjectFlg ?? s.eyceS_SubSubjectFlg),
-                            eyceS_MarksGradeEntryFlg: dataObject?.eyceS_MarksGradeEntryFlg ?? dataObject?.EYCES_MarksGradeEntryFlg ?? s.eyceS_MarksGradeEntryFlg ?? 'M',
-                            eyceS_MarksDisplayFlg: Boolean(dataObject?.eyceS_MarksDisplayFlg ?? dataObject?.EYCES_MarksDisplayFlg ?? isChecked),
-                            eyceS_GradeDisplayFlg: Boolean(dataObject?.eyceS_GradeDisplayFlg ?? dataObject?.EYCES_GradeDisplayFlg ?? s.eyceS_GradeDisplayFlg),
+                            eyceS_SubSubjectFlg: Boolean(
+                                dataObject?.eyceS_SubSubjectFlg ?? dataObject?.EYCES_SubSubjectFlg ?? s.eyceS_SubSubjectFlg
+                            ),
+                            eyceS_MarksGradeEntryFlg:
+                                dataObject?.eyceS_MarksGradeEntryFlg ??
+                                dataObject?.EYCES_MarksGradeEntryFlg ??
+                                s.eyceS_MarksGradeEntryFlg ??
+                                'M',
+                            eyceS_MarksDisplayFlg: Boolean(
+                                dataObject?.eyceS_MarksDisplayFlg ?? dataObject?.EYCES_MarksDisplayFlg ?? isChecked
+                            ),
+                            eyceS_GradeDisplayFlg: Boolean(
+                                dataObject?.eyceS_GradeDisplayFlg ?? dataObject?.EYCES_GradeDisplayFlg ?? s.eyceS_GradeDisplayFlg
+                            ),
                             eyceS_AplResultFlg: Boolean(dataObject?.eyceS_AplResultFlg ?? dataObject?.EYCES_AplResultFlg ?? isChecked),
-                            eyceS_SubjectOrder: dataObject?.eyceS_SubjectOrder ?? dataObject?.EYCES_SubjectOrder ?? s.ismS_OrderFlag ?? (updatedSubjects.length + 1),
+                            eyceS_SubjectOrder:
+                                dataObject?.eyceS_SubjectOrder ??
+                                dataObject?.EYCES_SubjectOrder ??
+                                s.ismS_OrderFlag ??
+                                updatedSubjects.length + 1,
                             eyceS_ActiveFlg: Boolean(dataObject?.eyceS_ActiveFlg ?? dataObject?.EYCES_ActiveFlg ?? true),
                             checkedvalue: isChecked
                         };
@@ -444,7 +527,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                             eyceS_MarksDisplayFlg: Boolean(d.eyceS_MarksDisplayFlg ?? d.EYCES_MarksDisplayFlg ?? true),
                             eyceS_GradeDisplayFlg: Boolean(d.eyceS_GradeDisplayFlg ?? d.EYCES_GradeDisplayFlg),
                             eyceS_AplResultFlg: Boolean(d.eyceS_AplResultFlg ?? d.EYCES_AplResultFlg ?? true),
-                            eyceS_SubjectOrder: d.eyceS_SubjectOrder ?? d.EYCES_SubjectOrder ?? (updatedSubjects.length + 1),
+                            eyceS_SubjectOrder: d.eyceS_SubjectOrder ?? d.EYCES_SubjectOrder ?? updatedSubjects.length + 1,
                             eyceS_ActiveFlg: Boolean(d.eyceS_ActiveFlg ?? d.EYCES_ActiveFlg ?? true),
                             checkedvalue: true,
                             subExamConfig: [],
@@ -612,9 +695,9 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             prev.map((s) =>
                 s.ismS_Id === subjectId
                     ? {
-                        ...s,
-                        EYCES_SubExamFlg: s.subExamConfig && s.subExamConfig.length > 0
-                    }
+                          ...s,
+                          EYCES_SubExamFlg: s.subExamConfig && s.subExamConfig.length > 0
+                      }
                     : s
             )
         );
@@ -634,10 +717,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 return matched
                     ? {
-                        ...sub,
-                        emsS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0),
-                        EMSS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0)
-                    }
+                          ...sub,
+                          emsS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0),
+                          EMSS_Order: Number(matched.eycessS_SubSubjectOrder ?? 0)
+                      }
                     : sub;
             })
         );
@@ -650,10 +733,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
             prev.map((s) =>
                 s.ismS_Id === subjectId
                     ? {
-                        ...s,
-                        subExamConfig: selectedList,
-                        EYCES_SubExamFlg: selectedList.length > 0
-                    }
+                          ...s,
+                          subExamConfig: selectedList,
+                          EYCES_SubExamFlg: selectedList.length > 0
+                      }
                     : s
             )
         );
@@ -668,10 +751,10 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
 
                 return matched
                     ? {
-                        ...exam,
-                        emsE_SubExamOrder: Number(matched.emsE_SubExamOrder ?? 0),
-                        EMSE_SubExamOrder: Number(matched.EMSE_SubExamOrder ?? matched.emsE_SubExamOrder ?? 0)
-                    }
+                          ...exam,
+                          emsE_SubExamOrder: Number(matched.emsE_SubExamOrder ?? 0),
+                          EMSE_SubExamOrder: Number(matched.EMSE_SubExamOrder ?? matched.emsE_SubExamOrder ?? 0)
+                      }
                     : exam;
             })
         );
@@ -820,7 +903,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 EYCES_GradeDisplayFlg: Boolean(s.eyceS_GradeDisplayFlg ?? s.EYCES_GradeDisplayFlg ?? false),
                 EYCES_AplResultFlg: Boolean(s.eyceS_AplResultFlg ?? s.EYCES_AplResultFlg ?? true),
                 EYCES_ActiveFlg: Boolean(s.eyceS_ActiveFlg ?? s.EYCES_ActiveFlg ?? true),
-                EYCES_SubjectOrder: Number(s.eyceS_SubjectOrder || s.EYCES_SubjectOrder || index + 1) || (index + 1),
+                EYCES_SubjectOrder: Number(s.eyceS_SubjectOrder || s.EYCES_SubjectOrder || index + 1) || index + 1,
                 Exam_Subject_PT_GradeList: s.exam_Subject_PT_GradeList ?? []
             }));
 
@@ -835,7 +918,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 EMGR_Id: defaultGradeId,
                 ASMAY_Year: '',
                 EYCE_BestOfApplicableFlg: Boolean(values.EYCE_BestOfApplicableFlg ?? false),
-                EYCE_BestOf: Boolean(values.EYCE_BestOfApplicableFlg) ? (Number(values.EYCE_BestOf) || 0) : 0,
+                EYCE_BestOf: values.EYCE_BestOfApplicableFlg ? Number(values.EYCE_BestOf) || 0 : 0,
                 EYCE_AttendanceFromDate: toBackendDate(values.EYCE_AttendanceFromDate),
                 EYCE_AttendanceToDate: toBackendDate(values.EYCE_AttendanceToDate),
                 exams_list,
@@ -901,7 +984,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                 if (err?.message && typeof err.message === 'string') {
                     errorMsg = err.message;
                     break;
-                } else if (Array.isArray(err)) {
+                }
+                if (Array.isArray(err)) {
                     const firstSub = err.find((item: any) => item?.message);
                     if (firstSub?.message) {
                         errorMsg = firstSub.message;
@@ -998,38 +1082,77 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                                         <Controller
                                             control={control}
                                             name='EYC_Id'
-                                            render={({ field, fieldState }) => (
-                                                <Select
-                                                    value={field.value ? String(field.value) : undefined}
-                                                    onValueChange={(val) => {
-                                                        const selectedCategory = categories.find((c) => c.eyC_Id.toString() === val);
-                                                        if (selectedCategory) {
-                                                            field.onChange(Number(selectedCategory.eyC_Id));
-                                                            setValue('EMCA_Id', Number(selectedCategory.emcA_Id), { shouldValidate: true });
-                                                        }
-                                                    }}>
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder='Select Category' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {categoriesLoading ? (
-                                                            <SelectItem value='loading' disabled>
-                                                                Loading Categories...
-                                                            </SelectItem>
-                                                        ) : categories.length === 0 ? (
-                                                            <SelectItem value='error' disabled>
-                                                                No Categories Found
-                                                            </SelectItem>
-                                                        ) : (
-                                                            categories.map((c) => (
-                                                                <SelectItem key={c.eyC_Id} value={c.eyC_Id.toString()}>
-                                                                    {c.emcA_CategoryName}
+                                            render={({ field }) => {
+                                                const matchedCategory = categories.find(
+                                                    (c: any) =>
+                                                        (field.value &&
+                                                            (Number(c.eyC_Id) === Number(field.value) ||
+                                                                Number(c.emcA_Id) === Number(field.value))) ||
+                                                        (watchEMCA_ID &&
+                                                            (Number(c.emcA_Id) === Number(watchEMCA_ID) ||
+                                                                Number(c.eyC_Id) === Number(watchEMCA_ID)))
+                                                );
+
+                                                const selectValue = matchedCategory
+                                                    ? String(matchedCategory.eyC_Id || matchedCategory.emcA_Id)
+                                                    : field.value && Number(field.value) > 0
+                                                      ? String(field.value)
+                                                      : undefined;
+
+                                                return (
+                                                    <Select
+                                                        key={`cat-select-${selectValue || 'empty'}`}
+                                                        value={selectValue}
+                                                        onValueChange={(val) => {
+                                                            const selectedCategory = categories.find(
+                                                                (c: any) =>
+                                                                    String(c.eyC_Id || c.emcA_Id) === val ||
+                                                                    String(c.eyC_Id) === val ||
+                                                                    String(c.emcA_Id) === val
+                                                            );
+                                                            if (selectedCategory) {
+                                                                const chosenEycId = Number(
+                                                                    selectedCategory.eyC_Id || selectedCategory.emcA_Id
+                                                                );
+                                                                const chosenEmcaId = Number(
+                                                                    selectedCategory.emcA_Id || selectedCategory.eyC_Id
+                                                                );
+                                                                field.onChange(chosenEycId);
+                                                                setValue('EYC_Id', chosenEycId, { shouldValidate: true });
+                                                                setValue('EMCA_Id', chosenEmcaId, { shouldValidate: true });
+                                                            }
+                                                        }}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder='Select Category' />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {categoriesLoading ? (
+                                                                <SelectItem value='loading' disabled>
+                                                                    Loading Categories...
                                                                 </SelectItem>
-                                                            ))
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                            )}
+                                                            ) : categories.length === 0 ? (
+                                                                <SelectItem value='error' disabled>
+                                                                    No Categories Found
+                                                                </SelectItem>
+                                                            ) : (
+                                                                categories.map((c: any, idx: number) => {
+                                                                    const optVal = String(c.eyC_Id || c.emcA_Id);
+                                                                    const optLabel =
+                                                                        c.emcA_CategoryName ||
+                                                                        c.eyC_CategoryName ||
+                                                                        c.categoryName ||
+                                                                        `Category ${optVal}`;
+                                                                    return (
+                                                                        <SelectItem key={`${optVal}-${idx}`} value={optVal}>
+                                                                            {optLabel}
+                                                                        </SelectItem>
+                                                                    );
+                                                                })
+                                                            )}
+                                                        </SelectContent>
+                                                    </Select>
+                                                );
+                                            }}
                                         />
                                         {errors.EYC_Id && <FormError>{errors.EYC_Id.message}</FormError>}
                                     </div>
