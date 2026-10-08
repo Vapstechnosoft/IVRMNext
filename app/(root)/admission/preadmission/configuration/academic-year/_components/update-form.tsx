@@ -44,6 +44,7 @@ export default function UpdateMasterAcademicYearForm({
         register,
         handleSubmit,
         reset,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(PreAdmissionAcademicYearSchema.addOrUpdate),
@@ -60,6 +61,36 @@ export default function UpdateMasterAcademicYearForm({
     });
     const academicFromYear = useWatch({ control, name: 'academicFromYear' });
     const academicToYear = useWatch({ control, name: 'academicToYear' });
+
+    // Auto-increment logic: when From Year changes, set To Year to From Year + 1 if From Year is a valid number
+    useEffect(() => {
+        if (academicFromYear && academicFromYear.length === 4 && !Number.isNaN(Number(academicFromYear))) {
+            const fromYearNum = Number(academicFromYear);
+            const toYearNum = Number(academicToYear);
+            // Only auto-set if To Year is empty or not matching From+1
+            if (!academicToYear || toYearNum !== fromYearNum + 1) {
+                setValue('academicToYear', String(fromYearNum + 1), {
+                    shouldValidate: true
+                });
+            }
+        }
+    }, [academicFromYear, academicToYear, setValue]);
+
+    // Auto-generate asmaY_Year like "2024-2025"
+    useEffect(() => {
+        if (
+            academicFromYear &&
+            academicFromYear.length === 4 &&
+            !Number.isNaN(Number(academicFromYear)) &&
+            academicToYear &&
+            academicToYear.length === 4 &&
+            !Number.isNaN(Number(academicToYear))
+        ) {
+            setValue('asmaY_Year', `${academicFromYear}-${academicToYear}`, {
+                shouldValidate: true
+            });
+        }
+    }, [academicFromYear, academicToYear, setValue]);
 
     useEffect(() => {
         if (row) {
@@ -120,6 +151,8 @@ export default function UpdateMasterAcademicYearForm({
                 ASMAY_Id: Number(row.asmaY_Id),
                 MI_Id: Number(data.mI_Id),
                 ASMAY_Year: data.asmaY_Year,
+                asmaY_From_Year: data.academicFromYear,
+                asmaY_To_Year: data.academicToYear,
                 ASMAY_From_Date: data.asmaY_From_Date,
                 ASMAY_To_Date: data.asmaY_To_Date,
                 ASMAY_PreAdm_F_Date: data.asmaY_PreAdm_F_Date,
@@ -193,15 +226,23 @@ export default function UpdateMasterAcademicYearForm({
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
                     {/* Basic Information */}
-                    <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                    <div className='grid grid-cols-1 gap-4 md:grid-cols-4'>
                         <InputText
-                            label='Academic Year'
+                            label='Academic From Year'
                             required
-                            id='asmaY_Year'
-                            placeholder='e.g., 1199-1200'
-                            {...register('asmaY_Year')}
-                            defaultValue={row.asmaY_Year}
-                            error={errors.asmaY_Year?.message}
+                            id='academicFromYear'
+                            placeholder='e.g., 2024'
+                            {...register('academicFromYear')}
+                            error={errors.academicFromYear?.message}
+                            className='transition-colors focus:ring-2 focus:ring-primary/20'
+                        />
+                        <InputText
+                            label='Academic To Year'
+                            required
+                            id='academicToYear'
+                            placeholder='e.g., 2025'
+                            {...register('academicToYear')}
+                            error={errors.academicToYear?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
                         <InputText
