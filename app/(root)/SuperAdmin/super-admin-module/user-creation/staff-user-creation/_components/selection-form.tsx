@@ -19,6 +19,7 @@ interface SelectionFormProps {
     isOnloadLoading?: boolean;
     isStaffListLoading?: boolean;
     isStaffDataLoading?: boolean;
+    isInstitutionsLoading?: boolean;
     onStaffCheckboxChange?: (id: number, checked: boolean) => void;
     onSelectAllStaff?: () => void;
     onViewUsernames?: () => void;
@@ -35,6 +36,7 @@ export default function SelectionForm({
     isOnloadLoading = false,
     isStaffListLoading = false,
     isStaffDataLoading = false,
+    isInstitutionsLoading = false,
     onStaffCheckboxChange,
     onSelectAllStaff,
     onViewUsernames,
@@ -112,7 +114,7 @@ export default function SelectionForm({
                                 control={control}
                                 name='trust'
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={isOnloadLoading}>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={isOnloadLoading || isInstitutionsLoading}>
                                         <SelectTrigger className='bg-white'>
                                             <SelectValue placeholder={isOnloadLoading ? 'Loading...' : '-- SELECT TRUST --'} />
                                         </SelectTrigger>
@@ -152,8 +154,10 @@ export default function SelectionForm({
                                     </div>
                                 </div>
                                 <ScrollArea className='h-32'>
-                                    {isOnloadLoading ? (
+                                    {isOnloadLoading || isInstitutionsLoading ? (
                                         <p className='p-4 text-center text-gray-500 text-xs'>Loading institutions...</p>
+                                    ) : institutions.length === 0 ? (
+                                        <p className='p-4 text-center text-gray-500 text-xs'>No institutions found for selected trust.</p>
                                     ) : (
                                         <div className='grid grid-cols-1 gap-2 p-2 sm:grid-cols-2 lg:grid-cols-3'>
                                             {institutions.map((inst) => (
@@ -181,9 +185,20 @@ export default function SelectionForm({
                                 control={control}
                                 name='institution'
                                 render={({ field }) => (
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={isOnloadLoading}>
+                                    <Select
+                                        onValueChange={field.onChange}
+                                        value={field.value}
+                                        disabled={isOnloadLoading || isInstitutionsLoading || institutions.length === 0}>
                                         <SelectTrigger className='bg-white'>
-                                            <SelectValue placeholder={isOnloadLoading ? 'Loading...' : '-- SELECT INSTITUTION --'} />
+                                            <SelectValue
+                                                placeholder={
+                                                    isOnloadLoading || isInstitutionsLoading
+                                                        ? 'Loading...'
+                                                        : institutions.length === 0
+                                                        ? 'No institutions available'
+                                                        : '-- SELECT INSTITUTION --'
+                                                }
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {institutions.map((inst) => (

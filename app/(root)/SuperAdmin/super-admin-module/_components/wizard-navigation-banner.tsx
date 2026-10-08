@@ -142,8 +142,8 @@ export function WizardNavigationBanner() {
                                                                 isCurrent
                                                                     ? 'bg-blue-600 text-white'
                                                                     : isPassed
-                                                                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
-                                                                      : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
+                                                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
+                                                                        : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'
                                                             )}>
                                                             {item.id}
                                                         </span>
