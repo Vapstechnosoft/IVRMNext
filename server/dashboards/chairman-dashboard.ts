@@ -23,7 +23,7 @@ export async function GetChairmanDashBoardFeesdata(ASMAY_ID?: number) {
             // Dynamically retrieve active academic year from API if not in session to avoid hardcoding
             if (!activeAsmayId || activeAsmayId === 0) {
                 try {
-                    const yearResponse = await api.get<any>('fees', '/fee_class_category/academicyearlist', { timeout: 3000 });
+                    const yearResponse = await api.get<any>('fees', '/fee_class_category/academicyearlist');
                     const years = yearResponse?.data || [];
                     if (Array.isArray(years)) {
                         const activeYear = years.find((y: any) => y.selected || y.Selected || y.activeFlag === 1 || y.asmaY_ActiveFlag === 1);
@@ -32,7 +32,7 @@ export async function GetChairmanDashBoardFeesdata(ASMAY_ID?: number) {
                         }
                     }
                 } catch (e) {
-                    console.warn('Notice: Could not fetch academic years list:', e);
+                    console.error('Error fetching academic years list', e);
                 }
             }
         }
@@ -41,9 +41,9 @@ export async function GetChairmanDashBoardFeesdata(ASMAY_ID?: number) {
         const baseUrl = '/FeesCommon/GetChairmanDashBoardFeesdata';
         const url = activeAsmayId ? `${baseUrl}?ASMAY_ID=${activeAsmayId}` : baseUrl;
             
-        return await api.get<any>('fees', url, { timeout: 4000 });
+        return await api.get<any>('fees', url);
     } catch (err) {
-        console.warn('Notice: GetChairmanDashBoardFeesdata unavailable:', err);
+        console.error('GetChairmanDashBoardFeesdata Error', err);
         return { success: false, data: [] };
     }
 }

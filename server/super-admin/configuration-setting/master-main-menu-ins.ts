@@ -93,21 +93,16 @@ export async function saveMainMenuINS(
     }
 }
 
-export async function getModuleMenuList(institutionId: number, moduleId: number) {
+export async function getModuleMenuList() {
     try {
-        let payload = {
-            MI_Id: institutionId,
-            IVRMM_Id: moduleId
-        }
         interface ModuleMenuResponse {
             records: import('@/types/super-admin/configuration-setting/master-main-menu-ins').MainMenuModuleDTO[];
         }
 
         console.log('Fetching Module Menu List...');
-        const response = await api.post<ModuleMenuResponse>(
+        const response = await api.get<ModuleMenuResponse>(
             API_KEY,
-            '/InstituteMainMenuFacade/get_onload_modules_menu_list?page_size=10000',
-            payload
+            '/InstituteMainMenuFacade/get_onload_modules_menu_list?page_size=10000'
         );
         console.log('Module Menu Response:', JSON.stringify(response, null, 2));
 

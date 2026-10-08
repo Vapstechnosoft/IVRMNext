@@ -53,7 +53,7 @@ import ViewUsernamesModal from './_components/view-usernames-modal';
 const formSchema = z.object({
     roleType: z.string().min(1, 'Select Role Type'),
     trust: z.string().optional(),
-    institution: z.string().optional(),
+    institution: z.string().min(1, 'Select Institution'),
     filterData: z.enum(['Single', 'Multiple']).default('Single'),
     adddelte: z.enum(['Add', 'Del']).default('Add'),
     staffId: z.string().optional(),
@@ -104,7 +104,6 @@ export default function StaffUserCreationPage() {
     const [isModulesLoading, setIsModulesLoading] = useState(false);
     const [isStaffListLoading, setIsStaffListLoading] = useState(false);
     const [isStaffDataLoading, setIsStaffDataLoading] = useState(false);
-    const [isAdminViewRole, setIsAdminViewRole] = useState<any>([]);
 
     // Pagination states for Master Page List
     const [webPageTotal, setWebPageTotal] = useState(0);
@@ -157,12 +156,6 @@ export default function StaffUserCreationPage() {
     const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType);
     const roleName = selectedRole?.ivrmrT_Role || '';
     const isAdmin = roleName.toUpperCase() === 'ADMIN' || roleName.toUpperCase() === 'SUPER ADMIN';
-
-    const selectedInstIds = institutions.filter((i) => i.Selected).map((i) => i.mI_Id);
-    const selectedInstIdsKey = selectedInstIds.sort().join(',');
-    const effectiveMiId = isAdmin
-        ? institutions.find((i) => i.Selected)?.mI_Id || 0
-        : Number(watchInstitution) || 0;
 
     const clearGrids = () => {
         setWebPages([]);
@@ -225,46 +218,36 @@ export default function StaffUserCreationPage() {
 
     useEffect(() => {
         const handleInstitutionChange = async () => {
-            const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType);
-            const roleName = selectedRole?.ivrmrT_Role || '';
-            const isStaff = !(roleName.toUpperCase() === 'ADMIN' || roleName.toUpperCase() === 'SUPER ADMIN');
-
-            const hasSelection = isStaff ? !!watchInstitution : institutions.some((i) => i.Selected);
-
-            if (hasSelection && watchRoleType) {
+            if (watchInstitution) {
                 // Clear dependent states
                 methods.setValue('staffId', '');
                 methods.setValue('userName', '');
 
-                const primaryMiId = isStaff
-                    ? Number(watchInstitution)
-                    : institutions.find((i) => i.Selected)?.mI_Id || 0;
-
-                const multipleinsti = isStaff
-                    ? []
-                    : institutions.filter((i) => i.Selected).map((i) => ({ mi_id: i.mI_Id, MI_Id: i.mI_Id }));
+                const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType);
+                const roleName = selectedRole?.ivrmrT_Role || '';
+                const isStaff = !(roleName.toUpperCase() === 'ADMIN' || roleName.toUpperCase() === 'SUPER ADMIN');
 
                 const payload = {
-                    MI_Id: primaryMiId,
+                    MI_Id: Number(watchInstitution),
                     rolenamess: roleName,
                     IVRMRT_Id: Number(watchRoleType),
-                    multipleinsti: multipleinsti,
+                    multipleinsti: [],
                     flag: isStaff ? 'S' : 'A'
                 };
 
                 // Specifically for Category Dropdown API as requested
-                console.info(`📡 [CLIENT] Fetching categories for MI_Id: ${primaryMiId}`);
+                console.info(`📡 [CLIENT] Fetching categories for MI_Id: ${watchInstitution}`);
                 setIsCategoriesLoading(true);
-                const categoryResult = await getCategoryDropdownByInstitution(primaryMiId);
+                const categoryResult = await getCategoryDropdownByInstitution(Number(watchInstitution));
                 if (categoryResult.success && categoryResult.data) {
                     setCategories(categoryResult.data);
                 }
                 setIsCategoriesLoading(false);
 
                 // Specifically for Module Dropdown API as requested
-                console.info(`📡 [CLIENT] Fetching modules for MI_Id: ${primaryMiId}`);
+                console.info(`📡 [CLIENT] Fetching modules for MI_Id: ${watchInstitution}`);
                 setIsModulesLoading(true);
-                const moduleResult = await getModuleDropdownByInstitution(primaryMiId);
+                const moduleResult = await getModuleDropdownByInstitution(Number(watchInstitution));
                 console.log('moduleResult', moduleResult);
                 if (moduleResult.success && moduleResult.data) {
                     setModules(moduleResult.data);
@@ -272,23 +255,21 @@ export default function StaffUserCreationPage() {
                 setIsModulesLoading(false);
 
                 // Specifically for Individual mode, use the dedicated Staff Dropdown API as requested
-                if (!isAdmin && watchFilterData === 'Single') {
-                    console.info(`📡 [CLIENT] Fetching individual staff for MI_Id: ${primaryMiId}, multipleinsti:`, multipleinsti);
+                if (watchFilterData === 'Single') {
+                    console.info(`📡 [CLIENT] Fetching individual staff for MI_Id: ${watchInstitution}`);
                     setIsStaffListLoading(true);
-                    const staffResult = await getStaffDropdownByInstitution(payload);
-                    console.log('staffResult', staffResult);
+                    const staffResult = await getStaffDropdownByInstitution(Number(watchInstitution));
                     if (staffResult.success && staffResult.data) {
-                        setStaffList(staffResult?.data?.studentDetails);
-
+                        setStaffList(staffResult.data);
                     }
                     setIsStaffListLoading(false);
                 }
 
                 // Specifically for Multiple mode, use the dedicated Multiple Staff Users API as requested
-                else if (!isAdmin && watchFilterData === 'Multiple') {
-                    console.info(`📡 [CLIENT] Fetching multiple staff users for MI_Id: ${primaryMiId}`);
+                else if (watchFilterData === 'Multiple') {
+                    console.info(`📡 [CLIENT] Fetching multiple staff users for MI_Id: ${watchInstitution}`);
                     setIsStaffListLoading(true);
-                    const staffResult = await getMultipleStaffUsers(primaryMiId);
+                    const staffResult = await getMultipleStaffUsers(Number(watchInstitution));
                     if (staffResult.success && staffResult.data) {
                         setStaffList(staffResult.data);
                     }
@@ -302,26 +283,25 @@ export default function StaffUserCreationPage() {
             }
         };
         handleInstitutionChange();
-    }, [watchInstitution, watchRoleType, watchFilterData, selectedInstIdsKey, methods, roleTypes, isAdmin]);
+    }, [watchInstitution, watchRoleType, watchFilterData, methods, roleTypes]);
 
     const handleViewAdminUsernames = async () => {
-        if (!effectiveMiId || !watchRoleType) return;
+        if (!watchInstitution || !watchRoleType) return;
 
         const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType);
         const roleName = selectedRole?.ivrmrT_Role || '';
         const roleFlag = selectedRole?.flag || '';
 
         try {
-            console.info(`📡 [CLIENT] Fetching Admin Usernames for MI_Id: ${effectiveMiId}`);
+            console.info(`📡 [CLIENT] Fetching Admin Usernames for MI_Id: ${watchInstitution}`);
             const result = await getAdminUserList(
-                effectiveMiId,
-                roleFlag || (isAdmin ? 'A' : 'S'),
+                Number(watchInstitution),
+                roleFlag || 'A', // Fallback to 'A' if flag missing
                 Number(watchRoleType),
                 roleName
             );
 
             if (result.success && result.data) {
-                console.log('admin user list', result.data);
                 setExistingUsers(result.data);
                 setIsViewModalOpen(true);
             } else {
@@ -335,12 +315,12 @@ export default function StaffUserCreationPage() {
 
     useEffect(() => {
         const handleStaffChange = async () => {
-            if (!isAdmin && watchStaffId && watchFilterData === 'Single' && effectiveMiId) {
+            if (watchStaffId && watchFilterData === 'Single') {
                 try {
                     setIsStaffDataLoading(true);
                     const payload = {
                         IVRMSTAUL_Id: Number(watchStaffId),
-                        MI_Id: effectiveMiId,
+                        MI_Id: Number(watchInstitution),
                         rolenamess: watchRoleType,
                         IVRMRT_Id: Number(watchRoleType)
                     };
@@ -353,26 +333,26 @@ export default function StaffUserCreationPage() {
 
                     // Call the new API to fetch username and handle field state
                     console.info(
-                        `📡 [CLIENT] Fetching staff username for StaffId: ${watchStaffId}, MI_Id: ${effectiveMiId}. role_id: ${watchRoleType}`
+                        `📡 [CLIENT] Fetching staff username for StaffId: ${watchStaffId}, MI_Id: ${watchInstitution}. role_id: ${watchRoleType}`
                     );
                     const usernameResult = await getUsernameOnStaffSelection(
                         Number(watchStaffId),
-                        effectiveMiId,
+                        Number(watchInstitution),
                         Number(watchRoleType)
                     );
                     console.log(' Username Result:', usernameResult);
                     if (usernameResult.success && usernameResult.data && usernameResult.data.length > 0) {
                         const userData = usernameResult.data[0];
                         const staffUsername = userData.user_Name || userData.userName;
-
+                        
                         // Check if we have pre-checked modules in the response
                         if (userData.moduleexistid) {
-                            const allModulesData = Array.isArray(userData.moduleexistid)
-                                ? userData.moduleexistid
+                            const allModulesData = Array.isArray(userData.moduleexistid) 
+                                ? userData.moduleexistid 
                                 : (userData.moduleexistid.$values || []);
-
+                                
                             if (allModulesData.length > 0) {
-                                setModules((prevModules) =>
+                                setModules((prevModules) => 
                                     prevModules.map((mod) => {
                                         if (allModulesData.some((m: any) => m.ivrmM_Id === mod.ivrmM_Id)) {
                                             return { ...mod, model: true };
@@ -391,11 +371,19 @@ export default function StaffUserCreationPage() {
 
                             // Fetch mapping data for the grids (except Master Page List which is now handled by dedicated API)
                             console.info(`📡 [CLIENT] Fetching mapping data for StaffId: ${watchStaffId}`);
-                            await getStaffData({
+                            const mappingResult = await getStaffData({
                                 HRME_Id: Number(watchStaffId),
-                                MI_Id: effectiveMiId,
+                                MI_Id: Number(watchInstitution),
                                 IVRMRT_Id: Number(watchRoleType)
                             });
+
+                            if (mappingResult.success && mappingResult.data) {
+                                // setMobilePages(mappingResult.data.gridview1 || []); // Now handled by fetchMobileMasterPages
+                                // setSavedGrid(mappingResult.data.savedgridd || []); // Now handled by fetchSavedListPages
+                                // setSavedMobilePages(mappingResult.data.previousgrid || []); // Now handled by fetchSavedMobilePages
+                            }
+
+                            // Grid fetch calls removed from here to separate useEffect hooks
                         } else {
                             methods.setValue('userName', '');
                             setIsUserNameDisabled(false);
@@ -416,44 +404,44 @@ export default function StaffUserCreationPage() {
             }
         };
         handleStaffChange();
-    }, [watchStaffId, watchFilterData, effectiveMiId, watchRoleType, methods]);
+    }, [watchStaffId, watchFilterData, watchInstitution, watchRoleType, methods]);
 
     const effectiveStaffId = watchFilterData === 'Single' ? (watchStaffId ? Number(watchStaffId) : null) : lastSelectedStaffId;
 
     useEffect(() => {
-        if (effectiveStaffId && effectiveMiId && watchRoleType) {
+        if (effectiveStaffId && watchInstitution && watchRoleType) {
             fetchMasterPages(webPageParams);
         }
-    }, [webPageParams, effectiveStaffId, effectiveMiId, watchRoleType]);
+    }, [webPageParams, effectiveStaffId, watchInstitution, watchRoleType]);
 
     useEffect(() => {
-        if (effectiveStaffId && effectiveMiId && watchRoleType) {
+        if (effectiveStaffId && watchInstitution && watchRoleType) {
             fetchMobileMasterPages(mobilePageParams);
         }
-    }, [mobilePageParams, effectiveStaffId, effectiveMiId, watchRoleType]);
+    }, [mobilePageParams, effectiveStaffId, watchInstitution, watchRoleType]);
 
     useEffect(() => {
-        if (effectiveStaffId && effectiveMiId && watchRoleType) {
+        if (effectiveStaffId && watchInstitution && watchRoleType) {
             fetchSavedMobilePages(savedMobilePageParams);
         }
-    }, [savedMobilePageParams, effectiveStaffId, effectiveMiId, watchRoleType]);
+    }, [savedMobilePageParams, effectiveStaffId, watchInstitution, watchRoleType]);
 
     useEffect(() => {
-        if (effectiveStaffId && effectiveMiId && watchRoleType) {
+        if (effectiveStaffId && watchInstitution && watchRoleType) {
             fetchSavedListPages(savedGridParams);
         }
-    }, [savedGridParams, effectiveStaffId, effectiveMiId, watchRoleType]);
+    }, [savedGridParams, effectiveStaffId, watchInstitution, watchRoleType]);
 
     const fetchMasterPages = async (params: ApiSearchparams) => {
-        if (!effectiveStaffId || !effectiveMiId || !watchRoleType) return;
+        if (!effectiveStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsWebPageLoading(true);
             console.info(
-                `📡 [CLIENT] Fetching Master Page List for StaffId: ${effectiveStaffId}, MI_Id: ${effectiveMiId}, RoleId: ${watchRoleType}`
+                `📡 [CLIENT] Fetching Master Page List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
             );
             const result = await getMasterPageListGridOnChangeOfStaff(
                 effectiveStaffId,
-                effectiveMiId,
+                Number(watchInstitution),
                 Number(watchRoleType),
                 params
             );
@@ -488,15 +476,15 @@ export default function StaffUserCreationPage() {
     };
 
     const fetchMobileMasterPages = async (params: ApiSearchparams) => {
-        if (!effectiveStaffId || !effectiveMiId || !watchRoleType) return;
+        if (!effectiveStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsMobilePageLoading(true);
             console.info(
-                `📡 [CLIENT] Fetching Mobile App Master Page List for StaffId: ${effectiveStaffId}, MI_Id: ${effectiveMiId}, RoleId: ${watchRoleType}`
+                `📡 [CLIENT] Fetching Mobile App Master Page List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
             );
             const result = await getMobileAppMasterPageListOnChangeOfStaff(
                 effectiveStaffId,
-                effectiveMiId,
+                Number(watchInstitution),
                 Number(watchRoleType),
                 params
             );
@@ -515,15 +503,15 @@ export default function StaffUserCreationPage() {
     };
 
     const fetchSavedMobilePages = async (params: ApiSearchparams) => {
-        if (!effectiveStaffId || !effectiveMiId || !watchRoleType) return;
+        if (!effectiveStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsSavedMobilePageLoading(true);
             console.info(
-                `📡 [CLIENT] Fetching Saved Mobile App Page List for StaffId: ${effectiveStaffId}, MI_Id: ${effectiveMiId}, RoleId: ${watchRoleType}`
+                `📡 [CLIENT] Fetching Saved Mobile App Page List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
             );
             const result = await getSavedMobileAppPageListOnChangeOfStaff(
                 effectiveStaffId,
-                effectiveMiId,
+                Number(watchInstitution),
                 Number(watchRoleType),
                 params
             );
@@ -541,13 +529,13 @@ export default function StaffUserCreationPage() {
     };
 
     const fetchSavedListPages = async (params: ApiSearchparams) => {
-        if (!effectiveStaffId || !effectiveMiId || !watchRoleType) return;
+        if (!effectiveStaffId || !watchInstitution || !watchRoleType) return;
         try {
             setIsSavedGridLoading(true);
             console.info(
-                `📡 [CLIENT] Fetching Saved List for StaffId: ${effectiveStaffId}, MI_Id: ${effectiveMiId}, RoleId: ${watchRoleType}`
+                `📡 [CLIENT] Fetching Saved List for StaffId: ${effectiveStaffId}, MI_Id: ${watchInstitution}, RoleId: ${watchRoleType}`
             );
-            const result = await getSavedListGridOnChangeOfStaff(effectiveStaffId, effectiveMiId, Number(watchRoleType), params);
+            const result = await getSavedListGridOnChangeOfStaff(effectiveStaffId, Number(watchInstitution), Number(watchRoleType), params);
 
             if (result.success && result.data) {
                 setSavedGrid(result.data.map((p: any) => ({ ...p, checked: false })));
@@ -570,7 +558,7 @@ export default function StaffUserCreationPage() {
     const handleSelectAllModules = () => {
         const allChecked = modules.every((mod) => mod.model);
         const updated = modules.map((mod) => ({ ...mod, model: !allChecked }));
-        handleModulesChange(updated);
+        setModules(updated);
     };
 
     const handleSelectAllStaff = () => {
@@ -646,32 +634,17 @@ export default function StaffUserCreationPage() {
         const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === data.roleType);
         const isAdmin = selectedRole?.ivrmrT_Role.toUpperCase() === 'ADMIN' || selectedRole?.ivrmrT_Role.toUpperCase() === 'SUPER ADMIN';
 
-        let selectedInstitutes: any[] = [];
-        if (isAdmin) {
-            selectedInstitutes = institutions.filter((i) => i.Selected).map((i) => ({ mi_id: i.mI_Id, MI_Id: i.mI_Id }));
-            if (selectedInstitutes.length === 0) {
-                toast.error('Please select at least one institution');
-                return;
-            }
-            if (!data.userName || data.userName.trim() === '') {
-                toast.error('Please enter User Name');
-                return;
-            }
+        let selectedInstitutes = [];
+        if (isAdmin && data.filterData === 'Multiple') {
+            selectedInstitutes = institutions.filter((i) => i.Selected).map((i) => ({ mi_id: i.mI_Id }));
         } else {
-            if (!data.institution) {
-                toast.error('Please select an institution');
-                return;
-            }
-            if (data.filterData === 'Single' && !data.staffId) {
-                toast.error('Please select a staff');
-                return;
-            }
-            selectedInstitutes = [];
+            selectedInstitutes = [{ mi_id: Number(data.institution) }];
         }
 
-        const primaryMiId = isAdmin
-            ? (institutions.find((i) => i.Selected)?.mI_Id || 0)
-            : Number(data.institution);
+        if (selectedInstitutes.length === 0) {
+            toast.error('Please select at least one institution');
+            return;
+        }
 
         console.log('stagedWebPages:', stagedWebPages);
         console.log('savedGrid:', savedGrid);
@@ -681,7 +654,7 @@ export default function StaffUserCreationPage() {
         console.log('stagedWebPages in submit:', stagedWebPages);
 
         const payload = {
-            mI_Id: primaryMiId,
+            mI_Id: Number(data.institution) || selectedInstitutes[0].mi_id,
             staffId: data.filterData === 'Single' ? Number(data.staffId) : 0,
             userName: data.userName || '',
             mode: data.filterData,
@@ -691,7 +664,6 @@ export default function StaffUserCreationPage() {
             roleTypeId: Number(data.roleType),
             userId: userId || 0,
             multipleInstitutes: selectedInstitutes,
-            multipleinsti: selectedInstitutes,
             tempararyArrayList: selectedModules,
             datasaved: savedGrid
                 .filter((p) => !p.checked)
@@ -790,16 +762,15 @@ export default function StaffUserCreationPage() {
     };
 
     const getPagesBasedOnModules = async (moduleIds: number[]) => {
-        if (!effectiveMiId || !watchRoleType) return;
+        if (!watchInstitution || !watchRoleType) return;
 
         if (moduleIds.length === 0) {
             fetchMasterPages(webPageParams);
             return;
         }
 
-        const selectedInstitutions = isAdmin
-            ? institutions.filter((i) => i.Selected).map((i) => i.mI_Id)
-            : [Number(watchInstitution)];
+        const selectedInstitutions =
+            watchFilterData === 'Multiple' ? institutions.filter((i) => i.Selected).map((i) => i.mI_Id) : [Number(watchInstitution)];
 
         const payloadUserName = watchUserName || methods.getValues('userName') || '';
         console.info(`📡 [CLIENT] Fetching pages based on modules: ${moduleIds}`);
@@ -807,10 +778,10 @@ export default function StaffUserCreationPage() {
             setIsWebPageLoading(true);
             const result = await getMasterPageListGridOnChangeOfModule(
                 payloadUserName,
-                effectiveMiId,
+                Number(watchInstitution),
                 Number(watchRoleType),
                 moduleIds,
-                selectedInstitutions.length > 0 ? selectedInstitutions : [effectiveMiId]
+                selectedInstitutions.length > 0 ? selectedInstitutions : [Number(watchInstitution)]
             );
 
             console.log('onchange result', result);
@@ -850,10 +821,6 @@ export default function StaffUserCreationPage() {
             setIsWebPageLoading(false);
         }
     };
-
-    const hasInstitutionSelected = isAdmin
-        ? institutions.some((i) => i.Selected)
-        : !!watchInstitution;
 
     return (
         <div className='container mx-auto p-6'>
@@ -895,37 +862,39 @@ export default function StaffUserCreationPage() {
                             />
 
                             {/* UserDetails & Modules (Only visible when role and institution/staff selections are made) */}
-                            {isRoleSelected && hasInstitutionSelected && (isAdmin || watchFilterData === 'Multiple' || !!watchStaffId) && (
-                                <>
-                                    {isStaffDataLoading ? (
-                                        <div className='flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-200 bg-white p-12 shadow-sm'>
-                                            <div className='flex items-center gap-3 text-primary'>
-                                                <Loader2 className='h-6 w-6 animate-spin' />
-                                                <span className='font-semibold text-base'>Loading staff details & module permissions...</span>
+                            {isRoleSelected &&
+                                (isAdmin
+                                    ? watchFilterData === 'Multiple'
+                                        ? institutions.some((i) => i.Selected)
+                                        : !!watchInstitution
+                                    : !!watchInstitution && (watchFilterData === 'Multiple' || !!watchStaffId)) && (
+                                    <>
+                                        {isStaffDataLoading ? (
+                                            <div className='flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-200 bg-white p-12 shadow-sm'>
+                                                <div className='flex items-center gap-3 text-primary'>
+                                                    <Loader2 className='h-6 w-6 animate-spin' />
+                                                    <span className='font-semibold text-base'>Loading staff details & module permissions...</span>
+                                                </div>
+                                                <p className='mt-2 text-gray-500 text-xs'>
+                                                    Please wait while user credentials and module configurations are loaded.
+                                                </p>
                                             </div>
-                                            <p className='mt-2 text-gray-500 text-xs'>
-                                                Please wait while user credentials and module configurations are loaded.
-                                            </p>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <UserDetails
-                                                categories={categories}
-                                                onCategoryChange={setCategories}
-                                                modules={modules}
-                                                onModuleChange={handleModulesChange}
-                                                onSelectAllCategories={handleSelectAllCategories}
-                                                onSelectAllModules={handleSelectAllModules}
-                                                isUserNameDisabled={isAdmin ? false : isUserNameDisabled}
-                                                onChangeUsernameToggle={() => setIsChangeModalOpen(true)}
-                                                isStaffDataLoading={isStaffDataLoading}
-                                                isAdmin={isAdmin}
-                                            />
+                                        ) : (
+                                            <>
+                                                <UserDetails
+                                                    categories={categories}
+                                                    onCategoryChange={setCategories}
+                                                    modules={modules}
+                                                    onModuleChange={handleModulesChange}
+                                                    onSelectAllCategories={handleSelectAllCategories}
+                                                    onSelectAllModules={handleSelectAllModules}
+                                                    isUserNameDisabled={isUserNameDisabled}
+                                                    onChangeUsernameToggle={() => setIsChangeModalOpen(true)}
+                                                    isStaffDataLoading={isStaffDataLoading}
+                                                />
 
-                                            {/* Conditional Rendering of Mapping Grids */}
-                                            {(isAdmin
-                                                ? modules.some((module) => module.model) || webPages.length > 0 || savedGrid.length > 0
-                                                : watchFilterData === 'Single'
+                                                {/* Conditional Rendering of Mapping Grids */}
+                                                {(watchFilterData === 'Single'
                                                     ? isUserNameDisabled || modules.some((module) => module.model) || webPages.length > 0 || savedGrid.length > 0
                                                     : staffList.some((s) => s.Selected) || modules.some((module) => module.model) || webPages.length > 0 || savedGrid.length > 0) && (
                                                     <PageMappingGrids
@@ -959,29 +928,29 @@ export default function StaffUserCreationPage() {
                                                     />
                                                 )}
 
-                                            <div className='flex justify-center gap-4'>
-                                                <Button type='submit' className='px-8 shadow-md' size='lg' disabled={isSaving}>
-                                                    {isSaving ? (
-                                                        <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                                                    ) : (
-                                                        <Save className='mr-2 h-4 w-4' />
-                                                    )}
-                                                    {isSaving ? 'Saving...' : 'Save'}
-                                                </Button>
-                                                <Button
-                                                    type='button'
-                                                    variant='outline'
-                                                    onClick={() => methods.reset()}
-                                                    className='px-8'
-                                                    size='lg'>
-                                                    <X className='mr-2 h-4 w-4' />
-                                                    Cancel
-                                                </Button>
-                                            </div>
-                                        </>
-                                    )}
-                                </>
-                            )}
+                                                <div className='flex justify-center gap-4'>
+                                                    <Button type='submit' className='px-8 shadow-md' size='lg' disabled={isSaving}>
+                                                        {isSaving ? (
+                                                            <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+                                                        ) : (
+                                                            <Save className='mr-2 h-4 w-4' />
+                                                        )}
+                                                        {isSaving ? 'Saving...' : 'Save'}
+                                                    </Button>
+                                                    <Button
+                                                        type='button'
+                                                        variant='outline'
+                                                        onClick={() => methods.reset()}
+                                                        className='px-8'
+                                                        size='lg'>
+                                                        <X className='mr-2 h-4 w-4' />
+                                                        Cancel
+                                                    </Button>
+                                                </div>
+                                            </>
+                                        )}
+                                    </>
+                                )}
                         </form>
                     </FormProvider>
                 </CardContent>

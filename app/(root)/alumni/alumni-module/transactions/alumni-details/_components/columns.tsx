@@ -51,15 +51,10 @@ export const AlumniDetailsColumns: ColumnDef<IAlumniStudentDetail>[] = [
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title='Year' className='justify-center text-center font-bold text-black' />
         ),
-        accessorFn: (row) => {
-            const joinYear = row.asmaY_Year_Join || row.joinyear || row.asmaY_Year || row.yeardmitted || row.amsT_JOIN_YEAR || '';
-            const leftYear = row.asmaY_Year_Left || row.leftyear || row.yearleft || row.amsT_JOIN_LEFT || '';
-            return `${joinYear} ${leftYear}`;
-        },
         cell: ({ row }) => {
             const item = row.original;
-            const joinYear = item.asmaY_Year_Join || item.joinyear || item.asmaY_Year || item.yeardmitted || item.amsT_JOIN_YEAR || '-';
-            const leftYear = item.asmaY_Year_Left || item.leftyear || item.yearleft || item.amsT_JOIN_LEFT || '-';
+            const joinYear = item.asmaY_Year_Join || item.asmaY_Year || item.yeardmitted || item.amsT_JOIN_YEAR || '-';
+            const leftYear = item.asmaY_Year_Left || item.yearleft || item.amsT_JOIN_LEFT || '-';
             return (
                 <div className='flex flex-col text-xs'>
                     <span>Join: {joinYear}</span>
@@ -73,15 +68,10 @@ export const AlumniDetailsColumns: ColumnDef<IAlumniStudentDetail>[] = [
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title='Class' className='justify-center text-center font-bold text-black' />
         ),
-        accessorFn: (row) => {
-            const joinClass = row.asmcL_ClassName_Join || row.asmcl_classname || row.asmcL_ClassName || row.classnameadmitted || row.amsT_CLASS_JOIN || '';
-            const leftClass = row.asmcL_ClassName_Left || row.leftclass || row.classnameleft || row.amsT_CLASS_LEFT || '';
-            return `${joinClass} ${leftClass}`;
-        },
         cell: ({ row }) => {
             const item = row.original;
-            const joinClass = item.asmcL_ClassName_Join || item.asmcl_classname || item.asmcL_ClassName || item.classnameadmitted || item.amsT_CLASS_JOIN || '-';
-            const leftClass = item.asmcL_ClassName_Left || item.leftclass || item.classnameleft || item.amsT_CLASS_LEFT || '-';
+            const joinClass = item.asmcL_ClassName_Join || item.asmcL_ClassName || item.classnameadmitted || item.amsT_CLASS_JOIN || '-';
+            const leftClass = item.asmcL_ClassName_Left || item.classnameleft || item.amsT_CLASS_LEFT || '-';
             return (
                 <div className='flex flex-col text-xs'>
                     <span>Join: {joinClass}</span>
@@ -129,23 +119,11 @@ export const AlumniDetailsColumns: ColumnDef<IAlumniStudentDetail>[] = [
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title='State/City' className='justify-center text-center font-bold text-black' />
         ),
-        accessorFn: (row) => {
-            const state = row.ivrmmS_Name || (row.city ? row.city.split(':')[0] : '');
-            const city = row.almsT_ConCity || (row.city && row.city.includes(':') ? row.city.split(':')[1] : '');
-            if (state && city) return `${state}:${city}`;
-            return state || city || '';
-        },
         cell: ({ row }) => {
             const item = row.original;
-            const state = item.ivrmmS_Name || (item.city ? item.city.split(':')[0] : '');
-            const city = item.almsT_ConCity || (item.city && item.city.includes(':') ? item.city.split(':')[1] : '');
-            let loc = '-';
-            if (state && city) loc = `${state}:${city}`;
-            else if (state) loc = state;
-            else if (city) loc = city;
             return (
                 <div className='text-center'>
-                    {loc}
+                    {item.ivrmmS_Name ? `${item.ivrmmS_Name}:${item.almsT_ConCity || ''}` : item.almsT_ConCity || '-'}
                 </div>
             );
         }

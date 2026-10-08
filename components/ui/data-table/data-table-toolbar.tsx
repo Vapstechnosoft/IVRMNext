@@ -84,6 +84,16 @@ export function DataTableToolbar<TData, TValue>({
         table.setPageIndex(0);
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            isUserInputRef.current = true;
+            setSearchQuery(localSearchQuery || null);
+            table.setGlobalFilter(localSearchQuery);
+            table.setPageIndex(0);
+        }
+    };
+
     // Column settings
     const anyColumnHiding = table.getAllColumns().filter((c) => typeof c.accessorFn !== 'undefined' && c.getCanHide());
     const hideableColumns = table.getAllColumns().filter((col) => col.getCanHide());
@@ -248,6 +258,7 @@ export function DataTableToolbar<TData, TValue>({
                         placeholder='Search...'
                         value={localSearchQuery}
                         onChange={(e) => handleSearch(e.target.value)}
+                        onKeyDown={handleKeyDown}
                         className='h-9 w-64 pr-12'
                     />
 

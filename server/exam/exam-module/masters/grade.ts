@@ -5,7 +5,16 @@ import type { ApiSearchparams } from '@/types';
 import type { IGradeDetails, IMasterGrade } from '@/types/exam/exam-module/masters';
 
 export async function getMasterGrade(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const params = searchParams ? { ...searchParams } : {};
+    if (params.search_query) {
+        const sq = params.search_query.trim().toLowerCase();
+        if ('percentage'.startsWith(sq) || sq === 'percentage') {
+            params.search_query = 'P';
+        } else if ('marks'.startsWith(sq) || sq === 'marks') {
+            params.search_query = 'M';
+        }
+    }
+    const urlParams = getSearchParamsUrl(params);
     const url = `/master_exam_grade?${urlParams}`;
     return await api.get<IMasterGrade>('exam', url);
 }

@@ -25,7 +25,10 @@ export async function getAddVisitorData(): Promise<ApiResponse<AddVisitorInitial
                 empname: 'John Doe',
                 vmmV_MeetingPurpose: 'Official Meeting',
                 vmmV_FromAddress: '123, 5th Avenue',
-                vmmV_MeetingLocation: 'Conference Room A'
+                vmmV_MeetingLocation: 'Conference Room A',
+                vmmV_BlockedFlg: false,
+                vmmV_IDCardNo: 'ID-001',
+                vmmV_CkeckedInOutStatus: 'Checked In'
             },
             {
                 vmmV_Id: 2,
@@ -38,7 +41,10 @@ export async function getAddVisitorData(): Promise<ApiResponse<AddVisitorInitial
                 empname: 'Jane Smith',
                 vmmV_MeetingPurpose: 'Site Visit',
                 vmmV_FromAddress: '456, Westminster',
-                vmmV_MeetingLocation: 'Reception'
+                vmmV_MeetingLocation: 'Reception',
+                vmmV_BlockedFlg: false,
+                vmmV_IDCardNo: 'ID-002',
+                vmmV_CkeckedInOutStatus: 'Checked Out'
             }
         ]
     };
@@ -50,10 +56,7 @@ export async function getAddVisitorData(): Promise<ApiResponse<AddVisitorInitial
     };
 }
 
-export async function saveAddVisitor(data: any): Promise<ApiResponse<any>> {
-    // Mock Save
-    console.log('Saving Visitor Data:', data);
-
+export async function saveAddVisitor(_data: any): Promise<ApiResponse<any>> {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -64,7 +67,7 @@ export async function saveAddVisitor(data: any): Promise<ApiResponse<any>> {
     };
 }
 
-export async function getPreviousVisitors(searchQuery: string): Promise<ApiResponse<PreviousVisitorData[]>> {
+export async function getPreviousVisitors(_searchQuery: string): Promise<ApiResponse<PreviousVisitorData[]>> {
     // Mock Search
     await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate delay
     return {
@@ -93,7 +96,7 @@ export async function getPreviousVisitors(searchQuery: string): Promise<ApiRespo
     };
 }
 
-export async function getAppointmentVisitors(searchQuery: string): Promise<ApiResponse<AppointmentVisitorData[]>> {
+export async function getAppointmentVisitors(_searchQuery: string): Promise<ApiResponse<AppointmentVisitorData[]>> {
     // Mock Search
     await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate delay
     return {
