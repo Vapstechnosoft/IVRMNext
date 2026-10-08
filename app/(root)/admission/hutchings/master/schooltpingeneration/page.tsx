@@ -393,8 +393,31 @@ export default function SchoolTpinGeneration() {
             </Dialog>
 
             {/* Print Layout */}
-            <div className='hidden'>
-                <div ref={printRef} className='p-8'>
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: 0,
+                    height: 0,
+                    overflow: 'visible',
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: -1
+                }}>
+                <div ref={printRef} className='p-8 print-preview-container min-h-full w-full bg-white text-black'>
+                    <style
+                        dangerouslySetInnerHTML={{
+                            __html: `
+                                @media print {
+                                    @page { margin: 0; size: A4 portrait; }
+                                    body { visibility: hidden; background: white; }
+                                    .print-preview-container { visibility: visible !important; position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; padding: 10mm; }
+                                    .print-preview-container * { visibility: visible !important; }
+                                }
+                            `
+                        }}
+                    />
                     <div className='mb-6 text-center'>
                         <div className='mb-4 flex items-center justify-center gap-4'>
                             <img 
