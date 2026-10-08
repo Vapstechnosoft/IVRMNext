@@ -156,8 +156,8 @@ export default function MasterPromotionSectionPage(props: {
                     const response = await getPromotionSection(payload);
 
                     if (response?.data) {
-                        const convertedStudents = response.data.map(convertApiStudentToInternal);
-                        convertedStudents.sort((a, b) => a.studentName.localeCompare(b.studentName));
+                        const convertedStudents: Student[] = response.data.map(convertApiStudentToInternal);
+                        convertedStudents.sort((a: Student, b: Student) => a.studentName.localeCompare(b.studentName));
                         const studentsWithSiNo = recalculateSiNo(convertedStudents);
                         setLeftStudents(studentsWithSiNo);
                         setShowLeftTable(true);
@@ -208,7 +208,12 @@ export default function MasterPromotionSectionPage(props: {
 
                     if (targetClass) {
                         const newRightClass = targetClass.asmcL_Id.toString();
-                        setValue('rightClass', newRightClass);
+                        if (newRightClass === leftClassAdmitted) {
+                            toast.error('Same class cannot be promoted. Please select a different class!');
+                            setValue('rightClass', '');
+                        } else {
+                            setValue('rightClass', newRightClass);
+                        }
                         setValue('rightSection', '');
                         setRightStudents([]);
                         setRightSelectedStudents(new Set());
@@ -325,7 +330,7 @@ export default function MasterPromotionSectionPage(props: {
         if (!rightSection) {
             setValue('rightSection', '');
         }
-        if (value === rightSection) {
+        if (value === rightSection && leftClassAdmitted === rightClass && leftAcademicYear === rightAcademicYear) {
             setRightStudents([]);
             setRightSelectedStudents(new Set());
             setRightSelectAll(false);
@@ -336,6 +341,16 @@ export default function MasterPromotionSectionPage(props: {
     };
 
     const handleRightClassChange = (value: string) => {
+        if (value && value === leftClassAdmitted) {
+            toast.error('Same class cannot be promoted. Please select a different class!');
+            setValue('rightClass', '');
+            setValue('rightSection', '');
+            setRightStudents([]);
+            setRightSelectedStudents(new Set());
+            setRightSelectAll(false);
+            setShowRightTable(false);
+            return;
+        }
         setValue('rightClass', value);
         setValue('rightSection', '');
         setRightStudents([]);
@@ -346,7 +361,7 @@ export default function MasterPromotionSectionPage(props: {
     };
 
     const handleRightSectionChange = (value: string) => {
-        if (value === leftSection) {
+        if (value === leftSection && leftClassAdmitted === rightClass && leftAcademicYear === rightAcademicYear) {
             toast.error('Selected Section Is Already Assigned. Please Select Different One!');
             return;
         }
@@ -400,6 +415,11 @@ export default function MasterPromotionSectionPage(props: {
 
         if (!rightClass || !rightSection) {
             toast.error('Please select destination class and section');
+            return;
+        }
+
+        if (rightClass === leftClassAdmitted) {
+            toast.error('Same class cannot be promoted. Please select a different class!');
             return;
         }
 

@@ -81,6 +81,7 @@ export default function MasterChangeSectionPage(props: {
     const leftAcademicYear = watch('leftAcademicYear');
     const leftClassAdmitted = watch('leftClassAdmitted');
     const leftSection = watch('leftSection');
+    const rightAcademicYear = watch('rightAcademicYear');
     const rightClass = watch('rightClass');
     const rightSection = watch('rightSection');
 
@@ -212,7 +213,7 @@ export default function MasterChangeSectionPage(props: {
 
     const handleLeftSectionChange = (value: string) => {
         setValue('leftSection', value);
-        if (value === rightSection) {
+        if (value === rightSection && leftClassAdmitted === rightClass && leftAcademicYear === rightAcademicYear) {
             setRightStudents([]);
             setRightSelectedStudents(new Set());
             setRightSelectAll(false);
@@ -238,7 +239,7 @@ export default function MasterChangeSectionPage(props: {
     };
 
     const handleRightSectionChange = (value: string) => {
-        if (value === leftSection) {
+        if (value === leftSection && leftClassAdmitted === rightClass && leftAcademicYear === rightAcademicYear) {
             toast.error('Selected Section Is Already Assigned. Please Select Different One!');
             return;
         }
