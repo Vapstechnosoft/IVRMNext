@@ -299,6 +299,7 @@ export function useDataTableProps(
     if (sortByYearDesc && Array.isArray(extractedData) && extractedData.length > 0) {
         extractedData = sortDataByAcademicYear(extractedData);
     }
+
     const message = response?.[messageKey];
     const isNoRecordsFound =
         typeof message === 'string' &&

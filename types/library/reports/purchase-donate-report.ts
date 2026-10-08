@@ -3,9 +3,12 @@ export interface IPurchaseDonateReportInitialData {
 }
 
 export interface IPurchaseDonateReportRequest {
-    mI_Id: number; // always 30
-    circ_Flag: string; // Book Category: "Book", "Non-Book"
-    lbcpA_Flg: string; // Type: "Purchased", "Donated"
+    mI_Id?: number;
+    MI_Id?: number;
+    circ_Flag?: string; // Book Category: "Book", "Non-Book"
+    lbcpA_Flg?: string; // Type: "Purchased", "Donated"
+    LMB_BookType?: string;
+    book_Flag?: string;
 }
 
 export interface IPurchaseDonateReportGridData {
@@ -19,6 +22,11 @@ export interface IPurchaseDonateReportGridData {
     lmB_Price: number;
     lmB_Discount: number;
     lmB_NetPrice: number;
+    [key: string]: any;
 }
 
-export type IPurchaseDonateReportResponse = IPurchaseDonateReportGridData[];
+export type IPurchaseDonateReportResponse = {
+    success: boolean;
+    data: IPurchaseDonateReportGridData[];
+    message?: string;
+};

@@ -142,6 +142,7 @@ export interface IBookTransactionInitialData {
     lmaL_Id?: number;
     asmcL_Id?: number;
     asmS_Id?: number;
+    alldata?: any[];
 }
 
 // Issue Book Request

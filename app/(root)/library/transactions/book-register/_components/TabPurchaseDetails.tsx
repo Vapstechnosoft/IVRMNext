@@ -6,11 +6,12 @@ import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usePublisherDropdown, useVendorDropdown } from '@/hooks/library/useBookRegister';
 import { cn } from '@/lib/utils';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
 export default function TabPurchaseDetails({
     dropdownData,
@@ -30,11 +31,22 @@ export default function TabPurchaseDetails({
     const {
         control,
         register,
-        watch,
         formState: { errors }
     } = useFormContext<BookRegisterPayload>();
-    const purchaseType = watch('lmB_PurOrDonated');
-    const publisherList = dropdownData?.publisherlist || dropdownData?.publisherList || [];
+    const purchaseType = useWatch({ control, name: 'lmB_PurOrDonated' });
+    const { data: directVendorData } = useVendorDropdown();
+    const { data: directPublisherData } = usePublisherDropdown();
+
+    const rawData = dropdownData?.data || dropdownData;
+    const publisherList =
+        (directPublisherData && directPublisherData.length > 0)
+            ? directPublisherData
+            : rawData?.publisherlist || rawData?.publisherList || dropdownData?.publisherlist || dropdownData?.publisherList || [];
+    const langList = rawData?.langlist || rawData?.langList || dropdownData?.langlist || dropdownData?.langList || [];
+    const vendorList =
+        (directVendorData && directVendorData.length > 0)
+            ? directVendorData
+            : rawData?.vendorlist || rawData?.vendorList || dropdownData?.vendorlist || dropdownData?.vendorList || [];
 
     return (
         <div className='flex flex-col gap-6'>
@@ -109,11 +121,23 @@ export default function TabPurchaseDetails({
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {dropdownData?.langlist?.map((item: any) => (
-                                        <SelectItem key={item.lmL_Id} value={item.lmL_Id.toString()}>
-                                            {item.lmL_LanguageName}
-                                        </SelectItem>
-                                    ))}
+                                    {langList?.map((item: any, idx: number) => {
+                                        const langId = item.lmL_Id ?? item.lml_Id ?? item.LML_Id ?? item.id ?? item.value;
+                                        const langName =
+                                            item.lmL_LanguageName ||
+                                            item.lml_LanguageName ||
+                                            item.LML_LanguageName ||
+                                            item.languageName ||
+                                            item.name ||
+                                            item.label ||
+                                            String(langId);
+                                        if (langId === undefined || langId === null) return null;
+                                        return (
+                                            <SelectItem key={`${langId}-${idx}`} value={langId.toString()}>
+                                                {langName}
+                                            </SelectItem>
+                                        );
+                                    })}
                                 </SelectContent>
                             </Select>
                         )}
@@ -136,11 +160,23 @@ export default function TabPurchaseDetails({
                                     <SelectValue placeholder='--Select--' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {dropdownData?.vendorList?.map((item: any) => (
-                                        <SelectItem key={item.lmV_Id} value={item.lmV_Id.toString()}>
-                                            {item.lmV_VendorName}
-                                        </SelectItem>
-                                    ))}
+                                    {vendorList?.map((item: any, idx: number) => {
+                                        const vendorId = item.lmV_Id ?? item.lmv_Id ?? item.LMV_Id ?? item.id ?? item.value;
+                                        const vendorName =
+                                            item.lmV_VendorName ||
+                                            item.lmv_VendorName ||
+                                            item.LMV_VendorName ||
+                                            item.vendorName ||
+                                            item.name ||
+                                            item.label ||
+                                            String(vendorId);
+                                        if (vendorId === undefined || vendorId === null) return null;
+                                        return (
+                                            <SelectItem key={`${vendorId}-${idx}`} value={vendorId.toString()}>
+                                                {vendorName}
+                                            </SelectItem>
+                                        );
+                                    })}
                                 </SelectContent>
                             </Select>
                         )}
@@ -166,6 +202,7 @@ export default function TabPurchaseDetails({
                 </div>
 
                 <InputText label='Currency Type' {...register('currencyType')} placeholder='Enter Currency Type' />
+                <InputText label='Net Price' type='number' step='any' {...register('lmB_NetPrice')} placeholder='Enter Net Price' />
             </div>
 
             {/* PUBLISHER DETAILS Section */}
@@ -185,12 +222,13 @@ export default function TabPurchaseDetails({
                                         <SelectValue placeholder='--Select--' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {publisherList?.map((item: any) => {
-                                            const publisherId = item.lmP_Id || item.lmp_Id || item.id || item.value;
+                                        {publisherList?.map((item: any, idx: number) => {
+                                            const publisherId = item.lmP_Id ?? item.lmp_Id ?? item.LMP_Id ?? item.id ?? item.value;
                                             const publisherName =
-                                                item.lmP_PublisherName || item.lmp_PublisherName || item.publisherName || item.name || '';
+                                                item.lmP_PublisherName || item.lmp_PublisherName || item.LMP_PublisherName || item.publisherName || item.name || String(publisherId);
+                                            if (publisherId === undefined || publisherId === null) return null;
                                             return (
-                                                <SelectItem key={publisherId} value={publisherId.toString()}>
+                                                <SelectItem key={`${publisherId}-${idx}`} value={publisherId.toString()}>
                                                     {publisherName}
                                                 </SelectItem>
                                             );

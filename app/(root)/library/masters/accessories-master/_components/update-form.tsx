@@ -52,20 +52,24 @@ export default function UpdateMasterAccessoriesForm({ onSuccess, className = '',
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            const now = new Date().toISOString();
             const payload = {
-                ...data,
-                lmaC_Id: row.lmaC_Id // Ensure ID is present
+                createdDate: row.createdDate || now,
+                updatedDate: now,
+                lmaC_Id: Number(row.lmaC_Id),
+                lmaC_AccessoriesName: data.lmaC_AccessoriesName,
+                lmaC_AccessoriesDesc: data.lmaC_AccessoriesDesc
             };
 
             const response = await addOrUpdateMasterAccessories(payload);
 
-            if (response.success) {
+            if (response?.success) {
                 toast.success(response.message || 'Record Updated Successfully!!!');
                 reset(payload);
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Record Not Updated Successfully!!!');
+                toast.error(response?.message || 'Record Not Updated Successfully!!!');
             }
         } catch (error: any) {
             toast.error(error.message || 'Something went wrong');

@@ -5,6 +5,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useLibraryMonthEndReportSearch } from '@/hooks/library/reports/useLibraryMonthEndReport';
 import type { ILibraryMonthEndReportGridData, ILibraryMonthEndReportRequest } from '@/types/library/reports/library-month-end-report';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { LibraryMonthEndReportColumns, type MonthEndReportDisplayData } from './_components/columns';
 import { ReportForm } from './_components/report-form';
 
@@ -17,31 +18,52 @@ export default function LibraryMonthEndReportPage() {
 
     const searchMutation = useLibraryMonthEndReportSearch();
 
-    const processData = (data: ILibraryMonthEndReportGridData[]) => {
+    const processData = (data: any[]) => {
         const processed: MonthEndReportDisplayData[] = [];
+        if (!Array.isArray(data)) return processed;
+
         data.forEach((ff) => {
-            // Logic replicated from legacy AngularJS controller
-            if (ff.TOTALBOOK >= 0) processed.push({ TNAME: 'TOTAL BOOKS', COUNT: ff.TOTALBOOK });
-            if (ff.AVAILBOOK >= 0) processed.push({ TNAME: 'AVAILABLE BOOKS', COUNT: ff.AVAILBOOK });
-            if (ff.PURCHASECNT >= 0) processed.push({ TNAME: 'PURCHASED BOOKS', COUNT: ff.PURCHASECNT });
-            if (ff.DONATECNT >= 0) processed.push({ TNAME: 'DONATED BOOKS', COUNT: ff.DONATECNT });
+            const totalBook = ff.TOTALBOOK ?? ff.totalbook ?? ff.totalBook ?? ff.TotalBook;
+            const availBook = ff.AVAILBOOK ?? ff.availbook ?? ff.availBook ?? ff.AvailBook;
+            const purchaseCnt = ff.PURCHASECNT ?? ff.purchasecnt ?? ff.purchaseCnt ?? ff.PurchaseCnt;
+            const donateCnt = ff.DONATECNT ?? ff.donatecnt ?? ff.donateCnt ?? ff.DonateCnt;
 
-            if (ff.STDISSUECNT >= 0) processed.push({ TNAME: 'STUDENT BOOK ISSUE', COUNT: ff.STDISSUECNT });
-            if (ff.STDRETURNCNT >= 0) processed.push({ TNAME: 'STUDENT BOOK RETURN', COUNT: ff.STDRETURNCNT });
+            const stdIssueCnt = ff.STDISSUECNT ?? ff.stdissuecnt ?? ff.stdIssueCnt ?? ff.StdIssueCnt;
+            const stdReturnCnt = ff.STDRETURNCNT ?? ff.stdreturncnt ?? ff.stdReturnCnt ?? ff.StdReturnCnt;
 
-            if (ff.STFISSUECNT >= 0) processed.push({ TNAME: 'STAFF BOOK ISSUE', COUNT: ff.STFISSUECNT });
-            if (ff.STFRETURNCNT >= 0) processed.push({ TNAME: 'STAFF BOOK RETURN', COUNT: ff.STFRETURNCNT });
+            const stfIssueCnt = ff.STFISSUECNT ?? ff.stfissuecnt ?? ff.stfIssueCnt ?? ff.StfIssueCnt;
+            const stfReturnCnt = ff.STFRETURNCNT ?? ff.stfreturncnt ?? ff.stfReturnCnt ?? ff.StfReturnCnt;
 
-            if (ff.DEPISSUECNT >= 0) processed.push({ TNAME: 'DEPARTMENT BOOK ISSUE', COUNT: ff.DEPISSUECNT });
-            if (ff.DEPRETURNCNT >= 0) processed.push({ TNAME: 'DEPARTMENT BOOK RETURN', COUNT: ff.DEPRETURNCNT });
+            const depIssueCnt = ff.DEPISSUECNT ?? ff.depissuecnt ?? ff.depIssueCnt ?? ff.DepIssueCnt;
+            const depReturnCnt = ff.DEPRETURNCNT ?? ff.depreturncnt ?? ff.depReturnCnt ?? ff.DepReturnCnt;
 
-            if (ff.GSTISSUECNT >= 0) processed.push({ TNAME: 'GUEST BOOK ISSUE', COUNT: ff.GSTISSUECNT });
-            if (ff.GSTRETURNCNT >= 0) processed.push({ TNAME: 'GUEST BOOK RETURN', COUNT: ff.GSTRETURNCNT });
+            const gstIssueCnt = ff.GSTISSUECNT ?? ff.gstissuecnt ?? ff.gstIssueCnt ?? ff.GstIssueCnt;
+            const gstReturnCnt = ff.GSTRETURNCNT ?? ff.gstreturncnt ?? ff.gstReturnCnt ?? ff.GstReturnCnt;
 
-            if (ff.FINEAMOUNT >= 0) processed.push({ TNAME: 'TOTAL FINE', COUNT: ff.FINEAMOUNT });
+            const fineAmount = ff.FINEAMOUNT ?? ff.fineamount ?? ff.fineAmount ?? ff.FineAmount;
+            const smsCount = ff.SMSCOUNT ?? ff.smscount ?? ff.smsCount ?? ff.SmsCount;
+            const emailCount = ff.EMAILCOUNT ?? ff.emailcount ?? ff.emailCount ?? ff.EmailCount;
 
-            if (ff.SMSCOUNT >= 0) processed.push({ TNAME: 'SMS', COUNT: ff.SMSCOUNT });
-            if (ff.EMAILCOUNT >= 0) processed.push({ TNAME: 'EMAIL', COUNT: ff.EMAILCOUNT });
+            if (totalBook !== undefined && totalBook !== null) processed.push({ TNAME: 'TOTAL BOOKS', COUNT: Number(totalBook) });
+            if (availBook !== undefined && availBook !== null) processed.push({ TNAME: 'AVAILABLE BOOKS', COUNT: Number(availBook) });
+            if (purchaseCnt !== undefined && purchaseCnt !== null) processed.push({ TNAME: 'PURCHASED BOOKS', COUNT: Number(purchaseCnt) });
+            if (donateCnt !== undefined && donateCnt !== null) processed.push({ TNAME: 'DONATED BOOKS', COUNT: Number(donateCnt) });
+
+            if (stdIssueCnt !== undefined && stdIssueCnt !== null) processed.push({ TNAME: 'STUDENT BOOK ISSUE', COUNT: Number(stdIssueCnt) });
+            if (stdReturnCnt !== undefined && stdReturnCnt !== null) processed.push({ TNAME: 'STUDENT BOOK RETURN', COUNT: Number(stdReturnCnt) });
+
+            if (stfIssueCnt !== undefined && stfIssueCnt !== null) processed.push({ TNAME: 'STAFF BOOK ISSUE', COUNT: Number(stfIssueCnt) });
+            if (stfReturnCnt !== undefined && stfReturnCnt !== null) processed.push({ TNAME: 'STAFF BOOK RETURN', COUNT: Number(stfReturnCnt) });
+
+            if (depIssueCnt !== undefined && depIssueCnt !== null) processed.push({ TNAME: 'DEPARTMENT BOOK ISSUE', COUNT: Number(depIssueCnt) });
+            if (depReturnCnt !== undefined && depReturnCnt !== null) processed.push({ TNAME: 'DEPARTMENT BOOK RETURN', COUNT: Number(depReturnCnt) });
+
+            if (gstIssueCnt !== undefined && gstIssueCnt !== null) processed.push({ TNAME: 'GUEST BOOK ISSUE', COUNT: Number(gstIssueCnt) });
+            if (gstReturnCnt !== undefined && gstReturnCnt !== null) processed.push({ TNAME: 'GUEST BOOK RETURN', COUNT: Number(gstReturnCnt) });
+
+            if (fineAmount !== undefined && fineAmount !== null) processed.push({ TNAME: 'TOTAL FINE', COUNT: Number(fineAmount) });
+            if (smsCount !== undefined && smsCount !== null) processed.push({ TNAME: 'SMS', COUNT: Number(smsCount) });
+            if (emailCount !== undefined && emailCount !== null) processed.push({ TNAME: 'EMAIL', COUNT: Number(emailCount) });
         });
         return processed;
     };
@@ -49,9 +71,22 @@ export default function LibraryMonthEndReportPage() {
     const handleSearch = (data: ILibraryMonthEndReportRequest) => {
         searchMutation.mutate(data, {
             onSuccess: (response: any) => {
-                const rawGridData = (response || []) as ILibraryMonthEndReportGridData[];
+                if (response && response.success === false) {
+                    toast.error(response.message || 'Failed to fetch report data');
+                    return;
+                }
+                const rawGridData = Array.isArray(response) ? response : response?.data || [];
                 const displayData = processData(rawGridData);
                 setReportDisplayData(displayData);
+                if (displayData.length > 0) {
+                    toast.success(`Found ${displayData.length} records`);
+                } else {
+                    toast.info('No records found for the selected criteria');
+                }
+            },
+            onError: (error) => {
+                toast.error('Failed to fetch report data');
+                console.error(error);
             }
         });
     };

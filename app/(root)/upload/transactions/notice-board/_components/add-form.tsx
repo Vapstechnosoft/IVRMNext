@@ -107,6 +107,7 @@ export default function AddNoticeBoardForm({
     });
 
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
+    const intB_StartDate = useWatch({ control, name: 'intB_StartDate' });
     const check_student = useWatch({ control, name: 'check_student' });
     const check_staff = useWatch({ control, name: 'check_staff' });
     const intB_DispalyDisableFlg = useWatch({ control, name: 'intB_DispalyDisableFlg' });
@@ -435,6 +436,12 @@ export default function AddNoticeBoardForm({
                                         <Calendar
                                             mode='single'
                                             selected={field.value}
+                                            disabled={(date) => {
+                                                if (!intB_StartDate) return false;
+                                                const start = new Date(intB_StartDate);
+                                                start.setHours(0, 0, 0, 0);
+                                                return date < start;
+                                            }}
                                             onSelect={(date) => {
                                                 field.onChange(date);
                                                 setIsEndDateOpen(false);

@@ -976,52 +976,83 @@ export default function ClassCategoryReport() {
 
                                                         <tbody>
                                                             {(() => {
-                                                                const groups: { [key: number]: any[] } = {};
+                                                                // First level: group by user_Id
+                                                                const userGroups: { [key: number]: any[] } = {};
 
                                                                 reportData.forEach((row) => {
-                                                                    const groupKey = row.user_Id;
-                                                                    if (!groups[groupKey]) {
-                                                                        groups[groupKey] = [];
+                                                                    const userKey = row.user_Id;
+                                                                    if (!userGroups[userKey]) {
+                                                                        userGroups[userKey] = [];
                                                                     }
-                                                                    groups[groupKey].push(row);
+                                                                    userGroups[userKey].push(row);
                                                                 });
 
                                                                 const rows: React.ReactNode[] = [];
-                                                                let groupCounter = 1;
+                                                                let userCounter = 1;
 
-                                                                Object.entries(groups).forEach(([userId, groupRows]) => {
-                                                                    groupRows.forEach((row, index) => {
-                                                                        const isFirstRow = index === 0;
-
-                                                                        rows.push(
-                                                                            <tr
-                                                                                key={`${userId}_${index}`}
-                                                                                className='odd:bg-gray-50 hover:bg-gray-100'>
-                                                                                {isFirstRow && (
-                                                                                    <td
-                                                                                        rowSpan={groupRows.length}
-                                                                                        className='border px-4 py-2 text-center align-middle'>
-                                                                                        {groupCounter}
-                                                                                    </td>
-                                                                                )}
-                                                                                {isFirstRow && (
-                                                                                    <td
-                                                                                        rowSpan={groupRows.length}
-                                                                                        className='border px-4 py-2 text-center align-middle font-medium'>
-                                                                                        {row.normalizedUserName}-{row.ivrmrT_Role}
-                                                                                    </td>
-                                                                                )}
-                                                                                <td className='border px-4 py-2 text-center'>
-                                                                                    {row.fmG_GroupName}
-                                                                                </td>
-                                                                                <td className='border px-4 py-2 text-center'>
-                                                                                    {row.fmH_FeeName}
-                                                                                </td>
-                                                                            </tr>
-                                                                        );
+                                                                Object.entries(userGroups).forEach(([userId, userRows]) => {
+                                                                    // Second level: group by fmG_GroupName within each user
+                                                                    const feeGroupMap: { [key: string]: any[] } = {};
+                                                                    userRows.forEach((row) => {
+                                                                        const groupKey = row.fmG_GroupName;
+                                                                        if (!feeGroupMap[groupKey]) {
+                                                                            feeGroupMap[groupKey] = [];
+                                                                        }
+                                                                        feeGroupMap[groupKey].push(row);
                                                                     });
 
-                                                                    groupCounter++;
+                                                                    const feeGroupEntries = Object.entries(feeGroupMap);
+                                                                    const totalUserRows = userRows.length;
+                                                                    let isFirstRowOfUser = true;
+
+                                                                    feeGroupEntries.forEach(([feeGroupName, feeGroupRows]) => {
+                                                                        feeGroupRows.forEach((row, index) => {
+                                                                            const isFirstRowOfFeeGroup = index === 0;
+                                                                            const isFirstRowOverall = isFirstRowOfUser;
+
+                                                                            rows.push(
+                                                                                <tr
+                                                                                    key={`${userId}_${feeGroupName}_${index}`}
+                                                                                    className='odd:bg-gray-50 hover:bg-gray-100'>
+                                                                                    {/* Sl No - spans all rows for this user */}
+                                                                                    {isFirstRowOverall && (
+                                                                                        <td
+                                                                                            rowSpan={totalUserRows}
+                                                                                            className='border px-4 py-2 text-center align-middle'>
+                                                                                            {userCounter}
+                                                                                        </td>
+                                                                                    )}
+
+                                                                                    {/* User Name - Role - spans all rows for this user */}
+                                                                                    {isFirstRowOverall && (
+                                                                                        <td
+                                                                                            rowSpan={totalUserRows}
+                                                                                            className='border px-4 py-2 text-center align-middle font-medium'>
+                                                                                            {row.normalizedUserName}-{row.ivrmrT_Role}
+                                                                                        </td>
+                                                                                    )}
+
+                                                                                    {/* Fee Group Name - spans rows within this fee group */}
+                                                                                    {isFirstRowOfFeeGroup && (
+                                                                                        <td
+                                                                                            rowSpan={feeGroupRows.length}
+                                                                                            className='border px-4 py-2 text-center align-middle'>
+                                                                                            {row.fmG_GroupName}
+                                                                                        </td>
+                                                                                    )}
+
+                                                                                    {/* Fee Head Name - always shown */}
+                                                                                    <td className='border px-4 py-2 text-center'>
+                                                                                        {row.fmH_FeeName}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+
+                                                                            isFirstRowOfUser = false;
+                                                                        });
+                                                                    });
+
+                                                                    userCounter++;
                                                                 });
 
                                                                 return rows;
