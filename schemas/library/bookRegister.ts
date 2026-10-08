@@ -12,22 +12,18 @@ export const bookRegisterSchema = {
         lmS_Id: z.number({ required_error: 'Subject is required' }).min(1),
         lmD_Id: z.number({ required_error: 'Department is required' }).min(1),
         binding_Type: z.string().optional(),
-        lmB_Edition: z.string().max(10, 'Edition cannot exceed 10 digits').optional(),
-        lmB_PublishedYear: z
-            .union([z.string(), z.number()])
-            .refine((val) => val !== undefined && val !== null && String(val).trim().length > 0, {
-                message: 'Publish Year is required'
-            }),
+        lmB_Edition: z.string().optional(),
+        lmB_PublishedYear: z.union([z.string(), z.number()]).refine((val) => !!val, 'Published Year is required'),
         lmB_EntryDate: z.union([z.date(), z.string()]),
-        mB_Call_No: z.string().max(10, 'Call No cannot exceed 10 digits').optional(),
-        lmB_ISBNNo: z.string().max(10, 'ISBN No cannot exceed 10 digits').optional(),
-        lmB_ClassNo: z.string().max(10, 'Class No cannot exceed 10 digits').optional(),
-        lmB_VolNo: z.string().max(10, 'Volume No cannot exceed 10 digits').optional(),
-        mB_Pages: z.union([z.number(), z.string()]).optional(),
+        mB_Call_No: z.string().optional(),
+        lmB_ISBNNo: createOptionalStringSchema('ISBN No', 1, 50),
+        lmB_ClassNo: z.string().optional(),
+        lmB_VolNo: z.string().optional(),
+        mB_Pages: z.coerce.number().optional(),
         invoice_No: z.string().optional(),
-        lmBkf_KeyFactor: z.string().max(10, 'Book KeyFactor cannot exceed 10 digits').optional(),
-        lmBkf_PageNo: z.union([z.number(), z.string()]).optional(),
-        lmB_BookNo: z.string().max(10, 'Book No cannot exceed 10 digits').optional(),
+        lmBkf_KeyFactor: z.string().optional(),
+        lmBkf_PageNo: z.coerce.number().optional(),
+        lmB_BookNo: z.string().optional(),
         lmAL_Id: z.number({ required_error: 'Library is required' }).min(1),
 
         purchase_Date: z.union([z.date(), z.string()]),
