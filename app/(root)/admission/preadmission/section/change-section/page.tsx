@@ -317,22 +317,26 @@ export default function MasterChangeSectionPage(props: {
     };
 
     const moveToLeft = () => {
-        if (rightSelectedStudents.size === 0) {
-            toast.error('Please select students to move');
+        const studentsToMoveSet = rightSelectedStudents.size > 0
+            ? rightStudents.filter((s) => rightSelectedStudents.has(s.student_id))
+            : rightStudents;
+
+        if (studentsToMoveSet.length === 0) {
+            toast.error('No students to move back');
             return;
         }
 
         const originalSectionName = leftSectionData?.data?.find((s: any) => s.asmS_Id === Number(leftSection))?.asmC_SectionName;
 
-        const studentsToMove = rightStudents
-            .filter((s) => rightSelectedStudents.has(s.student_id))
-            .map((student) => ({
-                ...student,
-                asmS_Id: Number(leftSection),
-                asmC_SectionName: originalSectionName || student.asmC_SectionName
-            }));
+        const movedIds = new Set(studentsToMoveSet.map((s) => s.student_id));
 
-        const remainingRight = rightStudents.filter((s) => !rightSelectedStudents.has(s.student_id));
+        const studentsToMove = studentsToMoveSet.map((student) => ({
+            ...student,
+            asmS_Id: Number(leftSection),
+            asmC_SectionName: originalSectionName || student.asmC_SectionName
+        }));
+
+        const remainingRight = rightStudents.filter((s) => !movedIds.has(s.student_id));
 
         setLeftStudents(recalculateSiNo([...leftStudents, ...studentsToMove]));
         setRightStudents(recalculateSiNo(remainingRight));
@@ -738,7 +742,7 @@ export default function MasterChangeSectionPage(props: {
                                 <Button
                                     type='button'
                                     onClick={moveToLeft}
-                                    disabled={rightSelectedStudents.size === 0}
+                                    disabled={rightStudents.length === 0}
                                     className='w-full lg:w-auto'
                                     variant='outline'
                                     title='Move selected students back to source section'>
@@ -753,14 +757,6 @@ export default function MasterChangeSectionPage(props: {
                                         <thead className='border-b bg-gray-50'>
                                             <tr>
                                                 <th className='p-3 text-left font-semibold text-sm'>Roll No</th>
-                                                <th className='w-12 p-3 text-left font-semibold text-sm'>
-                                                    <Checkbox
-                                                        checked={rightSelectAll}
-                                                        onCheckedChange={handleRightSelectAll}
-                                                        disabled={rightStudents.length === 0}
-                                                        className='h-4 w-4 cursor-pointer rounded border-gray-300'
-                                                    />
-                                                </th>
                                                 <th className='p-3 text-left font-semibold text-sm'>Student Name</th>
                                                 <th className='p-3 text-left font-semibold text-sm'>Class</th>
                                                 <th className='p-3 text-left font-semibold text-sm'>Section</th>
@@ -770,7 +766,7 @@ export default function MasterChangeSectionPage(props: {
                                         <tbody className='divide-y'>
                                             {rightStudents.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={6} className='p-8 text-center text-gray-500'>
+                                                    <td colSpan={5} className='p-8 text-center text-gray-500'>
                                                         No students moved yet
                                                     </td>
                                                 </tr>
@@ -778,15 +774,6 @@ export default function MasterChangeSectionPage(props: {
                                                 rightStudents.map((student) => (
                                                     <tr key={student.student_id} className='hover:bg-gray-50'>
                                                         <td className='p-3 text-sm'>{student.amaY_RollNo}</td>
-                                                        <td className='p-3'>
-                                                            <Checkbox
-                                                                checked={rightSelectedStudents.has(student.student_id)}
-                                                                onCheckedChange={(checked: boolean) =>
-                                                                    handleRightSelectStudent(student.student_id, checked)
-                                                                }
-                                                                className='h-4 w-4 cursor-pointer rounded border-gray-300'
-                                                            />
-                                                        </td>
                                                         <td className='p-3 font-medium text-sm'>{student.student_name}</td>
                                                         <td className='p-3 text-sm'>{student.asmcL_ClassName}</td>
                                                         <td className='p-3 text-sm'>{student.asmC_SectionName}</td>
