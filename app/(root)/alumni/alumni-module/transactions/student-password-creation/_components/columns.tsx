@@ -48,11 +48,7 @@ export const getStudentPasswordCreationColumns = (
         header: ({ column }) => <DataTableColumnHeader column={column} title='SECTION' className='font-bold text-black' />
     },
     {
-        id: 'mobileNo',
-        accessorFn: (row) => {
-            const mobile = Number(row.amsT_MobileNo) || Number(row.amsT_FatherMobleNo) || Number(row.amsT_MotherMobileNo) || 0;
-            return mobile === 0 ? '' : mobile.toString();
-        },
+        accessorKey: 'amsT_MobileNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='MOBILE NO' className='font-bold text-black' />
     },
     {

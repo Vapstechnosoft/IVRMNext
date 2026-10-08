@@ -49,8 +49,7 @@ export async function getVisitorAppointmentData(): Promise<ApiResponse<VisitorAp
     };
 }
 
-export async function saveVisitorAppointment(data: any): Promise<ApiResponse<any>> {
-    console.log('Saving Appt:', data);
+export async function saveVisitorAppointment(_data: any): Promise<ApiResponse<any>> {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     return {
         success: true,

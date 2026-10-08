@@ -26,9 +26,7 @@ export interface ICredentialStudent {
     password: string;
     asmcL_ClassName: string;
     asmC_SectionName: string;
-    amsT_MobileNo: string | number;
-    amsT_FatherMobleNo?: string | number;
-    amsT_MotherMobileNo?: string | number;
+    amsT_MobileNo: string;
     amsT_emailId: string;
     amsT_Id: number;
     selected?: boolean;

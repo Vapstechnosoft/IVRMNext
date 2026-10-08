@@ -109,13 +109,13 @@ function EmployeeStrengthReportContent() {
     const handleExport = () => {
         const dataForExport =
             reportData?.employeeDetails || reportData?.alldata || reportData?.list || (Array.isArray(reportData) ? reportData : []);
-        let {totalLeftEmployees,totalWorkingEmployees} = reportData
-        let total = totalLeftEmployees + totalWorkingEmployees
+        const { totalLeftEmployees, totalWorkingEmployees } = reportData;
+        const total = totalLeftEmployees + totalWorkingEmployees;
         if (!dataForExport || dataForExport.length === 0) {
             toast.error('No data to export');
             return;
         }
-        
+
         const exportColumns = [
             { label: 'SL.No', value: 'slNo' },
             { label: 'Group Type', value: 'groupTypeName' },
@@ -359,7 +359,7 @@ function EmployeeStrengthReportContent() {
                         )}
                     </div>
 
-                    <div className='flex justify-center w-full gap-2 '>
+                    <div className='flex w-full justify-center gap-2 '>
                         <Button type='button' variant='outline' className='w-32' onClick={() => setValue('groupType', [])}>
                             Cancel
                         </Button>

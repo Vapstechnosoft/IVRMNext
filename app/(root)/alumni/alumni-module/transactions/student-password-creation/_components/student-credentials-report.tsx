@@ -39,7 +39,7 @@ export default function StudentCredentialsReport({ students }: StudentCredential
                             <td className='border border-black p-1'>{student.password}</td>
                             <td className='border border-black p-1'>{student.asmcL_ClassName}</td>
                             <td className='border border-black p-1'>{student.asmC_SectionName}</td>
-                            <td className='border border-black p-1'>{Number(student.amsT_MobileNo) || Number(student.amsT_FatherMobleNo) || Number(student.amsT_MotherMobileNo) || ''}</td>
+                            <td className='border border-black p-1'>{student.amsT_MobileNo}</td>
                         </tr>
                     ))}
                 </tbody>

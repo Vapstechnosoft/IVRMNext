@@ -46,11 +46,7 @@ export default function ViewDetailsDialog() {
             const response = await getMasterSection({ page: 1, page_size: 10000 });
             if (response?.data) {
                 const data = response.data as any;
-                let list = data.list || data.sectionList || data || [];
-                if (Array.isArray(list)) {
-                    list = [...list].sort((a, b) => (a.asmC_Order || 0) - (b.asmC_Order || 0));
-                }
-                setSectionList(list);
+                setSectionList(data.list || data.sectionList || data || []);
                 setMasterCompany(data.masterCompany || []);
             } else {
                 setSectionList([]);

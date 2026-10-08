@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/extension/adaptive-dialog';
 import { FormError } from '@/components/ui/extension/field';
-import { useMasterCategoryMappedSections } from '@/hooks/exam/exammodule/usemasters';
+import { useMasterCategoryClassMapping, useMasterCategoryMappedSections } from '@/hooks/exam/exammodule/usemasters';
 import { toggleMasterExamCategoryClassSection } from '@/server/exam/exam-module/masters/category-class-mapping';
 import type { ICategoryClassMappingDetails, ICategoryMapping } from '@/types/exam/exam-module/masters';
 import { type SubmitHandler, useForm } from 'react-hook-form';
@@ -34,6 +34,7 @@ export default function ToggleCategoryClassMappingForm({
         defaultValues: { ecaC_Id: rowData.ecaC_Id }
     });
     const { refetchAll } = useMasterCategoryMappedSections(parentRowData?.asmaY_Id, parentRowData?.emcA_Id, parentRowData?.asmcL_Id);
+    const { refetchAll: refetchMainList } = useMasterCategoryClassMapping();
 
     function closeDialog() {
         onClose();
@@ -46,6 +47,7 @@ export default function ToggleCategoryClassMappingForm({
             if (response.success) {
                 toast.success(response.message);
                 refetchAll();
+                refetchMainList();
                 closeDialog();
             } else {
                 toast.error(response.message);

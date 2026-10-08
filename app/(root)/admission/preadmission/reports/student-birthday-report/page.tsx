@@ -84,8 +84,6 @@ export default function StudentBirthdayReportPage() {
     const month = useWatch({ control, name: 'month' });
 
     const [showGrid, setShowGrid] = useState(false);
-    const [fromDateOpen, setFromDateOpen] = useState(false);
-    const [toDateOpen, setToDateOpen] = useState(false);
     const [filterPayload, setFilterPayload] = useState<any>(null);
     const [selectedRows, setSelectedRows] = useState<any[]>([]);
     const [allReportData, setAllReportData] = useState<any[]>([]);
@@ -291,7 +289,7 @@ export default function StudentBirthdayReportPage() {
                                             name='fromDate'
                                             control={control}
                                             render={({ field }) => (
-                                                <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
+                                                <Popover>
                                                     <PopoverTrigger asChild>
                                                         <Button variant='outline' className='w-full justify-start text-left font-normal'>
                                                             <CalendarIcon className='mr-2 h-4 w-4' />
@@ -302,14 +300,7 @@ export default function StudentBirthdayReportPage() {
                                                         <DatePickerWithYear
                                                             mode='single'
                                                             selected={field.value ?? undefined}
-                                                            onSelect={(date) => {
-                                                                field.onChange(date);
-                                                                if (date) setFromDateOpen(false);
-                                                            }}
-                                                            onDayClick={(day) => {
-                                                                field.onChange(day);
-                                                                setFromDateOpen(false);
-                                                            }}
+                                                            onSelect={field.onChange}
                                                         />
                                                     </PopoverContent>
                                                 </Popover>
@@ -324,7 +315,7 @@ export default function StudentBirthdayReportPage() {
                                             name='toDate'
                                             control={control}
                                             render={({ field }) => (
-                                                <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
+                                                <Popover>
                                                     <PopoverTrigger asChild>
                                                         <Button variant='outline' className='w-full justify-start text-left font-normal'>
                                                             <CalendarIcon className='mr-2 h-4 w-4' />
@@ -335,14 +326,7 @@ export default function StudentBirthdayReportPage() {
                                                         <DatePickerWithYear
                                                             mode='single'
                                                             selected={field.value ?? undefined}
-                                                            onSelect={(date) => {
-                                                                field.onChange(date);
-                                                                if (date) setToDateOpen(false);
-                                                            }}
-                                                            onDayClick={(day) => {
-                                                                field.onChange(day);
-                                                                setToDateOpen(false);
-                                                            }}
+                                                            onSelect={field.onChange}
                                                             disabled={(date) => (fromDate ? date < fromDate : false)}
                                                         />
                                                     </PopoverContent>
@@ -366,8 +350,6 @@ export default function StudentBirthdayReportPage() {
                                     reset();
                                     setShowGrid(false);
                                     setAllReportData([]);
-                                    setFromDateOpen(false);
-                                    setToDateOpen(false);
                                 }}>
                                 Cancel
                             </Button>

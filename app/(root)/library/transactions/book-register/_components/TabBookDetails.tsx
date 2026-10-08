@@ -44,6 +44,31 @@ export default function TabBookDetails({
     const subjectList = rawData?.subjectlist || rawData?.subjectList || dropdownData?.subjectlist || dropdownData?.subjectList || [];
     const libList = rawData?.liblist || rawData?.libList || dropdownData?.liblist || dropdownData?.libList || [];
 
+    const handleDigitOnlyKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (
+            e.key === 'Backspace' ||
+            e.key === 'Delete' ||
+            e.key === 'Tab' ||
+            e.key === 'Enter' ||
+            e.key === 'ArrowLeft' ||
+            e.key === 'ArrowRight' ||
+            e.key === 'Home' ||
+            e.key === 'End' ||
+            e.ctrlKey ||
+            e.metaKey
+        ) {
+            return;
+        }
+        if (!/^[0-9]$/.test(e.key)) {
+            e.preventDefault();
+        }
+    };
+
+    const handleDigitOnlyInput = (e: React.FormEvent<HTMLInputElement>, maxLen = 10) => {
+        const cleaned = e.currentTarget.value.replace(/\D/g, '').slice(0, maxLen);
+        e.currentTarget.value = cleaned;
+    };
+
     return (
         <div className='flex flex-col gap-6'>
             <div className='flex flex-col gap-6 lg:flex-row'>
@@ -79,7 +104,21 @@ export default function TabBookDetails({
                         {errors.lmB_BookType && <FormError>{errors.lmB_BookType.message}</FormError>}
                     </div>
 
-                    <InputText label='Book No' {...register('lmB_BookNo')} error={errors.lmB_BookNo?.message} />
+                    <InputText
+                        label='Book No'
+                        id='lmB_BookNo'
+                        maxLength={10}
+                        onKeyDown={handleDigitOnlyKeyDown}
+                        onInput={(e: React.FormEvent<HTMLInputElement>) => handleDigitOnlyInput(e, 10)}
+                        {...register('lmB_BookNo', {
+                            onChange: (e) => {
+                                const cleaned = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                e.target.value = cleaned;
+                                setValue('lmB_BookNo', cleaned, { shouldValidate: true, shouldDirty: true });
+                            }
+                        })}
+                        error={errors.lmB_BookNo?.message}
+                    />
 
                     <div className='flex flex-col gap-1.5'>
                         <Label>Binding-Type</Label>
@@ -104,24 +143,66 @@ export default function TabBookDetails({
                         {errors.binding_Type && <FormError>{errors.binding_Type.message}</FormError>}
                     </div>
 
-                    <InputText label='Book ISBN NO' {...register('lmB_ISBNNo')} error={errors.lmB_ISBNNo?.message} />
+                    <InputText
+                        label='Book ISBN NO'
+                        id='lmB_ISBNNo'
+                        maxLength={10}
+                        onKeyDown={handleDigitOnlyKeyDown}
+                        onInput={(e: React.FormEvent<HTMLInputElement>) => handleDigitOnlyInput(e, 10)}
+                        {...register('lmB_ISBNNo', {
+                            onChange: (e) => {
+                                const cleaned = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                e.target.value = cleaned;
+                                setValue('lmB_ISBNNo', cleaned, { shouldValidate: true, shouldDirty: true });
+                            }
+                        })}
+                        error={errors.lmB_ISBNNo?.message}
+                    />
                     <InputText
                         label='Call No'
                         id='mB_Call_No'
                         maxLength={10}
-                        onKeyDown={(e) => {
-                            if (e.key.length === 1 && !/^[0-9]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
-                                e.preventDefault();
+                        onKeyDown={handleDigitOnlyKeyDown}
+                        onInput={(e: React.FormEvent<HTMLInputElement>) => handleDigitOnlyInput(e, 10)}
+                        {...register('mB_Call_No', {
+                            onChange: (e) => {
+                                const cleaned = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                e.target.value = cleaned;
+                                setValue('mB_Call_No', cleaned, { shouldValidate: true, shouldDirty: true });
                             }
-                        }}
-                        onInput={(e: React.FormEvent<HTMLInputElement>) => {
-                            e.currentTarget.value = e.currentTarget.value.replace(/\D/g, '').slice(0, 10);
-                        }}
-                        {...register('mB_Call_No')}
+                        })}
                         error={errors.mB_Call_No?.message}
                     />
-                    <InputText label='Class No' {...register('lmB_ClassNo')} error={errors.lmB_ClassNo?.message} />
-                    <InputText label='Pages' type='number' {...register('mB_Pages')} error={errors.mB_Pages?.message} />
+                    <InputText
+                        label='Class No'
+                        id='lmB_ClassNo'
+                        maxLength={10}
+                        onKeyDown={handleDigitOnlyKeyDown}
+                        onInput={(e: React.FormEvent<HTMLInputElement>) => handleDigitOnlyInput(e, 10)}
+                        {...register('lmB_ClassNo', {
+                            onChange: (e) => {
+                                const cleaned = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                e.target.value = cleaned;
+                                setValue('lmB_ClassNo', cleaned, { shouldValidate: true, shouldDirty: true });
+                            }
+                        })}
+                        error={errors.lmB_ClassNo?.message}
+                    />
+                    <InputText
+                        label='Pages'
+                        id='mB_Pages'
+                        maxLength={10}
+                        onKeyDown={handleDigitOnlyKeyDown}
+                        onInput={(e: React.FormEvent<HTMLInputElement>) => handleDigitOnlyInput(e, 10)}
+                        {...register('mB_Pages', {
+                            onChange: (e) => {
+                                const cleaned = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                e.target.value = cleaned;
+                                setValue('mB_Pages', cleaned ? Number(cleaned) : (undefined as any), { shouldValidate: true, shouldDirty: true });
+                            }
+                        })}
+                        error={errors.mB_Pages?.message}
+                    />
 
                     {/* Right Column Fields */}
                     <div className='flex flex-col gap-1.5'>
@@ -307,14 +388,79 @@ export default function TabBookDetails({
                     <InputText
                         label='Publish-Year'
                         required
-                        placeholder='Enter Publish Year'
-                        {...register('lmB_PublishedYear')}
+                        id='lmB_PublishedYear'
+                        maxLength={4}
+                        onKeyDown={handleDigitOnlyKeyDown}
+                        onInput={(e: React.FormEvent<HTMLInputElement>) => handleDigitOnlyInput(e, 4)}
+                        {...register('lmB_PublishedYear', {
+                            onChange: (e) => {
+                                const cleaned = e.target.value.replace(/\D/g, '').slice(0, 4);
+                                e.target.value = cleaned;
+                                setValue('lmB_PublishedYear', cleaned, { shouldValidate: true, shouldDirty: true });
+                            }
+                        })}
                         error={errors.lmB_PublishedYear?.message}
                     />
-                    <InputText label='Edition' {...register('lmB_Edition')} error={errors.lmB_Edition?.message} />
-                    <InputText label='Volume No' {...register('lmB_VolNo')} error={errors.lmB_VolNo?.message} />
-                    <InputText label='Book KeyFactor' {...register('lmBkf_KeyFactor')} error={errors.lmBkf_KeyFactor?.message} />
-                    <InputText label='Book PageNo' {...register('lmBkf_PageNo')} error={errors.lmBkf_PageNo?.message} />
+                    <InputText
+                        label='Edition'
+                        id='lmB_Edition'
+                        maxLength={10}
+                        onKeyDown={handleDigitOnlyKeyDown}
+                        onInput={(e: React.FormEvent<HTMLInputElement>) => handleDigitOnlyInput(e, 10)}
+                        {...register('lmB_Edition', {
+                            onChange: (e) => {
+                                const cleaned = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                e.target.value = cleaned;
+                                setValue('lmB_Edition', cleaned, { shouldValidate: true, shouldDirty: true });
+                            }
+                        })}
+                        error={errors.lmB_Edition?.message}
+                    />
+                    <InputText
+                        label='Volume No'
+                        id='lmB_VolNo'
+                        maxLength={10}
+                        onKeyDown={handleDigitOnlyKeyDown}
+                        onInput={(e: React.FormEvent<HTMLInputElement>) => handleDigitOnlyInput(e, 10)}
+                        {...register('lmB_VolNo', {
+                            onChange: (e) => {
+                                const cleaned = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                e.target.value = cleaned;
+                                setValue('lmB_VolNo', cleaned, { shouldValidate: true, shouldDirty: true });
+                            }
+                        })}
+                        error={errors.lmB_VolNo?.message}
+                    />
+                    <InputText
+                        label='Book KeyFactor'
+                        id='lmBkf_KeyFactor'
+                        maxLength={10}
+                        onKeyDown={handleDigitOnlyKeyDown}
+                        onInput={(e: React.FormEvent<HTMLInputElement>) => handleDigitOnlyInput(e, 10)}
+                        {...register('lmBkf_KeyFactor', {
+                            onChange: (e) => {
+                                const cleaned = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                e.target.value = cleaned;
+                                setValue('lmBkf_KeyFactor', cleaned, { shouldValidate: true, shouldDirty: true });
+                            }
+                        })}
+                        error={errors.lmBkf_KeyFactor?.message}
+                    />
+                    <InputText
+                        label='Book PageNo'
+                        id='lmBkf_PageNo'
+                        maxLength={10}
+                        onKeyDown={handleDigitOnlyKeyDown}
+                        onInput={(e: React.FormEvent<HTMLInputElement>) => handleDigitOnlyInput(e, 10)}
+                        {...register('lmBkf_PageNo', {
+                            onChange: (e) => {
+                                const cleaned = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                e.target.value = cleaned;
+                                setValue('lmBkf_PageNo', cleaned ? Number(cleaned) : (undefined as any), { shouldValidate: true, shouldDirty: true });
+                            }
+                        })}
+                        error={errors.lmBkf_PageNo?.message}
+                    />
 
                     <div className='flex flex-col gap-1.5'>
                         <Label>

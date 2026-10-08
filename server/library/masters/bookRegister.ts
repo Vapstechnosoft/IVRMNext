@@ -9,14 +9,89 @@ const BASE_URL = 'BookRegister/';
 
 export async function getBookRegisterList(params?: ApiSearchparams | { searchParams?: ApiSearchparams }) {
     try {
-        const url = 'BookTransaction/Get_Student_Details1';
+        const url = `${BASE_URL}book-register-main-load`;
         let response: any;
         try {
-            response = await api.post<any>('library', url, {});
-        } catch {
             response = await api.get<any>('library', url);
+        } catch (getError) {
+            try {
+                response = await api.post<any>('library', url, {});
+            } catch (postError) {
+                console.error('Failed to fetch book-register-main-load:', getError, postError);
+                throw postError || getError;
+            }
         }
-        return response;
+
+        if (!response) {
+            return { success: false, message: 'No response received', data: [] };
+        }
+
+        // Unwrap response if wrapped in apiService standard wrapper
+        const raw = response?.data !== undefined && response?.data !== null && typeof response.data === 'object' && !Array.isArray(response.data)
+            ? response.data
+            : response;
+
+        // Find the books array from raw response
+        const candidateKeys = [
+            'griddata',
+            'gridData',
+            'booklist',
+            'bookList',
+            'bookdetails',
+            'bookDetails',
+            'savedatalist',
+            'saveDataList',
+            'datalist',
+            'dataList',
+            'm_booklist',
+            'book_details',
+            'alldata',
+            'all_list'
+        ];
+
+        let booksArray: any[] = [];
+        if (Array.isArray(raw)) {
+            booksArray = raw;
+        } else if (Array.isArray(response?.data)) {
+            booksArray = response.data;
+        } else if (raw && typeof raw === 'object') {
+            for (const key of candidateKeys) {
+                if (Array.isArray(raw[key]) && raw[key].length > 0) {
+                    booksArray = raw[key];
+                    break;
+                }
+                if (raw[key] && typeof raw[key] === 'object' && Array.isArray(raw[key].$values)) {
+                    booksArray = raw[key].$values;
+                    break;
+                }
+            }
+
+            // If still not found, search any array in raw whose items look like books or non-dropdown array
+            if (booksArray.length === 0) {
+                for (const [_, v] of Object.entries(raw)) {
+                    if (Array.isArray(v) && v.length > 0) {
+                        const first = v[0];
+                        if (first && typeof first === 'object' && (first.lmB_Id || first.LMB_Id || first.lmB_BookTitle || first.LMB_BookTitle || first.lmbanO_AccessionNo || first.LMBANO_AccessionNo)) {
+                            booksArray = v;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Fallback to extractDataArray or first array if nothing else
+            if (booksArray.length === 0) {
+                booksArray = extractDataArray(raw, 'griddata');
+            }
+        }
+
+        return {
+            ...(typeof raw === 'object' && !Array.isArray(raw) ? raw : {}),
+            ...(typeof response === 'object' && !Array.isArray(response) ? response : {}),
+            success: true,
+            data: booksArray,
+            total: booksArray.length
+        };
     } catch (error: any) {
         return { success: false, message: error?.message || 'Failed to fetch book register data', data: [] };
     }
@@ -394,7 +469,7 @@ export async function getInitialData(): Promise<BookRegisterInitialData> {
             api.get<any>('library', 'BookRegister/rack-dropdown'),
             api.get<any>('library', 'BookRegister/language-dropdown'),
             api.get<any>('library', 'BookRegister/vendor-dropdown'),
-            api.post<any>('library', 'BookTransaction/Get_Student_Details1', {})
+            api.get<any>('library', 'BookRegister/book-register-main-load').catch(() => api.post<any>('library', 'BookRegister/book-register-main-load', {}))
         ]);
 
         const categoryData = categoryRes.status === 'fulfilled' ? extractDataArray(categoryRes.value, 'categorylist') : [];

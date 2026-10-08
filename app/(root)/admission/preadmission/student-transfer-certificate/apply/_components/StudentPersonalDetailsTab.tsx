@@ -9,25 +9,6 @@ interface StudentPersonalDetailsTabProps {
     disabled?: boolean;
 }
 
-const formatDateToDDMMYYYY = (dateVal: any) => {
-    if (!dateVal) return '';
-    if (typeof dateVal === 'string') {
-        const clean = dateVal.split('T')[0].trim();
-        if (/^\d{2}-\d{2}-\d{4}$/.test(clean)) return clean;
-        const match = clean.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-        if (match) {
-            const [, y, m, d] = match;
-            return `${d}-${m}-${y}`;
-        }
-    }
-    const d = new Date(dateVal);
-    if (isNaN(d.getTime())) return String(dateVal);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    return `${day}-${month}-${year}`;
-};
-
 export const StudentPersonalDetailsTab = ({ formData, setFormData, disabled }: StudentPersonalDetailsTabProps) => {
     const handleChange = (field: string, value: any) => {
         setFormData({ ...formData, [field]: value });
@@ -42,7 +23,7 @@ export const StudentPersonalDetailsTab = ({ formData, setFormData, disabled }: S
                         <Label htmlFor='dob' className='text-right font-semibold text-indigo-900'>
                             Date Of Birth :
                         </Label>
-                        <Input id='dob' value={formatDateToDDMMYYYY(formData.dob)} className='bg-indigo-50/20' readOnly disabled={disabled} />
+                        <Input id='dob' value={formData.dob || ''} className='bg-indigo-50/20' readOnly disabled={disabled} />
                     </div>
 
                     <div className='grid grid-cols-[180px_1fr] items-center gap-4'>

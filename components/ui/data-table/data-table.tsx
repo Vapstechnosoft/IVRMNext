@@ -48,6 +48,8 @@ interface DataTableProps<TData, TValue> {
     manualPagination?: boolean;
     manualSorting?: boolean;
     manualFiltering?: boolean;
+    compact?: boolean;
+    headerTheme?: 'default' | 'blue';
 }
 
 export interface DataTableRef {
@@ -78,7 +80,9 @@ function DataTableInner<TData, TValue>(
         onPageChange,
         manualPagination = true,
         manualSorting = true,
-        manualFiltering = true
+        manualFiltering = true,
+        compact = false,
+        headerTheme = 'default'
     }: DataTableProps<TData, TValue>,
     ref: React.Ref<DataTableRef>
 ) {
@@ -128,7 +132,7 @@ function DataTableInner<TData, TValue>(
     };
 
     // Generate a unique key for this table instance based on current page/filters
-    const tableStateKey = `table_selection_${currentPage}_${pageSize}_${sortBy}_${order}_${searchQuery}`;
+    const _tableStateKey = `table_selection_${currentPage}_${pageSize}_${sortBy}_${order}_${searchQuery}`;
 
     // Initialize from ref to preserve across re-renders
     const rowSelectionRef = useRef<Record<string, boolean>>({});
@@ -281,17 +285,28 @@ function DataTableInner<TData, TValue>(
                                   }
                                 : undefined
                         }>
-                        <Table>
-                            <TableHeader className='grid-header-row'>
+                        <Table className={cn('w-full', compact && 'text-[11px]')}>
+                            <TableHeader className={cn('grid-header-row', headerTheme === 'blue' && 'border-b-0 bg-[#0066cc] text-white')}>
                                 {table.getHeaderGroups().map((headerGroup) => (
-                                    <TableRow key={headerGroup.id} className=' hover:bg-transparent'>
+                                    <TableRow
+                                        key={headerGroup.id}
+                                        className={cn(
+                                            'hover:bg-transparent',
+                                            headerTheme === 'blue' && 'border-[#0055aa] border-b bg-[#0066cc] hover:bg-[#0066cc]'
+                                        )}>
                                         {headerGroup.headers.map((header) => (
                                             <TableHead
                                                 key={header.id}
                                                 colSpan={header.colSpan}
-                                                className='grid-header-cell top-0 z-10'
+                                                className={cn(
+                                                    'grid-header-cell top-0 z-10',
+                                                    compact && '!px-1.5 !py-2 font-bold text-[11px] tracking-normal',
+                                                    headerTheme === 'blue' &&
+                                                        '!text-white !bg-[#0066cc] border-blue-400/30 border-r !hover:bg-[#005bb8] !hover:text-white last:border-r-0'
+                                                )}
                                                 style={{
-                                                    ...getCommonPinningStyles({ column: header.column })
+                                                    ...getCommonPinningStyles({ column: header.column }),
+                                                    width: header.column.getSize() !== 150 ? header.column.getSize() : undefined
                                                 }}>
                                                 {header.isPlaceholder
                                                     ? null
@@ -308,13 +323,21 @@ function DataTableInner<TData, TValue>(
                                         ? table.getRowModel().rows.slice(0, pageSize)
                                         : table.getRowModel().rows
                                     ).map((row) => (
-                                        <TableRow key={row.id} data-state={row.getIsSelected()}>
+                                        <TableRow
+                                            key={row.id}
+                                            data-state={row.getIsSelected()}
+                                            className={compact ? 'transition-colors hover:bg-blue-50/30' : undefined}>
                                             {row.getVisibleCells().map((cell) => (
                                                 <TableCell
                                                     key={cell.id}
-                                                    className='whitespace-nowrap'
+                                                    className={cn(
+                                                        compact
+                                                            ? '!px-1.5 !py-1.5 border-slate-100 border-r text-[11px] last:border-r-0'
+                                                            : 'whitespace-nowrap'
+                                                    )}
                                                     style={{
-                                                        ...getCommonPinningStyles({ column: cell.column })
+                                                        ...getCommonPinningStyles({ column: cell.column }),
+                                                        width: cell.column.getSize() !== 150 ? cell.column.getSize() : undefined
                                                     }}>
                                                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                                 </TableCell>
@@ -435,21 +458,21 @@ function DataTableInner<TData, TValue>(
                                                 // Complex range logic
                                                 if (currentPage <= 3) {
                                                     return [1, 2, 3, 4, '...', totalPages - 2, totalPages - 1, totalPages];
-                                                } else if (currentPage >= totalPages - 2) {
-                                                    return [1, 2, 3, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-                                                } else {
-                                                    return [
-                                                        1,
-                                                        2,
-                                                        '...',
-                                                        currentPage - 1,
-                                                        currentPage,
-                                                        currentPage + 1,
-                                                        '...',
-                                                        totalPages - 1,
-                                                        totalPages
-                                                    ];
                                                 }
+                                                if (currentPage >= totalPages - 2) {
+                                                    return [1, 2, 3, '...', totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+                                                }
+                                                return [
+                                                    1,
+                                                    2,
+                                                    '...',
+                                                    currentPage - 1,
+                                                    currentPage,
+                                                    currentPage + 1,
+                                                    '...',
+                                                    totalPages - 1,
+                                                    totalPages
+                                                ];
                                             };
 
                                             return getRange().map((page, i) => {
