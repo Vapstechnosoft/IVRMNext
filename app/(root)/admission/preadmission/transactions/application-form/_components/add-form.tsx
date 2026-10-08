@@ -639,7 +639,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         const format = countryData?.format;
         if (format && typeof format === 'string') {
             const placeholders = (format.match(/[0-9xX\.\#9]/g) || []).length;
-            if (placeholders > 0) return placeholders;
+            if (placeholders > 0) {
+                const dialCodeLength = String(countryData.dialCode ?? '').length;
+                return placeholders > dialCodeLength ? placeholders - dialCodeLength : placeholders;
+            }
         }
 
         const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
@@ -1398,7 +1401,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             <InputText
                                                 label='Middle Name'
-                                                required
                                                 id='pasR_MiddleName'
                                                 placeholder='Enter middle name'
                                                 {...register('pasR_MiddleName')}
@@ -1406,7 +1408,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             <InputText
                                                 label='Last Name'
-                                                required
                                                 id='pasR_LastName'
                                                 placeholder='Enter last name'
                                                 {...register('pasR_LastName')}

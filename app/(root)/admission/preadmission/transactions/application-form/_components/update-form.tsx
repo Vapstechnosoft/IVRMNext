@@ -1640,7 +1640,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             />
                                             <InputText
                                                 label='Middle Name'
-                                                required
                                                 id='pasR_MiddleName'
                                                 placeholder='Enter middle name'
                                                 {...register('pasR_MiddleName')}
@@ -1648,7 +1647,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             />
                                             <InputText
                                                 label='Last Name'
-                                                required
                                                 id='pasR_LastName'
                                                 placeholder='Enter last name'
                                                 {...register('pasR_LastName')}

@@ -5,14 +5,23 @@ import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { useCheckPreadmissionLive } from '@/hooks/admission/preadmission/useConfigurations';
 import { cn } from '@/lib/utils';
 import { ArrowUpRight, LockKeyhole, LockKeyholeOpen } from 'lucide-react';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import AddPreadmissionRegistrationForm from './_components/registration-form';
 
 export default function PreadmissionRegistration() {
     const { sub_domain } = useParams();
+    const searchParams = useSearchParams();
+
+    const callbackUrl = searchParams.get('callbackUrl');
+    let resolvedSubDomain = sub_domain?.toString();
+    if (!resolvedSubDomain && callbackUrl) {
+        resolvedSubDomain = callbackUrl.split('/').filter(Boolean)[0];
+    }
+    resolvedSubDomain = resolvedSubDomain?.toUpperCase();
+
     const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const { data: preadmissionLive, refetch: refetchAll } = useCheckPreadmissionLive(sub_domain?.toString() || '');
+    const { data: preadmissionLive, refetch: refetchAll } = useCheckPreadmissionLive(resolvedSubDomain || '');
 
     const handleEdit = () => {
         setIsDialogOpen(true);
@@ -26,7 +35,13 @@ export default function PreadmissionRegistration() {
     const isPreadmissionLive: boolean = !(preadmissionLive === undefined || preadmissionLive?.data === false);
 
     return (
-        <>
+        <div className="flex flex-col items-center w-full gap-4">
+            {isPreadmissionLive && (
+                <div className="flex items-baseline gap-2 font-bold animate-in fade-in zoom-in duration-500 mb-2">
+                    <span className="text-[#d35400] text-xl">Preadmission is</span>
+                    <span className="text-[#27ae60] text-3xl tracking-wider">LIVE!</span>
+                </div>
+            )}
             <Button
                 type='button'
                 variant='outline'
@@ -47,8 +62,8 @@ export default function PreadmissionRegistration() {
                 {isPreadmissionLive === true && <ArrowUpRight className={'h-4 w-4 text-white'} />}
             </Button>
             <AdaptiveDialog title='Preadmission Registration' isOpen={isDialogOpen} onClose={closeDialog} size='lg'>
-                <AddPreadmissionRegistrationForm sub_domain={sub_domain?.toString() || ''} closeDialog={closeDialog} />
+                <AddPreadmissionRegistrationForm sub_domain={resolvedSubDomain || ''} closeDialog={closeDialog} />
             </AdaptiveDialog>
-        </>
+        </div>
     );
 }
