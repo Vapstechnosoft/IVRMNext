@@ -1,3 +1,4 @@
+
 import { getRackReportInitialData } from '@/server/library/reports/rack-report';
 import { RackReportClient } from './_components/rack-report-client';
 
