@@ -722,7 +722,7 @@ export default function StaffUserCreationPage() {
         const isAdmin = selectedRole?.ivrmrT_Role.toUpperCase() === 'ADMIN' || selectedRole?.ivrmrT_Role.toUpperCase() === 'SUPER ADMIN';
 
         let selectedInstitutes: any[] = [];
-        if (!data.userName || data.userName.trim() === '') {
+        if (watchFilterData === 'Single' && (!data.userName || data.userName.trim() === '')) {
             toast.error('Please enter User Name');
             return;
         }
