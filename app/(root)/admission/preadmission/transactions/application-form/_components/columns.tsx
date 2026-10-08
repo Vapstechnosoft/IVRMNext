@@ -225,7 +225,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
             useEffect(() => {
                 if (pasrId && applicationFormDetails?.data && !applicationFormDetailsLoading) {
                     try {
-                        const resp = applicationFormDetails.data;
+                        const resp = applicationFormDetails.data?.result || applicationFormDetails.data;
                         const student = resp?.student_details || resp || {};
                         const normalizeGender = (sex: string | undefined | null) => {
                             if (!sex) return undefined;

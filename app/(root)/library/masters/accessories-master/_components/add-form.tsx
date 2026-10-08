@@ -38,21 +38,24 @@ export default function AddMasterAccessoriesForm({ onSuccess, className = '' }: 
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
+            const now = new Date().toISOString();
             const payload = {
-                ...data,
-                lmaC_ActiveFlg: true,
-                lmaC_Id: 0
+                createdDate: now,
+                updatedDate: now,
+                lmaC_Id: 0,
+                lmaC_AccessoriesName: data.lmaC_AccessoriesName,
+                lmaC_AccessoriesDesc: data.lmaC_AccessoriesDesc
             };
 
             const response = await addOrUpdateMasterAccessories(payload);
 
-            if (response.success) {
+            if (response?.success) {
                 toast.success(response.message || 'Record Inserted Successfully!!!');
                 reset();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Record Not Inserted Successfully!!!');
+                toast.error(response?.message || 'Record Not Inserted Successfully!!!');
             }
         } catch (error: any) {
             toast.error(error.message || 'Something went wrong');

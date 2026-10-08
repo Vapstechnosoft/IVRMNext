@@ -1,6 +1,7 @@
 'use client';
 
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useBookDetailsOnLoad } from '@/hooks/library/useBookIssue';
 import { useMemo, useState } from 'react';
 import { getBookIssueColumns } from './_components/columns';
@@ -181,44 +182,17 @@ export default function LibBookTransactionPage() {
 
         // Enrich every item using lookups and loaded collections
         return chosenList.map((row: any, index: number) => {
-            const classId =
-                row?.asmcL_Id ??
-                row?.ASMCL_Id ??
-                row?.class_Id ??
-                row?.Class_Id ??
-                row?.asmC_Id ??
-                row?.ASMC_Id;
-            const sectionId =
-                row?.asmS_Id ??
-                row?.ASMS_Id ??
-                row?.asmC_Id ??
-                row?.ASMC_Id ??
-                row?.section_Id ??
-                row?.Section_Id;
-            const bookId =
-                row?.lmB_Id ??
-                row?.LMB_Id ??
-                row?.book_Id ??
-                row?.Book_Id ??
-                row?.lbtR_LMB_Id ??
-                row?.LBTR_LMB_Id;
-            const accNoId =
-                row?.lmbanO_Id ??
-                row?.LMBANO_Id ??
-                row?.acc_Id ??
-                row?.Acc_Id ??
-                row?.lbtR_LMBANO_Id ??
-                row?.LBTR_LMBANO_Id;
-            const studentId =
-                row?.amsT_Id ??
-                row?.AMST_Id ??
-                row?.student_Id ??
-                row?.Student_Id;
+            const classId = row?.asmcL_Id ?? row?.ASMCL_Id ?? row?.class_Id ?? row?.Class_Id ?? row?.asmC_Id ?? row?.ASMC_Id;
+            const sectionId = row?.asmS_Id ?? row?.ASMS_Id ?? row?.asmC_Id ?? row?.ASMC_Id ?? row?.section_Id ?? row?.Section_Id;
+            const bookId = row?.lmB_Id ?? row?.LMB_Id ?? row?.book_Id ?? row?.Book_Id ?? row?.lbtR_LMB_Id ?? row?.LBTR_LMB_Id;
+            const accNoId = row?.lmbanO_Id ?? row?.LMBANO_Id ?? row?.acc_Id ?? row?.Acc_Id ?? row?.lbtR_LMBANO_Id ?? row?.LBTR_LMBANO_Id;
+            const studentId = row?.amsT_Id ?? row?.AMST_Id ?? row?.student_Id ?? row?.Student_Id;
 
             // Lookup student
-            const matchedStudent = students.find((s: any) =>
-                (studentId && String(s?.amsT_Id || s?.AMST_Id || s?.id || s?.Id) === String(studentId)) ||
-                (row?.amsT_AdmNo && String(s?.amsT_AdmNo || s?.AMST_AdmNo || s?.admNo) === String(row?.amsT_AdmNo))
+            const matchedStudent = students.find(
+                (s: any) =>
+                    (studentId && String(s?.amsT_Id || s?.AMST_Id || s?.id || s?.Id) === String(studentId)) ||
+                    (row?.amsT_AdmNo && String(s?.amsT_AdmNo || s?.AMST_AdmNo || s?.admNo) === String(row?.amsT_AdmNo))
             );
 
             const studentName =
@@ -233,7 +207,9 @@ export default function LibBookTransactionPage() {
                           matchedStudent.amsT_LastName || matchedStudent.AMST_LastName
                       ]
                           .filter(Boolean)
-                          .join(' ') || matchedStudent.studentName || matchedStudent.StudentName
+                          .join(' ') ||
+                      matchedStudent.studentName ||
+                      matchedStudent.StudentName
                     : '');
 
             const admNo =
@@ -257,7 +233,12 @@ export default function LibBookTransactionPage() {
                 row?.Class;
 
             if (!matchedClassName || matchedClassName === '-') {
-                const targetClassId = (classId && Number(classId) !== 0) ? classId : (matchedStudent?.asmcL_Id && Number(matchedStudent.asmcL_Id) !== 0) ? matchedStudent.asmcL_Id : null;
+                const targetClassId =
+                    classId && Number(classId) !== 0
+                        ? classId
+                        : matchedStudent?.asmcL_Id && Number(matchedStudent.asmcL_Id) !== 0
+                          ? matchedStudent.asmcL_Id
+                          : null;
                 if (targetClassId) {
                     const matchedClass = classes.find(
                         (c: any) => String(c?.asmcL_Id || c?.ASMCL_Id || c?.id || c?.Id) === String(targetClassId)
@@ -289,12 +270,16 @@ export default function LibBookTransactionPage() {
                 row?.Section;
 
             if (!matchedSectionName || matchedSectionName === '-') {
-                const targetSectionId = (sectionId && Number(sectionId) !== 0) ? sectionId : (matchedStudent?.asmS_Id && Number(matchedStudent.asmS_Id) !== 0) ? matchedStudent.asmS_Id : null;
+                const targetSectionId =
+                    sectionId && Number(sectionId) !== 0
+                        ? sectionId
+                        : matchedStudent?.asmS_Id && Number(matchedStudent.asmS_Id) !== 0
+                          ? matchedStudent.asmS_Id
+                          : null;
                 if (targetSectionId) {
                     const matchedSec = sections.find(
                         (s: any) =>
-                            String(s?.asmS_Id || s?.ASMS_Id || s?.asmC_Id || s?.ASMC_Id || s?.id || s?.Id) ===
-                            String(targetSectionId)
+                            String(s?.asmS_Id || s?.ASMS_Id || s?.asmC_Id || s?.ASMC_Id || s?.id || s?.Id) === String(targetSectionId)
                     );
                     matchedSectionName =
                         matchedSec?.asmC_SectionName ||
@@ -411,58 +396,23 @@ export default function LibBookTransactionPage() {
                 row?.return_Date && !row.return_Date.startsWith('0001')
                     ? row.return_Date
                     : row?.Return_Date && !row.Return_Date.startsWith('0001')
-                    ? row.Return_Date
-                    : null;
+                      ? row.Return_Date
+                      : null;
 
-            const renewal =
-                row?.renewal_Counter ??
-                row?.Renewal_Counter ??
-                row?.lbtR_Renewalcounter ??
-                row?.LBTR_Renewalcounter ??
-                0;
+            const renewal = row?.renewal_Counter ?? row?.Renewal_Counter ?? row?.lbtR_Renewalcounter ?? row?.LBTR_Renewalcounter ?? 0;
 
             const status =
-                row?.book_Trans_Status ||
-                row?.Book_Trans_Status ||
-                row?.lbtR_Status ||
-                row?.status ||
-                (rawReturnDate ? 'Return' : 'Issue');
+                row?.book_Trans_Status || row?.Book_Trans_Status || row?.lbtR_Status || row?.status || (rawReturnDate ? 'Return' : 'Issue');
 
-            const resolvedBookId = Number(
-                row?.lmB_Id ||
-                row?.LMB_Id ||
-                fallbackBook?.lmB_Id ||
-                fallbackBook?.LMB_Id ||
-                0
-            );
+            const resolvedBookId = Number(row?.lmB_Id || row?.LMB_Id || fallbackBook?.lmB_Id || fallbackBook?.LMB_Id || 0);
 
-            const resolvedAccNoId = Number(
-                row?.lmbanO_Id ||
-                row?.LMBANO_Id ||
-                fallbackBook?.lmbanO_Id ||
-                fallbackBook?.LMBANO_Id ||
-                0
-            );
+            const resolvedAccNoId = Number(row?.lmbanO_Id || row?.LMBANO_Id || fallbackBook?.lmbanO_Id || fallbackBook?.LMBANO_Id || 0);
 
-            const resolvedTransId = Number(
-                row?.book_Trans_Id ||
-                row?.Book_Trans_Id ||
-                row?.lbtR_Id ||
-                row?.LBTR_Id ||
-                (index + 1)
-            );
+            const resolvedTransId = Number(row?.book_Trans_Id || row?.Book_Trans_Id || row?.lbtR_Id || row?.LBTR_Id || index + 1);
 
-            const resolvedClassId = Number(
-                row?.asmcL_Id ||
-                classes[0]?.asmcL_Id ||
-                0
-            );
+            const resolvedClassId = Number(row?.asmcL_Id || classes[0]?.asmcL_Id || 0);
 
-            const resolvedSectionId = Number(
-                row?.asmS_Id ||
-                (sections[index % Math.max(sections.length, 1)] || sections[0])?.asmS_Id ||
-                0
-            );
+            const resolvedSectionId = Number(row?.asmS_Id || (sections[index % Math.max(sections.length, 1)] || sections[0])?.asmS_Id || 0);
 
             return {
                 ...row,
@@ -491,23 +441,24 @@ export default function LibBookTransactionPage() {
 
     const columns = useMemo(
         () =>
-            getBookIssueColumns(
-                (row: any) => {
-                    setEditData(row);
-                    if (typeof window !== 'undefined') {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
+            getBookIssueColumns((row: any) => {
+                setEditData(row);
+                if (typeof window !== 'undefined') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
-            ),
+            }),
         []
     );
 
     return (
-        <div className='mx-auto max-w-7xl space-y-6 py-6'>
-            <div className='overflow-hidden rounded-lg border border-t-4 border-t-orange-400 bg-white shadow-sm'>
-                <div className='bg-[#4251b1] px-4 py-2 font-semibold text-sm text-white'>
-                    BOOK TRANSACTION
-                </div>
+        <div className='container mx-auto space-y-6 py-6'>
+            <CollapsibleSection
+                title='BOOK TRANSACTION'
+                description='Fill in the details below to process book transaction'
+                defaultOpen={true}
+                variant='outline'
+                size='md'
+                className='shadow-lg duration-300'>
                 <IssueForm
                     initialData={details}
                     editData={editData}
@@ -517,19 +468,16 @@ export default function LibBookTransactionPage() {
                         refetch();
                     }}
                 />
-            </div>
+            </CollapsibleSection>
 
-            <div className='overflow-hidden rounded-lg border border-t-4 border-t-orange-400 bg-white shadow-sm'>
-                <div className='bg-[#4251b1] px-4 py-2 font-semibold text-sm text-white'>TRANSACTION LIST</div>
-                <div className='p-6'>
-                    <GenericDataTable
-                        columns={columns}
-                        data={gridData}
-                        isLoading={isLoading}
-                    />
-                </div>
-            </div>
+            <CollapsibleSection
+                title='TRANSACTION LIST'
+                defaultOpen={true}
+                variant='default'
+                size='lg'
+                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                <GenericDataTable columns={columns} data={gridData} isLoading={isLoading} />
+            </CollapsibleSection>
         </div>
     );
 }
-

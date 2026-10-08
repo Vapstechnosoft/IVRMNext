@@ -7,7 +7,7 @@ import { auth } from '@/lib/auth';
 
 export async function getExamReportCard(data: any) {
     const session = await auth();
-    const miId = data.mI_Id || data.MI_Id || session?.user?.mi_id || 30;
+    const miId = data.mI_Id || data.MI_Id || (session as any)?.mi_id || session?.user?.mi_id || (session as any)?.user?.mI_Id || 30;
 
     const studentArr = Array.isArray(data.studentList)
         ? data.studentList.map((s: any) => ({

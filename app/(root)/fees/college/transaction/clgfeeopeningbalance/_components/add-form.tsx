@@ -297,10 +297,10 @@ export default function AddCollegeFeeOpeningBalanceForm({ onSuccess, pageData, c
             prev.map((stu) =>
                 stu.amcsT_Id === amcsT_Id
                     ? {
-                        ...stu,
-                        FCMOB_Student_Due: amount,
-                        FCMOB_Institution_Due: 0
-                    }
+                          ...stu,
+                          FCMOB_Student_Due: amount,
+                          FCMOB_Institution_Due: 0
+                      }
                     : stu
             )
         );
@@ -312,10 +312,10 @@ export default function AddCollegeFeeOpeningBalanceForm({ onSuccess, pageData, c
             prev.map((stu) =>
                 stu.amcsT_Id === amcsT_Id
                     ? {
-                        ...stu,
-                        FCMOB_Institution_Due: amount,
-                        FCMOB_Student_Due: 0
-                    }
+                          ...stu,
+                          FCMOB_Institution_Due: amount,
+                          FCMOB_Student_Due: 0
+                      }
                     : stu
             )
         );
@@ -440,8 +440,8 @@ export default function AddCollegeFeeOpeningBalanceForm({ onSuccess, pageData, c
                                                 isLoadingBranches
                                                     ? 'Loading Branches...'
                                                     : !watchedCourseId
-                                                        ? 'Select Course First'
-                                                        : 'Select Branch'
+                                                      ? 'Select Course First'
+                                                      : 'Select Branch'
                                             }
                                         />
                                     </SelectTrigger>
@@ -474,8 +474,8 @@ export default function AddCollegeFeeOpeningBalanceForm({ onSuccess, pageData, c
                                                 isLoadingGroups
                                                     ? 'Loading Groups...'
                                                     : !watchedSemId
-                                                        ? 'Select Semester First'
-                                                        : 'Select Fee Group'
+                                                      ? 'Select Semester First'
+                                                      : 'Select Fee Group'
                                             }
                                         />
                                     </SelectTrigger>
@@ -511,8 +511,8 @@ export default function AddCollegeFeeOpeningBalanceForm({ onSuccess, pageData, c
                                                 isLoadingInstallments
                                                     ? 'Loading Installments...'
                                                     : !watchedHeadId
-                                                        ? 'Select Fee Head First'
-                                                        : 'Select Installment'
+                                                      ? 'Select Fee Head First'
+                                                      : 'Select Installment'
                                             }
                                         />
                                     </SelectTrigger>
@@ -548,8 +548,8 @@ export default function AddCollegeFeeOpeningBalanceForm({ onSuccess, pageData, c
                                                 isLoadingCourses
                                                     ? 'Loading Courses...'
                                                     : !watchedYearId
-                                                        ? 'Select Academic Year First'
-                                                        : 'Select Course'
+                                                      ? 'Select Academic Year First'
+                                                      : 'Select Course'
                                             }
                                         />
                                     </SelectTrigger>
@@ -585,8 +585,8 @@ export default function AddCollegeFeeOpeningBalanceForm({ onSuccess, pageData, c
                                                 isLoadingSemesters
                                                     ? 'Loading Semesters...'
                                                     : !watchedBranchId
-                                                        ? 'Select Branch First'
-                                                        : 'Select Semester'
+                                                      ? 'Select Branch First'
+                                                      : 'Select Semester'
                                             }
                                         />
                                     </SelectTrigger>
@@ -619,8 +619,8 @@ export default function AddCollegeFeeOpeningBalanceForm({ onSuccess, pageData, c
                                                 isLoadingHeads
                                                     ? 'Loading Fee Heads...'
                                                     : !watchedGroupId
-                                                        ? 'Select Fee Group First'
-                                                        : 'Select Fee Head'
+                                                      ? 'Select Fee Group First'
+                                                      : 'Select Fee Head'
                                             }
                                         />
                                     </SelectTrigger>

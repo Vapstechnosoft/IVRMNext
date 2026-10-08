@@ -14,9 +14,14 @@ export const useBookArrivalReportInitialData = () => {
 export const useBookArrivalReportSearch = () => {
     return useMutation({
         mutationFn: (data: IBookArrivalReportRequest) => getBookArrivalReportData(data),
-        onError: (error) => {
+        onError: (error: any) => {
             console.error('Error fetching report data:', error);
-            toast.error('Failed to fetch report data');
+            const msg = typeof error === 'string' ? error : error?.message || 'Failed to fetch report data';
+            if (msg.includes('401') || msg.includes('Unauthorized') || msg.includes('Authentication')) {
+                toast.error('Session expired or unauthorized. Please re-login.');
+            } else {
+                toast.error(msg);
+            }
         }
     });
 };
