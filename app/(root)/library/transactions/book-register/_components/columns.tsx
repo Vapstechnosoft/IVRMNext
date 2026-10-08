@@ -25,45 +25,45 @@ export const BookRegisterColumns: ColumnDef<BookRegisterPayload>[] = [
     {
         accessorKey: 'lmB_BookTitle',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Book Title' />,
-        cell: ({ row }) => <div className='min-w-[150px]'>{row.getValue('lmB_BookTitle')}</div>
+        cell: ({ row }) => <div className='min-w-[150px]'>{row.getValue('lmB_BookTitle') || (row.original as any).LMB_BookTitle || '-'}</div>
     },
     {
         accessorKey: 'lmbanO_AccessionNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Accession No' />,
-        cell: ({ row }) => <div>{row.getValue('lmbanO_AccessionNo')}</div>,
+        cell: ({ row }) => <div>{row.getValue('lmbanO_AccessionNo') || (row.original as any).LMBANO_AccessionNo || '-'}</div>,
         size: 100
     },
     {
         accessorKey: 'lmP_PublisherName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Publisher Name' />,
-        cell: ({ row }) => <div>{row.getValue('lmP_PublisherName') || '-'}</div>
+        cell: ({ row }) => <div>{row.getValue('lmP_PublisherName') || (row.original as any).LMP_PublisherName || '-'}</div>
     },
     {
         accessorKey: 'lmD_DepartmentName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Dept Name' />,
-        cell: ({ row }) => <div>{(row.original as any).lmD_DepartmentName || '-'}</div>
+        cell: ({ row }) => <div>{row.getValue('lmD_DepartmentName') || (row.original as any).lmD_DepartmentName || (row.original as any).LMD_DepartmentName || '-'}</div>
     },
     {
         accessorKey: 'lmS_SubjectName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Subject Name' />,
-        cell: ({ row }) => <div>{(row.original as any).lmS_SubjectName || '-'}</div>
+        cell: ({ row }) => <div>{row.getValue('lmS_SubjectName') || (row.original as any).lmS_SubjectName || (row.original as any).LMS_SubjectName || '-'}</div>
     },
     {
         accessorKey: 'lmL_LanguageName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Language' />,
-        cell: ({ row }) => <div>{row.getValue('lmL_LanguageName') || '-'}</div>
+        cell: ({ row }) => <div>{row.getValue('lmL_LanguageName') || (row.original as any).LML_LanguageName || '-'}</div>
     },
 
     {
         accessorKey: 'lmrA_RackName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Rack name' />,
-        cell: ({ row }) => <div>{row.getValue('lmrA_RackName') || '-'}</div>
+        cell: ({ row }) => <div>{row.getValue('lmrA_RackName') || (row.original as any).LMRA_RackName || '-'}</div>
     },
     {
         accessorKey: 'lmbanO_AvialableStatus',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
         cell: ({ row }) => {
-            const status = row.getValue('lmbanO_AvialableStatus') as string;
+            const status = (row.getValue('lmbanO_AvialableStatus') || (row.original as any).LMBANO_AvialableStatus || 'Available') as string;
             return (
                 <Badge
                     variant={
@@ -83,12 +83,22 @@ export const BookRegisterColumns: ColumnDef<BookRegisterPayload>[] = [
     {
         accessorKey: 'authoR_FullName',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Author Name' />,
-        cell: ({ row }) => <div>{row.getValue('authoR_FullName') || '-'}</div>
+        cell: ({ row }) => {
+            const author =
+                row.getValue('authoR_FullName') ||
+                (row.original as any).authoR_FullName ||
+                (row.original as any).AUTHOR_FullName ||
+                (row.original as any).author_FullName ||
+                (row.original as any).lmaU_AuthorFirstName ||
+                (row.original as any).LMAU_AuthorFirstName ||
+                '-';
+            return <div>{author}</div>;
+        }
     },
     {
         accessorKey: 'mB_Remarks',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Remark' />,
-        cell: ({ row }) => <div>{row.getValue('mB_Remarks') || '-'}</div>
+        cell: ({ row }) => <div>{row.getValue('mB_Remarks') || (row.original as any).MB_Remarks || '-'}</div>
     },
     {
         id: 'actions',

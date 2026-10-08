@@ -12,7 +12,7 @@ import type { StaffGatePassData } from '@/types/visitors-management/transactions
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -56,6 +56,14 @@ export default function StaffGatePassForm({ onSuccess, empList, departments, des
         }
     });
 
+    const [staffSearch, _setStaffSearch] = useState('');
+
+    const _filteredStaffList = useMemo(() => {
+        if (!staffSearch.trim()) return empList;
+        const q = staffSearch.toLowerCase();
+        return empList.filter((e) => (e.empname || e.hrmE_EmployeeFirstName || '').toLowerCase().includes(q));
+    }, [empList, staffSearch]);
+
     const watchStaff = form.watch('hrmE_Id');
 
     // Auto-fill department and designation when staff is selected
@@ -93,19 +101,23 @@ export default function StaffGatePassForm({ onSuccess, empList, departments, des
                                 </FormLabel>
                                 <Select
                                     onValueChange={(val) => field.onChange(Number(val))}
-                                    value={field.value.toString()}
+                                    value={field.value ? field.value.toString() : ''}
                                     disabled={isEditMode}>
                                     <FormControl>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='Select Staff' />
+                                            <SelectValue placeholder='Select or search employee in the list...' />
                                         </SelectTrigger>
                                     </FormControl>
-                                    <SelectContent>
-                                        {empList.map((emp) => (
-                                            <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
-                                                {emp.empname}
-                                            </SelectItem>
-                                        ))}
+                                    <SelectContent className='max-h-64'>
+                                        {empList.length === 0 ? (
+                                            <div className='p-2 text-center text-muted-foreground text-xs'>No employees found</div>
+                                        ) : (
+                                            empList.map((emp) => (
+                                                <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
+                                                    {emp.empname}
+                                                </SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 <FormMessage />

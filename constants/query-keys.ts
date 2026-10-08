@@ -737,11 +737,7 @@ export const COLLEGE_QUERY_KEYS = {
     COLLEGE_FEE_OPENING_BALANCE_GROUPS: 'college_fee_opening_balance_groups',
     COLLEGE_FEE_OPENING_BALANCE_HEADS: 'college_fee_opening_balance_heads',
     COLLEGE_FEE_OPENING_BALANCE_INSTALLMENTS: 'college_fee_opening_balance_installments',
-    COLLEGE_FEE_OPENING_BALANCE_STUDENTS: 'college_fee_opening_balance_students',
-    TRANSACTION_ACTIVE_DEACTIVE_STUDENTS: 'college_transaction_active_deactive_students',
-    TRANSACTION_ATTEN_LOGIN_USER: 'college_transaction_atten_login_user',
-    TRANSACTION_CLG_SEAT_DISTRIBUTION: 'college_transaction_clg_seat_distribution',
-    TRANSACTION_COLLEGE_STUDENT_TC: 'college_transaction_college_student_tc'
+    COLLEGE_FEE_OPENING_BALANCE_STUDENTS: 'college_fee_opening_balance_students'
 };
 export const ONLINE_EXAM_QUERY_KEYS = {
     MASTER_QUESTION: 'online_exam_master_question',

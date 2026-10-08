@@ -3,6 +3,7 @@
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useBookCirculationReportSearch } from '@/hooks/library/reports/useBookCirculationReport';
+import { exportToExcel } from '@/lib/export-to-file';
 import type { IBookCirculationReportGridData, IBookCirculationReportRequest } from '@/types/library/reports/book-circulation-report';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -64,7 +65,7 @@ export function BookCirculationReportClient({ initialData }: BookCirculationRepo
 
     const handleExport = () => {
         if (reportData.length > 0) {
-            console.log('Exporting to Excel...', reportData);
+            exportToExcel('Book_Circulation_Report', JSON.stringify([]), JSON.stringify(reportData));
         }
     };
 

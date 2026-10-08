@@ -68,19 +68,6 @@ export default function AlumniForm({
     const [isStudentLoading, setIsStudentLoading] = useState(false);
     const [openStudentCombo, setOpenStudentCombo] = useState(false);
 
-    const safeFormatDate = (val: any, formatStr = 'dd/MM/yyyy') => {
-        if (!val) return '';
-        try {
-            const d = typeof val === 'string' || typeof val === 'number' ? new Date(val) : val;
-            if (d instanceof Date && !isNaN(d.getTime())) {
-                return format(d, formatStr);
-            }
-        } catch {
-            return '';
-        }
-        return '';
-    };
-
     const form = useForm<IAlumnusMembershipFormValues>({
         resolver: zodResolver(initialData ? alumnusMembershipUpdateSchema : alumnusMembershipSchema),
         defaultValues: {
@@ -91,7 +78,7 @@ export default function AlumniForm({
             ALMST_NickName: initialData?.almsT_NickName || '',
             ALMST_AdmNo: initialData?.almsT_AdmNo || '',
             AMST_ID: initialData?.amsT_ID || 0,
-            ALMST_DOB: initialData?.almsT_DOB && !isNaN(new Date(initialData.almsT_DOB).getTime()) ? new Date(initialData.almsT_DOB) : new Date(),
+            ALMST_DOB: initialData?.almsT_DOB ? new Date(initialData.almsT_DOB) : new Date(),
             ALMST_MobileNo: (initialData?.almsT_MobileNo ?? '').toString(),
             ALMST_FatherName: initialData?.almsT_FatherName || '',
             ALMST_PhoneNo: initialData?.almsT_PhoneNo || '',
@@ -258,17 +245,14 @@ export default function AlumniForm({
         setIsStudentLoading(true);
         const res = await getStudentList(Number.parseInt(yearId));
         if (res.success) {
-            let list: any[] = [];
+            let list = [];
             if (Array.isArray(res.data)) {
                 list = res.data;
             } else if (res.data && typeof res.data === 'object') {
                 const data = res.data;
-                const fillstudent = Array.isArray(data.fillstudent) ? data.fillstudent : [];
-                const stuName = Array.isArray(data.stu_name) ? data.stu_name : [];
-                const studentDetails = Array.isArray(data.studentDetails) ? data.studentDetails : [];
-                list = [...fillstudent, ...stuName, ...studentDetails];
+                list = data.fillstudent || data.stu_name || data.studentDetails || [];
             }
-            setLocalStudentList(list);
+            setLocalStudentList(Array.isArray(list) ? list : []);
         } else {
             toast.error(res.message || 'Failed to fetch student list');
         }
@@ -279,17 +263,9 @@ export default function AlumniForm({
         setOpenStudentCombo(false);
         setIsStudentLoading(true);
 
-        const studentId = student.almsT_Id || student.almst_id || student.amsT_ID || student.amsT_Id || 0;
-        const name = student.amsT_FirstName || student.almsT_FirstName || student.membername || '';
-
-        form.setValue('ALMST_FirstName', name.includes(':') ? name.split(':')[0] : name);
-        if (student.amsT_ID || student.amsT_Id) {
-            form.setValue('AMST_ID', student.amsT_ID || student.amsT_Id);
-        }
-
         const res = await getAlumniStudentData({
-            ALMST_Id: studentId,
-            ALSREG_Id: student.alsreG_Id || student.alsreg_id,
+            ALMST_Id: student.almsT_Id || 0,
+            ALSREG_Id: student.alsreG_Id,
             ASMCL_Id_Left: student.asmcL_Id_Left,
             ASMCL_Id_Join: student.asmcL_Id_Join,
             ASMAY_Id_Left: student.asmaY_Id_Left,
@@ -308,14 +284,11 @@ export default function AlumniForm({
 
             if (details) {
                 // Populate forms
-                form.setValue('ALMST_FirstName', details.amsT_FirstName || details.almsT_FirstName || name);
-                form.setValue('ALMST_AdmNo', details.almsT_AdmNo || student.almsT_AdmNo || '');
-                form.setValue('AMST_ID', details.amsT_ID || student.amsT_ID || 0);
+                form.setValue('ALMST_FirstName', details.amsT_FirstName || details.almsT_FirstName || '');
+                form.setValue('ALMST_AdmNo', details.almsT_AdmNo || '');
+                form.setValue('AMST_ID', details.amsT_ID || 0);
                 if (details.almsT_DOB) {
-                    const dobDate = new Date(details.almsT_DOB);
-                    if (!isNaN(dobDate.getTime())) {
-                        form.setValue('ALMST_DOB', dobDate);
-                    }
+                    form.setValue('ALMST_DOB', new Date(details.almsT_DOB));
                 }
                 form.setValue('ALMST_MobileNo', (details.almsT_MobileNo || '').toString());
                 form.setValue('ALMST_emailId', details.almsT_emailId || '');
@@ -330,10 +303,10 @@ export default function AlumniForm({
 
                 toast.success('Student details loaded');
             } else {
-                toast.success('Student selected');
+                toast.error('No details found for selected student');
             }
         } else {
-            toast.success('Student selected');
+            toast.error(res.message || 'Failed to fetch student details');
         }
         setIsStudentLoading(false);
     };
@@ -347,7 +320,7 @@ export default function AlumniForm({
                 almsT_FirstName: values.ALMST_FirstName,
                 almsT_MiddleName: values.ALMST_MiddleName || '',
                 almsT_LastName: values.ALMST_LastName || '',
-                almsT_DOB: values.ALMST_DOB && !isNaN(new Date(values.ALMST_DOB).getTime()) ? format(new Date(values.ALMST_DOB), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+                almsT_DOB: format(values.ALMST_DOB, 'yyyy-MM-dd'),
                 almsT_NickName: values.ALMST_NickName,
                 almsT_FatherName: values.ALMST_FatherName,
                 almsT_MobileNo: Number(values.ALMST_MobileNo) || 0,
@@ -493,7 +466,7 @@ export default function AlumniForm({
                                                                 <CommandList>
                                                                     <CommandEmpty>No student found.</CommandEmpty>
                                                                     <CommandGroup>
-                                                                        {localStudentList.map((student, idx) => {
+                                                                        {localStudentList.map((student) => {
                                                                             const name =
                                                                                 student.membername ||
                                                                                 student.alsreG_MemberName ||
@@ -502,11 +475,14 @@ export default function AlumniForm({
                                                                                 '--';
                                                                             const admNo = student.almsT_AdmNo || student.amsT_AdmNo || '';
                                                                             const label = admNo ? `${name} : ${admNo}` : name;
-                                                                            const itemKey = student.almsT_Id || student.almst_id || student.alsreG_Id || student.alsreg_id || `student-${idx}`;
                                                                             return (
                                                                                 <CommandItem
-                                                                                    key={itemKey}
-                                                                                    value={label || `student-${idx}`}
+                                                                                    key={
+                                                                                        student.almsT_Id ||
+                                                                                        student.alsreG_Id ||
+                                                                                        Math.random()
+                                                                                    }
+                                                                                    value={label}
                                                                                     onSelect={() => handleStudentSelect(student)}>
                                                                                     <Check
                                                                                         className={cn(
@@ -658,7 +634,7 @@ export default function AlumniForm({
                                                                 !field.value && 'text-muted-foreground'
                                                             )}>
                                                             <CalendarIcon className='mr-2 h-4 w-4' />
-                                                            {safeFormatDate(field.value, 'dd/MM/yyyy') || <span>Enter date</span>}
+                                                            {field.value ? format(field.value, 'dd/MM/yyyy') : <span>Enter date</span>}
                                                         </Button>
                                                     </FormControl>
                                                 </PopoverTrigger>
@@ -1004,7 +980,11 @@ export default function AlumniForm({
                                                                         !field.value && 'text-muted-foreground'
                                                                     )}>
                                                                     <CalendarIcon className='mr-2 h-4 w-4' />
-                                                                    {safeFormatDate(field.value, 'dd/MM/yyyy') || <span>Enter date</span>}
+                                                                    {field.value ? (
+                                                                        format(field.value, 'dd/MM/yyyy')
+                                                                    ) : (
+                                                                        <span>Enter date</span>
+                                                                    )}
                                                                 </Button>
                                                             </FormControl>
                                                         </PopoverTrigger>

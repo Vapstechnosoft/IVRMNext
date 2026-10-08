@@ -18,13 +18,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
 export default function MasterClassCategoryPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
-    
-    const apiParams = {
-        ...searchParams,
-        sort_column: (Array.isArray(searchParams?.sort_column) ? searchParams?.sort_column[0] : searchParams?.sort_column) || 'asmcC_Id',
-        sort_direction: (Array.isArray(searchParams?.sort_direction) ? searchParams?.sort_direction[0] : searchParams?.sort_direction) || 'desc'
-    };
-    const { data: response, isLoading, error } = useMasterClassCategory(apiParams as any);
+    const { data: response, isLoading, error } = useMasterClassCategory(searchParams);
 
     return (
         <FormProvider<IMasterClassCategoryList>>
@@ -71,7 +65,6 @@ function MasterClassCategoryPageContent({
                         isLoading={isLoading}
                         error={error}
                         showViewOptions={false}
-                        manualSorting={false}
                         columnPinning={{ right: ['actions'] }}
                         loadingMessage='Loading master class categories...'
                         noDataTitle='No Master class categories Found'

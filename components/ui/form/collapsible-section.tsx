@@ -27,8 +27,6 @@ export function CollapsibleSection({
     description,
     children,
     defaultOpen = false,
-    isOpen: controlledIsOpen,
-    onToggle,
     onOpenChange,
     className = '',
     headerClassName = '',
@@ -39,16 +37,8 @@ export function CollapsibleSection({
     rightElement,
     icon
 }: CollapsibleSectionProps) {
-    const [internalIsOpen, setInternalIsOpen] = useState(defaultOpen);
-    const [hasBeenOpened, setHasBeenOpened] = useState(defaultOpen || controlledIsOpen || false);
-
-    const isOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen;
-
-    useEffect(() => {
-        if (controlledIsOpen === undefined) {
-            setInternalIsOpen(defaultOpen);
-        }
-    }, [defaultOpen, controlledIsOpen]);
+    const [isOpen, setIsOpen] = useState(defaultOpen);
+    const [hasBeenOpened, setHasBeenOpened] = useState(defaultOpen);
 
     useEffect(() => {
         if (isOpen && !hasBeenOpened) {
@@ -57,9 +47,8 @@ export function CollapsibleSection({
     }, [isOpen, hasBeenOpened]);
 
     const handleOpenChange = (open: boolean) => {
-        setInternalIsOpen(open);
+        setIsOpen(open);
         onOpenChange?.(open);
-        onToggle?.();
     };
 
     const sizeClasses = {
