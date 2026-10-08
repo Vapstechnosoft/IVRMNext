@@ -722,16 +722,17 @@ export default function StaffUserCreationPage() {
         const isAdmin = selectedRole?.ivrmrT_Role.toUpperCase() === 'ADMIN' || selectedRole?.ivrmrT_Role.toUpperCase() === 'SUPER ADMIN';
 
         let selectedInstitutes: any[] = [];
+        if (!data.userName || data.userName.trim() === '') {
+            toast.error('Please enter User Name');
+            return;
+        }
         if (isAdmin) {
             selectedInstitutes = institutions.filter((i) => i.Selected).map((i) => ({ mi_id: i.mI_Id, MI_Id: i.mI_Id }));
             if (selectedInstitutes.length === 0) {
                 toast.error('Please select at least one institution');
                 return;
             }
-            if (!data.userName || data.userName.trim() === '') {
-                toast.error('Please enter User Name');
-                return;
-            }
+            
         } else {
             if (!data.institution) {
                 toast.error('Please select an institution');
