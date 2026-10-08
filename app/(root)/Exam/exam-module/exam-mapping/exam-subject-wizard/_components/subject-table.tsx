@@ -654,10 +654,7 @@ export default function SubjectTableWithValidation({
                 allSubSubject: false,
                 allMarksDisplay: false,
                 allGradeDisplay: false,
-                allApplyToResult: false,
-                headerMaxMarks: '',
-                headerMinMarks: '',
-                headerMaxEntry: ''
+                allApplyToResult: false
             };
         }
 
@@ -668,20 +665,13 @@ export default function SubjectTableWithValidation({
         const allGradeDisplay = subjects.every((s) => !!s.eyceS_GradeDisplayFlg);
         const allApplyToResult = subjects.every((s) => !!s.eyceS_AplResultFlg);
 
-        const allMaxMarksSame = subjects.every((s) => s.eyceS_MaxMarks === subjects[0].eyceS_MaxMarks);
-        const allMinMarksSame = subjects.every((s) => s.eyceS_MinMarks === subjects[0].eyceS_MinMarks);
-        const allMaxEntrySame = subjects.every((s) => s.eyceS_MarksEntryMax === subjects[0].eyceS_MarksEntryMax);
-
         return {
             allSelected,
             allSubExam,
             allSubSubject,
             allMarksDisplay,
             allGradeDisplay,
-            allApplyToResult,
-            headerMaxMarks: allMaxMarksSame ? String(subjects[0]?.eyceS_MaxMarks ?? '') : '',
-            headerMinMarks: allMinMarksSame ? String(subjects[0]?.eyceS_MinMarks ?? '') : '',
-            headerMaxEntry: allMaxEntrySame ? String(subjects[0]?.eyceS_MarksEntryMax ?? '') : ''
+            allApplyToResult
         };
     }, [subjects]);
 
@@ -693,10 +683,7 @@ export default function SubjectTableWithValidation({
             subSubject: derivedHeader.allSubSubject,
             marksDisplay: derivedHeader.allMarksDisplay,
             gradeDisplay: derivedHeader.allGradeDisplay,
-            applyToResult: derivedHeader.allApplyToResult,
-            maxMarks: derivedHeader.headerMaxMarks,
-            minMarks: derivedHeader.headerMinMarks,
-            maxEntry: derivedHeader.headerMaxEntry
+            applyToResult: derivedHeader.allApplyToResult
         }));
     }, [derivedHeader]);
 
@@ -815,13 +802,13 @@ export default function SubjectTableWithValidation({
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'maxMarks') {
             // Bulk update and validate checked rows
-            const numOrEmpty = value === '' ? '' : Number(value);
+            const numOrEmpty = toNumOrEmpty(value);
             setSubjects((prev) =>
                 prev.map((row) =>
                     row.checkedvalue
                         ? {
                               ...row,
-                              eyceS_MaxMarks: toNumOrEmpty(value)
+                              eyceS_MaxMarks: numOrEmpty
                           }
                         : row
                 )
@@ -851,7 +838,7 @@ export default function SubjectTableWithValidation({
             return;
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'minMarks') {
-            const numOrEmpty = value === '' ? '' : Number(value);
+            const numOrEmpty = toNumOrEmpty(value);
             setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_MinMarks: numOrEmpty } : row)));
 
             setTimeout(() => {
@@ -877,7 +864,7 @@ export default function SubjectTableWithValidation({
             return;
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'maxEntry') {
-            const numOrEmpty = value === '' ? '' : Number(value);
+            const numOrEmpty = toNumOrEmpty(value);
             setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_MarksEntryMax: numOrEmpty } : row)));
 
             setTimeout(() => {
