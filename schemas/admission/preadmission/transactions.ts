@@ -235,8 +235,8 @@ export const studentApplicationFormUpdateSchema = {
 
         // Student Details
         pasR_FirstName: createStringOnlySchema('First Name', 1, 100),
-        pasR_MiddleName: createStringOnlySchema('Middle Name', 1, 100),
-        pasR_LastName: createStringOnlySchema('Last Name', 1, 100),
+        pasR_MiddleName: createStringOnlyOptionalSchema('Middle Name', 1, 100),
+        pasR_LastName: createStringOnlyOptionalSchema('Last Name', 1, 100),
 
         // NATIONALITY - STRING (to match API expectation)
         pasR_Nationality: z.string().min(1, 'Student nationality is required'),
