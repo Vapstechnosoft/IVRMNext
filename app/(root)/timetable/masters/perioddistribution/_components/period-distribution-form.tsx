@@ -175,13 +175,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
 
     // Update classList when category or academic year changes
     useEffect(() => {
-        if (allClassList.length > 0 && watchedCategory) {
-            // Filter classes in frontend like the report page does
-            const filtered = allClassList.filter((c: any) => !c.ttmC_Id || c.ttmC_Id === watchedCategory);
-            setClassList(filtered);
-            setIsLoadingClasses(false);
-        } else if (watchedAcademicYear && watchedCategory) {
-            // Fallback to API if frontend data is not fully populated or as a backup
+        if (watchedAcademicYear && watchedCategory) {
             const fetchClasses = async () => {
                 setIsLoadingClasses(true);
                 try {
@@ -189,11 +183,9 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
                         Number(watchedAcademicYear),
                         Number(watchedCategory)
                     );
-                    if (res?.success) {
-                        setClassList(res.data || []);
-                    } else {
-                        setClassList([]);
-                    }
+                    
+                    const classes = (res?.data as any)?.classbycategory || res?.classbycategory || res?.data || [];
+                    setClassList(Array.isArray(classes) ? classes : []);
                 } catch (error) {
                     console.error('Error fetching classes:', error);
                     setClassList([]);
@@ -213,7 +205,7 @@ export default function PeriodDistributionForm({ onSuccess, initialData }: Perio
             setValue('ismS_Id', undefined as any);
             setValue('nop2', 0);
         }
-    }, [watchedAcademicYear, watchedCategory, setValue, allClassList]);
+    }, [watchedAcademicYear, watchedCategory, setValue]);
 
     const addToTempList = () => {
         const data = watch();
