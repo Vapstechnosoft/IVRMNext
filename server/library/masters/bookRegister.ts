@@ -85,12 +85,45 @@ export async function getBookRegisterList(params?: ApiSearchparams | { searchPar
             }
         }
 
+        const normalizedBooks = booksArray.map((item: any) => {
+            if (!item || typeof item !== 'object') return item;
+            return {
+                ...item,
+                lmB_Id: item.lmB_Id ?? item.LMB_Id ?? item.lmb_Id,
+                LMB_Id: item.LMB_Id ?? item.lmB_Id ?? item.lmb_Id,
+                lmbanO_Id: item.lmbanO_Id ?? item.LMBANO_Id ?? item.lmbanO_ID ?? item.lmbano_Id,
+                LMBANO_Id: item.LMBANO_Id ?? item.lmbanO_Id ?? item.lmbanO_ID ?? item.lmbano_Id,
+                lmB_BookTitle: item.lmB_BookTitle ?? item.LMB_BookTitle ?? item.lmb_BookTitle ?? '',
+                LMB_BookTitle: item.LMB_BookTitle ?? item.lmB_BookTitle ?? item.lmb_BookTitle ?? '',
+                lmbanO_AccessionNo: item.lmbanO_AccessionNo ?? item.LMBANO_AccessionNo ?? item.lmbano_AccessionNo ?? '',
+                LMBANO_AccessionNo: item.LMBANO_AccessionNo ?? item.lmbanO_AccessionNo ?? item.lmbano_AccessionNo ?? '',
+                lmP_PublisherName: item.lmP_PublisherName ?? item.LMP_PublisherName ?? item.lmp_PublisherName ?? '',
+                LMP_PublisherName: item.LMP_PublisherName ?? item.lmP_PublisherName ?? item.lmp_PublisherName ?? '',
+                lmD_DepartmentName: item.lmD_DepartmentName ?? item.LMD_DepartmentName ?? item.lmd_DepartmentName ?? '',
+                LMD_DepartmentName: item.LMD_DepartmentName ?? item.lmD_DepartmentName ?? item.lmd_DepartmentName ?? '',
+                lmS_SubjectName: item.lmS_SubjectName ?? item.LMS_SubjectName ?? item.lms_SubjectName ?? '',
+                LMS_SubjectName: item.LMS_SubjectName ?? item.lmS_SubjectName ?? item.lms_SubjectName ?? '',
+                lmL_LanguageName: item.lmL_LanguageName ?? item.LML_LanguageName ?? item.lml_LanguageName ?? '',
+                LML_LanguageName: item.LML_LanguageName ?? item.lmL_LanguageName ?? item.lml_LanguageName ?? '',
+                lmrA_RackName: item.lmrA_RackName ?? item.LMRA_RackName ?? item.lmra_RackName ?? '',
+                LMRA_RackName: item.LMRA_RackName ?? item.lmrA_RackName ?? item.lmra_RackName ?? '',
+                lmbanO_AvialableStatus: item.lmbanO_AvialableStatus ?? item.LMBANO_AvialableStatus ?? item.lmbanO_AvailableStatus ?? item.LMBANO_AvailableStatus ?? 'Available',
+                LMBANO_AvialableStatus: item.LMBANO_AvialableStatus ?? item.lmbanO_AvialableStatus ?? item.LMBANO_AvailableStatus ?? item.lmbanO_AvailableStatus ?? 'Available',
+                authoR_FullName: item.authoR_FullName ?? item.AUTHOR_FullName ?? item.author_FullName ?? item.lmaU_AuthorFirstName ?? item.LMAU_AuthorFirstName ?? item.lmB_AuthorFirstName ?? item.LMB_AuthorFirstName ?? '',
+                AUTHOR_FullName: item.AUTHOR_FullName ?? item.authoR_FullName ?? item.author_FullName ?? item.lmaU_AuthorFirstName ?? item.LMAU_AuthorFirstName ?? item.lmB_AuthorFirstName ?? item.LMB_AuthorFirstName ?? '',
+                mB_Remarks: item.mB_Remarks ?? item.MB_Remarks ?? item.mb_Remarks ?? '',
+                MB_Remarks: item.MB_Remarks ?? item.mB_Remarks ?? item.mb_Remarks ?? '',
+                lmbanO_ActiveFlag: item.lmbanO_ActiveFlag ?? item.LMBANO_ActiveFlag ?? item.lmbanO_activeFlag ?? item.LMBANO_activeFlag ?? item.mB_ActiveFlag ?? item.MB_ActiveFlag,
+                LMBANO_ActiveFlag: item.LMBANO_ActiveFlag ?? item.lmbanO_ActiveFlag ?? item.lmbanO_activeFlag ?? item.LMBANO_activeFlag ?? item.MB_ActiveFlag ?? item.mB_ActiveFlag
+            };
+        });
+
         return {
             ...(typeof raw === 'object' && !Array.isArray(raw) ? raw : {}),
             ...(typeof response === 'object' && !Array.isArray(response) ? response : {}),
             success: true,
-            data: booksArray,
-            total: booksArray.length
+            data: normalizedBooks,
+            total: normalizedBooks.length
         };
     } catch (error: any) {
         return { success: false, message: error?.message || 'Failed to fetch book register data', data: [] };
@@ -280,15 +313,83 @@ export async function saveBookRegisterTable3(data: BookRegisterPayload) {
     }
 }
 
-export async function deactivateBookRegister(data: { LMBANO_Id?: number; LMB_Id?: number; LMB_BookTitle?: string }) {
+export async function deactivateBookRegister(data: { LMBANO_Id?: number; LMB_Id?: number; LMB_BookTitle?: string; returnval?: boolean; [key: string]: any }) {
     try {
+        const lmbanoId = Number(
+            data.LMBANO_Id ||
+            (data as any).lmbanO_Id ||
+            (data as any).lmbanO_ID ||
+            (data as any).lmbano_Id ||
+            (data as any).lmbanO_id ||
+            0
+        );
+        const lmbId = Number(
+            data.LMB_Id ||
+            (data as any).lmB_Id ||
+            (data as any).lmb_Id ||
+            (data as any).lmb_id ||
+            0
+        );
+        const id = lmbanoId || lmbId || 0;
+
+        if (!id) {
+            return { success: false, message: 'Invalid Book / Accession ID' };
+        }
+
+        // returnval: true = deactivate active record, false = activate inactive record
+        const returnval = data.returnval !== undefined
+            ? Boolean(data.returnval)
+            : Boolean((data as any).mB_ActiveFlag || (data as any).MB_ActiveFlag || (data as any).lmbanO_ActiveFlag || (data as any).LMBANO_ActiveFlag);
+
+        const url = `/BookRegister/deactiveY?returnval=${returnval}&LMBANO_Id=${id}`;
         const payload = {
-            LMBANO_Id: Number(data.LMBANO_Id || (data as any).lmbanO_Id || data.LMB_Id)
+            ...data,
+            LMBANO_Id: id,
+            lmbanO_Id: id,
+            LMB_Id: lmbId || id,
+            lmB_Id: lmbId || id,
+            returnval: returnval
         };
-        const response = await api.post<any>('library', `/BookRegister/deactiveY`, payload);
-        return response;
-    } catch (error) {
-        return { success: false, message: 'Failed to toggle status' };
+
+        let response: any;
+        try {
+            response = await api.post<any>('library', url, payload);
+        } catch (postErr: any) {
+            try {
+                response = await api.put<any>('library', url, payload);
+            } catch {
+                try {
+                    response = await api.get<any>('library', url);
+                } catch {
+                    throw postErr;
+                }
+            }
+        }
+
+        const raw = response?.data !== undefined && response?.data !== null ? response.data : response;
+
+        const isSuccess =
+            raw?.success === true ||
+            raw?.returnval === true ||
+            raw?.returnval === 'true' ||
+            (typeof raw?.message === 'string' && raw.message.toLowerCase().includes('success')) ||
+            (typeof raw?.msg === 'string' && raw.msg.toLowerCase().includes('success')) ||
+            response?.success === true;
+
+        const message =
+            raw?.message ||
+            raw?.msg ||
+            (typeof raw?.returnval === 'string' && raw.returnval !== 'true' ? raw.returnval : null) ||
+            (isSuccess ? (returnval ? 'Record deactivated successfully' : 'Record activated successfully') : 'Failed to update record');
+
+        return {
+            success: isSuccess,
+            message: typeof message === 'string' ? message : (returnval ? 'Record deactivated successfully' : 'Record activated successfully'),
+            data: raw
+        };
+    } catch (error: any) {
+        console.error('Error in deactivateBookRegister:', error);
+        return { success: false, message: error?.message || 'Failed to toggle status' };
     }
 }
 
