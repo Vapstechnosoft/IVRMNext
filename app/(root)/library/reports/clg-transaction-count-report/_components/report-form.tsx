@@ -42,7 +42,7 @@ interface ReportFormProps {
 }
 
 export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, hasData }: ReportFormProps) => {
-    const { data: initialDataWrapper, isLoading: isInitialLoading } = useCLGTransactionCountReportInitialData();
+    const { data: initialDataWrapper } = useCLGTransactionCountReportInitialData();
     const initialData = (initialDataWrapper as any)?.data || initialDataWrapper;
 
     const {
@@ -66,12 +66,9 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
     };
 
     return (
-        <form
-            onSubmit={handleSubmit(onSubmit)}
-            className='mx-auto max-w-5xl space-y-6 rounded-lg border border-t-4 border-t-orange-400 bg-white p-8 shadow-sm'>
+        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
             {/* Main Selection Row */}
-            <div className='flex justify-center'>
-                <div className='w-full max-w-2xl space-y-4'>
+            <div className='mx-auto max-w-2xl space-y-4'>
                     {/* Library Name */}
                     <div className='flex items-center gap-4'>
                         <Label className='min-w-[150px] text-right font-medium text-sm'>
@@ -132,7 +129,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
 
                     {/* Status Count Checkbox */}
                     <div className='flex items-center gap-4'>
-                        <div className='min-w-[150px]'></div>
+                        <div className='min-w-[150px]' />
                         <div className='flex flex-1 items-center space-x-2 pt-1'>
                             <Controller
                                 control={control}
@@ -147,7 +144,6 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
                         </div>
                     </div>
                 </div>
-            </div>
 
             {/* Date Selection Section */}
             <div className='mx-auto mt-8 w-full max-w-4xl'>
@@ -205,14 +201,14 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
             <div className='flex items-center justify-center gap-4'>
                 <Button
                     type='submit'
-                    className='h-8 w-auto min-w-[120px] rounded-sm bg-[#4251b1] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#35418e]'
+                    className='!w-auto h-9 min-w-[120px] rounded-md bg-[#4251b1] px-6 py-2 font-medium text-white text-xs shadow-sm hover:bg-[#35418e]'
                     disabled={isLoading}>
                     {isLoading ? <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <Search className='mr-1.5 h-3.5 w-3.5' />}
                     REPORT
                 </Button>
                 <Button
                     type='button'
-                    className='h-8 w-auto min-w-[120px] rounded-sm bg-[#ff5a30] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#e64d26]'
+                    className='!w-auto h-9 min-w-[120px] rounded-md bg-[#ff5a30] px-6 py-2 font-medium text-white text-xs shadow-sm hover:bg-[#e64d26]'
                     onClick={() => {
                         reset();
                         onCancel?.();
@@ -227,16 +223,16 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
                         <Button
                             type='button'
                             onClick={onPrint}
-                            className='h-8 w-auto min-w-[120px] rounded-sm bg-[#4251b1] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#35418e]'>
+                            className='!w-auto h-9 min-w-[120px] rounded-md bg-[#4251b1] px-6 py-2 font-medium text-white text-xs shadow-sm hover:bg-[#35418e]'>
                             <Printer className='mr-1.5 h-3.5 w-3.5' />
                             PRINT
                         </Button>
                         <Button
                             type='button'
                             onClick={onExport}
-                            className='h-8 w-auto min-w-[120px] rounded-sm bg-[#4251b1] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#35418e]'>
+                            className='!w-auto h-9 min-w-[140px] rounded-md bg-[#4251b1] px-6 py-2 font-medium text-white text-xs shadow-sm hover:bg-[#35418e]'>
                             <FileSpreadsheet className='mr-1.5 h-3.5 w-3.5' />
-                            EXCEL
+                            EXPORT TO EXCEL
                         </Button>
                     </>
                 )}

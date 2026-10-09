@@ -27,7 +27,10 @@ export const birthdayColumns: ColumnDef<any>[] = [
     {
         accessorKey: 'sno',
         header: () => <span className='text-center font-bold text-black'>SL.No</span>,
-        cell: ({ row }) => row.index + 1
+        cell: ({ row, table }) => {
+            const { pageIndex, pageSize } = table.getState().pagination;
+            return pageIndex * pageSize + row.index + 1;
+        }
     },
     {
         accessorKey: 'studentname',

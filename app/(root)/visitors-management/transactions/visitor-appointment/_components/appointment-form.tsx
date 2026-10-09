@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { DateField } from '@/components/ui/dateField';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,17 +10,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { useVisitorAppointment } from '@/hooks/visitors-management/transactions/useVisitorAppointment';
 import { type VisitorAppointmentSchema, visitorAppointmentSchema } from '@/schemas/visitors-management/visitor-appointment-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Trash } from 'lucide-react';
+import { Plus, Save, Trash } from 'lucide-react';
 import { useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 
 interface AppointmentFormProps {
     onSuccess: () => void;
     initialData?: any;
+    onCancel?: () => void;
 }
 
-export default function AppointmentForm({ onSuccess, initialData }: AppointmentFormProps) {
-    const { saveAppointment, data: loadedData } = useVisitorAppointment();
+export default function AppointmentForm({ onSuccess, initialData, onCancel }: AppointmentFormProps) {
+    const { saveAppointment, data: loadedData, isSaving } = useVisitorAppointment();
     const emplist = loadedData?.emplist || [];
 
     const form = useForm<VisitorAppointmentSchema>({
@@ -33,7 +34,7 @@ export default function AppointmentForm({ onSuccess, initialData }: AppointmentF
             meetingDurationHrs: 0,
             meetingDurationMins: 0,
             toMeet: '',
-            staffId: undefined, // Will be number
+            staffId: undefined,
             visitType: '',
             purpose: '',
             personsAccompanying: 0,
@@ -57,45 +58,31 @@ export default function AppointmentForm({ onSuccess, initialData }: AppointmentF
         name: 'multiVisitors'
     });
 
-    const {
-        fields: docFields,
-        append: appendDoc,
-        remove: removeDoc
-    } = useFieldArray({
-        control: form.control,
-        name: 'documents'
-    });
+    // Form reset on initialData change
 
-    // Effect to populate form when initialData exists
     useEffect(() => {
         if (initialData) {
             form.reset({
-                // assuming initialData keys match schema or mapping logic here
-                // Based on columns: vmaP_VisitorName etc.
-                // But schema uses visitorName.
-                // I need mapping logic.
-                // Let's assume initialData is VisitorAppointmentData type and map it.
-                // Wait, I don't have mapping logic ready.
-                // For now, I'll attempt simple mapping mapping based on typical property names
-                visitorName: initialData.vmaP_VisitorName,
-                contactNo: initialData.vmaP_VisitorContactNo,
-                email: initialData.vmaP_VisitorEmailid,
-                fromPlace: initialData.vmaP_FromPlace,
-                // meetingDurationHrs: logic needed?,
-                // meetingDurationMins: logic needed?,
+                vmaP_Id: initialData.vmaP_Id,
+                visitorName: initialData.vmaP_VisitorName || '',
+                contactNo: initialData.vmaP_VisitorContactNo || '',
+                email: initialData.vmaP_VisitorEmailid || '',
+                fromPlace: initialData.vmaP_FromPlace || '',
+                meetingDurationHrs: initialData.vmaP_MeetingDurationHrs || 0,
+                meetingDurationMins: initialData.vmaP_MeetingDurationMins || 0,
                 toMeet: initialData.vmaP_ToMeet || '',
                 staffId: initialData.hrmE_Id,
-                visitType: initialData.vmaP_VisitTypeFlg,
-                purpose: initialData.vmaP_MeetingPurpose,
-                personsAccompanying: initialData.vmaP_PersonsAccompanying,
+                visitType: initialData.vmaP_VisitTypeFlg || '',
+                purpose: initialData.vmaP_MeetingPurpose || '',
+                personsAccompanying: initialData.vmaP_PersonsAccompanying || 0,
                 entryDate: initialData.vmaP_EntryDateTime ? new Date(initialData.vmaP_EntryDateTime) : new Date(),
-                fromTime: initialData.vmaP_MeetingFromTime,
-                toTime: initialData.vmaP_MeetingToTime,
-                location: initialData.vmaP_MeetingLocation,
-                remarks: initialData.vmaP_Remarks,
-                address: initialData.vmaP_VisitorAddress
-                // multiVisitors: initialData.multiVisitorsList || [], // Need to map structure
-                // documents: initialData.documentsList || [] // Need to map structure
+                fromTime: initialData.vmaP_MeetingFromTime || '',
+                toTime: initialData.vmaP_MeetingToTime || '',
+                location: initialData.vmaP_MeetingLocation || '',
+                remarks: initialData.vmaP_Remarks || '',
+                address: initialData.vmaP_VisitorAddress || '',
+                multiVisitors: initialData.multiVisitors || [],
+                documents: initialData.documents || []
             });
         }
     }, [initialData, form]);
@@ -112,281 +99,274 @@ export default function AppointmentForm({ onSuccess, initialData }: AppointmentF
 
     return (
         <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 rounded-md border p-4'>
-                <h3 className='font-semibold text-lg'>Appointment Information</h3>
-                <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+                {/* 1. Appointment Information Grid */}
+                <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+                    {/* Visitor Name */}
                     <FormField
                         control={form.control}
                         name='visitorName'
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>
-                                    Visitor Name <span className='text-red-500'>*</span>
+                            <FormItem className='space-y-1.5'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    Visitor Name <span className='text-destructive'>*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder='Enter Visitor Name' />
+                                    <Input {...field} placeholder='Enter Visitor Name' className='h-9 text-xs' />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className='text-xs' />
                             </FormItem>
                         )}
                     />
+
+                    {/* Contact No */}
                     <FormField
                         control={form.control}
                         name='contactNo'
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>
-                                    Contact No <span className='text-red-500'>*</span>
+                            <FormItem className='space-y-1.5'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    Contact No <span className='text-destructive'>*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder='Enter Mobile No' maxLength={10} />
+                                    <Input
+                                        {...field}
+                                        placeholder='Enter Mobile No'
+                                        maxLength={10}
+                                        inputMode='numeric'
+                                        className='h-9 text-xs'
+                                        onChange={(e) => {
+                                            const numericValue = e.target.value.replace(/\D/g, '');
+                                            field.onChange(numericValue);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (
+                                                !/[0-9]/.test(e.key) &&
+                                                !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes(e.key) &&
+                                                !e.ctrlKey &&
+                                                !e.metaKey
+                                            ) {
+                                                e.preventDefault();
+                                            }
+                                        }}
+                                    />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className='text-xs' />
                             </FormItem>
                         )}
                     />
+
+                    {/* Email Id */}
                     <FormField
                         control={form.control}
                         name='email'
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>
-                                    Email Id <span className='text-red-500'>*</span>
+                            <FormItem className='space-y-1.5'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    Email Id <span className='text-destructive'>*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder='Enter Email Id' />
+                                    <Input {...field} placeholder='Enter Email Id' className='h-9 text-xs' />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className='text-xs' />
                             </FormItem>
                         )}
                     />
+
+                    {/* From Place */}
                     <FormField
                         control={form.control}
                         name='fromPlace'
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>
-                                    From Place <span className='text-red-500'>*</span>
+                            <FormItem className='space-y-1.5'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    From Place <span className='text-destructive'>*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder='Enter From Place' />
+                                    <Input {...field} placeholder='Enter From Place' className='h-9 text-xs' />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className='text-xs' />
                             </FormItem>
                         )}
                     />
 
-                    {/* Meeting Duration */}
-                    <div className='flex items-end gap-2'>
-                        <FormField
-                            control={form.control}
-                            name='meetingDurationHrs'
-                            render={({ field }) => (
-                                <FormItem className='flex-1'>
-                                    <FormLabel>Meeting Duration (Hrs)</FormLabel>
-                                    <FormControl>
-                                        <Input type='number' {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name='meetingDurationMins'
-                            render={({ field }) => (
-                                <FormItem className='flex-1'>
-                                    <FormLabel>(Mins)</FormLabel>
-                                    <FormControl>
-                                        <Input type='number' {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-
-                    <FormField
-                        control={form.control}
-                        name='toMeet'
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>
-                                    To Meet <span className='text-red-500'>*</span>
-                                </FormLabel>
-                                <FormControl>
-                                    <Input {...field} placeholder='To Meet' />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
+                    {/* To Meet (Staff) */}
                     <FormField
                         control={form.control}
                         name='staffId'
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>
-                                    To Meet (Staff) <span className='text-red-500'>*</span>
+                            <FormItem className='space-y-1.5'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    To Meet (Staff) <span className='text-destructive'>*</span>
                                 </FormLabel>
-                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value?.toString()}>
+                                <Select onValueChange={(val) => field.onChange(Number(val))} value={field.value ? String(field.value) : ''}>
                                     <FormControl>
-                                        <SelectTrigger>
+                                        <SelectTrigger className='h-9 text-xs'>
                                             <SelectValue placeholder='Select Staff' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
                                         {emplist.map((emp) => (
-                                            <SelectItem key={emp.hrmE_Id} value={emp.hrmE_Id.toString()}>
+                                            <SelectItem key={emp.hrmE_Id} value={String(emp.hrmE_Id)} className='text-xs'>
                                                 {emp.hrmE_EmployeeFirstName}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                <FormMessage className='text-xs' />
                             </FormItem>
                         )}
                     />
 
+                    {/* Visit Type */}
                     <FormField
                         control={form.control}
                         name='visitType'
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>
-                                    Visit Type <span className='text-red-500'>*</span>
+                            <FormItem className='space-y-1.5'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    Visit Type <span className='text-destructive'>*</span>
                                 </FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value || ''}>
                                     <FormControl>
-                                        <SelectTrigger>
+                                        <SelectTrigger className='h-9 text-xs'>
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                     </FormControl>
                                     <SelectContent>
-                                        <SelectItem value='Personal'>Personal</SelectItem>
-                                        <SelectItem value='Official'>Official</SelectItem>
-                                        <SelectItem value='Recruitment'>Recruitment</SelectItem>
-                                        <SelectItem value='Meeting'>Meeting</SelectItem>
+                                        <SelectItem value='Personal' className='text-xs'>
+                                            Personal
+                                        </SelectItem>
+                                        <SelectItem value='Official' className='text-xs'>
+                                            Official
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <FormMessage />
+                                <FormMessage className='text-xs' />
                             </FormItem>
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name='purpose'
-                        render={({ field }) => (
-                            <FormItem className='col-span-1 md:col-span-2'>
-                                <FormLabel>
-                                    Purpose <span className='text-red-500'>*</span>
-                                </FormLabel>
-                                <FormControl>
-                                    <Textarea {...field} placeholder='Enter Purpose' />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name='personsAccompanying'
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Persons Accompanying</FormLabel>
-                                <FormControl>
-                                    <Input type='number' {...field} onChange={(e) => field.onChange(e.target.valueAsNumber)} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
+                    {/* Entry Date */}
                     <FormField
                         control={form.control}
                         name='entryDate'
-                        render={({ field, fieldState }) => <DateField field={field} fieldState={fieldState} label='Entry/Request Date' />}
+                        render={({ field }) => (
+                            <FormItem className='space-y-1.5'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    Entry Date <span className='text-destructive'>*</span>
+                                </FormLabel>
+                                <FormControl>
+                                    <DatePicker
+                                        date={field.value}
+                                        setDate={field.onChange}
+                                        placeholder='Select Entry Date'
+                                        className='h-9 w-full text-xs'
+                                    />
+                                </FormControl>
+                                <FormMessage className='text-xs' />
+                            </FormItem>
+                        )}
                     />
 
-                    <div className='flex gap-4'>
-                        <FormField
-                            control={form.control}
-                            name='fromTime'
-                            render={({ field }) => (
-                                <FormItem className='flex-1'>
-                                    <FormLabel>
-                                        From Time <span className='text-red-500'>*</span>
-                                    </FormLabel>
-                                    <FormControl>
-                                        <Input type='time' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name='toTime'
-                            render={({ field }) => (
-                                <FormItem className='flex-1'>
-                                    <FormLabel>
-                                        To Time <span className='text-red-500'>*</span>
-                                    </FormLabel>
-                                    <FormControl>
-                                        <Input type='time' {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-
+                    {/* Location */}
                     <FormField
                         control={form.control}
                         name='location'
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>
-                                    Location <span className='text-red-500'>*</span>
+                            <FormItem className='space-y-1.5'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    Meeting Location <span className='text-destructive'>*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder='Enter Location' />
+                                    <Input {...field} placeholder='Location' className='h-9 text-xs' />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className='text-xs' />
                             </FormItem>
                         )}
                     />
 
+                    {/* From Time */}
                     <FormField
                         control={form.control}
-                        name='remarks'
+                        name='fromTime'
                         render={({ field }) => (
-                            <FormItem className='col-span-1 md:col-span-2'>
-                                <FormLabel>
-                                    Remarks <span className='text-red-500'>*</span>
+                            <FormItem className='space-y-1.5'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    From Time <span className='text-destructive'>*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <Textarea {...field} placeholder='Remarks' />
+                                    <Input type='time' {...field} className='h-9 text-xs' />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className='text-xs' />
                             </FormItem>
                         )}
                     />
+
+                    {/* To Time */}
+                    <FormField
+                        control={form.control}
+                        name='toTime'
+                        render={({ field }) => (
+                            <FormItem className='space-y-1.5'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    To Time <span className='text-destructive'>*</span>
+                                </FormLabel>
+                                <FormControl>
+                                    <Input type='time' {...field} className='h-9 text-xs' />
+                                </FormControl>
+                                <FormMessage className='text-xs' />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Purpose */}
+                    <FormField
+                        control={form.control}
+                        name='purpose'
+                        render={({ field }) => (
+                            <FormItem className='space-y-1.5 sm:col-span-2'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    Purpose <span className='text-destructive'>*</span>
+                                </FormLabel>
+                                <FormControl>
+                                    <Input {...field} placeholder='Enter Purpose' className='h-9 text-xs' />
+                                </FormControl>
+                                <FormMessage className='text-xs' />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Address */}
                     <FormField
                         control={form.control}
                         name='address'
                         render={({ field }) => (
-                            <FormItem className='col-span-1 md:col-span-2'>
-                                <FormLabel>
-                                    Address <span className='text-red-500'>*</span>
+                            <FormItem className='space-y-1.5 sm:col-span-2 lg:col-span-2'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    Address <span className='text-destructive'>*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <Textarea {...field} placeholder='Full Address' />
+                                    <Textarea {...field} placeholder='Full Address' rows={2} className='text-xs' />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className='text-xs' />
+                            </FormItem>
+                        )}
+                    />
+
+                    {/* Remarks */}
+                    <FormField
+                        control={form.control}
+                        name='remarks'
+                        render={({ field }) => (
+                            <FormItem className='space-y-1.5 sm:col-span-2 lg:col-span-2'>
+                                <FormLabel className='font-semibold text-xs'>
+                                    Remarks <span className='text-destructive'>*</span>
+                                </FormLabel>
+                                <FormControl>
+                                    <Textarea {...field} placeholder='Remarks' rows={2} className='text-xs' />
+                                </FormControl>
+                                <FormMessage className='text-xs' />
                             </FormItem>
                         )}
                     />
@@ -394,38 +374,39 @@ export default function AppointmentForm({ onSuccess, initialData }: AppointmentF
 
                 <Separator />
 
-                {/* Multiple Visitors */}
+                {/* 2. Multiple Visitors */}
                 <div className='space-y-4'>
                     <div className='flex items-center justify-between'>
-                        <h3 className='font-semibold text-lg'>Add Multiple Visitors</h3>
-                        <Button type='button' variant='secondary' size='sm' onClick={() => appendVisitor({ vmapvI_VisitorName: '' })}>
-                            <Plus className='mr-2 h-4 w-4' /> Add Visitor
+                        <h4 className='font-semibold text-sm'>Add Multiple Visitors</h4>
+                        <Button
+                            type='button'
+                            variant='outline'
+                            size='sm'
+                            className='h-8 text-xs'
+                            onClick={() => appendVisitor({ vmapvI_VisitorName: '' })}>
+                            <Plus className='mr-1.5 h-3.5 w-3.5' /> Add Visitor
                         </Button>
                     </div>
                     {visitorFields.map((field, index) => (
-                        <div
-                            key={field.id}
-                            className='relative grid grid-cols-1 gap-4 rounded border bg-slate-50 p-4 md:grid-cols-2 dark:bg-slate-900'>
+                        <div key={field.id} className='relative grid grid-cols-1 gap-3 rounded-lg border bg-muted/20 p-3 sm:grid-cols-3'>
                             <Button
                                 type='button'
-                                variant='destructive'
+                                variant='ghost'
                                 size='icon'
-                                className='absolute top-2 right-2 h-6 w-6'
+                                className='absolute top-2 right-2 h-6 w-6 text-destructive hover:bg-destructive/10'
                                 onClick={() => removeVisitor(index)}>
-                                <Trash className='h-3 w-3' />
+                                <Trash className='h-3.5 w-3.5' />
                             </Button>
                             <FormField
                                 control={form.control}
                                 name={`multiVisitors.${index}.vmapvI_VisitorName`}
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>
-                                            Name <span className='text-red-500'>*</span>
-                                        </FormLabel>
+                                    <FormItem className='space-y-1'>
+                                        <FormLabel className='font-medium text-xs'>Name *</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder='Visitor Name' />
+                                            <Input {...field} placeholder='Visitor Name' className='h-8 text-xs' />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage className='text-xs' />
                                     </FormItem>
                                 )}
                             />
@@ -433,12 +414,22 @@ export default function AppointmentForm({ onSuccess, initialData }: AppointmentF
                                 control={form.control}
                                 name={`multiVisitors.${index}.vmapvI_VisitorContactNo`}
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Contact No</FormLabel>
+                                    <FormItem className='space-y-1'>
+                                        <FormLabel className='font-medium text-xs'>Contact No</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder='Mobile No' />
+                                            <Input
+                                                {...field}
+                                                placeholder='Mobile No'
+                                                maxLength={10}
+                                                inputMode='numeric'
+                                                className='h-8 text-xs'
+                                                onChange={(e) => {
+                                                    const numericValue = e.target.value.replace(/\D/g, '');
+                                                    field.onChange(numericValue);
+                                                }}
+                                            />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage className='text-xs' />
                                     </FormItem>
                                 )}
                             />
@@ -446,25 +437,12 @@ export default function AppointmentForm({ onSuccess, initialData }: AppointmentF
                                 control={form.control}
                                 name={`multiVisitors.${index}.vmapvI_VisitorEmailId`}
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Email</FormLabel>
+                                    <FormItem className='space-y-1'>
+                                        <FormLabel className='font-medium text-xs'>Email</FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder='Email' />
+                                            <Input {...field} placeholder='Email' className='h-8 text-xs' />
                                         </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name={`multiVisitors.${index}.vmapvI_VisitorAddress`}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Address</FormLabel>
-                                        <FormControl>
-                                            <Textarea {...field} placeholder='Address' rows={2} />
-                                        </FormControl>
-                                        <FormMessage />
+                                        <FormMessage className='text-xs' />
                                     </FormItem>
                                 )}
                             />
@@ -472,54 +450,24 @@ export default function AppointmentForm({ onSuccess, initialData }: AppointmentF
                     ))}
                 </div>
 
-                <Separator />
-
-                {/* Documents */}
-                <div className='space-y-4'>
-                    <div className='flex items-center justify-between'>
-                        <h3 className='font-semibold text-lg'>Documents</h3>
-                        <Button type='button' variant='secondary' size='sm' onClick={() => appendDoc({ cfiledesc: '' })}>
-                            <Plus className='mr-2 h-4 w-4' /> Add Document
-                        </Button>
-                    </div>
-                    {docFields.map((field, index) => (
-                        <div
-                            key={field.id}
-                            className='relative grid grid-cols-1 gap-4 rounded border bg-slate-50 p-4 md:grid-cols-3 dark:bg-slate-900'>
-                            <Button
-                                type='button'
-                                variant='destructive'
-                                size='icon'
-                                className='absolute top-2 right-2 h-6 w-6'
-                                onClick={() => removeDoc(index)}>
-                                <Trash className='h-3 w-3' />
-                            </Button>
-                            <FormField
-                                control={form.control}
-                                name={`documents.${index}.cfiledesc`}
-                                render={({ field }) => (
-                                    <FormItem className='col-span-2'>
-                                        <FormLabel>Description</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} placeholder='Description' />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <div className='flex items-end'>
-                                <Input type='file' />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className='flex justify-center gap-4'>
-                    <Button type='submit' className='w-40'>
-                        Save
-                    </Button>
-                    <Button type='button' variant='outline' className='w-40' onClick={() => onSuccess()}>
+                {/* 3. Action Buttons matching Screenshot 1 */}
+                <div className='flex flex-wrap items-center gap-3 border-t pt-4 sm:justify-start'>
+                    <Button
+                        type='button'
+                        variant='outline'
+                        onClick={() => {
+                            form.reset();
+                            if (onCancel) onCancel();
+                        }}
+                        className='w-fit text-xs transition-all duration-200 hover:scale-105'>
                         Cancel
+                    </Button>
+                    <Button
+                        type='submit'
+                        disabled={isSaving}
+                        className='w-fit bg-primary text-primary-foreground text-xs transition-all duration-200 hover:scale-105'>
+                        <Save className='mr-2 h-3.5 w-3.5' />
+                        {isSaving ? 'Saving...' : 'Save'}
                     </Button>
                 </div>
             </form>

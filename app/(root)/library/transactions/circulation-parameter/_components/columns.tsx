@@ -11,7 +11,11 @@ interface ColumnProps {
     isToggling?: boolean;
 }
 
-export const createCirculationParameterColumns = ({ onEdit, onToggleStatus, isToggling }: ColumnProps): ColumnDef<CirculationParameterGridData>[] => {
+export const createCirculationParameterColumns = ({
+    onEdit,
+    onToggleStatus,
+    isToggling
+}: ColumnProps): ColumnDef<CirculationParameterGridData>[] => {
     return [
         {
             id: 'index',
@@ -31,9 +35,7 @@ export const createCirculationParameterColumns = ({ onEdit, onToggleStatus, isTo
                 row.lbcpA_IssueRefFlg ||
                 row.catgname ||
                 row.lmB_BookType ||
-                (row.BOOKFLAG === 'NBP' || row.lmB_BookTypeflag === 'NBP'
-                    ? (row.lmC_CategoryName || 'Non-Book')
-                    : 'Issue'),
+                (row.BOOKFLAG === 'NBP' || row.lmB_BookTypeflag === 'NBP' ? row.lmC_CategoryName || 'Non-Book' : 'Issue'),
             header: ({ column }) => <DataTableColumnHeader column={column} title='Book Type/Category' />,
             cell: ({ row }) => (
                 <div>
@@ -41,7 +43,7 @@ export const createCirculationParameterColumns = ({ onEdit, onToggleStatus, isTo
                         row.original.catgname ||
                         row.original.lmB_BookType ||
                         (row.original.BOOKFLAG === 'NBP' || row.original.lmB_BookTypeflag === 'NBP'
-                            ? (row.original.lmC_CategoryName || 'Non-Book')
+                            ? row.original.lmC_CategoryName || 'Non-Book'
                             : 'Issue')}
                 </div>
             )
@@ -51,19 +53,13 @@ export const createCirculationParameterColumns = ({ onEdit, onToggleStatus, isTo
             accessorFn: (row) => {
                 if (row.asmcL_ClassName) return `Class ${row.asmcL_ClassName}`;
                 if ((row.schclgflag === 'STUDENT' || row.lbcpA_Flg === 'STUDENT') && row.type_Name) return `Class ${row.type_Name}`;
-                return (
-                    row.hrmgT_EmployeeGroupType ||
-                    row.hrmD_DepartmentName ||
-                    row.guest_Name ||
-                    row.type_Name ||
-                    row.schclgflag ||
-                    '-'
-                );
+                return row.hrmgT_EmployeeGroupType || row.hrmD_DepartmentName || row.guest_Name || row.type_Name || row.schclgflag || '-';
             },
             header: ({ column }) => <DataTableColumnHeader column={column} title='Member / Class' />,
             cell: ({ row }) => {
                 const orig = row.original;
-                const className = orig.asmcL_ClassName || ((orig.schclgflag === 'STUDENT' || orig.lbcpA_Flg === 'STUDENT') ? orig.type_Name : undefined);
+                const className =
+                    orig.asmcL_ClassName || (orig.schclgflag === 'STUDENT' || orig.lbcpA_Flg === 'STUDENT' ? orig.type_Name : undefined);
                 return (
                     <div>
                         {className
@@ -149,7 +145,7 @@ export const createCirculationParameterColumns = ({ onEdit, onToggleStatus, isTo
         },
         {
             id: 'actions',
-            header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='text-start pl-2' />,
+            header: ({ column }) => <DataTableColumnHeader column={column} title='Action' className='pl-2 text-start' />,
             cell: ({ row }) => {
                 const orig = row.original;
                 const isActive =
@@ -177,7 +173,7 @@ export const createCirculationParameterColumns = ({ onEdit, onToggleStatus, isTo
                         onEdit={() => onEdit(orig)}
                         onToggle={() => onToggleStatus(orig)}
                         toggleConditionKey='circ_ActiveFlag'
-                        disabled={{ edit: !isActive, toggle: isToggling }}
+                        disabled={{ edit: false, toggle: isToggling }}
                         className='justify-start'
                     />
                 );

@@ -360,9 +360,32 @@ export default function SchoolTpinGeneration() {
                 </DialogContent>
             </Dialog>
 
-            {/* Print Section */}
-            <div className='hidden'>
-                <div ref={printRef} className='p-8 font-sans'>
+            {/* Print Layout */}
+            <div
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: 0,
+                    height: 0,
+                    overflow: 'visible',
+                    opacity: 0,
+                    pointerEvents: 'none',
+                    zIndex: -1
+                }}>
+                <div ref={printRef} className='p-8 print-preview-container min-h-full w-full bg-white text-black'>
+                    <style
+                        dangerouslySetInnerHTML={{
+                            __html: `
+                                @media print {
+                                    @page { margin: 0; size: A4 portrait; }
+                                    body { visibility: hidden; background: white; }
+                                    .print-preview-container { visibility: visible !important; position: absolute; left: 0; top: 0; width: 100%; background: white; color: black; padding: 10mm; }
+                                    .print-preview-container * { visibility: visible !important; }
+                                }
+                            `
+                        }}
+                    />
                     <div className='mb-6 text-center'>
                         <h4 className='font-bold text-xl'>Tpin Generated Student List</h4>
                         <p className='text-md'>Academic Year: {selectedYearName}</p>

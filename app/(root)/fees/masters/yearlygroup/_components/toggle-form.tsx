@@ -52,26 +52,61 @@ export default function ToggleYearColumnForm({ rowData, onClose }: ToggleYearCol
         }
 
         try {
-            const response = await toggleMasterclassYearlyCategory(fyG_Id);
+            const response: any = await toggleMasterclassYearlyCategory(fyG_Id);
 
-            if (response.success) {
-                try {
-                    if (typeof refetchCategory === 'function') {
-                        toast.success(response.message ?? '');
-                        await refetchCategory();
-                    } else if (typeof refetchAll === 'function') {
-                        toast.success(response.message ?? '');
-                        await refetchAll();
-                    }
-                } catch (e) {
-                    console.warn('Failed to refetch after toggle:', e);
-                }
-                closeDialog();
-            } else {
-                toast.error(response.message || 'Failed to update status');
+            const msg: string =
+                (typeof response?.message === 'string' ? response.message : '') ||
+                (typeof response?.returnval === 'string' && response.returnval !== 'false' && response.returnval !== 'true'
+                    ? response.returnval
+                    : '') ||
+                (typeof response?.retrunMsg === 'string' ? response.retrunMsg : '') ||
+                '';
+
+            const isError =
+                !response ||
+                response.success === false ||
+                response.returnval === false ||
+                response.returnval === 'false' ||
+                response.returnval === 'Failed' ||
+                ['failed', 'error', 'invalid', 'cannot', 'can not', 'not found'].some(
+                    (kw) =>
+                        (typeof response?.message === 'string' && response.message.toLowerCase().includes(kw)) ||
+                        (typeof response?.returnval === 'string' && response.returnval.toLowerCase().includes(kw))
+                );
+
+            if (isError) {
+                toast.error(msg || 'Failed to update status', {
+                    style: { color: '#dc2626', borderColor: '#fca5a5' }
+                });
+                return;
             }
-        } catch (error) {
+
+            const isDeactivated = isActive || msg.toLowerCase().includes('deactivat');
+            const displayMsg: string = msg || `Record ${isActive ? 'deactivated' : 'activated'} successfully`;
+
+            if (isDeactivated) {
+                toast.error(displayMsg, {
+                    style: { color: '#dc2626', borderColor: '#fca5a5' }
+                });
+            } else {
+                toast.success(displayMsg);
+            }
+
+            try {
+                if (typeof refetchCategory === 'function') {
+                    await refetchCategory();
+                } else if (typeof refetchAll === 'function') {
+                    await refetchAll();
+                }
+            } catch (e) {
+                console.warn('Failed to refetch after toggle:', e);
+            }
+            closeDialog();
+        } catch (error: any) {
             console.error('ToggleYearColumnForm error:', error);
+            toast.error(error?.message || 'Failed to update status', {
+                style: { color: '#dc2626', borderColor: '#fca5a5' }
+            });
             closeDialog();
         }
     };

@@ -1,5 +1,6 @@
 import type { ICumulativeReport, IMasterInstitution, IReportHeader, ISubject, Institution } from '@/types/exam/exam-module/report';
 import Image from 'next/image';
+
 interface CumulativeReportPrintViewProps {
     reportData: ICumulativeReport[];
     institution: Institution | IMasterInstitution;
@@ -23,40 +24,37 @@ interface CumulativeReportPrintViewProps {
     };
 }
 
-const fontSizeMap = {
-    small: '10px',
-    medium: '11px',
-    large: '12px'
-};
-
 export default function CumulativeReportPrintView({
     reportData,
     institution,
     subjects,
     headerInfo,
-    fontSize,
+    fontSize: _fontSize,
     columnFlags
 }: CumulativeReportPrintViewProps) {
-    const fontSizeValue = fontSizeMap[fontSize];
+    // Separate applicable and non-applicable subjects dynamically (matching Grid View)
+    const applicableSubjects = columnFlags.applicable ? subjects.filter((s) => s.eyceS_AplResultFlg !== false) : [];
+    const nonApplicableSubjects = columnFlags.nonapplicable ? subjects.filter((s) => s.eyceS_AplResultFlg === false) : [];
 
-    // Separate applicable and non-applicable subjects dynamically
-    const applicableSubjects = columnFlags.applicable ? subjects.filter((s) => s.eyceS_AplResultFlg) : [];
-    const nonApplicableSubjects = columnFlags.nonapplicable ? subjects.filter((s) => !s.eyceS_AplResultFlg) : [];
+    const finalApplicableSubjects =
+        applicableSubjects.length > 0 ? applicableSubjects : columnFlags.applicable && !columnFlags.nonapplicable ? subjects : [];
 
     // Helper to get subject header text
     const getSubjectHeaderName = (subj: ISubject) => {
         const name = subj.ismS_SubjectName || '';
         const isEVS = name.toUpperCase().includes('EVS');
-        if (isEVS) return name; // EVS always shows Marks & Grade
+        if (isEVS) return name;
 
         const showMarks = columnFlags.marksdisplay;
         const showGrade = columnFlags.grdaeDisply;
 
         if (showMarks && showGrade) {
             return `${name} (M | G)`;
-        } else if (showMarks) {
+        }
+        if (showMarks) {
             return `${name} (M)`;
-        } else if (showGrade) {
+        }
+        if (showGrade) {
             return `${name} (G)`;
         }
         return name;
@@ -78,286 +76,269 @@ export default function CumulativeReportPrintView({
 
         const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
 
-        if (isEVS || (showMarks && showGrade)) {
-            return (
-                <div className='evs-cell'>
-                    <span>{marksVal ?? '-'}</span>
-                    <span>{gradeVal ?? '-'}</span>
-                </div>
-            );
-        } else if (showMarks) {
+        if (isEVS) {
+            if (marksVal != null && gradeVal) {
+                return `${marksVal} | ${gradeVal}`;
+            }
+            return marksVal ?? gradeVal ?? '-';
+        }
+
+        if (showMarks && showGrade) {
+            if (marksVal != null && gradeVal) {
+                return `${marksVal} | ${gradeVal}`;
+            }
+            return marksVal ?? gradeVal ?? '-';
+        }
+        if (showMarks) {
             return marksVal ?? '-';
-        } else if (showGrade) {
+        }
+        if (showGrade) {
             return gradeVal ?? '-';
         }
         return marksVal ?? gradeVal ?? '-';
     };
 
+    const schoolName = headerInfo.mI_Name || institution?.mI_Name || "BALDWIN BOYS' HIGH SCHOOL";
+
     return (
         <>
-            {/* PRINT STYLES - NO BOLD ANYWHERE */}
+            {/* PRINT STYLES */}
             <style jsx global>{`
-        @media print {
-          @page {
-            size: A4 portrait;
-            margin: 1cm;
-          }
+                @media print {
+                    @page {
+                        size: A4 landscape;
+                        margin: 0.6cm;
+                    }
 
-          body * {
-            visibility: hidden !important;
-          }
-          #printable-report,
-          #printable-report * {
-            visibility: visible !important;
-          }
-          #printable-report {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-          }
+                    body * {
+                        visibility: hidden !important;
+                    }
 
-          .screen-only,
-          .no-print {
-            display: none !important;
-          }
+                    #printable-report,
+                    #printable-report * {
+                        visibility: visible !important;
+                    }
 
-          table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            font-size: ${fontSizeValue} !important;
-          }
+                    #printable-report {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100% !important;
+                        background: #fff !important;
+                        color: #000 !important;
+                    }
 
-          .table-bordered {
-            border: 0.5px solid #000 !important;
-          }
+                    .screen-only,
+                    .no-print {
+                        display: none !important;
+                    }
 
-          .table-bordered > thead > tr > th,
-          .table-bordered > tbody > tr > td {
-            border: 0.5px solid #000 !important;
-            padding: 4px !important;
-            text-align: center !important;
-            vertical-align: middle !important;
-            font-weight: normal !important; /* ← No bold */
-          }
+                    table {
+                        width: 100% !important;
+                        border-collapse: collapse !important;
+                        font-size: 10px !important;
+                        table-layout: auto !important;
+                    }
 
-          .table-bordered > thead > tr > th {
-            background: #fff !important;
-            color: #000 !important;
-            font-size: 12px !important;
-            font-weight: normal !important;
-          }
+                    .print-table {
+                        border: 1px solid #000 !important;
+                    }
 
-          .text-center {
-            text-align: center !important;
-          }
-          .text-left {
-            text-align: left !important;
-          }
-          .text-uppercase {
-            text-transform: uppercase !important;
-          }
+                    .print-table th,
+                    .print-table td {
+                        border: 1px solid #333 !important;
+                        padding: 4px 3px !important;
+                        text-align: center !important;
+                        vertical-align: middle !important;
+                        font-size: 10px !important;
+                        line-height: 1.2 !important;
+                    }
 
-          h3,
-          h5 {
-            margin: 2px 0 !important;
-          }
+                    .print-table th {
+                        background-color: #f2f2f2 !important;
+                        font-weight: 700 !important;
+                        text-transform: uppercase !important;
+                        color: #000 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
 
-          .student-name {
-            text-align: left !important;
-            padding-left: 8px !important;
-          }
+                    .print-header-title {
+                        font-size: 16px !important;
+                        font-weight: 800 !important;
+                        text-align: center !important;
+                        text-transform: uppercase !important;
+                        margin-bottom: 2px !important;
+                        color: #000 !important;
+                    }
 
-          .evs-cell {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 2px 4px;
-          }
+                    .print-header-subtitle {
+                        font-size: 12px !important;
+                        font-weight: 700 !important;
+                        text-align: center !important;
+                        text-transform: uppercase !important;
+                        margin-bottom: 6px !important;
+                        color: #000 !important;
+                    }
 
-          b,
-          strong {
-            font-weight: normal !important;
-          }
+                    .print-meta-grid {
+                        display: flex !important;
+                        justify-content: center !important;
+                        gap: 20px !important;
+                        font-size: 10px !important;
+                        font-weight: 600 !important;
+                        text-transform: uppercase !important;
+                        margin-bottom: 10px !important;
+                        border-bottom: 1px solid #ccc !important;
+                        padding-bottom: 6px !important;
+                    }
 
-          a {
-            color: #000 !important;
-            text-decoration: none !important;
-          }
-        }
+                    .student-name-col {
+                        text-align: left !important;
+                        padding-left: 6px !important;
+                        font-weight: 600 !important;
+                        white-space: nowrap !important;
+                    }
+                }
 
-        @media screen {
-          #printable-report {
-            display: none !important;
-          }
-        }
-      `}</style>
+                @media screen {
+                    #printable-report {
+                        display: none !important;
+                    }
+                }
+            `}</style>
 
             {/* PRINTABLE CONTENT */}
-            <div id='printable-report' className='col-sm-12'>
-                <div id='Baldwin' className='CumulativeReport'>
-                    {/* HEADER */}
-                    {/* <table style={{ width: '100%', marginBottom: '10px' }}>
-                        <tbody>
-                            <tr>
-                                <td colSpan={applicableSubjects.length * 2 + 10} className='text-center'>
-                                    <h3 style={{ margin: '2px 0', fontSize: '18px' }}>
-                                        {institution.mI_Name || 'Vidya Vikasa Vidya Samsthe (R)'}
-                                    </h3>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td colSpan={applicableSubjects.length * 2 + 10} className='text-center'>
-                                    <h5 style={{ margin: '2px 0', fontSize: '15px' }}>CLASS WISE CUMULATIVE REPORT</h5>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td
-                                    colSpan={applicableSubjects.length * 2 + 10}
-                                    className='text-center text-uppercase'
-                                    style={{ fontSize: fontSizeValue }}>
-                                    <span>
-                                        <strong className='font-bold'>ACADEMIC YEAR :</strong> {headerInfo.yr}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td
-                                    colSpan={applicableSubjects.length * 2 + 10}
-                                    className='text-center text-uppercase'
-                                    style={{ fontSize: fontSizeValue }}>
-                                    <span>
-                                        <strong className='font-bold'>CLASS & SEC :</strong> {headerInfo.cla} - {headerInfo.sec}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td
-                                    colSpan={applicableSubjects.length * 2 + 10}
-                                    className='text-center text-uppercase'
-                                    style={{ fontSize: fontSizeValue }}>
-                                    <span>
-                                        <strong className='font-bold'>Exam :</strong> {headerInfo.exmmid}
-                                    </span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table> */}
-                    <div className='mb-8 border-gray-400 border-b-2 pb-6 text-center'>
-                        {institution.mI_Logo ? (
-                            <div className='mb-6 flex justify-center'>
-                                <Image
-                                    src={institution.mI_Logo}
-                                    alt='Institution Logo'
-                                    width={1000}
-                                    height={250}
-                                    className='h-auto max-w-full object-contain'
-                                    unoptimized
-                                    priority
-                                />
-                            </div>
-                        ) : (
-                            <div className='h-32'>
-                                <h3 className='font-bold text-3xl leading-tight'>{institution.mI_Name}</h3>
-                            </div>
-                        )}
-                        <h4 className='mt-3 font-semibold text-xl'>Cumulative REPORT</h4>
+            <div id='printable-report' className='w-full'>
+                {/* HEADER */}
+                <div className='mb-3 text-center'>
+                    {institution?.mI_Logo ? (
+                        <div className='mb-2 flex justify-center'>
+                            <Image
+                                src={institution.mI_Logo}
+                                alt='Institution Logo'
+                                width={600}
+                                height={100}
+                                className='h-14 max-w-full object-contain'
+                                unoptimized
+                                priority
+                            />
+                        </div>
+                    ) : null}
+
+                    <div className='print-header-title'>{schoolName}</div>
+                    <div className='print-header-subtitle'>CLASS WISE CUMULATIVE REPORT</div>
+
+                    <div className='print-meta-grid'>
+                        <div>
+                            <span>ACADEMIC YEAR : </span>
+                            <strong>{headerInfo.yr || '-'}</strong>
+                        </div>
+                        <div>
+                            <span>CLASS &amp; SEC : </span>
+                            <strong>
+                                {headerInfo.cla || '-'} {headerInfo.sec ? `- ${headerInfo.sec}` : ''}
+                            </strong>
+                        </div>
+                        <div>
+                            <span>EXAM : </span>
+                            <strong>{headerInfo.exmmid || '-'}</strong>
+                        </div>
                     </div>
-
-                    {/* MAIN TABLE */}
-                    <table className='table-bordered table-condensed table' style={{ fontSize: fontSizeValue }} border={1}>
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Student Name</th>
-                                {columnFlags.admno && <th>Adm No</th>}
-                                {columnFlags.regno && <th>Reg No</th>}
-                                {columnFlags.rollno && <th>Roll No</th>}
-
-                                {applicableSubjects.map((subj) => (
-                                    <th key={subj.ismS_Id} colSpan={2}>
-                                        {getSubjectHeaderName(subj)}
-                                    </th>
-                                ))}
-
-                                {applicableSubjects.length > 0 && (
-                                    <>
-                                        <th>Total</th>
-                                        <th>Obtained</th>
-                                        {columnFlags.readmit && <th style={{ width: '5%' }}>%</th>}
-                                        {columnFlags.gradecolm && <th>Grade</th>}
-                                        {columnFlags.sectionrank && <th>Section Rank</th>}
-                                        {columnFlags.classrank && <th>Class Rank</th>}
-                                        {columnFlags.attendancedispaly && (
-                                            <>
-                                                <th>Class Held</th>
-                                                <th>Attendance</th>
-                                            </>
-                                        )}
-                                        {columnFlags.status && <th>Status</th>}
-                                    </>
-                                )}
-
-                                {nonApplicableSubjects.map((subj) => (
-                                    <th key={subj.ismS_Id} colSpan={2}>
-                                        {subj.ismS_SubjectName}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {reportData.map((student, index) => {
-                                const isAbsent = student.estmP_Result === 'AB';
-
-                                return (
-                                    <tr key={index}>
-                                        <td>{index + 1}</td>
-                                        <td className='student-name text-left'>{student.amsT_FirstName}</td>
-
-                                        {columnFlags.admno && <td>{student.amsT_AdmNo ?? '-'}</td>}
-                                        {columnFlags.regno && <td>{student.amsT_RegistrationNo ?? '-'}</td>}
-                                        {columnFlags.rollno && <td>{student.amaY_RollNo ?? '-'}</td>}
-
-                                        {/* Applicable Subjects */}
-                                        {applicableSubjects.map((subj) => (
-                                            <td key={subj.ismS_Id} colSpan={2} style={{ padding: '2px' }}>
-                                                {renderPrintMarkContent(subj, student)}
-                                            </td>
-                                        ))}
-
-                                        {/* Total Columns */}
-                                        {applicableSubjects.length > 0 && (
-                                            <>
-                                                <td>{isAbsent ? '' : (student.estmP_TotalMaxMarks ?? '-')}</td>
-                                                <td>{isAbsent ? '' : (student.estmP_TotalObtMarks ?? '-')}</td>
-                                                {columnFlags.readmit && (
-                                                    <td>{isAbsent ? '' : `${Number(student.estmP_Percentage ?? 0).toFixed(1)}%`}</td>
-                                                )}
-                                                {columnFlags.gradecolm && <td>{isAbsent ? '' : (student.estmP_TotalGrade ?? '-')}</td>}
-                                                {columnFlags.sectionrank && <td>{isAbsent || student.estmP_SectionRank === '0' || student.estmP_SectionRank === 0 ? '' : (student.estmP_SectionRank ?? '-')}</td>}
-                                                {columnFlags.classrank && <td>{isAbsent || student.estmP_ClassRank === '0' || student.estmP_ClassRank === 0 ? '' : (student.estmP_ClassRank ?? '-')}</td>}
-                                                {columnFlags.attendancedispaly && (
-                                                    <>
-                                                        <td>{student.classheld ?? '-'}</td>
-                                                        <td>{student.classatt ?? '-'}</td>
-                                                    </>
-                                                )}
-                                                {columnFlags.status && <td>{student.estmP_Result ?? '-'}</td>}
-                                            </>
-                                        )}
-
-                                        {/* Non-applicable subjects */}
-                                        {nonApplicableSubjects.map((subj) => (
-                                            <td key={subj.ismS_Id} colSpan={2} style={{ padding: '2px' }}>
-                                                {renderPrintMarkContent(subj, student)}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
                 </div>
+
+                {/* MAIN TABLE - EXACT MATCH TO GRID VIEW */}
+                <table className='print-table w-full border-collapse'>
+                    <thead>
+                        <tr>
+                            <th style={{ width: '35px' }}>SL NO</th>
+                            <th className='student-name-col'>STUDENT NAME</th>
+                            {columnFlags.admno && <th>ADM NO</th>}
+                            {columnFlags.regno && <th>REG NO</th>}
+                            {columnFlags.rollno && <th>ROLL NO</th>}
+
+                            {/* Applicable Subject Columns */}
+                            {finalApplicableSubjects.map((subj) => (
+                                <th key={subj.ismS_Id}>{getSubjectHeaderName(subj)}</th>
+                            ))}
+
+                            {/* Total Columns */}
+                            <th>TOTAL</th>
+                            <th>OBTAINED</th>
+                            {columnFlags.readmit && <th>PERCENTAGE</th>}
+                            {columnFlags.gradecolm && <th>OVER ALL GRADE</th>}
+                            {columnFlags.sectionrank && <th>SECTION RANK</th>}
+                            {columnFlags.classrank && <th>CLASS RANK</th>}
+                            {!columnFlags.attendancedispaly && (
+                                <>
+                                    <th>CLASS HELD</th>
+                                    <th>ATTENDANCE</th>
+                                </>
+                            )}
+                            {columnFlags.status && <th>STATUS</th>}
+
+                            {/* Non-applicable Subject Columns */}
+                            {nonApplicableSubjects.map((subj) => (
+                                <th key={subj.ismS_Id}>{getSubjectHeaderName(subj)}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {reportData.map((student, idx) => {
+                            const isAbsent = student.estmP_Result === 'AB';
+
+                            return (
+                                <tr key={idx}>
+                                    <td>{idx + 1}</td>
+                                    <td className='student-name-col'>{student.amsT_FirstName}</td>
+
+                                    {columnFlags.admno && <td>{student.amsT_AdmNo ?? '-'}</td>}
+                                    {columnFlags.regno && <td>{student.amsT_RegistrationNo ?? '-'}</td>}
+                                    {columnFlags.rollno && <td>{student.amaY_RollNo ?? '-'}</td>}
+
+                                    {/* Applicable Subjects Marks */}
+                                    {finalApplicableSubjects.map((subj) => (
+                                        <td key={subj.ismS_Id}>{renderPrintMarkContent(subj, student)}</td>
+                                    ))}
+
+                                    {/* Totals & Ranks */}
+                                    <td>{isAbsent ? '' : (student.estmP_TotalMaxMarks ?? '-')}</td>
+                                    <td>{isAbsent ? '' : (student.estmP_TotalObtMarks ?? '-')}</td>
+                                    {columnFlags.readmit && (
+                                        <td>{isAbsent ? '-' : student.estmP_Percentage ? `${student.estmP_Percentage}` : '-'}</td>
+                                    )}
+                                    {columnFlags.gradecolm && <td>{isAbsent ? '' : (student.estmP_TotalGrade ?? '-')}</td>}
+                                    {columnFlags.sectionrank && (
+                                        <td>
+                                            {isAbsent || student.estmP_SectionRank === '0' || student.estmP_SectionRank === 0
+                                                ? ''
+                                                : (student.estmP_SectionRank ?? '-')}
+                                        </td>
+                                    )}
+                                    {columnFlags.classrank && (
+                                        <td>
+                                            {isAbsent || student.estmP_ClassRank === '0' || student.estmP_ClassRank === 0
+                                                ? ''
+                                                : (student.estmP_ClassRank ?? '-')}
+                                        </td>
+                                    )}
+                                    {!columnFlags.attendancedispaly && (
+                                        <>
+                                            <td>{student.classheld ?? '-'}</td>
+                                            <td>{student.classatt ?? '-'}</td>
+                                        </>
+                                    )}
+                                    {columnFlags.status && <td>{student.estmP_Result ?? '-'}</td>}
+
+                                    {/* Non-applicable Subjects Marks */}
+                                    {nonApplicableSubjects.map((subj) => (
+                                        <td key={subj.ismS_Id}>{renderPrintMarkContent(subj, student)}</td>
+                                    ))}
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
             </div>
         </>
     );

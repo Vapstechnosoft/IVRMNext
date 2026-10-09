@@ -23,7 +23,7 @@ interface VisitorFormProps {
     initialData?: any; // To be typed properly if we handle edits
 }
 
-export default function VisitorForm({ onSuccess, initialData }: VisitorFormProps) {
+export default function VisitorForm({ onSuccess, initialData: _initialData }: VisitorFormProps) {
     const { saveVisitor, data: loadedData, searchPrevious, searchAppointment } = useAddVisitor();
     const [showPreviousModal, setShowPreviousModal] = useState(false);
     const [showAppointmentModal, setShowAppointmentModal] = useState(false);
@@ -146,7 +146,26 @@ export default function VisitorForm({ onSuccess, initialData }: VisitorFormProps
                                     Contact No <span className='text-red-500'>*</span>
                                 </FormLabel>
                                 <FormControl>
-                                    <Input {...field} placeholder='Enter Mobile No' maxLength={10} />
+                                    <Input
+                                        {...field}
+                                        placeholder='Enter Mobile No'
+                                        maxLength={10}
+                                        inputMode='numeric'
+                                        onChange={(e) => {
+                                            const numericValue = e.target.value.replace(/\D/g, '');
+                                            field.onChange(numericValue);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (
+                                                !/[0-9]/.test(e.key) &&
+                                                !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes(e.key) &&
+                                                !e.ctrlKey &&
+                                                !e.metaKey
+                                            ) {
+                                                e.preventDefault();
+                                            }
+                                        }}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -485,7 +504,28 @@ export default function VisitorForm({ onSuccess, initialData }: VisitorFormProps
                                             Contact No <span className='text-red-500'>*</span>
                                         </FormLabel>
                                         <FormControl>
-                                            <Input {...field} placeholder='Mobile No' />
+                                            <Input
+                                                {...field}
+                                                placeholder='Mobile No'
+                                                maxLength={10}
+                                                inputMode='numeric'
+                                                onChange={(e) => {
+                                                    const numericValue = e.target.value.replace(/\D/g, '');
+                                                    field.onChange(numericValue);
+                                                }}
+                                                onKeyDown={(e) => {
+                                                    if (
+                                                        !/[0-9]/.test(e.key) &&
+                                                        !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes(
+                                                            e.key
+                                                        ) &&
+                                                        !e.ctrlKey &&
+                                                        !e.metaKey
+                                                    ) {
+                                                        e.preventDefault();
+                                                    }
+                                                }}
+                                            />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

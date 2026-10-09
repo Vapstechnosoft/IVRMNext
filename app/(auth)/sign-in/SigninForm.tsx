@@ -38,7 +38,7 @@ export default function SigninForm() {
 
     const { data: _preadmissionLive } = useCheckPreadmissionLive(sub_domain?.toString() || '');
 
-    const callbackUrl = searchParams.get('callbackUrl') || '/school-admin';
+    const callbackUrl = searchParams.get('callbackUrl') || '/';
     const [error, setError] = useState<string | undefined>('');
     const [isPending, startTransition] = useTransition();
     const [mounted, setMounted] = useState(false);

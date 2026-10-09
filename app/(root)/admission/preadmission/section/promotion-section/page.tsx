@@ -156,7 +156,8 @@ export default function MasterPromotionSectionPage(props: {
                     const response = await getPromotionSection(payload);
 
                     if (response?.data) {
-                        const convertedStudents = response.data.map(convertApiStudentToInternal);
+                        const convertedStudents: Student[] = response.data.map(convertApiStudentToInternal);
+                        convertedStudents.sort((a: Student, b: Student) => a.studentName.localeCompare(b.studentName));
                         const studentsWithSiNo = recalculateSiNo(convertedStudents);
                         setLeftStudents(studentsWithSiNo);
                         setShowLeftTable(true);
@@ -207,7 +208,12 @@ export default function MasterPromotionSectionPage(props: {
 
                     if (targetClass) {
                         const newRightClass = targetClass.asmcL_Id.toString();
-                        setValue('rightClass', newRightClass);
+                        if (newRightClass === leftClassAdmitted) {
+                            toast.error('Same class cannot be promoted. Please select a different class!');
+                            setValue('rightClass', '');
+                        } else {
+                            setValue('rightClass', newRightClass);
+                        }
                         setValue('rightSection', '');
                         setRightStudents([]);
                         setRightSelectedStudents(new Set());
@@ -324,7 +330,7 @@ export default function MasterPromotionSectionPage(props: {
         if (!rightSection) {
             setValue('rightSection', '');
         }
-        if (value === rightSection) {
+        if (value === rightSection && leftClassAdmitted === rightClass && leftAcademicYear === rightAcademicYear) {
             setRightStudents([]);
             setRightSelectedStudents(new Set());
             setRightSelectAll(false);
@@ -335,6 +341,16 @@ export default function MasterPromotionSectionPage(props: {
     };
 
     const handleRightClassChange = (value: string) => {
+        if (value && value === leftClassAdmitted) {
+            toast.error('Same class cannot be promoted. Please select a different class!');
+            setValue('rightClass', '');
+            setValue('rightSection', '');
+            setRightStudents([]);
+            setRightSelectedStudents(new Set());
+            setRightSelectAll(false);
+            setShowRightTable(false);
+            return;
+        }
         setValue('rightClass', value);
         setValue('rightSection', '');
         setRightStudents([]);
@@ -345,7 +361,7 @@ export default function MasterPromotionSectionPage(props: {
     };
 
     const handleRightSectionChange = (value: string) => {
-        if (value === leftSection) {
+        if (value === leftSection && leftClassAdmitted === rightClass && leftAcademicYear === rightAcademicYear) {
             toast.error('Selected Section Is Already Assigned. Please Select Different One!');
             return;
         }
@@ -402,6 +418,11 @@ export default function MasterPromotionSectionPage(props: {
             return;
         }
 
+        if (rightClass === leftClassAdmitted) {
+            toast.error('Same class cannot be promoted. Please select a different class!');
+            return;
+        }
+
         const studentsToMove = leftStudents.filter((s) => leftSelectedStudents.has(s.studentId));
         const remainingLeft = leftStudents.filter((s) => !leftSelectedStudents.has(s.studentId));
 
@@ -415,7 +436,8 @@ export default function MasterPromotionSectionPage(props: {
         }));
 
         setLeftStudents(recalculateSiNo(remainingLeft));
-        setRightStudents(recalculateSiNo([...rightStudents, ...updatedStudents]));
+        const sortedRight = [...rightStudents, ...updatedStudents].sort((a, b) => a.studentName.localeCompare(b.studentName));
+        setRightStudents(recalculateSiNo(sortedRight));
         setLeftSelectedStudents(new Set());
 
         toast.success(`Moved ${studentsToMove.length} student(s) to destination`);
@@ -438,7 +460,8 @@ export default function MasterPromotionSectionPage(props: {
             sectionName: getSectionDisplay(leftSection)
         }));
 
-        setLeftStudents(recalculateSiNo([...leftStudents, ...updatedStudents]));
+        const sortedLeft = [...leftStudents, ...updatedStudents].sort((a, b) => a.studentName.localeCompare(b.studentName));
+        setLeftStudents(recalculateSiNo(sortedLeft));
         setRightStudents(recalculateSiNo(remainingRight));
         setRightSelectedStudents(new Set());
 
