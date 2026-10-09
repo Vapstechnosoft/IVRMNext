@@ -10,7 +10,7 @@ import {
 import type { MainMenuModuleDTO, MasterMainMenuINSDTO } from '@/types/super-admin/configuration-setting/master-main-menu-ins';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import MainMenuGrid from './_components/main-menu-grid';
@@ -36,6 +36,16 @@ export default function MasterMainMenuINSPage() {
 
     const [gridData, setGridData] = useState<MasterMainMenuINSDTO[]>([]);
     const [moduleMenuData, setModuleMenuData] = useState<MainMenuModuleDTO[]>([]);
+
+    const institutionId = useWatch({
+        control: methods.control,
+        name: 'institution'
+    });
+
+    const moduleId = useWatch({
+        control: methods.control,
+        name: 'module'
+    })
 
     useEffect(() => {
         const fetchGridData = async () => {
@@ -63,32 +73,56 @@ export default function MasterMainMenuINSPage() {
                 console.error('Error in fetchGridData:', error);
             }
 
-            // Fetch Module Menu List (New Grid)
-            try {
-                const modResponse = await getModuleMenuList();
-                if (modResponse.success && modResponse.data?.moduleList) {
-                    // Strict deduplication for Module List
-                    const uniqueData = Array.from(
-                        new Map(
-                            modResponse.data.moduleList
-                                .filter((item) => item && item.ivrmmM_Id != null)
-                                .map((item) => [String(item.ivrmmM_Id), item])
-                        ).values()
-                    );
-
-                    if (uniqueData.length !== modResponse.data.moduleList.length) {
-                        console.warn(
-                            `Removed ${modResponse.data.moduleList.length - uniqueData.length} duplicate records from Module Menu Grid`
-                        );
-                    }
-                    setModuleMenuData(uniqueData);
-                }
-            } catch (error) {
-                console.error('Error in fetchModuleList:', error);
-            }
+           
         };
         fetchGridData();
     }, []);
+
+    useEffect(() => {
+    const fetchModuleMenuList = async () => {
+        if (!institutionId || !moduleId) {
+            setModuleMenuData([]);
+            return;
+        }
+
+        try {
+            const response = await getModuleMenuList(
+                Number(institutionId),
+                Number(moduleId)
+            );
+
+            if (response.success && response.data?.moduleList) {
+                const uniqueData = Array.from(
+                    new Map(
+                        response.data.moduleList
+                            .filter(
+                                (item) =>
+                                    item &&
+                                    item.ivrmmM_Id != null
+                            )
+                            .map((item) => [
+                                String(item.ivrmmM_Id),
+                                item
+                            ])
+                    ).values()
+                );
+
+                setModuleMenuData(uniqueData);
+            } else {
+                setModuleMenuData([]);
+            }
+        } catch (error) {
+            console.error(
+                'Error fetching Module Menu List:',
+                error
+            );
+
+            setModuleMenuData([]);
+        }
+    };
+
+    fetchModuleMenuList();
+}, [moduleId]);
 
     const handleDelete = async (item: MasterMainMenuINSDTO) => {
         if (confirm(`Are you sure you want to delete ${item.ivrmmmI_MenuName}?`)) {

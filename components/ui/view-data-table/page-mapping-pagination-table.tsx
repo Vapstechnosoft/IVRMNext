@@ -3,7 +3,7 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from 'lucide-react';
-import { type ReactNode, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 
 export interface PageMappingTableColumn<T> {
     header: ReactNode;
@@ -25,6 +25,8 @@ export interface PageMappingPaginationTableProps<T> {
     selectionPosition?: 'start' | 'end';
     selectionHeader?: React.ReactNode;
     selectionHeaderLabel?: string;
+    variant?: 'default' | 'web-grid';
+    headerBgColor?: string;
 }
 
 function getPageNumbers(currentPage: number, totalPages: number) {
@@ -55,10 +57,16 @@ export function PageMappingPaginationTable<T>({
     searchPlaceholder = 'Search...',
     selectionPosition = 'start',
     selectionHeader,
-    selectionHeaderLabel
+    selectionHeaderLabel,
+    variant = 'default',
+    headerBgColor = 'bg-purple-600'
 }: PageMappingPaginationTableProps<T>) {
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [data.length]);
 
     // Filter data based on search term and keys
     const filteredData = useMemo(() => {
@@ -100,22 +108,28 @@ export function PageMappingPaginationTable<T>({
             );
         }
     };
-    
+
     const showSelection = !!(selectedIds && onSelect && onSelectAll);
+    const isWebGrid = variant === 'web-grid';
 
     const renderSelectionHeader = () => {
         if (!showSelection) return null;
         return (
-            <th className='w-12 p-3 text-center align-middle'>
+            <th
+                className={`text-center align-middle ${isWebGrid ? 'border border-white px-2 py-1' : 'w-12 p-3'
+                    }`}>
                 {selectionHeader !== undefined ? (
                     selectionHeader
                 ) : (
-                    <div className="flex flex-col items-center justify-center gap-1 font-bold text-[10px] uppercase">
+                    <div
+                        className={`font-bold text-[10px] uppercase text-white ${isWebGrid ? 'flex items-center justify-center gap-1' : 'flex flex-col items-center justify-center gap-1'
+                            }`}>
                         {selectionHeaderLabel && <span>{selectionHeaderLabel}</span>}
                         <Checkbox
                             checked={isAllSelected ? true : isSomeSelected ? 'indeterminate' : false}
                             onCheckedChange={(value) => handleSelectAll(!!value)}
                             aria-label='Select all'
+                            className='bg-white'
                         />
                     </div>
                 )}
@@ -126,7 +140,7 @@ export function PageMappingPaginationTable<T>({
     const renderSelectionCell = (item: T) => {
         if (!showSelection || !selectedIds || !onSelect) return null;
         return (
-            <td className='px-3 py-2 text-center'>
+            <td className={isWebGrid ? 'border border-[#c8d3df] px-2 py-1 text-center' : 'px-3 py-2 text-center'}>
                 <Checkbox
                     checked={selectedIds.has(item[idKey])}
                     onCheckedChange={(value) => onSelect(item[idKey], !!value)}
@@ -137,15 +151,22 @@ export function PageMappingPaginationTable<T>({
     };
 
     return (
-        <div className='w-full space-y-4'>
-            <div className='flex items-center justify-between'>
-                <div className='font-medium text-foreground text-sm'>Items ({filteredData.length} total)</div>
+        <div className='w-full space-y-2'>
+            <div className={`flex items-center ${isWebGrid ? 'justify-end' : 'justify-between'}`}>
+                {!isWebGrid && <div className='font-medium text-foreground text-sm'>Items ({filteredData.length} total)</div>}
                 {searchKeys.length > 0 && (
                     <div className='relative w-64'>
-                        <Search className='absolute top-2.5 left-2 h-4 w-4 text-muted-foreground' />
+                        <Search
+                            className={`absolute left-2 ${isWebGrid ? 'top-1.5 h-4 w-4 text-blue-700' : 'top-2.5 h-4 w-4 text-muted-foreground'
+                                }`}
+                        />
                         <Input
                             placeholder={searchPlaceholder}
-                            className='pl-8'
+                            className={
+                                isWebGrid
+                                    ? 'h-7 border-blue-300 pl-8 text-xs placeholder:text-gray-400 focus-visible:ring-blue-500'
+                                    : 'pl-8'
+                            }
                             value={searchTerm}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
@@ -156,14 +177,19 @@ export function PageMappingPaginationTable<T>({
                 )}
             </div>
 
-            <div className='overflow-hidden rounded-md border'>
-                <div className='max-h-[300px] overflow-x-auto'>
-                    <table className='w-full text-sm'>
-                        <thead className='sticky top-0 z-10 bg-muted/50'>
-                            <tr className='border-b'>
+            <div className='overflow-hidden '>
+                <div className='max-h-[350px] overflow-x-auto'>
+                    <table className={`w-full text-sm ${isWebGrid ? 'border-collapse' : ''}`}>
+                        <thead className={`sticky top-0 z-10 ${isWebGrid ? headerBgColor : 'bg-muted/50'}`}>
+                            <tr className={isWebGrid ? 'border-b border-white' : 'border-b'}>
                                 {selectionPosition === 'start' && renderSelectionHeader()}
                                 {columns.map((col, index) => (
-                                    <th key={index} className={`p-3 text-left font-medium ${col.headerClassName || ''}`}>
+                                    <th
+                                        key={index}
+                                        className={`${isWebGrid
+                                                ? 'border border-white px-2 py-1 text-center font-bold text-white'
+                                                : 'p-3 text-left font-medium'
+                                            } ${col.headerClassName || ''}`}>
                                         {col.header}
                                     </th>
                                 ))}
@@ -179,10 +205,29 @@ export function PageMappingPaginationTable<T>({
                                 </tr>
                             ) : (
                                 paginatedData.map((item, index) => (
-                                    <tr key={String(item[idKey])} className='border-b transition-colors hover:bg-muted/50'>
+                                    <tr
+                                        key={String(item[idKey])}
+                                        className={
+                                            isWebGrid
+                                                ? `border-b border-[#c8d3df] transition-colors ${
+                                                    headerBgColor.includes('green')
+                                                        ? 'hover:bg-green-50/50'
+                                                        : headerBgColor.includes('purple')
+                                                        ? 'hover:bg-purple-50/50'
+                                                        : headerBgColor.includes('orange')
+                                                        ? 'hover:bg-orange-50/50'
+                                                        : 'hover:bg-blue-50'
+                                                }`
+                                                : 'border-b transition-colors hover:bg-muted/50'
+                                        }>
                                         {selectionPosition === 'start' && renderSelectionCell(item)}
                                         {columns.map((col, colIndex) => (
-                                            <td key={colIndex} className={`px-3 ${col.className || ''}`}>
+                                            <td
+                                                key={colIndex}
+                                                className={`${isWebGrid
+                                                        ? 'border border-[#c8d3df] px-2 py-1 text-sm font-semibold'
+                                                        : 'px-3'
+                                                    } ${col.className || ''}`}>
                                                 {col.cell(item, index, currentPage, itemsPerPage)}
                                             </td>
                                         ))}
@@ -222,11 +267,10 @@ export function PageMappingPaginationTable<T>({
                                 key={pageNum}
                                 type="button"
                                 onClick={() => setCurrentPage(pageNum as number)}
-                                className={`flex h-8 min-w-[32px] items-center justify-center rounded-full font-medium text-sm transition-all ${
-                                    currentPage === pageNum
+                                className={`flex h-8 min-w-[32px] items-center justify-center rounded-full font-medium text-sm transition-all ${currentPage === pageNum
                                         ? 'bg-[#E05C2B] text-white shadow-md'
                                         : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                                }`}>
+                                    }`}>
                                 {pageNum}
                             </button>
                         )

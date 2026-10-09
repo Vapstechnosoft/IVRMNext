@@ -145,6 +145,7 @@ export default function AddMasterGradeForm({
                     emgD_ActiveFlag: row.emgD_ActiveFlag
                 }))
             };
+            console.log('master_grade_payload', payload);
             const response = await addOrUpdateMasterGrade(payload);
             if (response.success) {
                 toast.success(response.message);
