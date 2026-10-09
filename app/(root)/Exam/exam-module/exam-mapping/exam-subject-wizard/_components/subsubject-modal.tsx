@@ -348,6 +348,78 @@ export default function SubSubjectModal({
     }, [parentMaxMarks, parentMinMarks, parentMarksEntryMax]);
 
     // ----------------------------------
+    // Populate initial list
+    // ----------------------------------
+    useEffect(() => {
+        if (!open) return;
+
+        if (!subject) {
+            reset({ subsubject_list: [] });
+            dataRef.current.clear();
+            setValidationErrors({});
+            validationErrorsRef.current = {};
+            setIsLoading(false);
+            return;
+        }
+
+        setIsLoading(true);
+
+        setTimeout(() => {
+            const rawList = subject.list ?? [];
+
+            const list = rawList.map((l: any) => ({
+                ...l,
+                emsS_Id: l.emsS_Id ?? l.EMSS_Id,
+                emsS_SubSubjectName: l.emsS_SubSubjectName ?? l.EMSS_SubSubjectName ?? '',
+                emsS_SubSubjectCode: l.emsS_SubSubjectCode ?? l.EMSS_SubSubjectCode ?? '',
+                checkedvalue: Boolean(l.checkedvalue),
+                eycessS_MaxMarks: l.eycessS_MaxMarks ?? '',
+                eycessS_MinMarks: l.eycessS_MinMarks ?? '',
+                emgR_Id: l.emgR_Id ?? '',
+                eycessS_ExemptedFlg: !!l.eycessS_ExemptedFlg,
+                eycessS_ExemptedPer: l.eycessS_ExemptedPer ?? '',
+                eycessS_MarksDisplayFlg: !!l.eycessS_MarksDisplayFlg,
+                eycessS_GradeDisplayFlg: !!l.eycessS_GradeDisplayFlg,
+                eycessS_AplResultFlg: !!l.eycessS_AplResultFlg,
+                eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? '',
+                eycessS_SubSubjectOrder: l.eycessS_SubSubjectOrder ?? l.emsS_SubSubjectOrder ?? 0
+            }));
+
+            const sortedList = [...list].sort((a, b) => (a.eycessS_SubSubjectOrder ?? 0) - (b.eycessS_SubSubjectOrder ?? 0));
+
+            dataRef.current = new Map(sortedList.map((item) => [item.emsS_Id, item]));
+
+            reset({ subsubject_list: sortedList });
+            setValidationErrors({});
+            validationErrorsRef.current = {};
+            setIsLoading(false);
+        }, 100);
+    }, [open, subject, reset]);
+
+    // Filtered data (memoized)
+    const filteredData = useMemo(() => {
+        const allData = formData || [];
+        const term = searchTerm.trim().toLowerCase();
+        if (!term) return allData;
+        return allData.filter((item) => {
+            return (
+                (item.emsS_SubSubjectName ?? '').toString().toLowerCase().includes(term) ||
+                (item.emsS_SubSubjectCode ?? '').toString().toLowerCase().includes(term)
+            );
+        });
+    }, [formData, searchTerm]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / ITEMS_PER_PAGE));
+
+    useEffect(() => {
+        setCurrentPage((p) => Math.min(Math.max(1, p), totalPages));
+    }, [totalPages]);
+
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredData.length);
+    const paginatedData = useMemo(() => filteredData.slice(startIndex, endIndex), [filteredData, startIndex, endIndex]);
+
+    // ----------------------------------
     // Validation Functions
     // ----------------------------------
     const validateField = useCallback(
@@ -727,7 +799,7 @@ export default function SubSubjectModal({
             <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
                 <DialogContent className='max-h-[80vh] w-full min-w-[80vw] overflow-hidden pt-0'>
                     <DialogHeader className='bg-white pt-4'>
-                        <DialogTitle>{`Map Sub-Subjects — ${subject?.ISMS_SubjectName}`}</DialogTitle>
+                        <DialogTitle>{`Map Sub-Subjects — ${subject?.ismS_SubjectName ?? subject?.ISMS_SubjectName ?? ''}`}</DialogTitle>
                         <div className='text-muted-foreground text-sm'>Loading sub-subject details...</div>
                     </DialogHeader>
                     <div className='max-h-[55vh] overflow-auto'>{renderSkeletonTable()}</div>
@@ -757,7 +829,7 @@ export default function SubSubjectModal({
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
             <DialogContent className='flex h-[90vh] w-full min-w-[80vw] flex-col overflow-hidden pt-0'>
                 <DialogHeader className='shrink-0 border-b bg-white pt-4 pb-2'>
-                    <DialogTitle>{`Map Sub-Subjects — ${subject.ismS_SubjectName}`}</DialogTitle>
+                    <DialogTitle>{`Map Sub-Subjects — ${subject?.ismS_SubjectName ?? subject?.ISMS_SubjectName ?? ''}`}</DialogTitle>
                     <div className='text-muted-foreground text-sm'>
                         Parent Subject: Max={parentMaxMarks}, Min={parentMinMarks}
                     </div>
