@@ -661,7 +661,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
         const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
         const fallback: Record<string, number> = {
-            '91': 10,
+            '91': 12,
             '1': 10,
             '44': 10,
             '61': 9

@@ -1790,8 +1790,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
 
                 // 9. BLOOD GROUP
-                const bloodGroup = data.amsT_BloodGroup ?? data.bloodGroup ?? data.blood_Group ?? payload.amsT_BloodGroup;
-                if (bloodGroup) setValue('amsT_BloodGroup', String(bloodGroup));
+                const rawBloodGroup = data.amsT_BloodGroup ?? data.bloodGroup ?? data.blood_Group ?? payload?.amsT_BloodGroup ?? payload?.bloodGroup ?? payload?.blood_Group;
+                if (rawBloodGroup) {
+                    let bg = String(rawBloodGroup).trim();
+                    // Some DBs store 'O+ve' instead of 'O+'
+                    if (bg.endsWith('ve')) {
+                        bg = bg.replace('ve', '');
+                    }
+                    setValue('amsT_BloodGroup', bg);
+                }
 
                 // 10. REFRESH DROPDOWNS & SYNC AUXILIARY STATE
                 try {
@@ -1849,17 +1856,22 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const _initializedIdRef = useRef<number | null>(null);
 
     const amsTIdFromRow = rowData?.amsT_Id || rowData?.data?.amsT_Id || rowData?.firstTab?.amsT_Id;
-    const { data: fullFormData, isLoading: isFullFormLoading } = useStudentAdmissionFormById(Number(amsTIdFromRow) || 0);
+    const { data: fullFormData, isLoading: isFullFormLoading, isFetching: isFullFormFetching } = useStudentAdmissionFormById(Number(amsTIdFromRow) || 0);
 
     useEffect(() => {
         const id = amsTIdFromRow;
-        if (!id || !fullFormData || id === _initializedIdRef.current) return;
+        if (!id || !fullFormData) return;
+
+        // Skip initialization if we are currently fetching fresh data from the server (avoids binding stale cached data)
+        if (isFullFormFetching) return;
+
+        if (id === _initializedIdRef.current) return;
 
         _initializedIdRef.current = id;
         // Merge rowData and fullFormData just in case, but use fullFormData as primary
         const dataToInitialize = { ...rowData, ...fullFormData };
         initializeFormData(dataToInitialize);
-    }, [fullFormData, amsTIdFromRow, initializeFormData, rowData]);
+    }, [fullFormData, amsTIdFromRow, initializeFormData, rowData, isFullFormFetching]);
 
     const watchedCasteId = watch('imC_Id' as any);
 
@@ -5384,7 +5396,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
                                                                     value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
@@ -5407,7 +5418,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
                                                                     value={field.value || ''}>
                                                                     <SelectTrigger>
