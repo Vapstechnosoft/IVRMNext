@@ -1,5 +1,5 @@
 import { number, z } from 'zod';
-import { createOptionalNumberOnlyStringSchema, createStringOnlySchema, deleteIdSchema } from '../validationSchemas';
+import { createOptionalNumberOnlyStringSchema, createStringOnlySchema, deleteIdSchema, createStringSchema } from '../validationSchemas';
 
 export const masterDaySchema = {
     addOrUpdate: z.object({
@@ -53,7 +53,7 @@ export const staffabbreviationsSchema = {
 export const subjectabbreviationsSchema = {
     addOrUpdate: z.object({
         ismS_Id: number().min(1, 'Please select an Subject'),
-        ttmsuaB_Abbreviation: createStringOnlySchema('Abbreviation', 1, 100)
+        ttmsuaB_Abbreviation: createStringSchema('Abbreviation', 1, 100)
     }),
     delete: z.object({
         ttmsuaB_Id: deleteIdSchema('ttmsuaB_Id')
