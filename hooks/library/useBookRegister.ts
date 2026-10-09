@@ -83,7 +83,7 @@ export function useBookRegister(searchParams?: ApiSearchparams) {
             }
         }),
         deactivateMutation: useMutation({
-            mutationFn: (data: { LMBANO_Id?: number; LMB_Id?: number; LMB_BookTitle?: string }) => deactivateBookRegister(data),
+            mutationFn: (data: { LMBANO_Id?: number; LMB_Id?: number; LMB_BookTitle?: string; returnval?: boolean; [key: string]: any }) => deactivateBookRegister(data),
             onSuccess: () => {
                 queryClient.invalidateQueries({
                     queryKey: [LIBRARY_QUERY_KEYS.BOOK_REGISTER]
