@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFeeMasterConfiguration } from '@/hooks/fees/useTrasactions';
+import { cn } from '@/lib/utils';
 import { yearlyFeeCollectionSchema } from '@/schemas/fees/reports';
 import { getFeeYearlyCollectionReport } from '@/server/fees/reports/fee_yearlyCollectionReport';
 import type {
@@ -58,8 +59,26 @@ import {
 
 const Checkbox = ({ checked, indeterminate, onCheckedChange, ...props }: any) => {
     const ref = useRef<HTMLButtonElement>(null);
+    const resolvedChecked = indeterminate ? 'indeterminate' : checked;
 
-    return <BaseCheckbox ref={ref} checked={checked} onCheckedChange={onCheckedChange} {...props} />;
+    return <BaseCheckbox ref={ref} checked={resolvedChecked} onCheckedChange={onCheckedChange} {...props} />;
+};
+
+const HeaderCheckbox = ({ checked, indeterminate, onCheckedChange, className, ...props }: any) => {
+    return (
+        <Checkbox
+            checked={checked}
+            indeterminate={indeterminate}
+            onCheckedChange={onCheckedChange}
+            className={cn(
+                'cursor-pointer border-2 border-white bg-white/20 hover:bg-white/30 data-[state=checked]:bg-white data-[state=indeterminate]:bg-white data-[state=checked]:text-primary data-[state=indeterminate]:text-primary',
+                className
+            )}
+            title='Select All'
+            aria-label='Select All'
+            {...props}
+        />
+    );
 };
 
 type FormFields = z.infer<typeof yearlyFeeCollectionSchema>;
@@ -2147,7 +2166,7 @@ export default function FeeYearlyCollectionReport() {
                                                                             <thead className='bg-primary text-white'>
                                                                                 <tr>
                                                                                     <th className='p-2 text-center'>
-                                                                                        <Checkbox
+                                                                                        <HeaderCheckbox
                                                                                             checked={
                                                                                                 selectedIds.length === reportData.length &&
                                                                                                 reportData.length > 0
@@ -2356,7 +2375,7 @@ export default function FeeYearlyCollectionReport() {
                                                                             <thead className='bg-primary text-white'>
                                                                                 <tr>
                                                                                     <th className='p-2 text-center'>
-                                                                                        <Checkbox
+                                                                                        <HeaderCheckbox
                                                                                             checked={
                                                                                                 selectedIds.length === reportData.length &&
                                                                                                 reportData.length > 0
@@ -2545,7 +2564,7 @@ export default function FeeYearlyCollectionReport() {
                                                                             <thead className='bg-primary text-white'>
                                                                                 <tr>
                                                                                     <th className='p-2 text-center'>
-                                                                                        <Checkbox
+                                                                                        <HeaderCheckbox
                                                                                             checked={
                                                                                                 selectedIds.length === reportData.length &&
                                                                                                 reportData.length > 0
@@ -2749,7 +2768,7 @@ export default function FeeYearlyCollectionReport() {
                                                                         <thead className='bg-primary text-white'>
                                                                             <tr>
                                                                                 <th className='border p-2 text-center'>
-                                                                                    <Checkbox
+                                                                                    <HeaderCheckbox
                                                                                         checked={
                                                                                             selectedIds.length === reportData.length &&
                                                                                             reportData.length > 0
@@ -2989,7 +3008,7 @@ export default function FeeYearlyCollectionReport() {
                                                                             <thead className='bg-primary text-white'>
                                                                                 <tr>
                                                                                     <th className='p-2 text-center'>
-                                                                                        <Checkbox
+                                                                                        <HeaderCheckbox
                                                                                             checked={
                                                                                                 selectedIds.length === reportData.length &&
                                                                                                 reportData.length > 0
@@ -3163,7 +3182,7 @@ export default function FeeYearlyCollectionReport() {
                                                                         <thead className='bg-primary text-white'>
                                                                             <tr>
                                                                                 <th className='border p-2 text-center' rowSpan={2}>
-                                                                                    <Checkbox
+                                                                                    <HeaderCheckbox
                                                                                         checked={
                                                                                             selectedIds.length === reportData.length &&
                                                                                             reportData.length > 0
@@ -3484,7 +3503,7 @@ export default function FeeYearlyCollectionReport() {
                                                                             <thead className='bg-primary text-white'>
                                                                                 <tr>
                                                                                     <th className='p-2 text-center'>
-                                                                                        <Checkbox
+                                                                                        <HeaderCheckbox
                                                                                             checked={
                                                                                                 selectedIds.length === reportData.length &&
                                                                                                 reportData.length > 0
@@ -3621,7 +3640,7 @@ export default function FeeYearlyCollectionReport() {
                                                                             <thead className='bg-primary text-white'>
                                                                                 <tr>
                                                                                     <th className='p-2 text-center'>
-                                                                                        <Checkbox
+                                                                                        <HeaderCheckbox
                                                                                             checked={
                                                                                                 selectedIds.length === reportData.length &&
                                                                                                 reportData.length > 0
@@ -3826,7 +3845,7 @@ export default function FeeYearlyCollectionReport() {
                                                                             <thead className='bg-primary text-white'>
                                                                                 <tr>
                                                                                     <th className='p-2 text-center'>
-                                                                                        <Checkbox
+                                                                                        <HeaderCheckbox
                                                                                             checked={
                                                                                                 selectedIds.length === reportData.length &&
                                                                                                 reportData.length > 0
