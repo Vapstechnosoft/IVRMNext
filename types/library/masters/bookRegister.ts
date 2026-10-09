@@ -63,6 +63,11 @@ export interface BookRegister {
     with_Accessories?: boolean;
     lmaC_Id?: number;
     mB_ActiveFlag?: boolean;
+    MB_ActiveFlag?: boolean;
+    lmB_ActiveFlag?: boolean;
+    LMB_ActiveFlag?: boolean;
+    lmbanO_ActiveFlag?: boolean;
+    LMBANO_ActiveFlag?: boolean;
     lmB_StudentPhoto?: string;
 
     // For List Display join fields
@@ -91,9 +96,12 @@ export interface AttachmentDTO {
 
 export interface BookRegisterPayload {
     lmB_Id?: number;
+    LMB_Id?: number;
     mI_Id?: number;
     lmbanO_Id?: number;
+    LMBANO_Id?: number;
     lmB_BookTitle: string;
+    LMB_BookTitle?: string;
     mB_Subtitle?: string;
     lmC_Id?: number;
     lmB_BookType?: string;
@@ -157,6 +165,11 @@ export interface BookRegisterPayload {
     accessionList?: AccessionDTO[];
     attachementList?: AttachmentDTO[];
     mB_ActiveFlag?: boolean;
+    MB_ActiveFlag?: boolean;
+    lmB_ActiveFlag?: boolean;
+    LMB_ActiveFlag?: boolean;
+    lmbanO_ActiveFlag?: boolean;
+    LMBANO_ActiveFlag?: boolean;
     lmB_StudentPhoto?: string;
     lmB_FirstSummary?: string;
     lmB_SecondSummary?: string;
