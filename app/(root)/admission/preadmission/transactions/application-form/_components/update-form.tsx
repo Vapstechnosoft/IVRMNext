@@ -115,7 +115,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         mode: 'onChange',
         defaultValues: {
             pasA_WillingToContributeFlg: 0,
-            pasR_UndertakingFlag: 0
+            pasR_UndertakingFlag: 0,
+            pasR_TransportReqdFlag: undefined
         }
     });
 
@@ -216,6 +217,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             if (rowData.religion_Id) setValue('religion_Id', Number(rowData.religion_Id));
             if (rowData.caste_Id) setValue('caste_Id', Number(rowData.caste_Id));
             if (rowData.pasR_Nationality) setValue('pasR_Nationality', String(rowData.pasR_Nationality));
+            if (rowData.pasR_TransportReqdFlag !== undefined) setValue('pasR_TransportReqdFlag', Number(rowData.pasR_TransportReqdFlag));
 
             setValue('pasA_WillingToContributeFlg', rowData.pasA_WillingToContributeFlg ? 1 : 0);
             setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? undefined);
@@ -481,15 +483,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         } else if (currentStep === 3) {
             fieldsToValidate = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
 
-            if (!fatherPhoto?.pasR_FatherPhoto) {
-                toast.error('Please upload father photo');
-                return;
-            }
 
-            if (!motherPhoto?.pasR_MotherPhoto) {
-                toast.error('Please upload mother photo');
-                return;
-            }
 
             // Validate optional phone fields if they have values
             const phoneFieldsToCheck = [
@@ -570,21 +564,23 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const getExpectedPhoneLength = (countryData: any): number | undefined => {
         if (!countryData) return undefined;
 
+        const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
+        const fallback: Record<string, number> = {
+            '91': 12,
+            '1': 10,
+            '44': 10,
+            '61': 9
+        };
+
+        if (fallback[dial]) return fallback[dial];
+
         const format = countryData?.format;
         if (format && typeof format === 'string') {
             const placeholders = (format.match(/[0-9xX\.\#9]/g) || []).length;
             if (placeholders > 0) return placeholders;
         }
 
-        const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
-        const fallback: Record<string, number> = {
-            '91': 10,
-            '1': 10,
-            '44': 10,
-            '61': 9
-        };
-
-        return fallback[dial] ?? undefined;
+        return undefined;
     };
 
     const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
@@ -602,11 +598,17 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         if (numberPart.startsWith(countryCode)) {
             numberPart = numberPart.slice(String(countryCode).length);
         }
+        const expected = getExpectedPhoneLength(countryData);
+
+        if (expected && numberPart.length > expected) {
+            numberPart = numberPart.slice(0, expected);
+        }
+
+        const rawPhone = countryCode + numberPart;
         const formattedPhone = `+${countryCode} ${numberPart}`;
-        setPhoneValues((prev) => ({ ...prev, [fieldName]: formattedPhone }));
+        setPhoneValues((prev) => ({ ...prev, [fieldName]: rawPhone }));
         setValue(fieldName as any, formattedPhone);
 
-        const expected = getExpectedPhoneLength(countryData);
         setPhoneExpectedInfo((prev) => ({
             ...prev,
             [fieldName]: {
@@ -1641,7 +1643,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             />
                                             <InputText
                                                 label='Middle Name'
-                                                required
                                                 id='pasR_MiddleName'
                                                 placeholder='Enter middle name'
                                                 {...register('pasR_MiddleName')}
@@ -1649,7 +1650,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             />
                                             <InputText
                                                 label='Last Name'
-                                                required
                                                 id='pasR_LastName'
                                                 placeholder='Enter last name'
                                                 {...register('pasR_LastName')}
@@ -1746,7 +1746,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                 enableSearch
                                                                 disableCountryCode={false}
-                                                                enableLongNumbers={true}
+                                                                enableLongNumbers={false}
                                                                 isValid={true}
                                                                 preserveOrder={['country', 'nationalNumber']}
                                                             />
@@ -2084,8 +2084,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            allowZero={true}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value !== undefined && field.value !== null ? String(field.value) : undefined}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select option' />
                                                             </SelectTrigger>
@@ -2506,7 +2507,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             />
                                                             <div className='mb-1'>
                                                                 <Label htmlFor='father_photo'>
-                                                                    Father Photo <span className='ml-1 text-red-500'>*</span>
+                                                                    Father Photo
                                                                 </Label>
                                                             </div>
 
@@ -2756,7 +2757,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
@@ -2854,7 +2855,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             />
                                                             <div className='mb-1'>
                                                                 <Label htmlFor='mother_photo'>
-                                                                    Mother Photo <span className='ml-1 text-red-500'>*</span>
+                                                                    Mother Photo
                                                                 </Label>
                                                             </div>
 
@@ -3104,7 +3105,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
@@ -3212,7 +3213,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
