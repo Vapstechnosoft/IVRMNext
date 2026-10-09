@@ -110,7 +110,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                         const empList = responseData.edit_emp_type_list || responseData.emp_type_list || [];
                         const imageList = responseData.edit_images_list || responseData.images_list || [];
                         const videoList = responseData.edit_videos_list || responseData.videos_list || [];
-                        const otherList = responseData.others_list || [];
+                        const otherList = responseData.edit_oth_mobilenos_list || responseData.others_list || [];
                         const urlList = responseData.urldocumentlist || [];
 
                         form.reset({
