@@ -115,7 +115,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     pasrpS_Address: ''
                 }
             ],
-            siblingsDetails: []
+            siblingsDetails: [],
+            pasR_TransportReqdFlag: undefined
         }
     });
 
@@ -326,15 +327,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         } else if (currentStep === 3) {
             fieldsToValidate = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
 
-            if (!fatherPhoto?.pasR_FatherPhoto) {
-                toast.error('Please upload father photo');
-                return;
-            }
 
-            if (!motherPhoto?.pasR_MotherPhoto) {
-                toast.error('Please upload mother photo');
-                return;
-            }
             // Validate optional phone fields if they have values
             const phoneFieldsToCheck = [
                 { name: 'pasR_FatherMobleNo', label: 'Father mobile number' },
@@ -430,17 +423,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             return;
         }
 
-        if (!fatherPhoto?.pasR_FatherPhoto) {
-            toast.error('Please upload father photo');
-            setCurrentStep(3);
-            return;
-        }
-
-        if (!motherPhoto?.pasR_MotherPhoto) {
-            toast.error('Please upload mother photo');
-            setCurrentStep(3);
-            return;
-        }
 
         // Add baptism certificate validation for Roman Catholic
         const selectedReligionId = watch('religion_Id');
@@ -636,6 +618,16 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     const getExpectedPhoneLength = (countryData: any): number | undefined => {
         if (!countryData) return undefined;
 
+        const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
+        const fallback: Record<string, number> = {
+            '91': 12,
+            '1': 10,
+            '44': 10,
+            '61': 9
+        };
+
+        if (fallback[dial]) return fallback[dial];
+
         const format = countryData?.format;
         if (format && typeof format === 'string') {
             const placeholders = (format.match(/[0-9xX\.\#9]/g) || []).length;
@@ -645,15 +637,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             }
         }
 
-        const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
-        const fallback: Record<string, number> = {
-            '91': 10,
-            '1': 10,
-            '44': 10,
-            '61': 9
-        };
-
-        return fallback[dial] ?? undefined;
+        return undefined;
     };
 
     const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
@@ -671,11 +655,17 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         if (numberPart.startsWith(countryCode)) {
             numberPart = numberPart.slice(String(countryCode).length);
         }
+        const expected = getExpectedPhoneLength(countryData);
+
+        if (expected && numberPart.length > expected) {
+            numberPart = numberPart.slice(0, expected);
+        }
+
+        const rawPhone = countryCode + numberPart;
         const formattedPhone = `+${countryCode} ${numberPart}`;
-        setPhoneValues((prev) => ({ ...prev, [fieldName]: formattedPhone }));
+        setPhoneValues((prev) => ({ ...prev, [fieldName]: rawPhone }));
         setValue(fieldName as any, formattedPhone);
 
-        const expected = getExpectedPhoneLength(countryData);
         setPhoneExpectedInfo((prev) => ({
             ...prev,
             [fieldName]: {
@@ -1503,7 +1493,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                 enableSearch
                                                                 disableCountryCode={false}
-                                                                enableLongNumbers={true}
+                                                                enableLongNumbers={false}
                                                                 isValid={true}
                                                                 preserveOrder={['country', 'nationalNumber']}
                                                             />
@@ -1840,9 +1830,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
-                                                            key={field.value || 'empty'}
+                                                            allowZero={true}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || ''}>
+                                                            value={field.value !== undefined && field.value !== null ? String(field.value) : undefined}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select option' />
                                                             </SelectTrigger>
@@ -2254,7 +2244,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
                                                             <div className='mb-1'>
                                                                 <Label htmlFor='father_photo'>
-                                                                    Father Photo <span className='ml-1 text-red-500'>*</span>
+                                                                    Father Photo
                                                                 </Label>
                                                             </div>
 
@@ -2505,7 +2495,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
@@ -2582,7 +2572,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
                                                             <div className='mb-1'>
                                                                 <Label htmlFor='mother_photo'>
-                                                                    Mother Photo <span className='ml-1 text-red-500'>*</span>
+                                                                    Mother Photo
                                                                 </Label>
                                                             </div>
 
@@ -2833,7 +2823,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
@@ -2941,7 +2931,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />

@@ -24,13 +24,13 @@ import { Book, CheckSquare, FileDown, Printer, Search, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import * as XLSX from 'xlsx';
 import AddressBookView from './_components/address-book-view';
 import { getStatusColumns } from './_components/columns';
 import StatusPrintView from './_components/status-print-view';
 import Swal from 'sweetalert2';
-import { useQueryState, parseAsInteger, parseAsString } from 'nuqs';
-import { tableSearchVariables } from '@/lib/data-table.config';
 
 export default function PreadmissionStatusPage() {
     const { data: activePreadmission } = useActivePreadmissionDetails();
@@ -54,25 +54,7 @@ export default function PreadmissionStatusPage() {
     const [printData, setPrintData] = useState<any[]>([]);
     const [bulkStudentStatus, setBulkStudentStatus] = useState<string>('786');
 
-    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withDefault(1));
-    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withDefault(10));
-    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withDefault(''));
 
-    const filteredAndPaginatedData = useMemo(() => {
-        let filtered = gridData.list;
-        if (searchQuery) {
-            const lowerQuery = searchQuery.toLowerCase();
-            filtered = filtered.filter((item) =>
-                Object.values(item).some((val) => String(val).toLowerCase().includes(lowerQuery))
-            );
-        }
-        
-        const start = (page - 1) * pageSize;
-        return {
-            totalItems: filtered.length,
-            paginatedList: filtered.slice(start, start + pageSize)
-        };
-    }, [gridData.list, searchQuery, page, pageSize]);
 
     // Communication State
     const [sendEmail, setSendEmail] = useState(false);
@@ -95,6 +77,28 @@ export default function PreadmissionStatusPage() {
     const [otpRequired, setOtpRequired] = useState(false);
     const [maskedMobile, setMaskedMobile] = useState('');
     const [maskedEmail, setMaskedEmail] = useState('');
+
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withDefault(''));
+    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withDefault(10));
+
+    const filteredStudents = useMemo(() => {
+        if (!searchQuery) return gridData.list;
+        const lowerQuery = searchQuery.toLowerCase();
+        return gridData.list.filter((s) => {
+            return (
+                (s.name && String(s.name).toLowerCase().includes(lowerQuery)) ||
+                (s.pasR_RegistrationNo && String(s.pasR_RegistrationNo).toLowerCase().includes(lowerQuery)) ||
+                (s.className && String(s.className).toLowerCase().includes(lowerQuery)) ||
+                (s.statusName && String(s.statusName).toLowerCase().includes(lowerQuery))
+            );
+        });
+    }, [gridData.list, searchQuery]);
+
+    const paginatedStudents = useMemo(() => {
+        const startIndex = (currentPage - 1) * pageSize;
+        return filteredStudents.slice(startIndex, startIndex + pageSize);
+    }, [filteredStudents, currentPage, pageSize]);
 
     const tableRef = useRef<DataTableRef>(null);
     const printRef = useRef<HTMLDivElement>(null);
@@ -312,14 +316,14 @@ export default function PreadmissionStatusPage() {
     };
 
     const columns = useMemo(() => {
-        return getStatusColumns(statusOptions, handleIndividualStatusChange, handleIndividualRemarkChange, gridData.rptStatus, page, pageSize).filter(
+        return getStatusColumns(statusOptions, handleIndividualStatusChange, handleIndividualRemarkChange, gridData.rptStatus, currentPage, pageSize).filter(
             (col) => {
                 if (col.id === 'updateStatus' && gridData.rptStatus) return false;
                 if ((col as any).accessorKey === 'repeat_Class_Id' && !gridData.rptStatus) return false;
                 return true;
             }
         );
-    }, [statusOptions, gridData.rptStatus, handleIndividualStatusChange, handleIndividualRemarkChange, page, pageSize]);
+    }, [statusOptions, gridData.rptStatus, handleIndividualStatusChange, handleIndividualRemarkChange, currentPage, pageSize]);
 
     return (
         <div className='flex flex-col gap-6 p-4'>
@@ -508,8 +512,8 @@ export default function PreadmissionStatusPage() {
 
                         <GenericDataTable<IStatusStudent>
                             columns={columns}
-                            data={filteredAndPaginatedData.paginatedList}
-                            totalItems={filteredAndPaginatedData.totalItems}
+                            data={paginatedStudents}
+                            totalItems={filteredStudents.length}
                             isLoading={searchMutation.isPending}
                             onRowSelectionChange={setSelectedStudents}
                             getRowId={(row) => row.pasR_Id.toString()}

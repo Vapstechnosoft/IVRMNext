@@ -23,9 +23,10 @@ const SelectSearchContext = React.createContext<{
 // Fixed Select component - removing the forwardRef and properly extending the SelectPrimitive.Root
 interface SelectProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root> {
     searchable?: boolean;
+    allowZero?: boolean;
 }
 
-const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectProps & { onOpenChange?: (open: boolean) => void }) => {
+const Select = ({ children, searchable = true, allowZero = false, onOpenChange, ...props }: SelectProps & { onOpenChange?: (open: boolean) => void }) => {
     const [searchQuery, setSearchQuery] = React.useState('');
 
     // Check if device is mobile
@@ -56,7 +57,7 @@ const Select = ({ children, searchable = true, onOpenChange, ...props }: SelectP
 
     // Normalize common "empty" values to undefined so Radix shows placeholder.
     const { value, ...restProps } = props as any;
-    const normalizedValue = value === '' || value === null || value === 0 || value === '0' ? undefined : value;
+    const normalizedValue = value === '' || value === null || (!allowZero && (value === 0 || value === '0')) ? undefined : value;
 
     const contextValue = React.useMemo(
         () => ({
