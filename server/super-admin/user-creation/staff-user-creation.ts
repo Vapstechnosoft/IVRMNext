@@ -577,16 +577,73 @@ export async function getMasterPageListGridOnChangeOfModule(
             responseData?.data?.savedgrid ||
             [];
 
+        const rawModuleExist = response.moduleexistid ||
+            responseData?.moduleexistid?.$values ||
+            responseData?.moduleexistid ||
+            responseData?.data?.moduleexistid?.$values ||
+            responseData?.data?.moduleexistid ||
+            response.data?.moduleexistid ||
+            [];
+
+        const moduleexistid = Array.isArray(rawModuleExist)
+            ? rawModuleExist
+            : (rawModuleExist?.$values || []);
+
         return {
             success: true,
             data: showgrid1,
             savedGrid: savedgrid,
+            moduleexistid: moduleexistid,
             total: Number(response.total || showgrid1.length),
             page: Number(response.page || 1),
             page_size: Number(response.page_size || 10)
         };
     } catch (error: any) {
         console.error('❌ [SERVER] getMasterPageListGridOnChangeOfModule error:', error);
-        return { success: false, message: error.message || 'Failed to fetch master page list for modules', data: [], savedGrid: [] };
+        return { success: false, message: error.message || 'Failed to fetch master page list for modules', data: [], savedGrid: [], moduleexistid: [] };
     }
 }
+
+export async function getInstitutionOnChangeOfTrust(trust_id: number) {
+    try {
+        console.info('📡 [SERVER] Fetching Institution Dropdown for Trust:', { trust_id });
+        const response = await api.post<any>(API_KEY, `StaffLogin/get_Institutions_Changeof_trust/${trust_id}`);
+
+        console.info('📥 [SERVER] getInstitutionOnChangeOfTrust raw response:', {
+            success: response?.success,
+            message: response?.message,
+            hasData: !!response?.data,
+            isArray: Array.isArray(response?.data)
+        });
+
+        const rawData = response?.data !== undefined ? response.data : response;
+        let extractedData: any[] = [];
+
+        if (Array.isArray(rawData)) {
+            extractedData = rawData;
+        } else if (rawData && typeof rawData === 'object') {
+            const list =
+                rawData.fillinstitution ||
+                rawData.fillinstitutionList ||
+                rawData.fillinstituion ||
+                rawData.institutionList ||
+                rawData.$values ||
+                rawData.data;
+
+            if (Array.isArray(list)) {
+                extractedData = list;
+            } else if (list?.$values && Array.isArray(list.$values)) {
+                extractedData = list.$values;
+            } else if (Array.isArray(rawData)) {
+                extractedData = rawData;
+            }
+        }
+
+        console.info(`✅ [SERVER] Extracted ${extractedData.length} institutions for trust ${trust_id}`);
+        return { success: true, data: extractedData };
+    } catch (error: any) {
+        console.error('❌ [SERVER] getInstitutionOnChangeOfTrust error:', error);
+        return { success: false, message: error.message || 'Failed to fetch institutions for trust', data: [] };
+    }
+}
+

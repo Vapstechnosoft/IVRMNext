@@ -25,7 +25,7 @@ export interface FeeStructure {
     fsS_ToBePaid: number;
 }
 
-export interface GroupTermMapping {
+export interface IGroupTermMapping {
     grp: {
         checkedgrplst: boolean;
         grpdisable: boolean;
@@ -33,10 +33,15 @@ export interface GroupTermMapping {
         fmgG_Id: string;
     };
     trm_list: {
-        checkedheadlst: boolean;
-        termdisablechk: boolean;
+        fmgG_GroupName: string;
+        fmgG_Id: string;
         fmT_Name: string;
         fmT_Id: string;
+        fmT_Order: number;
+        checkedheadlst: boolean;
+        fmT_Amount: number;
+        preAdmFlag: boolean;
+        termdisablechk: boolean;
     }[];
 }
 

@@ -123,6 +123,8 @@ export default function AddMasterAcademicYearForm({ onSuccess, className = '', i
                 ASMAY_Id: 0,
                 MI_Id: Number(data.mI_Id),
                 ASMAY_Year: data.asmaY_Year,
+                asmaY_From_Year: data.academicFromYear,
+                asmaY_To_Year: data.academicToYear,
                 ASMAY_From_Date: data.asmaY_From_Date,
                 ASMAY_To_Date: data.asmaY_To_Date,
                 ASMAY_PreAdm_F_Date: data.asmaY_PreAdm_F_Date,

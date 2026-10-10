@@ -6,6 +6,7 @@ import { exportToExcel } from '@/lib/utils';
 import type { IPurchaseDonateReportGridData, IPurchaseDonateReportRequest } from '@/types/library/reports/purchase-donate-report';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { columns } from './_components/columns';
 import { ReportForm } from './_components/report-form';
 
@@ -17,9 +18,22 @@ export default function PurchaseDonateReportPage() {
 
     const handleSearch = (data: IPurchaseDonateReportRequest) => {
         searchMutation.mutate(data, {
-            onSuccess: (response) => {
-                // server returns the data array directly
-                setReportData(Array.isArray(response) ? response : []);
+            onSuccess: (response: any) => {
+                if (response && response.success === false) {
+                    toast.error(response.message || 'Failed to fetch report data');
+                    return;
+                }
+                const list = Array.isArray(response) ? response : response?.data || [];
+                setReportData(Array.isArray(list) ? list : []);
+                if (list.length > 0) {
+                    toast.success(`Found ${list.length} records`);
+                } else {
+                    toast.info('No records found for the selected criteria');
+                }
+            },
+            onError: (error) => {
+                toast.error('Failed to fetch report data');
+                console.error(error);
             }
         });
     };

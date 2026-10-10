@@ -7,13 +7,18 @@ import { useRackReportInitialData, useRackReportLibraries } from '@/hooks/librar
 import type { IRackReportRequest } from '@/types/library/reports/rack-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
-import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 const reportFormSchema = z.object({
-    LMAL_Id: z.coerce.number().min(1, 'Library is required'),
-    LMRA_Id: z.coerce.number()
+    LMAL_Id: z.preprocess(
+        (val) => (val === undefined || val === '' || val === null ? undefined : Number(val)),
+        z.number({ required_error: 'Select Library', invalid_type_error: 'Select Library' }).min(1, 'Select Library')
+    ),
+    LMRA_Id: z.preprocess(
+        (val) => (val === undefined || val === null || val === '' ? undefined : String(val)),
+        z.string({ required_error: 'Select Rack Name', invalid_type_error: 'Select Rack Name' }).min(1, 'Select Rack Name')
+    )
 });
 
 type ReportFormValues = z.infer<typeof reportFormSchema>;
@@ -21,9 +26,26 @@ type ReportFormValues = z.infer<typeof reportFormSchema>;
 interface ReportFormProps {
     onSearch: (data: IRackReportRequest) => void;
     isLoading: boolean;
+    hasData: boolean;
+    onPrint?: () => void;
+    onExport?: () => void;
+    onCancel?: () => void;
+    initialData?: any;
 }
 
-export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
+export const ReportForm = ({
+    onSearch,
+    isLoading,
+    hasData,
+    onPrint,
+    onExport,
+    onCancel,
+    initialData: initialDataProp
+}: ReportFormProps) => {
+    const rawInitial = (initialDataProp as any)?.data || initialDataProp || {};
+    const { data: hookInitialWrapper } = useRackReportInitialData();
+    const { data: hookLibWrapper } = useRackReportLibraries();
+
     const {
         control,
         handleSubmit,
@@ -34,140 +56,147 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     } = useForm<ReportFormValues>({
         resolver: zodResolver(reportFormSchema),
         defaultValues: {
-            LMRA_Id: 0
+            LMAL_Id: undefined,
+            LMRA_Id: undefined
         }
     });
 
-    const selectedLmalId = watch('LMAL_Id');
-
-    const { data: librariesWrapper } = useRackReportLibraries();
-    const { data: initialDataWrapper } = useRackReportInitialData();
-
-    // Extract libraries from useRackReportLibraries
-    let fetchedLibraries: any[] = [];
-    if (Array.isArray(librariesWrapper)) {
-        fetchedLibraries = librariesWrapper;
-    } else if (librariesWrapper && typeof librariesWrapper === 'object') {
-        const wrapper = (librariesWrapper as any).data || librariesWrapper;
-        fetchedLibraries = wrapper.lib_list || wrapper.libraryList || wrapper.libList || [];
-    }
-
-    // Extract libraries and racklist from useRackReportInitialData
-    let initialLibraries: any[] = [];
-    let racklist: any[] = [];
-
-    if (initialDataWrapper && typeof initialDataWrapper === 'object') {
-        const wrapper = (initialDataWrapper as any).data || initialDataWrapper;
-        initialLibraries = wrapper.lib_list || wrapper.libraryList || wrapper.libList || [];
-        racklist = wrapper.racklist || wrapper.msterRacklist || [];
-    }
-
-    // Combine or fallback
-    const libraries = fetchedLibraries.length > 0 ? fetchedLibraries : initialLibraries;
-
-    useEffect(() => {
-        if (libraries && libraries.length > 0) {
-            const currentLmalId = watch('LMAL_Id');
-            if (!currentLmalId) {
-                if (libraries.length === 1) {
-                    setValue('LMAL_Id', libraries[0].lmaL_Id);
-                } else {
-                    setValue('LMAL_Id', libraries[0].lmaL_Id);
-                }
-            }
+    const extractList = (list: any): any[] => {
+        if (!list) return [];
+        if (Array.isArray(list)) return list;
+        if (list && typeof list === 'object' && '$values' in list && Array.isArray(list.$values)) {
+            return list.$values;
         }
-    }, [libraries, setValue, watch]);
+        const inner = list.data || list.lib_list || list.libraryList || list.racklist || list.msterRacklist || list;
+        if (Array.isArray(inner)) return inner;
+        if (inner && typeof inner === 'object' && '$values' in inner && Array.isArray(inner.$values)) {
+            return inner.$values;
+        }
+        return [];
+    };
+
+    const initialData = rawInitial?.lib_list?.length ? rawInitial : (hookInitialWrapper as any)?.data || hookInitialWrapper || rawInitial;
+
+    const libList = extractList(initialData?.lib_list || initialData?.libraryList || initialData?.libList || hookLibWrapper || []);
+    const rackList = extractList(initialData?.racklist || initialData?.msterRacklist || initialData?.rackList || []);
+
+    const watchLmalId = watch('LMAL_Id');
 
     const onSubmit = (data: ReportFormValues) => {
-        // Updated payload to match the user's requested structure exactly: { "LMAL_Id": 2, "LMRA_Id": 4 }
+        const rackVal = data.LMRA_Id === '0' || data.LMRA_Id === 'ALL' || !data.LMRA_Id ? 'ALL' : data.LMRA_Id;
         const payload: IRackReportRequest = {
-            LMAL_Id: data.LMAL_Id,
-            LMRA_Id: data.LMRA_Id
+            LMAL_Id: Number(data.LMAL_Id),
+            LMRA_Id: rackVal
         };
         onSearch(payload);
     };
 
-    return (
-        <form
-            onSubmit={handleSubmit(onSubmit)}
-            className='mx-auto max-w-5xl space-y-6 rounded-lg border border-t-4 border-t-orange-400 bg-white p-8 shadow-sm'>
-            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
-                {/* Library Name */}
-                <div className='flex items-center gap-4'>
-                    <Label className='min-w-[120px] text-right font-medium text-sm'>
-                        Library Name:<span className='text-red-500'>*</span>
-                    </Label>
-                    <div className='flex-1'>
-                        <Controller
-                            control={control}
-                            name='LMAL_Id'
-                            render={({ field }) => (
-                                <Select
-                                    onValueChange={(v) => {
-                                        field.onChange(Number(v));
-                                        setValue('LMRA_Id', 0);
-                                    }}
-                                    value={field.value?.toString()}>
-                                    <SelectTrigger className='w-full'>
-                                        <SelectValue placeholder='Select Library' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {libraries?.map((lib: any) => (
-                                            <SelectItem key={lib.lmaL_Id} value={lib.lmaL_Id.toString()}>
-                                                {lib.lmaL_LibraryName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
-                        {errors.LMAL_Id && <p className='mt-1 text-destructive text-xs'>{errors.LMAL_Id.message}</p>}
-                    </div>
-                </div>
+    const handleReset = () => {
+        reset({
+            LMAL_Id: undefined,
+            LMRA_Id: undefined
+        });
+        onCancel?.();
+    };
 
-                {/* Rack Name */}
-                <div className='flex items-center gap-4'>
-                    <Label className='min-w-[120px] text-right font-medium text-sm'>
-                        Rack Name:<span className='text-red-500'>*</span>
-                    </Label>
-                    <div className='flex-1'>
-                        <Controller
-                            control={control}
-                            name='LMRA_Id'
-                            render={({ field }) => (
-                                <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
-                                    <SelectTrigger className='w-full'>
-                                        <SelectValue placeholder='Select Rack' />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value='0'>ALL</SelectItem>
-                                        {racklist?.map((rack: any) => (
-                                            <SelectItem key={rack.lmrA_Id} value={rack.lmrA_Id.toString()}>
-                                                {rack.lmrA_RackName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                        />
+    return (
+        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+            <div className='mx-auto max-w-4xl space-y-4'>
+                <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                    {/* Library Name */}
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[120px] text-right font-medium text-sm'>
+                            Library Name:<span className='text-red-500'>*</span>
+                        </Label>
+                        <div className='flex-1'>
+                            <Controller
+                                control={control}
+                                name='LMAL_Id'
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
+                                        value={field.value ? String(field.value) : ''}>
+                                        <SelectTrigger className='w-full'>
+                                            <SelectValue placeholder='Select Library' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {libList.map((lib: any) => {
+                                                const id = lib.lmaL_Id ?? lib.LMAL_Id ?? lib.lmal_Id;
+                                                const name =
+                                                    lib.lmaL_LibraryName ??
+                                                    lib.LMAL_LibraryName ??
+                                                    lib.lmal_LibraryName ??
+                                                    lib.libraryName ??
+                                                    lib.name;
+                                                return (
+                                                    <SelectItem key={String(id)} value={String(id)}>
+                                                        {name}
+                                                    </SelectItem>
+                                                );
+                                            })}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.LMAL_Id?.message && <p className='mt-1 text-destructive text-xs'>{errors.LMAL_Id.message}</p>}
+                        </div>
+                    </div>
+
+                    {/* Rack Name */}
+                    <div className='flex items-center gap-4'>
+                        <Label className='min-w-[120px] text-right font-medium text-sm'>
+                            Rack Name:<span className='text-red-500'>*</span>
+                        </Label>
+                        <div className='flex-1'>
+                            <Controller
+                                control={control}
+                                name='LMRA_Id'
+                                render={({ field }) => (
+                                    <Select
+                                        onValueChange={(v) => field.onChange(v || undefined)}
+                                        value={field.value ? String(field.value) : ''}>
+                                        <SelectTrigger className='w-full'>
+                                            <SelectValue placeholder='Select Rack' />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value='ALL'>ALL</SelectItem>
+                                            {rackList.map((rack: any) => {
+                                                const id = rack.lmrA_Id ?? rack.LMRA_Id ?? rack.lmra_Id;
+                                                const name =
+                                                    rack.lmrA_RackName ??
+                                                    rack.LMRA_RackName ??
+                                                    rack.lmra_RackName ??
+                                                    rack.rackName ??
+                                                    rack.name;
+                                                return (
+                                                    <SelectItem key={String(id)} value={String(id)}>
+                                                        {name}
+                                                    </SelectItem>
+                                                );
+                                            })}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                            />
+                            {errors.LMRA_Id?.message && <p className='mt-1 text-destructive text-xs'>{errors.LMRA_Id.message}</p>}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <hr className='my-6 border-muted-foreground/20' />
-
-            <div className='flex items-center justify-center gap-4'>
+            {/* Action Buttons - Only REPORT and CANCEL */}
+            <div className='flex items-center justify-center gap-4 pt-2'>
                 <Button
                     type='submit'
-                    className='h-8 min-w-[100px] rounded-sm bg-[#4251b1] px-4 py-1 text-xs shadow-sm hover:bg-[#35418e]'
+                    className='!w-28 h-8 rounded-sm bg-[#4251b1] px-4 font-semibold text-white text-xs shadow-sm hover:bg-[#35418e]'
                     disabled={isLoading}>
                     {isLoading ? <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <Search className='mr-1.5 h-3.5 w-3.5' />}
                     REPORT
                 </Button>
                 <Button
                     type='button'
-                    className='h-8 min-w-[100px] rounded-sm bg-[#ff5a30] px-4 py-1 text-white text-xs shadow-sm hover:bg-[#e64d26]'
-                    onClick={() => reset()}
+                    className='!w-28 h-8 rounded-sm bg-[#ff5a30] px-4 font-semibold text-white text-xs shadow-sm hover:bg-[#e64d26]'
+                    onClick={handleReset}
                     disabled={isLoading}>
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
@@ -176,3 +205,4 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
         </form>
     );
 };
+

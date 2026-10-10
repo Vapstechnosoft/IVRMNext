@@ -179,7 +179,13 @@ function FormSections({ refetch }: { refetch: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <UpdateMasterSubjectForm selectedRow={selectedRow} onSuccess={closeEditForm} />
+                            <UpdateMasterSubjectForm
+                                selectedRow={selectedRow}
+                                onSuccess={() => {
+                                    handleSuccess();
+                                    closeEditForm();
+                                }}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

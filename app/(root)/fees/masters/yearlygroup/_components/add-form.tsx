@@ -95,13 +95,17 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
         const selectedAcademicYear = academicYearOptions?.data?.find((year) => year && year.asmaY_Id.toString() === data.academicYear);
 
         if (!selectedAcademicYear) {
-            toast.error('Please select a valid Academic Year');
+            toast.error('Please select a valid Academic Year', {
+                style: { color: '#dc2626', borderColor: '#fca5a5' }
+            });
             return;
         }
 
         const asmaY_Id = Number(selectedAcademicYear.asmaY_Id);
         if (Number.isNaN(asmaY_Id)) {
-            toast.error('Invalid Academic Year value');
+            toast.error('Invalid Academic Year value', {
+                style: { color: '#dc2626', borderColor: '#fca5a5' }
+            });
             return;
         }
 
@@ -118,29 +122,59 @@ export default function AddMasterYearlyGroup({ onSuccess }: AddMasterYearlyGroup
 
         try {
             const response = await addOrUpdateMasterGroupYearlyCategory(payload);
-            if (response.success) {
-                toast.success(response.message || 'Form submitted successfully!');
-                try {
-                    onSuccess?.();
-                } catch (_e) {}
-                try {
-                    if (typeof refetchCategory === 'function') {
-                        await refetchCategory();
-                    } else if (typeof refetchAll === 'function') {
-                        // fallback to groups refetch if category hook isn't available
-                        await refetchAll();
-                    } else {
-                        console.warn('Neither refetchCategory nor refetchAll are available');
-                    }
-                } catch (e) {
-                    console.warn('Failed to refetch after create:', e);
-                }
-                reset();
-            } else {
-                toast.error(response.message || 'Failed to submit form');
+
+            const msg: string =
+                response?.message ||
+                (typeof response?.returnval === 'string' && response.returnval !== 'false' && response.returnval !== 'true'
+                    ? response.returnval
+                    : '') ||
+                (typeof response?.retrunMsg === 'string' ? response.retrunMsg : '') ||
+                '';
+
+            const isDuplicateOrError =
+                !response ||
+                response.success === false ||
+                response.returnval === false ||
+                response.returnval === 'false' ||
+                response.returnval === 'duplicate' ||
+                response.returnval === 'Failed' ||
+                response.returnduplicatestatus === 'Duplicate' ||
+                response.retrunMsg === 'Duplicate' ||
+                ['already exist', 'already exists', 'duplicate', 'failed', 'error', 'invalid', 'cannot', 'can not', 'not saved'].some(
+                    (kw) =>
+                        (typeof response?.message === 'string' && response.message.toLowerCase().includes(kw)) ||
+                        (typeof response?.returnval === 'string' && response.returnval.toLowerCase().includes(kw)) ||
+                        (typeof response?.retrunMsg === 'string' && response.retrunMsg.toLowerCase().includes(kw))
+                );
+
+            if (isDuplicateOrError) {
+                toast.error(msg || 'Failed to submit form', {
+                    style: { color: '#dc2626', borderColor: '#fca5a5' }
+                });
+                return;
             }
-        } catch (error) {
-            toast.error('An error occurred while submitting the form');
+
+            toast.success(msg || 'Form submitted successfully!');
+            try {
+                onSuccess?.();
+            } catch (_e) {}
+            try {
+                if (typeof refetchCategory === 'function') {
+                    await refetchCategory();
+                } else if (typeof refetchAll === 'function') {
+                    // fallback to groups refetch if category hook isn't available
+                    await refetchAll();
+                } else {
+                    console.warn('Neither refetchCategory nor refetchAll are available');
+                }
+            } catch (e) {
+                console.warn('Failed to refetch after create:', e);
+            }
+            reset();
+        } catch (error: any) {
+            toast.error(error?.message || 'An error occurred while submitting the form', {
+                style: { color: '#dc2626', borderColor: '#fca5a5' }
+            });
             console.error('Submission error:', error);
         }
     };

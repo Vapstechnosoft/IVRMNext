@@ -113,11 +113,16 @@ export interface ICirculationParameterInitialData {
 }
 
 export interface IToggleCirculationParameterPayload {
+    lbcpa_Id: number;
+    parmeter_Id: number;
+    bookflag: string;
+    issuertype1: string;
+    mi_SchoolCollegeFlag: string;
+    returnval: boolean;
     LBCPA_Id?: number;
     LNBCPA_Id?: number;
     Parmeter_Id?: number;
     BOOKFLAG?: string;
-    issuertype1?: string;
     MI_SchoolCollegeFlag?: string;
     MI_Id?: number;
     mI_Id?: number;
@@ -126,6 +131,7 @@ export interface IToggleCirculationParameterPayload {
     lnbcpA_Id?: number;
     lbcpaS_Id?: number;
     LMC_Id?: number;
+    currentActiveStatus?: boolean;
     [key: string]: any;
 }
 

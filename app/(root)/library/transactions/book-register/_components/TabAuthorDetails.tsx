@@ -17,13 +17,15 @@ export default function TabAuthorDetails({
     onSave,
     onPrevious,
     onCancel,
-    onClear
+    onClear,
+    isSaving
 }: {
     dropdownData: any;
     onSave: () => void;
     onPrevious: () => void;
     onCancel: () => void;
     onClear: () => void;
+    isSaving?: boolean;
 }) {
     const {
         control,
@@ -119,9 +121,10 @@ export default function TabAuthorDetails({
         }
     };
 
-    const rackList = dropdownData?.racklist || dropdownData?.rackList || [];
-    const accessoriesList = dropdownData?.accessoriesList || [];
-    const authorList = dropdownData?.authorlist || dropdownData?.authorList || [];
+    const rawData = dropdownData?.data || dropdownData;
+    const rackList = rawData?.racklist || rawData?.rackList || dropdownData?.racklist || dropdownData?.rackList || [];
+    const accessoriesList = rawData?.accessorieslist || rawData?.accessoriesList || dropdownData?.accessorieslist || dropdownData?.accessoriesList || [];
+    const authorList = rawData?.authorlist || rawData?.authorList || dropdownData?.authorlist || dropdownData?.authorList || [];
 
     return (
         <div className='flex flex-col gap-6'>
@@ -196,15 +199,16 @@ export default function TabAuthorDetails({
                                                 <SelectValue placeholder='--Select Author--' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {authorList.map((item: any) => {
+                                                {authorList.map((item: any, idx: number) => {
                                                     const authorId =
-                                                        item.lmaU_Id ||
-                                                        item.lmau_Id ||
-                                                        item.LMAU_Id ||
-                                                        item.lmA_Id ||
-                                                        item.lma_Id ||
-                                                        item.LMA_Id ||
-                                                        item.id ||
+                                                        item.lmaU_Id ??
+                                                        item.lmau_Id ??
+                                                        item.LMAU_Id ??
+                                                        item.lmA_Id ??
+                                                        item.lma_Id ??
+                                                        item.LMA_Id ??
+                                                        item.authorId ??
+                                                        item.id ??
                                                         item.value;
                                                     const authorName =
                                                         item.lmaU_AuthorFirstName ||
@@ -214,12 +218,14 @@ export default function TabAuthorDetails({
                                                         item.lma_AuthorFirstName ||
                                                         item.authorName ||
                                                         item.name ||
-                                                        '';
-                                                    const middleName = item.lmA_AuthorMiddleName || item.lma_AuthorMiddleName || '';
-                                                    const lastName = item.lmA_AuthorLastName || item.lma_AuthorLastName || '';
+                                                        item.label ||
+                                                        String(authorId);
+                                                    const middleName = item.lmA_AuthorMiddleName || item.lma_AuthorMiddleName || item.lmaU_AuthorMiddleName || '';
+                                                    const lastName = item.lmA_AuthorLastName || item.lma_AuthorLastName || item.lmaU_AuthorLastName || '';
                                                     const fullName = [authorName, middleName, lastName].filter(Boolean).join(' ');
+                                                    if (authorId === undefined || authorId === null) return null;
                                                     return (
-                                                        <SelectItem key={authorId} value={authorId?.toString()}>
+                                                        <SelectItem key={`${authorId}-${idx}`} value={authorId.toString()}>
                                                             {fullName || authorName}
                                                         </SelectItem>
                                                     );
@@ -274,12 +280,13 @@ export default function TabAuthorDetails({
                                             <SelectValue placeholder='--select field--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {rackList.map((item: any) => {
-                                                const rackId = item.lmrA_Id || item.lmra_Id || item.id || item.value;
+                                            {rackList.map((item: any, idx: number) => {
+                                                const rackId = item.lmrA_Id ?? item.lmra_Id ?? item.LMRA_Id ?? item.rackId ?? item.id ?? item.value;
                                                 const rackName =
-                                                    item.lmrA_RackName || item.lmra_RackName || item.rackName || item.name || '';
+                                                    item.lmrA_RackName || item.lmra_RackName || item.LMRA_RackName || item.rackName || item.name || String(rackId);
+                                                if (rackId === undefined || rackId === null) return null;
                                                 return (
-                                                    <SelectItem key={rackId} value={rackId?.toString()}>
+                                                    <SelectItem key={`${rackId}-${idx}`} value={rackId.toString()}>
                                                         {rackName}
                                                     </SelectItem>
                                                 );
@@ -334,11 +341,23 @@ export default function TabAuthorDetails({
                                             <SelectValue placeholder='--Select--' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {accessoriesList.map((item: any) => (
-                                                <SelectItem key={item.lmaC_Id} value={item.lmaC_Id.toString()}>
-                                                    {item.lmaC_AccessoriesName}
-                                                </SelectItem>
-                                            ))}
+                                            {accessoriesList.map((item: any, idx: number) => {
+                                                const accId = item.lmaC_Id ?? item.lmac_Id ?? item.LMAC_Id ?? item.accessoryId ?? item.id ?? item.value;
+                                                const accName =
+                                                    item.lmaC_AccessoriesName ||
+                                                    item.lmac_AccessoriesName ||
+                                                    item.LMAC_AccessoriesName ||
+                                                    item.accessoriesName ||
+                                                    item.name ||
+                                                    item.label ||
+                                                    String(accId);
+                                                if (accId === undefined || accId === null) return null;
+                                                return (
+                                                    <SelectItem key={`${accId}-${idx}`} value={accId.toString()}>
+                                                        {accName}
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectContent>
                                     </Select>
                                 )}
@@ -462,6 +481,8 @@ export default function TabAuthorDetails({
                     type='button'
                     variant='default'
                     onClick={onSave}
+                    isLoading={isSaving}
+                    disabled={isSaving}
                     className='bg-blue-800 px-6 font-bold text-xs uppercase hover:bg-blue-900'>
                     Save
                 </Button>
