@@ -89,34 +89,16 @@ function LoginPrivilegePageContent() {
                 // Grid will only show when onSearchSuccess is called
                 // setShowList(true);
 
-                // Extract mapping data (Available classes and subjects)
-                const rawClassList = rawData.classsectionList || [];
-                if (Array.isArray(rawClassList)) {
-                    const seenIds = new Set();
-                    const csList = rawClassList.reduce((acc: any[], item: any) => {
-                        const uniqueId = `${item.asmcL_Id}-${item.asmC_Id}`;
-                        if (!seenIds.has(uniqueId)) {
-                            seenIds.add(uniqueId);
-                            acc.push({
-                                id: uniqueId,
-                                label: item.name || `${item.asmcL_ClassName || ''} : ${item.asmC_SectionName || ''}`.replace(/^ : /, ''),
-                                asmcL_Id: item.asmcL_Id,
-                                asmC_Id: item.asmC_Id
-                            });
-                        }
-                        return acc;
-                    }, []);
-                    setMappingClassSections(csList);
-                }
+                // Grid will only show when onSearchSuccess is called
+                // setShowList(true);
 
-                const rawSubjectList = rawData.subjectList || [];
-                if (Array.isArray(rawSubjectList)) {
-                    setMappingSubjects(rawSubjectList);
-                }
+                // DO NOT overwrite mapping data (Available classes and subjects) from the grid API.
+                // handleSearch (getDataByTypeSelected) is responsible for populating setMappingClassSections and setMappingSubjects.
+                // This prevents race conditions where the grid API response overwrites the correct mapping lists.
 
                 // Show mapping section if we have data to map
-                if ((rawClassList.length > 0 || rawSubjectList.length > 0) && selectedStaffId !== '0') {
-                    setShowMapping(true);
+                if (data.length > 0 && selectedStaffId !== '0') {
+                    // setShowMapping(true);
                 }
             }
         } catch (error) {
@@ -222,6 +204,7 @@ function PrivilegeForm({
 
     // Selection states
     const [selectedClassSections, setSelectedClassSections] = useState<string[]>([]);
+    const [allowedClassSections, setAllowedClassSections] = useState<string[] | null>(null);
     const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
 
     const { data: yearData } = useAcademicYearDropdown();
@@ -359,6 +342,50 @@ function PrivilegeForm({
                 const privileges =
                     result.loginPrivileges || result.data?.loginPrivileges || result.loginPData || result.data?.loginPData || [];
                 const total = result.total || result.data?.count || privileges.length;
+                
+                if (tId === '2' || tId === '3') {
+                    console.log("loginPrivileges:", privileges);
+                    console.log("classSectionList:", csList);
+                    
+                    const matchedIds: string[] = [];
+                    privileges.forEach((priv: any) => {
+                        const privClass = (priv.asmcL_ClassName || '').trim();
+                        const privSec = (priv.asmC_SectionName || '').trim();
+                        console.log("selected teacher class:", privClass);
+                        console.log("selected teacher section:", privSec);
+                        
+                        if (priv.asmcL_Id && priv.asmC_Id) {
+                            matchedIds.push(`${priv.asmcL_Id}-${priv.asmC_Id}`);
+                        } else if (privClass && privSec) {
+                            const expectedName1 = `${privClass} - ${privSec}`;
+                            const expectedName2 = `${privClass} : ${privSec}`;
+                            const expectedName3 = `${privClass}${privSec}`;
+                            
+                            const matchedCs = csList.find((cs: any) => {
+                                const csName = cs.name ? cs.name.trim() : '';
+                                const csLabel = cs.label ? cs.label.trim() : '';
+                                return (
+                                    csName === expectedName1 || csName === expectedName2 || csName === expectedName3 ||
+                                    csLabel === expectedName1 || csLabel === expectedName2 || csLabel === expectedName3 ||
+                                    (cs.asmcL_ClassName === privClass && cs.asmC_SectionName === privSec)
+                                );
+                            });
+                            
+                            console.log("matched class section:", matchedCs);
+                            
+                            if (matchedCs) {
+                                matchedIds.push(matchedCs.id);
+                            }
+                        }
+                    });
+                    
+                    if (sId && sId !== '0') {
+                        setAllowedClassSections(matchedIds);
+                    } else {
+                        setAllowedClassSections(null);
+                    }
+                }
+                
                 onSearchSuccess(privileges, total);
                 setShowMapping(true);
             }
@@ -490,6 +517,7 @@ function PrivilegeForm({
 
     const handleClear = () => {
         setSelectedClassSections([]);
+        setAllowedClassSections(null);
         setSelectedSubjects([]);
         setSelectedClsSecSubs([]);
         setShowMapping(false);
@@ -524,6 +552,7 @@ function PrivilegeForm({
                                     setShowMapping(true);
                                     setSelectedClsSecSubs([]);
                                     setSelectedClassSections([]);
+                                    setAllowedClassSections(null);
                                     setSelectedSubjects([]);
                                     setMappingClassSections([]);
                                     setMappingSubjects([]);
@@ -574,6 +603,9 @@ function PrivilegeForm({
                                         setSelectedYearId(val);
                                         setMappingClassSections([]);
                                         setMappingSubjects([]);
+                                        setAllowedClassSections(null);
+                                        setSelectedClassSections([]);
+                                        setSelectedClsSecSubs([]);
                                         // Auto-search if staff is also selected
                                         if (selectedStaffId && val && selectedStaffId !== '0' && val !== '0') {
                                             handleSearch(val, role, selectedStaffId);
@@ -603,6 +635,8 @@ function PrivilegeForm({
                                     value={selectedStaffId}
                                     onValueChange={(val) => {
                                         setSelectedStaffId(val);
+                                        setAllowedClassSections(null);
+                                        setSelectedClassSections([]);
                                         // Auto-search if year is also selected
                                         if (selectedYearId && val && selectedYearId !== '0' && val !== '0') {
                                             handleSearch(selectedYearId, role, val);
@@ -798,6 +832,7 @@ function PrivilegeForm({
                                         {classSectionList
                                             .filter(
                                                 (x) =>
+                                                    (allowedClassSections === null || allowedClassSections.includes(x.id)) &&
                                                     !selectedClassSections.includes(x.id) &&
                                                     x.label.toLowerCase().includes(csSearchAvail.toLowerCase())
                                             )

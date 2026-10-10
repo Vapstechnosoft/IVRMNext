@@ -681,7 +681,26 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     amsT_AadharNo: combined.amsT_AadharNo ?? combined.aadharNo ?? combined.aadhar_No ?? combined.amsT_Aadhar_No ?? '',
                     amsT_ApparNo: combined.amsT_ApparNo ?? combined.apparNo ?? combined.appar_No ?? combined.amsT_Appar_No ?? '',
 
-                    // Caste and Religion mapping
+                    // Caste, Section and Religion mapping
+                    asmS_Id: Number(
+                        combined.asmS_Id ??
+                        combined.ASMS_Id ??
+                        combined.pasR_Section_Id ??
+                        combined.asms_id ??
+                        combined.asmms_id ??
+                        combined.sectionId ??
+                        combined.section_Id ??
+                        combined.asmC_Id ??
+                        tabSrc.firstTab?.asmS_Id ??
+                        tabSrc.firstTab?.pasR_Section_Id ??
+                        tabSrc.firstTab?.ASMS_Id ??
+                        tabSrc.firstTab?.asms_id ??
+                        tabSrc.firstTab?.sectionId ??
+                        srcData.asmS_Id ??
+                        srcData.pasR_Section_Id ??
+                        srcData.ASMS_Id ??
+                        0
+                    ),
                     imC_Id: combined.imC_Id ?? combined.iC_Id ?? combined.caste_Id ?? combined.casteId ?? combined.imC_CasteId ?? 0,
                     imCC_Id:
                         combined.imCC_Id ??
@@ -915,6 +934,17 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     payload.amc_Id ??
                     payload.categoryId ??
                     0;
+                payload.asmS_Id = Number(
+                    payload.asmS_Id ??
+                    payload.ASMS_Id ??
+                    payload.pasR_Section_Id ??
+                    payload.asms_id ??
+                    payload.asmms_id ??
+                    payload.sectionId ??
+                    payload.section_Id ??
+                    payload.asmC_Id ??
+                    0
+                );
                 payload.studentCategoryId = payload.asmcC_Id;
                 payload.amsT_Sex = payload.amsT_Sex ?? payload.gender ?? payload.amsT_Gender ?? '';
 
@@ -4422,12 +4452,14 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         if (_isInitializingRef.current) return;
 
         if (sectionData?.data && sectionData.data.length > 0) {
-            const firstSection = sectionData.data[0];
-            setValue('asmS_Id', firstSection.asmS_Id);
-        } else {
-            setValue('asmS_Id', 0);
+            const currentAsmsId = Number(getValues('asmS_Id'));
+            const exists = sectionData.data.some((s: any) => Number(s.asmS_Id) === currentAsmsId);
+            if (!currentAsmsId || !exists) {
+                const firstSection = sectionData.data[0];
+                setValue('asmS_Id', Number(firstSection.asmS_Id));
+            }
         }
-    }, [classId, sectionData, setValue]);
+    }, [classId, sectionData, setValue, getValues]);
 
     const onSubmit = async (_formData: FormFields) => {
         if (submittingFinal) return;

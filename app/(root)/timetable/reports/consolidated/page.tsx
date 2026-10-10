@@ -1,5 +1,6 @@
 'use client';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
+import { getMasterInstitution } from '@/server/hrms/master-dropdown';
 import { getConsolidatedReport, getConsolidatedReportDetails } from '@/server/timetable/reports/consolidated';
 import { RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -14,6 +15,9 @@ export default function ConsolidatedReportPage() {
     const [fullReportResponse, setFullReportResponse] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [reportType, setReportType] = useState<string>('');
+    const [institution, setInstitution] = useState<any>(null);
+    const [admfigLogo, setAdmfigLogo] = useState<string>('');
+    const [academicYear, setAcademicYear] = useState<string>('');
     const componentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -29,7 +33,35 @@ export default function ConsolidatedReportPage() {
                 console.error('Error fetching consolidated report details:', error);
             }
         };
+
+        const fetchInstitutionData = async () => {
+            try {
+                const instRes = await getMasterInstitution();
+                if (instRes?.success && instRes.data) {
+                    setInstitution(instRes.data);
+                }
+            } catch (error) {
+                console.error('Error fetching master institution details:', error);
+            }
+        };
+
+        // Load logo from localStorage if available (admfigsettings)
+        if (typeof window !== 'undefined') {
+            try {
+                const admfigsettingsStr = localStorage.getItem('admfigsettings');
+                if (admfigsettingsStr) {
+                    const parsed = JSON.parse(admfigsettingsStr);
+                    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].asC_Logo_Path) {
+                        setAdmfigLogo(parsed[0].asC_Logo_Path);
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading logo from admfigsettings:', err);
+            }
+        }
+
         fetchDetails();
+        fetchInstitutionData();
     }, []);
 
     const handlePrint = useReactToPrint({
@@ -60,6 +92,16 @@ export default function ConsolidatedReportPage() {
                 .sticky {
                     position: static !important;
                 }
+                .school-header-section {
+                    display: block !important;
+                    margin-bottom: 12px !important;
+                    page-break-inside: avoid !important;
+                }
+                .school-header-section img {
+                    max-height: 70px !important;
+                    width: auto !important;
+                    display: inline-block !important;
+                }
                 table {
                     width: 100% !important;
                     border-collapse: collapse !important;
@@ -83,6 +125,14 @@ export default function ConsolidatedReportPage() {
                     background-color: #6b21a8 !important;
                     color: #fff !important;
                 }
+                .school-header-section table,
+                .school-header-section th,
+                .school-header-section td {
+                    border: none !important;
+                    background: transparent !important;
+                    color: inherit !important;
+                    padding: 0 !important;
+                }
             }
         `
     });
@@ -93,11 +143,21 @@ export default function ConsolidatedReportPage() {
         if (payload.CLEAR) {
             setReportData([]);
             setFullReportResponse(null);
+            setAcademicYear('');
             return;
         }
 
         setLoading(true);
         setReportType(payload.TYPE);
+
+        // Resolve academic year label from initialData
+        const yearsList = initialData?.acayear || initialData?.academiclist || [];
+        const matchedYear = yearsList.find(
+            (y: any) => String(y.asmaY_Id || y.ASMAY_Id) === String(payload.ASMAY_Id)
+        );
+        if (matchedYear) {
+            setAcademicYear(matchedYear.asmaY_Year || matchedYear.ASMAY_Year || '');
+        }
 
         try {
             const response: any = await getConsolidatedReport(payload);
@@ -149,6 +209,9 @@ export default function ConsolidatedReportPage() {
                             onPrint={handlePrint}
                             reportType={reportType}
                             initialData={initialData}
+                            institution={institution}
+                            admfigLogo={admfigLogo}
+                            academicYear={academicYear}
                         />
                     </div>
                 </CollapsibleSection>

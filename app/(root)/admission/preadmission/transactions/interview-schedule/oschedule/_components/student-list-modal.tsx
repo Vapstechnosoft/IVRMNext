@@ -15,7 +15,8 @@ import type { IOralTestSchedule } from '@/types/admission/preadmission/transacti
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { FileDown, Loader2, Printer, Send, Trash2, XCircle } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
 
 interface StudentListModalProps {
@@ -31,6 +32,7 @@ export default function StudentListModal({ rowData, isOpen, onClose, isRemarks =
 
     const [data, setData] = useState<any[]>([]);
     const [selectedRows, setSelectedRows] = useState<any[]>([]);
+    const printRef = useRef<HTMLDivElement>(null);
 
     const isLoading = isRemarks ? isLoadingRemarks : isLoadingSchedule;
 
@@ -196,10 +198,24 @@ export default function StudentListModal({ rowData, isOpen, onClose, isRemarks =
         sendReminderMutation(payload);
     };
 
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: `Students_List_${rowData?.paotS_ScheduleName || 'Schedule'}`,
+        pageStyle: `
+          @page { size: portrait; margin: 15mm; }
+          @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .no-print { display: none !important; }
+            .printable-content { display: block !important; }
+            * { color: black !important; }
+          }
+        `
+    });
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className='flex max-h-[90vh] w-[1200px] max-w-[95vw] flex-col overflow-hidden border-none p-0 shadow-2xl'>
-                <div className='printable-content flex flex-1 flex-col overflow-auto'>
+                <div ref={printRef} className='printable-content flex flex-1 flex-col overflow-auto bg-white'>
                     {/* Custom Header Section */}
                     <div className='relative z-10 flex items-center justify-between border-b bg-white px-6 py-4 shadow-sm'>
                         <div className='flex-1'>
@@ -222,7 +238,7 @@ export default function StudentListModal({ rowData, isOpen, onClose, isRemarks =
                                 <FileDown className='h-6 w-6 text-[#2e7d32]' strokeWidth={2.5} />
                             </button>
                             <button
-                                onClick={() => window.print()}
+                                onClick={() => handlePrint()}
                                 className='transition-transform duration-200 hover:scale-110'
                                 title='Print List'>
                                 <Printer className='h-6 w-6 text-[#455a64]' strokeWidth={2.5} />

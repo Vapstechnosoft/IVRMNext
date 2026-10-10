@@ -203,20 +203,22 @@ export async function getInstitutionDropdown() {
     }
 }
 
-export async function getStaffDropdownByInstitution(mi_id: number) {
+export async function getStaffDropdownByInstitution(payload: any) {
     try {
-        console.info('📡 [SERVER] Fetching Staff Dropdown for Institution (Single):', mi_id);
-        const response = await api.get<any>(API_KEY, `StaffLogin/get_staff_drop_down_onchangeof_institution/${mi_id}`);
+        // await api.post<any>(API_KEY, 'StaffLogin/get_search_list', payload)
+        console.info('📡 [SERVER] Fetching Staff Dropdown for Institution (Single):', payload);
+        const response = await api.post<any>(API_KEY, 'StaffLogin/get_staff_drop_down_onchangeof_institution',payload);
 
         if (response.success && response.data) {
-            const extractedData = Array.isArray(response.data)
-                ? response.data
-                : response.data.fillstaff || response.data.$values || response.data;
+            // const extractedData = Array.isArray(response.data)
+            //     ? response.data
+            //     : response.data.fillstaff || response.data.$values || response.data;
 
-            if (Array.isArray(extractedData)) {
-                return { success: true, data: extractedData };
-            }
-            return { success: true, data: [] };
+            // if (Array.isArray(extractedData)) {
+            //     return { success: true, data: extractedData };
+            // }
+
+            return { success: true, data: response.data };
         }
         return { success: false, message: response.message || 'Failed to fetch staff', data: [] };
     } catch (error: any) {

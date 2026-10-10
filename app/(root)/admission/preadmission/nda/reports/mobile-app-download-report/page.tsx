@@ -128,18 +128,17 @@ export default function MobileAppDownloadReportPage() {
             });
 
             if (res?.data) {
-                // The new API returns data in studentList1 or studentList
-                const list = (res.data.studentList1?.length > 0 ? res.data.studentList1 : res.data.studentList) || [];
-                setReportData(list);
-
+                let list = [];
                 if (optionflag === 'Download') {
-                    // We don't have explicit counts from the new API, so we use list.length
-                    setTotalRecords(list.length);
-                    setNotDownloadCount(0);
+                    list = res.data.studentList || [];
+                    setTotalRecords(res.data.studentList2?.[0]?.totalcount || (res.data.studentList?.length + res.data.studentList1?.length) || 0);
+                    setNotDownloadCount(res.data.studentList1?.length || 0);
                 } else {
-                    setTotalRecords(list.length);
-                    setNotDownloadCount(0);
+                    list = res.data.studentList1 || [];
+                    setTotalRecords(res.data.studentList2?.[0]?.totalcount || list.length || 0);
+                    setNotDownloadCount(list.length);
                 }
+                setReportData(list);
 
                 if (list.length === 0) {
                     toast.info('No Data Found!!!');
