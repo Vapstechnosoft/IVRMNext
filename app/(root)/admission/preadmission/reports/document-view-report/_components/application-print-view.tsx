@@ -37,6 +37,7 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
     const schoolLogo = data.masterCompany?.[0]?.logo || '';
     const religion = data.studentReligion?.[0]?.ivrmmR_Name || data.studentReligion?.[0]?.IVRMMR_Name || details.PASR_Religion || '';
     const caste = data.studentcaste?.[0]?.imC_CasteName || data.studentcaste?.[0]?.IMC_CasteName || details.PASR_Caste || '';
+    const nationality = data.studentnationalitys?.[0]?.studentnationality || data.studentnationalitys?.[0]?.STUDENTNATIONALITY || details.PASR_Nationality || '';
 
     const residentialAddress = [
         details.PASR_ConStreet,
@@ -210,7 +211,7 @@ export default function ApplicationPrintView({ data, printRef }: ApplicationPrin
                             </tr>
                             <tr>
                                 <td className='border-black border-r border-b font-bold'>Nationality</td>
-                                <td className='border-black border-b'>{details.PASR_Nationality}</td>
+                                <td className='border-black border-b'>{nationality}</td>
                             </tr>
                             <tr>
                                 <td className='border-black border-r border-b font-bold'>Religion & Caste</td>

@@ -601,7 +601,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
         const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
         const fallback: Record<string, number> = {
-            '91': 10,
+            '91': 12,
             '1': 10,
             '44': 10,
             '61': 9
