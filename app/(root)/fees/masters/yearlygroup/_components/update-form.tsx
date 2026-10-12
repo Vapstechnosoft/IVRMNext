@@ -173,13 +173,17 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
             }
 
             if (!selectedAcademicYear) {
-                toast.error('Please select a valid Academic Year');
+                toast.error('Please select a valid Academic Year', {
+                    style: { color: '#dc2626', borderColor: '#fca5a5' }
+                });
                 return;
             }
 
             const asmaY_Id = Number(selectedAcademicYear.asmaY_Id);
             if (Number.isNaN(asmaY_Id)) {
-                toast.error('Invalid Academic Year value');
+                toast.error('Invalid Academic Year value', {
+                    style: { color: '#dc2626', borderColor: '#fca5a5' }
+                });
                 return;
             }
 
@@ -200,28 +204,57 @@ export default function UpdateYearlyGroupForm({ onSuccess, selectedRow }: Update
             const response = await addOrUpdateMasterGroupYearlyCategory(payload);
             console.warn('addOrUpdateMasterGroupYearlyCategory response:', response);
 
-            if (response?.success) {
-                toast.success(response.message || 'Master Yearly Group updated successfully!');
-                try {
-                    if (typeof refetchCategory === 'function') {
-                        await refetchCategory();
-                    } else if (typeof refetchAll === 'function') {
-                        await refetchAll();
-                    } else {
-                        console.warn('Neither refetchCategory nor refetchAll are available');
-                    }
-                } catch (e) {
-                    console.warn('Failed to refetch after update:', e);
-                }
-                reset();
-                onSuccess?.();
-                refetchAll?.();
-            } else {
-                toast.error(response.message || 'Failed to update yearly group');
+            const msg: string =
+                response?.message ||
+                (typeof response?.returnval === 'string' && response.returnval !== 'false' && response.returnval !== 'true'
+                    ? response.returnval
+                    : '') ||
+                (typeof response?.retrunMsg === 'string' ? response.retrunMsg : '') ||
+                '';
+
+            const isDuplicateOrError =
+                !response ||
+                response.success === false ||
+                response.returnval === false ||
+                response.returnval === 'false' ||
+                response.returnval === 'duplicate' ||
+                response.returnval === 'Failed' ||
+                response.returnduplicatestatus === 'Duplicate' ||
+                response.retrunMsg === 'Duplicate' ||
+                ['already exist', 'already exists', 'duplicate', 'failed', 'error', 'invalid', 'cannot', 'can not', 'not saved'].some(
+                    (kw) =>
+                        (typeof response?.message === 'string' && response.message.toLowerCase().includes(kw)) ||
+                        (typeof response?.returnval === 'string' && response.returnval.toLowerCase().includes(kw)) ||
+                        (typeof response?.retrunMsg === 'string' && response.retrunMsg.toLowerCase().includes(kw))
+                );
+
+            if (isDuplicateOrError) {
+                toast.error(msg || 'Failed to update yearly group', {
+                    style: { color: '#dc2626', borderColor: '#fca5a5' }
+                });
+                return;
             }
+
+            toast.success(msg || 'Master Yearly Group updated successfully!');
+            try {
+                if (typeof refetchCategory === 'function') {
+                    await refetchCategory();
+                } else if (typeof refetchAll === 'function') {
+                    await refetchAll();
+                } else {
+                    console.warn('Neither refetchCategory nor refetchAll are available');
+                }
+            } catch (e) {
+                console.warn('Failed to refetch after update:', e);
+            }
+            reset();
+            onSuccess?.();
+            refetchAll?.();
         } catch (error: any) {
             console.error('Update error:', error);
-            toast.error(error.message || 'Something went wrong');
+            toast.error(error.message || 'Something went wrong', {
+                style: { color: '#dc2626', borderColor: '#fca5a5' }
+            });
         }
     };
 

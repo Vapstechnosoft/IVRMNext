@@ -61,7 +61,7 @@ export default function ToggleMasterSubjectForm({ rowData, onClose, onSuccess }:
     };
 
     return (
-        <AdaptiveDialog title='Toggle Master Library Status' isOpen={true} onClose={closeDialog}>
+        <AdaptiveDialog title='Toggle Master Subject Status' isOpen={true} onClose={closeDialog}>
             <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
                 <AdaptiveBody className='flex flex-col gap-5'>
                     <input type='hidden' {...register('lmS_Id')} value={rowData.lmS_Id?.toString()} />

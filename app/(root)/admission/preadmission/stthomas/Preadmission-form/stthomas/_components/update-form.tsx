@@ -518,15 +518,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 fieldsToValidate.push('PASRG_GuardianName', 'PASRG_GuardianRelation', 'PASRG_Occupation', 'PASRG_GuardianAddress');
             }
 
-            if (!fatherPhoto?.pasR_FatherPhoto) {
-                toast.error('Please upload father photo');
-                return;
-            }
 
-            if (!motherPhoto?.pasR_MotherPhoto) {
-                toast.error('Please upload mother photo');
-                return;
-            }
 
             // Validate optional phone fields if they have values
             const phoneFieldsToCheck = [
@@ -607,21 +599,23 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const getExpectedPhoneLength = (countryData: any): number | undefined => {
         if (!countryData) return undefined;
 
+        const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
+        const fallback: Record<string, number> = {
+            '91': 12,
+            '1': 10,
+            '44': 10,
+            '61': 9
+        };
+
+        if (fallback[dial]) return fallback[dial];
+
         const format = countryData?.format;
         if (format && typeof format === 'string') {
             const placeholders = (format.match(/[0-9xX\.\#9]/g) || []).length;
             if (placeholders > 0) return placeholders;
         }
 
-        const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
-        const fallback: Record<string, number> = {
-            '91': 10,
-            '1': 10,
-            '44': 10,
-            '61': 9
-        };
-
-        return fallback[dial] ?? undefined;
+        return undefined;
     };
 
     const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
@@ -639,11 +633,17 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         if (numberPart.startsWith(countryCode)) {
             numberPart = numberPart.slice(String(countryCode).length);
         }
+        const expected = getExpectedPhoneLength(countryData);
+
+        if (expected && numberPart.length > expected) {
+            numberPart = numberPart.slice(0, expected);
+        }
+
+        const rawPhone = countryCode + numberPart;
         const formattedPhone = `+${countryCode} ${numberPart}`;
-        setPhoneValues((prev) => ({ ...prev, [fieldName]: formattedPhone }));
+        setPhoneValues((prev) => ({ ...prev, [fieldName]: rawPhone }));
         setValue(fieldName as any, formattedPhone);
 
-        const expected = getExpectedPhoneLength(countryData);
         setPhoneExpectedInfo((prev) => ({
             ...prev,
             [fieldName]: {
@@ -2247,8 +2247,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            allowZero={true}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value !== undefined && field.value !== null ? String(field.value) : undefined}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select option' />
                                                             </SelectTrigger>
@@ -2669,7 +2670,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             />
                                                             <div className='mb-1'>
                                                                 <Label htmlFor='father_photo'>
-                                                                    Father Photo <span className='ml-1 text-red-500'>*</span>
+                                                                    Father Photo
                                                                 </Label>
                                                             </div>
 
@@ -3131,7 +3132,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             />
                                                             <div className='mb-1'>
                                                                 <Label htmlFor='mother_photo'>
-                                                                    Mother Photo <span className='ml-1 text-red-500'>*</span>
+                                                                    Mother Photo
                                                                 </Label>
                                                             </div>
 

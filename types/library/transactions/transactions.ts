@@ -97,6 +97,8 @@ export interface IBookRegisterList {
     lmaU_AuthorMiddleName?: string | null; // Author Middle Name
     lmaU_AuthorLastName?: string | null; // Author Last Name
     LMB_ActiveFlag?: boolean; // Alternative active flag (if different from mB_ActiveFlag)
+    lmbanO_ActiveFlag?: boolean;
+    LMBANO_ActiveFlag?: boolean;
 
     [key: string]: any; // For any additional fields
 }

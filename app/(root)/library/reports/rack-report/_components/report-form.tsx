@@ -7,16 +7,18 @@ import { useRackReportInitialData, useRackReportLibraries } from '@/hooks/librar
 import type { IRackReportRequest } from '@/types/library/reports/rack-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Search, X } from 'lucide-react';
-import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 const reportFormSchema = z.object({
     LMAL_Id: z.preprocess(
-        (val) => (val === undefined || val === '' ? undefined : Number(val)),
+        (val) => (val === undefined || val === '' || val === null ? undefined : Number(val)),
         z.number({ required_error: 'Select Library', invalid_type_error: 'Select Library' }).min(1, 'Select Library')
     ),
-    LMRA_Id: z.preprocess((val) => (val === undefined || val === null || val === '' ? 'ALL' : String(val)), z.string().optional())
+    LMRA_Id: z.preprocess(
+        (val) => (val === undefined || val === null || val === '' ? undefined : String(val)),
+        z.string({ required_error: 'Select Rack Name', invalid_type_error: 'Select Rack Name' }).min(1, 'Select Rack Name')
+    )
 });
 
 type ReportFormValues = z.infer<typeof reportFormSchema>;
@@ -54,7 +56,8 @@ export const ReportForm = ({
     } = useForm<ReportFormValues>({
         resolver: zodResolver(reportFormSchema),
         defaultValues: {
-            LMRA_Id: 'ALL'
+            LMAL_Id: undefined,
+            LMRA_Id: undefined
         }
     });
 
@@ -79,16 +82,6 @@ export const ReportForm = ({
 
     const watchLmalId = watch('LMAL_Id');
 
-    useEffect(() => {
-        if (libList.length === 1 && !watchLmalId) {
-            const firstLib = libList[0];
-            const firstLibId = Number(firstLib?.lmaL_Id ?? firstLib?.LMAL_Id ?? firstLib?.lmal_Id ?? 0);
-            if (firstLibId) {
-                setValue('LMAL_Id', firstLibId);
-            }
-        }
-    }, [libList, watchLmalId, setValue]);
-
     const onSubmit = (data: ReportFormValues) => {
         const rackVal = data.LMRA_Id === '0' || data.LMRA_Id === 'ALL' || !data.LMRA_Id ? 'ALL' : data.LMRA_Id;
         const payload: IRackReportRequest = {
@@ -99,10 +92,9 @@ export const ReportForm = ({
     };
 
     const handleReset = () => {
-        const defaultLibId = libList.length === 1 ? Number(libList[0]?.lmaL_Id ?? libList[0]?.LMAL_Id ?? 0) : undefined;
         reset({
-            LMAL_Id: defaultLibId,
-            LMRA_Id: 'ALL'
+            LMAL_Id: undefined,
+            LMRA_Id: undefined
         });
         onCancel?.();
     };
@@ -122,10 +114,7 @@ export const ReportForm = ({
                                 name='LMAL_Id'
                                 render={({ field }) => (
                                     <Select
-                                        onValueChange={(v) => {
-                                            field.onChange(Number(v));
-                                            setValue('LMRA_Id', 'ALL');
-                                        }}
+                                        onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
                                         value={field.value ? String(field.value) : ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Library' />
@@ -163,7 +152,9 @@ export const ReportForm = ({
                                 control={control}
                                 name='LMRA_Id'
                                 render={({ field }) => (
-                                    <Select onValueChange={(v) => field.onChange(v)} value={field.value || 'ALL'}>
+                                    <Select
+                                        onValueChange={(v) => field.onChange(v || undefined)}
+                                        value={field.value ? String(field.value) : ''}>
                                         <SelectTrigger className='w-full'>
                                             <SelectValue placeholder='Select Rack' />
                                         </SelectTrigger>
@@ -214,3 +205,4 @@ export const ReportForm = ({
         </form>
     );
 };
+
