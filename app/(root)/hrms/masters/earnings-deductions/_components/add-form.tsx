@@ -203,7 +203,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
             const payload: any = {
                 hrmeD_Id: 0,
                 hrmeD_Name: data.HRMED_Name?.trim() || '',
-                hrmeD_EDTypeFlag: data.HRMED_EDTypeFlag,
+                hrmeD_EDTypeFlag: data.HRMED_EDTypeFlag || '',
                 hrmeD_EarnDedFlag: data.HRMED_EarnDedFlag,
                 hrmeD_AmountPercentFlag: data.HRMED_AmountPercentFlag,
                 hrmeD_AmountPercent: data.HRMED_AmountPercent,
@@ -262,14 +262,11 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                         />
                     </div>
                     <div className='group flex flex-col gap-1.5'>
-                        <Label htmlFor='HRMED_EDTypeFlag'>
-                            Type <span className='text-destructive'>*</span>
-                        </Label>
+                        <Label htmlFor='HRMED_EDTypeFlag'>Type</Label>
                         <Controller
                             key={resetKey}
                             name='HRMED_EDTypeFlag'
                             control={control}
-                            rules={{ required: 'Type is required' }}
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value || undefined}>
                                     <SelectTrigger>
@@ -306,7 +303,6 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                 </Select>
                             )}
                         />
-                        {errors.HRMED_EDTypeFlag && <FormError>{errors.HRMED_EDTypeFlag.message}</FormError>}
                     </div>
                     <div className='group flex flex-col gap-1.5'>
                         <Label htmlFor='HRMED_RoundOffFlag'>

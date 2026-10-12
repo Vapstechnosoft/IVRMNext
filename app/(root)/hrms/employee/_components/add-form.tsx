@@ -17,8 +17,6 @@ import {
     useContactTypeDropdown,
     useCountryDropdown,
     useCourseDropdown,
-    useDepartmentDropdown,
-    useDesignationDropdown,
     useEmployeeRegisterOnload,
     useEmployeeTypeDropdown,
     useGenderDropdown,
@@ -41,6 +39,7 @@ import {
     useSpecializationDropdown,
     useTeachingTypeDropdown
 } from '@/hooks/hrms/useEmployeeRegister';
+import { useReportDepartments, useReportDesignations } from '@/hooks/hrms/useReports';
 import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
@@ -264,6 +263,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     // Watch for dependent dropdown values
     const selectedReligion = useWatch({ control, name: 'religion' });
     const selectedCasteCategory = useWatch({ control, name: 'casteCategory' });
+    const selectedEmployeeGroup = useWatch({ control, name: 'employeeGroup' });
+    const selectedDepartment = useWatch({ control, name: 'department' });
 
     // Fetch onload data for new employee (to get salary heads etc)
     const { data: onloadData } = useEmployeeRegisterOnload(HRMS_MI_ID, 0);
@@ -296,45 +297,88 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         ? institutionDropdownResponse
         : (institutionDropdownResponse as any)?.data || [];
 
-    // Designation dropdown - API: /api/MasterDropDown/GetDesignation
-    const { data: designationDropdownResponse, isLoading: isLoadingDesignations } = useDesignationDropdown();
-    // Extract data from response (handle ApiResponse wrapper if needed)
-    const designationDropdown: IDesignationDropdown[] = Array.isArray(designationDropdownResponse)
-        ? designationDropdownResponse
-        : (designationDropdownResponse as any)?.data || [];
+    // Cascading dropdowns: Group -> Department -> Designation (Reference: /hrms/transactions/salary-calculation)
+    const groupTypeIds = selectedEmployeeGroup ? String(selectedEmployeeGroup) : '';
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIds);
 
-    // Department dropdown - API: /api/MasterDropDown/GetDepartments
-    const { data: departmentDropdownResponse, isLoading: isLoadingDepartments } = useDepartmentDropdown();
+    const deptIds = selectedDepartment ? String(selectedDepartment) : '';
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
+
     const departmentDropdown: IDepartmentDropdown[] = useMemo(() => {
-        const rawData = Array.isArray(departmentDropdownResponse)
-            ? departmentDropdownResponse
-            : (departmentDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] Department Raw Data:', rawData);
+        const rawData = Array.isArray(departmentsData)
+            ? departmentsData
+            : (departmentsData as any)?.data || [];
         return rawData
             .map((item: any) => {
-                // Return item as is if it already matches interface (has key/value)
-                if (item.key !== undefined && item.value !== undefined) return item;
-                // Otherwise map from known API fields
-                // Fallback debug log for first item
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Department Item:', item);
+                const key = Number(item.key ?? item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? 0);
+                const value = String(
+                    item.value ??
+                    item.hrmD_DepartmentName ??
+                    item.HRMD_DepartmentName ??
+                    item.hrmD_Name ??
+                    item.HRMD_Name ??
+                    item.departmentName ??
+                    item.name ??
+                    ''
+                );
                 return {
-                    key: String(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? ''),
-                    value: String(
-                        item.hrmD_DepartmentName ??
-                        item.HRMD_DepartmentName ??
-                        item.hrmD_Name ??
-                        item.HRMD_Name ??
-                        item.name ??
-                        item.departmentName ??
-                        item.HRMD_ProjectName ??
-                        item.value ??
-                        item.label ??
-                        ''
-                    )
+                    key,
+                    value,
+                    hrmD_Id: key,
+                    hrmD_DepartmentName: value
                 };
             })
-            .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
-    }, [departmentDropdownResponse]);
+            .filter((item: any) => item.key != null && item.key !== 0 && item.value);
+    }, [departmentsData]);
+
+    console.log("departmentsData",departmentDropdown)
+
+    const designationDropdown: IDesignationDropdown[] = useMemo(() => {
+        const rawData = Array.isArray(designationsData)
+            ? designationsData
+            : (designationsData as any)?.data || [];
+        return rawData
+            .map((item: any) => {
+                const key = Number(item.key ?? item.hrmdeS_Id ?? item.HRMDES_Id ?? item.designationId ?? 0);
+                const value = String(
+                    item.value ??
+                    item.hrmdeS_DesignationName ??
+                    item.HRMDES_DesignationName ??
+                    item.hrmdeS_Name ??
+                    item.HRMDES_Name ??
+                    item.designationName ??
+                    item.name ??
+                    ''
+                );
+                return {
+                    key,
+                    value
+                };
+            })
+            .filter((item: any) => item.key != null && item.key !== 0 && item.value);
+    }, [designationsData]);
+
+    // Clear dependent dropdowns when parent selection changes
+    const prevEmployeeGroupRef = useRef(selectedEmployeeGroup);
+    useEffect(() => {
+        if (prevEmployeeGroupRef.current !== undefined && prevEmployeeGroupRef.current !== selectedEmployeeGroup) {
+            prevEmployeeGroupRef.current = selectedEmployeeGroup;
+            setValue('department', '', { shouldValidate: false });
+            setValue('designation', '', { shouldValidate: false });
+        } else {
+            prevEmployeeGroupRef.current = selectedEmployeeGroup;
+        }
+    }, [selectedEmployeeGroup, setValue]);
+
+    const prevDepartmentRef = useRef(selectedDepartment);
+    useEffect(() => {
+        if (prevDepartmentRef.current !== undefined && prevDepartmentRef.current !== selectedDepartment) {
+            prevDepartmentRef.current = selectedDepartment;
+            setValue('designation', '', { shouldValidate: false });
+        } else {
+            prevDepartmentRef.current = selectedDepartment;
+        }
+    }, [selectedDepartment, setValue]);
 
     // Gender dropdown - API: /api/MasterDropDown/GetGenderList
     const { data: genderDropdownResponse, isLoading: isLoadingGenders } = useGenderDropdown();
@@ -566,6 +610,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         groupTypeDropdown,
         employeeTypeDropdown,
         institutionDropdown,
+        departmentDropdown,
         designationDropdown,
         genderDropdown,
         maritalStatusDropdown,
@@ -2353,7 +2398,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 <Label>
                                                                     Employee Group <span className='text-red-500'>*</span>
                                                                 </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                <Select
+                                                                    onValueChange={(val) => {
+                                                                        field.onChange(val);
+                                                                        setValue('department', '', { shouldValidate: false });
+                                                                        setValue('designation', '', { shouldValidate: false });
+                                                                    }}
+                                                                    value={field.value || ''}>
                                                                     <SelectTrigger
                                                                         className={cn(
                                                                             fieldState.error
@@ -2409,23 +2460,41 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 <Label>
                                                                     Department <span className='text-red-500'>*</span>
                                                                 </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                <Select
+                                                                    onValueChange={(val) => {
+                                                                        field.onChange(val);
+                                                                        setValue('designation', '', { shouldValidate: false });
+                                                                    }}
+                                                                    value={field.value || ''}
+                                                                    disabled={!selectedEmployeeGroup || dropdownLoadingStates.departments}>
                                                                     <SelectTrigger
                                                                         className={cn(
                                                                             fieldState.error
                                                                                 ? 'border-destructive focus-visible:ring-destructive'
                                                                                 : 'border-input focus-visible:ring-ring'
                                                                         )}>
-                                                                        <SelectValue placeholder='--Select--' />
+                                                                        <SelectValue
+                                                                            placeholder={
+                                                                                !selectedEmployeeGroup
+                                                                                    ? '--Select Group first--'
+                                                                                    : dropdownLoadingStates.departments
+                                                                                      ? 'Loading departments...'
+                                                                                      : '--Select--'
+                                                                            }
+                                                                        />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {dropdownLoadingStates.departments ? (
                                                                             <SelectItem value='__loading__' disabled>
                                                                                 Loading departments...
                                                                             </SelectItem>
+                                                                        ) : !selectedEmployeeGroup ? (
+                                                                            <SelectItem value='__no_group__' disabled>
+                                                                                Please select Employee Group first
+                                                                            </SelectItem>
                                                                         ) : (options?.departments || []).length === 0 ? (
                                                                             <SelectItem value='__no_options__' disabled>
-                                                                                No options available
+                                                                                No departments available Selected Group
                                                                             </SelectItem>
                                                                         ) : (
                                                                             (options?.departments || [])
@@ -2465,32 +2534,61 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 <Label>
                                                                     Designation <span className='text-red-500'>*</span>
                                                                 </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                <Select
+                                                                    onValueChange={field.onChange}
+                                                                    value={field.value || ''}
+                                                                    disabled={!selectedDepartment || dropdownLoadingStates.designations}>
                                                                     <SelectTrigger
                                                                         className={cn(
                                                                             fieldState.error
                                                                                 ? 'border-destructive focus-visible:ring-destructive'
                                                                                 : 'border-input focus-visible:ring-ring'
                                                                         )}>
-                                                                        <SelectValue placeholder='--Select--' />
+                                                                        <SelectValue
+                                                                            placeholder={
+                                                                                !selectedEmployeeGroup
+                                                                                    ? '--Select Group first--'
+                                                                                    : !selectedDepartment
+                                                                                      ? '--Select Department first--'
+                                                                                      : dropdownLoadingStates.designations
+                                                                                        ? 'Loading designations...'
+                                                                                        : '--Select--'
+                                                                            }
+                                                                        />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {(options?.designations || [])
-                                                                            .filter((dg: IDesignationDropdown) => {
-                                                                                return (
-                                                                                    dg.key != null && dg.key !== undefined && dg.key !== 0
-                                                                                );
-                                                                            })
-                                                                            .map((dg: IDesignationDropdown) => {
-                                                                                const val = getSafeValue(dg.key);
-                                                                                if (!val) return null;
-                                                                                return (
-                                                                                    <SelectItem key={dg.key} value={val}>
-                                                                                        {dg.value || String(dg.key)}
-                                                                                    </SelectItem>
-                                                                                );
-                                                                            })
-                                                                            .filter(Boolean)}
+                                                                        {dropdownLoadingStates.designations ? (
+                                                                            <SelectItem value='__loading__' disabled>
+                                                                                Loading designations...
+                                                                            </SelectItem>
+                                                                        ) : !selectedDepartment ? (
+                                                                            <SelectItem value='__no_dept__' disabled>
+                                                                                Please select Department first
+                                                                            </SelectItem>
+                                                                        ) : (options?.designations || []).length === 0 ? (
+                                                                            <SelectItem value='__no_options__' disabled>
+                                                                                No designations available for selected Department
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            (options?.designations || [])
+                                                                                .filter((dg: IDesignationDropdown) => {
+                                                                                    return (
+                                                                                        dg.key != null &&
+                                                                                        dg.key !== undefined &&
+                                                                                        dg.key !== 0
+                                                                                    );
+                                                                                })
+                                                                                .map((dg: IDesignationDropdown) => {
+                                                                                    const val = getSafeValue(dg.key);
+                                                                                    if (!val) return null;
+                                                                                    return (
+                                                                                        <SelectItem key={dg.key} value={val}>
+                                                                                            {dg.value || String(dg.key)}
+                                                                                        </SelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)
+                                                                        )}
                                                                     </SelectContent>
                                                                 </Select>
                                                                 {fieldState.error && (
