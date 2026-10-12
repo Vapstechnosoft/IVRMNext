@@ -36,6 +36,7 @@ export default function TabBookDetails({
     } = useFormContext<BookRegisterPayload>();
 
     const lmB_StudentPhoto = useWatch({ control, name: 'lmB_StudentPhoto' });
+    const [isEntryDateOpen, setIsEntryDateOpen] = useState(false);
 
     // Flexible list access
     const rawData = dropdownData?.data || dropdownData;
@@ -361,7 +362,7 @@ export default function TabBookDetails({
                             control={control}
                             name='lmB_EntryDate'
                             render={({ field }) => (
-                                <Popover>
+                                <Popover open={isEntryDateOpen} onOpenChange={setIsEntryDateOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={'outline'}
@@ -374,7 +375,10 @@ export default function TabBookDetails({
                                         <Calendar
                                             mode='single'
                                             selected={field.value ? new Date(field.value) : undefined}
-                                            onSelect={field.onChange}
+                                            onSelect={(date) => {
+                                                field.onChange(date);
+                                                setIsEntryDateOpen(false);
+                                            }}
                                             disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
                                             initialFocus
                                         />

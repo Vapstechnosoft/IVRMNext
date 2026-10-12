@@ -36,9 +36,29 @@ export async function getBookCirculationReportInitialData() {
         console.warn('[circulation-getdetails] GET failed, attempting POST fallback:', getError);
     }
 
-    // Try POST as fallback ONLY if GET failed (no response or getError present)
-    const data = response?.data?.data || response?.data || response;
-    let finalData = data;
+    let finalData = response?.data?.data || response?.data || response || {};
+
+    try {
+        const fs = await import('fs');
+        let mappedClasses: any = null;
+        try {
+            const mappedRes = await api.get<any>('library', `/MasterLibrary/get-mapped-class-list?mI_Id=${session.mi_id}`);
+            mappedClasses = mappedRes?.data || mappedRes;
+        } catch (e) {
+            mappedClasses = { err: String(e) };
+        }
+
+        const debugPath = 'C:\\Users\\sumas\\.gemini\\antigravity-ide\\brain\\7965c868-2d42-45ea-8fde-f82e555152d5\\scratch\\api_debug2.json';
+        fs.writeFileSync(debugPath, JSON.stringify({
+            circulationGetdetailsKeys: Object.keys(finalData || {}),
+            mappedClassesKeys: mappedClasses ? Object.keys(mappedClasses) : [],
+            mappedClassesSample: mappedClasses,
+            classList: finalData?.classList,
+            sectionList: finalData?.sectionList
+        }, null, 2), 'utf-8');
+    } catch (err) {
+        console.error('Failed to write debug file 2:', err);
+    }
 
     if (!response || getError) {
         try {
