@@ -9,7 +9,13 @@ export const loginSchema = z.object({
 export const masterLibrarySchema = {
     addOrUpdate: z.object({
         lmaL_Id: z.number().nonnegative().optional(), // optional when creating new record
-        lmaL_LibraryName: z.string({ message: 'Library Name is required' }).min(2).max(100)
+        lmaL_LibraryName: z
+            .string({ required_error: 'Library Name is required', invalid_type_error: 'Library Name is required' })
+            .trim()
+            .min(1, 'Library Name is required')
+            .min(2, 'Library Name must be at least 2 characters')
+            .max(100, 'Library Name cannot exceed 100 characters')
+            .regex(/^[a-zA-Z0-9\s]+$/, 'Special characters are not allowed')
     }),
     delete: z.object({
         lmaL_Id: deleteIdSchema('lmaL_Id')
