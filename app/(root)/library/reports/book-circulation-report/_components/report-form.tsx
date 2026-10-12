@@ -93,9 +93,9 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
     const [classSearch, setClassSearch] = useState('');
     const [sectionSearch, setSectionSearch] = useState('');
 
-    const sectionList = React.useMemo(() => {
+    const sectionList: any[] = React.useMemo(() => {
         if (!initialData?.sectionList) return [];
-        return initialData.sectionList.map((sec: any, index) => {
+        return initialData.sectionList.map((sec: any, index: number) => {
             // 1. Try to find the section name by checking standard keys
             let name =
                 sec.asmC_SectionName ||
@@ -179,19 +179,19 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
             setValue('LMAL_Id', initialData.lib_list[0].lmaL_Id);
         }
         if (initialData?.classList && (initialData.classList.length || 0) > 0) {
-            const allClassIds = initialData.classList.map((c) => c.asmcL_Id);
+            const allClassIds: number[] = initialData.classList.map((c: any) => c.asmcL_Id);
             setSelectedClasses(allClassIds);
             setValue(
                 'selectedClasslist',
-                allClassIds.map((id) => ({ asmcL_Id: id }))
+                allClassIds.map((id: number) => ({ asmcL_Id: id }))
             );
         }
         if (sectionList && (sectionList.length || 0) > 0) {
-            const allSectionIds = sectionList.map((s) => s.asmS_Id);
+            const allSectionIds: number[] = sectionList.map((s: any) => s.asmS_Id);
             setSelectedSections(allSectionIds);
             setValue(
                 'selectedSectionlist',
-                allSectionIds.map((id) => ({ asmS_Id: id }))
+                allSectionIds.map((id: number) => ({ asmS_Id: id }))
             );
         }
     }, [initialData, sectionList, setValue, watch]);
@@ -206,17 +206,17 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
         setSelectedClasses(newSelected);
         setValue(
             'selectedClasslist',
-            newSelected.map((i) => ({ asmcL_Id: i }))
+            newSelected.map((i: number) => ({ asmcL_Id: i }))
         );
     };
 
     const handleAllClassesToggle = (checked: boolean) => {
         if (checked && initialData?.classList) {
-            const allIds = initialData.classList.map((c) => c.asmcL_Id);
+            const allIds: number[] = initialData.classList.map((c: any) => c.asmcL_Id);
             setSelectedClasses(allIds);
             setValue(
                 'selectedClasslist',
-                allIds.map((i) => ({ asmcL_Id: i }))
+                allIds.map((i: number) => ({ asmcL_Id: i }))
             );
         } else {
             setSelectedClasses([]);
@@ -234,17 +234,17 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
         setSelectedSections(newSelected);
         setValue(
             'selectedSectionlist',
-            newSelected.map((i) => ({ asmS_Id: i }))
+            newSelected.map((i: number) => ({ asmS_Id: i }))
         );
     };
 
     const handleAllSectionsToggle = (checked: boolean) => {
         if (checked && sectionList) {
-            const allIds = sectionList.map((s) => s.asmS_Id);
+            const allIds: number[] = sectionList.map((s: any) => s.asmS_Id);
             setSelectedSections(allIds);
             setValue(
                 'selectedSectionlist',
-                allIds.map((i) => ({ asmS_Id: i }))
+                allIds.map((i: number) => ({ asmS_Id: i }))
             );
         } else {
             setSelectedSections([]);
@@ -269,43 +269,43 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
     return (
         <form
             onSubmit={handleSubmit(onSubmit)}
-            className='mx-auto max-w-5xl space-y-4 rounded-lg border-[#4255a7] border-t-4 bg-[#fdfdfd] p-4 shadow-xl ring-1 ring-slate-200'>
+            className='mx-auto max-w-6xl space-y-5 rounded-xl border border-slate-200 bg-white p-7 shadow-sm'>
             {/* Header Row: Library Name and Member Type */}
-            <div className='grid grid-cols-1 gap-6 border-slate-100 border-b pb-2 md:grid-cols-2'>
+            <div className='grid grid-cols-1 items-center gap-6 border-slate-100 border-b pb-4 md:grid-cols-2'>
                 <div className='flex items-center gap-3'>
-                    <Label className='min-w-[120px] text-right font-bold text-[#4255a7] text-xs uppercase tracking-wider'>
+                    <Label className='min-w-[130px] text-right font-bold text-slate-700 text-xs uppercase tracking-wider'>
                         Library Name:<span className='text-red-500'>*</span>
                     </Label>
                     <div className='flex-1'>
                         <Select
                             value={watch('LMAL_Id')?.toString()}
                             onValueChange={(v) => setValue('LMAL_Id', Number(v), { shouldValidate: true })}>
-                            <SelectTrigger className='h-8 w-full border-slate-300 text-xs focus:ring-1 focus:ring-[#4255a7]'>
+                            <SelectTrigger className='h-9 w-full border-slate-200 text-xs focus:ring-1 focus:ring-[#4255a7]'>
                                 <SelectValue placeholder='Select Library' />
                             </SelectTrigger>
                             <SelectContent>
-                                {initialData?.lib_list?.map((lib) => (
+                                {initialData?.lib_list?.map((lib: any) => (
                                     <SelectItem key={lib.lmaL_Id} value={lib.lmaL_Id.toString()} className='text-xs'>
                                         {lib.lmaL_LibraryName}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors.LMAL_Id && <p className='mt-0.5 text-[9px] text-red-500'>{errors.LMAL_Id.message}</p>}
+                        {errors.LMAL_Id && <p className='mt-1 text-red-500 text-xs'>{errors.LMAL_Id.message}</p>}
                     </div>
                 </div>
 
-                <div className='flex items-center justify-center rounded-sm border border-slate-200 bg-slate-50/50 p-2 shadow-inner'>
+                <div className='flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2.5 shadow-sm'>
                     <RadioGroup
                         value={agType}
                         onValueChange={(v) => setValue('AGType', v as any)}
                         className='flex flex-wrap justify-center gap-6'>
                         {['Student', 'Staff', 'Guest', 'Department'].map((type) => (
                             <div key={type} className='flex items-center space-x-2'>
-                                <RadioGroupItem value={type} id={`r-${type}`} className='h-3.5 w-3.5 border-[#4454B4] text-[#4454B4]' />
+                                <RadioGroupItem value={type} id={`r-${type}`} className='h-4 w-4 border-slate-400 text-[#4255a7]' />
                                 <Label
                                     htmlFor={`r-${type}`}
-                                    className='cursor-pointer font-bold text-[10px] text-slate-700 uppercase tracking-tighter'>
+                                    className='cursor-pointer font-semibold text-slate-700 text-xs uppercase tracking-wide'>
                                     {type}
                                 </Label>
                             </div>
@@ -315,19 +315,19 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
             </div>
 
             {/* Main Content Grid */}
-            <div className='grid grid-cols-1 gap-8 md:grid-cols-2'>
-                {/* Left Column: Book Type, Status, Dates */}
+            <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
+                {/* Left Column: Book Type, Status */}
                 <div className='space-y-4'>
                     {/* BOOK TYPE Box */}
-                    <div className='overflow-hidden rounded-sm border border-slate-300 bg-white shadow-sm'>
-                        <div className='bg-[#4255a7] py-0.5 text-center'>
-                            <Label className='font-bold text-[10px] text-white uppercase tracking-widest'>BOOK TYPE</Label>
+                    <div className='overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm'>
+                        <div className='border-slate-100 border-b bg-white py-2 text-center'>
+                            <Label className='font-bold text-slate-700 text-xs uppercase tracking-wider'>BOOK TYPE</Label>
                         </div>
-                        <div className='p-3'>
+                        <div className='p-4'>
                             <RadioGroup
                                 value={watch('Type')}
                                 onValueChange={(v) => setValue('Type', v)}
-                                className='grid grid-cols-2 gap-x-2 gap-y-2.5 lg:grid-cols-3'>
+                                className='grid grid-cols-2 gap-x-4 gap-y-3 lg:grid-cols-3'>
                                 {[
                                     { id: 'all', label: 'ALL' },
                                     { id: 'Issue', label: 'Issue' },
@@ -337,11 +337,11 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                     { id: 'ReferenceonlyIssuable', label: 'Ref Iss' },
                                     { id: 'ReferenceonlyNon-Issuable', label: 'Ref Non-Iss' }
                                 ].map((bt) => (
-                                    <div key={bt.id} className='group flex cursor-pointer items-center space-x-1.5'>
-                                        <RadioGroupItem value={bt.id} id={`bt-${bt.id}`} className='h-3.5 w-3.5 border-slate-400' />
+                                    <div key={bt.id} className='group flex cursor-pointer items-center space-x-2'>
+                                        <RadioGroupItem value={bt.id} id={`bt-${bt.id}`} className='h-4 w-4 border-slate-400' />
                                         <Label
                                             htmlFor={`bt-${bt.id}`}
-                                            className='cursor-pointer whitespace-nowrap font-semibold text-[9px] text-slate-700 transition-colors group-hover:text-[#4255a7]'>
+                                            className='cursor-pointer whitespace-nowrap font-medium text-slate-700 text-xs transition-colors group-hover:text-[#4255a7]'>
                                             {bt.label}
                                         </Label>
                                     </div>
@@ -351,11 +351,11 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                     </div>
 
                     {/* TRANSACTION STATUS Box */}
-                    <div className='overflow-hidden rounded-sm border border-slate-300 bg-white shadow-sm'>
-                        <div className='bg-[#4255a7] py-0.5 text-center'>
-                            <Label className='font-bold text-[10px] text-white uppercase tracking-widest'>TRANSACTION STATUS</Label>
+                    <div className='overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm'>
+                        <div className='border-slate-100 border-b bg-white py-2 text-center'>
+                            <Label className='font-bold text-slate-700 text-xs uppercase tracking-wider'>TRANSACTION STATUS</Label>
                         </div>
-                        <div className='p-3'>
+                        <div className='p-4'>
                             <RadioGroup
                                 value={watch('TrnType')}
                                 onValueChange={(v) => setValue('TrnType', v)}
@@ -365,11 +365,11 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                         <RadioGroupItem
                                             value={status === 'ALL' ? 'all' : status}
                                             id={`t-${status}`}
-                                            className='h-3.5 w-3.5 border-slate-400'
+                                            className='h-4 w-4 border-slate-400'
                                         />
                                         <Label
                                             htmlFor={`t-${status}`}
-                                            className='cursor-pointer font-bold text-[10px] text-slate-700 uppercase tracking-widest transition-colors group-hover:text-[#4255a7]'>
+                                            className='cursor-pointer font-semibold text-slate-700 text-xs uppercase tracking-wider transition-colors group-hover:text-[#4255a7]'>
                                             {status}
                                         </Label>
                                     </div>
@@ -379,29 +379,29 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                     </div>
                 </div>
 
-                {/* Right Column: Selection Boxes (Class, Section, Subjects) */}
+                {/* Right Column: Selection Boxes (Class, Section) & Date Filters */}
                 <div className='space-y-4'>
                     {agType === 'Student' && (
                         <div className='space-y-1'>
                             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                 {/* Class Selection */}
-                                <div className='flex h-[150px] flex-col overflow-hidden rounded-sm border border-slate-300 bg-white shadow-sm'>
-                                    <div className='flex items-center justify-center gap-2 bg-[#4255a7] py-0.5 text-center'>
-                                        <Label className='font-bold text-[10px] text-white uppercase tracking-widest'>Class Name</Label>
-                                        <span className='text-[10px] text-red-400'>*</span>
+                                <div className='flex h-[200px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm'>
+                                    <div className='flex items-center justify-center gap-1.5 border-slate-100 border-b bg-white py-2 text-center'>
+                                        <Label className='font-bold text-slate-700 text-xs uppercase tracking-wider'>Class Name</Label>
+                                        <span className='text-red-500 text-xs'>*</span>
                                     </div>
-                                    <div className='flex items-center gap-1.5 border-b bg-slate-50 p-1'>
-                                        <Search className='h-3 w-3 text-slate-400' />
+                                    <div className='flex items-center gap-2 border-slate-100 border-b bg-slate-50/50 px-2.5 py-1.5'>
+                                        <Search className='h-3.5 w-3.5 text-slate-400' />
                                         <input
                                             type='text'
                                             placeholder='search here...'
-                                            className='w-full border-none bg-transparent px-1 py-0.5 text-[10px] focus:outline-none'
+                                            className='w-full border-none bg-transparent px-1 text-xs focus:outline-none'
                                             value={classSearch}
                                             onChange={(e) => setClassSearch(e.target.value)}
                                         />
                                     </div>
                                     <div className='scrollbar-thin scrollbar-thumb-slate-200 flex-1 overflow-y-auto'>
-                                        <div className='sticky top-0 z-10 mb-0.5 flex items-center space-x-1.5 border-b bg-slate-100 px-2 py-0.5 pb-0.5'>
+                                        <div className='sticky top-0 z-10 flex items-center space-x-2 border-slate-100 border-b bg-slate-100/90 px-3 py-1.5'>
                                             <Checkbox
                                                 id='cls-all'
                                                 checked={
@@ -409,23 +409,23 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                                     initialData?.classList?.length === selectedClasses.length
                                                 }
                                                 onCheckedChange={(checked) => handleAllClassesToggle(checked as boolean)}
-                                                className='h-3.5 w-3.5 border-slate-400 data-[state=checked]:bg-[#4255a7]'
+                                                className='h-4 w-4 border-slate-400'
                                             />
                                             <Label
                                                 htmlFor='cls-all'
-                                                className='cursor-pointer font-bold text-[10px] text-slate-800 uppercase tracking-tighter'>
+                                                className='cursor-pointer font-bold text-slate-800 text-xs uppercase tracking-tight'>
                                                 All
                                             </Label>
                                         </div>
-                                        <div className='px-2'>
+                                        <div className='px-3 py-1'>
                                             {initialData?.classList
-                                                ?.filter((c) => {
+                                                ?.filter((c: any) => {
                                                     const name = (c.asmcL_ClassName || (c as any).ASMCL_CLASSNAME || '')
                                                         .toString()
                                                         .toLowerCase();
                                                     return name.includes(classSearch.toLowerCase());
                                                 })
-                                                .map((cls) => {
+                                                .map((cls: any) => {
                                                     const classId =
                                                         cls.asmcL_Id ||
                                                         (cls as any).ASMCL_ID ||
@@ -440,16 +440,16 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                                     return (
                                                         <div
                                                             key={classId}
-                                                            className='flex items-center space-x-1.5 py-0.5 transition-colors hover:bg-slate-50'>
+                                                            className='flex items-center space-x-2 py-1 transition-colors hover:bg-slate-50'>
                                                             <Checkbox
                                                                 id={`cls-${classId}`}
                                                                 checked={selectedClasses.includes(classId)}
                                                                 onCheckedChange={() => handleClassToggle(classId)}
-                                                                className='h-3 w-3 border-slate-400 data-[state=checked]:bg-[#4255a7]'
+                                                                className='h-3.5 w-3.5 border-slate-400'
                                                             />
                                                             <Label
                                                                 htmlFor={`cls-${classId}`}
-                                                                className='cursor-pointer truncate font-medium text-[9px] text-slate-700'>
+                                                                className='cursor-pointer truncate font-medium text-slate-700 text-xs'>
                                                                 {className}
                                                             </Label>
                                                         </div>
@@ -460,42 +460,42 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                 </div>
 
                                 {/* Section Selection */}
-                                <div className='flex h-[150px] flex-col overflow-hidden rounded-sm border border-slate-300 bg-white shadow-sm'>
-                                    <div className='flex items-center justify-center gap-2 bg-[#4255a7] py-0.5 text-center'>
-                                        <Label className='font-bold text-[10px] text-white uppercase tracking-widest'>Section Name</Label>
-                                        <span className='text-[10px] text-red-400'>*</span>
+                                <div className='flex h-[200px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm'>
+                                    <div className='flex items-center justify-center gap-1.5 border-slate-100 border-b bg-white py-2 text-center'>
+                                        <Label className='font-bold text-slate-700 text-xs uppercase tracking-wider'>Section Name</Label>
+                                        <span className='text-red-500 text-xs'>*</span>
                                     </div>
-                                    <div className='flex items-center gap-1.5 border-b bg-slate-50 p-1'>
-                                        <Search className='h-3 w-3 text-slate-400' />
+                                    <div className='flex items-center gap-2 border-slate-100 border-b bg-slate-50/50 px-2.5 py-1.5'>
+                                        <Search className='h-3.5 w-3.5 text-slate-400' />
                                         <input
                                             type='text'
                                             placeholder='search here...'
-                                            className='w-full border-none bg-transparent px-1 py-0.5 text-[10px] focus:outline-none'
+                                            className='w-full border-none bg-transparent px-1 text-xs focus:outline-none'
                                             value={sectionSearch}
                                             onChange={(e) => setSectionSearch(e.target.value)}
                                         />
                                     </div>
                                     <div className='scrollbar-thin scrollbar-thumb-slate-200 flex-1 overflow-y-auto'>
-                                        <div className='sticky top-0 z-10 mb-0.5 flex items-center space-x-1.5 border-b bg-slate-100 px-2 py-0.5 pb-0.5'>
+                                        <div className='sticky top-0 z-10 flex items-center space-x-2 border-slate-100 border-b bg-slate-100/90 px-3 py-1.5'>
                                             <Checkbox
                                                 id='sec-all'
                                                 checked={(sectionList?.length || 0) > 0 && sectionList?.length === selectedSections.length}
                                                 onCheckedChange={(checked) => handleAllSectionsToggle(checked as boolean)}
-                                                className='h-3.5 w-3.5 border-slate-400 data-[state=checked]:bg-[#4255a7]'
+                                                className='h-4 w-4 border-slate-400'
                                             />
                                             <Label
                                                 htmlFor='sec-all'
-                                                className='cursor-pointer font-bold text-[10px] text-slate-800 uppercase tracking-tighter'>
+                                                className='cursor-pointer font-bold text-slate-800 text-xs uppercase tracking-tight'>
                                                 All
                                             </Label>
                                         </div>
-                                        <div className='px-2'>
+                                        <div className='px-3 py-1'>
                                             {sectionList
-                                                ?.filter((s) => {
+                                                ?.filter((s: any) => {
                                                     const name = (s.asmC_SectionName || '').toString().toLowerCase();
                                                     return name.includes(sectionSearch.toLowerCase());
                                                 })
-                                                .map((sec) => {
+                                                .map((sec: any) => {
                                                     const sectionId =
                                                         (sec as any).asmS_Id ||
                                                         (sec as any).ASMS_ID ||
@@ -511,16 +511,16 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                                     return (
                                                         <div
                                                             key={sectionId}
-                                                            className='flex items-center space-x-1.5 py-0.5 transition-colors hover:bg-slate-50'>
+                                                            className='flex items-center space-x-2 py-1 transition-colors hover:bg-slate-50'>
                                                             <Checkbox
                                                                 id={`sec-${sectionId}`}
                                                                 checked={selectedSections.includes(sectionId)}
                                                                 onCheckedChange={() => handleSectionToggle(sectionId)}
-                                                                className='h-3 w-3 border-slate-400 data-[state=checked]:bg-[#4255a7]'
+                                                                className='h-3.5 w-3.5 border-slate-400'
                                                             />
                                                             <Label
                                                                 htmlFor={`sec-${sectionId}`}
-                                                                className='cursor-pointer truncate font-medium text-[9px] text-slate-700'>
+                                                                className='cursor-pointer truncate font-medium text-slate-700 text-xs'>
                                                                 {sectionName}
                                                             </Label>
                                                         </div>
@@ -531,14 +531,14 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                 </div>
                             </div>
                             {errors.selectedClasslist && (
-                                <p className='font-semibold text-[10px] text-red-500'>{errors.selectedClasslist.message}</p>
+                                <p className='mt-1 font-semibold text-red-500 text-xs'>{errors.selectedClasslist.message}</p>
                             )}
                         </div>
                     )}
 
                     {/* Date Filters Row */}
-                    <div className='grid grid-cols-1 gap-4 pt-2 lg:grid-cols-2'>
-                        <div className='space-y-2 rounded-sm border border-slate-200 bg-slate-50/30 p-3 shadow-inner'>
+                    <div className='grid grid-cols-1 gap-4 pt-1 lg:grid-cols-2'>
+                        <div className='space-y-2.5 rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm'>
                             <div className='flex items-center gap-2'>
                                 <Checkbox
                                     id='issue-count'
@@ -548,11 +548,11 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                 />
                                 <Label
                                     htmlFor='issue-count'
-                                    className='cursor-pointer font-extrabold text-[#4255a7] text-[10px] uppercase tracking-wider'>
+                                    className='cursor-pointer font-bold text-slate-700 text-xs uppercase tracking-wider'>
                                     Issue Date
                                 </Label>
                             </div>
-                            <div className='flex items-center gap-3 pl-6'>
+                            <div className='flex items-center gap-2 pl-6'>
                                 <div className='flex flex-1 items-center gap-2'>
                                     <CalendarDatePicker
                                         date={issueFromDate}
@@ -560,7 +560,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                         placeholder='From'
                                         disabled={!issueCount}
                                     />
-                                    <span className='font-black text-[9px] text-slate-400'>AND</span>
+                                    <span className='font-bold text-slate-400 text-xs'>AND</span>
                                     <CalendarDatePicker
                                         date={watch('IssueToDate')}
                                         setDate={(d) => setValue('IssueToDate', d)}
@@ -571,11 +571,11 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                 </div>
                             </div>
                             {errors.IssueToDate && (
-                                <p className='mt-1 pl-6 font-semibold text-[10px] text-red-500'>{errors.IssueToDate.message}</p>
+                                <p className='mt-1 pl-6 font-semibold text-red-500 text-xs'>{errors.IssueToDate.message}</p>
                             )}
                         </div>
 
-                        <div className='space-y-2 rounded-sm border border-slate-200 bg-slate-50/30 p-3 shadow-inner'>
+                        <div className='space-y-2.5 rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm'>
                             <div className='flex items-center gap-2'>
                                 <Checkbox
                                     id='due-count'
@@ -585,11 +585,11 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                 />
                                 <Label
                                     htmlFor='due-count'
-                                    className='cursor-pointer font-extrabold text-[#4255a7] text-[10px] uppercase tracking-wider'>
+                                    className='cursor-pointer font-bold text-slate-700 text-xs uppercase tracking-wider'>
                                     Due Date
                                 </Label>
                             </div>
-                            <div className='flex items-center gap-3 pl-6'>
+                            <div className='flex items-center gap-2 pl-6'>
                                 <div className='flex flex-1 items-center gap-2'>
                                     <CalendarDatePicker
                                         date={dueFromDate}
@@ -597,7 +597,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                         placeholder='From'
                                         disabled={!dueCount}
                                     />
-                                    <span className='font-black text-[9px] text-slate-400'>AND</span>
+                                    <span className='font-bold text-slate-400 text-xs'>AND</span>
                                     <CalendarDatePicker
                                         date={watch('DueTodate')}
                                         setDate={(d) => setValue('DueTodate', d)}
@@ -607,27 +607,25 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                     />
                                 </div>
                             </div>
-                            {errors.DueTodate && (
-                                <p className='mt-1 pl-6 font-semibold text-[10px] text-red-500'>{errors.DueTodate.message}</p>
-                            )}
+                            {errors.DueTodate && <p className='mt-1 pl-6 font-semibold text-red-500 text-xs'>{errors.DueTodate.message}</p>}
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* Action Buttons - Centered Row */}
-            <div className='mt-2 flex flex-row items-center justify-center gap-3 border-slate-200 border-t pt-4'>
+            <div className='mt-4 flex flex-row flex-wrap items-center justify-center gap-4 border-slate-100 border-t pt-4'>
                 <Button
                     type='submit'
                     disabled={isLoading}
-                    className='h-8 w-32 rounded-sm border-none bg-[#4255a7] font-bold text-[9px] text-white uppercase tracking-wider shadow-md hover:bg-[#303f9f]'>
-                    {isLoading ? <Loader2 className='mr-1.5 h-3 w-3 animate-spin' /> : <LayoutGrid className='mr-1.5 h-3 w-3' />}
+                    className='h-9 w-32 rounded-md bg-[#4251b1] font-semibold text-white text-xs uppercase tracking-wider shadow-sm hover:bg-[#35418e]'>
+                    {isLoading ? <Loader2 className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <LayoutGrid className='mr-1.5 h-3.5 w-3.5' />}
                     REPORT
                 </Button>
 
                 <Button
                     type='button'
-                    className='h-8 w-32 rounded-sm border-none bg-[#f47a1f] font-bold text-[9px] text-white uppercase tracking-wider shadow-md hover:bg-[#e64a19]'
+                    className='h-9 w-32 rounded-md bg-[#ff5a30] font-semibold text-white text-xs uppercase tracking-wider shadow-sm hover:bg-[#e64d26]'
                     onClick={() => {
                         reset({
                             AGType: 'Student',
@@ -643,27 +641,29 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                         setClassSearch('');
                         setSectionSearch('');
                     }}>
-                    <X className='mr-2 h-4 w-4' />
+                    <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>
 
-                <Button
-                    type='button'
-                    onClick={onPrint}
-                    disabled={!hasData}
-                    className='h-8 w-32 rounded-sm border-none bg-[#1a237e] font-bold text-[9px] text-white uppercase tracking-wider shadow-md hover:bg-[#121858]'>
-                    <Printer className='mr-1.5 h-3 w-3' />
-                    PRINT
-                </Button>
+                {hasData && (
+                    <>
+                        <Button
+                            type='button'
+                            onClick={onPrint}
+                            className='h-9 w-32 rounded-md bg-[#4251b1] font-semibold text-white text-xs uppercase tracking-wider shadow-sm hover:bg-[#35418e]'>
+                            <Printer className='mr-1.5 h-3.5 w-3.5' />
+                            PRINT
+                        </Button>
 
-                <Button
-                    type='button'
-                    onClick={onExport}
-                    disabled={!hasData}
-                    className='h-8 w-36 rounded-sm border-none bg-[#1a237e] font-bold text-[9px] text-white uppercase tracking-wider shadow-md hover:bg-[#121858]'>
-                    <FileSpreadsheet className='mr-1.5 h-3 w-3' />
-                    EXPORT TO EXCEL
-                </Button>
+                        <Button
+                            type='button'
+                            onClick={onExport}
+                            className='h-9 w-36 rounded-md bg-[#4251b1] font-semibold text-white text-xs uppercase tracking-wider shadow-sm hover:bg-[#35418e]'>
+                            <FileSpreadsheet className='mr-1.5 h-3.5 w-3.5' />
+                            EXPORT TO EXCEL
+                        </Button>
+                    </>
+                )}
             </div>
         </form>
     );
@@ -681,9 +681,9 @@ function CalendarDatePicker({
             <PopoverTrigger asChild>
                 <Button
                     variant={'outline'}
-                    className={cn('h-7 w-full justify-start px-2 text-left font-normal text-[10px]', !date && 'text-muted-foreground')}
+                    className={cn('h-8 w-full justify-start px-2.5 text-left font-normal text-xs', !date && 'text-muted-foreground')}
                     disabled={disabled}>
-                    <CalendarIcon className='mr-1.5 h-3 w-3' />
+                    <CalendarIcon className='mr-1.5 h-3.5 w-3.5' />
                     {date ? format(date, 'dd/MM/yyyy') : <span>{placeholder}</span>}
                 </Button>
             </PopoverTrigger>

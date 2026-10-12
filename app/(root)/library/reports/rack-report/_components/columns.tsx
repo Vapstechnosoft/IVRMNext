@@ -7,7 +7,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 export const RackReportColumns: ColumnDef<IRackReportGridData>[] = [
     {
         id: 'slNo',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl.No' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Sl. No.' />,
         cell: ({ row, table }) => {
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;

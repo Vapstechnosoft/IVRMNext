@@ -681,26 +681,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     amsT_AadharNo: combined.amsT_AadharNo ?? combined.aadharNo ?? combined.aadhar_No ?? combined.amsT_Aadhar_No ?? '',
                     amsT_ApparNo: combined.amsT_ApparNo ?? combined.apparNo ?? combined.appar_No ?? combined.amsT_Appar_No ?? '',
 
-                    // Caste, Section and Religion mapping
-                    asmS_Id: Number(
-                        combined.asmS_Id ??
-                        combined.ASMS_Id ??
-                        combined.pasR_Section_Id ??
-                        combined.asms_id ??
-                        combined.asmms_id ??
-                        combined.sectionId ??
-                        combined.section_Id ??
-                        combined.asmC_Id ??
-                        tabSrc.firstTab?.asmS_Id ??
-                        tabSrc.firstTab?.pasR_Section_Id ??
-                        tabSrc.firstTab?.ASMS_Id ??
-                        tabSrc.firstTab?.asms_id ??
-                        tabSrc.firstTab?.sectionId ??
-                        srcData.asmS_Id ??
-                        srcData.pasR_Section_Id ??
-                        srcData.ASMS_Id ??
-                        0
-                    ),
+                    // Caste and Religion mapping
                     imC_Id: combined.imC_Id ?? combined.iC_Id ?? combined.caste_Id ?? combined.casteId ?? combined.imC_CasteId ?? 0,
                     imCC_Id:
                         combined.imCC_Id ??
@@ -934,17 +915,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     payload.amc_Id ??
                     payload.categoryId ??
                     0;
-                payload.asmS_Id = Number(
-                    payload.asmS_Id ??
-                    payload.ASMS_Id ??
-                    payload.pasR_Section_Id ??
-                    payload.asms_id ??
-                    payload.asmms_id ??
-                    payload.sectionId ??
-                    payload.section_Id ??
-                    payload.asmC_Id ??
-                    0
-                );
                 payload.studentCategoryId = payload.asmcC_Id;
                 payload.amsT_Sex = payload.amsT_Sex ?? payload.gender ?? payload.amsT_Gender ?? '';
 
@@ -1820,8 +1790,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
 
                 // 9. BLOOD GROUP
-                const bloodGroup = data.amsT_BloodGroup ?? data.bloodGroup ?? data.blood_Group ?? payload.amsT_BloodGroup;
-                if (bloodGroup) setValue('amsT_BloodGroup', String(bloodGroup));
+                const rawBloodGroup = data.amsT_BloodGroup ?? data.bloodGroup ?? data.blood_Group ?? payload?.amsT_BloodGroup ?? payload?.bloodGroup ?? payload?.blood_Group;
+                if (rawBloodGroup) {
+                    let bg = String(rawBloodGroup).trim();
+                    // Some DBs store 'O+ve' instead of 'O+'
+                    if (bg.endsWith('ve')) {
+                        bg = bg.replace('ve', '');
+                    }
+                    setValue('amsT_BloodGroup', bg);
+                }
 
                 // 10. REFRESH DROPDOWNS & SYNC AUXILIARY STATE
                 try {
@@ -1879,17 +1856,22 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const _initializedIdRef = useRef<number | null>(null);
 
     const amsTIdFromRow = rowData?.amsT_Id || rowData?.data?.amsT_Id || rowData?.firstTab?.amsT_Id;
-    const { data: fullFormData, isLoading: isFullFormLoading } = useStudentAdmissionFormById(Number(amsTIdFromRow) || 0);
+    const { data: fullFormData, isLoading: isFullFormLoading, isFetching: isFullFormFetching } = useStudentAdmissionFormById(Number(amsTIdFromRow) || 0);
 
     useEffect(() => {
         const id = amsTIdFromRow;
-        if (!id || !fullFormData || id === _initializedIdRef.current) return;
+        if (!id || !fullFormData) return;
+
+        // Skip initialization if we are currently fetching fresh data from the server (avoids binding stale cached data)
+        if (isFullFormFetching) return;
+
+        if (id === _initializedIdRef.current) return;
 
         _initializedIdRef.current = id;
         // Merge rowData and fullFormData just in case, but use fullFormData as primary
         const dataToInitialize = { ...rowData, ...fullFormData };
         initializeFormData(dataToInitialize);
-    }, [fullFormData, amsTIdFromRow, initializeFormData, rowData]);
+    }, [fullFormData, amsTIdFromRow, initializeFormData, rowData, isFullFormFetching]);
 
     const watchedCasteId = watch('imC_Id' as any);
 
@@ -4452,14 +4434,12 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         if (_isInitializingRef.current) return;
 
         if (sectionData?.data && sectionData.data.length > 0) {
-            const currentAsmsId = Number(getValues('asmS_Id'));
-            const exists = sectionData.data.some((s: any) => Number(s.asmS_Id) === currentAsmsId);
-            if (!currentAsmsId || !exists) {
-                const firstSection = sectionData.data[0];
-                setValue('asmS_Id', Number(firstSection.asmS_Id));
-            }
+            const firstSection = sectionData.data[0];
+            setValue('asmS_Id', firstSection.asmS_Id);
+        } else {
+            setValue('asmS_Id', 0);
         }
-    }, [classId, sectionData, setValue, getValues]);
+    }, [classId, sectionData, setValue]);
 
     const onSubmit = async (_formData: FormFields) => {
         if (submittingFinal) return;
@@ -5416,7 +5396,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
                                                                     value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
@@ -5439,7 +5418,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
                                                                     value={field.value || ''}>
                                                                     <SelectTrigger>

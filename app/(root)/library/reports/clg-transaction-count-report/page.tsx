@@ -17,7 +17,7 @@ import Swal from 'sweetalert2';
 export default function CLGTransactionCountReportPage() {
     const [reportData, setReportData] = useState<ICLGTransactionCountReportGridData[]>([]);
     const [isStatusCount, setIsStatusCount] = useState(false);
-    const [hasSearched, setHasSearched] = useState(false);
+    const [_hasSearched, setHasSearched] = useState(false);
 
     const searchMutation = useCLGTransactionCountReportSearch();
 

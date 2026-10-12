@@ -606,7 +606,17 @@ export default function AddThirdPartyTransactionForm({ onSuccess, thirdparty = '
                             <Label className='min-w-[150px] text-right'>
                                 Cheque No <span className='text-red-500'>*</span>
                             </Label>
-                            <InputText {...register('chequeNo')} error={errors.chequeNo?.message} />
+                            <InputText
+                                {...register('chequeNo', {
+                                    onChange: (e) => {
+                                        const onlyNumbers = e.target.value.replace(/[^0-9]/g, '').slice(0, 16);
+                                        e.target.value = onlyNumbers;
+                                    }
+                                })}
+                                maxLength={16}
+                                placeholder='Enter Cheque Number'
+                                error={errors.chequeNo?.message}
+                            />
                         </div>
                     </>
                 )}

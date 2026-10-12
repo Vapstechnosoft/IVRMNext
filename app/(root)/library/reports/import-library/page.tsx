@@ -86,7 +86,7 @@ function ImportLibraryDataContent() {
                     setGridData(rowData);
                     setColumns(headerNames || []);
                 }
-            } catch (error: any) {
+            } catch (_error: any) {
                 toast.error('Error parsing excel file');
             }
         };
@@ -211,7 +211,7 @@ function ImportLibraryDataContent() {
                                         checked={activeFlag}
                                         onCheckedChange={(checked) => setActiveFlag(!!checked)}
                                     />
-                                    <Label htmlFor='active-flag' className='cursor-pointer text-sm font-medium text-gray-700'>
+                                    <Label htmlFor='active-flag' className='cursor-pointer font-medium text-gray-700 text-sm'>
                                         Active Flag
                                     </Label>
                                 </div>
@@ -230,7 +230,8 @@ function ImportLibraryDataContent() {
                                                 strokeLinecap='round'
                                                 strokeLinejoin='round'
                                                 strokeWidth='2'
-                                                d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'></path>
+                                                d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+                                            />
                                         </svg>
                                     </div>
                                 </div>
@@ -281,7 +282,7 @@ function ImportLibraryDataContent() {
                             </div>
                         ) : (
                             <div className='overflow-x-auto rounded-md border'>
-                                <div className='flex min-h-[20px] items-center justify-center bg-gray-100 p-4'></div>
+                                <div className='flex min-h-[20px] items-center justify-center bg-gray-100 p-4' />
                             </div>
                         )}
                     </div>

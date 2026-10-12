@@ -11,8 +11,20 @@ export async function getMasterAccessories(searchParams?: ApiSearchparams) {
 }
 
 export async function addOrUpdateMasterAccessories(data: any) {
-    const url = '/MasterAccessoriesFacade/add-or-update';
-    return await api.post<any>('library', url, data);
+    try {
+        const now = new Date().toISOString();
+        const payload = {
+            createdDate: data.createdDate || now,
+            updatedDate: data.updatedDate || now,
+            lmaC_Id: Number(data.lmaC_Id ?? 0),
+            lmaC_AccessoriesName: data.lmaC_AccessoriesName ?? '',
+            lmaC_AccessoriesDesc: data.lmaC_AccessoriesDesc ?? ''
+        };
+        const url = '/MasterAccessoriesFacade/add-or-update';
+        return await api.post<any>('library', url, payload);
+    } catch (error: any) {
+        return { success: false, message: error?.message || 'Failed to save accessory' };
+    }
 }
 
 export async function deactivateMasterAccessories(data: any) {

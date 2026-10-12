@@ -47,7 +47,6 @@ export default function CumulativeReportPage() {
 
         try {
             const res = await getCumulativeReport(payload, setSearchParams);
-            console.log('cumulative res', res);
             const institudtion_res = await getMasterInstitution();
             const { data: institudtion_data } = institudtion_res;
             setInstitution(institudtion_data);
@@ -58,7 +57,11 @@ export default function CumulativeReportPage() {
             }
 
             const responseData = res.data;
-            const savelist = responseData?.savelist || (Array.isArray(responseData) ? responseData : responseData?.cumulative_reportList || responseData?.studentlist || responseData?.data || []);
+            const savelist =
+                responseData?.savelist ||
+                (Array.isArray(responseData)
+                    ? responseData
+                    : responseData?.cumulative_reportList || responseData?.studentlist || responseData?.data || []);
             const savenonsubjlist = responseData?.savenonsubjlist || [];
             const subjlist = responseData?.subjlist || [];
             const nonsubjlist = responseData?.nonsubjlist || [];
@@ -122,7 +125,8 @@ export default function CumulativeReportPage() {
                     sList.forEach((s: any) => {
                         const ismsId = Number(s.ismS_Id ?? s.ISMS_Id ?? s.subjectId ?? 0);
                         if (ismsId && !subjMap.has(ismsId)) {
-                            const isApplicable = s.eyceS_AplResultFlg ?? s.EYCES_AplResultFlg ?? (savelist.some((x: any) => x.ismS_Id === ismsId) ? true : false);
+                            const isApplicable =
+                                s.eyceS_AplResultFlg ?? s.EYCES_AplResultFlg ?? savelist.some((x: any) => x.ismS_Id === ismsId);
                             subjMap.set(ismsId, {
                                 ismS_Id: ismsId,
                                 ismS_SubjectName: s.ismS_SubjectName ?? s.ISMS_SubjectName ?? s.subjectName ?? '',
@@ -150,11 +154,20 @@ export default function CumulativeReportPage() {
                 if (!stuId) return;
 
                 if (!studentMap.has(stuId)) {
-                    const fullName = [
-                        row.amsT_FirstName ?? row.AMST_FirstName,
-                        row.amsT_MiddleName ?? row.AMST_MiddleName,
-                        row.amsT_LastName ?? row.AMST_LastName
-                    ].filter(Boolean).join(' ').trim() || row.studentName || row.AMST_StudentName || row.studentname || row.amsT_StudentName || 'Unknown';
+                    const fullName =
+                        [
+                            row.amsT_FirstName ?? row.AMST_FirstName,
+                            row.amsT_MiddleName ?? row.AMST_MiddleName,
+                            row.amsT_LastName ?? row.AMST_LastName
+                        ]
+                            .filter(Boolean)
+                            .join(' ')
+                            .trim() ||
+                        row.studentName ||
+                        row.AMST_StudentName ||
+                        row.studentname ||
+                        row.amsT_StudentName ||
+                        'Unknown';
 
                     studentMap.set(stuId, {
                         student_id: stuId,
@@ -180,8 +193,18 @@ export default function CumulativeReportPage() {
                 sList.forEach((sub: any) => {
                     const subId = Number(sub.ismS_Id ?? sub.ISMS_Id ?? 0);
                     if (subId) {
-                        const obt = sub.hema_estmpS_ObtainedMarks ?? sub.estmpS_ObtainedMarks ?? sub.ESTMPS_ObtainedMarks ?? sub.obtainedMarks ?? null;
-                        const grd = sub.hema_estmpS_ObtainedGrade ?? sub.estmpS_ObtainedGrade ?? sub.ESTMPS_ObtainedGrade ?? sub.obtainedGrade ?? null;
+                        const obt =
+                            sub.hema_estmpS_ObtainedMarks ??
+                            sub.estmpS_ObtainedMarks ??
+                            sub.ESTMPS_ObtainedMarks ??
+                            sub.obtainedMarks ??
+                            null;
+                        const grd =
+                            sub.hema_estmpS_ObtainedGrade ??
+                            sub.estmpS_ObtainedGrade ??
+                            sub.ESTMPS_ObtainedGrade ??
+                            sub.obtainedGrade ??
+                            null;
                         sItem.raw_subs.set(subId, {
                             ismS_Id: subId,
                             estmpS_ObtainedMarks: obt === 1000 || obt === '1000' ? null : obt,
@@ -202,11 +225,17 @@ export default function CumulativeReportPage() {
                 if (!stuId) return;
 
                 if (!studentMap.has(stuId)) {
-                    const fullName = [
-                        row.amsT_FirstName ?? row.AMST_FirstName,
-                        row.amsT_MiddleName ?? row.AMST_MiddleName,
-                        row.amsT_LastName ?? row.AMST_LastName
-                    ].filter(Boolean).join(' ').trim() || row.studentName || 'Unknown';
+                    const fullName =
+                        [
+                            row.amsT_FirstName ?? row.AMST_FirstName,
+                            row.amsT_MiddleName ?? row.AMST_MiddleName,
+                            row.amsT_LastName ?? row.AMST_LastName
+                        ]
+                            .filter(Boolean)
+                            .join(' ')
+                            .trim() ||
+                        row.studentName ||
+                        'Unknown';
 
                     studentMap.set(stuId, {
                         student_id: stuId,
@@ -267,9 +296,10 @@ export default function CumulativeReportPage() {
             }));
 
             const first = { ...savelist[0], ...institudtion_data };
-            const instNameFromPromise = Array.isArray(responseData.instname) && responseData.instname.length > 0
-                ? responseData.instname[0].mI_Name
-                : institudtion_data?.mI_Name;
+            const instNameFromPromise =
+                Array.isArray(responseData.instname) && responseData.instname.length > 0
+                    ? responseData.instname[0].mI_Name
+                    : institudtion_data?.mI_Name;
 
             const header: Partial<IReportHeader> = {
                 mI_Name: instNameFromPromise || institudtion_data?.mI_Name,
@@ -326,16 +356,14 @@ export default function CumulativeReportPage() {
                 <CollapsibleSection title='Grid View' defaultOpen>
                     <div ref={printRef}>
                         {/* Print View */}
-                        {institution && (
-                            <CumulativeReportPrintView
-                                reportData={reportData}
-                                institution={institution}
-                                subjects={subjects}
-                                headerInfo={headerInfo}
-                                fontSize='medium'
-                                columnFlags={columnFlags}
-                            />
-                        )}
+                        <CumulativeReportPrintView
+                            reportData={reportData}
+                            institution={institution || ({} as any)}
+                            subjects={subjects}
+                            headerInfo={headerInfo}
+                            fontSize='medium'
+                            columnFlags={columnFlags}
+                        />
 
                         {/* Screen View */}
                         <CumulativeReportGridView

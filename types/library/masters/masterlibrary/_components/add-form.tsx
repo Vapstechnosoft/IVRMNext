@@ -72,9 +72,18 @@ export default function AddMasterLibraryForm({ onSuccess, className = '' }: AddM
                         <InputText
                             label='Library Name'
                             required
-                            id='lmaL_Id'
+                            id='lmaL_LibraryName'
                             placeholder='Enter library name'
-                            {...register('lmaL_LibraryName')}
+                            onKeyDown={(e) => {
+                                if (e.key.length === 1 && !/^[a-zA-Z0-9\s]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
+                                    e.preventDefault();
+                                }
+                            }}
+                            {...register('lmaL_LibraryName', {
+                                onChange: (e) => {
+                                    e.target.value = e.target.value.replace(/[^a-zA-Z0-9\s]/g, '');
+                                }
+                            })}
                             error={errors.lmaL_LibraryName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />

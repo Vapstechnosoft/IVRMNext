@@ -53,6 +53,7 @@ function AddVisitorPageContent({
 
                 {/* Grid Section */}
                 <CollapsibleSection
+                    title='VISITORS RECORD'
                     defaultOpen={true}
                     variant='default'
                     size='lg'

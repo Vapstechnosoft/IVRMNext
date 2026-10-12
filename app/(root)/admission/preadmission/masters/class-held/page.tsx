@@ -141,12 +141,60 @@ export default function MasterClassHeldPage() {
     }, [filteredMonths]);
 
     useEffect(() => {
-        if (selectedAcademicYear && classId && sectionId) {
+        if (selectedAcademicYear && classId && sectionId && filteredMonths.length > 0) {
             setShowTable(true);
+            
+            const fetchAllData = async () => {
+                try {
+                    const payload = {
+                        amaY_Id: selectedAcademicYear.asmaY_Id,
+                        asmcL_Id: classId,
+                        asmS_Id: Number(sectionId),
+                        selectedmonthList: filteredMonths.map((m: any) => ({
+                            ivrM_Month_Id: m.ivrM_Month_Id,
+                            ivrM_Month_Name: m.ivrM_Month_Name,
+                            is_Active: m.is_Active,
+                            ivrM_Month_Max_Days: m.ivrM_Month_Max_Days,
+                            ascH_ClassHeld: 0
+                        }))
+                    };
+                    
+                    const response = await getClassHeldData(payload);
+                    if (response.success || response.noOfClassHeldCount || response.data?.noOfClassHeldCount) {
+                        const counts: number[] = response.noOfClassHeldCount || response.data?.noOfClassHeldCount || [];
+                        setClassHeldData((prev) => {
+                            const newData = [...prev];
+                            let anySelected = false;
+                            if (Array.isArray(counts)) {
+                                counts.forEach((count: number, i: number) => {
+                                    if (count > 0 && newData[i]) {
+                                        newData[i] = { ...newData[i], ascH_ClassHeld: count.toString(), selected: true };
+                                        anySelected = true;
+                                    } else if (newData[i]) {
+                                        newData[i] = { ...newData[i], ascH_ClassHeld: '', selected: false };
+                                    }
+                                });
+                            }
+                            
+                            if (anySelected && newData.every((row) => row.selected)) {
+                                setSelectAll(true);
+                            } else {
+                                setSelectAll(false);
+                            }
+                            
+                            return newData;
+                        });
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch initial class held data', error);
+                }
+            };
+            
+            fetchAllData();
         } else {
             setShowTable(false);
         }
-    }, [selectedAcademicYear, classId, sectionId]);
+    }, [selectedAcademicYear, classId, sectionId, filteredMonths]);
 
     useEffect(() => {
         const selectedRows = classHeldData
@@ -156,7 +204,7 @@ export default function MasterClassHeldPage() {
                 ivrM_Month_Name: row.ivrM_Month_Name,
                 is_Active: row.is_Active,
                 ivrM_Month_Max_Days: row.ivrM_Month_Max_Days,
-                ascH_ClassHeld: Number.parseInt(row.ascH_ClassHeld) || 0
+                ascH_ClassHeld: Number.parseFloat(row.ascH_ClassHeld) || 0
             }));
 
         setValue('classHeldData', selectedRows as any, { shouldValidate: true });
@@ -174,7 +222,7 @@ export default function MasterClassHeldPage() {
                     ivrM_Month_Name: m.ivrM_Month_Name,
                     is_Active: m.is_Active,
                     ivrM_Month_Max_Days: m.ivrM_Month_Max_Days,
-                    ascH_ClassHeld: Number.parseInt(m.ascH_ClassHeld) || 0
+                    ascH_ClassHeld: Number.parseFloat(m.ascH_ClassHeld) || 0
                 }))
             };
             const response = await getClassHeldData(payload);
@@ -247,7 +295,7 @@ export default function MasterClassHeldPage() {
             return;
         }
 
-        const numValue = Number.parseInt(value) || 0;
+        const numValue = Number.parseFloat(value) || 0;
         const maxDays = classHeldData[index].ivrM_Month_Max_Days;
 
         if (numValue > maxDays) {
@@ -272,9 +320,10 @@ export default function MasterClassHeldPage() {
             const invalidRows = classHeldData.filter(
                 (row) =>
                     row.selected &&
-                    (Number.parseInt(row.ascH_ClassHeld) > row.ivrM_Month_Max_Days ||
-                        Number.parseInt(row.ascH_ClassHeld) < 0 ||
-                        row.ascH_ClassHeld === '')
+                    (Number.parseFloat(row.ascH_ClassHeld) > row.ivrM_Month_Max_Days ||
+                        Number.parseFloat(row.ascH_ClassHeld) < 0 ||
+                        row.ascH_ClassHeld === '' ||
+                        !/^[0-9]+(\.[5]{1})?$/.test(row.ascH_ClassHeld))
             );
 
             if (invalidRows.length > 0) {
@@ -288,7 +337,7 @@ export default function MasterClassHeldPage() {
                 asmS_Id: Number(data.section),
                 selectedmList: data.classHeldData.map((item: any) => ({
                     ivrM_Month_Id: item.ivrM_Month_Id,
-                    ascH_ClassHeld: Number.parseInt(item.ascH_ClassHeld) || 0
+                    ascH_ClassHeld: Number.parseFloat(item.ascH_ClassHeld) || 0
                 }))
             };
 
@@ -524,6 +573,7 @@ export default function MasterClassHeldPage() {
                                                         <Input
                                                             type='number'
                                                             min='0'
+                                                            step='0.5'
                                                             max={row.ivrM_Month_Max_Days}
                                                             placeholder={`Max ${row.ivrM_Month_Max_Days}`}
                                                             value={row.ascH_ClassHeld}
@@ -532,7 +582,7 @@ export default function MasterClassHeldPage() {
                                                             className={`w-full ${
                                                                 row.selected &&
                                                                 row.ascH_ClassHeld !== '' &&
-                                                                Number.parseInt(row.ascH_ClassHeld) > row.ivrM_Month_Max_Days
+                                                                (Number.parseFloat(row.ascH_ClassHeld) > row.ivrM_Month_Max_Days || !/^[0-9]+(\.[5]{1})?$/.test(row.ascH_ClassHeld))
                                                                     ? 'border-red-500'
                                                                     : ''
                                                             }`}

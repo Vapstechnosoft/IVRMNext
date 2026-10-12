@@ -680,14 +680,6 @@ export async function getUserAccessibleModules() {
                                         icon: 'Settings',
                                         pages: [
                                             {
-                                                id: 0,
-                                                name: 'Configuration Setting Wizard',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/configuration-setting/wizard',
-                                                title: 'Configuration Setting Wizard',
-                                                description: 'Configuration Setting Wizard'
-                                            },
-                                            {
                                                 id: 1,
                                                 name: 'Institution Module Page',
                                                 icon: 'Settings',
@@ -735,12 +727,12 @@ export async function getUserAccessibleModules() {
                                                 description: 'Mobile Master Page'
                                             },
                                             {
-                                                id: 2,
-                                                name: 'Mobile APP Master Role Privileges',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/configuration-setting/mobileroleprivileges',
-                                                title: 'Mobile Master Role Privileges',
-                                                description: 'Mobile APP Master Role Privileges'
+                                                id: 40011,
+                                                name: 'Cumulative Subject',
+                                                icon: 'BarChart3',
+                                                url: '/StudentPortal/student-dashboard/Exam/CumulativeSubject',
+                                                title: 'Cumulative Subject',
+                                                description: 'View Cumulative Subject Details'
                                             }
                                         ]
                                     },

@@ -119,71 +119,22 @@ export interface IAlumniStudentDetail {
     classnameadmitted?: string;
     classnameleft?: string;
     alsreG_MemberName?: string;
-    // Fields from retObject1
-    city?: string;
-    joinyear?: string;
-    leftyear?: string;
-    asmcl_classname?: string;
-    leftclass?: string;
-}
-
-export interface IAlumniRegObject {
-    alsreg_id: number;
-    alsreg_membername: string;
-    admit_year?: string;
-    left_year?: string;
-    admit_class?: string;
-    left_class?: string;
-}
-
-export interface IAlumniDetailObject {
-    almst_id: number;
-    studentname: string;
-    almst_admno?: string;
-    almst_dob?: string;
-    almst_fathername?: string | null;
-    almst_mobileno?: number | string;
-    almst_concity?: string | null;
-    almst_emailid?: string | null;
-    almst_bloodgroup?: string | null;
-    city?: string | null;
-    createddate?: string;
-    almst_activeflag?: boolean;
-    asmay_id_join?: number;
-    asmay_id_left?: number;
-    joinyear?: string;
-    leftyear?: string;
-    asmcl_id_join?: number;
-    asmcl_id_left?: number;
-    asmcl_classname?: string;
-    leftclass?: string;
 }
 
 export interface IAlumnusInitialData {
-    alumnilist?: IAlumniStudentDetail[];
-    alumnilistnew?: IAlumniStudentDetail[];
-    membercategory?: IMemberCategory[];
-    fillyear?: IYear[];
-    fillclass?: IClass[];
-    countryDrpDown?: ICountry[];
-    statedropdown?: IState[];
-    districtdropdown?: IDistrict[];
-    almdetails?: IAlumniStudentDetail[];
-    flag?: string;
-    alumnitrue?: boolean;
-    studentDetails?: IAlumniStudentDetail[] | null;
-    // Fields returned by get_intial_data?flag=true
-    retObject?: IAlumniRegObject[];
-    retObject1?: IAlumniDetailObject[];
-    // Additional fields returned by the API
-    studentachive?: unknown[] | null;
-    studentprof?: unknown[] | null;
-    studentquali?: unknown[] | null;
-    placelistqua?: unknown[] | null;
-    placelist?: unknown[] | null;
-    placelistquat?: unknown[] | null;
+    alumnilist: IAlumniStudentDetail[];
+    alumnilistnew: IAlumniStudentDetail[];
+    membercategory: IMemberCategory[];
+    fillyear: IYear[];
+    fillclass: IClass[];
+    countryDrpDown: ICountry[];
+    statedropdown: IState[];
+    districtdropdown: IDistrict[];
+    almdetails: IAlumniStudentDetail[];
+    flag: string;
+    alumnitrue: boolean;
+    studentDetails: IAlumniStudentDetail[];
 }
-
 
 export interface IQualification {
     Qualification?: string;
