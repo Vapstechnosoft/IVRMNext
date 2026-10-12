@@ -109,7 +109,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
     const earningsDeductionsTypeDropdown: IEarningsDeductionsTypeDropdown[] = useMemo(() => {
         return mapToDropdownItems(earningsDeductionsTypeDropdownResponse);
     }, [earningsDeductionsTypeDropdownResponse]);
-
+    console.log("earningsDeductionsTypeDropdown", earningsDeductionsTypeDropdown)
     // Rounding Type dropdown
     const { data: roundingTypeDropdownResponse, isLoading: isLoadingRoundingTypes } = useRoundingTypeDropdown();
     console.log("rounding types", roundingTypeDropdownResponse)
@@ -154,6 +154,8 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
         enabled: isPercentage
     });
 
+    
+
     const [selectedPercentageIds, setSelectedPercentageIds] = useState<number[]>([]);
     const [percentagePage, setPercentagePage] = useState<number>(1);
     const pageSize = 10;
@@ -162,6 +164,7 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
     const percentageOfList = useMemo(() => {
         let rawData: any[] = [];
         const res = earningAndDeductionDropdownResponse as any;
+        console.log("result  for percentage",res)
         if (!res) return [];
 
         if (Array.isArray(res)) {
@@ -411,7 +414,9 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                 <Select
                                     onValueChange={(value) => {
                                         field.onChange(value);
-                                        trigger('HRMED_AmountPercent');
+                                        if (getValues('HRMED_AmountPercent')) {
+                                            trigger('HRMED_AmountPercent');
+                                        }
                                     }}
                                     value={field.value || undefined}>
                                     <SelectTrigger>

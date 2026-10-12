@@ -447,7 +447,9 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                     <Select
                                         onValueChange={(value) => {
                                             field.onChange(value);
-                                            trigger('HRMED_AmountPercent');
+                                            if (getValues('HRMED_AmountPercent')) {
+                                                trigger('HRMED_AmountPercent');
+                                            }
                                         }}
                                         value={field.value || undefined}>
                                         <SelectTrigger>
