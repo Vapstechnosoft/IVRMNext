@@ -54,16 +54,7 @@ function ExamSubjectWizardPageContent({
                     if (response.success && response.data) {
                         const subjects: IExamSubjectOrder[] = Array.isArray(response.data) ? response.data : [];
 
-                        const mappedData = subjects.map((d: any) => ({
-                            ...d,
-                            id: Number(d.ismS_Id ?? d.ISMS_Id ?? 0),
-                            ismS_Id: Number(d.ismS_Id ?? d.ISMS_Id ?? 0),
-                            eyceS_Id: Number(d.eyceS_Id ?? d.EYCES_Id ?? 0),
-                            eycE_Id: Number(d.eycE_Id ?? d.EYCE_Id ?? selectedRow.eycE_Id ?? 0),
-                            ismS_SubjectName: d.ismS_SubjectName ?? d.ISMS_SubjectName ?? '',
-                            ismS_SubjectCode: d.ismS_SubjectCode ?? d.ISMS_SubjectCode ?? '',
-                            eyceS_SubjectOrder: Number(d.eyceS_SubjectOrder ?? d.EYCES_SubjectOrder ?? 0)
-                        }));
+                        const mappedData = subjects.map((d) => ({ ...d, id: d.ismS_Id }));
                         setOrderData(mappedData);
                     } else {
                         toast.error(response.message || 'Failed to fetch subjects.');
@@ -83,18 +74,14 @@ function ExamSubjectWizardPageContent({
             setIsOrderSaving(true);
 
             // Transform data into required format
-            const temp_Subject_Order = updatedData.map((item: any, index) => ({
-                eyceS_Id: Number(item.eyceS_Id || item.EYCES_Id || 0),
-                EYCES_Id: Number(item.eyceS_Id || item.EYCES_Id || 0),
-                eycE_Id: Number(item.eycE_Id || item.EYCE_Id || selectedRow?.eycE_Id || 0),
-                EYCE_Id: Number(item.eycE_Id || item.EYCE_Id || selectedRow?.eycE_Id || 0),
-                ismS_Id: Number(item.ismS_Id || item.ISMS_Id || item.id || 0),
-                ISMS_Id: Number(item.ismS_Id || item.ISMS_Id || item.id || 0),
-                eyceS_SubjectOrder: index + 1,
-                EYCES_SubjectOrder: index + 1
+            const temp_Subject_Order = updatedData.map((item, index) => ({
+                eyceS_Id: item.eyceS_Id,
+                eycE_Id: item.eycE_Id,
+                ismS_Id: item.ismS_Id,
+                eyceS_SubjectOrder: index + 1 // Assign order based on new index
             }));
 
-            const payload = { temp_Subject_Order, Temp_Subject_Order: temp_Subject_Order };
+            const payload = { temp_Subject_Order };
             const response = await UpdateOrderedSubjectDetails(payload);
 
             if (response?.success) {

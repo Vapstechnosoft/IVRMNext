@@ -500,12 +500,12 @@ export default function UpdateCategoryClassForm({ selectedRow, onSuccess }: Prop
                                         <SelectItem value='loading' disabled>
                                             Loading Academic Year...
                                         </SelectItem>
-                                    ) : safeAcademicYears.length === 0 ? (
-                                        <SelectItem value='empty' disabled>
-                                            No Academic Years
+                                    ) : academicYearError ? (
+                                        <SelectItem value='error' disabled>
+                                            Error loading Academic Year
                                         </SelectItem>
                                     ) : (
-                                        safeAcademicYears.map((item) => (
+                                        academicYear?.data?.map((item) => (
                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                 {item.asmaY_Year}
                                             </SelectItem>

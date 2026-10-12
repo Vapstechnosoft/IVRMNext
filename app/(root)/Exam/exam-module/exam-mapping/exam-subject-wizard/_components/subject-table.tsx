@@ -6,9 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
-import { GitCompareArrows } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -107,8 +105,6 @@ type SubjectRowRaw = {
     eyceS_AplResultFlg?: boolean;
     eyceS_SubExamFlg?: boolean;
     eyceS_SubSubjectFlg?: boolean;
-    eyceS_SubjectOrder?: number | string;
-    eyceS_ActiveFlg?: boolean;
     // legacy keys
     ECYSES_MaxMarks?: number | string;
     ECYSES_MinMarks?: number | string;
@@ -119,8 +115,6 @@ type SubjectRowRaw = {
     ECYSES_AplResultFlg?: boolean;
     ECYSES_SubExamFlg?: boolean;
     ECYSES_SubSubjectFlg?: boolean;
-    EYCES_SubjectOrder?: number | string;
-    EYCES_ActiveFlg?: boolean;
 
     // checked flag variations
     checkedvalue?: boolean;
@@ -512,7 +506,6 @@ export default function SubjectTableWithValidation({
     const [subjects, setSubjects] = useState<NormalizedSubject[]>([]);
     // errors: { [ismS_Id]: { fieldName: message } }
     const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
-    const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
     const isRemoteUpdate = useRef(false);
 
     // Global header state for checkboxes (Marks Display, Grade Display, Apply to Result)
@@ -578,11 +571,7 @@ export default function SubjectTableWithValidation({
             subExamConfig: raw.subExamConfig ?? [],
             subSubjectConfig: raw.subSubjectConfig ?? [],
             exam_Subject_PT_GradeList: raw.exam_Subject_PT_GradeList ?? [],
-            eyceS_SubjectOrder: raw.eyceS_SubjectOrder
-                ? Number(raw.eyceS_SubjectOrder)
-                : raw.EYCES_SubjectOrder
-                    ? Number(raw.EYCES_SubjectOrder)
-                    : idx + 1,
+            eyceS_SubjectOrder: idx + 1,
             eyceS_ActiveFlg: firstDefinedBoolean(true),
             eyceS_Id: raw.eyceS_Id ?? 0,
             eycE_Id: raw.eycE_Id ?? 0
@@ -596,11 +585,6 @@ export default function SubjectTableWithValidation({
             return;
         }
         const normalized = initialSubjects.map((r, i) => normalizeSubject(r, i));
-        normalized.sort((a, b) => {
-            const orderA = Number(a.eyceS_SubjectOrder || 9999);
-            const orderB = Number(b.eyceS_SubjectOrder || 9999);
-            return orderA - orderB;
-        });
 
         if (JSON.stringify(normalized) !== JSON.stringify(subjects)) {
             isRemoteUpdate.current = true;
@@ -654,6 +638,13 @@ export default function SubjectTableWithValidation({
         };
     }, [subjects, setParentSubjects]);
 
+    // propagate grade changes into subjects state
+    useEffect(() => {
+        if (selectedGrade) {
+            setSubjects((prev) => prev.map((s) => ({ ...s, emgR_Id: Number(selectedGrade) || s.emgR_Id })));
+        }
+    }, [selectedGrade]);
+
     // ---------- Derived header logic ----------
     const derivedHeader = useMemo(() => {
         if (subjects.length === 0) {
@@ -663,7 +654,10 @@ export default function SubjectTableWithValidation({
                 allSubSubject: false,
                 allMarksDisplay: false,
                 allGradeDisplay: false,
-                allApplyToResult: false
+                allApplyToResult: false,
+                headerMaxMarks: '',
+                headerMinMarks: '',
+                headerMaxEntry: ''
             };
         }
 
@@ -674,13 +668,20 @@ export default function SubjectTableWithValidation({
         const allGradeDisplay = subjects.every((s) => !!s.eyceS_GradeDisplayFlg);
         const allApplyToResult = subjects.every((s) => !!s.eyceS_AplResultFlg);
 
+        const allMaxMarksSame = subjects.every((s) => s.eyceS_MaxMarks === subjects[0].eyceS_MaxMarks);
+        const allMinMarksSame = subjects.every((s) => s.eyceS_MinMarks === subjects[0].eyceS_MinMarks);
+        const allMaxEntrySame = subjects.every((s) => s.eyceS_MarksEntryMax === subjects[0].eyceS_MarksEntryMax);
+
         return {
             allSelected,
             allSubExam,
             allSubSubject,
             allMarksDisplay,
             allGradeDisplay,
-            allApplyToResult
+            allApplyToResult,
+            headerMaxMarks: allMaxMarksSame ? String(subjects[0]?.eyceS_MaxMarks ?? '') : '',
+            headerMinMarks: allMinMarksSame ? String(subjects[0]?.eyceS_MinMarks ?? '') : '',
+            headerMaxEntry: allMaxEntrySame ? String(subjects[0]?.eyceS_MarksEntryMax ?? '') : ''
         };
     }, [subjects]);
 
@@ -692,7 +693,10 @@ export default function SubjectTableWithValidation({
             subSubject: derivedHeader.allSubSubject,
             marksDisplay: derivedHeader.allMarksDisplay,
             gradeDisplay: derivedHeader.allGradeDisplay,
-            applyToResult: derivedHeader.allApplyToResult
+            applyToResult: derivedHeader.allApplyToResult,
+            maxMarks: derivedHeader.headerMaxMarks,
+            minMarks: derivedHeader.headerMinMarks,
+            maxEntry: derivedHeader.headerMaxEntry
         }));
     }, [derivedHeader]);
 
@@ -811,14 +815,14 @@ export default function SubjectTableWithValidation({
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'maxMarks') {
             // Bulk update and validate checked rows
-            const numOrEmpty = toNumOrEmpty(value);
+            const numOrEmpty = value === '' ? '' : Number(value);
             setSubjects((prev) =>
                 prev.map((row) =>
                     row.checkedvalue
                         ? {
-                            ...row,
-                            eyceS_MaxMarks: numOrEmpty
-                        }
+                              ...row,
+                              eyceS_MaxMarks: toNumOrEmpty(value)
+                          }
                         : row
                 )
             );
@@ -847,7 +851,7 @@ export default function SubjectTableWithValidation({
             return;
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'minMarks') {
-            const numOrEmpty = toNumOrEmpty(value);
+            const numOrEmpty = value === '' ? '' : Number(value);
             setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_MinMarks: numOrEmpty } : row)));
 
             setTimeout(() => {
@@ -873,7 +877,7 @@ export default function SubjectTableWithValidation({
             return;
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'maxEntry') {
-            const numOrEmpty = toNumOrEmpty(value);
+            const numOrEmpty = value === '' ? '' : Number(value);
             setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_MarksEntryMax: numOrEmpty } : row)));
 
             setTimeout(() => {
@@ -1027,35 +1031,6 @@ export default function SubjectTableWithValidation({
     //     setErrors(newErrors);
     // }, [subjects]);
 
-    const handleOpenOrderModal = () => {
-        if (subjects.length === 0) {
-            toast.info('No subjects to reorder');
-            return;
-        }
-        setIsOrderModalOpen(true);
-    };
-
-    const handleOrderSave = (reorderedList: any[]) => {
-        const orderMap = new Map<number, number>();
-        reorderedList.forEach((item, index) => {
-            orderMap.set(Number(item.ismS_Id ?? item.id), index + 1);
-        });
-
-        const updated = [...subjects]
-            .map((s) => {
-                const newOrder = orderMap.get(Number(s.ismS_Id)) ?? s.eyceS_SubjectOrder;
-                return {
-                    ...s,
-                    eyceS_SubjectOrder: newOrder
-                };
-            })
-            .sort((a, b) => Number(a.eyceS_SubjectOrder || 9999) - Number(b.eyceS_SubjectOrder || 9999));
-
-        setSubjects(updated);
-        setIsOrderModalOpen(false);
-        toast.success('Subject order updated');
-    };
-
     // ---------- table rendering ----------
     return (
         <div className='overflow-x-auto rounded-md bg-white p-2 shadow-sm'>
@@ -1069,17 +1044,7 @@ export default function SubjectTableWithValidation({
                         <div className='flex items-center gap-2'>
                             <Button
                                 size='sm'
-                                variant='outline'
-                                type='button'
-                                onClick={handleOpenOrderModal}
-                                className='flex items-center gap-1.5'>
-                                <GitCompareArrows className='h-4 w-4' />
-                                Set Order
-                            </Button>
-                            <Button
-                                size='sm'
                                 variant='ghost'
-                                type='button'
                                 onClick={() => {
                                     const ok = validateSelectedSubjects();
                                     if (ok) toast.success('All rows are valid');
@@ -1233,29 +1198,6 @@ export default function SubjectTableWithValidation({
                             ))}
                         </tbody>
                     </table>
-
-                    {isOrderModalOpen && (
-                        <MasterViewDetails
-                            isOpen={isOrderModalOpen}
-                            onClose={() => setIsOrderModalOpen(false)}
-                            data={subjects.map((s) => ({
-                                ...s,
-                                id: s.ismS_Id,
-                                ismS_SubjectName: s.ismS_SubjectName,
-                                ismS_SubjectCode: s.ismS_SubjectCode ?? '',
-                                eyceS_SubjectOrder: s.eyceS_SubjectOrder
-                            }))}
-                            columns={[
-                                { key: 'id', label: 'SLNO', className: 'text-center w-12' },
-                                { key: 'ismS_SubjectName', label: 'Subject Name', className: 'text-left' },
-                                { key: 'ismS_SubjectCode', label: 'Subject Code', className: 'text-left' },
-                                { key: 'eyceS_SubjectOrder', label: 'Subject Order', className: 'text-center w-36' }
-                            ]}
-                            onSave={handleOrderSave}
-                            tableHeight='500px'
-                            title='SUBJECT ORDER SETTING'
-                        />
-                    )}
                 </>
             )}
         </div>

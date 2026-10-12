@@ -136,19 +136,15 @@ export default function AddMasterGradeForm({
                 emgR_Id: 0,
                 emgR_GradeName: data.emgR_GradeName,
                 emgR_MarksPerFlag: data.emgR_MarksPerFlag,
-                emgR_ActiveFlag: true,
-                grade_list: data.grade_list.map((row) => ({
-                    emgD_Id: 0,
-                    emgR_Id: 0,
+                grade_list: data.grade_list.map(({ emgD_Id, ...row }) => ({
                     emgD_Name: row.emgD_Name,
                     emgD_From: row.emgD_From === null ? null : Number(row.emgD_From),
                     emgD_To: row.emgD_To === null ? null : Number(row.emgD_To),
                     emgD_GradePoints: row.emgD_GradePoints === null ? null : Number(row.emgD_GradePoints),
-                    emgD_Remarks: row.emgD_Remarks || '',
-                    emgD_ActiveFlag: row.emgD_ActiveFlag ?? true
+                    emgD_Remarks: row.emgD_Remarks,
+                    emgD_ActiveFlag: row.emgD_ActiveFlag
                 }))
             };
-            console.log('master_grade_payload', payload);
             const response = await addOrUpdateMasterGrade(payload);
             if (response.success) {
                 toast.success(response.message);
