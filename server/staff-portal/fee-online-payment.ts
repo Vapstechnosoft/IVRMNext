@@ -22,6 +22,8 @@ export interface StudentInfo {
     amst_mobile: number;
     asmaY_Id: number;
     amaY_RollNo: string;
+    mI_Id?: number;
+    MI_Id?: number;
 }
 
 export interface FeeGroup {
@@ -103,6 +105,7 @@ export async function getStudentInformation(
     filonlinepaymentgrid?: FeeStructure[];
     feeSummary?: FeeSummaryDetails;
     fillpaymentgateway?: any[];
+    mI_Id?: number;
 }> {
     try {
         const url = '/FeeOnlinePaymentFacade/getdetails';
@@ -143,6 +146,13 @@ export async function getStudentInformation(
 
         return {
             studentInfo: response.data?.fillstudent?.[0] || null,
+            mI_Id:
+                response.data?.mI_Id ||
+                response.data?.MI_Id ||
+                response.data?.fillstudent?.[0]?.mI_Id ||
+                response.data?.fillstudent?.[0]?.MI_Id ||
+                response.data?.institutiondet?.[0]?.mI_Id ||
+                0,
             groupTermMappings:
                 response.data?.customgrplist?.map((group: any) => ({
                     grp: {
@@ -155,9 +165,14 @@ export async function getStudentInformation(
                         termList
                             ?.filter((term: any) => term.fmgG_Id === group.fmgG_Id)
                             ?.map((term: any) => ({
+                                ...term,
                                 fmT_Id: term.fmT_Id,
                                 fmT_Name: term.fmT_Name,
                                 fmgG_Id: term.fmgG_Id,
+                                fmgG_GroupName: group.fmgG_GroupName,
+                                fmT_Amount: term.fmT_Amount ?? term.payable ?? 0,
+                                fmT_Order: term.fmT_Order ?? 0,
+                                preAdmFlag: term.preAdmFlag ?? false,
                                 checkedheadlst: false,
                                 termdisablechk: term.payable ? Number(term.payable) <= Number(term.paid || 0) : false
                             })) || []

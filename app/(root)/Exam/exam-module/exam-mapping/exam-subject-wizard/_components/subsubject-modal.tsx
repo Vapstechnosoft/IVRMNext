@@ -350,137 +350,134 @@ export default function SubSubjectModal({
     // ----------------------------------
     // Validation Functions
     // ----------------------------------
-    const validateField = useCallback(
-        (emsS_Id: number, field: keyof SubSubject, value: any) => {
-            const item = dataRef.current.get(emsS_Id);
-            if (!item) return;
+    const validateField = useCallback((emsS_Id: number, field: keyof SubSubject, value: any) => {
+        const item = dataRef.current.get(emsS_Id);
+        if (!item) return;
 
-            const { max: currParentMax, entry: currParentEntry } = parentMarksRef.current;
-            let error = '';
-            const numValue = value === '' ? undefined : Number(value);
+        const { max: currParentMax, entry: currParentEntry } = parentMarksRef.current;
+        let error = '';
+        const numValue = value === '' ? undefined : Number(value);
 
-            // Validation based on field
-            switch (field) {
-                case 'eycessS_MaxMarks': {
-                    if (numValue !== undefined && numValue > currParentMax) {
-                        error = `Max marks cannot exceed parent subject max (${currParentMax})`;
-                    }
-                    // Validate against min marks
-                    const minVal = item.eycessS_MinMarks === '' ? undefined : Number(item.eycessS_MinMarks);
-                    if (minVal !== undefined && numValue !== undefined && minVal > numValue) {
-                        error = 'Max marks cannot be less than Min marks';
-                    }
-                    break;
+        // Validation based on field
+        switch (field) {
+            case 'eycessS_MaxMarks': {
+                if (numValue !== undefined && numValue > currParentMax) {
+                    error = `Max marks cannot exceed parent subject max (${currParentMax})`;
                 }
-
-                case 'eycessS_MinMarks': {
-                    if (numValue !== undefined && numValue > currParentMax) {
-                        error = `Min marks cannot exceed parent subject max (${currParentMax})`;
-                    }
-                    // Validate against max marks
-                    const maxVal = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
-                    if (maxVal !== undefined && numValue !== undefined && numValue > maxVal) {
-                        error = 'Min marks cannot be greater than Max marks';
-                    }
-                    break;
+                // Validate against min marks
+                const minVal = item.eycessS_MinMarks === '' ? undefined : Number(item.eycessS_MinMarks);
+                if (minVal !== undefined && numValue !== undefined && minVal > numValue) {
+                    error = 'Max marks cannot be less than Min marks';
                 }
-
-                case 'eycessS_MarksEntryMax': {
-                    if (numValue !== undefined && numValue > currParentEntry) {
-                        error = `Marks entry max cannot exceed parent subject max (${currParentEntry})`;
-                    }
-                    // Validate against max marks
-                    const maxVal2 = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
-                    if (maxVal2 !== undefined && numValue !== undefined && numValue > maxVal2) {
-                        error = 'Marks entry max cannot be greater than Max marks';
-                    }
-                    break;
-                }
-
-                case 'emgR_Id':
-                    if (item.checkedvalue && (!value || value === '')) {
-                        error = 'Grade is required';
-                    }
-                    break;
-
-                case 'checkedvalue':
-                    if (value) {
-                        // If checked, validate required fields
-                        if (!item.eycessS_MaxMarks) {
-                            setValidationErrors((prev) => ({
-                                ...prev,
-                                [emsS_Id]: {
-                                    ...prev[emsS_Id],
-                                    eycessS_MaxMarks: 'Max marks is required'
-                                }
-                            }));
-                        }
-                        if (!item.eycessS_MinMarks) {
-                            setValidationErrors((prev) => ({
-                                ...prev,
-                                [emsS_Id]: {
-                                    ...prev[emsS_Id],
-                                    eycessS_MinMarks: 'Min marks is required'
-                                }
-                            }));
-                        }
-                        if (!item.eycessS_MarksEntryMax) {
-                            setValidationErrors((prev) => ({
-                                ...prev,
-                                [emsS_Id]: {
-                                    ...prev[emsS_Id],
-                                    eycessS_MarksEntryMax: 'Marks entry max is required'
-                                }
-                            }));
-                        }
-                        if (!item.emgR_Id || item.emgR_Id === '') {
-                            setValidationErrors((prev) => ({
-                                ...prev,
-                                [emsS_Id]: {
-                                    ...prev[emsS_Id],
-                                    emgR_Id: 'Grade is required'
-                                }
-                            }));
-                        }
-                    } else {
-                        // If unchecked, clear errors for this row
-                        setValidationErrors((prev) => {
-                            const newErrors = { ...prev };
-                            delete newErrors[emsS_Id];
-                            return newErrors;
-                        });
-                    }
-                    break;
+                break;
             }
 
-            // Update validation errors
-            if (error) {
-                setValidationErrors((prev) => ({
+            case 'eycessS_MinMarks': {
+                if (numValue !== undefined && numValue > currParentMax) {
+                    error = `Min marks cannot exceed parent subject max (${currParentMax})`;
+                }
+                // Validate against max marks
+                const maxVal = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
+                if (maxVal !== undefined && numValue !== undefined && numValue > maxVal) {
+                    error = 'Min marks cannot be greater than Max marks';
+                }
+                break;
+            }
+
+            case 'eycessS_MarksEntryMax': {
+                if (numValue !== undefined && numValue > currParentEntry) {
+                    error = `Marks entry max cannot exceed parent subject max (${currParentEntry})`;
+                }
+                // Validate against max marks
+                const maxVal2 = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
+                if (maxVal2 !== undefined && numValue !== undefined && numValue > maxVal2) {
+                    error = 'Marks entry max cannot be greater than Max marks';
+                }
+                break;
+            }
+
+            case 'emgR_Id':
+                if (item.checkedvalue && (!value || value === '')) {
+                    error = 'Grade is required';
+                }
+                break;
+
+            case 'checkedvalue':
+                if (value) {
+                    // If checked, validate required fields
+                    if (!item.eycessS_MaxMarks) {
+                        setValidationErrors((prev) => ({
+                            ...prev,
+                            [emsS_Id]: {
+                                ...prev[emsS_Id],
+                                eycessS_MaxMarks: 'Max marks is required'
+                            }
+                        }));
+                    }
+                    if (!item.eycessS_MinMarks) {
+                        setValidationErrors((prev) => ({
+                            ...prev,
+                            [emsS_Id]: {
+                                ...prev[emsS_Id],
+                                eycessS_MinMarks: 'Min marks is required'
+                            }
+                        }));
+                    }
+                    if (!item.eycessS_MarksEntryMax) {
+                        setValidationErrors((prev) => ({
+                            ...prev,
+                            [emsS_Id]: {
+                                ...prev[emsS_Id],
+                                eycessS_MarksEntryMax: 'Marks entry max is required'
+                            }
+                        }));
+                    }
+                    if (!item.emgR_Id || item.emgR_Id === '') {
+                        setValidationErrors((prev) => ({
+                            ...prev,
+                            [emsS_Id]: {
+                                ...prev[emsS_Id],
+                                emgR_Id: 'Grade is required'
+                            }
+                        }));
+                    }
+                } else {
+                    // If unchecked, clear errors for this row
+                    setValidationErrors((prev) => {
+                        const newErrors = { ...prev };
+                        delete newErrors[emsS_Id];
+                        return newErrors;
+                    });
+                }
+                break;
+        }
+
+        // Update validation errors
+        if (error) {
+            setValidationErrors((prev) => ({
+                ...prev,
+                [emsS_Id]: {
+                    ...prev[emsS_Id],
+                    [field]: error
+                }
+            }));
+        } else {
+            setValidationErrors((prev) => {
+                if (!prev[emsS_Id]) return prev;
+                const newErrors = { ...prev[emsS_Id] };
+                delete newErrors[field];
+                if (Object.keys(newErrors).length === 0) {
+                    const newState = { ...prev };
+                    delete newState[emsS_Id];
+                    return newState;
+                }
+                return {
                     ...prev,
-                    [emsS_Id]: {
-                        ...prev[emsS_Id],
-                        [field]: error
-                    }
-                }));
-            } else {
-                setValidationErrors((prev) => {
-                    if (!prev[emsS_Id]) return prev;
-                    const newErrors = { ...prev[emsS_Id] };
-                    delete newErrors[field];
-                    if (Object.keys(newErrors).length === 0) {
-                        const newState = { ...prev };
-                        delete newState[emsS_Id];
-                        return newState;
-                    }
-                    return {
-                        ...prev,
-                        [emsS_Id]: newErrors
-                    };
-                });
-            }
-        },
-        []
-    );
+                    [emsS_Id]: newErrors
+                };
+            });
+        }
+    }, []);
 
     // ----------------------------------
     // Optimized Update Function using emsS_Id
