@@ -177,9 +177,9 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                 ...values,
                 COEME_Id: Number(values.COEME_Id),
                 ASMAY_Id: Number(values.ASMAY_Id),
-                COEE_EStartDate: values.COEE_EStartDate ? values.COEE_EStartDate.toISOString() : null,
-                COEE_EEndDate: values.COEE_EEndDate ? values.COEE_EEndDate.toISOString() : null,
-                COEE_ReminderDate: values.COEE_ReminderDate ? values.COEE_ReminderDate.toISOString() : null,
+                COEE_EStartDate: values.COEE_EStartDate ? new Date(Date.UTC(values.COEE_EStartDate.getFullYear(), values.COEE_EStartDate.getMonth(),values.COEE_EStartDate.getDate())).toISOString() : null,
+                COEE_EEndDate: values.COEE_EEndDate ? new Date(Date.UTC(values.COEE_EEndDate.getFullYear(),       values.COEE_EEndDate.getMonth(),values.COEE_EEndDate.getDate())).toISOString() : null,
+                COEE_ReminderDate: values.COEE_ReminderDate ? new Date(Date.UTC(values.COEE_ReminderDate.getFullYear(),values.COEE_ReminderDate.getMonth(),values.COEE_ReminderDate.getDate())).toISOString() : null,
                 ASMAY_Id_o_s: values.ASMAY_Id_o_s ? Number(values.ASMAY_Id_o_s) : 0,
                 COEE_ReminderDays: values.COEE_ReminderDays ? Number(values.COEE_ReminderDays) : 0,
                 videos_list: values.videos_list.map((v) => v.COEEV_VideoURL)

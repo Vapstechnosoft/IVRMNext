@@ -250,7 +250,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
             const payload = {
                 hrmeD_Id: data.HRMED_Id || 0,
                 hrmeD_Name: data.HRMED_Name?.trim() || '',
-                hrmeD_EDTypeFlag: data.HRMED_EDTypeFlag,
+                hrmeD_EDTypeFlag: data.HRMED_EDTypeFlag || '',
                 hrmeD_EarnDedFlag: data.HRMED_EarnDedFlag,
                 hrmeD_AmountPercentFlag: data.HRMED_AmountPercentFlag,
                 hrmeD_AmountPercent: data.HRMED_AmountPercent,
@@ -302,13 +302,10 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                             />
                         </div>
                         <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HRMED_EDTypeFlag'>
-                                Type <span className='text-destructive'>*</span>
-                            </Label>
+                            <Label htmlFor='HRMED_EDTypeFlag'>Type</Label>
                             <Controller
                                 name='HRMED_EDTypeFlag'
                                 control={control}
-                                rules={{ required: 'Type is required' }}
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value || undefined}>
                                         <SelectTrigger>
@@ -345,7 +342,6 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                     </Select>
                                 )}
                             />
-                            {errors.HRMED_EDTypeFlag && <FormError>{errors.HRMED_EDTypeFlag.message}</FormError>}
                         </div>
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMED_RoundOffFlag'>
@@ -451,7 +447,9 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                     <Select
                                         onValueChange={(value) => {
                                             field.onChange(value);
-                                            trigger('HRMED_AmountPercent');
+                                            if (getValues('HRMED_AmountPercent')) {
+                                                trigger('HRMED_AmountPercent');
+                                            }
                                         }}
                                         value={field.value || undefined}>
                                         <SelectTrigger>

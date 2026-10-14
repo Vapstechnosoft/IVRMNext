@@ -27,7 +27,9 @@ export async function getFeeHead(payload: any) {
 
 export async function saveFeeTransaction(payload: any) {
     const url = '/FeeStudentTransaction/fee-Save-details';
-    return await api.post<any[]>('fees', url, payload);
+    const response = await api.post<any[]>('fees', url, payload);
+    console.info('💾 [saveFeeTransaction Response Keys]:', response ? Object.keys(response) : null);
+    return response;
 }
 
 export async function masterconfiguration() {

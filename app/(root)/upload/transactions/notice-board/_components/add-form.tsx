@@ -64,6 +64,7 @@ export default function AddNoticeBoardForm({
         resolver: zodResolver(noticeBoardSchema),
         defaultValues: {
             intB_FilePath_Array: [{ intbfL_FilePath: '', fileName: '' }],
+            intB_UrlPath_Array: [{ intbfL_FilePath: '', fileName: '' }],
             asmaY_Id: defaultYearId,
             ntB_TTSylabusFlg: 'O',
             intB_Title: '',
@@ -104,6 +105,15 @@ export default function AddNoticeBoardForm({
     } = useFieldArray({
         control,
         name: 'intB_FilePath_Array'
+    });
+
+    const {
+        fields: urlFields,
+        append: appendUrl,
+        remove: removeUrl
+    } = useFieldArray({
+        control,
+        name: 'intB_UrlPath_Array'
     });
 
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
@@ -252,7 +262,10 @@ export default function AddNoticeBoardForm({
                     : [],
                 studentarray: data.check_student ? (data.amsT_Id || []).map((s) => ({ AMST_Id: s.amsT_Id })) : [],
                 employeearraylist: data.check_staff ? (data.hrmE_Id || []).map((e) => ({ HRME_Id: e.hrmE_Id })) : [],
-                FilePath_Array: (data.intB_FilePath_Array || [])
+                FilePath_Array: [
+                    ...(data.intB_FilePath_Array || []),
+                    ...(data.intB_UrlPath_Array || [])
+                ]
                     .map((f) => ({
                         FileName: f.fileName,
                         INTBFL_FilePath: f.intbfL_FilePath
@@ -526,7 +539,7 @@ export default function AddNoticeBoardForm({
                             <thead className='bg-muted/50'>
                                 <tr>
                                     <th className='w-12 border p-2 text-center'>SL NO</th>
-                                    <th className='border p-2 text-center'>Upload File / URL</th>
+                                    <th className='border p-2 text-center'>Upload File</th>
                                     <th className='border p-2 text-center'>File Name</th>
                                     <th className='w-20 border p-2 text-center'>View</th>
                                     <th className='w-24 border p-2 text-center'>Action</th>
@@ -537,32 +550,24 @@ export default function AddNoticeBoardForm({
                                     <tr key={field.id} className='border-b transition-colors hover:bg-gray-50/50'>
                                         <td className='border p-2 text-center'>{index + 1}</td>
                                         <td className='border p-2'>
-                                            {isUrlMode ? (
-                                                <Controller
-                                                    control={control}
-                                                    name={`intB_FilePath_Array.${index}.intbfL_FilePath`}
-                                                    render={({ field }) => <Input {...field} placeholder='Enter URL' className='h-9' />}
+                                            <div className='flex justify-center'>
+                                                <input
+                                                    type='file'
+                                                    className='hidden'
+                                                    ref={(el) => {
+                                                        if (el) fileInputRefs.current[index] = el;
+                                                    }}
+                                                    onChange={(e) => handleFileUpload(e, index)}
                                                 />
-                                            ) : (
-                                                <div className='flex justify-center'>
-                                                    <input
-                                                        type='file'
-                                                        className='hidden'
-                                                        ref={(el) => {
-                                                            if (el) fileInputRefs.current[index] = el;
-                                                        }}
-                                                        onChange={(e) => handleFileUpload(e, index)}
-                                                    />
-                                                    <Button
-                                                        type='button'
-                                                        variant='outline'
-                                                        size='sm'
-                                                        onClick={() => fileInputRefs.current[index]?.click()}
-                                                        className='h-9 w-full border-dashed'>
-                                                        <Upload className='mr-2 h-4 w-4' /> Browse
-                                                    </Button>
-                                                </div>
-                                            )}
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    size='sm'
+                                                    onClick={() => fileInputRefs.current[index]?.click()}
+                                                    className='h-9 w-full border-dashed'>
+                                                    <Upload className='mr-2 h-4 w-4' /> Browse
+                                                </Button>
+                                            </div>
                                         </td>
                                         <td className='border p-2'>
                                             <Controller
@@ -571,8 +576,8 @@ export default function AddNoticeBoardForm({
                                                 render={({ field }) => (
                                                     <Input
                                                         {...field}
-                                                        readOnly={!isUrlMode}
-                                                        placeholder={isUrlMode ? 'Enter Label' : 'No file'}
+                                                        readOnly
+                                                        placeholder='No file'
                                                         className='h-9 bg-muted/20'
                                                     />
                                                 )}
@@ -623,12 +628,98 @@ export default function AddNoticeBoardForm({
                             </tbody>
                         </table>
                     </div>
+                    <div className='pt-1'>
+                        <span className='font-semibold text-red-500 text-xs'>
+                            Accept File: jpg, jpeg, png, doc, ppt, excel, mp3, mp4, wmv, pdf
+                        </span>
+                    </div>
                     <div className='flex items-center space-x-2 pt-2'>
                         <Checkbox id='url-mode' checked={isUrlMode} onCheckedChange={(c) => setIsUrlMode(!!c)} />
                         <Label htmlFor='url-mode' className='cursor-pointer font-semibold text-xs'>
                             Use URLs instead of Files
                         </Label>
                     </div>
+
+                    {isUrlMode && (
+                        <div className='overflow-x-auto pt-4'>
+                            <table className='w-full table-auto border-collapse border bg-white text-left text-sm'>
+                                <thead className='bg-muted/50'>
+                                    <tr>
+                                        <th className='w-12 border p-2 text-center'>SL NO</th>
+                                        <th className='border p-2 text-center'>URL</th>
+                                        <th className='border p-2 text-center'>Label</th>
+                                        <th className='w-20 border p-2 text-center'>View</th>
+                                        <th className='w-24 border p-2 text-center'>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {urlFields.map((field, index) => (
+                                        <tr key={field.id} className='border-b transition-colors hover:bg-gray-50/50'>
+                                            <td className='border p-2 text-center'>{index + 1}</td>
+                                            <td className='border p-2'>
+                                                <Controller
+                                                    control={control}
+                                                    name={`intB_UrlPath_Array.${index}.intbfL_FilePath`}
+                                                    render={({ field }) => (
+                                                        <Input {...field} placeholder='Enter URL' className='h-9' />
+                                                    )}
+                                                />
+                                            </td>
+                                            <td className='border p-2'>
+                                                <Controller
+                                                    control={control}
+                                                    name={`intB_UrlPath_Array.${index}.fileName`}
+                                                    render={({ field }) => (
+                                                        <Input {...field} placeholder='Enter Label' className='h-9' />
+                                                    )}
+                                                />
+                                            </td>
+                                            <td className='border p-2 text-center'>
+                                                <Controller
+                                                    control={control}
+                                                    name={`intB_UrlPath_Array.${index}.intbfL_FilePath`}
+                                                    render={({ field }) => (
+                                                        <Button
+                                                            type='button'
+                                                            variant='ghost'
+                                                            size='sm'
+                                                            disabled={!field.value}
+                                                            onClick={() => window.open(field.value, '_blank')}>
+                                                            <Eye className={cn('h-4 w-4', field.value ? 'text-blue-600' : 'text-gray-300')} />
+                                                        </Button>
+                                                    )}
+                                                />
+                                            </td>
+                                            <td className='border p-2 text-center'>
+                                                <div className='flex justify-center gap-1'>
+                                                    {index === urlFields.length - 1 && (
+                                                        <Button
+                                                            type='button'
+                                                            size='icon'
+                                                            variant='outline'
+                                                            className='h-8 w-8'
+                                                            onClick={() => appendUrl({ intbfL_FilePath: '', fileName: '' })}>
+                                                            <Plus className='h-4 w-4' />
+                                                        </Button>
+                                                    )}
+                                                    {urlFields.length > 1 && (
+                                                        <Button
+                                                            type='button'
+                                                            size='icon'
+                                                            variant='destructive'
+                                                            className='h-8 w-8'
+                                                            onClick={() => removeUrl(index)}>
+                                                            <Minus className='h-4 w-4' />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
 
                 {/* Student Targeting Logic */}

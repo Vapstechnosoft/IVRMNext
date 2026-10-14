@@ -88,27 +88,25 @@ export function BookCirculationReportClient({ initialData }: BookCirculationRepo
             </CollapsibleSection>
 
             {reportData.length > 0 && (
-                <div className='mx-auto max-w-5xl overflow-hidden rounded-sm border bg-white shadow-sm'>
-                    {/* Header Bar - Standardized Branded Blue */}
-                    <div className='flex items-center justify-between bg-[#4255a7] px-4 py-2'>
-                        <h2 className='font-bold text-sm text-white uppercase tracking-wider'>Book Circulation Report</h2>
-                    </div>
-                    {/* Orange accent line */}
-                    <div className='h-1 bg-[#f47a1f]' />
-
-                    <div className='space-y-4 p-4'>
-                        {/* Records Count Row */}
-                        <div className='flex items-center justify-between'>
-                            <div className='flex items-center gap-2'>
-                                <span className='font-bold text-slate-700 text-xs'>Total Grid Records :</span>
-                                <span className='rounded-full bg-slate-500 px-2 py-0.5 font-bold text-[10px] text-white'>
-                                    {reportData.length}
-                                </span>
+                <div className='mx-auto max-w-5xl print:m-0 print:max-w-none'>
+                    <CollapsibleSection
+                        title='Book Circulation Report'
+                        defaultOpen={true}
+                        className='bg-white shadow-sm print:border-none print:shadow-none'>
+                        <div className='space-y-4 p-4'>
+                            {/* Records Count Row */}
+                            <div className='flex items-center justify-between'>
+                                <div className='flex items-center gap-2'>
+                                    <span className='font-bold text-slate-700 text-xs'>Total Grid Records :</span>
+                                    <span className='rounded-full bg-slate-500 px-2 py-0.5 font-bold text-[10px] text-white'>
+                                        {reportData.length}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
 
-                        <GenericDataTable columns={getColumns(memberType)} data={reportData} isLoading={false} />
-                    </div>
+                            <GenericDataTable columns={getColumns(memberType)} data={reportData} isLoading={false} />
+                        </div>
+                    </CollapsibleSection>
                 </div>
             )}
         </div>

@@ -368,11 +368,7 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                     name='amount'
                     control={control}
                     render={({ field }) => (
-                        <InputNumber
-                            value={field.value ?? 0}
-                            onChange={(v) => field.onChange(Number(v))}
-                            error={errors.amount?.message}
-                        />
+                        <InputNumber value={field.value ?? 0} onChange={(v) => field.onChange(Number(v))} error={errors.amount?.message} />
                     )}
                 />
             </div>
@@ -549,7 +545,17 @@ export default function UpdateThirdPartyForm({ onSuccess, selectedRow: row }: Up
                         <Label className='min-w-[150px] text-right'>
                             Cheque No<span className='text-red-500'>*</span>
                         </Label>
-                        <InputText {...register('chequeNo')} error={errors.chequeNo?.message} />
+                        <InputText
+                            {...register('chequeNo', {
+                                onChange: (e) => {
+                                    const onlyNumbers = e.target.value.replace(/[^0-9]/g, '').slice(0, 16);
+                                    e.target.value = onlyNumbers;
+                                }
+                            })}
+                            maxLength={16}
+                            placeholder='Enter Cheque Number'
+                            error={errors.chequeNo?.message}
+                        />
                     </div>
                 </>
             )}

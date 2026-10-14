@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useState } from 'react';
 
-import { useMasterSubject } from '@/hooks/library/useMasters';
-import { parentsubjectdropdowndata } from '@/hooks/library/useMasters';
+import { parentsubjectdropdowndata, useMasterSubject } from '@/hooks/library/useMasters';
 import { masterSubjectSchema } from '@/schemas/library/masters';
 import { addOrUpdateMasterSubject } from '@/server/library/masters/master_subject';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,10 +23,7 @@ interface AddMasterSubjectFormProps {
 }
 
 export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddMasterSubjectFormProps) {
-    //const { refetchAll: refetchMasterCasteCategoryCode } = useMasterSubject();
-
     const { refetchAll } = useMasterSubject();
-
     const [resetKey, setResetKey] = useState(0);
 
     const {
@@ -48,68 +44,35 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
         mode: 'onSubmit'
     });
 
-    const { data: category, isLoading: categoryLoading, error: categoryError, refetchAll: refetchcategory } = parentsubjectdropdowndata();
+    const { data: category, isLoading: categoryLoading, error: categoryError } = parentsubjectdropdowndata();
 
-    //console.log('Category Data:', category);
-
-    // const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
-    //     try {
-    //         console.log('FORM DATA:', data);
-    //         console.log('onclick:');
-    //         const { ismS_SubjectName, lmS_ParentId, lmS_Level, lmS_SubjectNo, lmS_ClassNo } = data;
-    //         const payload = {
-    //             lmS_Id: 0,
-    //             ismS_SubjectName: ismS_SubjectName,
-    //             lmS_ActiveFlg: true,
-    //             lmS_ParentId: lmS_ParentId,
-    //             lmS_Level: lmS_Level,
-    //             lmS_SubjectNo: lmS_SubjectNo,
-    //             lmS_ClassNo: lmS_ClassNo
-    //         };
-
-    //         console.log('Payload:', payload);
-
-    //         const response = await addOrUpdateMasterSubject(payload);
-
-    //         if (response.success) {
-    //             toast.success(response.message);
-    //             reset();
-    //             //refetchMasterCasteCategoryCode();
-    //             refetchAll();
-    //             onSuccess?.();
-    //         } else {
-    //             toast.error(response.message);
-    //         }
-    //     } catch (error: any) {
-    //         toast.error(error.message);
-    //     }
-    // };
+    const parentList = Array.isArray(category?.data)
+        ? category.data
+        : Array.isArray(category)
+          ? category
+          : [];
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
-            console.log('FORM DATA:', data);
-
             const payload = {
                 lmS_Id: 0,
-                lmS_ActiveFlg: true,
-                lmS_ParentId: data.lmS_ParentId,
-                lmS_SubjectName: data.ismS_SubjectName,
-                lmS_Level: data.lmS_Level,
-                lmS_SubjectNo: data.lmS_SubjectNo,
-                lmS_ClassNo: data.lmS_ClassNo
+                lmS_SubjectNo: data.lmS_SubjectNo || '',
+                lmS_SubjectName: data.ismS_SubjectName || data.lmS_SubjectName || '',
+                lmS_ParentId: Number(data.lmS_ParentId),
+                lmS_Level: data.lmS_Level ? Number(data.lmS_Level) : 0,
+                lmS_ClassNo: data.lmS_ClassNo || '',
+                lmS_ActiveFlg: true
             };
-
-            console.log('PAYLOAD:', payload);
 
             const response: any = await addOrUpdateMasterSubject(payload);
 
             if (response?.success) {
-                toast.success(response.message || 'Subject saved successfully');
-                reset();
+                toast.success(response.message || 'Master Subject saved successfully');
+                handleReset();
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response?.message || 'Failed to save subject');
+                toast.error(response?.message || 'Failed to save Master Subject');
             }
         } catch (error: any) {
             console.error('Submit Error:', error);
@@ -132,12 +95,12 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
         <div className={`${className}`}>
             <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
                 <div className='space-y-4'>
-                    <div className='grid grid-cols-1 gap-5 md:grid-cols-2 '>
+                    <div className='grid grid-cols-1 gap-5 md:grid-cols-2'>
                         <div className='group flex flex-col gap-2'>
                             <Label htmlFor='lmS_ParentId' className='whitespace-nowrap font-medium'>
                                 Parent Name <span className='ml-1 text-red-500'>*</span>:
                             </Label>
-                            <div className='w-100'>
+                            <div className='w-full'>
                                 <Controller
                                     name='lmS_ParentId'
                                     control={control}
@@ -159,7 +122,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                                                         Error loading Parent Subjects
                                                     </SelectItem>
                                                 ) : (
-                                                    category?.data?.map((item: any) => (
+                                                    parentList.map((item: any) => (
                                                         <SelectItem
                                                             key={item.ismS_Id || Math.random()}
                                                             value={item.ismS_Id?.toString() || ''}>
@@ -179,7 +142,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                             label='Sub-Subject :'
                             required
                             placeholder='Enter Sub Subject'
-                            {...register('ismS_SubjectName', {})}
+                            {...register('ismS_SubjectName')}
                             error={errors.ismS_SubjectName?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
                         />
@@ -191,7 +154,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
-                            label='Level'
+                            label='Level :'
                             placeholder='Enter Level'
                             {...register('lmS_Level')}
                             error={errors.lmS_Level?.message}
@@ -199,7 +162,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                         />
                         <InputText
                             label='Subject No :'
-                            placeholder='Enter subject no'
+                            placeholder='Enter Subject No'
                             {...register('lmS_SubjectNo')}
                             error={errors.lmS_SubjectNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -213,7 +176,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
-                            label='Class No '
+                            label='Class No :'
                             id='lmS_ClassNo'
                             placeholder='Enter Class No'
                             {...register('lmS_ClassNo')}
@@ -225,6 +188,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                     {/* Root Error */}
                     {errors.root && <FormError>{errors.root.message}</FormError>}
                 </div>
+
                 {/* Action Buttons */}
                 <div className='flex flex-col gap-3 border-t pt-6 sm:flex-row sm:justify-start'>
                     <Button
@@ -250,3 +214,4 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
         </div>
     );
 }
+

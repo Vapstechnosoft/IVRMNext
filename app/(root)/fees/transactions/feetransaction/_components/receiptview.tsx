@@ -28,11 +28,18 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId, asmayYear }
     const [currentPaymentDetails, setCurrentPaymentDetails] = useState<CurrentPaymentDetails[]>([]);
 
     useEffect(() => {
+        const targetFypId = Number(rowData.fyP_Id || (rowData as any).fP_Id || 0);
+
         const fetchStudentPrintDetails = async () => {
+            if (!targetFypId) {
+                console.warn('ReceiptViewPage: fyP_Id is 0 or missing, cannot fetch print details');
+                setLoading(false);
+                return;
+            }
             try {
                 const response = await getStudentPrintDetails({
                     amst_Id: rowData.amst_Id,
-                    fyP_Id: rowData.fyP_Id,
+                    fyP_Id: targetFypId,
                     asmaY_Id: asmayId,
                     minstall: '0'
                 });
@@ -44,15 +51,16 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId, asmayYear }
                 setStudentDetails(studentDetails);
                 setCurrentPaymentDetails(currentPaymentDetails);
             } catch (err) {
-                console.error('Failed to load institute logo', err);
+                console.error('Failed to load student print details', err);
             } finally {
                 setLoading(false);
             }
         };
         const fetchInstituteDetails = async () => {
+            if (!targetFypId) return;
             try {
                 const preadmissionorprospectus = 'Preadmission';
-                const res = await getPrintdetails(rowData.fyP_Id, asmayId, preadmissionorprospectus, 0);
+                const res = await getPrintdetails(targetFypId, asmayId, preadmissionorprospectus, 0);
                 const response = typeof res === 'string' ? JSON.parse(res) : res;
                 const logoUrl = response?.data?.institute_logo || response?.institute_logo || '';
                 setInstitute({
@@ -69,7 +77,7 @@ export default function ReceiptViewPage({ rowData, onClose, asmayId, asmayYear }
         fetchInstituteDetails();
 
         fetchStudentPrintDetails();
-    }, [rowData]);
+    }, [rowData, asmayId]);
 
     const receipt_no = rowData.fyP_Receipt_No || 'N/A';
     const transaction_date = rowData.fyP_Date || '';
