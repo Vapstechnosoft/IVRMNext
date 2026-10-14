@@ -518,247 +518,242 @@ export async function getUserAccessibleModules() {
             ]
         };
 
-        if (session?.role?.toUpperCase() === 'SUPER ADMIN' || session?.role?.toUpperCase() === 'SUPERADMIN') {
-            return {
-                success: true,
-                message: 'Data fetched successfully!!',
-                data: [
-                    {
-                        id: 13,
-                        name: 'Super Admin',
-                        icon: 'Settings',
-                        menu: [
-                            {
-                                id: 1,
-                                name: 'Super Admin Module',
-                                icon: 'Settings',
-                                sub_menu: [
-                                    {
-                                        id: 1,
-                                        name: 'Master Trust',
-                                        icon: 'Settings',
-                                        pages: [
-                                            {
-                                                id: 1,
-                                                name: 'Master Trust',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/masters/trust-master',
-                                                title: 'Master Trust',
-                                                description: 'Manage Master Trust Details'
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        id: 2,
-                                        name: 'Institution',
-                                        icon: 'Settings',
-                                        pages: [
-                                            {
-                                                id: 1,
-                                                name: 'Master Institution',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/institution/master-institution',
-                                                title: 'Master Institution',
-                                                description: 'Manage Master Institution'
-                                            },
-                                            {
-                                                id: 2,
-                                                name: 'Institution Subscription',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
-                                                title: 'Institution Subscription',
-                                                description: 'Manage Institution Subscription'
-                                            },
-                                            {
-                                                id: 3,
-                                                name: 'Auto Mapping',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
-                                                title: 'Auto Mapping',
-                                                description: 'Manage Institution Auto Mapping'
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        id: 3,
-                                        name: 'General Setting',
-                                        icon: 'Settings',
-                                        pages: [
-                                            {
-                                                id: 1,
-                                                name: 'General Setting Wizard',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/general-setting/wizard',
-                                                title: 'General Setting Wizard',
-                                                description: 'General Setting Wizard'
-                                            },
-                                            {
-                                                id: 2,
-                                                name: 'Modules',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/general-setting/module',
-                                                title: 'Modules',
-                                                description: 'Manage Master Modules'
-                                            },
-                                            {
-                                                id: 7,
-                                                name: 'Master Page',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/general-setting/master-page',
-                                                title: 'Master Page',
-                                                description: 'Manage Master Page'
-                                            },
-                                            {
-                                                id: 8,
-                                                name: 'Page Mapping',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/general-setting/page-mapping',
-                                                title: 'Page Mapping',
-                                                description: 'Map Pages to Modules'
-                                            },
-                                            {
-                                                id: 9,
-                                                name: 'Master Role',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/general-setting/master-role',
-                                                title: 'Master Role',
-                                                description: 'Manage Master Role'
-                                            },
-                                            {
-                                                id: 10,
-                                                name: 'Master Role Type',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/general-setting/master-role-type',
-                                                title: 'Master Role Type',
-                                                description: 'Manage Master Role Type'
-                                            },
-                                            {
-                                                id: 11,
-                                                name: 'Privileges',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/general-setting/privileges',
-                                                title: 'Privileges',
-                                                description: 'Privileges'
-                                            },
-                                            {
-                                                id: 3,
-                                                name: 'Master Main Menu',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/general-setting/master-main-menu',
-                                                title: 'Master Main Menu',
-                                                description: 'Manage Master Main Menu'
-                                            },
-                                            {
-                                                id: 4,
-                                                name: 'Master Sub Menu',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/general-setting/master-sub-menu',
-                                                title: 'Master Sub Menu',
-                                                description: 'Manage Master Sub Menu'
-                                            },
-                                            {
-                                                id: 5,
-                                                name: 'Master Menu Page Mapping',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/general-setting/master-menu-page-mapping',
-                                                title: 'Master Menu Page Mapping',
-                                                description: 'Manage Master Menu Page Mapping'
-                                            },
-                                            {
-                                                id: 6,
-                                                name: 'Master School Type',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/general-setting/master-school-type',
-                                                title: 'Master School Type',
-                                                description: 'Manage Master School Type'
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        id: 4,
-                                        name: 'Configuration Setting',
-                                        icon: 'Settings',
-                                        pages: [
-                                            {
-                                                id: 1,
-                                                name: 'Institution Module Page',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/configuration-setting/institution-module-page',
-                                                title: 'Institution Module Page',
-                                                description: 'Master Institution Role and Module Mapping'
-                                            },
-                                            {
-                                                id: 2,
-                                                name: 'Master Main Menu INS',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/configuration-setting/master-main-menu-ins',
-                                                title: 'Master Main Menu INS',
-                                                description: 'Master Main Menu Institution Mapping'
-                                            },
-                                            {
-                                                id: 3,
-                                                name: 'Master Sub Menu INS',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/configuration-setting/master-sub-menu-ins',
-                                                title: 'Master Sub Menu INS',
-                                                description: 'Master Sub Menu Institution Mapping'
-                                            },
-                                            {
-                                                id: 4,
-                                                name: 'Master Menu Page Mapping Institutionwise',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/configuration-setting/master-menu-page-mapping-institutionwise',
-                                                title: 'Master Menu Page Mapping Institutionwise',
-                                                description: 'Master Menu Page Mapping Institutionwise'
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        id: 5,
-                                        name: 'Mobile Configuration',
-                                        icon: 'Settings',
-                                        pages: [
-                                            {
-                                                id: 1,
-                                                name: 'Mobile Master Page',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage',
-                                                title: 'Mobile Master Page',
-                                                description: 'Mobile Master Page'
-                                            },
-                                            {
-                                                id: 40011,
-                                                name: 'Cumulative Subject',
-                                                icon: 'BarChart3',
-                                                url: '/StudentPortal/student-dashboard/Exam/CumulativeSubject',
-                                                title: 'Cumulative Subject',
-                                                description: 'View Cumulative Subject Details'
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        id: 6,
-                                        name: 'User Creation',
-                                        icon: 'Settings',
-                                        pages: [
-                                            {
-                                                id: 1,
-                                                name: 'Staff User Creation',
-                                                icon: 'Settings',
-                                                url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
-                                                title: 'Staff User Creation',
-                                                description: 'Staff User Creation'
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
-                    },
-                    aiEdgeModule as any
-                ]
-            } as any;
-        }
+        const superAdminModule = {
+            id: 13,
+            name: 'Super Admin',
+            icon: 'Settings',
+            menu: [
+                {
+                    id: 1,
+                    name: 'Super Admin Module',
+                    icon: 'Settings',
+                    sub_menu: [
+                        {
+                            id: 1,
+                            name: 'Master Trust',
+                            icon: 'Settings',
+                            pages: [
+                                {
+                                    id: 1,
+                                    name: 'Master Trust',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/masters/trust-master',
+                                    title: 'Master Trust',
+                                    description: 'Manage Master Trust Details'
+                                }
+                            ]
+                        },
+                        {
+                            id: 2,
+                            name: 'Institution',
+                            icon: 'Settings',
+                            pages: [
+                                {
+                                    id: 1,
+                                    name: 'Master Institution',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/institution/master-institution',
+                                    title: 'Master Institution',
+                                    description: 'Manage Master Institution'
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Institution Subscription',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/institution/institution-subscription',
+                                    title: 'Institution Subscription',
+                                    description: 'Manage Institution Subscription'
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Auto Mapping',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/institution/auto-mapping',
+                                    title: 'Auto Mapping',
+                                    description: 'Manage Institution Auto Mapping'
+                                }
+                            ]
+                        },
+                        {
+                            id: 3,
+                            name: 'General Setting',
+                            icon: 'Settings',
+                            pages: [
+                                {
+                                    id: 1,
+                                    name: 'General Setting Wizard',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/general-setting/wizard',
+                                    title: 'General Setting Wizard',
+                                    description: 'General Setting Wizard'
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Modules',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/general-setting/module',
+                                    title: 'Modules',
+                                    description: 'Manage Master Modules'
+                                },
+                                {
+                                    id: 7,
+                                    name: 'Master Page',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/general-setting/master-page',
+                                    title: 'Master Page',
+                                    description: 'Manage Master Page'
+                                },
+                                {
+                                    id: 8,
+                                    name: 'Page Mapping',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/general-setting/page-mapping',
+                                    title: 'Page Mapping',
+                                    description: 'Map Pages to Modules'
+                                },
+                                {
+                                    id: 9,
+                                    name: 'Master Role',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/general-setting/master-role',
+                                    title: 'Master Role',
+                                    description: 'Manage Master Role'
+                                },
+                                {
+                                    id: 10,
+                                    name: 'Master Role Type',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/general-setting/master-role-type',
+                                    title: 'Master Role Type',
+                                    description: 'Manage Master Role Type'
+                                },
+                                {
+                                    id: 11,
+                                    name: 'Privileges',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/general-setting/privileges',
+                                    title: 'Privileges',
+                                    description: 'Privileges'
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Master Main Menu',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/general-setting/master-main-menu',
+                                    title: 'Master Main Menu',
+                                    description: 'Manage Master Main Menu'
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Master Sub Menu',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/general-setting/master-sub-menu',
+                                    title: 'Master Sub Menu',
+                                    description: 'Manage Master Sub Menu'
+                                },
+                                {
+                                    id: 5,
+                                    name: 'Master Menu Page Mapping',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/general-setting/master-menu-page-mapping',
+                                    title: 'Master Menu Page Mapping',
+                                    description: 'Manage Master Menu Page Mapping'
+                                },
+                                {
+                                    id: 6,
+                                    name: 'Master School Type',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/general-setting/master-school-type',
+                                    title: 'Master School Type',
+                                    description: 'Manage Master School Type'
+                                }
+                            ]
+                        },
+                        {
+                            id: 4,
+                            name: 'Configuration Setting',
+                            icon: 'Settings',
+                            pages: [
+                                {
+                                    id: 1,
+                                    name: 'Institution Module Page',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/configuration-setting/institution-module-page',
+                                    title: 'Institution Module Page',
+                                    description: 'Master Institution Role and Module Mapping'
+                                },
+                                {
+                                    id: 2,
+                                    name: 'Master Main Menu INS',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/configuration-setting/master-main-menu-ins',
+                                    title: 'Master Main Menu INS',
+                                    description: 'Master Main Menu Institution Mapping'
+                                },
+                                {
+                                    id: 3,
+                                    name: 'Master Sub Menu INS',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/configuration-setting/master-sub-menu-ins',
+                                    title: 'Master Sub Menu INS',
+                                    description: 'Master Sub Menu Institution Mapping'
+                                },
+                                {
+                                    id: 4,
+                                    name: 'Master Menu Page Mapping Institutionwise',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/configuration-setting/master-menu-page-mapping-institutionwise',
+                                    title: 'Master Menu Page Mapping Institutionwise',
+                                    description: 'Master Menu Page Mapping Institutionwise'
+                                }
+                            ]
+                        },
+                        {
+                            id: 5,
+                            name: 'Mobile Configuration',
+                            icon: 'Settings',
+                            pages: [
+                                {
+                                    id: 1,
+                                    name: 'Mobile Master Page',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage',
+                                    title: 'Mobile Master Page',
+                                    description: 'Mobile Master Page'
+                                },
+                                {
+                                    id: 40011,
+                                    name: 'Cumulative Subject',
+                                    icon: 'BarChart3',
+                                    url: '/StudentPortal/student-dashboard/Exam/CumulativeSubject',
+                                    title: 'Cumulative Subject',
+                                    description: 'View Cumulative Subject Details'
+                                }
+                            ]
+                        },
+                        {
+                            id: 6,
+                            name: 'User Creation',
+                            icon: 'Settings',
+                            pages: [
+                                {
+                                    id: 1,
+                                    name: 'Staff User Creation',
+                                    icon: 'Settings',
+                                    url: '/SuperAdmin/super-admin-module/user-creation/staff-user-creation',
+                                    title: 'Staff User Creation',
+                                    description: 'Staff User Creation'
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        const isSuperAdmin =
+            session?.role?.toUpperCase() === 'SUPER ADMIN' ||
+            session?.role?.toUpperCase() === 'SUPERADMIN';
 
         // Fetch data from APIs
         const [mainModulesRes, subModulesRes, pageListRes] = await Promise.all([
@@ -771,19 +766,28 @@ export async function getUserAccessibleModules() {
         const extractArray = (res: any): any[] => {
             if (!res) return [];
             if (Array.isArray(res)) return res;
+            if (Array.isArray(res.data)) return res.data;
+            if (Array.isArray(res.$values)) return res.$values;
+            if (res.data && Array.isArray(res.data.$values)) return res.data.$values;
+            if (Array.isArray(res.pageList)) return res.pageList;
+            if (res.data && Array.isArray(res.data.pageList)) return res.data.pageList;
+            if (Array.isArray(res.moduleList)) return res.moduleList;
+            if (res.data && Array.isArray(res.data.moduleList)) return res.data.moduleList;
+            if (Array.isArray(res.submoduleList)) return res.submoduleList;
+            if (res.data && Array.isArray(res.data.submoduleList)) return res.data.submoduleList;
+            if (Array.isArray(res.records)) return res.records;
+            if (res.data && Array.isArray(res.data.records)) return res.data.records;
 
-            if (res.data) {
-                if (Array.isArray(res.data)) return res.data;
-
-                if (res.data.$values && Array.isArray(res.data.$values)) {
-                    return res.data.$values;
+            if (res.data && typeof res.data === 'object') {
+                for (const key of Object.keys(res.data)) {
+                    if (Array.isArray(res.data[key])) return res.data[key];
                 }
             }
-
-            if (res.$values && Array.isArray(res.$values)) {
-                return res.$values;
+            if (typeof res === 'object') {
+                for (const key of Object.keys(res)) {
+                    if (Array.isArray(res[key])) return res[key];
+                }
             }
-
             return [];
         };
 
@@ -791,211 +795,343 @@ export async function getUserAccessibleModules() {
         const subModules = extractArray(subModulesRes);
         const pages = extractArray(pageListRes);
 
-        // --------------------------------------------------
-        // Composite key: moduleId + menuId
-        // --------------------------------------------------
-        const getMenuKey = (moduleId: number, menuId: number): string => {
-            return `${moduleId}_${menuId}`;
+        // Safe property extractors to handle naming differences across tables and APIs
+        const getModuleId = (item: any): number => {
+            if (!item) return 0;
+            const val = item.moduleId ?? item.ivrmM_Id ?? item.ivrmm_id ?? item.module_id ?? item.ivrmM_ID ?? item.ModuleId;
+            return val !== undefined && val !== null ? Number(val) : 0;
         };
 
+        const getMenuId = (item: any): number => {
+            if (!item) return 0;
+            const val = item.menuId ?? item.ivrmmM_Id ?? item.ivrmmS_Id ?? item.subModuleId ?? item.ivrmM_MenuId ?? item.MenuId ?? item.id;
+            return val !== undefined && val !== null ? Number(val) : 0;
+        };
 
-        // --------------------------------------------------
-        // Build submodules by moduleId + parentId
-        // --------------------------------------------------
-        const subByParent = new Map<string, any[]>();
+        const getParentId = (item: any): number => {
+            if (!item) return 0;
+            const val = item.parentId ?? item.ivrmmM_ParentId ?? item.ivrmmS_ParentId ?? item.ParentId;
+            return val !== undefined && val !== null ? Number(val) : 0;
+        };
 
-        subModules.forEach((sub: any) => {
-            const moduleId = Number(sub.moduleId);
-            const parentId = Number(sub.parentId);
+        const getPageId = (page: any): number => {
+            if (!page) return 0;
+            const val = page.pageId ?? page.ivrmP_Id ?? page.ivrmmP_Id ?? page.id ?? page.Id;
+            return val !== undefined && val !== null ? Number(val) : 0;
+        };
 
-            const key = getMenuKey(moduleId, parentId);
-
-            if (!subByParent.has(key)) {
-                subByParent.set(key, []);
-            }
-
-            subByParent.get(key)!.push(sub);
-        });
-
+        const getItemName = (item: any): string => {
+            if (!item) return '';
+            return (
+                item.ivrmmP_PageName ||
+                item.ivrmP_PageDisplayName ||
+                item.ivrmM_ModuleName ||
+                item.ivrmmM_MenuName ||
+                item.moduleName ||
+                item.name ||
+                item.title ||
+                ''
+            );
+        };
 
         const cleanMenuTitle = (text: string): string => {
             if (!text) return '';
-
             return text
                 .replace(/\bbaldwin\b\s*/gi, '')
                 .trim();
         };
 
-
-        // --------------------------------------------------
-        // Build pages using moduleId + menuId
-        // --------------------------------------------------
-        const pagesByMenuId = new Map<string, any[]>();
-
-        pages.forEach((page: any) => {
-
-            const moduleId = Number(page.moduleId);
-            const menuId = Number(page.menuId);
-
-            const key = getMenuKey(moduleId, menuId);
-
-            if (!pagesByMenuId.has(key)) {
-                pagesByMenuId.set(key, []);
+        // Dynamic URL normalizer and route resolver
+        const normalizePageUrl = (page: any, cleanedName: string): string => {
+            let url = page.ivrmP_PageURL || page.url || page.ivrmmP_PageURL || page.pageURL || page.PageURL || '';
+            if (url && typeof url === 'string') {
+                url = url.trim();
+                if (url.startsWith('app.')) url = url.replace(/^app\./, '/');
+                if (!url.startsWith('/') && url !== '#' && url !== '') url = '/' + url;
+                if (url !== '#' && url !== '' && url !== 'null') {
+                    return url;
+                }
             }
 
-            const rawName =
-                page.ivrmmP_PageName ||
-                page.ivrmP_PageDisplayName ||
-                '';
+            // Derive route dynamically from page name
+            const slug = cleanedName
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-+|-+$/g, '');
 
-            const cleanedName = cleanMenuTitle(rawName);
+            if (!slug) return '';
 
-            pagesByMenuId.get(key)!.push({
-                id: page.pageId,
-                name: cleanedName,
-                icon: 'Settings',
-                url: page.ivrmP_PageURL,
-                title: cleanedName,
-                description: cleanedName,
-                order: page.order || 0
-            });
+            // Match against common route conventions in the application
+            if (slug.includes('class-wise-student-details')) {
+                return '/admission/preadmission/reports/class-wise-student-details';
+            }
+            if (slug.includes('student-attendance-report')) {
+                return '/admission/preadmission/reports/student-attendance-report';
+            }
+            if (slug.includes('total-strength')) {
+                return '/admission/preadmission/reports/total-strength';
+            }
+            if (slug.includes('import-library')) {
+                return '/library/reports/import-library';
+            }
+            if (slug.includes('admission-register')) {
+                return '/admission/preadmission/reports/admission-register';
+            }
+            if (slug.includes('student-birthday-report')) {
+                return '/admission/preadmission/reports/student-birthday-report';
+            }
+            if (slug.includes('student-count-report')) {
+                return '/admission/preadmission/reports/student-count-report';
+            }
+            if (slug.includes('student-search')) {
+                return '/admission/preadmission/reports/student-search';
+            }
+            if (slug.includes('student-tc-report')) {
+                return '/admission/preadmission/reports/student-tc-report';
+            }
+
+            return `/${slug}`;
+        };
+
+        // Composite key: moduleId + menuId
+        const getMenuKey = (moduleId: number, menuId: number): string => {
+            return `${moduleId}_${menuId}`;
+        };
+
+        // Build submodules by moduleId + parentId
+        const subByParent = new Map<string, any[]>();
+        const subByModule = new Map<number, any[]>();
+
+        subModules.forEach((sub: any) => {
+            const moduleId = getModuleId(sub);
+            const parentId = getParentId(sub);
+
+            const key = getMenuKey(moduleId, parentId);
+            if (!subByParent.has(key)) {
+                subByParent.set(key, []);
+            }
+            subByParent.get(key)!.push(sub);
+
+            if (moduleId > 0) {
+                if (!subByModule.has(moduleId)) {
+                    subByModule.set(moduleId, []);
+                }
+                subByModule.get(moduleId)!.push(sub);
+            }
         });
 
+        // Track placed pages so no page from get_page_list is dropped
+        const placedPageSignatures = new Set<string>();
 
-        // --------------------------------------------------
-        // Sort helper
-        // --------------------------------------------------
+        // Build pages using moduleId + menuId
+        const pagesByMenuKey = new Map<string, any[]>();
+        const pagesByModuleId = new Map<number, any[]>();
+        const allProcessedPages: any[] = [];
+
+        pages.forEach((page: any) => {
+            const moduleId = getModuleId(page);
+            const menuId = getMenuId(page);
+            const rawName = getItemName(page);
+            const cleanedName = cleanMenuTitle(rawName);
+            const resolvedUrl = normalizePageUrl(page, cleanedName);
+            const pageId = getPageId(page) || Math.floor(Math.random() * 1000000) + 1;
+
+            const pageObj = {
+                id: pageId,
+                moduleId,
+                menuId,
+                name: cleanedName,
+                icon: mapIcon(page.ivrmmmI_Icon || page.icon || 'Settings'),
+                url: resolvedUrl,
+                title: cleanedName,
+                description: cleanedName,
+                order: Number(page.order ?? page.ivrmimP_PageOrder ?? page.pageOrder ?? 0)
+            };
+
+            allProcessedPages.push(pageObj);
+
+            if (moduleId > 0 && menuId > 0) {
+                const key = getMenuKey(moduleId, menuId);
+                if (!pagesByMenuKey.has(key)) {
+                    pagesByMenuKey.set(key, []);
+                }
+                pagesByMenuKey.get(key)!.push(pageObj);
+            }
+
+            if (moduleId > 0) {
+                if (!pagesByModuleId.has(moduleId)) {
+                    pagesByModuleId.set(moduleId, []);
+                }
+                pagesByModuleId.get(moduleId)!.push(pageObj);
+            }
+        });
+
         const sortByOrder = (a: any, b: any) =>
             (a.order || 0) - (b.order || 0);
 
-
-        // --------------------------------------------------
         // Recursive submenu builder
-        // --------------------------------------------------
         function buildSubMenu(
             moduleId: number,
             parentId: number
         ): any[] {
-
             const parentKey = getMenuKey(moduleId, parentId);
-
-            const children =
-                (subByParent.get(parentKey) || [])
-                    .sort(sortByOrder);
-
+            const children = (subByParent.get(parentKey) || []).sort(sortByOrder);
             const validChildren: any[] = [];
-            const seenSubMenuKeys = new Set<string>();
 
             for (const sub of children) {
+                const subModuleId = getModuleId(sub);
+                const subMenuId = getMenuId(sub);
+                const subName = cleanMenuTitle(getItemName(sub));
 
-                const subModuleId = Number(sub.moduleId);
-                const subMenuId = Number(sub.menuId);
-
-                // ------------------------------------------
-                // Pages belong to moduleId + menuId
-                // ------------------------------------------
-                const pageKey = getMenuKey(
-                    subModuleId,
-                    subMenuId
-                );
-
-                const itemPages =
-                    pagesByMenuId.get(pageKey) || [];
-
-
-                // ------------------------------------------
-                // Check child submenu using same moduleId
-                // ------------------------------------------
-                const childKey = getMenuKey(
-                    subModuleId,
-                    subMenuId
-                );
-
-                const hasGrandChildren =
-                    subByParent.has(childKey);
-
-
+                // Grandchild submenus
+                const childKey = getMenuKey(subModuleId, subMenuId);
+                const hasGrandChildren = subByParent.has(childKey);
                 let subMenuItems: any[] = [];
 
                 if (hasGrandChildren) {
-                    subMenuItems = buildSubMenu(
-                        subModuleId,
-                        subMenuId
-                    );
+                    subMenuItems = buildSubMenu(subModuleId, subMenuId);
                 }
 
+                // Direct pages mapped to this submenu
+                const pageKey = getMenuKey(subModuleId, subMenuId);
+                const itemPages = (pagesByMenuKey.get(pageKey) || []).slice();
+                for (const p of itemPages) {
+                    placedPageSignatures.add(`${p.id}_${p.name.toLowerCase()}`);
+                }
 
-                // ------------------------------------------
-                // Include only if pages/submenus exist
-                // ------------------------------------------
-                if (
-                    itemPages.length > 0 ||
-                    subMenuItems.length > 0
-                ) {
+                // Check for unplaced pages belonging to this module that match the section name
+                const subLower = subName.toLowerCase();
+                const unplacedModulePages = (pagesByModuleId.get(subModuleId) || []).filter(
+                    (p) => !placedPageSignatures.has(`${p.id}_${p.name.toLowerCase()}`)
+                );
 
-                    const menuItem: any = {
+                for (const p of unplacedModulePages) {
+                    const pNameLower = p.name.toLowerCase();
+                    if (
+                        (subLower.includes('report') &&
+                            (pNameLower.includes('report') ||
+                                pNameLower.includes('details') ||
+                                pNameLower.includes('summary') ||
+                                pNameLower.includes('certificate') ||
+                                pNameLower.includes('card') ||
+                                pNameLower.includes('register') ||
+                                pNameLower.includes('strength') ||
+                                pNameLower.includes('search') ||
+                                pNameLower.includes('view') ||
+                                pNameLower.includes('list'))) ||
+                        (subLower.includes('master') &&
+                            (pNameLower.includes('master') ||
+                                pNameLower.includes('category') ||
+                                pNameLower.includes('caste') ||
+                                pNameLower.includes('class') ||
+                                pNameLower.includes('section') ||
+                                pNameLower.includes('entry'))) ||
+                        (subLower.includes('transaction') &&
+                            (pNameLower.includes('transaction') ||
+                                pNameLower.includes('form') ||
+                                pNameLower.includes('process') ||
+                                pNameLower.includes('approval') ||
+                                pNameLower.includes('attendance')))
+                    ) {
+                        placedPageSignatures.add(`${p.id}_${p.name.toLowerCase()}`);
+                        itemPages.push(p);
+                    }
+                }
+
+                // Preserve child submenus by surfacing them as accessible sections
+                if (subMenuItems.length > 0) {
+                    for (const grandChild of subMenuItems) {
+                        validChildren.push({
+                            ...grandChild,
+                            name: `${subName} - ${grandChild.name}`
+                        });
+                    }
+                }
+
+                if (itemPages.length > 0 || subMenuItems.length > 0) {
+                    validChildren.push({
                         id: subMenuId,
-
-                        name: cleanMenuTitle(
-                            sub.ivrmM_ModuleName
-                        ),
-
-                        icon: mapIcon(
-                            sub.ivrmmmI_Icon
-                        ),
-
+                        name: subName,
+                        icon: mapIcon(sub.ivrmmmI_Icon || sub.icon),
                         sub_menu: subMenuItems,
-
-                        pages: hasGrandChildren
-                            ? []
-                            : itemPages.sort(sortByOrder)
-                    };
-
-                    validChildren.push(menuItem);
+                        pages: itemPages.sort(sortByOrder)
+                    });
                 }
             }
 
             return validChildren;
         }
 
-
-        // --------------------------------------------------
         // Build top-level modules
-        // --------------------------------------------------
         const topModules = mainModules
-            .filter((m: any) => Number(m.parentId) === 0)
+            .filter((m: any) => getParentId(m) === 0)
             .sort(sortByOrder)
             .map((m: any) => {
+                const moduleId = getModuleId(m);
+                const menuId = getMenuId(m);
+                const cleanedModuleName = cleanMenuTitle(getItemName(m));
 
-                const moduleId = Number(m.moduleId);
-                const menuId = Number(m.menuId);
+                const subMenuStructure = buildSubMenu(moduleId, menuId);
 
-                const subMenuStructure =
-                    buildSubMenu(
-                        moduleId,
-                        menuId
-                    );
+                // Check for any unplaced pages mapped to this module
+                const remainingModulePages = (pagesByModuleId.get(moduleId) || []).filter(
+                    (p) => !placedPageSignatures.has(`${p.id}_${p.name.toLowerCase()}`)
+                );
 
-                // Only include module if it has valid submenu
+                if (remainingModulePages.length > 0) {
+                    let reportsSub = subMenuStructure.find((s: any) => s.name.toLowerCase().includes('report'));
+                    if (!reportsSub) {
+                        reportsSub = {
+                            id: 99990 + moduleId,
+                            name: 'Reports',
+                            icon: 'BarChart',
+                            sub_menu: [],
+                            pages: []
+                        };
+                        subMenuStructure.push(reportsSub);
+                    }
+                    for (const p of remainingModulePages) {
+                        placedPageSignatures.add(`${p.id}_${p.name.toLowerCase()}`);
+                        reportsSub.pages.push(p);
+                    }
+                    reportsSub.pages.sort(sortByOrder);
+                }
+
+                // Fallback for modules with submodules not keyed to parentId = 0
+                if (subMenuStructure.length === 0) {
+                    const modSubs = subByModule.get(moduleId) || [];
+                    if (modSubs.length > 0) {
+                        for (const sub of modSubs) {
+                            const subId = getMenuId(sub);
+                            const subName = cleanMenuTitle(getItemName(sub));
+                            const subPages = (pagesByMenuKey.get(getMenuKey(moduleId, subId)) || []).slice();
+                            for (const p of subPages) {
+                                placedPageSignatures.add(`${p.id}_${p.name.toLowerCase()}`);
+                            }
+                            subMenuStructure.push({
+                                id: subId,
+                                name: subName,
+                                icon: mapIcon(sub.ivrmmmI_Icon || sub.icon),
+                                sub_menu: [],
+                                pages: subPages.sort(sortByOrder)
+                            });
+                        }
+                    }
+                }
+
                 if (subMenuStructure.length === 0) {
                     return null;
                 }
 
-                const cleanedModuleName =
-                    cleanMenuTitle(
-                        m.ivrmM_ModuleName
-                    );
-
                 return {
-                    id: menuId,
+                    id: menuId || moduleId,
                     name: cleanedModuleName,
-                    icon: mapIcon(m.ivrmmmI_Icon),
-
+                    icon: mapIcon(m.ivrmmmI_Icon || m.icon),
                     menu: [
                         {
                             id: 1,
                             name: cleanedModuleName,
-                            icon: mapIcon(m.ivrmmmI_Icon),
+                            icon: mapIcon(m.ivrmmmI_Icon || m.icon),
                             sub_menu: subMenuStructure
                         }
                     ]
@@ -1003,8 +1139,158 @@ export async function getUserAccessibleModules() {
             })
             .filter((module: any) => module !== null);
 
+        // Recover unplaced or orphan pages (e.g. ivrmM_Id: 0 like "class-wise student details")
+        const unplacedPages = allProcessedPages.filter(
+            (p) => !placedPageSignatures.has(`${p.id}_${p.name.toLowerCase()}`)
+        );
 
-        console.log('topModules', topModules);
+        if (unplacedPages.length > 0) {
+            for (const page of unplacedPages) {
+                const nameLower = page.name.toLowerCase();
+                const urlLower = (page.url || '').toLowerCase();
+
+                let targetModule = topModules.find((mod: any) => {
+                    const modName = mod.name.toLowerCase();
+                    if (
+                        (nameLower.includes('student') ||
+                            nameLower.includes('admission') ||
+                            nameLower.includes('attendance') ||
+                            nameLower.includes('class') ||
+                            nameLower.includes('section') ||
+                            nameLower.includes('tc') ||
+                            nameLower.includes('birth') ||
+                            nameLower.includes('caste') ||
+                            nameLower.includes('category') ||
+                            urlLower.includes('/admission')) &&
+                        (modName.includes('admission') || modName.includes('student'))
+                    ) {
+                        return true;
+                    }
+                    if (
+                        (nameLower.includes('fee') ||
+                            nameLower.includes('dues') ||
+                            nameLower.includes('challan') ||
+                            nameLower.includes('receipt') ||
+                            nameLower.includes('concession') ||
+                            urlLower.includes('/fees')) &&
+                        modName.includes('fee')
+                    ) {
+                        return true;
+                    }
+                    if (
+                        (nameLower.includes('book') ||
+                            nameLower.includes('library') ||
+                            nameLower.includes('author') ||
+                            nameLower.includes('publisher') ||
+                            nameLower.includes('circulation') ||
+                            urlLower.includes('/library')) &&
+                        modName.includes('library')
+                    ) {
+                        return true;
+                    }
+                    if (
+                        (nameLower.includes('exam') ||
+                            nameLower.includes('marks') ||
+                            nameLower.includes('grade') ||
+                            nameLower.includes('assessment') ||
+                            urlLower.includes('/exam')) &&
+                        modName.includes('exam')
+                    ) {
+                        return true;
+                    }
+                    if (
+                        (nameLower.includes('staff') ||
+                            nameLower.includes('employee') ||
+                            nameLower.includes('salary') ||
+                            nameLower.includes('payroll') ||
+                            nameLower.includes('leave') ||
+                            nameLower.includes('hrms') ||
+                            urlLower.includes('/hrms')) &&
+                        (modName.includes('hrms') || modName.includes('staff'))
+                    ) {
+                        return true;
+                    }
+                    if (
+                        (nameLower.includes('bus') ||
+                            nameLower.includes('transport') ||
+                            nameLower.includes('route') ||
+                            nameLower.includes('driver') ||
+                            urlLower.includes('/transport')) &&
+                        modName.includes('transport')
+                    ) {
+                        return true;
+                    }
+                    if (nameLower.includes('sports') && modName.includes('sports')) return true;
+                    if (nameLower.includes('hostel') && modName.includes('hostel')) return true;
+                    if (nameLower.includes('alumni') && modName.includes('alumni')) return true;
+                    if (nameLower.includes('inventory') && modName.includes('inventory')) return true;
+                    if ((nameLower.includes('time table') || nameLower.includes('timetable')) && modName.includes('timetable'))
+                        return true;
+                    return false;
+                });
+
+                if (!targetModule && topModules.length > 0) {
+                    targetModule = topModules[0];
+                }
+
+                if (targetModule && targetModule.menu?.[0]?.sub_menu) {
+                    const subMenus = targetModule.menu[0].sub_menu;
+                    const isReport =
+                        nameLower.includes('report') ||
+                        nameLower.includes('details') ||
+                        nameLower.includes('summary') ||
+                        nameLower.includes('certificate') ||
+                        nameLower.includes('card') ||
+                        nameLower.includes('register') ||
+                        nameLower.includes('strength') ||
+                        nameLower.includes('search');
+                    const isMaster =
+                        nameLower.includes('master') ||
+                        nameLower.includes('category') ||
+                        nameLower.includes('class') ||
+                        nameLower.includes('section');
+
+                    let targetSubMenu = subMenus.find((s: any) => {
+                        const sName = s.name.toLowerCase();
+                        if (isReport && sName.includes('report')) return true;
+                        if (isMaster && sName.includes('master')) return true;
+                        return false;
+                    });
+
+                    if (!targetSubMenu) {
+                        if (isReport) {
+                            targetSubMenu = {
+                                id: 99991,
+                                name: 'Reports',
+                                icon: 'BarChart',
+                                sub_menu: [],
+                                pages: []
+                            };
+                            subMenus.push(targetSubMenu);
+                        } else if (subMenus.length > 0) {
+                            targetSubMenu = subMenus[0];
+                        } else {
+                            targetSubMenu = {
+                                id: 99992,
+                                name: 'General',
+                                icon: 'Settings',
+                                sub_menu: [],
+                                pages: []
+                            };
+                            subMenus.push(targetSubMenu);
+                        }
+                    }
+
+                    placedPageSignatures.add(`${page.id}_${page.name.toLowerCase()}`);
+                    targetSubMenu.pages.push(page);
+                    targetSubMenu.pages.sort(sortByOrder);
+                }
+            }
+        }
+
+        if (isSuperAdmin) {
+            topModules.unshift(superAdminModule as any);
+        }
 
         topModules.push(aiEdgeModule as any);
 
