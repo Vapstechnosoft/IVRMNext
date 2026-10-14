@@ -21,6 +21,9 @@ function getRoleHomeUrl(role?: string): string {
     if (r === ROLES.STUDENT) {
         return '/StudentPortal/student-dashboard';
     }
+    if (r === ROLES.ONLINE_PREADMISSION_USER) {
+        return '/admission/preadmission/dashboard';
+    }
     if (r === ROLES.CHAIRMAN) {
         return '/chairman';
     }

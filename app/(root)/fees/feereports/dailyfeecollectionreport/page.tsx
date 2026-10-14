@@ -364,9 +364,9 @@ export default function DailyFeeCollectionReportForm() {
         // API CALL
         // ===================================================
 
-        if (data.Fmc_allorsudentorother === 'all') {
-            data.Fmc_allorsudentorother = 'multiplepaymentmode';
-        }
+        // if (data.Fmc_allorsudentorother === 'all') {
+        //     data.Fmc_allorsudentorother = 'multiplepaymentmode';
+        // }
         try {
             setShowTable(false);
             setLoading(true);
@@ -404,7 +404,7 @@ export default function DailyFeeCollectionReportForm() {
             } else if (
                 // ((data.Fmc_allorsudentorother === 'multiplepaymentmode' || data.Fmc_allorsudentorother === 'all') &&
                 //     data.Fmc_allorcorddorop === 'All')
-                data.Fmc_allorsudentorother === 'multiplepaymentmode' &&
+                (data.Fmc_allorsudentorother === 'multiplepaymentmode' || data.Fmc_allorsudentorother === 'all') &&
                 report === 'students'
             ) {
                 const allList = selectedGroupIds.map((id) => ({
@@ -413,10 +413,11 @@ export default function DailyFeeCollectionReportForm() {
                 payload = {
                     AsmayId: asmaY_Id,
                     classid: asmcL_Id ?? 0,
+                    classFlag: '1',
                     FromDate: formatDate(fromDate),
                     ToDate: formatDate(toDate),
                     regornamedetails: report,
-                    allorstdorothersflag: Fmc_allorsudentorother,
+                    allorstdorothersflag: 'all',
                     All_List: allList
                 };
             } else if (report === 'students' && data.Fmc_allorsudentorother !== 'multiplepaymentmode') {

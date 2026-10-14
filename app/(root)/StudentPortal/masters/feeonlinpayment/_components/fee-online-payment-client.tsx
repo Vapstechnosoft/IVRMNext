@@ -3,16 +3,18 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useStudentPortalAcademic } from '@/hooks/fees/useReports';
 import { useStudentInformation } from '@/hooks/staff-portal/useFeeOnlinePayment';
 import type { FeeStructure, IGroupTermMapping } from '@/types/student-portal/masters/fee_online_payment';
-import { Loader2 } from 'lucide-react';
+import { AlertCircle, Calendar, Check, CheckCircle2, Copy, FileText, Hash, Loader2, Printer, Receipt, User, XCircle } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { getAmountDetails, savePayment } from '../actions';
+import { generateHashSequence, getAmountDetails, verifyRazorpayPayment } from '../actions';
 
 declare global {
     interface Window {
@@ -20,7 +22,21 @@ declare global {
     }
 }
 
+export interface PaymentModalState {
+    isOpen: boolean;
+    status: 'success' | 'cancelled' | 'failed';
+    transactionId?: string;
+    receiptNo?: string;
+    amount?: number | string;
+    date?: string;
+    message?: string;
+    gateway?: string;
+    studentName?: string;
+    admNo?: string;
+}
+
 export default function FeeOnlinePaymentClient() {
+    const searchParams = useSearchParams();
     const { data: response, isLoading: isAcademicLoading } = useStudentPortalAcademic();
     const [academicYear, setAcademicYear] = useState<number | undefined>();
     const [groupTermList, setGroupTermList] = useState<IGroupTermMapping[]>([]);
@@ -31,6 +47,15 @@ export default function FeeOnlinePaymentClient() {
     const [showPaymentDetails, setShowPaymentDetails] = useState(false);
     const [gateway, setGateway] = useState<string>('');
     const [isDetailsLoading, setIsDetailsLoading] = useState(false);
+    const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+    const [mI_Id, setMI_Id] = useState<number>(0);
+    const [copiedTxn, setCopiedTxn] = useState(false);
+
+    // Payment Result Popup State
+    const [paymentModalState, setPaymentModalState] = useState<PaymentModalState>({
+        isOpen: false,
+        status: 'success'
+    });
 
     // Set academic year when response loads
     useEffect(() => {
@@ -42,10 +67,103 @@ export default function FeeOnlinePaymentClient() {
     const {
         data: studentInfoDetails,
         isLoading: isStudentLoading,
-        isFetching: isStudentFetching
+        isFetching: isStudentFetching,
+        refetchAll
     } = useStudentInformation(academicYear || null, 'T', 0);
 
     const isStudentDataLoading = (isStudentLoading || isStudentFetching) && !!academicYear;
+
+    // Detect return from external payment gateway (via URL query parameters)
+    useEffect(() => {
+        if (!searchParams) return;
+
+        const rawStatus = (
+            searchParams.get('status') ||
+            searchParams.get('payment_status') ||
+            searchParams.get('paymentStatus') ||
+            searchParams.get('pay_status') ||
+            ''
+        ).toLowerCase();
+
+        const txnid =
+            searchParams.get('txnid') ||
+            searchParams.get('transaction_id') ||
+            searchParams.get('trans_id') ||
+            searchParams.get('easepayid') ||
+            searchParams.get('payment_id') ||
+            '';
+
+        const receiptno =
+            searchParams.get('receiptno') ||
+            searchParams.get('receipt_no') ||
+            searchParams.get('fyP_Receipt_No') ||
+            searchParams.get('fyp_receipt_no') ||
+            '';
+
+        const rawAmount = searchParams.get('amount') || searchParams.get('topayamount') || '';
+        const msg =
+            searchParams.get('msg') || searchParams.get('message') || searchParams.get('error_Message') || searchParams.get('error') || '';
+
+        let storedInfo: any = null;
+        if (typeof window !== 'undefined') {
+            try {
+                const item = sessionStorage.getItem('pending_fee_payment');
+                if (item) storedInfo = JSON.parse(item);
+            } catch (e) {
+                console.error('Error reading stored payment info:', e);
+            }
+        }
+
+        const isSuccess = ['success', 'successful', 'succeeded', 'ok', 'captured', '1', 'true'].includes(rawStatus);
+        const isCancelled = ['cancel', 'cancelled', 'usercancelled', 'user_cancelled', 'abort', 'aborted', 'canceled'].includes(rawStatus);
+        const isFailure = ['fail', 'failed', 'failure', 'declined', 'error', '0', 'false'].includes(rawStatus);
+
+        if (isSuccess || isCancelled || isFailure || (rawStatus && rawStatus !== '')) {
+            const finalStatus: 'success' | 'cancelled' | 'failed' = isSuccess ? 'success' : isCancelled ? 'cancelled' : 'failed';
+
+            const student = studentInfoDetails?.studentInfo;
+            const studentName =
+                storedInfo?.studentName || (student ? `${student.amsT_FirstName || ''} ${student.amsT_LastName || ''}`.trim() : '');
+            const admNo = storedInfo?.admNo || student?.amsT_AdmNo || student?.amsT_RegistrationNo || '';
+            const amount = Number(rawAmount) || storedInfo?.amount || totalAmt || 0;
+            const gw = storedInfo?.gateway || gateway || 'Payment Gateway';
+
+            setPaymentModalState({
+                isOpen: true,
+                status: finalStatus,
+                transactionId: txnid,
+                receiptNo: receiptno,
+                amount,
+                date: new Date().toLocaleString('en-IN', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                }),
+                gateway: gw,
+                studentName,
+                admNo,
+                message:
+                    msg ||
+                    (finalStatus === 'success'
+                        ? 'Your fee payment has been successfully processed.'
+                        : finalStatus === 'cancelled'
+                          ? 'Payment was cancelled. No money was debited from your account.'
+                          : 'Payment could not be processed. Please try again.')
+            });
+
+            if (typeof window !== 'undefined') {
+                sessionStorage.removeItem('pending_fee_payment');
+                window.history.replaceState({}, '', window.location.pathname);
+            }
+
+            if (finalStatus === 'success') {
+                refetchAll();
+            }
+        }
+    }, [searchParams, studentInfoDetails, totalAmt, gateway, refetchAll]);
 
     // Populate group-term list and initial payment gateways when studentInfoDetails loads
     useEffect(() => {
@@ -58,6 +176,15 @@ export default function FeeOnlinePaymentClient() {
             const firstGw =
                 initialGateways[0]?.fpgD_PGName || initialGateways[0]?.FPGD_PGName || initialGateways[0]?.paymentgateway || 'RAZORPAY';
             setGateway(firstGw);
+        }
+        const detectedMiId =
+            (studentInfoDetails as any)?.mI_Id ||
+            (studentInfoDetails as any)?.MI_Id ||
+            (studentInfoDetails?.studentInfo as any)?.mI_Id ||
+            (studentInfoDetails?.studentInfo as any)?.MI_Id ||
+            0;
+        if (detectedMiId) {
+            setMI_Id(Number(detectedMiId));
         }
     }, [studentInfoDetails, paymentGateWay.length]);
 
@@ -146,14 +273,17 @@ export default function FeeOnlinePaymentClient() {
         try {
             setIsDetailsLoading(true);
             const result = await getAmountDetails({
-                MI_Id: 0,
+                MI_Id: mI_Id || 0,
                 configset: 'T',
                 ASMAY_Id: academicYear,
-                AMST_Id: 0,
+                AMST_Id: studentInfoDetails?.studentInfo?.amst_Id || 0,
                 ASMCL_Id: studentInfoDetails?.studentInfo?.asmcL_ID,
                 selected_list: selectedList
             });
             if (result?.success && result?.data) {
+                if (result.data.mI_Id || result.data.MI_Id) {
+                    setMI_Id(Number(result.data.mI_Id || result.data.MI_Id));
+                }
                 setFeeDetails(result.data.fillstudentviewdetails || []);
                 const gateways = result.data.fillpaymentgateway || [];
                 setPaymentGateWay(gateways);
@@ -186,38 +316,345 @@ export default function FeeOnlinePaymentClient() {
             return;
         }
 
+        if (totalAmt <= 0) {
+            toast.warning('Total payable amount must be greater than 0');
+            return;
+        }
+
+        const selected_list = groupTermList
+            .filter((g) => g.grp.checkedgrplst)
+            .map((g) => ({
+                grp: {
+                    fmgG_GroupName: g.grp.fmgG_GroupName,
+                    fmgG_Id: Number(g.grp.fmgG_Id) || g.grp.fmgG_Id,
+                    checkedgrplst: g.grp.checkedgrplst
+                },
+                trm_list: g.trm_list
+                    .filter((t) => t.checkedheadlst)
+                    .map((t) => ({
+                        checkedheadlst: t.checkedheadlst,
+                        fmT_Amount: t.fmT_Amount ?? 0,
+                        fmT_Id: Number(t.fmT_Id) || t.fmT_Id,
+                        fmT_Name: t.fmT_Name,
+                        fmT_Order: t.fmT_Order ?? 0,
+                        fmgG_GroupName: t.fmgG_GroupName || g.grp.fmgG_GroupName,
+                        fmgG_Id: Number(t.fmgG_Id || g.grp.fmgG_Id) || t.fmgG_Id || g.grp.fmgG_Id,
+                        preAdmFlag: t.preAdmFlag ?? false,
+                        termdisablechk: t.termdisablechk ?? false
+                    }))
+            }));
+
+        const mappedFeeItems = feeDetails.map((item: any) => ({
+            ...item,
+            fmA_Id: Number(item.fmA_Id ?? item.fma_id ?? item.FMA_Id ?? 0),
+            fmH_Id: Number(item.fmH_Id ?? item.fmh_id ?? item.FMH_Id ?? 0),
+            fmG_Id: Number(item.fmG_Id ?? item.fmg_id ?? item.FMG_Id ?? 0),
+            ftI_Id: Number(item.ftI_Id ?? item.fti_id ?? item.FTI_Id ?? 0),
+            fmT_Id: Number(item.fmT_Id ?? item.fmt_id ?? item.FMT_Id ?? 0),
+            fsS_ToBePaid: Number(item.fsS_ToBePaid ?? item.fss_tobepaid ?? 0),
+            fsS_CurrentYrCharges: Number(item.fsS_CurrentYrCharges ?? item.fsS_NetAmount ?? item.totalcharges ?? 0),
+            fmH_FeeName: item.fmH_FeeName ?? item.feehead ?? '',
+            ftI_Name: item.ftI_Name ?? item.installmentname ?? ''
+        }));
+
+        const miId =
+            mI_Id ||
+            (studentInfoDetails as any)?.mI_Id ||
+            (studentInfoDetails as any)?.MI_Id ||
+            (studentInfoDetails?.studentInfo as any)?.mI_Id ||
+            (studentInfoDetails?.studentInfo as any)?.MI_Id ||
+            (studentInfoDetails?.studentInfo as any)?.mi_id ||
+            0;
+
+        const amstId =
+            studentInfoDetails?.studentInfo?.amst_Id ||
+            (studentInfoDetails?.studentInfo as any)?.AMST_Id ||
+            (studentInfoDetails?.studentInfo as any)?.amsT_Id ||
+            0;
+
+        const asmclId =
+            studentInfoDetails?.studentInfo?.asmcL_ID ||
+            (studentInfoDetails?.studentInfo as any)?.ASMCL_Id ||
+            (studentInfoDetails?.studentInfo as any)?.asmcl_id ||
+            0;
+
         const payload = {
+            MI_Id: miId,
+            AMST_Id: amstId,
+            ASMCL_Id: asmclId,
+            ASMAY_Id: academicYear,
+            FYP_PayModeType: 'Portal',
+            onlinepaygteway: gateway,
             topayamount: totalAmt,
-            students: feeDetails,
-            onlinepaygteway: gateway
+            selected_list,
+            selectedlist_partialpayment: mappedFeeItems,
+            temarray: mappedFeeItems
         };
 
-        const paymentResponse = await savePayment(payload);
-        if (paymentResponse.success && paymentResponse.data && gateway === 'RAZORPAY') {
-            const rzpData = paymentResponse.data;
-            const options = {
-                key: rzpData.merchantkey,
-                amount: rzpData.fmA_Amount * 100,
-                currency: 'INR',
-                name: 'Edumeeting School',
-                description: 'Fee Payment',
-                image: '/assets/images/logo.png',
-                order_id: rzpData.trans_id,
-                handler: (response: any) => {
-                    // biome-ignore lint/style/useTemplate: <explanation>
-                    toast.success('Payment Successful: ' + response.razorpay_payment_id);
-                },
-                prefill: {
-                    name: rzpData.fillstudent?.[0]?.amsT_FirstName || '',
-                    email: rzpData.fillstudent?.[0]?.amst_email_id || '',
-                    contact: rzpData.fillstudent?.[0]?.amst_mobile || ''
-                },
-                theme: {
-                    color: '#3399cc'
+        try {
+            setIsPaymentLoading(true);
+
+            // Persist pending payment info for recovery upon gateway return
+            const student = studentInfoDetails?.studentInfo;
+            const studentName = `${student?.amsT_FirstName || ''} ${student?.amsT_LastName || ''}`.trim() || 'Student';
+            const admNo = student?.amsT_AdmNo || student?.amsT_RegistrationNo || '';
+
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem(
+                    'pending_fee_payment',
+                    JSON.stringify({
+                        amount: totalAmt,
+                        studentName,
+                        admNo,
+                        gateway: gateway || 'Payment Gateway'
+                    })
+                );
+            }
+
+            const paymentResponse = await generateHashSequence(payload);
+
+            if (!paymentResponse?.success || !paymentResponse?.data) {
+                toast.error(paymentResponse?.message || 'Payment initiation failed. Please try again.');
+                return;
+            }
+
+            const resData = paymentResponse.data;
+            const pgData = resData?.paymentGatewayData || resData;
+
+            // Angular equivalent:
+            // var strdata = promise.strdatanew;
+            // $scope.htmldata = promise.strdatanew;
+            // var e1 = angular.element(document.getElementById("test"));
+            // $compile(e1.html($scope.htmldata))(($scope));
+            const strdata =
+                pgData?.strdatanew ||
+                resData?.strdatanew ||
+                pgData?.html_form ||
+                pgData?.htmldata ||
+                pgData?.html ||
+                resData?.html_form ||
+                resData?.htmldata ||
+                (typeof resData === 'string' && resData.includes('<form') ? resData : null);
+
+            if (strdata) {
+                toast.success('Redirecting to Payment Gateway...');
+
+                // Ensure surl and furl redirect back to our application instead of unreachable localhost:57606
+                const callbackUrl = `${window.location.origin}/api/FeeOnlinePayment/paymentresponseeasybuzz`;
+                const sanitizedStrdata =
+                    typeof strdata === 'string'
+                        ? strdata.replace(/https?:\/\/localhost:57606\/api\/FeeOnlinePayment\/paymentresponseeasybuzz\/?/gi, callbackUrl)
+                        : strdata;
+
+                const e1 = document.getElementById('test');
+                if (e1) {
+                    e1.innerHTML = '';
+                    const fragment = document.createRange().createContextualFragment(sanitizedStrdata);
+                    e1.appendChild(fragment);
+
+                    // Submit form immediately
+                    const form =
+                        (e1.querySelector('form') as HTMLFormElement | null) ||
+                        (document.getElementById('PostForm') as HTMLFormElement | null) ||
+                        (document.forms.namedItem('PostForm') as HTMLFormElement | null);
+
+                    if (form) {
+                        // Ensure surl and furl are explicitly updated on form elements
+                        let surlInput = form.querySelector('input[name="surl"]') as HTMLInputElement | null;
+                        if (surlInput) {
+                            surlInput.value = callbackUrl;
+                        } else {
+                            surlInput = document.createElement('input');
+                            surlInput.type = 'hidden';
+                            surlInput.name = 'surl';
+                            surlInput.value = callbackUrl;
+                            form.appendChild(surlInput);
+                        }
+
+                        let furlInput = form.querySelector('input[name="furl"]') as HTMLInputElement | null;
+                        if (furlInput) {
+                            furlInput.value = callbackUrl;
+                        } else {
+                            furlInput = document.createElement('input');
+                            furlInput.type = 'hidden';
+                            furlInput.name = 'furl';
+                            furlInput.value = callbackUrl;
+                            form.appendChild(furlInput);
+                        }
+
+                        form.submit();
+                        return;
+                    }
                 }
-            };
-            const rzp1 = new window.Razorpay(options);
-            rzp1.open();
+            }
+
+            const gatewayUpper = (gateway || '').toUpperCase();
+
+            // 2. Specific Easebuzz handling fallback
+            if (gatewayUpper === 'EASEBUZZ') {
+                if (pgData?.url) {
+                    window.location.href = pgData.url;
+                    return;
+                }
+                const accessKey = pgData?.access_key || pgData?.paymentKey || pgData?.payment_key || pgData?.key;
+                if (accessKey && typeof accessKey === 'string' && !accessKey.startsWith('rzp_')) {
+                    window.location.href = `https://pay.easebuzz.in/pay/${accessKey}`;
+                    return;
+                }
+                if (Array.isArray(pgData?.paydet) && pgData.paydet.length > 0) {
+                    const payItem = { ...pgData.paydet[0] };
+                    const callbackUrl = `${window.location.origin}/api/FeeOnlinePayment/paymentresponseeasybuzz`;
+                    if (payItem.surl) payItem.surl = callbackUrl;
+                    if (payItem.furl) payItem.furl = callbackUrl;
+                    const actionUrl = pgData.url || payItem.payu_URL || payItem.url || payItem.action || 'https://pay.easebuzz.in/pay';
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = actionUrl;
+                    form.style.display = 'none';
+                    for (const [key, val] of Object.entries(payItem)) {
+                        if (val !== undefined && val !== null) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = key;
+                            input.value = String(val);
+                            form.appendChild(input);
+                        }
+                    }
+                    document.body.appendChild(form);
+                    form.submit();
+                    return;
+                }
+            }
+
+            // 3. Razorpay checkout
+            if (gatewayUpper === 'RAZORPAY' || (resData.merchantkey && resData.trans_id)) {
+                const rzpData = resData;
+                const options = {
+                    key: rzpData.merchantkey,
+                    amount: Number(rzpData.fmA_Amount || totalAmt) * 100,
+                    currency: 'INR',
+                    name: 'Edumeeting School',
+                    description: 'Fee Payment',
+                    image: '/assets/images/logo.png',
+                    order_id: rzpData.trans_id,
+                    handler: async (response: any) => {
+                        toast.success(`Payment Successful: ${response.razorpay_payment_id}`);
+                        try {
+                            await verifyRazorpayPayment({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                receiptNo: rzpData.fyP_Receipt_No || '',
+                                ...rzpData
+                            });
+                        } catch (err) {
+                            console.error('Error verifying Razorpay payment:', err);
+                        }
+
+                        setPaymentModalState({
+                            isOpen: true,
+                            status: 'success',
+                            transactionId: response.razorpay_payment_id || rzpData.trans_id,
+                            receiptNo: rzpData.fyP_Receipt_No || '',
+                            amount: totalAmt,
+                            date: new Date().toLocaleString('en-IN', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            }),
+                            gateway: 'Razorpay',
+                            studentName,
+                            admNo,
+                            message: 'Payment completed successfully via Razorpay.'
+                        });
+
+                        if (typeof window !== 'undefined') {
+                            sessionStorage.removeItem('pending_fee_payment');
+                        }
+                        refetchAll();
+                    },
+                    prefill: {
+                        name: studentName,
+                        email: student?.amst_email_id || '',
+                        contact: student?.amst_mobile ? String(student.amst_mobile) : ''
+                    },
+                    theme: {
+                        color: '#3399cc'
+                    },
+                    modal: {
+                        ondismiss: () => {
+                            setPaymentModalState({
+                                isOpen: true,
+                                status: 'cancelled',
+                                transactionId: rzpData.trans_id || '',
+                                amount: totalAmt,
+                                date: new Date().toLocaleString('en-IN', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: true
+                                }),
+                                gateway: 'Razorpay',
+                                studentName,
+                                admNo,
+                                message: 'Payment window was closed. No amount has been deducted from your account.'
+                            });
+
+                            if (typeof window !== 'undefined') {
+                                sessionStorage.removeItem('pending_fee_payment');
+                            }
+                        }
+                    }
+                };
+                const rzp1 = new window.Razorpay(options);
+                rzp1.open();
+                return;
+            }
+
+            // 4. Redirect URL fallback
+            if (resData.redirect_url || resData.payment_url || resData.url) {
+                window.location.href = resData.redirect_url || resData.payment_url || resData.url;
+                return;
+            }
+
+            // 5. Generic paydet post form (PayU / Paytm etc.)
+            if (Array.isArray(resData.paydet) && resData.paydet.length > 0) {
+                const payItem = { ...resData.paydet[0] };
+                const callbackUrl = `${window.location.origin}/api/FeeOnlinePayment/paymentresponseeasybuzz`;
+                if (payItem.surl) payItem.surl = callbackUrl;
+                if (payItem.furl) payItem.furl = callbackUrl;
+                const actionUrl = resData.url || payItem.payu_URL || payItem.url || payItem.action;
+                if (actionUrl) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = actionUrl;
+                    form.style.display = 'none';
+                    for (const [key, val] of Object.entries(payItem)) {
+                        if (val !== undefined && val !== null) {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = key;
+                            input.value = String(val);
+                            form.appendChild(input);
+                        }
+                    }
+                    document.body.appendChild(form);
+                    form.submit();
+                    return;
+                }
+            }
+
+            toast.success('Payment request submitted successfully');
+        } catch (error: any) {
+            console.error('Payment initiation error:', error);
+            toast.error(error?.message || 'An error occurred while processing payment.');
+        } finally {
+            setIsPaymentLoading(false);
         }
     };
 
@@ -503,17 +940,284 @@ export default function FeeOnlinePaymentClient() {
                                     })}
                             </div>
 
-                            <Button
-                                size='lg'
-                                className='mt-4 bg-green-600 hover:bg-green-700'
-                                onClick={handlePayment}
-                                disabled={!gateway || totalAmt === 0}>
-                                CLICK HERE TO PAY NOW
-                            </Button>
+                            <div className='mt-4 flex flex-wrap items-center justify-center gap-3'>
+                                <Button
+                                    size='lg'
+                                    className='bg-green-600 font-semibold shadow-sm hover:bg-green-700'
+                                    onClick={handlePayment}
+                                    disabled={!gateway || totalAmt === 0 || isPaymentLoading}>
+                                    {isPaymentLoading ? (
+                                        <span className='flex items-center gap-2'>
+                                            <Loader2 className='h-4 w-4 animate-spin' />
+                                            Processing Payment...
+                                        </span>
+                                    ) : (
+                                        'CLICK HERE TO PAY NOW'
+                                    )}
+                                </Button>
+                                <Button
+                                    size='lg'
+                                    variant='outline'
+                                    disabled={isPaymentLoading}
+                                    className='border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700'
+                                    onClick={() => {
+                                        const prevAmt = totalAmt;
+                                        setShowPaymentDetails(false);
+                                        setFeeDetails([]);
+                                        setTotalAmt(0);
+                                        setPaymentModalState({
+                                            isOpen: true,
+                                            status: 'cancelled',
+                                            amount: prevAmt,
+                                            gateway: gateway || 'Online Payment',
+                                            studentName: studentInfoDetails?.studentInfo
+                                                ? `${studentInfoDetails.studentInfo.amsT_FirstName || ''} ${studentInfoDetails.studentInfo.amsT_LastName || ''}`.trim()
+                                                : '',
+                                            admNo: studentInfoDetails?.studentInfo?.amsT_AdmNo || '',
+                                            date: new Date().toLocaleString('en-IN', {
+                                                day: '2-digit',
+                                                month: 'short',
+                                                year: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: true
+                                            }),
+                                            message: 'Payment process was cancelled by the user.'
+                                        });
+                                    }}>
+                                    Cancel
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
             )}
+
+            {/* Payment Gateway Form Container (Equivalent to angular #test element) */}
+            <div id='test' />
+
+            {/* Payment Status Modal / Pop-up */}
+            <Dialog
+                open={paymentModalState.isOpen}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        const isSuccess = paymentModalState.status === 'success';
+                        setPaymentModalState((prev) => ({ ...prev, isOpen: false }));
+                        if (isSuccess) {
+                            setShowPaymentDetails(false);
+                            setFeeDetails([]);
+                            setTotalAmt(0);
+                            refetchAll();
+                        }
+                    }
+                }}>
+                <DialogContent className='max-w-md overflow-hidden rounded-2xl border bg-background p-0 shadow-2xl sm:max-w-lg'>
+                    {/* Header Banner */}
+                    <div
+                        className={`p-6 text-center ${
+                            paymentModalState.status === 'success'
+                                ? 'bg-gradient-to-b from-emerald-50 to-background dark:from-emerald-950/40 dark:to-background'
+                                : paymentModalState.status === 'cancelled'
+                                  ? 'bg-gradient-to-b from-amber-50 to-background dark:from-amber-950/40 dark:to-background'
+                                  : 'bg-gradient-to-b from-rose-50 to-background dark:from-rose-950/40 dark:to-background'
+                        }`}>
+                        {/* Status Icon */}
+                        {paymentModalState.status === 'success' ? (
+                            <div className='mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 ring-8 ring-emerald-50 dark:bg-emerald-950/70 dark:text-emerald-400 dark:ring-emerald-950/30'>
+                                <CheckCircle2 className='h-9 w-9 stroke-[2.5]' />
+                            </div>
+                        ) : paymentModalState.status === 'cancelled' ? (
+                            <div className='mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-600 ring-8 ring-amber-50 dark:bg-amber-950/70 dark:text-amber-400 dark:ring-amber-950/30'>
+                                <AlertCircle className='h-9 w-9 stroke-[2.5]' />
+                            </div>
+                        ) : (
+                            <div className='mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-100 text-rose-600 ring-8 ring-rose-50 dark:bg-rose-950/70 dark:text-rose-400 dark:ring-rose-950/30'>
+                                <XCircle className='h-9 w-9 stroke-[2.5]' />
+                            </div>
+                        )}
+
+                        <DialogTitle className='mt-4 font-bold text-2xl text-foreground tracking-tight'>
+                            {paymentModalState.status === 'success'
+                                ? 'Payment Successful!'
+                                : paymentModalState.status === 'cancelled'
+                                  ? 'Payment Cancelled'
+                                  : 'Payment Failed'}
+                        </DialogTitle>
+                        <DialogDescription className='mt-1 text-muted-foreground text-sm'>
+                            {paymentModalState.message ||
+                                (paymentModalState.status === 'success'
+                                    ? 'Your online fee payment was completed successfully.'
+                                    : paymentModalState.status === 'cancelled'
+                                      ? 'The payment was cancelled. No amount was debited.'
+                                      : 'The transaction could not be completed.')}
+                        </DialogDescription>
+
+                        {/* Amount Card */}
+                        <div
+                            className={`mt-5 rounded-xl border p-4 text-center ${
+                                paymentModalState.status === 'success'
+                                    ? 'border-emerald-200/80 bg-emerald-50/70 dark:border-emerald-900/40 dark:bg-emerald-950/30'
+                                    : paymentModalState.status === 'cancelled'
+                                      ? 'border-amber-200/80 bg-amber-50/70 dark:border-amber-900/40 dark:bg-amber-950/30'
+                                      : 'border-rose-200/80 bg-rose-50/70 dark:border-rose-900/40 dark:bg-rose-950/30'
+                            }`}>
+                            <p
+                                className={`font-semibold text-xs uppercase tracking-wider ${
+                                    paymentModalState.status === 'success'
+                                        ? 'text-emerald-700 dark:text-emerald-400'
+                                        : paymentModalState.status === 'cancelled'
+                                          ? 'text-amber-700 dark:text-amber-400'
+                                          : 'text-rose-700 dark:text-rose-400'
+                                }`}>
+                                {paymentModalState.status === 'success' ? 'Total Amount Paid' : 'Transaction Amount'}
+                            </p>
+                            <p
+                                className={`mt-1 font-extrabold text-3xl ${
+                                    paymentModalState.status === 'success'
+                                        ? 'text-emerald-700 dark:text-emerald-300'
+                                        : paymentModalState.status === 'cancelled'
+                                          ? 'text-amber-700 dark:text-amber-300'
+                                          : 'text-rose-700 dark:text-rose-300'
+                                }`}>
+                                ₹ {Number(paymentModalState.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Transaction Details Body */}
+                    <div className='space-y-2.5 px-6 pb-2 text-xs sm:text-sm'>
+                        <div className='space-y-2.5 rounded-xl border bg-muted/30 p-3.5'>
+                            {paymentModalState.receiptNo && (
+                                <div className='flex items-center justify-between border-border/60 border-b pb-2'>
+                                    <span className='flex items-center gap-1.5 text-muted-foreground'>
+                                        <Receipt className='h-3.5 w-3.5' /> Receipt No
+                                    </span>
+                                    <span className='font-bold font-mono text-foreground'>{paymentModalState.receiptNo}</span>
+                                </div>
+                            )}
+
+                            {paymentModalState.transactionId && (
+                                <div className='flex items-center justify-between border-border/60 border-b pb-2'>
+                                    <span className='flex items-center gap-1.5 text-muted-foreground'>
+                                        <Hash className='h-3.5 w-3.5' /> Transaction ID
+                                    </span>
+                                    <div className='flex items-center gap-1.5'>
+                                        <span className='font-medium font-mono text-foreground text-xs'>
+                                            {paymentModalState.transactionId}
+                                        </span>
+                                        <button
+                                            type='button'
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(paymentModalState.transactionId || '');
+                                                setCopiedTxn(true);
+                                                toast.success('Transaction ID copied');
+                                                setTimeout(() => setCopiedTxn(false), 2000);
+                                            }}
+                                            className='rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground'
+                                            title='Copy'>
+                                            {copiedTxn ? (
+                                                <Check className='h-3.5 w-3.5 text-emerald-600' />
+                                            ) : (
+                                                <Copy className='h-3.5 w-3.5' />
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {paymentModalState.studentName && (
+                                <div className='flex items-center justify-between border-border/60 border-b pb-2'>
+                                    <span className='flex items-center gap-1.5 text-muted-foreground'>
+                                        <User className='h-3.5 w-3.5' /> Student
+                                    </span>
+                                    <span className='text-right font-medium text-foreground'>{paymentModalState.studentName}</span>
+                                </div>
+                            )}
+
+                            {paymentModalState.admNo && (
+                                <div className='flex items-center justify-between border-border/60 border-b pb-2'>
+                                    <span className='flex items-center gap-1.5 text-muted-foreground'>
+                                        <FileText className='h-3.5 w-3.5' /> Adm / Reg No
+                                    </span>
+                                    <span className='font-medium font-mono text-foreground'>{paymentModalState.admNo}</span>
+                                </div>
+                            )}
+
+                            <div className='flex items-center justify-between border-border/60 border-b pb-2'>
+                                <span className='flex items-center gap-1.5 text-muted-foreground'>
+                                    <Calendar className='h-3.5 w-3.5' /> Date & Time
+                                </span>
+                                <span className='font-medium text-foreground text-xs sm:text-sm'>
+                                    {paymentModalState.date || new Date().toLocaleString('en-IN')}
+                                </span>
+                            </div>
+
+                            <div className='flex items-center justify-between'>
+                                <span className='text-muted-foreground'>Payment Mode</span>
+                                <span className='font-semibold text-foreground'>{paymentModalState.gateway || 'Online Payment'}</span>
+                            </div>
+                        </div>
+
+                        {paymentModalState.status === 'cancelled' && (
+                            <p className='rounded-lg border border-amber-200/50 bg-amber-50/50 p-2.5 text-amber-700 text-xs dark:bg-amber-950/20 dark:text-amber-400'>
+                                💡 Your fee selections have been preserved. You can try again anytime.
+                            </p>
+                        )}
+                        {paymentModalState.status === 'failed' && (
+                            <p className='rounded-lg border border-rose-200/50 bg-rose-50/50 p-2.5 text-rose-700 text-xs dark:bg-rose-950/20 dark:text-rose-400'>
+                                ⚠️ If an amount was deducted from your bank, it will be refunded within 3-5 working days.
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Dialog Footer Actions */}
+                    <DialogFooter className='flex flex-col gap-2 p-6 pt-2 sm:flex-row'>
+                        {paymentModalState.status === 'success' ? (
+                            <>
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    onClick={() => window.print()}
+                                    className='flex w-full items-center justify-center gap-2 sm:w-auto'>
+                                    <Printer className='h-4 w-4' /> Print Receipt
+                                </Button>
+                                <Button
+                                    type='button'
+                                    onClick={() => {
+                                        setPaymentModalState((prev) => ({ ...prev, isOpen: false }));
+                                        setShowPaymentDetails(false);
+                                        setFeeDetails([]);
+                                        setTotalAmt(0);
+                                        refetchAll();
+                                    }}
+                                    className='w-full flex-1 bg-emerald-600 text-white hover:bg-emerald-700 sm:w-auto'>
+                                    Done
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button
+                                    type='button'
+                                    variant='outline'
+                                    onClick={() => {
+                                        setPaymentModalState((prev) => ({ ...prev, isOpen: false }));
+                                    }}
+                                    className='w-full sm:w-auto'>
+                                    Close
+                                </Button>
+                                <Button
+                                    type='button'
+                                    onClick={() => {
+                                        setPaymentModalState((prev) => ({ ...prev, isOpen: false }));
+                                    }}
+                                    className='w-full flex-1 bg-primary text-primary-foreground sm:w-auto'>
+                                    Try Again
+                                </Button>
+                            </>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

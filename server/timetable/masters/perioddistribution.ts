@@ -58,6 +58,7 @@ export async function getCategoryPeriodDistrubution() {
 export async function getClassPeriodDistrubution() {
     const url = '/TimeTableCommon/GetClassData';
     const response = await api.get<any[]>('timetable', url);
+    console.log("response data", url);
     return response.data;
 }
 
