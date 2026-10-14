@@ -55,6 +55,9 @@ export default function AddNoticeBoardForm({
     const [subjects, setSubjects] = useState<any[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
     const [filteredDesgList, setFilteredDesgList] = useState<any[]>(desgList);
+    const [isStartDateOpen, setIsStartDateOpen] = useState(false);
+    const [isEndDateOpen, setIsEndDateOpen] = useState(false);
+    const [isDisplayDateOpen, setIsDisplayDateOpen] = useState(false);
     const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
     const methods = useForm<INoticeBoard>({
@@ -386,7 +389,7 @@ export default function AddNoticeBoardForm({
                                 <Label>
                                     Start Date <span className='text-red-500'>*</span>
                                 </Label>
-                                <Popover>
+                                <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={'outline'}
@@ -396,7 +399,15 @@ export default function AddNoticeBoardForm({
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={(date) => {
+                                                field.onChange(date);
+                                                setIsStartDateOpen(false);
+                                            }}
+                                            initialFocus
+                                        />
                                     </PopoverContent>
                                 </Popover>
                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -413,7 +424,7 @@ export default function AddNoticeBoardForm({
                                 <Label>
                                     End Date <span className='text-red-500'>*</span>
                                 </Label>
-                                <Popover>
+                                <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={'outline'}
@@ -423,7 +434,15 @@ export default function AddNoticeBoardForm({
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={(date) => {
+                                                field.onChange(date);
+                                                setIsEndDateOpen(false);
+                                            }}
+                                            initialFocus
+                                        />
                                     </PopoverContent>
                                 </Popover>
                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -457,7 +476,7 @@ export default function AddNoticeBoardForm({
                                     <Label>
                                         Display Date <span className='text-red-500'>*</span>
                                     </Label>
-                                    <Popover>
+                                    <Popover open={isDisplayDateOpen} onOpenChange={setIsDisplayDateOpen}>
                                         <PopoverTrigger asChild>
                                             <Button
                                                 variant={'outline'}
@@ -473,7 +492,10 @@ export default function AddNoticeBoardForm({
                                             <Calendar
                                                 mode='single'
                                                 selected={field.value || undefined}
-                                                onSelect={field.onChange}
+                                                onSelect={(date) => {
+                                                    field.onChange(date);
+                                                    setIsDisplayDateOpen(false);
+                                                }}
                                                 initialFocus
                                             />
                                         </PopoverContent>
