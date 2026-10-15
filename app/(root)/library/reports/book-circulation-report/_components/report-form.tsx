@@ -538,12 +538,18 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
 
                     {/* Date Filters Row */}
                     <div className='grid grid-cols-1 gap-4 pt-1 lg:grid-cols-2'>
-                        <div className='space-y-2.5 rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm'>
+                        <div className='space-y-2.5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm'>
                             <div className='flex items-center gap-2'>
                                 <Checkbox
                                     id='issue-count'
                                     checked={issueCount}
-                                    onCheckedChange={(c) => setValue('Issuecount', c as boolean)}
+                                    onCheckedChange={(c) => {
+                                        setValue('Issuecount', c as boolean, { shouldValidate: true });
+                                        if (!c) {
+                                            setValue('IssueFromDate', undefined, { shouldValidate: true });
+                                            setValue('IssueToDate', undefined, { shouldValidate: true });
+                                        }
+                                    }}
                                     className='h-4 w-4'
                                 />
                                 <Label
@@ -552,35 +558,39 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                     Issue Date
                                 </Label>
                             </div>
-                            <div className='flex items-center gap-2 pl-6'>
-                                <div className='flex flex-1 items-center gap-2'>
-                                    <CalendarDatePicker
-                                        date={issueFromDate}
-                                        setDate={(d) => setValue('IssueFromDate', d)}
-                                        placeholder='From'
-                                        disabled={!issueCount}
-                                    />
-                                    <span className='font-bold text-slate-400 text-xs'>AND</span>
-                                    <CalendarDatePicker
-                                        date={watch('IssueToDate')}
-                                        setDate={(d) => setValue('IssueToDate', d)}
-                                        placeholder='To'
-                                        minDate={issueFromDate}
-                                        disabled={!issueCount}
-                                    />
-                                </div>
+                            <div className='flex items-center gap-1.5'>
+                                <CalendarDatePicker
+                                    date={issueFromDate}
+                                    setDate={(d) => setValue('IssueFromDate', d, { shouldValidate: true })}
+                                    placeholder='From'
+                                    disabled={!issueCount}
+                                    align='start'
+                                />
+                                <span className='shrink-0 font-bold text-[11px] text-slate-400'>AND</span>
+                                <CalendarDatePicker
+                                    date={watch('IssueToDate')}
+                                    setDate={(d) => setValue('IssueToDate', d, { shouldValidate: true })}
+                                    placeholder='To'
+                                    minDate={issueFromDate}
+                                    disabled={!issueCount}
+                                    align='end'
+                                />
                             </div>
-                            {errors.IssueToDate && (
-                                <p className='mt-1 pl-6 font-semibold text-red-500 text-xs'>{errors.IssueToDate.message}</p>
-                            )}
+                            {errors.IssueToDate && <p className='mt-1 font-semibold text-red-500 text-xs'>{errors.IssueToDate.message}</p>}
                         </div>
 
-                        <div className='space-y-2.5 rounded-lg border border-slate-200 bg-white p-3.5 shadow-sm'>
+                        <div className='space-y-2.5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm'>
                             <div className='flex items-center gap-2'>
                                 <Checkbox
                                     id='due-count'
                                     checked={dueCount}
-                                    onCheckedChange={(c) => setValue('Duecount', c as boolean)}
+                                    onCheckedChange={(c) => {
+                                        setValue('Duecount', c as boolean, { shouldValidate: true });
+                                        if (!c) {
+                                            setValue('DueFromdate', undefined, { shouldValidate: true });
+                                            setValue('DueTodate', undefined, { shouldValidate: true });
+                                        }
+                                    }}
                                     className='h-4 w-4'
                                 />
                                 <Label
@@ -589,25 +599,25 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                     Due Date
                                 </Label>
                             </div>
-                            <div className='flex items-center gap-2 pl-6'>
-                                <div className='flex flex-1 items-center gap-2'>
-                                    <CalendarDatePicker
-                                        date={dueFromDate}
-                                        setDate={(d) => setValue('DueFromdate', d)}
-                                        placeholder='From'
-                                        disabled={!dueCount}
-                                    />
-                                    <span className='font-bold text-slate-400 text-xs'>AND</span>
-                                    <CalendarDatePicker
-                                        date={watch('DueTodate')}
-                                        setDate={(d) => setValue('DueTodate', d)}
-                                        placeholder='To'
-                                        minDate={dueFromDate}
-                                        disabled={!dueCount}
-                                    />
-                                </div>
+                            <div className='flex items-center gap-1.5'>
+                                <CalendarDatePicker
+                                    date={dueFromDate}
+                                    setDate={(d) => setValue('DueFromdate', d, { shouldValidate: true })}
+                                    placeholder='From'
+                                    disabled={!dueCount}
+                                    align='start'
+                                />
+                                <span className='shrink-0 font-bold text-[11px] text-slate-400'>AND</span>
+                                <CalendarDatePicker
+                                    date={watch('DueTodate')}
+                                    setDate={(d) => setValue('DueTodate', d, { shouldValidate: true })}
+                                    placeholder='To'
+                                    minDate={dueFromDate}
+                                    disabled={!dueCount}
+                                    align='end'
+                                />
                             </div>
-                            {errors.DueTodate && <p className='mt-1 pl-6 font-semibold text-red-500 text-xs'>{errors.DueTodate.message}</p>}
+                            {errors.DueTodate && <p className='mt-1 font-semibold text-red-500 text-xs'>{errors.DueTodate.message}</p>}
                         </div>
                     </div>
                 </div>
@@ -674,24 +684,43 @@ function CalendarDatePicker({
     setDate,
     placeholder,
     minDate,
-    disabled
-}: { date?: Date; setDate: (d?: Date) => void; placeholder: string; minDate?: Date; disabled?: boolean }) {
+    disabled,
+    align = 'start',
+    className
+}: {
+    date?: Date;
+    setDate: (d?: Date) => void;
+    placeholder: string;
+    minDate?: Date;
+    disabled?: boolean;
+    align?: 'start' | 'center' | 'end';
+    className?: string;
+}) {
+    const [open, setOpen] = useState(false);
+
     return (
-        <Popover>
+        <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
                     variant={'outline'}
-                    className={cn('h-8 w-full justify-start px-2.5 text-left font-normal text-xs', !date && 'text-muted-foreground')}
+                    className={cn(
+                        'h-8 min-w-0 flex-1 justify-start px-2 text-left font-normal text-xs',
+                        !date && 'text-muted-foreground',
+                        className
+                    )}
                     disabled={disabled}>
-                    <CalendarIcon className='mr-1.5 h-3.5 w-3.5' />
-                    {date ? format(date, 'dd/MM/yyyy') : <span>{placeholder}</span>}
+                    <CalendarIcon className='mr-1.5 h-3.5 w-3.5 shrink-0 text-slate-500' />
+                    <span className='truncate'>{date ? format(date, 'dd/MM/yyyy') : placeholder}</span>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className='w-auto p-0'>
+            <PopoverContent className='w-auto p-0' align={align}>
                 <Calendar
                     mode='single'
                     selected={date}
-                    onSelect={setDate}
+                    onSelect={(d) => {
+                        setDate(d);
+                        setOpen(false);
+                    }}
                     initialFocus
                     disabled={(date) => (minDate ? date < minDate : false)}
                 />
