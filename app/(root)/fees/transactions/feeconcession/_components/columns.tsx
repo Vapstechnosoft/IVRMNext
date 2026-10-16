@@ -9,7 +9,11 @@ export const concessionColumns: ColumnDef<IFeeConcessionStudentConcessionGrid>[]
     {
         accessorKey: 'slno',
         header: ({ column }) => <DataTableColumnHeader column={column} title='S.No' />,
-        cell: ({ row }) => <div className='text-center font-medium'>{row.original.slno}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            return <div className='text-center font-medium'>{row.original.slno || pageIndex * pageSize + row.index + 1}</div>;
+        },
         size: 80,
         enableSorting: false
     },
