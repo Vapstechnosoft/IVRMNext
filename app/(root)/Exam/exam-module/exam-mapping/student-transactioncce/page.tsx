@@ -42,6 +42,20 @@ import { StudentTransactionColumns } from './_components/columns';
 
 type FormFields = z.infer<typeof StudentTransactionSchema.search>;
 
+function extractArray(response: any): any[] {
+    if (!response) return [];
+    if (Array.isArray(response)) return response;
+    if (Array.isArray(response.data)) return response.data;
+    if (Array.isArray(response.data?.$values)) return response.data.$values;
+    if (Array.isArray(response.areasList)) return response.areasList;
+    if (Array.isArray(response.skillsList)) return response.skillsList;
+    if (Array.isArray(response.activitiesList)) return response.activitiesList;
+    if (Array.isArray(response.data?.areasList)) return response.data.areasList;
+    if (Array.isArray(response.data?.skillsList)) return response.data.skillsList;
+    if (Array.isArray(response.data?.activitiesList)) return response.data.activitiesList;
+    return [];
+}
+
 export default function StudentTransactionPage() {
     return <StudentTransactionContent />;
 }
@@ -286,18 +300,38 @@ function StudentTransactionContent() {
             try {
                 if (watchSkillActivity === 'Skills') {
                     const response = await getMasterLifeSkillDrpdownList();
-                    const skillsList = Array.isArray(response.data) ? response.data : [];
+                    const skillsList = extractArray(response);
                     setSkillNames(skillsList);
                     setActivityNames([]);
                     setSkillAreas([]);
                     setActivityAreas([]);
+                    if (skillsList.length === 1) {
+                        const singleId =
+                            (skillsList[0] as any).ecS_Id ??
+                            (skillsList[0] as any).ecs_Id ??
+                            (skillsList[0] as any).id ??
+                            (skillsList[0] as any).ECS_Id;
+                        if (singleId) {
+                            setValue('nameId', Number(singleId));
+                        }
+                    }
                 } else {
                     const CcActivities_response = await getCoScholasticActivityDropdownList();
-                    const activitiesList = Array.isArray(CcActivities_response.data) ? CcActivities_response.data : [];
+                    const activitiesList = extractArray(CcActivities_response);
                     setActivityNames(activitiesList);
                     setSkillNames([]);
                     setSkillAreas([]);
                     setActivityAreas([]);
+                    if (activitiesList.length === 1) {
+                        const singleId =
+                            (activitiesList[0] as any).ecacT_Id ??
+                            (activitiesList[0] as any).ecact_Id ??
+                            (activitiesList[0] as any).id ??
+                            (activitiesList[0] as any).ECACT_Id;
+                        if (singleId) {
+                            setValue('nameId', Number(singleId));
+                        }
+                    }
                 }
             } catch (err) {
                 console.error(`Error loading ${watchSkillActivity} names:`, err);
@@ -338,11 +372,7 @@ function StudentTransactionContent() {
                     params.ECT_Id = watchExamTerm;
                 }
 
-                type ApiResponse<T> = {
-                    data?: T;
-                };
-
-                let response: ApiResponse<any[]> | null = null;
+                let response: any = null;
 
                 if (watchSkillActivity === 'Skills') {
                     params.ECS_Id = watchName;
@@ -352,14 +382,34 @@ function StudentTransactionContent() {
                     response = await onchangeActivities(params);
                 }
 
-                const areasList = Array.isArray(response?.data) ? response.data : [];
+                const areasList = extractArray(response);
 
                 if (watchSkillActivity === 'Skills') {
                     setSkillAreas(areasList);
                     setActivityAreas([]);
+                    if (areasList.length === 1) {
+                        const singleId =
+                            (areasList[0] as any).ecsA_Id ??
+                            (areasList[0] as any).ecsa_Id ??
+                            (areasList[0] as any).id ??
+                            (areasList[0] as any).ECSA_Id;
+                        if (singleId) {
+                            setValue('areaId', Number(singleId));
+                        }
+                    }
                 } else {
                     setActivityAreas(areasList);
                     setSkillAreas([]);
+                    if (areasList.length === 1) {
+                        const singleId =
+                            (areasList[0] as any).ecactA_Id ??
+                            (areasList[0] as any).ecacta_Id ??
+                            (areasList[0] as any).id ??
+                            (areasList[0] as any).ECACTA_Id;
+                        if (singleId) {
+                            setValue('areaId', Number(singleId));
+                        }
+                    }
                 }
             } catch (err) {
                 console.error(`Error loading ${watchSkillActivity} areas:`, err);
@@ -1064,11 +1114,15 @@ function StudentTransactionContent() {
                                                                 No skills available
                                                             </SelectItem>
                                                         ) : (
-                                                            skillNames.map((item) => (
-                                                                <SelectItem key={item.ecS_Id} value={item.ecS_Id.toString()}>
-                                                                    {item.ecS_SkillName}
-                                                                </SelectItem>
-                                                            ))
+                                                            skillNames.map((item: any) => {
+                                                                const skillId = item.ecS_Id ?? item.ecs_Id ?? item.id ?? item.ECS_Id;
+                                                                const skillName = item.ecS_SkillName ?? item.ecs_SkillName ?? item.name ?? item.ECS_SkillName;
+                                                                return (
+                                                                    <SelectItem key={skillId} value={String(skillId)}>
+                                                                        {skillName}
+                                                                    </SelectItem>
+                                                                );
+                                                            })
                                                         )}
                                                     </SelectContent>
                                                 </Select>
@@ -1115,11 +1169,15 @@ function StudentTransactionContent() {
                                                                 No activities available
                                                             </SelectItem>
                                                         ) : (
-                                                            activityNames.map((item) => (
-                                                                <SelectItem key={item.ecacT_Id} value={item.ecacT_Id.toString()}>
-                                                                    {item.ecacT_SkillName}
-                                                                </SelectItem>
-                                                            ))
+                                                            activityNames.map((item: any) => {
+                                                                const actId = item.ecacT_Id ?? item.ecact_Id ?? item.id ?? item.ECACT_Id;
+                                                                const actName = item.ecacT_SkillName ?? item.ecact_SkillName ?? item.name ?? item.ECACT_SkillName;
+                                                                return (
+                                                                    <SelectItem key={actId} value={String(actId)}>
+                                                                        {actName}
+                                                                    </SelectItem>
+                                                                );
+                                                            })
                                                         )}
                                                     </SelectContent>
                                                 </Select>
@@ -1130,8 +1188,8 @@ function StudentTransactionContent() {
                                 </div>
                             )}
 
-                            {/* Skill Area - Only shows when "Skills" is selected AND Skills name is chosen */}
-                            {watchSkillActivity === 'Skills' && watchName && watchName !== 0 && (
+                            {/* Skill Area - Shows whenever "Skills" is selected */}
+                            {watchSkillActivity === 'Skills' && (
                                 <div>
                                     <Label htmlFor='Skills-area'>
                                         Skill Area: <span className='text-red-500'>*</span>
@@ -1142,8 +1200,9 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
-                                                    key={field.value}
+                                                    key={`${watchName}-${field.value}`}
                                                     value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                    disabled={!watchName || watchName === 0 || loadingAreas}
                                                     onValueChange={(v) => {
                                                         const numValue = Number(v);
                                                         field.onChange(numValue !== 0 ? numValue : 0);
@@ -1151,7 +1210,15 @@ function StudentTransactionContent() {
                                                         setShowTable(false);
                                                     }}>
                                                     <SelectTrigger id='Skills-area'>
-                                                        <SelectValue placeholder={loadingAreas ? 'loading.....' : 'Select Skill Area'} />
+                                                        <SelectValue
+                                                            placeholder={
+                                                                !watchName || watchName === 0
+                                                                    ? 'Select Skills Name first'
+                                                                    : loadingAreas
+                                                                    ? 'loading.....'
+                                                                    : 'Select Skill Area'
+                                                            }
+                                                        />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         {loadingAreas ? (
@@ -1163,11 +1230,22 @@ function StudentTransactionContent() {
                                                                 No skill areas available
                                                             </SelectItem>
                                                         ) : (
-                                                            skillAreas.map((area) => (
-                                                                <SelectItem key={area.ecsA_Id} value={area.ecsA_Id.toString()}>
-                                                                    {area.areaName}
-                                                                </SelectItem>
-                                                            ))
+                                                            skillAreas.map((area: any) => {
+                                                                const areaId =
+                                                                    area.ecsA_Id ?? area.ecsa_Id ?? area.id ?? area.ECSA_Id;
+                                                                const areaName =
+                                                                    area.areaName ??
+                                                                    area.ecsA_SkillArea ??
+                                                                    area.ecsa_SkillArea ??
+                                                                    area.name ??
+                                                                    area.SkillArea ??
+                                                                    area.ECSA_SkillArea;
+                                                                return (
+                                                                    <SelectItem key={areaId} value={String(areaId)}>
+                                                                        {areaName}
+                                                                    </SelectItem>
+                                                                );
+                                                            })
                                                         )}
                                                     </SelectContent>
                                                 </Select>
@@ -1178,8 +1256,8 @@ function StudentTransactionContent() {
                                 </div>
                             )}
 
-                            {/* Activity Area - Only shows when "Activities" is selected AND Activities name is chosen */}
-                            {watchSkillActivity === 'Activities' && watchName && watchName !== 0 && (
+                            {/* Activity Area - Shows whenever "Activities" is selected */}
+                            {watchSkillActivity === 'Activities' && (
                                 <div>
                                     <Label htmlFor='Activities-area'>
                                         Activities Area: <span className='text-red-500'>*</span>
@@ -1190,8 +1268,9 @@ function StudentTransactionContent() {
                                         render={({ field, fieldState }) => (
                                             <>
                                                 <Select
-                                                    key={field.value}
+                                                    key={`${watchName}-${field.value}`}
                                                     value={field.value && field.value !== 0 ? String(field.value) : undefined}
+                                                    disabled={!watchName || watchName === 0 || loadingAreas}
                                                     onValueChange={(v) => {
                                                         const numValue = Number(v);
                                                         field.onChange(numValue !== 0 ? numValue : 0);
@@ -1200,7 +1279,13 @@ function StudentTransactionContent() {
                                                     }}>
                                                     <SelectTrigger id='Activities-area'>
                                                         <SelectValue
-                                                            placeholder={loadingAreas ? 'loading.....' : 'Select Activities Area'}
+                                                            placeholder={
+                                                                !watchName || watchName === 0
+                                                                    ? 'Select Activities Name first'
+                                                                    : loadingAreas
+                                                                    ? 'loading.....'
+                                                                    : 'Select Activities Area'
+                                                            }
                                                         />
                                                     </SelectTrigger>
                                                     <SelectContent>
@@ -1213,11 +1298,22 @@ function StudentTransactionContent() {
                                                                 No activity areas available
                                                             </SelectItem>
                                                         ) : (
-                                                            activityAreas.map((area) => (
-                                                                <SelectItem key={area.ecactA_Id} value={String(area.ecactA_Id)}>
-                                                                    {area.ecactA_SkillArea}
-                                                                </SelectItem>
-                                                            ))
+                                                            activityAreas.map((area: any) => {
+                                                                const areaId =
+                                                                    area.ecactA_Id ?? area.ecacta_Id ?? area.id ?? area.ECACTA_Id;
+                                                                const areaName =
+                                                                    area.ecactA_SkillArea ??
+                                                                    area.areaName ??
+                                                                    area.ecacta_SkillArea ??
+                                                                    area.name ??
+                                                                    area.SkillArea ??
+                                                                    area.ECACTA_SkillArea;
+                                                                return (
+                                                                    <SelectItem key={areaId} value={String(areaId)}>
+                                                                        {areaName}
+                                                                    </SelectItem>
+                                                                );
+                                                            })
                                                         )}
                                                     </SelectContent>
                                                 </Select>
