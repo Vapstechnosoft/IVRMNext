@@ -78,7 +78,7 @@ export async function getFeeChequeBounceReceipts(amst_id: number, asmay_id: numb
  * POST: FeeChequeBounce/
  */
 export async function saveFeeChequeBounce(data: IFeeChequeBounceSavePayload) {
-    const url = 'FeeChequeBounce/';
+    const url = '/FeeChequeBounceFacade/savedata';
     return await api.post<any>('fees', url, data);
 }
 
@@ -87,7 +87,7 @@ export async function saveFeeChequeBounce(data: IFeeChequeBounceSavePayload) {
  * DELETE: FeeChequeBounce/Deletedetails/{fcB_Id}
  */
 export async function deleteFeeChequeBounce(fcB_Id: number) {
-    const url = `FeeChequeBounce/Deletedetails/${fcB_Id}`;
+    const url = `/FeeChequeBounceFacade/Deletedetails/${fcB_Id}`;
     return await api.delete<{ returnval: boolean }>('fees', url);
 }
 
@@ -96,6 +96,6 @@ export async function deleteFeeChequeBounce(fcB_Id: number) {
  * POST: FeeChequeBounce/searching
  */
 export async function searchFeeChequeBounce(data: IFeeChequeBounceSearchPayload) {
-    const url = 'FeeChequeBounce/searching';
+    const url = '/FeeChequeBounceFacade/searching';
     return await api.post<any>('fees', url, data);
 }

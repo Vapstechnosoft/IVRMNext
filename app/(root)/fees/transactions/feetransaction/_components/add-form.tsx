@@ -156,6 +156,8 @@ export default function StudentFeeTransaction({ onSuccess, asmayId, asmayYear }:
     const [openStudentDetails, setOpenStudentDetails] = useState(false);
     const [challenSearch, setChallenSearch] = useState('');
     const [todaysDate, setTodaysDate] = useState<Date | undefined>(new Date());
+    const [isDateOpen, setIsDateOpen] = useState(false);
+    const [openChequePopoverId, setOpenChequePopoverId] = useState<number | null>(null);
     const [selectedNarration, setSelectedNarration] = useState<number | null>(null);
     const [narrationRemark, setNarrationRemark] = useState('');
     const [masterBanks, setMasterBanks] = useState<masterBankList[]>([]);
@@ -1067,7 +1069,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId, asmayYear }:
                         </div>
                         <div className=' flex w-full items-center space-x-4 pt-4 '>
                             <Label className='font-semibold'>Date</Label>
-                            <Popover>
+                            <Popover open={isDateOpen} onOpenChange={setIsDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button variant='outline' className='w-full justify-start text-left font-normal'>
                                         <CalendarIcon className='mr-2 h-4 w-4' />
@@ -1080,7 +1082,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId, asmayYear }:
                                         mode='single'
                                         selected={todaysDate ?? undefined}
                                         onSelect={(date) => {
-                                            if (date) setTodaysDate(date);
+                                            if (date) {
+                                                setTodaysDate(date);
+                                                setIsDateOpen(false);
+                                            }
                                         }}
                                     />
                                 </PopoverContent>
@@ -1844,7 +1849,11 @@ export default function StudentFeeTransaction({ onSuccess, asmayId, asmayYear }:
                                                         {f.ivrmmoD_Flag.toLowerCase() !== 'c' &&
                                                             modeType === 'Single' &&
                                                             payType === f.ivrmmoD_ModeOfPayment && (
-                                                                <Popover>
+                                                                <Popover
+                                                                    open={openChequePopoverId === f.ivrmmoD_Id}
+                                                                    onOpenChange={(isOpen) =>
+                                                                        setOpenChequePopoverId(isOpen ? f.ivrmmoD_Id : null)
+                                                                    }>
                                                                     <PopoverTrigger asChild>
                                                                         <Button
                                                                             variant='outline'
@@ -1866,12 +1875,15 @@ export default function StudentFeeTransaction({ onSuccess, asmayId, asmayYear }:
                                                                         <Calendar
                                                                             mode='single'
                                                                             selected={chequedates[f.ivrmmoD_Id] ?? undefined}
-                                                                            onSelect={(date) =>
+                                                                            onSelect={(date) => {
                                                                                 setchequeDates((prev) => ({
                                                                                     ...prev,
                                                                                     [f.ivrmmoD_Id]: date ?? null
-                                                                                }))
-                                                                            }
+                                                                                }));
+                                                                                if (date) {
+                                                                                    setOpenChequePopoverId(null);
+                                                                                }
+                                                                            }}
                                                                         />
                                                                     </PopoverContent>
                                                                 </Popover>
@@ -1879,7 +1891,11 @@ export default function StudentFeeTransaction({ onSuccess, asmayId, asmayYear }:
                                                         {checkPayType.includes(f.ivrmmoD_ModeOfPayment) &&
                                                             modeType === 'Multiple' &&
                                                             f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
-                                                                <Popover>
+                                                                <Popover
+                                                                    open={openChequePopoverId === f.ivrmmoD_Id}
+                                                                    onOpenChange={(isOpen) =>
+                                                                        setOpenChequePopoverId(isOpen ? f.ivrmmoD_Id : null)
+                                                                    }>
                                                                     <PopoverTrigger asChild>
                                                                         <Button
                                                                             variant='outline'
@@ -1897,12 +1913,15 @@ export default function StudentFeeTransaction({ onSuccess, asmayId, asmayYear }:
                                                                         <Calendar
                                                                             mode='single'
                                                                             selected={chequedates[f.ivrmmoD_Id] ?? undefined}
-                                                                            onSelect={(date) =>
+                                                                            onSelect={(date) => {
                                                                                 setchequeDates((prev) => ({
                                                                                     ...prev,
                                                                                     [f.ivrmmoD_Id]: date ?? null
-                                                                                }))
-                                                                            }
+                                                                                }));
+                                                                                if (date) {
+                                                                                    setOpenChequePopoverId(null);
+                                                                                }
+                                                                            }}
                                                                         />
                                                                     </PopoverContent>
                                                                 </Popover>
