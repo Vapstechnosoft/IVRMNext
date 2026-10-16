@@ -33,6 +33,7 @@ import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 
 const MI_ID = 0;
 
@@ -450,6 +451,7 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
             size: 200,
             cell: ({ row }) => {
                 const isPercentage = row.original.type === 'Percentage';
+                const headAmount = Number(row.original.fmA_Amount ?? 0);
 
                 return (
                     <Input
@@ -459,11 +461,60 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
                         placeholder={isPercentage ? '0-100' : '0'}
                         className='text-right'
                         defaultValue={row.original.concessionValue ?? ''}
+                        key={`${row.original.fmH_Id}-${row.original.ftI_Id}-${row.original.type}-${row.original.concessionValue}`}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                (e.target as HTMLInputElement).blur();
+                            }
+                        }}
                         onBlur={(e) => {
                             const raw = e.target.value;
                             const val = raw === '' ? 0 : Number(raw);
 
-                            setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, concessionValue: val } : item)));
+                            if (val < 0) {
+                                Swal.fire({
+                                    title: 'Warning',
+                                    text: 'Concession amount cannot be negative!',
+                                    icon: 'warning',
+                                    confirmButtonText: 'OK',
+                                    confirmButtonColor: '#3085d6'
+                                });
+                                e.target.value = '';
+                                setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, concessionValue: 0 } : item)));
+                                return;
+                            }
+
+                            if (isPercentage && val > 100) {
+                                Swal.fire({
+                                    title: 'Warning',
+                                    text: 'Concession Percentage cannot be greater than 100%!',
+                                    icon: 'warning',
+                                    confirmButtonText: 'OK',
+                                    confirmButtonColor: '#3085d6'
+                                });
+                                e.target.value = '';
+                                setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, concessionValue: 0 } : item)));
+                                return;
+                            }
+
+                            if (!isPercentage && val > headAmount) {
+                                Swal.fire({
+                                    title: 'Warning',
+                                    text: `Concession Amount cannot be greater than Fee Head Amount (${headAmount.toLocaleString()})!`,
+                                    icon: 'warning',
+                                    confirmButtonText: 'OK',
+                                    confirmButtonColor: '#3085d6'
+                                });
+                                e.target.value = '';
+                                setHeads((prev) => prev.map((item, idx) => (idx === row.index ? { ...item, concessionValue: 0 } : item)));
+                                return;
+                            }
+
+                            setHeads((prev) =>
+                                prev.map((item, idx) =>
+                                    idx === row.index ? { ...item, concessionValue: val, checked: val > 0 ? true : item.checked } : item
+                                )
+                            );
                         }}
                     />
                 );
@@ -604,6 +655,31 @@ export default function AddFeeConcessionForm({ onSuccess, pageAcademicYear }: Ad
 
         const selectedHeads = heads.filter((h) => h.checked && h.concessionValue > 0);
         if (selectedHeads.length === 0) return toast.error('Please apply concession on at least one head');
+
+        for (const h of selectedHeads) {
+            const isPerc = h.type === 'Percentage';
+            const headAmount = Number(h.fmA_Amount ?? 0);
+            if (isPerc && h.concessionValue > 100) {
+                Swal.fire({
+                    title: 'Warning',
+                    text: `Concession Percentage for "${h.fmH_FeeName}" cannot be greater than 100%!`,
+                    icon: 'warning',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
+            }
+            if (!isPerc && h.concessionValue > headAmount) {
+                Swal.fire({
+                    title: 'Warning',
+                    text: `Concession Amount for "${h.fmH_FeeName}" cannot be greater than Fee Head Amount (${headAmount.toLocaleString()})!`,
+                    icon: 'warning',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#3085d6'
+                });
+                return;
+            }
+        }
 
         try {
             setSaving(true);

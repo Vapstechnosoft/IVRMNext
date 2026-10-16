@@ -679,7 +679,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         combined.amsT_Language_Spoken ??
                         '',
                     amsT_AadharNo: combined.amsT_AadharNo ?? combined.aadharNo ?? combined.aadhar_No ?? combined.amsT_Aadhar_No ?? '',
-                    amsT_ApparNo: combined.amsT_ApparNo ?? combined.apparNo ?? combined.appar_No ?? combined.amsT_Appar_No ?? '',
+                    amsT_ApparNo: combined.amsT_ApparNo ?? combined.apparNo ?? combined.appar_No ?? combined.amsT_Appar_No ?? (combined.amsT_APAARId ? String(combined.amsT_APAARId) : ''),
+                    amsT_APAARId: Number(combined.amsT_APAARId ?? combined.apaarId ?? combined.amsT_ApparNo ?? combined.apparNo ?? 0) || 0,
+                    amsT_PENNo: combined.amsT_PENNo ?? combined.penNo ?? combined.pen_No ?? combined.amsT_PEN_No ?? '',
 
                     // Caste and Religion mapping
                     imC_Id: combined.imC_Id ?? combined.iC_Id ?? combined.caste_Id ?? combined.casteId ?? combined.imC_CasteId ?? 0,
@@ -857,6 +859,14 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 payload.amsT_MobileNo =
                     payload.amsT_MobileNo ?? payload.mobileNo ?? payload.mobile_No ?? payload.amsT_Mobile_No ?? payload.mobileNumber ?? '';
                 payload.amsT_emailId = payload.amsT_emailId ?? payload.emailId ?? payload.email_Id ?? payload.amsT_Email_Id ?? '';
+                payload.amsT_AadharNo =
+                    payload.amsT_AadharNo ?? payload.aadharNo ?? payload.aadhar_No ?? payload.amsT_Aadhar_No ?? '';
+                payload.amsT_ApparNo =
+                    payload.amsT_ApparNo ?? payload.apparNo ?? payload.appar_No ?? payload.amsT_Appar_No ?? (payload.amsT_APAARId ? String(payload.amsT_APAARId) : '');
+                payload.amsT_APAARId =
+                    Number(payload.amsT_APAARId ?? payload.apaarId ?? payload.amsT_ApparNo ?? payload.apparNo ?? 0) || 0;
+                payload.amsT_PENNo =
+                    payload.amsT_PENNo ?? payload.penNo ?? payload.pen_No ?? payload.amsT_PEN_No ?? '';
                 payload.amsT_Nationality =
                     payload.amsT_StudentCountryId ??
                     payload.amsT_StudentCountry_Id ??
@@ -1790,8 +1800,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
 
                 // 9. BLOOD GROUP
-                const bloodGroup = data.amsT_BloodGroup ?? data.bloodGroup ?? data.blood_Group ?? payload.amsT_BloodGroup;
-                if (bloodGroup) setValue('amsT_BloodGroup', String(bloodGroup));
+                const rawBloodGroup = data.amsT_BloodGroup ?? data.bloodGroup ?? data.blood_Group ?? payload?.amsT_BloodGroup ?? payload?.bloodGroup ?? payload?.blood_Group;
+                if (rawBloodGroup) {
+                    let bg = String(rawBloodGroup).trim();
+                    // Some DBs store 'O+ve' instead of 'O+'
+                    if (bg.endsWith('ve')) {
+                        bg = bg.replace('ve', '');
+                    }
+                    setValue('amsT_BloodGroup', bg);
+                }
 
                 // 10. REFRESH DROPDOWNS & SYNC AUXILIARY STATE
                 try {
@@ -1849,17 +1866,22 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const _initializedIdRef = useRef<number | null>(null);
 
     const amsTIdFromRow = rowData?.amsT_Id || rowData?.data?.amsT_Id || rowData?.firstTab?.amsT_Id;
-    const { data: fullFormData, isLoading: isFullFormLoading } = useStudentAdmissionFormById(Number(amsTIdFromRow) || 0);
+    const { data: fullFormData, isLoading: isFullFormLoading, isFetching: isFullFormFetching } = useStudentAdmissionFormById(Number(amsTIdFromRow) || 0);
 
     useEffect(() => {
         const id = amsTIdFromRow;
-        if (!id || !fullFormData || id === _initializedIdRef.current) return;
+        if (!id || !fullFormData) return;
+
+        // Skip initialization if we are currently fetching fresh data from the server (avoids binding stale cached data)
+        if (isFullFormFetching) return;
+
+        if (id === _initializedIdRef.current) return;
 
         _initializedIdRef.current = id;
         // Merge rowData and fullFormData just in case, but use fullFormData as primary
         const dataToInitialize = { ...rowData, ...fullFormData };
         initializeFormData(dataToInitialize);
-    }, [fullFormData, amsTIdFromRow, initializeFormData, rowData]);
+    }, [fullFormData, amsTIdFromRow, initializeFormData, rowData, isFullFormFetching]);
 
     const watchedCasteId = watch('imC_Id' as any);
 
@@ -2230,24 +2252,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
             }
 
-            // ECS conditional: check nested or flat fields
-            if (Number(formData.amsT_ECSFlag ?? getValues('amsT_ECSFlag') ?? 0) === 1) {
-                const ecs = formData.adm_M_Student_ECS ?? {};
-                const flat = formData;
-                const acctNo = String(ecs.asecS_AccountNo ?? flat.asecS_AccountNo ?? getValues('asecS_AccountNo') ?? '').trim();
-                const holder = String(
-                    ecs.asecS_AccountHolderName ?? flat.asecS_AccountHolderName ?? getValues('asecS_AccountHolderName') ?? ''
-                ).trim();
-                const bank = String(ecs.asecS_BankName ?? flat.asecS_BankName ?? getValues('asecS_BankName') ?? '').trim();
-                const type = String(ecs.asecS_AccountType ?? flat.asecS_AccountType ?? getValues('asecS_AccountType') ?? '').trim();
-                const micr = String(ecs.asecS_MICRNo ?? flat.asecS_MICRNo ?? getValues('asecS_MICRNo') ?? '').trim();
-                const branch = String(ecs.asecS_Branch ?? flat.asecS_Branch ?? getValues('asecS_Branch') ?? '').trim();
-                if (!acctNo || !holder || !bank || !type || !micr || !branch) {
-                    toast.error('Please fill all ECS account details');
-                    console.warn('[Admission] saveFirstTab aborted - missing ECS details');
-                    throw new Error('Validation failed: missing ECS details');
-                }
-            }
             // Build payload expected by server for first tab
 
             const payload = {
@@ -2285,7 +2289,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
                 amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
                 amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
-                amsT_ApparNo: formData.amsT_ApparNo ?? '',
+                amsT_ApparNo: formData.amsT_ApparNo ?? (formData.amsT_APAARId ? String(formData.amsT_APAARId) : ''),
+                amsT_APAARId: Number(formData.amsT_APAARId || formData.amsT_ApparNo || 0) || 0,
+                amsT_PENNo: String(formData.amsT_PENNo ?? getValues('amsT_PENNo') ?? ''),
 
                 amsT_BiometricId: formData.amsT_BiometricId ?? '',
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
@@ -2679,28 +2685,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     }
                 }
 
-                // Check ECS bank details if ECS flag is checked
-                if (Number(getValues('amsT_ECSFlag') ?? 0) === 1) {
-                    const requiredEcsFields = [
-                        { field: 'asecS_AccountNo', label: 'Account Number' },
-                        { field: 'asecS_AccountHolderName', label: 'Account Holder Name' },
-                        { field: 'asecS_BankName', label: 'Bank Name' },
-                        { field: 'asecS_AccountType', label: 'Account Type' },
-                        { field: 'asecS_MICRNo', label: 'MICR No' },
-                        { field: 'asecS_Branch', label: 'Branch Name' }
-                    ];
-
-                    const missingEcsFields = requiredEcsFields.filter(({ field }) => !String(getValues(field as any) ?? '').trim());
-
-                    if (missingEcsFields.length > 0) {
-                        missingEcsFields.forEach(({ field, label }) => {
-                            setError(field as any, {
-                                type: 'manual',
-                                message: `${label} is required`
-                            });
-                        });
-                    }
-                }
             }
 
             // Check if there are any validation errors (schema AND custom setError)
@@ -3399,6 +3383,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             amsT_BankBranch: '',
             amsT_AadharNo: '',
             amsT_ApparNo: '',
+            amsT_APAARId: 0,
+            amsT_PENNo: '',
             amsT_Sex: '',
             amsT_Date: null,
             amsT_Nationality: 0,
@@ -5384,7 +5370,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
                                                                     value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
@@ -5407,7 +5392,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
                                                                     value={field.value || ''}>
                                                                     <SelectTrigger>

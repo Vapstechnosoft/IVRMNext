@@ -3,11 +3,14 @@ export interface IMasterStudentCountReportList {
     FirstName?: string;
     MiddleName?: string;
     LastName?: string;
+    FatherName?: string;
+    UserName?: string;
     EmailID?: string;
     Mobileno?: string;
     RegDate?: string;
     Class?: string;
     RegNo?: string;
+    [key: string]: any;
 }
 export interface IParentsDashboardStudentResponse {
     pasr_id: number;

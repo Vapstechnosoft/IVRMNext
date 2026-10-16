@@ -56,42 +56,12 @@ export function RackReportClient({ initialData }: RackReportClientProps) {
                 const normalizedList: IRackReportGridData[] = list.map((item: any) => ({
                     ...item,
                     lmbanO_AccessionNo:
-                        item.lmbanO_AccessionNo ??
-                        item.LMBANO_AccessionNo ??
-                        item.lmbano_AccessionNo ??
-                        item.accessionNo ??
-                        '',
-                    lmB_BookTitle:
-                        item.lmB_BookTitle ??
-                        item.LMB_BookTitle ??
-                        item.lmb_BookTitle ??
-                        item.bookTitle ??
-                        '',
-                    rack_Name:
-                        item.rack_Name ??
-                        item.Rack_Name ??
-                        item.rackName ??
-                        item.lmrA_RackName ??
-                        item.LMRA_RackName ??
-                        '',
-                    lmrA_FloorName:
-                        item.lmrA_FloorName ??
-                        item.lmra_FloorName ??
-                        item.LMRA_FloorName ??
-                        item.floorName ??
-                        '',
-                    lmB_BookType:
-                        item.lmB_BookType ??
-                        item.LMB_BookType ??
-                        item.lmb_BookType ??
-                        item.bookType ??
-                        '',
-                    rack_Location:
-                        item.rack_Location ??
-                        item.Rack_Location ??
-                        item.lmrA_Location ??
-                        item.location ??
-                        '',
+                        item.lmbanO_AccessionNo ?? item.LMBANO_AccessionNo ?? item.lmbano_AccessionNo ?? item.accessionNo ?? '',
+                    lmB_BookTitle: item.lmB_BookTitle ?? item.LMB_BookTitle ?? item.lmb_BookTitle ?? item.bookTitle ?? '',
+                    rack_Name: item.rack_Name ?? item.Rack_Name ?? item.rackName ?? item.lmrA_RackName ?? item.LMRA_RackName ?? '',
+                    lmrA_FloorName: item.lmrA_FloorName ?? item.lmra_FloorName ?? item.LMRA_FloorName ?? item.floorName ?? '',
+                    lmB_BookType: item.lmB_BookType ?? item.LMB_BookType ?? item.lmb_BookType ?? item.bookType ?? '',
+                    rack_Location: item.rack_Location ?? item.Rack_Location ?? item.lmrA_Location ?? item.location ?? '',
                     lmbanO_AvialableStatus:
                         item.lmbanO_AvialableStatus ??
                         item.LMBANO_AvialableStatus ??

@@ -2,17 +2,18 @@
 
 import { AdaptiveBody, AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { Bell, CheckCircle2, Clock, FileText } from 'lucide-react';
-import Link from 'next/link';
 
 export default function ApplicationFormSuccessDialog({
     isOpen,
     onClose,
+    onTrack,
     title = 'Application Submitted Successfully',
     message = 'Successfully submitted application form',
     fee_required = false
 }: {
     isOpen: boolean;
     onClose: () => void;
+    onTrack?: () => void;
     title?: string;
     message?: string;
     fee_required?: boolean;
@@ -64,7 +65,15 @@ export default function ApplicationFormSuccessDialog({
                                         </div>
                                     </div>
                                 )}
-                                <Link href='/' className='block cursor-pointer'>
+                                <div
+                                    onClick={() => {
+                                        if (onTrack) {
+                                            onTrack();
+                                        } else {
+                                            onClose();
+                                        }
+                                    }}
+                                    className='block cursor-pointer'>
                                     <div className='rounded-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-md'>
                                         <div className='flex items-start gap-3'>
                                             <div className='mt-0.5 rounded-lg bg-blue-500 p-2'>
@@ -78,7 +87,7 @@ export default function ApplicationFormSuccessDialog({
                                             </div>
                                         </div>
                                     </div>
-                                </Link>
+                                </div>
 
                                 <div className='rounded-lg border border-purple-100 bg-gradient-to-r from-purple-50 to-pink-50 p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-md'>
                                     <div className='flex items-start gap-3'>

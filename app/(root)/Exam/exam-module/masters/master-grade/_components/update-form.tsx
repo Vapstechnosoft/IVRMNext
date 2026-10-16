@@ -73,16 +73,16 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                 if (result?.data) {
                     const data = Array.isArray(result.data)
                         ? result.data.map((g: any) => ({
-                              emgD_Id: Number(g.emgD_Id ?? 0),
-                              emgR_Id: Number(g.emgR_Id ?? 0),
-                              emgD_Name: g.emgD_Name || '',
-                              emgD_From: Number(g.emgD_From ?? null),
-                              emgD_To: Number(g.emgD_To ?? null),
-                              emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
-                              emgD_Remarks: g.emgD_Remarks || '',
-                              emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
-                              emgR_MarksPerFlag: g.emgR_MarksPerFlag
-                          }))
+                            emgD_Id: Number(g.emgD_Id ?? 0),
+                            emgR_Id: Number(g.emgR_Id ?? 0),
+                            emgD_Name: g.emgD_Name || '',
+                            emgD_From: Number(g.emgD_From ?? null),
+                            emgD_To: Number(g.emgD_To ?? null),
+                            emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                            emgD_Remarks: g.emgD_Remarks || '',
+                            emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
+                            emgR_MarksPerFlag: g.emgR_MarksPerFlag
+                        }))
                         : [];
 
                     const rawFlag = (result.data as any)?.[0]?.emgR_MarksPerFlag ?? gradeData.emgR_MarksPerFlag;
@@ -182,13 +182,19 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
 
         try {
             const payload = {
-                ...data,
+                emgR_Id: Number(data.emgR_Id),
+                emgR_GradeName: data.emgR_GradeName,
+                emgR_MarksPerFlag: data.emgR_MarksPerFlag,
+                emgR_ActiveFlag: data.emgR_ActiveFlag ?? true,
                 grade_list: data.grade_list.map((row) => ({
-                    ...row,
                     emgD_Id: Number(row.emgD_Id ?? 0),
+                    emgR_Id: Number(data.emgR_Id),
+                    emgD_Name: row.emgD_Name,
                     emgD_From: Number(row.emgD_From),
                     emgD_To: Number(row.emgD_To),
-                    emgD_GradePoints: Number(row.emgD_GradePoints)
+                    emgD_GradePoints: Number(row.emgD_GradePoints),
+                    emgD_Remarks: row.emgD_Remarks || '',
+                    emgD_ActiveFlag: row.emgD_ActiveFlag ?? true
                 }))
             };
 
@@ -214,16 +220,16 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
             if (result?.data) {
                 const restoredRows = Array.isArray(result.data)
                     ? result.data.map((g: any) => ({
-                          emgD_Id: Number(g.emgD_Id ?? 0),
-                          emgR_Id: Number(g.emgR_Id ?? 0),
-                          emgD_Name: g.emgD_Name || '',
-                          emgD_From: Number(g.emgD_From ?? null),
-                          emgD_To: Number(g.emgD_To ?? null),
-                          emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
-                          emgD_Remarks: g.emgD_Remarks || '',
-                          emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
-                          emgR_MarksPerFlag: g.emgR_MarksPerFlag
-                      }))
+                        emgD_Id: Number(g.emgD_Id ?? 0),
+                        emgR_Id: Number(g.emgR_Id ?? 0),
+                        emgD_Name: g.emgD_Name || '',
+                        emgD_From: Number(g.emgD_From ?? null),
+                        emgD_To: Number(g.emgD_To ?? null),
+                        emgD_GradePoints: Number(g.emgD_GradePoints ?? null),
+                        emgD_Remarks: g.emgD_Remarks || '',
+                        emgD_ActiveFlag: g.emgD_ActiveFlag ?? true,
+                        emgR_MarksPerFlag: g.emgR_MarksPerFlag
+                    }))
                     : [];
 
                 const rawFlag = (result.data as any)?.[0]?.emgR_MarksPerFlag ?? gradeData.emgR_MarksPerFlag;

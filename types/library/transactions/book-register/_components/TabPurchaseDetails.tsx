@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 
 export default function TabPurchaseDetails({ dropdownData }: { dropdownData: any }) {
@@ -19,6 +20,7 @@ export default function TabPurchaseDetails({ dropdownData }: { dropdownData: any
         watch,
         formState: { errors }
     } = useFormContext<BookRegisterPayload>();
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const purchaseType = watch('LMB_PurOrDonated');
 
     return (
@@ -31,7 +33,7 @@ export default function TabPurchaseDetails({ dropdownData }: { dropdownData: any
                     control={control}
                     name='Purchase_Date'
                     render={({ field }) => (
-                        <Popover>
+                        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                             <PopoverTrigger asChild>
                                 <Button
                                     variant={'outline'}
@@ -44,7 +46,10 @@ export default function TabPurchaseDetails({ dropdownData }: { dropdownData: any
                                 <Calendar
                                     mode='single'
                                     selected={field.value ? new Date(field.value) : undefined}
-                                    onSelect={field.onChange}
+                                    onSelect={(date) => {
+                                        field.onChange(date);
+                                        setIsCalendarOpen(false);
+                                    }}
                                     disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
                                     initialFocus
                                 />

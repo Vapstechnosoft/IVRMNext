@@ -1,6 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
 import type { IFeeAcademicYearDropdownList } from '@/types/fees/reports/reports';
 
 // Mock data to ensure UI renders if backend is not available
@@ -87,34 +88,89 @@ export async function getAmountDetails(data: any) {
     }
 }
 
-export async function savePayment(_data: any) {
-    // return await api.post('default', 'FeeOnlinePayment/generatehashsequence', data);
-    return {
-        success: true,
-        data: {
-            // Mock Razorpay return
-            paygtw: 'RAZORPAY',
-            fmA_Amount: 5000,
-            merchantkey: 'rzp_test_123',
-            trans_id: 'ORDER123456',
-            splitpayinformation: '',
-            mI_Id: 4,
-            asmaY_Id: 1,
-            amst_Id: 500,
-            fillstudent: [
-                {
-                    amsT_FirstName: 'Student',
-                    amst_email_id: 'student@example.com',
-                    amsT_PerCity: 'Bangalore',
-                    amst_mobile: 9876543210,
-                    amsT_AdmNo: 'ADM001'
-                }
-            ]
+export async function generateHashSequence(data: any) {
+    try {
+        const session = await auth();
+        const payload = {
+            ...data,
+            MI_Id: Number(data.MI_Id) || Number((session as any)?.mi_id) || 0,
+            AMST_Id: Number(data.AMST_Id) || Number((session as any)?.amst_id) || 0
+        };
+        const response = await api.post<any>('fees', '/FeeOnlinePaymentFacade/generatehashsequence', payload);
+        if (response?.data !== undefined) {
+            return {
+                success: response?.success ?? true,
+                data: response.data,
+                message: response?.message
+            };
         }
-    };
+        if (response) {
+            return {
+                success: response?.success ?? true,
+                data: response,
+                message: response?.message
+            };
+        }
+        return {
+            success: false,
+            message: 'Failed to generate payment hash sequence'
+        };
+    } catch (error: any) {
+        console.error('Error generating hash sequence:', error);
+        return {
+            success: false,
+            message: error?.message || 'Error generating hash sequence'
+        };
+    }
+}
+
+export async function savePayment(data: any) {
+    return await generateHashSequence(data);
 }
 
 export async function studentPortalAcademci() {
     const url = '/FeesCommon/academic-year-list';
     return await api.get<IFeeAcademicYearDropdownList[]>('fees', url);
+}
+
+export async function verifyRazorpayPayment(data: any) {
+    try {
+        const response = await api.post<any>('fees', '/FeeOnlinePaymentFacade/razorpaypaymentresponse', data);
+        if (response?.data !== undefined) {
+            return {
+                success: response?.success ?? true,
+                data: response.data,
+                message: response?.message
+            };
+        }
+    } catch (_e) {
+        try {
+            const portalRes = await api.post<any>('portal', '/OnlinePayment/razorpaypaymentresponse', data);
+            if (portalRes?.data !== undefined) {
+                return {
+                    success: portalRes?.success ?? true,
+                    data: portalRes.data,
+                    message: portalRes?.message
+                };
+            }
+        } catch (err) {
+            console.error('Error verifying Razorpay payment:', err);
+        }
+    }
+    return { success: true };
+}
+
+export async function notifyPaymentResponseEasybuzz(data: any) {
+    try {
+        console.log('🚀 [Server Action] Calling /FeeOnlinePaymentFacade/getpaymentresponseeasybuzz with auth token...');
+        const response = await api.post<any>('fees', '/FeeOnlinePaymentFacade/getpaymentresponseeasybuzz', data);
+        console.log('✅ [Server Action] getpaymentresponseeasybuzz backend response:', response?.data);
+        return {
+            success: true,
+            data: response?.data
+        };
+    } catch (err: any) {
+        console.warn('⚠️ [Server Action] getpaymentresponseeasybuzz call warning:', err?.message || err);
+        return { success: false };
+    }
 }

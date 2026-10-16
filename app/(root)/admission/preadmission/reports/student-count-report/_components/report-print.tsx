@@ -12,11 +12,7 @@ interface ReportPrintProps {
     logo?: string;
 }
 
-const formatDate = (date: any) => {
-    if (!date) return 'N/A';
-    const d = new Date(date);
-    return isValid(d) ? format(d, 'dd-MM-yyyy') : 'N/A';
-};
+import { formatDate, getStudentName } from './columns';
 
 export default function StudentCountReportPrint({ data, reportType, academicYear, fromDate, toDate, rangeType, logo }: ReportPrintProps) {
     const reportNames: Record<string, string> = {
@@ -98,14 +94,13 @@ export default function StudentCountReportPrint({ data, reportType, academicYear
                 </thead>
                 <tbody>
                     {data.map((row, index) => {
-                        const fullName = [row.FirstName, row.MiddleName, row.LastName].filter(Boolean).join(' ');
                         return (
                             <tr key={index} className='break-inside-avoid'>
                                 <td className='border border-black p-1 text-center' style={{ border: '1px solid black' }}>
                                     {index + 1}
                                 </td>
                                 <td className='border border-black p-1' style={{ border: '1px solid black' }}>
-                                    {fullName || 'N/A'}
+                                    {getStudentName(row)}
                                 </td>
                                 <td className='border border-black p-1' style={{ border: '1px solid black' }}>
                                     {row.EmailID || 'N/A'}
