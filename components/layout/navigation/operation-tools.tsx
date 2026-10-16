@@ -27,14 +27,31 @@ export function OperationTools() {
 
     const filteredModules = React.useMemo(() => {
         if (!accessibleModules?.data) return [];
-        console.log('accessibleModules', accessibleModules);
-        return accessibleModules.data.filter((module: any) => module.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (!searchQuery.trim()) return accessibleModules.data;
+        const q = searchQuery.toLowerCase().trim();
+        return accessibleModules.data.filter((module: any) => {
+            if (module.name?.toLowerCase().includes(q)) return true;
+            return module.menu?.some((menu: any) => {
+                if (menu.name?.toLowerCase().includes(q)) return true;
+                return menu.sub_menu?.some((sub: any) => {
+                    if (sub.name?.toLowerCase().includes(q)) return true;
+                    if (sub.pages?.some((p: any) => (p.title || p.name || '')?.toLowerCase().includes(q))) return true;
+                    return sub.sub_menu?.some((childSub: any) => {
+                        if (childSub.name?.toLowerCase().includes(q)) return true;
+                        return childSub.pages?.some((p: any) => (p.title || p.name || '')?.toLowerCase().includes(q));
+                    });
+                });
+            });
+        });
     }, [accessibleModules, searchQuery]);
 
     // Set initial selected module when data loads or search changes
     React.useEffect(() => {
-        if (filteredModules.length > 0 && !selectedModuleId) {
-            setSelectedModuleId(filteredModules[0].id);
+        if (filteredModules.length > 0) {
+            const currentStillExists = filteredModules.some((m: any) => m.id === selectedModuleId);
+            if (!currentStillExists) {
+                setSelectedModuleId(filteredModules[0].id);
+            }
         }
     }, [filteredModules, selectedModuleId]);
 
@@ -296,7 +313,16 @@ export function OperationTools() {
                                                                         return true;
                                                                     });
 
-                                                                    return uniquePages.map((page: any, pageIdx: number) => {
+                                                                    const q = searchQuery.toLowerCase().trim();
+                                                                    const displayPages = q
+                                                                        ? uniquePages.filter((page: any) =>
+                                                                              (page.title || page.name || page.url || '').toLowerCase().includes(q)
+                                                                          )
+                                                                        : uniquePages;
+
+                                                                    if (q && displayPages.length === 0) return null;
+
+                                                                    return displayPages.map((page: any, pageIdx: number) => {
                                                                         const PageIcon = getIconByName(page.icon) || Boxes;
                                                                         return (
                                                                             <button
