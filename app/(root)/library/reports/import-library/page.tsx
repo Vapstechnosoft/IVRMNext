@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
 import { Input } from '@/components/ui/input';
@@ -11,6 +12,75 @@ import { RefreshCw, Save, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+
+const FIELD_MAP: Record<string, string> = {
+    LMB_BOOKTITLE: 'LMB_BookTitle',
+    BOOKTITLE: 'LMB_BookTitle',
+    LMB_BOOKSUBTITLE: 'LMB_BookSubTitle',
+    BOOKSUBTITLE: 'LMB_BookSubTitle',
+    LMB_CALLNO: 'LMB_CallNo',
+    CALLNO: 'LMB_CallNo',
+    LMB_CLASSNO: 'LMB_ClassNo',
+    CLASSNO: 'LMB_ClassNo',
+    LMB_ISBNNO: 'LMB_ISBNNo',
+    ISBNNO: 'LMB_ISBNNo',
+    LMB_VOLNO: 'LMB_VolNo',
+    VOLNO: 'LMB_VolNo',
+    LMB_BOOKTYPE: 'LMB_BookType',
+    BOOKTYPE: 'LMB_BookType',
+    LMD_DEPARTMENTNAME: 'LMD_DepartmentName',
+    DEPARTMENTNAME: 'LMD_DepartmentName',
+    LML_LANGUAGENAME: 'LML_LanguageName',
+    LANGUAGENAME: 'LML_LanguageName',
+    LMS_SUBJECTNAME: 'LMS_SubjectName',
+    SUBJECTNAME: 'LMS_SubjectName',
+    LMB_BOOKNO: 'LMB_BookNo',
+    BOOKNO: 'LMB_BookNo',
+    LMP_PUBLISHERNAME: 'LMP_PublisherName',
+    PUBLISHERNAME: 'LMP_PublisherName',
+    LMBA_AUTHORFIRSTNAME: 'LMBA_AuthorFirstName',
+    AUTHORFIRSTNAME: 'LMBA_AuthorFirstName',
+    LMBANO_ACTIVEFLG: 'LMBANO_ActiveFlg',
+    ACTIVEFLG: 'LMBANO_ActiveFlg',
+    LMB_BILLNO: 'LMB_BillNo',
+    BILLNO: 'LMB_BillNo',
+    LMB_VOUCHERNO: 'LMB_VoucherNo',
+    VOUCHERNO: 'LMB_VoucherNo',
+    LMB_PRICE: 'LMB_Price',
+    PRICE: 'LMB_Price',
+    LMB_DISCOUNT: 'LMB_Discount',
+    DISCOUNT: 'LMB_Discount',
+    LMB_NETPRICE: 'LMB_NetPrice',
+    NETPRICE: 'LMB_NetPrice',
+    LMB_BINDINGTYPE: 'LMB_BindingType',
+    BINDINGTYPE: 'LMB_BindingType',
+    LMB_PURCHASEDATE: 'LMB_PurchaseDate',
+    PURCHASEDATE: 'LMB_PurchaseDate',
+    LMB_ENTRYDATE: 'LMB_EntryDate',
+    ENTRYDATE: 'LMB_EntryDate',
+    LMB_BIBLOGRAPHY: 'LMB_Biblography',
+    LMB_INDEXPAGE: 'LMB_IndexPage',
+    LMB_NOOFPAGES: 'LMB_NoOfPages',
+    NOOFPAGES: 'LMB_NoOfPages',
+    LMB_PUBLISHEDYEAR: 'LMB_PublishedYear',
+    PUBLISHEDYEAR: 'LMB_PublishedYear',
+    LMB_EDITION: 'LMB_Edition',
+    EDITION: 'LMB_Edition',
+    LMB_PURORDONATED: 'LMB_PurOrDonated',
+    PURORDONATED: 'LMB_PurOrDonated',
+    LMB_DONORNAME: 'LMB_DonorName',
+    DONORNAME: 'LMB_DonorName',
+    LMB_DONORADDRESS: 'LMB_DonorAddress',
+    LMB_REMARKS: 'LMB_Remarks',
+    REMARKS: 'LMB_Remarks',
+    LMB_KEYWORDS: 'LMB_Keywords',
+    KEYWORDS: 'LMB_Keywords',
+    LMB_NOOFCOPIES: 'LMB_NoOfCopies',
+    NOOFCOPIES: 'LMB_NoOfCopies',
+    LMB_CURRENCEYTYPE: 'LMB_CurrenceyType',
+    CURRENCEYTYPE: 'LMB_CurrenceyType',
+    LMB_BOOKIMAGE: 'LMB_BookImage'
+};
 
 // Helper to determine the backend payload key automatically based on filename or column headers
 function detectPayloadConfig(fname: string, headers: string[]): { key: string; requiresLibrary: boolean } {
@@ -23,26 +93,46 @@ function detectPayloadConfig(fname: string, headers: string[]): { key: string; r
     if (lowerName.includes('language') || lowerName.includes('masterlang')) return { key: 'masterlang', requiresLibrary: false };
     if (lowerName.includes('publisher') || lowerName.includes('masterpubl')) return { key: 'masterpubl', requiresLibrary: true };
     if (lowerName.includes('rack') || lowerName.includes('masterrack')) return { key: 'masterrack', requiresLibrary: true };
+    if (lowerName.includes('vendor') || lowerName.includes('vender')) return { key: 'mastervender', requiresLibrary: true };
+    if (lowerName.includes('trans') || lowerName.includes('circulation')) return { key: 'booktransIMP', requiresLibrary: true };
     if (lowerName.includes('author') || lowerName.includes('masterauthor')) return { key: 'masterauthor', requiresLibrary: true };
     if (lowerName.includes('accn') || lowerName.includes('accession') || lowerName.includes('masteracces'))
         return { key: 'masteracces', requiresLibrary: true };
-    if (lowerName.includes('trans') || lowerName.includes('circulation')) return { key: 'booktransIMP', requiresLibrary: true };
-    if (lowerName.includes('vendor') || lowerName.includes('vender')) return { key: 'mastervender', requiresLibrary: true };
     if (lowerName.includes('book') || lowerName.includes('masterbook')) return { key: 'masterbook', requiresLibrary: true };
 
-    // 2. By Header column names
-    if (upperHeaders.some((h) => h.includes('LMAU_') || h.includes('AUTHORFIRST'))) return { key: 'masterauthor', requiresLibrary: true };
-    if (upperHeaders.some((h) => h.includes('LMRA_') || h.includes('RACKNAME'))) return { key: 'masterrack', requiresLibrary: true };
-    if (upperHeaders.some((h) => h.includes('LMBANO_') || h.includes('ACCESSIONNO'))) return { key: 'masteracces', requiresLibrary: true };
-    if (upperHeaders.some((h) => h.includes('LBTR_') || h.includes('ISSUEDDATE') || h.includes('RETURNEDDATE')))
-        return { key: 'booktransIMP', requiresLibrary: true };
-    if (upperHeaders.some((h) => h.includes('LMV_') || h.includes('VENDORNAME'))) return { key: 'mastervender', requiresLibrary: true };
-    if (upperHeaders.some((h) => h.includes('LMP_') || h.includes('PUBLISHERNAME'))) return { key: 'masterpubl', requiresLibrary: true };
-    if (upperHeaders.some((h) => h.includes('LML_') || h.includes('LANGUAGENAME'))) return { key: 'masterlang', requiresLibrary: false };
-    if (upperHeaders.some((h) => h.includes('LMD_') || h.includes('DEPARTMENTNAME'))) return { key: 'masterdep', requiresLibrary: true };
-    if (upperHeaders.some((h) => h.includes('LMS_') || h.includes('SUBJECTNAME'))) return { key: 'mastersub', requiresLibrary: true };
-    if (upperHeaders.some((h) => h.includes('LMB_') || h.includes('BOOKTITLE') || h.includes('BOOKSUBTITLE')))
+    // 2. By Header column names - CHECK MASTERBOOK FIRST!
+    // Book import sheets typically contain book title/subtitle, call no, publisher, author, accession flag, etc.
+    if (
+        upperHeaders.some(
+            (h) =>
+                h.startsWith('LMB_') ||
+                h.startsWith('LMBA_') ||
+                h.startsWith('LMBANO_') ||
+                h.includes('BOOKTITLE') ||
+                h.includes('BOOKSUBTITLE') ||
+                h.includes('CALLNO') ||
+                h.includes('ISBN')
+        )
+    ) {
         return { key: 'masterbook', requiresLibrary: true };
+    }
+
+    if (upperHeaders.some((h) => h.startsWith('LMAU_') || (h.includes('AUTHOR') && !h.startsWith('LMBA_'))))
+        return { key: 'masterauthor', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.startsWith('LMRA_') || h.includes('RACKNAME'))) return { key: 'masterrack', requiresLibrary: true };
+    if (
+        upperHeaders.some(
+            (h) => (h.startsWith('LMBANO_') || h.includes('ACCESSIONNO')) && !upperHeaders.some((uh) => uh.startsWith('LMB_'))
+        )
+    )
+        return { key: 'masteracces', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.startsWith('LBTR_') || h.includes('ISSUEDDATE') || h.includes('RETURNEDDATE')))
+        return { key: 'booktransIMP', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.startsWith('LMV_') || h.includes('VENDORNAME'))) return { key: 'mastervender', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.startsWith('LMP_') || h.includes('PUBLISHERNAME'))) return { key: 'masterpubl', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.startsWith('LML_') || h.includes('LANGUAGENAME'))) return { key: 'masterlang', requiresLibrary: false };
+    if (upperHeaders.some((h) => h.startsWith('LMD_') || h.includes('DEPARTMENTNAME'))) return { key: 'masterdep', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.startsWith('LMS_') || h.includes('SUBJECTNAME'))) return { key: 'mastersub', requiresLibrary: true };
 
     // Default to book
     return { key: 'masterbook', requiresLibrary: true };
@@ -59,6 +149,7 @@ export default function ImportLibraryDataPage() {
 function ImportLibraryDataContent() {
     const [libraries, setLibraries] = useState<any[]>([]);
     const [selectedLibraryId, setSelectedLibraryId] = useState<string>('');
+    const [activeFlag, setActiveFlag] = useState<boolean>(false);
     const [gridData, setGridData] = useState<any[]>([]);
     const [columns, setColumns] = useState<string[]>([]);
     const [filename, setFilename] = useState<string>('');
@@ -228,6 +319,7 @@ function ImportLibraryDataContent() {
         setGridData([]);
         setColumns([]);
         setSelectedLibraryId('');
+        setActiveFlag(false);
         setFilename('');
         setSearchQuery('');
         if (fileInputRef.current) {
@@ -249,9 +341,23 @@ function ImportLibraryDataContent() {
 
         setIsSaving(true);
         try {
-            // Format dates
+            const config = detectPayloadConfig(filename, columns);
+            const activeKey = config.key || 'masterbook';
+
+            // Format dates and ensure LMB_Id is 0 if missing for masterbook
             const formattedData = gridData.map((item) => {
-                const newItem = { ...item };
+                const newItem: Record<string, any> = {};
+                for (const [k, v] of Object.entries(item)) {
+                    if (k === 'SLNO' || k === 'slno') continue;
+                    const cleanK = k.trim().toUpperCase();
+                    const targetKey = FIELD_MAP[cleanK] || k.trim();
+                    const valStr = v !== undefined && v !== null ? String(v).trim() : '';
+                    newItem[targetKey] = valStr;
+                    if (targetKey !== k) {
+                        newItem[k] = valStr;
+                    }
+                }
+
                 if (newItem.LBTR_IssuedDate) {
                     try {
                         newItem.LBTR_IssuedDate = new Date(newItem.LBTR_IssuedDate).toISOString().split('T')[0];
@@ -262,30 +368,70 @@ function ImportLibraryDataContent() {
                         newItem.LBTR_ReturnedDate = new Date(newItem.LBTR_ReturnedDate).toISOString().split('T')[0];
                     } catch (_) {}
                 }
+
+                // If BookTitle is missing, copy from BookSubTitle or vice-versa
+                const subTitle = newItem.LMB_BookSubTitle || newItem.LMB_BOOKSUBTITLE || '';
+                const title = newItem.LMB_BookTitle || newItem.LMB_BOOKTITLE || '';
+                if (!title && subTitle) {
+                    newItem.LMB_BookTitle = subTitle;
+                    newItem.LMB_BOOKTITLE = subTitle;
+                }
+                if (!subTitle && title) {
+                    newItem.LMB_BookSubTitle = title;
+                    newItem.LMB_BOOKSUBTITLE = title;
+                }
+
+                newItem.LMB_Id = Number(newItem.LMB_Id || 0);
+
                 return newItem;
             });
 
-            const config = detectPayloadConfig(filename, columns);
             const payload: Record<string, any> = {
-                [config.key]: formattedData
+                LMAL_Id: Number(selectedLibraryId) || 0,
+                LMV_Id: 0,
+                LMAU_Id: 0,
+                MI_Id: 0,
+                returnval: false,
+                suscnt: 0,
+                failcnt: 0,
+                dupcnt: 0,
+                booktransIMP: activeKey === 'booktransIMP' ? formattedData : null,
+                masteracces: activeKey === 'masteracces' ? formattedData : null,
+                mastervender: activeKey === 'mastervender' ? formattedData : null,
+                masterauthor: activeKey === 'masterauthor' ? formattedData : null,
+                mastersub: activeKey === 'mastersub' ? formattedData : null,
+                masterdep: activeKey === 'masterdep' ? formattedData : null,
+                masterlang: activeKey === 'masterlang' ? formattedData : null,
+                masterpubl: activeKey === 'masterpubl' ? formattedData : null,
+                masterrack: activeKey === 'masterrack' ? formattedData : null,
+                masterbook: formattedData
             };
-            if (config.requiresLibrary) {
-                payload.LMAL_Id = selectedLibraryId;
-            }
 
-            const response = await saveImportLibraryData(payload);
-            if (response?.returnval === true || response?.returnval === 'true') {
-                toast.success(
-                    `Saved successfully! Saved: ${response.suscnt ?? 0}, Failed: ${response.failcnt ?? 0}, Duplicate/Existing: ${response.dupcnt ?? 0}`
-                );
+            const response: any = await saveImportLibraryData(payload);
+
+            const innerData = response?.data ?? response;
+            const msg = response?.message || innerData?.message;
+            const suscnt = innerData?.suscnt ?? response?.suscnt ?? 0;
+            const failcnt = innerData?.failcnt ?? response?.failcnt ?? 0;
+            const dupcnt = innerData?.dupcnt ?? response?.dupcnt ?? 0;
+            const returnval = innerData?.returnval ?? response?.returnval;
+
+            const isSuccess = response?.success === true || returnval === true || returnval === 'true' || (suscnt > 0 && failcnt === 0);
+
+            const displayMessage =
+                msg ||
+                (isSuccess
+                    ? `Data saved successfully. Success: ${suscnt}, Failed: ${failcnt}, Duplicates: ${dupcnt}`
+                    : `Data saving failed. Success: ${suscnt}, Failed: ${failcnt}, Duplicates: ${dupcnt}`);
+
+            // Always show response message in green color as requested
+            toast.success(displayMessage);
+            if (isSuccess || suscnt > 0) {
                 handleClear();
-            } else if (response?.message) {
-                toast.error(response.message);
-            } else {
-                toast.error('Please Select Correct File Format Name or Data Template');
             }
         } catch (error: any) {
-            toast.error(error.message || 'Failed to save data');
+            const errorMsg = error?.message || (typeof error === 'string' ? error : 'Failed to save data');
+            toast.error(errorMsg);
         } finally {
             setIsSaving(false);
         }
@@ -351,6 +497,20 @@ function ImportLibraryDataContent() {
                                             })}
                                         </SelectContent>
                                     </Select>
+                                </div>
+
+                                {/* Active Flag */}
+                                <div className='flex items-center space-x-2'>
+                                    <Checkbox
+                                        id='activeFlag'
+                                        checked={activeFlag}
+                                        onCheckedChange={(checked) => setActiveFlag(!!checked)}
+                                    />
+                                    <Label
+                                        htmlFor='activeFlag'
+                                        className='cursor-pointer whitespace-nowrap font-medium text-gray-700 text-sm'>
+                                        Active Flag
+                                    </Label>
                                 </div>
                             </div>
 
