@@ -139,6 +139,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             amsT_MotherTongue: '',
             amsT_AadharNo: '',
             amsT_ApparNo: '',
+            amsT_APAARId: 0,
             amsT_BirthCertNO: '',
             amsT_BirthPlace: '',
             amsT_Nationality: 0,
@@ -688,11 +689,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
             let conditionalValid = true;
             if (Number(v.isEmisBpl || 0) === 1 && !checkFilled(v.amsT_BPLCardNo)) conditionalValid = false;
-            if (
-                Number(v.amsT_ECSFlag || 0) === 1 &&
-                (!checkFilled(v.asecS_AccountNo) || !checkFilled(v.asecS_AccountHolderName) || !checkFilled(v.asecS_BankName))
-            )
-                conditionalValid = false;
 
             return basicValid && photoValid && conditionalValid && contactValid;
         }
@@ -853,24 +849,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 }
             }
 
-            // ECS conditional: check nested or flat fields
-            if (Number(formData.amsT_ECSFlag ?? getValues('amsT_ECSFlag') ?? 0) === 1) {
-                const ecs = formData.adm_M_Student_ECS ?? {};
-                const flat = formData;
-                const acctNo = String(ecs.asecS_AccountNo ?? flat.asecS_AccountNo ?? getValues('asecS_AccountNo') ?? '').trim();
-                const holder = String(
-                    ecs.asecS_AccountHolderName ?? flat.asecS_AccountHolderName ?? getValues('asecS_AccountHolderName') ?? ''
-                ).trim();
-                const bank = String(ecs.asecS_BankName ?? flat.asecS_BankName ?? getValues('asecS_BankName') ?? '').trim();
-                const type = String(ecs.asecS_AccountType ?? flat.asecS_AccountType ?? getValues('asecS_AccountType') ?? '').trim();
-                const micr = String(ecs.asecS_MICRNo ?? flat.asecS_MICRNo ?? getValues('asecS_MICRNo') ?? '').trim();
-                const branch = String(ecs.asecS_Branch ?? flat.asecS_Branch ?? getValues('asecS_Branch') ?? '').trim();
-                if (!acctNo || !holder || !bank || !type || !micr || !branch) {
-                    toast.error('Please fill all ECS account details');
-                    console.warn('[Admission] saveFirstTab aborted - missing ECS details');
-                    throw new Error('Validation failed: missing ECS details');
-                }
-            }
             const amsTIdToUse = Number(formData.amsT_Id ?? getValues('amsT_Id' as any) ?? 0);
             // Build payload expected by server for first tab
             const payload = {
@@ -908,7 +886,8 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
                 amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
                 amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
-                amsT_ApparNo: formData.amsT_ApparNo ?? '',
+                amsT_ApparNo: formData.amsT_ApparNo ?? (formData.amsT_APAARId ? String(formData.amsT_APAARId) : ''),
+                amsT_APAARId: Number(formData.amsT_APAARId || formData.amsT_ApparNo || 0) || 0,
                 amsT_BiometricId: formData.amsT_BiometricId ?? '',
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
                 isEmisBpl: !!formData.isEmisBpl,
@@ -979,7 +958,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
                 amsT_Nationality: Number(formData.amsT_Nationality ?? 0),
                 amsT_State: Number(formData.amsT_State ?? 0),
-                amsT_PENNo: formData.amsT_PENNo || '',
+                amsT_PENNo: String(formData.amsT_PENNo ?? getValues('amsT_PENNo') ?? ''),
                 amsT_Tribe: formData.amsT_Tribe || '',
                 amsT_GovtAdmno: formData.amsT_GovtAdmno || '',
                 amsT_Income: formData.amsT_Income || '',
@@ -1603,23 +1582,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     }
                 }
 
-                // If ECS flag checked, require ECS bank details
-                if (Number(getValues('amsT_ECSFlag') ?? 0) === 1) {
-                    const requiredEcsFields = [
-                        'asecS_AccountNo',
-                        'asecS_AccountHolderName',
-                        'asecS_BankName',
-                        'asecS_AccountType',
-                        'asecS_MICRNo',
-                        'asecS_Branch'
-                    ] as const;
-                    const missing = requiredEcsFields.filter((f) => !String(getValues(f as any) ?? '').trim());
-                    if (missing.length > 0) {
-                        toast.error('Please fill all ECS account details');
-                        setIsSavingStep(false);
-                        return;
-                    }
-                }
+
 
                 try {
                     const formData = getValues();

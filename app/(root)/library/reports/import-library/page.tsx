@@ -1,17 +1,52 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider } from '@/components/ui/form/form-provider';
-import { useEffect, useState } from 'react';
-
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { checkLibraryDataValidation, getImportLibraryDataInitial, saveImportLibraryData } from '@/server/library/reports/importlibrarydata';
+import { RefreshCw, Save, Search, X } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
+
+// Helper to determine the backend payload key automatically based on filename or column headers
+function detectPayloadConfig(fname: string, headers: string[]): { key: string; requiresLibrary: boolean } {
+    const lowerName = fname.toLowerCase();
+    const upperHeaders = headers.map((h) => h.toUpperCase());
+
+    // 1. By Filename
+    if (lowerName.includes('subject')) return { key: 'mastersub', requiresLibrary: true };
+    if (lowerName.includes('department') || lowerName.includes('masterdep')) return { key: 'masterdep', requiresLibrary: true };
+    if (lowerName.includes('language') || lowerName.includes('masterlang')) return { key: 'masterlang', requiresLibrary: false };
+    if (lowerName.includes('publisher') || lowerName.includes('masterpubl')) return { key: 'masterpubl', requiresLibrary: true };
+    if (lowerName.includes('rack') || lowerName.includes('masterrack')) return { key: 'masterrack', requiresLibrary: true };
+    if (lowerName.includes('author') || lowerName.includes('masterauthor')) return { key: 'masterauthor', requiresLibrary: true };
+    if (lowerName.includes('accn') || lowerName.includes('accession') || lowerName.includes('masteracces'))
+        return { key: 'masteracces', requiresLibrary: true };
+    if (lowerName.includes('trans') || lowerName.includes('circulation')) return { key: 'booktransIMP', requiresLibrary: true };
+    if (lowerName.includes('vendor') || lowerName.includes('vender')) return { key: 'mastervender', requiresLibrary: true };
+    if (lowerName.includes('book') || lowerName.includes('masterbook')) return { key: 'masterbook', requiresLibrary: true };
+
+    // 2. By Header column names
+    if (upperHeaders.some((h) => h.includes('LMAU_') || h.includes('AUTHORFIRST'))) return { key: 'masterauthor', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.includes('LMRA_') || h.includes('RACKNAME'))) return { key: 'masterrack', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.includes('LMBANO_') || h.includes('ACCESSIONNO'))) return { key: 'masteracces', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.includes('LBTR_') || h.includes('ISSUEDDATE') || h.includes('RETURNEDDATE')))
+        return { key: 'booktransIMP', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.includes('LMV_') || h.includes('VENDORNAME'))) return { key: 'mastervender', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.includes('LMP_') || h.includes('PUBLISHERNAME'))) return { key: 'masterpubl', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.includes('LML_') || h.includes('LANGUAGENAME'))) return { key: 'masterlang', requiresLibrary: false };
+    if (upperHeaders.some((h) => h.includes('LMD_') || h.includes('DEPARTMENTNAME'))) return { key: 'masterdep', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.includes('LMS_') || h.includes('SUBJECTNAME'))) return { key: 'mastersub', requiresLibrary: true };
+    if (upperHeaders.some((h) => h.includes('LMB_') || h.includes('BOOKTITLE') || h.includes('BOOKSUBTITLE')))
+        return { key: 'masterbook', requiresLibrary: true };
+
+    // Default to book
+    return { key: 'masterbook', requiresLibrary: true };
+}
 
 export default function ImportLibraryDataPage() {
     return (
@@ -24,19 +59,33 @@ export default function ImportLibraryDataPage() {
 function ImportLibraryDataContent() {
     const [libraries, setLibraries] = useState<any[]>([]);
     const [selectedLibraryId, setSelectedLibraryId] = useState<string>('');
-    const [activeFlag, setActiveFlag] = useState<boolean>(false);
     const [gridData, setGridData] = useState<any[]>([]);
-    const [columns, setColumns] = useState<any[]>([]);
+    const [columns, setColumns] = useState<string[]>([]);
     const [filename, setFilename] = useState<string>('');
+    const [searchQuery, setSearchQuery] = useState<string>('');
+
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Fetch initial libraries
     useEffect(() => {
         setIsLoading(true);
         getImportLibraryDataInitial()
             .then((res) => {
-                if (res?.masterlibarary?.length > 0) {
-                    setLibraries(res.masterlibarary);
+                const libList =
+                    res?.masterlibarary ||
+                    res?.msterliblist1 ||
+                    res?.masterlibrary ||
+                    res?.lib_list ||
+                    res?.libList ||
+                    res?.libraryList ||
+                    res?.list ||
+                    (Array.isArray(res) ? res : []);
+
+                if (Array.isArray(libList) && libList.length > 0) {
+                    setLibraries(libList);
                 }
             })
             .catch((err) => {
@@ -47,57 +96,152 @@ function ImportLibraryDataContent() {
             });
     }, []);
 
+    // Handle Excel File Upload
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        if (file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' && !file.name.endsWith('.xlsx')) {
-            toast.error('Please upload a valid .xlsx file');
+        const lowerName = file.name.toLowerCase();
+        const validExtensions = ['.xlsx', '.xls', '.csv', '.xlsm', '.xlsb'];
+        const isExcel = validExtensions.some((ext) => lowerName.endsWith(ext));
+
+        if (!isExcel && !file.type.includes('sheet') && !file.type.includes('excel') && !file.type.includes('csv') && file.type !== '') {
+            toast.error('Please upload a valid Excel file (.xlsx, .xls, .csv)');
             return;
         }
 
         setFilename(file.name);
-        const reader = new FileReader();
-        reader.onload = async (evt) => {
-            try {
-                const data = evt.target?.result;
-                const workbook = XLSX.read(data, { type: 'binary' });
-                const firstSheetName = workbook.SheetNames[0];
-                const headerNames = XLSX.utils.sheet_to_json<string[]>(workbook.Sheets[firstSheetName], { header: 1 })[0];
-                const rowData = XLSX.utils.sheet_to_json<any>(workbook.Sheets[firstSheetName]);
 
-                if (!rowData || rowData.length === 0) {
-                    toast.error('Excel Sheet is Empty');
-                    setGridData([]);
-                    setColumns([]);
-                    if (e.target) e.target.value = '';
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            try {
+                const buffer = evt.target?.result as ArrayBuffer;
+                const workbook = XLSX.read(buffer, {
+                    type: 'array',
+                    cellDates: true,
+                    cellNF: false,
+                    cellText: false
+                });
+
+                const sheetNames = workbook.SheetNames;
+                if (!sheetNames || sheetNames.length === 0) {
+                    toast.error('Uploaded file contains no worksheets.');
                     return;
                 }
 
-                // Validation API
-                const validationPayload = { newlstget1: rowData };
-                const res = await checkLibraryDataValidation(validationPayload);
-                if (res?.stuStatus && res.stuStatus !== '') {
-                    toast.error(res.stuStatus);
+                const worksheet = workbook.Sheets[sheetNames[0]];
+                if (!worksheet) {
+                    toast.error('Worksheet not found.');
+                    return;
+                }
+
+                // Extract header row
+                const headerMatrix = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
+                const firstRow = headerMatrix[0] || [];
+
+                // Extract rows
+                const rawData = XLSX.utils.sheet_to_json<any>(worksheet, { defval: '' });
+
+                if (!rawData || rawData.length === 0) {
+                    toast.error('Excel sheet is empty');
                     setGridData([]);
                     setColumns([]);
-                    if (e.target) e.target.value = '';
-                } else {
-                    setGridData(rowData);
-                    setColumns(headerNames || []);
+                    return;
                 }
-            } catch (_error: any) {
-                toast.error('Error parsing excel file');
+
+                // Sanitize column headers
+                const cleanedHeaders: string[] = [];
+                firstRow.forEach((h: any, idx: number) => {
+                    const text = h !== undefined && h !== null ? String(h).trim() : '';
+                    if (text) {
+                        cleanedHeaders.push(text);
+                    } else if (idx < Object.keys(rawData[0] || {}).length) {
+                        cleanedHeaders.push(`Column_${idx + 1}`);
+                    }
+                });
+
+                const finalHeaders = cleanedHeaders.length > 0 ? cleanedHeaders : Object.keys(rawData[0] || {});
+
+                // Format row values
+                const formattedData = rawData.map((row: any) => {
+                    const cleanRow: Record<string, any> = {};
+                    for (const col of finalHeaders) {
+                        let val = row[col];
+                        if (val instanceof Date) {
+                            val = val.toISOString().split('T')[0];
+                        } else if (val === undefined || val === null) {
+                            val = '';
+                        } else if (typeof val === 'string') {
+                            val = val.trim();
+                        }
+                        cleanRow[col] = val;
+                    }
+                    return cleanRow;
+                });
+
+                // Display in grid immediately
+                setGridData(formattedData);
+                setColumns(finalHeaders);
+                toast.success(`Loaded ${formattedData.length} records from Excel`);
+
+                // Non-blocking background validation
+                try {
+                    checkLibraryDataValidation({ newlstget1: formattedData.slice(0, 100) })
+                        .then((valRes) => {
+                            if (valRes?.stuStatus && valRes.stuStatus !== '') {
+                                toast.info(`Validation Note: ${valRes.stuStatus}`);
+                            }
+                        })
+                        .catch(() => {});
+                } catch (_) {}
+            } catch (err: any) {
+                console.error('File reading error:', err);
+                toast.error('Failed to parse Excel file. Please ensure it is not corrupt.');
             }
         };
-        reader.readAsBinaryString(file);
+
+        reader.onerror = () => {
+            toast.error('Error reading file from disk');
+        };
+
+        reader.readAsArrayBuffer(file);
+
+        if (e.target) {
+            e.target.value = '';
+        }
     };
 
+    // Filter rows based on search input
+    const filteredData = useMemo(() => {
+        if (!searchQuery.trim()) return gridData;
+        const query = searchQuery.toLowerCase().trim();
+        return gridData.filter((row) =>
+            columns.some((col) => {
+                const val = row[col];
+                return val !== undefined && val !== null && String(val).toLowerCase().includes(query);
+            })
+        );
+    }, [gridData, columns, searchQuery]);
+
+    // Clear / Cancel
+    const handleClear = () => {
+        setGridData([]);
+        setColumns([]);
+        setSelectedLibraryId('');
+        setFilename('');
+        setSearchQuery('');
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
+    // Save imported data
     const handleSave = async () => {
         if (!selectedLibraryId) {
             toast.error('Library Name Is Not Selected !');
             return;
         }
+
         if (gridData.length === 0) {
             toast.error('Please upload a valid excel data');
             return;
@@ -105,50 +249,40 @@ function ImportLibraryDataContent() {
 
         setIsSaving(true);
         try {
-            let data: any = {};
-            // Formatting dates if necessary like the old angular script did.
+            // Format dates
             const formattedData = gridData.map((item) => {
                 const newItem = { ...item };
-                if (newItem.LBTR_IssuedDate) newItem.LBTR_IssuedDate = new Date(newItem.LBTR_IssuedDate).toISOString().split('T')[0];
-                if (newItem.LBTR_ReturnedDate) newItem.LBTR_ReturnedDate = new Date(newItem.LBTR_ReturnedDate).toISOString().split('T')[0];
+                if (newItem.LBTR_IssuedDate) {
+                    try {
+                        newItem.LBTR_IssuedDate = new Date(newItem.LBTR_IssuedDate).toISOString().split('T')[0];
+                    } catch (_) {}
+                }
+                if (newItem.LBTR_ReturnedDate) {
+                    try {
+                        newItem.LBTR_ReturnedDate = new Date(newItem.LBTR_ReturnedDate).toISOString().split('T')[0];
+                    } catch (_) {}
+                }
                 return newItem;
             });
 
-            if (filename === 'LIB.LIB_Master_Subject.xlsx') {
-                data = { mastersub: formattedData, LMAL_Id: selectedLibraryId };
-            } else if (filename === 'LIB.LIB_Master_Department.xlsx') {
-                data = { masterdep: formattedData, LMAL_Id: selectedLibraryId };
-            } else if (filename === 'LIB.LIB_Master_Language.xlsx') {
-                data = { masterlang: formattedData };
-            } else if (filename === 'LIB.LIB_Master_Publisher.xlsx') {
-                data = { masterpubl: formattedData, LMAL_Id: selectedLibraryId };
-            } else if (filename === 'LIB_Master_Book.xlsx') {
-                data = { masterbook: formattedData, LMAL_Id: selectedLibraryId };
-            } else if (filename === 'LIB_Master_Rack.xlsx') {
-                data = { masterrack: formattedData, LMAL_Id: selectedLibraryId };
-            } else if (filename === 'LIB_Master_Book_Author.xlsx') {
-                data = { masterauthor: formattedData, LMAL_Id: selectedLibraryId };
-            } else if (filename === 'LIB_Master_Book_AccnNo.xlsx') {
-                data = { masteracces: formattedData, LMAL_Id: selectedLibraryId };
-            } else if (filename === 'LIB_trans.xlsx') {
-                data = { booktransIMP: formattedData, LMAL_Id: selectedLibraryId };
-            } else if (filename === 'vendor.xlsx') {
-                data = { mastervender: formattedData, LMAL_Id: selectedLibraryId };
-            } else {
-                toast.error('Please Select Correct File Format Name');
-                setIsSaving(false);
-                return;
+            const config = detectPayloadConfig(filename, columns);
+            const payload: Record<string, any> = {
+                [config.key]: formattedData
+            };
+            if (config.requiresLibrary) {
+                payload.LMAL_Id = selectedLibraryId;
             }
 
-            const response = await saveImportLibraryData(data);
-            if (response?.returnval) {
-                toast.success(`Row Saved --${response.suscnt} Failed Row --${response.failcnt} Existing Row --${response.dupcnt}`);
-                setGridData([]);
-                setColumns([]);
-                setSelectedLibraryId('');
-                setFilename('');
+            const response = await saveImportLibraryData(payload);
+            if (response?.returnval === true || response?.returnval === 'true') {
+                toast.success(
+                    `Saved successfully! Saved: ${response.suscnt ?? 0}, Failed: ${response.failcnt ?? 0}, Duplicate/Existing: ${response.dupcnt ?? 0}`
+                );
+                handleClear();
+            } else if (response?.message) {
+                toast.error(response.message);
             } else {
-                toast.error('Please Select Correct File Format');
+                toast.error('Please Select Correct File Format Name or Data Template');
             }
         } catch (error: any) {
             toast.error(error.message || 'Failed to save data');
@@ -157,122 +291,144 @@ function ImportLibraryDataContent() {
         }
     };
 
-    const handleClear = () => {
-        setGridData([]);
-        setColumns([]);
-        setSelectedLibraryId('');
-        setFilename('');
-        setActiveFlag(false);
-        // clear file input via ref if we had one, but state clear is enough for logic
-    };
-
     return (
         <div className='min-h-screen'>
             <div className='container space-y-4 p-1'>
+                {/* SECTION 1: LIBRARY DATA IMPORT */}
                 <CollapsibleSection title='LIBRARY DATA IMPORT' defaultOpen={true} variant='outline' size='md' className='shadow-lg'>
                     <div className='flex justify-center p-4'>
-                        <div className='rounded border px-6 py-2 text-center font-semibold text-green-600'>
+                        <div className='rounded border border-gray-300 bg-white px-8 py-2 text-center font-bold text-green-600 shadow-sm'>
                             ** Kindly Select Only One Excel Sheet To Import
                         </div>
                     </div>
                 </CollapsibleSection>
 
+                {/* SECTION 2: IMPORTED DATA FROM EXCEL */}
                 <CollapsibleSection title='IMPORTED DATA FROM EXCEL' defaultOpen={true} variant='default' size='lg' className='shadow-lg'>
                     <div className='space-y-6 p-4'>
                         {/* Top Controls Row */}
                         <div className='flex flex-wrap items-center justify-between gap-4 border-b pb-4'>
                             <div className='flex flex-wrap items-center gap-6'>
+                                {/* Choose File */}
                                 <div className='relative'>
-                                    <Input id='excel-upload' type='file' accept='.xlsx' onChange={handleFileUpload} className='hidden' />
+                                    <Input
+                                        id='excel-upload'
+                                        type='file'
+                                        accept='.xlsx,.xls,.csv,.xlsm,.xlsb'
+                                        onChange={handleFileUpload}
+                                        className='hidden'
+                                        ref={fileInputRef}
+                                    />
                                     <Label
                                         htmlFor='excel-upload'
-                                        className='flex min-w-[150px] cursor-pointer items-center justify-center rounded bg-yellow-400 px-6 py-2 font-bold text-black text-sm shadow-sm hover:bg-yellow-500'>
+                                        className='flex min-w-[140px] cursor-pointer items-center justify-center rounded bg-[#f1b53d] px-6 py-2 font-bold text-black text-sm shadow-sm transition hover:bg-[#e0a42c]'>
                                         Choose File
                                     </Label>
                                 </div>
+
+                                {/* Libarary Name */}
                                 <div className='flex items-center gap-3'>
-                                    <Label className='whitespace-nowrap'>Library Name</Label>
+                                    <Label className='whitespace-nowrap font-medium text-gray-700 text-sm'>Libarary Name</Label>
                                     <Select value={selectedLibraryId} onValueChange={setSelectedLibraryId} disabled={isLoading}>
-                                        <SelectTrigger className='w-[250px]'>
-                                            <SelectValue placeholder='Select Library Name' />
+                                        <SelectTrigger className='w-[240px] bg-white'>
+                                            <SelectValue placeholder='Select Libarary Name' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {libraries.map((lib: any) => (
-                                                <SelectItem key={lib.lmaL_Id} value={String(lib.lmaL_Id)}>
-                                                    {lib.lmaL_LibraryName}
-                                                </SelectItem>
-                                            ))}
+                                            {libraries.map((lib: any, idx: number) => {
+                                                const id = String(lib.lmaL_Id ?? lib.LMAL_Id ?? lib.lmal_id ?? lib.id ?? idx);
+                                                const name =
+                                                    lib.lmaL_LibraryName ??
+                                                    lib.LMAL_LibraryName ??
+                                                    lib.lmal_LibraryName ??
+                                                    lib.libraryName ??
+                                                    lib.name ??
+                                                    '';
+                                                return (
+                                                    <SelectItem key={`${id}-${idx}`} value={id}>
+                                                        {name}
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                <div className='flex items-center space-x-2'>
-                                    <Checkbox
-                                        id='active-flag'
-                                        checked={activeFlag}
-                                        onCheckedChange={(checked) => setActiveFlag(!!checked)}
-                                    />
-                                    <Label htmlFor='active-flag' className='cursor-pointer font-medium text-gray-700 text-sm'>
-                                        Active Flag
-                                    </Label>
-                                </div>
                             </div>
-                            <div className='w-full md:w-[250px]'>
+
+                            {/* Search Input on the right */}
+                            <div className='w-full md:w-[260px]'>
                                 <div className='relative'>
-                                    <Input placeholder='search here...' className='pr-8 pl-3' />
+                                    <Input
+                                        placeholder='search here...'
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className='bg-white pr-9 pl-3'
+                                    />
                                     <div className='pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3'>
-                                        <svg
-                                            className='h-4 w-4 text-gray-500'
-                                            fill='none'
-                                            stroke='currentColor'
-                                            viewBox='0 0 24 24'
-                                            xmlns='http://www.w3.org/2000/svg'>
-                                            <path
-                                                strokeLinecap='round'
-                                                strokeLinejoin='round'
-                                                strokeWidth='2'
-                                                d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
-                                            />
-                                        </svg>
+                                        <Search className='h-4 w-4 text-gray-500' />
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className='flex justify-center gap-4'>
+                        {/* Action Buttons: Centered SAVE and CANCEL */}
+                        <div className='flex justify-center gap-4 py-1'>
                             <Button
                                 size='sm'
                                 onClick={handleSave}
-                                disabled={isSaving || !selectedLibraryId || gridData.length === 0}
-                                className='w-24 bg-red-600 text-white hover:bg-red-700'>
-                                {isSaving ? 'Saving...' : 'Save'}
+                                disabled={isSaving}
+                                className='w-28 gap-2 bg-[#3f51b5] font-bold text-white shadow hover:bg-[#303f9f]'>
+                                {isSaving ? (
+                                    <>
+                                        <RefreshCw className='h-4 w-4 animate-spin' />
+                                        SAVING...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className='h-4 w-4' />
+                                        SAVE
+                                    </>
+                                )}
                             </Button>
-                            <Button variant='destructive' size='sm' onClick={handleClear} disabled={isSaving} className='w-24'>
-                                Cancel
+                            <Button
+                                size='sm'
+                                onClick={handleClear}
+                                disabled={isSaving}
+                                className='w-28 gap-2 bg-[#f4511e] font-bold text-white shadow hover:bg-[#d84315]'>
+                                <X className='h-4 w-4' />
+                                CANCEL
                             </Button>
                         </div>
 
-                        {/* Table */}
+                        {/* Table Display */}
                         {gridData.length > 0 ? (
-                            <div className='max-h-[500px] overflow-auto rounded-md border'>
-                                <table className='w-full border-collapse text-center text-sm'>
-                                    <thead className='sticky top-0 bg-primary text-primary-foreground'>
+                            <div className='max-h-[500px] overflow-auto rounded-md border shadow-sm'>
+                                <table className='w-full border-collapse text-left text-sm'>
+                                    <thead className='sticky top-0 z-10 bg-primary text-primary-foreground'>
                                         <tr>
-                                            <th className='border p-2'>SLNO</th>
+                                            <th className='border border-primary-foreground/20 p-2.5 text-center font-bold'>SLNO</th>
                                             {columns.map((col, idx) => (
-                                                <th key={idx} className='border p-2'>
+                                                <th
+                                                    key={idx}
+                                                    className='whitespace-nowrap border border-primary-foreground/20 p-2.5 font-semibold text-xs uppercase tracking-wider'>
                                                     {col}
                                                 </th>
                                             ))}
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {gridData.map((row, rIdx) => (
-                                            <tr key={rIdx} className='border-b hover:bg-muted/50'>
-                                                <td className='border p-2'>{rIdx + 1}</td>
+                                        {filteredData.map((row, rIdx) => (
+                                            <tr
+                                                key={rIdx}
+                                                className='border-b transition-colors odd:bg-white even:bg-muted/20 hover:bg-muted/60'>
+                                                <td className='border p-2 text-center font-medium text-muted-foreground text-xs'>
+                                                    {rIdx + 1}
+                                                </td>
                                                 {columns.map((col, cIdx) => (
-                                                    <td key={cIdx} className='border p-2'>
-                                                        {row[col]}
+                                                    <td
+                                                        key={cIdx}
+                                                        className='max-w-[250px] truncate border p-2 text-xs'
+                                                        title={String(row[col] ?? '')}>
+                                                        {String(row[col] ?? '')}
                                                     </td>
                                                 ))}
                                             </tr>
@@ -282,7 +438,7 @@ function ImportLibraryDataContent() {
                             </div>
                         ) : (
                             <div className='overflow-x-auto rounded-md border'>
-                                <div className='flex min-h-[20px] items-center justify-center bg-gray-100 p-4' />
+                                <div className='flex min-h-[25px] items-center justify-center bg-gray-100 p-4' />
                             </div>
                         )}
                     </div>

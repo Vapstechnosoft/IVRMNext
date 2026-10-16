@@ -3,12 +3,41 @@ import { DataTableColumnHeader } from '@/components/ui/data-table-column-header'
 import type { IMasterStudentCountReportList } from '@/types/admission/preadmission/reports';
 import type { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
-const formatDate = (date: unknown): string => {
+export const formatDate = (date: unknown): string => {
     if (!date) return 'N/A';
+    if (typeof date === 'string') {
+        const trimmed = date.trim();
+        // Check if format is DD/MM/YYYY or DD-MM-YYYY
+        const dmyMatch = trimmed.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(.*)$/);
+        if (dmyMatch) {
+            const day = dmyMatch[1].padStart(2, '0');
+            const month = dmyMatch[2].padStart(2, '0');
+            const year = dmyMatch[3];
+            return `${day}-${month}-${year}`;
+        }
+        // Check if format is YYYY-MM-DD
+        const ymdMatch = trimmed.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})/);
+        if (ymdMatch) {
+            const year = ymdMatch[1];
+            const month = ymdMatch[2].padStart(2, '0');
+            const day = ymdMatch[3].padStart(2, '0');
+            return `${day}-${month}-${year}`;
+        }
+    }
     const parsedDate = new Date(date as any);
     if (isNaN(parsedDate.getTime())) return 'N/A';
     return format(parsedDate, 'dd-MM-yyyy');
 };
+
+export const getStudentName = (row: any): string => {
+    if (!row) return 'N/A';
+    const firstName = row.FirstName || '';
+    const middleName = row.MiddleName || '';
+    const lastName = row.LastName || '';
+    const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
+    return fullName || row.FatherName || row.UserName || 'N/A';
+};
+
 export const getStudentCountReportColumns = (): ColumnDef<IMasterStudentCountReportList>[] => {
     return [
         {
@@ -24,14 +53,11 @@ export const getStudentCountReportColumns = (): ColumnDef<IMasterStudentCountRep
             enableHiding: false
         },
         {
-            accessorKey: 'FirstName',
+            id: 'FirstName',
+            accessorFn: (row) => getStudentName(row),
             header: ({ column }) => <DataTableColumnHeader column={column} title='Student Name' className='font-bold text-black' />,
             cell: ({ row }) => {
-                const firstName = row.original?.FirstName || '';
-                const middleName = row.original?.MiddleName || '';
-                const lastName = row.original?.LastName || '';
-                const fullName = [firstName, middleName, lastName].filter(Boolean).join(' ');
-                return <div>{fullName || 'N/A'}</div>;
+                return <div>{getStudentName(row.original)}</div>;
             },
             enableSorting: true,
             enableHiding: true
@@ -55,7 +81,7 @@ export const getStudentCountReportColumns = (): ColumnDef<IMasterStudentCountRep
             header: ({ column }) => <DataTableColumnHeader column={column} title='Date' className='font-bold text-black' />,
             cell: ({ row }) => {
                 const date = row.getValue('RegDate') as string;
-                return <div>{date ? formatDate(date) : 'N/A'}</div>;
+                return <div>{formatDate(date)}</div>;
             },
             enableSorting: true,
             enableHiding: true

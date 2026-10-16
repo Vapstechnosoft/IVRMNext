@@ -36,8 +36,25 @@ export default function ViewDetailsDialog({ isOpen, onClose, title, description,
     const images = isStructuredData ? data?.edit_images_list || [] : [];
     const videos = isStructuredData ? data?.edit_videos_list || [] : [];
 
-    const formatDate = (date: string) =>
-        date ? new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+    const formatDate = (date: string) => {
+        if (!date) return '-';
+        const match = typeof date === 'string' ? date.match(/^(\d{4})-(\d{2})-(\d{2})/) : null;
+        const d = match ? new Date(parseInt(match[1], 10), parseInt(match[2], 10) - 1, parseInt(match[3], 10)) : new Date(date);
+        return Number.isNaN(d.getTime()) ? '-' : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    };
+
+    const formatTimeOnly = (timeStr: string | undefined | null): string => {
+        if (!timeStr) return '-';
+        const trimmed = timeStr.trim();
+        if (trimmed.includes('T')) {
+            const timePart = trimmed.split('T')[1]?.replace(/Z$/, '').split('.')[0];
+            if (timePart) return timePart;
+        }
+        if (/^\d{4}-\d{2}-\d{2}\s+/.test(trimmed)) {
+            return trimmed.replace(/^\d{4}-\d{2}-\d{2}\s+/, '');
+        }
+        return trimmed;
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -101,7 +118,8 @@ export default function ViewDetailsDialog({ isOpen, onClose, title, description,
                                                         Timing
                                                     </p>
                                                     <p className='font-medium text-lg'>
-                                                        {eventInfo.coeE_EStartTime || '-'} TO {eventInfo.coeE_EEndTime || '-'}
+                                                        {formatTimeOnly(eventInfo.coeE_EStartTime)} TO{' '}
+                                                        {formatTimeOnly(eventInfo.coeE_EEndTime)}
                                                     </p>
                                                 </div>
                                             </div>
