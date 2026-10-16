@@ -8,12 +8,12 @@ import {
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
-    AlertDialogTitle,
+    AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import { useDeactivateMasterCourse } from '@/hooks/college/useCollegeMasters';
-import { IMasterCourse } from '@/types/college/masters';
-import { toast } from 'sonner';
+import type { IMasterCourse } from '@/types/college/masters';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ToggleMasterCourseFormProps {
     rowData: IMasterCourse;
@@ -34,7 +34,7 @@ export default function ToggleMasterCourseForm({ rowData, onClose }: ToggleMaste
                     onClose();
                     return `Record ${actionText}d Successfully!!!`;
                 }
-                throw new Error(`Record Not ${actionText}d Successfully!!!`);
+                throw new Error(data?.message || `Record Not ${actionText}d Successfully!!!`);
             },
             error: (err: any) => err.message || 'Something went wrong. Please try again.'
         });
@@ -45,9 +45,7 @@ export default function ToggleMasterCourseForm({ rowData, onClose }: ToggleMaste
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Do You Want To {actionText} Record?
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>Do You Want To {actionText} Record?</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel disabled={deactivateMutation.isPending}>Cancel</AlertDialogCancel>
@@ -57,11 +55,12 @@ export default function ToggleMasterCourseForm({ rowData, onClose }: ToggleMaste
                             handleToggle();
                         }}
                         disabled={deactivateMutation.isPending}
-                        className={rowData.amcO_ActiveFlag ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground' : 'bg-primary hover:bg-primary/90'}
-                    >
-                        {deactivateMutation.isPending ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : null}
+                        className={
+                            rowData.amcO_ActiveFlag
+                                ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                                : 'bg-primary hover:bg-primary/90'
+                        }>
+                        {deactivateMutation.isPending ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : null}
                         Yes, {actionText} it
                     </AlertDialogAction>
                 </AlertDialogFooter>

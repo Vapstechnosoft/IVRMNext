@@ -42,6 +42,7 @@ import {
     useSophiaRegistrationXISubjects,
     useSophiaRegistrationXIToggleStatus
 } from '@/hooks/admission/preadmission/transactions/useSophiaRegistrationXI';
+import { useAdmissionFormDetails } from '@/hooks/admission/admissionForm';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -245,6 +246,7 @@ export default function SophiaRegistrationXI() {
 
     /* -------------------- Hooks -------------------- */
     const { data: initialData, isLoading: isInitialLoading } = useSophiaRegistrationXIInitialData(0, 0);
+    const { data: admissionDetails } = useAdmissionFormDetails();
     const casteMutation = useSophiaRegistrationXICaste();
     const classChangeMutation = useSophiaRegistrationXIClassChange();
     const streamsMutation = useSophiaRegistrationXIStreams();
@@ -257,11 +259,52 @@ export default function SophiaRegistrationXI() {
     const classMaxMinAgeMutation = useSophiaRegistrationXIClassMaxMinAge();
 
     /* -------------------- Memo -------------------- */
+    const religions = useMemo(() => {
+        return (
+            (admissionDetails as any)?.religions ||
+            (admissionDetails as any)?.allReligion ||
+            (admissionDetails as any)?.allReligionList ||
+            (admissionDetails as any)?.AllReligion ||
+            (initialData?.data as any)?.religiondrp ||
+            []
+        );
+    }, [admissionDetails, initialData]);
+
+    const casteCategories = useMemo(() => {
+        return (
+            (admissionDetails as any)?.casteCategoryes ||
+            (admissionDetails as any)?.allCasteCategory ||
+            (admissionDetails as any)?.vpre_allCasteCategory ||
+            (admissionDetails as any)?.allCasteCategoryList ||
+            (admissionDetails as any)?.AllCasteCategory ||
+            (initialData?.data as any)?.castecategorydrp ||
+            (initialData?.data as any)?.arrlist9 ||
+            []
+        );
+    }, [admissionDetails, initialData]);
+
+    const allCastes = useMemo(() => {
+        return (
+            (casteMutation.data as any)?.data?.allCaste ||
+            (admissionDetails as any)?.castes ||
+            (admissionDetails as any)?.allCaste ||
+            (admissionDetails as any)?.allCasteList ||
+            []
+        );
+    }, [casteMutation.data, admissionDetails]);
+
+    const castesForCategory = useMemo(() => {
+        if (!reg.IMCC_Id) return allCastes;
+        const filtered = allCastes.filter((c: any) => Number(c.imcC_Id || c.imCC_Id) === Number(reg.IMCC_Id));
+        return filtered.length > 0 ? filtered : allCastes;
+    }, [allCastes, reg.IMCC_Id]);
+
     const isRomanCatholic = useMemo(() => {
         const religionId = Number(reg.Religion_Id);
-        const religion = (initialData?.data as any)?.religiondrp?.find((r: any) => r.ivrmmR_Id === religionId);
-        return religion?.ivrmmR_Name?.toLowerCase().includes('roman catholic');
-    }, [reg.Religion_Id, initialData]);
+        const religion = religions.find((r: any) => Number(r.ivrmmR_Id) === religionId);
+        const name = (religion?.ivrmmR_ReligionName || religion?.ivrmmR_Name || '').toLowerCase();
+        return name.includes('roman catholic');
+    }, [reg.Religion_Id, religions]);
 
     /* -------------------- Effects -------------------- */
     useEffect(() => {
@@ -776,14 +819,16 @@ export default function SophiaRegistrationXI() {
                                             <Label className='font-bold text-slate-500 text-xs uppercase'>
                                                 Religion <span className='text-red-500'>*</span>
                                             </Label>
-                                            <Select value={reg.Religion_Id?.toString()} onValueChange={handleReligionChange}>
+                                            <Select
+                                                value={reg.Religion_Id?.toString()}
+                                                onValueChange={(v) => handleInputChange('Religion_Id', Number(v))}>
                                                 <SelectTrigger className='h-10'>
-                                                    <SelectValue placeholder='Select' />
+                                                    <SelectValue placeholder='Select Religion' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {(initialData?.data as any)?.religiondrp?.map((r: any) => (
+                                                    {religions.map((r: any) => (
                                                         <SelectItem key={r.ivrmmR_Id} value={r.ivrmmR_Id.toString()}>
-                                                            {r.ivrmmR_Name}
+                                                            {r.ivrmmR_ReligionName || r.ivrmmR_Name}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -795,12 +840,14 @@ export default function SophiaRegistrationXI() {
                                             </Label>
                                             <Select value={reg.IMCC_Id?.toString()} onValueChange={handleCasteCategoryChange}>
                                                 <SelectTrigger className='h-10'>
-                                                    <SelectValue placeholder='Select' />
+                                                    <SelectValue placeholder='Select Category' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {(initialData?.data as any)?.arrlist9?.map((c: any) => (
-                                                        <SelectItem key={c.imcC_Id} value={c.imcC_Id.toString()}>
-                                                            {c.imcC_CategoryName}
+                                                    {casteCategories.map((c: any) => (
+                                                        <SelectItem
+                                                            key={c.imcC_Id || c.imCC_Id || c.imc_id}
+                                                            value={(c.imcC_Id || c.imCC_Id || c.imc_id).toString()}>
+                                                            {c.imcC_CategoryName || c.imCC_CategoryName || c.imC_CategoryName}
                                                         </SelectItem>
                                                     ))}
                                                 </SelectContent>
@@ -814,10 +861,10 @@ export default function SophiaRegistrationXI() {
                                                 value={reg.Caste_Id?.toString()}
                                                 onValueChange={(v) => handleInputChange('Caste_Id', Number(v))}>
                                                 <SelectTrigger className='h-10'>
-                                                    <SelectValue placeholder='Select' />
+                                                    <SelectValue placeholder='Select Caste' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {(casteMutation.data as any)?.data?.allCaste?.map((c: any) => (
+                                                    {castesForCategory.map((c: any) => (
                                                         <SelectItem key={c.imC_Id} value={c.imC_Id.toString()}>
                                                             {c.imC_CasteName}
                                                         </SelectItem>
@@ -1816,8 +1863,8 @@ export default function SophiaRegistrationXI() {
                                                 {field === 'Option5'
                                                     ? 'Interdisciplinary Subject'
                                                     : field === 'Compulsory'
-                                                      ? 'Compulsory Subject'
-                                                      : `Option ${idx}`}{' '}
+                                                        ? 'Compulsory Subject'
+                                                        : `Option ${idx}`}{' '}
                                                 <span className='text-red-500'>*</span>
                                             </Label>
                                             <Select value={reg[field]} onValueChange={(v) => handleInputChange(field, v)}>
@@ -1989,10 +2036,10 @@ export default function SophiaRegistrationXI() {
                                         cell: ({ row }: any) =>
                                             row.original.pasR_Date
                                                 ? new Date(row.original.pasR_Date).toLocaleDateString('en-GB', {
-                                                      day: '2-digit',
-                                                      month: 'short',
-                                                      year: 'numeric'
-                                                  })
+                                                    day: '2-digit',
+                                                    month: 'short',
+                                                    year: 'numeric'
+                                                })
                                                 : '-'
                                     },
                                     {

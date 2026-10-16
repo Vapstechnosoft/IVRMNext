@@ -31,6 +31,7 @@ import {
     useSophiaRegistrationXIStates,
     useSophiaRegistrationXIToggleStatus
 } from '@/hooks/admission/preadmission/transactions/useSophiaRegistrationXI';
+import { useAdmissionFormDetails } from '@/hooks/admission/admissionForm';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -111,6 +112,7 @@ export default function SophiaRegistration() {
 
     /* -------------------- Hooks -------------------- */
     const { data: initialData, isLoading: isInitialLoading } = useSophiaRegistrationXIInitialData(0, 0);
+    const { data: admissionDetails } = useAdmissionFormDetails();
     const casteMutation = useSophiaRegistrationXICaste();
     const classChangeMutation = useSophiaRegistrationXIClassChange();
     const statesMutation = useSophiaRegistrationXIStates();
@@ -118,6 +120,30 @@ export default function SophiaRegistration() {
     const saveMutation = useSophiaRegistrationXISave();
     const deleteMutation = useSophiaRegistrationXIDelete();
     const toggleStatusMutation = useSophiaRegistrationXIToggleStatus();
+
+    const religions = useMemo(() => {
+        return (
+            (admissionDetails as any)?.religions ||
+            (admissionDetails as any)?.allReligion ||
+            (admissionDetails as any)?.allReligionList ||
+            (admissionDetails as any)?.AllReligion ||
+            (initialData?.data as any)?.religiondrp ||
+            []
+        );
+    }, [admissionDetails, initialData]);
+
+    const casteCategories = useMemo(() => {
+        return (
+            (admissionDetails as any)?.casteCategoryes ||
+            (admissionDetails as any)?.allCasteCategory ||
+            (admissionDetails as any)?.vpre_allCasteCategory ||
+            (admissionDetails as any)?.allCasteCategoryList ||
+            (admissionDetails as any)?.AllCasteCategory ||
+            (initialData?.data as any)?.castecategorydrp ||
+            (initialData?.data as any)?.arrlist9 ||
+            []
+        );
+    }, [admissionDetails, initialData]);
 
     /* -------------------- Effects -------------------- */
     useEffect(() => {
@@ -395,9 +421,9 @@ export default function SophiaRegistration() {
                                             <SelectValue placeholder='Select Religion' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {(initialData?.data as any)?.religiondrp?.map((r: any) => (
+                                            {religions.map((r: any) => (
                                                 <SelectItem key={r.ivrmmR_Id} value={r.ivrmmR_Id.toString()}>
-                                                    {r.ivrmmR_Name}
+                                                    {r.ivrmmR_ReligionName || r.ivrmmR_Name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -412,9 +438,11 @@ export default function SophiaRegistration() {
                                             <SelectValue placeholder='Select Category' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {(initialData?.data as any)?.castecategorydrp?.map((c: any) => (
-                                                <SelectItem key={c.imc_id} value={c.imc_id.toString()}>
-                                                    {c.imC_CategoryName}
+                                            {casteCategories.map((c: any) => (
+                                                <SelectItem
+                                                    key={c.imcC_Id || c.imCC_Id || c.imc_id}
+                                                    value={(c.imcC_Id || c.imCC_Id || c.imc_id).toString()}>
+                                                    {c.imcC_CategoryName || c.imCC_CategoryName || c.imC_CategoryName}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
