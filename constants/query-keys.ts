@@ -712,6 +712,7 @@ export const COLLEGE_QUERY_KEYS = {
     CLG_REG_NO_FORMAT: 'college_clg_reg_no_format',
     COLLEGE_USERNAME_CREATION: 'college_username_creation',
     CLG_YEARLY_COURSE_MAPPING: 'college_yearly_course_mapping',
+    CLG_SECTION_ALLOTMENT: 'college_section_allotment',
     COLLEGE_FEE_TRANSACTION: 'college_fee_transaction',
     COLLEGE_FEE_TRANSACTION_ACADEMIC_YEARS: 'college_fee_transaction_academic_years',
     COLLEGE_LOAN_SCHOLARSHIP_LOAD: 'college_loan_scholarship_load',
