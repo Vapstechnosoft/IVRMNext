@@ -103,19 +103,19 @@ export const studentAdmissionFormSchema = {
         //ecs flag
         amsT_ECSFlag: z.number().int().optional(),
 
-        asecS_AccountNo: createNumberOnlyStringSchema('Bank Account Number', 1, 50).optional(),
-        asecS_BankName: createStringOnlySchema('Bank Name', 1, 100).optional(),
-        asecS_AccountHolderName: createStringOnlySchema('Account Holder Name', 1, 100).optional(),
-        asecS_AccountType: createStringOnlySchema('Account Type', 1, 50).optional(),
-        asecS_MICRNo: createNumberOnlyStringSchema('MICR Code', 1, 20).optional(),
+        asecS_AccountNo: createOptionalNumberOnlyStringSchema('Bank Account Number', 1, 50).optional().nullable(),
+        asecS_BankName: createOptionalStringSchema('Bank Name', 1, 100).optional().nullable(),
+        asecS_AccountHolderName: createOptionalStringSchema('Account Holder Name', 1, 100).optional().nullable(),
+        asecS_AccountType: createOptionalStringSchema('Account Type', 1, 50).optional().nullable(),
+        asecS_MICRNo: createOptionalNumberOnlyStringSchema('MICR Code', 1, 20).optional().nullable(),
 
         //normal bank details
-        amsT_BankAccountNo: createOptionalNumberOnlyStringSchema('Bank Account Number', 1, 50).optional(),
-        amsT_BankName: createStringOnlySchema('Bank Name', 1, 100).optional(),
-        amsT_BankIFSCCode: createAlphanumericSchema('IFSC Code', 1, 20).optional(),
-        amsT_BankBranch: createStringOnlySchema('Branch Name', 1, 100).optional(),
+        amsT_BankAccountNo: createOptionalNumberOnlyStringSchema('Bank Account Number', 1, 50).optional().nullable(),
+        amsT_BankName: createOptionalStringSchema('Bank Name', 1, 100).optional().nullable(),
+        amsT_BankIFSCCode: createOptionalAlphaNumericAllowBothSchema('IFSC Code', 1, 20).optional().nullable(),
+        amsT_BankBranch: createOptionalStringSchema('Branch Name', 1, 100).optional().nullable(),
 
-        asecS_Branch: createStringOnlySchema('Branch Name', 1, 100).optional(),
+        asecS_Branch: createOptionalStringSchema('Branch Name', 1, 100).optional().nullable(),
         amsT_MediumOfInstruction: createStringOnlyOptionalSchema('Medium Of Instruction', 1, 50).optional(),
 
         // EMIS flag
@@ -200,6 +200,7 @@ export const studentAdmissionFormSchema = {
             .nullable()
             .refine((val) => !val || /^\d{12}$/.test(val), { message: 'Aadhar number must be exactly 12 digits' }),
         amsT_ApparNo: z.string().refine((val) => !val || /^\d{12}$/.test(val), { message: 'APAAR ID must be exactly 12 digits' }).optional().nullable(),
+        amsT_APAARId: z.preprocess((val) => (val === '' || val === null || val === undefined ? 0 : Number(val)), z.number().optional().nullable()),
         amsT_LanguageSpoken: z.string().optional().nullable(),
 
         reference_ids: z.array(z.string()).optional(),

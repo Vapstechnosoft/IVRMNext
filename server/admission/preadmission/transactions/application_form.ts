@@ -57,8 +57,8 @@ export async function getReferenceDropdown() {
     return await api.getArray<IReferenceDropdown>('preadmission', url);
 }
 
-export async function getPreadmissionDocumentDropdown() {
-    const url = '/student_application_form/required_document_drop_down_list';
+export async function getPreadmissionDocumentDropdown(page_size: number = 100) {
+    const url = `/student_application_form/required_document_drop_down_list?page=1&page_size=${page_size}`;
     return await api.getArray<IPreadmissionDocumentDropdown>('preadmission', url);
 }
 

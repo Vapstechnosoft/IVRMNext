@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { FileImage, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -120,87 +121,126 @@ export function ListViewDialog({ title, trigger, data: initialData, fetchData, t
                 );
             case 'class':
                 return (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className='text-center font-bold uppercase'>Sl. No</TableHead>
-                                <TableHead className='text-center font-bold uppercase'>Class Name</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {data.map((item, index) => (
-                                <TableRow key={index}>
-                                    <TableCell className='text-center'>{index + 1}</TableCell>
-                                    <TableCell className='text-center'>{item.asmcL_ClassName || item.ASMCL_ClassName}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <GenericDataTable
+                        columns={[
+                            {
+                                id: 'sno',
+                                header: () => <div className='text-center font-bold text-black uppercase'>Sl. No</div>,
+                                cell: (info: any) => <div className='text-center'>{info.row.index + 1}</div>,
+                                size: 80
+                            },
+                            {
+                                accessorKey: 'className',
+                                header: () => <div className='text-center font-bold text-black uppercase'>Class Name</div>,
+                                cell: (info: any) => (
+                                    <div className='text-center'>
+                                        {info.row.original.asmcL_ClassName || info.row.original.ASMCL_ClassName}
+                                    </div>
+                                )
+                            }
+                        ]}
+                        data={data}
+                        isLoading={isLoading}
+                        isSearchRequired={false}
+                        isPaginationRequired={true}
+                    />
                 );
             case 'employee':
                 return (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className='text-center font-bold uppercase'>Sl. No</TableHead>
-                                <TableHead className='text-center font-bold uppercase'>Employee Group Type</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {data.map((item, index) => (
-                                <TableRow key={index}>
-                                    <TableCell className='text-center'>{index + 1}</TableCell>
-                                    <TableCell className='text-center'>
-                                        {item.hrmgT_EmployeeGroupType ||
-                                            item.HRMGT_EmployeeGroupType ||
-                                            item.hrmD_DepartmentName ||
-                                            item.HRMD_DepartmentName ||
-                                            item.hrmD_Id}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <GenericDataTable
+                        columns={[
+                            {
+                                id: 'sno',
+                                header: () => <div className='text-center font-bold text-black uppercase'>Sl. No</div>,
+                                cell: (info: any) => <div className='text-center'>{info.row.index + 1}</div>,
+                                size: 80
+                            },
+                            {
+                                accessorKey: 'employeeGroup',
+                                header: () => <div className='text-center font-bold text-black uppercase'>Employee Group Type</div>,
+                                cell: (info: any) => {
+                                    const item = info.row.original;
+                                    return (
+                                        <div className='text-center'>
+                                            {item.hrmgT_EmployeeGroupType ||
+                                                item.HRMGT_EmployeeGroupType ||
+                                                item.hrmD_DepartmentName ||
+                                                item.HRMD_DepartmentName ||
+                                                item.hrmD_Id}
+                                        </div>
+                                    );
+                                }
+                            }
+                        ]}
+                        data={data}
+                        isLoading={isLoading}
+                        isSearchRequired={false}
+                        isPaginationRequired={true}
+                    />
                 );
             case 'other':
                 return (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className='text-center font-bold uppercase'>Name</TableHead>
-                                <TableHead className='text-center font-bold uppercase'>Mobile</TableHead>
-                                <TableHead className='text-center font-bold uppercase'>Email</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {data.map((item, index) => (
-                                <TableRow key={index}>
-                                    <TableCell className='text-center'>{item.coeeO_Name || item.COEEO_Name}</TableCell>
-                                    <TableCell className='text-center'>{item.coeeO_MobileNo || item.COEEO_MobileNo}</TableCell>
-                                    <TableCell className='text-center'>{item.coeeO_Emailid || item.COEEO_Emailid}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <GenericDataTable
+                        columns={[
+                            {
+                                id: 'sno',
+                                header: () => <div className='text-center font-bold text-black uppercase'>Sl. No</div>,
+                                cell: (info: any) => <div className='text-center'>{info.row.index + 1}</div>,
+                                size: 80
+                            },
+                            {
+                                accessorKey: 'name',
+                                header: () => <div className='text-center font-bold text-black uppercase'>Name</div>,
+                                cell: (info: any) => (
+                                    <div className='text-center'>{info.row.original.coeeO_Name || info.row.original.COEEO_Name}</div>
+                                )
+                            },
+                            {
+                                accessorKey: 'mobile',
+                                header: () => <div className='text-center font-bold text-black uppercase'>Mobile</div>,
+                                cell: (info: any) => (
+                                    <div className='text-center'>{info.row.original.coeeO_MobileNo || info.row.original.COEEO_MobileNo}</div>
+                                )
+                            },
+                            {
+                                accessorKey: 'email',
+                                header: () => <div className='text-center font-bold text-black uppercase'>Email</div>,
+                                cell: (info: any) => (
+                                    <div className='text-center'>{info.row.original.coeeO_Emailid || info.row.original.COEEO_Emailid}</div>
+                                )
+                            }
+                        ]}
+                        data={data}
+                        isLoading={isLoading}
+                        isSearchRequired={false}
+                        isPaginationRequired={true}
+                    />
                 );
             case 'alumni':
                 return (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className='text-center font-bold uppercase'>Sl. No</TableHead>
-                                <TableHead className='text-center font-bold uppercase'>Alumni Name</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {data.map((item, index) => (
-                                <TableRow key={index}>
-                                    <TableCell className='text-center'>{index + 1}</TableCell>
-                                    <TableCell className='text-center'>{item.alumni_name || item.ALUMNI_NAME || 'Linked'}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                    <GenericDataTable
+                        columns={[
+                            {
+                                id: 'sno',
+                                header: () => <div className='text-center font-bold text-black uppercase'>Sl. No</div>,
+                                cell: (info: any) => <div className='text-center'>{info.row.index + 1}</div>,
+                                size: 80
+                            },
+                            {
+                                accessorKey: 'alumniName',
+                                header: () => <div className='text-center font-bold text-black uppercase'>Alumni Name</div>,
+                                cell: (info: any) => (
+                                    <div className='text-center'>
+                                        {info.row.original.alumni_name || info.row.original.ALUMNI_NAME || 'Linked'}
+                                    </div>
+                                )
+                            }
+                        ]}
+                        data={data}
+                        isLoading={isLoading}
+                        isSearchRequired={false}
+                        isPaginationRequired={true}
+                    />
                 );
             default:
                 return null;

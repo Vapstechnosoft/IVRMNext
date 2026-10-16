@@ -35,7 +35,18 @@ export const ExamSubjectWizardColumns: ColumnDef<IExamSubjectWizard>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Best Off Applicable' />,
         cell: ({ row }) => getStatusBadge((row.getValue('eycE_BestOfApplicableFlg') as boolean) === true ? 'yes' : 'no')
     },
-    { accessorKey: 'eycE_BestOf', header: ({ column }) => <DataTableColumnHeader column={column} title='Best Off' /> },
+    {
+        accessorKey: 'eycE_BestOf',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Best Off' />,
+        cell: ({ row }) => {
+            const isApplicable = row.original.eycE_BestOfApplicableFlg === true;
+            const val = row.original.eycE_BestOf;
+            if (!isApplicable || val === undefined || val === null || val === 0) {
+                return <div>-</div>;
+            }
+            return <div>{val}</div>;
+        }
+    },
     {
         accessorKey: 'eycE_AttendanceFromDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Attendance From' />,
