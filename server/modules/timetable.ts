@@ -236,6 +236,14 @@ export const timetableModule: IUserAccessibleModules = {
                             url: '/timetable/transactions/timetablegeneration',
                             title: 'Time Table Generation',
                             description: 'Time Table Generation'
+                        },
+                        {
+                            id: 9,
+                            name: 'Deputation New',
+                            icon: 'Clock',
+                            url: '/timetable/transactions/deputationnew',
+                            title: 'Deputation New',
+                            description: 'Absent Staff Allotment Details'
                         }
                     ]
                 },
