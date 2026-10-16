@@ -652,46 +652,34 @@ export function StudentInfoSection({
 
             {isEcs === 1 && (
                 <div className='slide-in-from-top-2 grid animate-in grid-cols-1 gap-4 rounded-lg border bg-background p-4 duration-300 md:grid-cols-3'>
-                    <div className='border-b pb-2 font-semibold text-sm md:col-span-3'>ECS Account Details</div>
+                    <div className='border-b pb-2 font-semibold text-sm md:col-span-3'>ECS Account Details (Optional)</div>
                     <div className='flex flex-col gap-1.5'>
-                        <Label>
-                            Account No <span className='ml-1 text-red-500'>*</span>
-                        </Label>
+                        <Label>Account No</Label>
                         <InputText {...register('asecS_AccountNo')} placeholder='Account No' />
                         {errors.asecS_AccountNo && <FormError>{errors.asecS_AccountNo.message as string}</FormError>}
                     </div>
                     <div className='flex flex-col gap-1.5'>
-                        <Label>
-                            Account Holder Name <span className='ml-1 text-red-500'>*</span>
-                        </Label>
+                        <Label>Account Holder Name</Label>
                         <InputText {...register('asecS_AccountHolderName')} placeholder='Holder Name' />
                         {errors.asecS_AccountHolderName && <FormError>{errors.asecS_AccountHolderName.message as string}</FormError>}
                     </div>
                     <div className='flex flex-col gap-1.5'>
-                        <Label>
-                            Bank Name <span className='ml-1 text-red-500'>*</span>
-                        </Label>
+                        <Label>Bank Name</Label>
                         <InputText {...register('asecS_BankName')} placeholder='Bank Name' />
                         {errors.asecS_BankName && <FormError>{errors.asecS_BankName.message as string}</FormError>}
                     </div>
                     <div className='flex flex-col gap-1.5'>
-                        <Label>
-                            Account Type <span className='ml-1 text-red-500'>*</span>
-                        </Label>
+                        <Label>Account Type</Label>
                         <InputText {...register('asecS_AccountType')} placeholder='SB / Current' />
                         {errors.asecS_AccountType && <FormError>{errors.asecS_AccountType.message as string}</FormError>}
                     </div>
                     <div className='flex flex-col gap-1.5'>
-                        <Label>
-                            MICR No <span className='ml-1 text-red-500'>*</span>
-                        </Label>
+                        <Label>MICR No</Label>
                         <InputText {...register('asecS_MICRNo')} placeholder='MICR No' />
                         {errors.asecS_MICRNo && <FormError>{errors.asecS_MICRNo.message as string}</FormError>}
                     </div>
                     <div className='flex flex-col gap-1.5'>
-                        <Label>
-                            Branch <span className='ml-1 text-red-500'>*</span>
-                        </Label>
+                        <Label>Branch</Label>
                         <InputText {...register('asecS_Branch')} placeholder='Branch Name' />
                         {errors.asecS_Branch && <FormError>{errors.asecS_Branch.message as string}</FormError>}
                     </div>

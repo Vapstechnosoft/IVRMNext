@@ -89,18 +89,15 @@ export default function UpdateMasterLibraryForm({
                             label='Library Name'
                             required
                             id='lmaL_LibraryName'
+                            placeholder='Enter library name'
                             onKeyDown={(e) => {
-                                const allowed = /^[A-Za-z ]$/;
-
-                                if (e.key.length === 1 && !allowed.test(e.key)) {
+                                if (e.key.length === 1 && !/^[a-zA-Z0-9\s]$/.test(e.key) && !e.ctrlKey && !e.metaKey) {
                                     e.preventDefault();
                                 }
                             }}
                             {...register('lmaL_LibraryName', {
-                                required: 'Library Name is required',
-                                pattern: {
-                                    value: /^[A-Za-z ]+$/,
-                                    message: 'Only letters and spaces allowed'
+                                onChange: (e) => {
+                                    e.target.value = e.target.value.replace(/[^a-zA-Z0-9\s]/g, '');
                                 }
                             })}
                             error={errors.lmaL_LibraryName?.message}

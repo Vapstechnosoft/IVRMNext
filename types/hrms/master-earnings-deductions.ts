@@ -116,7 +116,7 @@ export interface MasterEarningsDeductionsInput {
     HRMED_Id?: number;
     MI_Id: number;
     HRMED_Name: string;
-    HRMED_EDTypeFlag: string;
+    HRMED_EDTypeFlag?: string;
     HRMED_EarnDedFlag: string;
     HRMED_AmountPercentFlag: string;
     HRMED_AmountPercent: string;
@@ -131,7 +131,7 @@ export interface MasterEarningsDeductionsSaveRequest {
     HRMED_Id: number;
     MI_Id: number;
     HRMED_Name: string;
-    HRMED_EDTypeFlag: string;
+    HRMED_EDTypeFlag?: string | null;
     HRMED_EarnDedFlag: string;
     HRMED_AmountPercentFlag: string;
     HRMED_AmountPercent: string;

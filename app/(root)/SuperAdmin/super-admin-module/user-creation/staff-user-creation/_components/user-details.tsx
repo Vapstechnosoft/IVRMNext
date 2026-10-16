@@ -66,7 +66,7 @@ export default function UserDetails({
                                     await onAdminUsernameBlur?.(username);
                                 }
                             }}
-                            className='bg-gray-50 uppercase placeholder:text-gray-500 placeholder:normal-case'
+                            className='bg-gray-50  placeholder:text-gray-500 placeholder:normal-case'
                             placeholder={!isAdmin && filterData === 'Multiple' ? 'N/A FOR MULTIPLE' : 'ENTER USERNAME'}
                             readOnly={isUserNameDisabled}
                             disabled={!isAdmin && filterData === 'Multiple'}

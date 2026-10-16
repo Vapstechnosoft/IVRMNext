@@ -525,13 +525,7 @@ export const EARNING_DEDUCTION_VALIDATION = {
         }
     },
     HRMED_EDTypeFlag: {
-        required: VALIDATION_MESSAGES.REQUIRED('Type'),
-        validate: (value: string) => {
-            if (!value || value.trim() === '') {
-                return 'Type must be selected from predefined list';
-            }
-            return true;
-        }
+        validate: () => true
     },
     HRMED_RoundOffFlag: {
         validate: (value: string) => {

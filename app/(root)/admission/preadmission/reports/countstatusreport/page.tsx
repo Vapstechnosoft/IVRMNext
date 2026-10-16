@@ -13,6 +13,7 @@ import { useForm } from 'react-hook-form';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { parseAsInteger, useQueryState } from 'nuqs';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
@@ -26,7 +27,18 @@ export default function CountStatusReport() {
     const { data: initialDetails, isLoading: isInitialLoading } = useCountStatusReportInitialDetails();
     const [admissionData, setAdmissionData] = useState<any[]>([]);
     const [applicationData, setApplicationData] = useState<any[]>([]);
+    const [masterCompany, setMasterCompany] = useState<any>(null);
     const [showGraphs, setShowGraphs] = useState(false);
+
+    const statusList = (initialDetails as any)?.data?.statuslist || (initialDetails as any)?.statuslist || [];
+    const academicList = (initialDetails as any)?.data?.academicList || (initialDetails as any)?.academicList || [];
+
+    const [page] = useQueryState('page', parseAsInteger.withDefault(1));
+    const [pageSize] = useQueryState('page_size', parseAsInteger.withDefault(10));
+
+    const paginatedStatusList = statusList.slice((page - 1) * pageSize, page * pageSize);
+    const paginatedApplicationData = applicationData.slice((page - 1) * pageSize, page * pageSize);
+    const paginatedAdmissionData = admissionData.slice((page - 1) * pageSize, page * pageSize);
 
     const { mutate: getReportData, isPending } = useCountStatusReportData();
 
@@ -46,6 +58,13 @@ export default function CountStatusReport() {
             onSuccess: (res: any) => {
                 const countReportStatus = res?.data?.countreportstatus || res?.countreportstatus || [];
                 const applicationStatus = res?.data?.applicationstatus || res?.applicationstatus || [];
+                const masterCompanyData = res?.data?.masterCompany || res?.masterCompany || [];
+
+                if (masterCompanyData.length > 0) {
+                    setMasterCompany(masterCompanyData[0]);
+                } else {
+                    setMasterCompany(null);
+                }
 
                 if (countReportStatus.length > 0 || applicationStatus.length > 0) {
                     setAdmissionData(countReportStatus);
@@ -80,15 +99,57 @@ export default function CountStatusReport() {
     };
 
     const admissionColumns = [
-        { accessorKey: 'sno', header: 'SL.NO', cell: (info: any) => info.row.index + 1 },
-        { accessorKey: 'PAMST_Status', header: 'Admission Status' },
-        { accessorKey: 'Data_count', header: 'Count' }
+        { 
+            accessorKey: 'sno', 
+            header: () => <div className='text-center font-bold text-black uppercase'>SL.NO</div>, 
+            cell: (info: any) => <div className='text-center'>{(page - 1) * pageSize + info.row.index + 1}</div> 
+        },
+        { 
+            accessorKey: 'PAMST_Status', 
+            header: () => <div className='text-center font-bold text-black uppercase'>Admission Status</div>,
+            cell: (info: any) => <div className='text-center'>{info.getValue()}</div> 
+        },
+        { 
+            accessorKey: 'Data_count', 
+            header: () => <div className='text-center font-bold text-black uppercase'>Count</div>,
+            cell: (info: any) => <div className='text-center'>{info.getValue()}</div> 
+        }
     ];
 
     const applicationColumns = [
-        { accessorKey: 'sno', header: 'SL.NO', cell: (info: any) => info.row.index + 1 },
-        { accessorKey: 'statusName', header: 'Application Status' },
-        { accessorKey: 'data', header: 'Count' }
+        { 
+            accessorKey: 'sno', 
+            header: () => <div className='text-center font-bold text-black uppercase'>SL.NO</div>, 
+            cell: (info: any) => <div className='text-center'>{(page - 1) * pageSize + info.row.index + 1}</div> 
+        },
+        { 
+            accessorKey: 'statusName', 
+            header: () => <div className='text-center font-bold text-black uppercase'>Application Status</div>,
+            cell: (info: any) => <div className='text-center'>{info.getValue()}</div> 
+        },
+        { 
+            accessorKey: 'data', 
+            header: () => <div className='text-center font-bold text-black uppercase'>Count</div>,
+            cell: (info: any) => <div className='text-center'>{info.getValue()}</div> 
+        }
+    ];
+
+    const statusColumns = [
+        { 
+            accessorKey: 'sno', 
+            header: () => <div className='text-center font-bold text-black uppercase'>SL.NO</div>, 
+            cell: (info: any) => <div className='text-center'>{(page - 1) * pageSize + info.row.index + 1}</div> 
+        },
+        { 
+            accessorKey: 'pamsT_Status', 
+            header: () => <div className='text-center font-bold text-black uppercase'>Status Name</div>,
+            cell: (info: any) => <div className='text-center'>{info.getValue()}</div> 
+        },
+        { 
+            accessorKey: 'pamsT_StatusFlag', 
+            header: () => <div className='text-center font-bold text-black uppercase'>Status Flag</div>,
+            cell: (info: any) => <div className='text-center'>{info.getValue()}</div> 
+        }
     ];
 
     const admissionChartData = admissionData.map((item) => ({
@@ -127,8 +188,8 @@ export default function CountStatusReport() {
                                                 </FormControl>
                                                 <SelectContent>
                                                     <SelectItem value='0'>ALL</SelectItem>
-                                                    {Array.isArray(initialDetails?.academicList) &&
-                                                        initialDetails?.academicList?.map((item: any) => (
+                                                    {Array.isArray(academicList) &&
+                                                        academicList.map((item: any) => (
                                                             <SelectItem key={item.asmaY_Id} value={item.asmaY_Id.toString()}>
                                                                 {item.asmaY_Year}
                                                             </SelectItem>
@@ -158,13 +219,49 @@ export default function CountStatusReport() {
                 </CardContent>
             </Card>
 
+            {masterCompany && (
+                <Card>
+                    <CardContent className='flex items-center justify-center gap-4 pt-6'>
+                        {masterCompany.logo && (
+                            <img src={masterCompany.logo} alt={masterCompany.companyname} className='h-20 object-contain' />
+                        )}
+                        {masterCompany.companyname && (
+                            <h2 className='text-3xl font-bold uppercase tracking-wider text-primary'>
+                                {masterCompany.companyname}
+                            </h2>
+                        )}
+                    </CardContent>
+                </Card>
+            )}
+
+            {statusList.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Available Status List</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <GenericDataTable 
+                            data={paginatedStatusList} 
+                            columns={statusColumns} 
+                            isLoading={isInitialLoading} 
+                            totalItems={statusList.length} 
+                        />
+                    </CardContent>
+                </Card>
+            )}
+
             {applicationData.length > 0 && (
                 <Card>
                     <CardHeader>
                         <CardTitle>Application Status Details</CardTitle>
                     </CardHeader>
                     <CardContent className='space-y-6'>
-                        <GenericDataTable data={applicationData} columns={applicationColumns} isLoading={isPending} />
+                        <GenericDataTable 
+                            data={paginatedApplicationData} 
+                            columns={applicationColumns} 
+                            isLoading={isPending} 
+                            totalItems={applicationData.length} 
+                        />
 
                         {showGraphs && (
                             <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
@@ -222,7 +319,12 @@ export default function CountStatusReport() {
                         <CardTitle>Status Details</CardTitle>
                     </CardHeader>
                     <CardContent className='space-y-6'>
-                        <GenericDataTable data={admissionData} columns={admissionColumns} isLoading={isPending} />
+                        <GenericDataTable 
+                            data={paginatedAdmissionData} 
+                            columns={admissionColumns} 
+                            isLoading={isPending} 
+                            totalItems={admissionData.length} 
+                        />
 
                         {showGraphs && (
                             <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>

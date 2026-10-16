@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 
 import { Calendar } from '@/components/ui/calendar';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CalendarIcon, RotateCcw, Save } from 'lucide-react';
+import { CalendarIcon, Check, RotateCcw, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -18,12 +18,14 @@ import { toast } from 'sonner';
 import { Checkbox } from '@/components/ui/checkbox';
 import { InputText } from '@/components/ui/extension/input-text';
 import { FeesCustomMultiSelectBox } from '@/components/ui/feesmultiselect';
+import { useFormContext } from '@/components/ui/form/form-provider';
 import { useStudentClassDropDown, useStudentSectionDropDown } from '@/hooks/fees/useMasters';
 import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
 import { useFeeMasterConfiguration, useFeeTransactionList } from '@/hooks/fees/useTrasactions';
 import { feesStudentTransactionSchema } from '@/schemas/fees/trasactions';
 import {
     getFeeHead,
+    getFeeStudentTransactionDetails,
     getStudentDetails,
     masterBank,
     saveFeeTransaction,
@@ -36,12 +38,14 @@ import type {
     IStudentSearchList,
     IStudentTDetails,
     IStudentTermList,
+    Ifeetransaction,
     MasterModeofPayment,
     MasterNarration,
     masterBankList
 } from '@/types/fees/transactions/transactions';
 import type { z } from 'zod';
 import FeeDetails from './fee-head-column';
+import Portal from './portal';
 import StudentProfileModal from './student-details';
 
 type FormFields = z.infer<typeof feesStudentTransactionSchema.addOrUpdate>;
@@ -49,10 +53,12 @@ type FormFields = z.infer<typeof feesStudentTransactionSchema.addOrUpdate>;
 interface FeestudentTrasactionsFormProps {
     onSuccess?: () => void;
     asmayId?: number;
+    asmayYear?: string;
 }
 
-export default function StudentFeeTransaction({ onSuccess, asmayId }: FeestudentTrasactionsFormProps) {
+export default function StudentFeeTransaction({ onSuccess, asmayId, asmayYear }: FeestudentTrasactionsFormProps) {
     const { refetchAll } = useFeeTransactionList(Number(asmayId));
+    const { openDetailsView } = useFormContext<Ifeetransaction>();
 
     const {
         handleSubmit,
@@ -150,10 +156,14 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const [openStudentDetails, setOpenStudentDetails] = useState(false);
     const [challenSearch, setChallenSearch] = useState('');
     const [todaysDate, setTodaysDate] = useState<Date | undefined>(new Date());
+    const [isDateOpen, setIsDateOpen] = useState(false);
+    const [openChequePopoverId, setOpenChequePopoverId] = useState<number | null>(null);
     const [selectedNarration, setSelectedNarration] = useState<number | null>(null);
     const [narrationRemark, setNarrationRemark] = useState('');
     const [masterBanks, setMasterBanks] = useState<masterBankList[]>([]);
     const [isLoadingmasterBanks, setIsLoadingMasterBanks] = useState(false);
+    const [showConfirmPrintModal, setShowConfirmPrintModal] = useState(false);
+    const [receiptRowData, setReceiptRowData] = useState<Ifeetransaction | null>(null);
 
     const filterOptions = [
         { value: 'regular', label: 'Regular' },
@@ -176,6 +186,23 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
     const selectedLabel = filterOptions.find((opt) => opt.value === filterType)?.label || '';
 
     const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
+
+    const selectedAcademicYear =
+        asmayYear || academicYearData?.data?.find((item: any) => item.asmaY_Id === Number(selectedAsmayId ?? asmayId))?.asmaY_Year || '';
+
+    const handleCancelPrint = () => {
+        setShowConfirmPrintModal(false);
+        setReceiptRowData(null);
+        onSuccess?.();
+    };
+
+    const handleConfirmPrint = () => {
+        setShowConfirmPrintModal(false);
+        if (receiptRowData) {
+            openDetailsView(receiptRowData);
+        }
+        onSuccess?.();
+    };
 
     const { data: masterConfiguration } = useFeeMasterConfiguration();
 
@@ -786,14 +813,148 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
             };
             console.log('save fee transaction payload', JSON.stringify(payload));
             const response = await saveFeeTransaction(payload);
+            console.log('save fee transaction response', response);
 
-            if (response?.displaymessage) {
-                toast.success(response.message || ' Transaction Saved successfully');
+            const resObj = Array.isArray(response) ? response[0] : response;
+
+            if (resObj?.displaymessage) {
+                toast.success(resObj.message || 'Transaction Saved successfully');
+
+                const findFypIdInObject = (obj: any, depth = 0): number => {
+                    if (!obj || depth > 5 || typeof obj !== 'object') return 0;
+                    const idKeys = [
+                        'fyP_Id',
+                        'FYP_Id',
+                        'fyp_Id',
+                        'fyp_id',
+                        'fP_Id',
+                        'FP_Id',
+                        'fp_id',
+                        'fP_ID',
+                        'trans_id',
+                        'tran_Id',
+                        'transactionId'
+                    ];
+                    for (const key of idKeys) {
+                        if (obj[key] !== undefined && obj[key] !== null) {
+                            const val = Number(obj[key]);
+                            if (!Number.isNaN(val) && val > 0) return val;
+                        }
+                    }
+                    if (obj.returnval !== undefined && obj.returnval !== null) {
+                        const retVal = Number(obj.returnval);
+                        if (!Number.isNaN(retVal) && retVal > 0) return retVal;
+                    }
+                    for (const key of Object.keys(obj)) {
+                        const val = obj[key];
+                        if (val && typeof val === 'object') {
+                            const found = findFypIdInObject(val, depth + 1);
+                            if (found > 0) return found;
+                        }
+                    }
+                    return 0;
+                };
+
+                const findReceiptNoInObject = (obj: any, depth = 0): string => {
+                    if (!obj || depth > 5 || typeof obj !== 'object') return '';
+                    const receiptKeys = ['fyP_Receipt_No', 'fyp_Receipt_No', 'FYP_Receipt_No', 'receipt_No', 'automanualreceiptno'];
+                    for (const key of receiptKeys) {
+                        if (typeof obj[key] === 'string' && obj[key].trim() !== '') {
+                            return obj[key].trim();
+                        }
+                    }
+                    for (const key of Object.keys(obj)) {
+                        const val = obj[key];
+                        if (val && typeof val === 'object') {
+                            const found = findReceiptNoInObject(val, depth + 1);
+                            if (found) return found;
+                        }
+                    }
+                    return '';
+                };
+
+                const savedFypId = findFypIdInObject(response);
+                let savedReceiptNo = findReceiptNoInObject(response);
+
+                // biome-ignore lint/suspicious/noGlobalIsNan: <explanation>
+                if (
+                    !savedReceiptNo &&
+                    typeof resObj?.returnval === 'string' &&
+                    isNaN(Number(resObj.returnval)) &&
+                    resObj.returnval.trim() !== 'true'
+                ) {
+                    savedReceiptNo = resObj.returnval.trim();
+                }
+
+                const sDet = studentDetails?.[0];
+                const studentAmstId = Number(sDet?.amst_Id ?? selectedStudent?.amst_Id ?? resObj?.amst_Id ?? 0);
+                const targetAsmayId = Number(selectedAsmayId ?? asmayId ?? 0);
+
+                let recentlySavedRecord: Ifeetransaction | null = null;
+                try {
+                    const transDetails = await getFeeStudentTransactionDetails(targetAsmayId);
+                    const rawList = Array.isArray(transDetails)
+                        ? transDetails
+                        : Array.isArray((transDetails as any)?.data)
+                          ? (transDetails as any).data
+                          : Array.isArray((transDetails as any)?.fillstudentviewdetails)
+                            ? (transDetails as any).fillstudentviewdetails
+                            : [];
+
+                    const studentTransactions = rawList.filter((item: any) => Number(item?.amst_Id) === studentAmstId);
+                    const candidateList = studentTransactions.length > 0 ? studentTransactions : rawList;
+
+                    if (candidateList.length > 0) {
+                        const latestTrans = candidateList.reduce((latest: any, current: any) => {
+                            const currentId = Number(current?.fyP_Id || current?.fP_Id || 0);
+                            const latestId = Number(latest?.fyP_Id || latest?.fP_Id || 0);
+                            return currentId > latestId ? current : latest;
+                        }, candidateList[0]);
+
+                        const resolvedId = Number(latestTrans?.fyP_Id || latestTrans?.fP_Id || savedFypId || 0);
+                        if (resolvedId > 0) {
+                            recentlySavedRecord = {
+                                ...latestTrans,
+                                fyP_Id: resolvedId,
+                                fP_Id: resolvedId,
+                                amst_Id: Number(latestTrans?.amst_Id || studentAmstId),
+                                asmaY_ID: Number(latestTrans?.asmaY_ID || targetAsmayId),
+                                asmaY_Year: latestTrans?.asmaY_Year || selectedAcademicYear,
+                                fyP_Receipt_No: latestTrans?.fyP_Receipt_No || savedReceiptNo || ''
+                            };
+                        }
+                    }
+                } catch (fetchErr) {
+                    console.error('Failed to fetch grid transactions after save:', fetchErr);
+                }
+
+                const finalRowData: Ifeetransaction = recentlySavedRecord || {
+                    fyP_Id: savedFypId,
+                    amst_Id: studentAmstId,
+                    amsT_FirstName: sDet?.amsT_FirstName || selectedStudent?.amsT_StudentName || '',
+                    amsT_MiddleName: sDet?.amsT_MiddleName || '',
+                    amsT_LastName: sDet?.amsT_LastName || '',
+                    amsT_AdmNo: sDet?.amsT_AdmNo || '',
+                    classname: sDet?.classname || '',
+                    sectionname: sDet?.sectionname || '',
+                    mI_Id: Number((sDet as any)?.mI_Id ?? resObj?.mI_Id ?? 0),
+                    fyP_Receipt_No: savedReceiptNo || (typeof resObj?.returnval === 'string' ? resObj?.returnval : ''),
+                    fyP_Date: todaysDate ? new Date(todaysDate).toISOString() : new Date().toISOString(),
+                    fyP_Tot_Amount: TotalPaying,
+                    fyP_Bank_Or_Cash: modeType === 'Single' ? payType : checkPayType.join(','),
+                    fyP_Chq_Bounce: null,
+                    asmaY_ID: targetAsmayId,
+                    asmaY_Year: selectedAcademicYear
+                };
+                (finalRowData as any).fP_Id = finalRowData.fyP_Id;
+
+                console.log('Recently saved grid record for ReceiptViewPage:', finalRowData);
+                setReceiptRowData(finalRowData);
+                setShowConfirmPrintModal(true);
                 handleReset();
-                onSuccess?.();
                 refetchAll();
             } else {
-                const errorMessage = response?.returnval;
+                const errorMessage = resObj?.returnval;
                 if (typeof errorMessage === 'string' && errorMessage.trim() !== '') {
                     toast.error(errorMessage);
                 } else {
@@ -804,8 +965,6 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
             console.error('API Error:', err);
             toast.error(err?.message || 'Something went wrong');
         }
-        // toast.success("Fee Transaction Saved Successfully!");
-        onSuccess?.();
     };
 
     const handleReset = () => {
@@ -910,7 +1069,7 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                         </div>
                         <div className=' flex w-full items-center space-x-4 pt-4 '>
                             <Label className='font-semibold'>Date</Label>
-                            <Popover>
+                            <Popover open={isDateOpen} onOpenChange={setIsDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button variant='outline' className='w-full justify-start text-left font-normal'>
                                         <CalendarIcon className='mr-2 h-4 w-4' />
@@ -923,7 +1082,10 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                         mode='single'
                                         selected={todaysDate ?? undefined}
                                         onSelect={(date) => {
-                                            if (date) setTodaysDate(date);
+                                            if (date) {
+                                                setTodaysDate(date);
+                                                setIsDateOpen(false);
+                                            }
                                         }}
                                     />
                                 </PopoverContent>
@@ -1687,7 +1849,11 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                                         {f.ivrmmoD_Flag.toLowerCase() !== 'c' &&
                                                             modeType === 'Single' &&
                                                             payType === f.ivrmmoD_ModeOfPayment && (
-                                                                <Popover>
+                                                                <Popover
+                                                                    open={openChequePopoverId === f.ivrmmoD_Id}
+                                                                    onOpenChange={(isOpen) =>
+                                                                        setOpenChequePopoverId(isOpen ? f.ivrmmoD_Id : null)
+                                                                    }>
                                                                     <PopoverTrigger asChild>
                                                                         <Button
                                                                             variant='outline'
@@ -1709,12 +1875,15 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                                                         <Calendar
                                                                             mode='single'
                                                                             selected={chequedates[f.ivrmmoD_Id] ?? undefined}
-                                                                            onSelect={(date) =>
+                                                                            onSelect={(date) => {
                                                                                 setchequeDates((prev) => ({
                                                                                     ...prev,
                                                                                     [f.ivrmmoD_Id]: date ?? null
-                                                                                }))
-                                                                            }
+                                                                                }));
+                                                                                if (date) {
+                                                                                    setOpenChequePopoverId(null);
+                                                                                }
+                                                                            }}
                                                                         />
                                                                     </PopoverContent>
                                                                 </Popover>
@@ -1722,7 +1891,11 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                                         {checkPayType.includes(f.ivrmmoD_ModeOfPayment) &&
                                                             modeType === 'Multiple' &&
                                                             f.ivrmmoD_Flag.toLowerCase() !== 'c' && (
-                                                                <Popover>
+                                                                <Popover
+                                                                    open={openChequePopoverId === f.ivrmmoD_Id}
+                                                                    onOpenChange={(isOpen) =>
+                                                                        setOpenChequePopoverId(isOpen ? f.ivrmmoD_Id : null)
+                                                                    }>
                                                                     <PopoverTrigger asChild>
                                                                         <Button
                                                                             variant='outline'
@@ -1740,12 +1913,15 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                                                                         <Calendar
                                                                             mode='single'
                                                                             selected={chequedates[f.ivrmmoD_Id] ?? undefined}
-                                                                            onSelect={(date) =>
+                                                                            onSelect={(date) => {
                                                                                 setchequeDates((prev) => ({
                                                                                     ...prev,
                                                                                     [f.ivrmmoD_Id]: date ?? null
-                                                                                }))
-                                                                            }
+                                                                                }));
+                                                                                if (date) {
+                                                                                    setOpenChequePopoverId(null);
+                                                                                }
+                                                                            }}
                                                                         />
                                                                     </PopoverContent>
                                                                 </Popover>
@@ -1953,6 +2129,41 @@ export default function StudentFeeTransaction({ onSuccess, asmayId }: Feestudent
                     </div>
                 )}
             </form>
+
+            {showConfirmPrintModal && (
+                <Portal>
+                    <div className='fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4'>
+                        <div className='fade-in zoom-in-95 w-full max-w-md transform animate-in rounded-lg bg-white p-8 text-center shadow-2xl transition-all duration-200'>
+                            {/* Circular Green Checkmark Icon */}
+                            <div className='mx-auto mb-5 flex h-24 w-24 items-center justify-center rounded-full border-4 border-[#a5dc86] bg-white'>
+                                <Check className='h-12 w-12 stroke-[3] text-[#a5dc86]' />
+                            </div>
+
+                            {/* Title */}
+                            <h2 className='font-bold text-2xl text-[#2e4b82]'>Record Saved Successfully</h2>
+
+                            {/* Subtitle */}
+                            <p className='mt-3 font-medium text-gray-500 text-sm'>Do You Want To Print Receipt?</p>
+
+                            {/* Actions */}
+                            <div className='mt-8 flex items-center justify-center gap-4'>
+                                <button
+                                    type='button'
+                                    onClick={handleCancelPrint}
+                                    className='min-w-[110px] rounded bg-[#b0bec5] px-6 py-2.5 font-semibold text-sm text-white shadow-sm transition hover:bg-[#90a4ae] focus:outline-none active:scale-95'>
+                                    Cancel
+                                </button>
+                                <button
+                                    type='button'
+                                    onClick={handleConfirmPrint}
+                                    className='min-w-[120px] rounded bg-[#e25d4e] px-6 py-2.5 font-semibold text-sm text-white shadow-sm transition hover:bg-[#d44839] focus:outline-none active:scale-95'>
+                                    Yes, Print it
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </Portal>
+            )}
         </div>
     );
 }

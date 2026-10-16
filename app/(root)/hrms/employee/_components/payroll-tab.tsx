@@ -71,13 +71,116 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
         earnings: Set<number>;
         deductions: Set<number>;
         arrears: Set<number>;
+        gross: boolean;
     }>({
         earnings: new Set(),
         deductions: new Set(),
-        arrears: new Set()
+        arrears: new Set(),
+        gross: false
     });
 
-    const getEmployeeSalaryDetailsByHeadMutation = useGetEmployeeSalaryDetailsByHead();
+    const _getEmployeeSalaryDetailsByHeadMutation = useGetEmployeeSalaryDetailsByHead();
+
+    // Helper to extract effective percentage for an item
+    const getHeadPercentage = (item: EditablePayrollItem): number => {
+        // If localApplicablePercentage was modified and > 0
+        const localApp = Number.parseFloat(String(item.localApplicablePercentage ?? ''));
+        if (!Number.isNaN(localApp) && localApp > 0) return localApp;
+
+        // If localPercentage was modified and > 0
+        const localPerc = Number.parseFloat(String(item.localPercentage ?? ''));
+        if (!Number.isNaN(localPerc) && localPerc > 0) return localPerc;
+
+        // Employee saved percentages
+        const hreedApp = Number.parseFloat(String(item.HREED_ApplicablePercentage ?? (item as any).hreeD_ApplicablePercentage ?? ''));
+        if (!Number.isNaN(hreedApp) && hreedApp > 0) return hreedApp;
+
+        const hreedPerc = Number.parseFloat(String(item.HREED_Percentage ?? (item as any).hreeD_Percentage ?? ''));
+        if (!Number.isNaN(hreedPerc) && hreedPerc > 0) return hreedPerc;
+
+        // Master percentage from HRMED master head
+        const masterPerc = Number.parseFloat(
+            String(
+                (item as any).HRMED_AmountPercent ??
+                    (item as any).hrmeD_AmountPercent ??
+                    (item as any).hrmed_amountpercent ??
+                    (item as any).HRMED_Percentage ??
+                    (item as any).hrmeD_Percentage ??
+                    (item as any).AmountPercent ??
+                    (item as any).amountPercent ??
+                    ''
+            )
+        );
+        if (!Number.isNaN(masterPerc) && masterPerc > 0) return masterPerc;
+
+        return 0;
+    };
+
+    // Helper to check if item is percentage based
+    const isPercentageHead = (item: EditablePayrollItem, perc: number): boolean => {
+        const rawFlag =
+            item.HRMED_AmountPercentFlag ??
+            (item as any).hrmeD_AmountPercentFlag ??
+            (item as any).hrmed_amountpercentflag ??
+            (item as any).AmountPercentFlag;
+        const flagStr = String(rawFlag || '')
+            .trim()
+            .toLowerCase();
+        return flagStr === 'percentage' || perc > 0;
+    };
+
+    // Recalculate all percentage-based items from Gross amount
+    const calculateHeadsFromGross = (
+        grossAmount: number,
+        currentEarnings = earningsRef.current,
+        currentDeductions = deductionsRef.current,
+        currentArrears = arrearsRef.current
+    ) => {
+        const updateItem = (item: EditablePayrollItem) => {
+            const perc = getHeadPercentage(item);
+            if (isPercentageHead(item, perc) && perc > 0) {
+                const calculatedAmount = Number(((grossAmount * perc) / 100).toFixed(2));
+                const percStr = String(perc);
+                return {
+                    ...item,
+                    HRMED_AmountPercentFlag: 'Percentage',
+                    localPercentage: percStr,
+                    localApplicablePercentage: percStr,
+                    HREED_Percentage: percStr,
+                    HREED_ApplicablePercentage: percStr,
+                    localAmount: calculatedAmount,
+                    HREED_Amount: calculatedAmount,
+                    HREED_ActiveFlag: true
+                };
+            }
+            return item;
+        };
+
+        const updateDeductionItem = (item: EditablePayrollItem) => {
+            const perc = getHeadPercentage(item);
+            if (isPercentageHead(item, perc) && perc > 0) {
+                const percStr = String(perc);
+                return {
+                    ...item,
+                    HRMED_AmountPercentFlag: 'Percentage',
+                    localPercentage: percStr,
+                    localApplicablePercentage: percStr,
+                    HREED_Percentage: percStr,
+                    HREED_ApplicablePercentage: percStr,
+                    localAmount: 0,
+                    HREED_Amount: 0,
+                    HREED_ActiveFlag: true
+                };
+            }
+            return item;
+        };
+
+        const newEarnings = currentEarnings.map(updateItem);
+        const newDeductions = currentDeductions.map(updateDeductionItem);
+        const newArrears = currentArrears.map(updateItem);
+
+        return { newEarnings, newDeductions, newArrears };
+    };
 
     // Initialize local state when data loads
     useEffect(() => {
@@ -88,9 +191,49 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                 .map((existingItem: any) => {
                     const hrmedId = existingItem.HRMED_Id || existingItem.hrmeD_Id;
                     const amount = existingItem.HREED_Amount ?? existingItem.hreeD_Amount ?? 0;
-                    const percentage = existingItem.HREED_Percentage ?? existingItem.hreeD_Percentage ?? '0';
+
+                    // Fallback to master percentage if saved percentage is empty or '0'
+                    const rawPerc = existingItem.HREED_Percentage ?? existingItem.hreeD_Percentage;
+                    const masterPerc =
+                        existingItem.HRMED_AmountPercent ??
+                        existingItem.hrmeD_AmountPercent ??
+                        existingItem.hrmed_amountpercent ??
+                        existingItem.HRMED_Percentage ??
+                        existingItem.hrmeD_Percentage ??
+                        existingItem.AmountPercent ??
+                        existingItem.amountPercent;
+
+                    const percentage =
+                        rawPerc !== undefined &&
+                        rawPerc !== null &&
+                        String(rawPerc) !== '0' &&
+                        String(rawPerc) !== '0.00' &&
+                        String(rawPerc) !== ''
+                            ? String(rawPerc)
+                            : masterPerc !== undefined && masterPerc !== null && String(masterPerc) !== ''
+                              ? String(masterPerc)
+                              : '0';
+
+                    const rawAppPerc = existingItem.HREED_ApplicablePercentage ?? existingItem.hreeD_ApplicablePercentage;
+                    const appPercentage =
+                        rawAppPerc !== undefined &&
+                        rawAppPerc !== null &&
+                        String(rawAppPerc) !== '0' &&
+                        String(rawAppPerc) !== '0.00' &&
+                        String(rawAppPerc) !== ''
+                            ? String(rawAppPerc)
+                            : percentage;
+
                     const maxVal = existingItem.HREED_ApplicableMaxValue ?? existingItem.hreeD_ApplicableMaxValue ?? 0;
-                    const active = Boolean(existingItem.HREED_ActiveFlag ?? existingItem.hreeD_ActiveFlag);
+                    const rawFlag =
+                        existingItem.HRMED_AmountPercentFlag ??
+                        existingItem.hrmeD_AmountPercentFlag ??
+                        existingItem.hrmed_amountpercentflag ??
+                        existingItem.AmountPercentFlag;
+                    const amountPercentFlag = rawFlag ? String(rawFlag).trim() : Number(percentage) > 0 ? 'Percentage' : 'Amount';
+                    const active = Boolean(existingItem.HREED_ActiveFlag ?? existingItem.hreeD_ActiveFlag ?? Number(percentage) > 0);
+                    const isDedPerc = flag === 'Deduction' && (amountPercentFlag.toLowerCase() === 'percentage' || Number(percentage) > 0);
+                    const effectiveAmount = isDedPerc ? 0 : amount;
 
                     return {
                         ...existingItem,
@@ -98,34 +241,30 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                         HRMED_Id: hrmedId,
                         HRMED_Name: existingItem.HRMED_Name ?? existingItem.hrmeD_Name ?? '',
                         HRMED_EarnDedFlag: flag,
-                        HRMED_AmountPercentFlag: existingItem.HRMED_AmountPercentFlag ?? existingItem.hrmeD_AmountPercentFlag ?? 'Amount',
+                        HRMED_AmountPercentFlag: amountPercentFlag,
                         HREED_ActiveFlag: active,
-                        HREED_Amount: amount,
+                        HREED_Amount: effectiveAmount,
                         HREED_Percentage: percentage,
-                        HREED_ApplicablePercentage:
-                            existingItem.HREED_ApplicablePercentage ?? existingItem.hreeD_ApplicablePercentage ?? percentage,
+                        HREED_ApplicablePercentage: appPercentage,
                         HREED_ApplicableMaxValue: maxVal,
                         // Local state for editing
-                        localAmount: amount,
+                        localAmount: effectiveAmount,
                         localPercentage: percentage,
-                        localApplicablePercentage:
-                            existingItem.HREED_ApplicablePercentage ?? existingItem.hreeD_ApplicablePercentage ?? percentage,
+                        localApplicablePercentage: appPercentage,
                         localMaxAmount: maxVal,
                         HREED_MaxApplicableFlg: Boolean(existingItem.HREED_MaxApplicableFlg ?? existingItem.hreeD_MaxApplicableFlg ?? true)
                     } as EditablePayrollItem;
                 });
         };
 
-        const earningsList = initializeList('Earning');
-        const deductionsList = initializeList('Deduction');
-        const arrearsList = initializeList('Arrear');
-
-        setEarnings(earningsList);
-        setDeductions(deductionsList);
-        setArrears(arrearsList);
+        let earningsList = initializeList('Earning');
+        let deductionsList = initializeList('Deduction');
+        let arrearsList = initializeList('Arrear');
 
         // Handle Gross separately
         const existingGross = (salaryDetails || []).find((sd: any) => (sd.HRMED_EarnDedFlag || sd.hrmeD_EarnDedFlag) === 'Gross');
+        const grossAmount = existingGross ? (existingGross.HREED_Amount ?? existingGross.hreeD_Amount ?? 0) : 0;
+
         if (existingGross) {
             const hrmedId = existingGross.HRMED_Id || existingGross.hrmeD_Id;
             setGrossDetails({
@@ -136,19 +275,52 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                 HRMED_EarnDedFlag: 'Gross',
                 HRMED_AmountPercentFlag: existingGross.HRMED_AmountPercentFlag ?? existingGross.hrmeD_AmountPercentFlag ?? 'Amount',
                 HREED_ActiveFlag: Boolean(existingGross.HREED_ActiveFlag ?? existingGross.hreeD_ActiveFlag ?? true),
-                HREED_Amount: existingGross.HREED_Amount ?? existingGross.hreeD_Amount ?? 0,
+                HREED_Amount: grossAmount,
                 HREED_Percentage: existingGross.HREED_Percentage ?? existingGross.hreeD_Percentage ?? '0',
                 HREED_ApplicablePercentage: existingGross.HREED_ApplicablePercentage ?? existingGross.hreeD_ApplicablePercentage ?? '0',
                 HREED_ApplicableMaxValue: existingGross.HREED_ApplicableMaxValue ?? existingGross.hreeD_ApplicableMaxValue ?? 0,
-                localAmount: existingGross.HREED_Amount ?? existingGross.hreeD_Amount ?? 0,
+                localAmount: grossAmount,
                 localPercentage: existingGross.HREED_Percentage ?? existingGross.hreeD_Percentage ?? '0',
                 localApplicablePercentage: existingGross.HREED_ApplicablePercentage ?? existingGross.hreeD_ApplicablePercentage ?? '0',
                 localMaxAmount: existingGross.HREED_ApplicableMaxValue ?? existingGross.hreeD_ApplicableMaxValue ?? 0,
                 HREED_MaxApplicableFlg: Boolean(existingGross.HREED_MaxApplicableFlg ?? existingGross.hreeD_MaxApplicableFlg ?? true)
             } as EditablePayrollItem);
         } else {
-            setGrossDetails(null);
+            setGrossDetails({
+                HREED_Id: 0,
+                HRMED_Id: 0,
+                HRMED_Name: 'GROSS',
+                HRMED_EarnDedFlag: 'Gross',
+                HRMED_AmountPercentFlag: 'Amount',
+                HREED_ActiveFlag: true,
+                HREED_Amount: 0,
+                HREED_Percentage: '0',
+                HREED_ApplicablePercentage: '0',
+                HREED_ApplicableMaxValue: 0,
+                localAmount: 0,
+                localPercentage: '0',
+                localApplicablePercentage: '0',
+                localMaxAmount: 0,
+                HREED_MaxApplicableFlg: true
+            } as EditablePayrollItem);
         }
+
+        // If gross amount is present, automatically calculate percentage-based heads that have 0 amount
+        if (grossAmount > 0) {
+            const calculated = calculateHeadsFromGross(grossAmount, earningsList, deductionsList, arrearsList);
+            earningsList = calculated.newEarnings;
+            deductionsList = calculated.newDeductions;
+            arrearsList = calculated.newArrears;
+        }
+
+        earningsRef.current = earningsList;
+        deductionsRef.current = deductionsList;
+        arrearsRef.current = arrearsList;
+
+        setEarnings(earningsList);
+        setDeductions(deductionsList);
+        setArrears(arrearsList);
+        calculateTotalsWithArrays(earningsList, deductionsList, arrearsList);
     }, [salaryDetails]);
     // Helper function to calculate totals with specific arrays (client-side calculation)
     const calculateTotalsWithArrays = (
@@ -224,8 +396,8 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
         if (Number.isNaN(numValue)) return 0;
         return Math.max(0, numValue); // Ensure no negative values
     };
-    // State for calculation trigger
-    const handleCalculateServerSide = async (
+    // State for calculation trigger (kept as fallback)
+    const _handleCalculateServerSide = async (
         currentEarnings = earningsRef.current,
         currentDeductions = deductionsRef.current,
         currentArrears = arrearsRef.current,
@@ -249,7 +421,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
         };
 
         try {
-            const result = await getEmployeeSalaryDetailsByHeadMutation.mutateAsync(payload);
+            const result = await _getEmployeeSalaryDetailsByHeadMutation.mutateAsync(payload);
 
             const calcResult = result as any;
             if (calcResult?.success && calcResult?.data?.employeeEarningsDeductionsDetails) {
@@ -312,10 +484,24 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
     const handleAutoSave = async (item: EditablePayrollItem) => {
         if (!employeeId) return;
 
-        // Construct payload matching the user's requested structure
+        const effectiveMiId = Number(MI_Id || employeemiId || HRMS_MI_ID || 30);
+
+        // Construct payload matching backend DTO structure with both casings
         const payload = {
+            // PascalCase keys for C# backend DTO binding
+            HREED_Id: Number(item.HREED_Id || 0),
+            MI_Id: effectiveMiId,
+            HRME_Id: Number(employeeId),
+            HRMED_Id: Number(item.HRMED_Id || 0),
+            HRMED_Name: item.HRMED_Name || '',
+            HREED_Amount: Number(item.localAmount ?? item.HREED_Amount ?? 0),
+            HREED_Percentage: String(item.localApplicablePercentage ?? item.HREED_ApplicablePercentage ?? item.HREED_Percentage ?? '0'),
+            HREED_ActiveFlag: Boolean(item.HREED_ActiveFlag),
+            HREED_MaxApplicableFlg: Boolean(item.HREED_MaxApplicableFlg ?? true),
+            HREED_ApplicableMaxValue: Number(item.localMaxAmount ?? item.HREED_ApplicableMaxValue ?? 0),
+            // camelCase keys
             hreeD_Id: Number(item.HREED_Id || 0),
-            mI_Id: Number(employeemiId),
+            mI_Id: effectiveMiId,
             hrmE_Id: Number(employeeId),
             hrmeD_Id: Number(item.HRMED_Id || 0),
             hrmeD_Name: item.HRMED_Name || '',
@@ -346,15 +532,43 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
         } else if (field === 'localAmount' || field === 'localMaxAmount') {
             validatedValue = validateAmount(String(value));
         }
-        updated[index] = { ...updated[index], [field]: validatedValue };
+
+        const currentItem = updated[index];
+        const newProps: Partial<EditablePayrollItem> = { [field]: validatedValue };
+
+        // If percentage is updated, sync localApplicablePercentage and calculate Amount from Gross
+        if (field === 'localPercentage' || field === 'localApplicablePercentage') {
+            if (field === 'localPercentage') {
+                newProps.localApplicablePercentage = validatedValue;
+            }
+            newProps.HREED_Percentage = String(validatedValue);
+            newProps.HREED_ApplicablePercentage = String(validatedValue);
+            const perc = Number.parseFloat(String(validatedValue)) || 0;
+            const currentGross = grossRef.current?.localAmount ?? grossRef.current?.HREED_Amount ?? grossDetails?.localAmount ?? 0;
+            if (currentGross > 0 && perc >= 0) {
+                const calculatedAmount = Number(((currentGross * perc) / 100).toFixed(2));
+                newProps.localAmount = calculatedAmount;
+                newProps.HREED_Amount = calculatedAmount;
+            }
+        }
+
+        // If checkbox is toggled ON, and Gross > 0 with percentage > 0 and amount is 0, calculate Amount
+        if (field === 'HREED_ActiveFlag' && validatedValue === true) {
+            const perc = getHeadPercentage(currentItem);
+            const currentGross = grossRef.current?.localAmount ?? grossRef.current?.HREED_Amount ?? grossDetails?.localAmount ?? 0;
+            if (currentGross > 0 && perc > 0 && (!currentItem.localAmount || currentItem.localAmount === 0)) {
+                const calculatedAmount = Number(((currentGross * perc) / 100).toFixed(2));
+                newProps.localAmount = calculatedAmount;
+                newProps.HREED_Amount = calculatedAmount;
+            }
+        }
+
+        updated[index] = { ...currentItem, ...newProps };
         earningsRef.current = updated;
         setEarnings(updated);
         dirtyRowsRef.current.earnings.add(index);
 
-        // If checkbox (HREED_ActiveFlag) is toggled, recalculate totals immediately on client
-        if (field === 'HREED_ActiveFlag') {
-            calculateTotalsWithArrays(updated, deductionsRef.current, arrearsRef.current);
-        }
+        calculateTotalsWithArrays(updated, deductionsRef.current, arrearsRef.current);
         return updated;
     };
 
@@ -368,15 +582,39 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
         } else if (field === 'localAmount' || field === 'localMaxAmount') {
             validatedValue = validateAmount(String(value));
         }
-        updated[index] = { ...updated[index], [field]: validatedValue };
+
+        const currentItem = updated[index];
+        const newProps: Partial<EditablePayrollItem> = { [field]: validatedValue };
+
+        // If percentage is updated, sync localApplicablePercentage; for percentage deductions, keep amount at 0
+        if (field === 'localPercentage' || field === 'localApplicablePercentage') {
+            if (field === 'localPercentage') {
+                newProps.localApplicablePercentage = validatedValue;
+            }
+            newProps.HREED_Percentage = String(validatedValue);
+            newProps.HREED_ApplicablePercentage = String(validatedValue);
+            const perc = Number.parseFloat(String(validatedValue)) || 0;
+            if (perc > 0) {
+                newProps.localAmount = 0;
+                newProps.HREED_Amount = 0;
+            }
+        }
+
+        // If checkbox is toggled ON, and deduction has percentage, keep amount at 0
+        if (field === 'HREED_ActiveFlag' && validatedValue === true) {
+            const perc = getHeadPercentage(currentItem);
+            if (perc > 0) {
+                newProps.localAmount = 0;
+                newProps.HREED_Amount = 0;
+            }
+        }
+
+        updated[index] = { ...currentItem, ...newProps };
         deductionsRef.current = updated;
         setDeductions(updated);
         dirtyRowsRef.current.deductions.add(index);
 
-        // If checkbox (HREED_ActiveFlag) is toggled, recalculate totals immediately on client
-        if (field === 'HREED_ActiveFlag') {
-            calculateTotalsWithArrays(earningsRef.current, updated, arrearsRef.current);
-        }
+        calculateTotalsWithArrays(earningsRef.current, updated, arrearsRef.current);
         return updated;
     };
 
@@ -390,15 +628,43 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
         } else if (field === 'localAmount' || field === 'localMaxAmount') {
             validatedValue = validateAmount(String(value));
         }
-        updated[index] = { ...updated[index], [field]: validatedValue };
+
+        const currentItem = updated[index];
+        const newProps: Partial<EditablePayrollItem> = { [field]: validatedValue };
+
+        // If percentage is updated, sync localApplicablePercentage and calculate Amount from Gross
+        if (field === 'localPercentage' || field === 'localApplicablePercentage') {
+            if (field === 'localPercentage') {
+                newProps.localApplicablePercentage = validatedValue;
+            }
+            newProps.HREED_Percentage = String(validatedValue);
+            newProps.HREED_ApplicablePercentage = String(validatedValue);
+            const perc = Number.parseFloat(String(validatedValue)) || 0;
+            const currentGross = grossRef.current?.localAmount ?? grossRef.current?.HREED_Amount ?? grossDetails?.localAmount ?? 0;
+            if (currentGross > 0 && perc >= 0) {
+                const calculatedAmount = Number(((currentGross * perc) / 100).toFixed(2));
+                newProps.localAmount = calculatedAmount;
+                newProps.HREED_Amount = calculatedAmount;
+            }
+        }
+
+        // If checkbox is toggled ON, and Gross > 0 with percentage > 0 and amount is 0, calculate Amount
+        if (field === 'HREED_ActiveFlag' && validatedValue === true) {
+            const perc = getHeadPercentage(currentItem);
+            const currentGross = grossRef.current?.localAmount ?? grossRef.current?.HREED_Amount ?? grossDetails?.localAmount ?? 0;
+            if (currentGross > 0 && perc > 0 && (!currentItem.localAmount || currentItem.localAmount === 0)) {
+                const calculatedAmount = Number(((currentGross * perc) / 100).toFixed(2));
+                newProps.localAmount = calculatedAmount;
+                newProps.HREED_Amount = calculatedAmount;
+            }
+        }
+
+        updated[index] = { ...currentItem, ...newProps };
         arrearsRef.current = updated;
         setArrears(updated);
         dirtyRowsRef.current.arrears.add(index);
 
-        // If checkbox (HREED_ActiveFlag) is toggled, recalculate totals immediately on client
-        if (field === 'HREED_ActiveFlag') {
-            calculateTotalsWithArrays(earningsRef.current, deductionsRef.current, updated);
-        }
+        calculateTotalsWithArrays(earningsRef.current, deductionsRef.current, updated);
         return updated;
     };
 
@@ -408,42 +674,103 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
             type === 'Earning'
                 ? dirtyRowsRef.current.earnings
                 : type === 'Deduction'
-                ? dirtyRowsRef.current.deductions
-                : dirtyRowsRef.current.arrears;
+                  ? dirtyRowsRef.current.deductions
+                  : dirtyRowsRef.current.arrears;
 
         if (!dirtySet.has(index)) return;
         dirtySet.delete(index);
 
-        const list =
-            type === 'Earning'
-                ? earningsRef.current
-                : type === 'Deduction'
-                ? deductionsRef.current
-                : arrearsRef.current;
+        const list = type === 'Earning' ? earningsRef.current : type === 'Deduction' ? deductionsRef.current : arrearsRef.current;
         const item = list[index];
         if (!item) return;
 
-        await handleCalculateServerSide(earningsRef.current, deductionsRef.current, arrearsRef.current);
         await handleAutoSave(item);
     };
 
     // Update handlers for gross
     const updateGross = (field: keyof EditablePayrollItem, value: any) => {
-        if (!grossDetails) return null;
-
         let validatedValue = value;
         if (field === 'localAmount') {
             validatedValue = validateAmount(String(value));
         }
 
-        const updatedGross = { ...grossDetails, [field]: validatedValue };
+        const baseGross =
+            grossDetails ||
+            ({
+                HREED_Id: 0,
+                HRMED_Id: 0,
+                HRMED_Name: 'GROSS',
+                HRMED_EarnDedFlag: 'Gross',
+                HRMED_AmountPercentFlag: 'Amount',
+                HREED_ActiveFlag: true,
+                HREED_Amount: 0,
+                HREED_Percentage: '0',
+                HREED_ApplicablePercentage: '0',
+                HREED_ApplicableMaxValue: 0,
+                localAmount: 0,
+                localPercentage: '0',
+                localApplicablePercentage: '0',
+                localMaxAmount: 0,
+                HREED_MaxApplicableFlg: true
+            } as EditablePayrollItem);
+
+        const updatedGross = {
+            ...baseGross,
+            [field]: validatedValue,
+            ...(field === 'localAmount' ? { HREED_Amount: validatedValue } : {})
+        };
         grossRef.current = updatedGross;
         setGrossDetails(updatedGross);
+        dirtyRowsRef.current.gross = true;
         return updatedGross;
     };
 
-    const onBlurGross = (updated = grossDetails) => {
-        handleCalculateServerSide(earningsRef.current, deductionsRef.current, arrearsRef.current, updated);
+    const onBlurGross = async (updated = grossDetails) => {
+        if (!updated) return;
+        dirtyRowsRef.current.gross = false;
+
+        const grossAmount = updated.localAmount ?? updated.HREED_Amount ?? 0;
+        if (grossAmount > 0) {
+            const { newEarnings, newDeductions, newArrears } = calculateHeadsFromGross(
+                grossAmount,
+                earningsRef.current,
+                deductionsRef.current,
+                arrearsRef.current
+            );
+            earningsRef.current = newEarnings;
+            deductionsRef.current = newDeductions;
+            arrearsRef.current = newArrears;
+            setEarnings(newEarnings);
+            setDeductions(newDeductions);
+            setArrears(newArrears);
+            calculateTotalsWithArrays(newEarnings, newDeductions, newArrears);
+
+            // Auto-save gross head
+            await handleAutoSave(grossRef.current || updated);
+
+            // Auto-save recalculated heads that have amount > 0
+            const autoSaves: Promise<any>[] = [];
+            newEarnings.forEach((item) => {
+                if (item.HREED_ActiveFlag && (item.localAmount ?? 0) > 0) {
+                    autoSaves.push(handleAutoSave(item));
+                }
+            });
+            newDeductions.forEach((item) => {
+                if (item.HREED_ActiveFlag && (item.localAmount ?? 0) > 0) {
+                    autoSaves.push(handleAutoSave(item));
+                }
+            });
+            newArrears.forEach((item) => {
+                if (item.HREED_ActiveFlag && (item.localAmount ?? 0) > 0) {
+                    autoSaves.push(handleAutoSave(item));
+                }
+            });
+            if (autoSaves.length > 0) {
+                await Promise.all(autoSaves);
+            }
+        } else {
+            await handleAutoSave(grossRef.current || updated);
+        }
     };
     // State for calculated totals from API
     const [calculatedTotals, setCalculatedTotals] = useState<{
@@ -488,20 +815,30 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
             return;
         }
 
-        // Flush any pending dirty rows before final submit
+        // Save gross and all active heads before final submit
         const pendingSaves: Promise<any>[] = [];
-        dirtyRowsRef.current.earnings.forEach((idx) => {
-            if (earningsRef.current[idx]) pendingSaves.push(handleAutoSave(earningsRef.current[idx]));
+        if (grossRef.current) {
+            pendingSaves.push(handleAutoSave(grossRef.current));
+        }
+        earningsRef.current.forEach((item) => {
+            if (item.HREED_ActiveFlag || (item.localAmount ?? 0) > 0) {
+                pendingSaves.push(handleAutoSave(item));
+            }
         });
-        dirtyRowsRef.current.deductions.forEach((idx) => {
-            if (deductionsRef.current[idx]) pendingSaves.push(handleAutoSave(deductionsRef.current[idx]));
+        deductionsRef.current.forEach((item) => {
+            if (item.HREED_ActiveFlag || (item.localAmount ?? 0) > 0) {
+                pendingSaves.push(handleAutoSave(item));
+            }
         });
-        dirtyRowsRef.current.arrears.forEach((idx) => {
-            if (arrearsRef.current[idx]) pendingSaves.push(handleAutoSave(arrearsRef.current[idx]));
+        arrearsRef.current.forEach((item) => {
+            if (item.HREED_ActiveFlag || (item.localAmount ?? 0) > 0) {
+                pendingSaves.push(handleAutoSave(item));
+            }
         });
         dirtyRowsRef.current.earnings.clear();
         dirtyRowsRef.current.deductions.clear();
         dirtyRowsRef.current.arrears.clear();
+        dirtyRowsRef.current.gross = false;
 
         if (pendingSaves.length > 0) {
             await Promise.all(pendingSaves);
@@ -534,7 +871,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
     return (
         <div className='space-y-6'>
             {/* Gross Salary Details */}
-            {(
+            {
                 <div className='rounded-md border bg-white p-4'>
                     <div className='flex items-center gap-4'>
                         <h3 className='min-w-[150px] font-semibold text-base text-gray-900 uppercase'>GROSS SALARY:</h3>
@@ -550,6 +887,11 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                     const updated = updateGross('localAmount', validated);
                                     if (updated) onBlurGross(updated);
                                 }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        e.currentTarget.blur();
+                                    }
+                                }}
                                 min={0}
                                 max={999999999999999}
                                 step={0.01}
@@ -557,7 +899,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                         </div>
                     </div>
                 </div>
-            )}
+            }
 
             {/* Earning Details */}
             <div className='rounded-md border'>
@@ -590,7 +932,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                     // Normalize the AmountPercentFlag value - handle null, undefined, empty string, and case variations
                                     const rawFlag = item.HRMED_AmountPercentFlag;
                                     const normalizedFlag = rawFlag ? String(rawFlag).trim().toLowerCase() : 'amount';
-                                    const isAmountType = normalizedFlag === 'amount';
+                                    const _isAmountType = normalizedFlag === 'amount';
                                     const isPercentageType = normalizedFlag === 'percentage';
                                     return (
                                         <TableRow
@@ -599,8 +941,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                 if (!e.currentTarget.contains(e.relatedTarget as Node)) {
                                                     handleRowBlur('Earning', index);
                                                 }
-                                            }}
-                                        >
+                                            }}>
                                             <TableCell>
                                                 <Checkbox
                                                     checked={item.HREED_ActiveFlag || false}
@@ -622,7 +963,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     min={0}
                                                     max={100}
                                                     step={0.01}
-                                                    disabled={!item.HREED_ActiveFlag || isAmountType}
+                                                    disabled={true}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-right'>
@@ -643,7 +984,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     min={0}
                                                     max={100}
                                                     step={0.01}
-                                                    disabled={!item.HREED_ActiveFlag || isAmountType}
+                                                    disabled={true}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-right'>
@@ -659,7 +1000,8 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     min={0}
                                                     max={999999999999999}
                                                     step={0.01}
-                                                    disabled={!item.HREED_ActiveFlag || isPercentageType}
+                                                    // disabled={!item.HREED_ActiveFlag || isPercentageType}
+                                                    disabled = {false}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-right'>
@@ -723,8 +1065,9 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                     // Normalize the AmountPercentFlag value - handle null, undefined, empty string, and case variations
                                     const rawFlag = item.HRMED_AmountPercentFlag;
                                     const normalizedFlag = rawFlag ? String(rawFlag).trim().toLowerCase() : 'amount';
-                                    const isAmountType = normalizedFlag === 'amount';
-                                    const isPercentageType = normalizedFlag === 'percentage';
+                                    const _isAmountType = normalizedFlag === 'amount';
+                                    const headPerc = getHeadPercentage(item);
+                                    const isPercentageType = normalizedFlag === 'percentage' || headPerc > 0;
                                     return (
                                         <TableRow
                                             key={item.HREED_Id || index}
@@ -732,8 +1075,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                 if (!e.currentTarget.contains(e.relatedTarget as Node)) {
                                                     handleRowBlur('Deduction', index);
                                                 }
-                                            }}
-                                        >
+                                            }}>
                                             <TableCell>
                                                 <Checkbox
                                                     checked={item.HREED_ActiveFlag || false}
@@ -755,7 +1097,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     min={0}
                                                     max={100}
                                                     step={0.01}
-                                                    disabled={!item.HREED_ActiveFlag || isAmountType}
+                                                    disabled={true}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-right'>
@@ -776,14 +1118,14 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                     min={0}
                                                     max={100}
                                                     step={0.01}
-                                                    disabled={!item.HREED_ActiveFlag || isAmountType}
+                                                    disabled={true}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-right'>
                                                 <Input
                                                     type='number'
                                                     className='h-8 w-24 text-right'
-                                                    value={item.localAmount ?? item.HREED_Amount ?? 0}
+                                                    value={isPercentageType ? 0 : (item.localAmount ?? item.HREED_Amount ?? 0)}
                                                     onChange={(e) => updateDeduction(index, 'localAmount', e.target.value)}
                                                     onBlur={(e) => {
                                                         const validated = validateAmount(e.target.value);
@@ -859,8 +1201,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                             if (!e.currentTarget.contains(e.relatedTarget as Node)) {
                                                 handleRowBlur('Arrear', index);
                                             }
-                                        }}
-                                    >
+                                        }}>
                                         <TableCell>
                                             <Checkbox
                                                 checked={item.HREED_ActiveFlag || false}
@@ -882,7 +1223,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                 min={0}
                                                 max={100}
                                                 step={0.01}
-                                                disabled={!item.HREED_ActiveFlag}
+                                                disabled={true}
                                             />
                                         </TableCell>
                                         <TableCell className='text-right'>
@@ -903,7 +1244,7 @@ export function PayrollTab({ employeeId, employeeCode, MI_Id: propMI_Id, onSucce
                                                 min={0}
                                                 max={100}
                                                 step={0.01}
-                                                disabled={!item.HREED_ActiveFlag}
+                                                disabled={true}
                                             />
                                         </TableCell>
                                         <TableCell className='text-right'>

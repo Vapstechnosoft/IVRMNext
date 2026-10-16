@@ -35,10 +35,10 @@ export const columns: ColumnDef<IMasterEarningsDeductionsList>[] = [
                 value === 'Earning'
                     ? 'bg-green-100 text-green-800 border-green-200'
                     : value === 'Deduction'
-                      ? 'bg-red-100 text-red-800 border-red-200'
-                      : value === 'Arrear'
-                        ? 'bg-blue-100 text-blue-800 border-blue-200'
-                        : 'bg-purple-100 text-purple-800 border-purple-200';
+                        ? 'bg-red-100 text-red-800 border-red-200'
+                        : value === 'Arrear'
+                            ? 'bg-blue-100 text-blue-800 border-blue-200'
+                            : 'bg-purple-100 text-purple-800 border-purple-200';
             return (
                 <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold text-xs ${badgeClass}`}>
                     {value}
