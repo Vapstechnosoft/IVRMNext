@@ -8,6 +8,7 @@ import { getReportDetails } from '@/server/alumni/user-password-creation';
 import type { IClass, ISection, IYear } from '@/types/alumni/user-password-creation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, RotateCcw } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type UserPasswordCreationSchema, userPasswordCreationSchema } from './schema';
@@ -22,6 +23,8 @@ interface FilterFormProps {
 }
 
 export default function FilterForm({ years, classes, sections, onSuccess, onReset, onLoading }: FilterFormProps) {
+    const [clearKey, setClearKey] = useState(0);
+
     const {
         control,
         handleSubmit,
@@ -35,11 +38,17 @@ export default function FilterForm({ years, classes, sections, onSuccess, onRese
             filterdata: 'reg',
             asmaY_Id: '',
             asmcL_Id: '',
-            asmS_Id: '0'
+            asmS_Id: ''
         }
     });
 
     const filterdata = watch('filterdata');
+
+    useEffect(() => {
+        if (filterdata === 'Alumni') {
+            setValue('asmS_Id', '');
+        }
+    }, [filterdata, setValue]);
 
     const onSubmit = async (values: UserPasswordCreationSchema) => {
         onLoading(true);
@@ -70,13 +79,14 @@ export default function FilterForm({ years, classes, sections, onSuccess, onRese
             filterdata: 'reg',
             asmaY_Id: '',
             asmcL_Id: '',
-            asmS_Id: '0'
+            asmS_Id: ''
         });
+        setClearKey((prev) => prev + 1);
         onReset();
     };
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
+        <form key={clearKey} onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
             <div className='flex justify-center'>
                 <div className='w-full max-w-lg rounded-xl border border-slate-200 bg-slate-50/50 p-4 shadow-sm'>
                     <Controller
@@ -113,18 +123,24 @@ export default function FilterForm({ years, classes, sections, onSuccess, onRese
                     <Label htmlFor='asmaY_Id' className='font-semibold text-slate-700 text-sm'>
                         Academic Year <span className='text-red-500'>*</span>
                     </Label>
-                    <Select onValueChange={(v) => setValue('asmaY_Id', v)} value={watch('asmaY_Id')}>
-                        <SelectTrigger id='asmaY_Id' className='h-10 rounded-lg border-slate-300 bg-white'>
-                            <SelectValue placeholder='Select Academic Year' />
-                        </SelectTrigger>
-                        <SelectContent side='bottom'>
-                            {years.map((y) => (
-                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                    {y.asmaY_Year}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Controller
+                        name='asmaY_Id'
+                        control={control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                <SelectTrigger id='asmaY_Id' className='h-10 rounded-lg border-slate-300 bg-white'>
+                                    <SelectValue placeholder='Select Academic Year' />
+                                </SelectTrigger>
+                                <SelectContent side='bottom'>
+                                    {years.map((y) => (
+                                        <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
+                                            {y.asmaY_Year}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
                     {errors.asmaY_Id && <FormError>{errors.asmaY_Id.message}</FormError>}
                 </div>
 
@@ -132,18 +148,24 @@ export default function FilterForm({ years, classes, sections, onSuccess, onRese
                     <Label htmlFor='asmcL_Id' className='font-semibold text-slate-700 text-sm'>
                         Class <span className='text-red-500'>*</span>
                     </Label>
-                    <Select onValueChange={(v) => setValue('asmcL_Id', v)} value={watch('asmcL_Id')}>
-                        <SelectTrigger id='asmcL_Id' className='h-10 rounded-lg border-slate-300 bg-white'>
-                            <SelectValue placeholder='Select Class' />
-                        </SelectTrigger>
-                        <SelectContent side='bottom'>
-                            {classes.map((c) => (
-                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                    {c.asmcL_ClassName}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <Controller
+                        name='asmcL_Id'
+                        control={control}
+                        render={({ field }) => (
+                            <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                <SelectTrigger id='asmcL_Id' className='h-10 rounded-lg border-slate-300 bg-white'>
+                                    <SelectValue placeholder='Select Class' />
+                                </SelectTrigger>
+                                <SelectContent side='bottom'>
+                                    {classes.map((c) => (
+                                        <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
+                                            {c.asmcL_ClassName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
                     {errors.asmcL_Id && <FormError>{errors.asmcL_Id.message}</FormError>}
                 </div>
 
@@ -152,19 +174,25 @@ export default function FilterForm({ years, classes, sections, onSuccess, onRese
                         <Label htmlFor='asmS_Id' className='font-semibold text-slate-700 text-sm'>
                             Section <span className='text-red-500'>*</span>
                         </Label>
-                        <Select onValueChange={(v) => setValue('asmS_Id', v)} value={watch('asmS_Id')}>
-                            <SelectTrigger id='asmS_Id' className='h-10 rounded-lg border-slate-300 bg-white'>
-                                <SelectValue placeholder='Select Section' />
-                            </SelectTrigger>
-                            <SelectContent side='bottom'>
-                                <SelectItem value='0'>ALL</SelectItem>
-                                {sections.map((s) => (
-                                    <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
-                                        {s.asmC_SectionName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <Controller
+                            name='asmS_Id'
+                            control={control}
+                            render={({ field }) => (
+                                <Select onValueChange={field.onChange} value={field.value || undefined}>
+                                    <SelectTrigger id='asmS_Id' className='h-10 rounded-lg border-slate-300 bg-white'>
+                                        <SelectValue placeholder='Select Section' />
+                                    </SelectTrigger>
+                                    <SelectContent side='bottom'>
+                                        <SelectItem value='0'>ALL</SelectItem>
+                                        {sections.map((s) => (
+                                            <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
+                                                {s.asmC_SectionName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
                         {errors.asmS_Id && <FormError>{errors.asmS_Id.message}</FormError>}
                     </div>
                 )}
@@ -181,3 +209,4 @@ export default function FilterForm({ years, classes, sections, onSuccess, onRese
         </form>
     );
 }
+
