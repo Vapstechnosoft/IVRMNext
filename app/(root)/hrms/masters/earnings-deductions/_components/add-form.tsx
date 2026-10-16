@@ -21,7 +21,7 @@ import type {
     ISalaryComponentTypeDropdown
 } from '@/types/hrms/hrms-config/master';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
-import { Loader2, Save } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2, Save } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -181,10 +181,11 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
             rawData = res.data;
         }
 
-        return rawData.filter((item: any) => {
-            const flag = item?.hrmeD_AmountPercentFlag || item?.HRMED_AmountPercentFlag || '';
-            return flag.toLowerCase() === 'percentage';
-        });
+        // return rawData.filter((item: any) => {
+        //     const flag = item?.hrmeD_AmountPercentFlag || item?.HRMED_AmountPercentFlag || '';
+        //     return flag.toLowerCase() === 'percentage';
+        // });
+        return rawData;
     }, [earningAndDeductionDropdownResponse]);
 
     const totalPercentagePages = Math.ceil(percentageOfList.length / pageSize) || 1;
@@ -205,19 +206,29 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
             // Build the request body - map to lowercase field names as per API
             const payload: any = {
                 hrmeD_Id: 0,
+                HRMED_Id: 0,
                 hrmeD_Name: data.HRMED_Name?.trim() || '',
+                HRMED_Name: data.HRMED_Name?.trim() || '',
                 hrmeD_EDTypeFlag: data.HRMED_EDTypeFlag || '',
+                HRMED_EDTypeFlag: data.HRMED_EDTypeFlag || '',
                 hrmeD_EarnDedFlag: data.HRMED_EarnDedFlag,
+                HRMED_EarnDedFlag: data.HRMED_EarnDedFlag,
                 hrmeD_AmountPercentFlag: data.HRMED_AmountPercentFlag,
+                HRMED_AmountPercentFlag: data.HRMED_AmountPercentFlag,
                 hrmeD_AmountPercent: data.HRMED_AmountPercent,
+                HRMED_AmountPercent: data.HRMED_AmountPercent,
                 hrmeD_RoundOffFlag: data.HRMED_RoundOffFlag,
+                HRMED_RoundOffFlag: data.HRMED_RoundOffFlag,
                 hrmeD_ReviseFlg: data.HRMED_ReviseFlg ?? false,
+                HRMED_ReviseFlg: data.HRMED_ReviseFlg ?? false,
                 hrmeD_Order: data.HRMED_Order || 0,
+                HRMED_Order: data.HRMED_Order || 0,
                 perc_OfDTO: isPercentage
                     ? selectedPercentageIds.map((id) => ({
-                        //   hrmedP_Id: 0,
                           hrmeD_Id: 0,
-                          hrmedP_HRMED_Id: id
+                          HRMED_Id: 0,
+                          hrmedP_HRMED_Id: id,
+                          HRMEDP_HRMED_Id: id
                       }))
                     : []
             };
@@ -546,16 +557,19 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                                 </tr>
                                             ) : (
                                                 paginatedPercentageList.map((item: any, index: number) => {
-                                                    const id = item.hrmeD_Id ?? item.HRMED_Id ?? index;
-                                                    const isChecked = selectedPercentageIds.includes(id);
+                                                    const numId = Number(item.hrmeD_Id ?? item.HRMED_Id);
+                                                    const isChecked = selectedPercentageIds.includes(numId);
                                                     const name = item.hrmeD_Name ?? item.HRMED_Name ?? '-';
                                                     const type = item.hrmeD_EarnDedFlag ?? item.HRMED_EarnDedFlag ?? item.hrmeD_EDTypeFlag ?? '-';
                                                     const amountPercent = item.hrmeD_AmountPercent ?? item.HRMED_AmountPercent ?? '0';
+                                                    const isItemPercentage =
+                                                        (item.hrmeD_AmountPercentFlag ?? item.HRMED_AmountPercentFlag ?? '').toLowerCase() === 'percentage';
 
                                                     return (
                                                         <tr
-                                                            key={id}
-                                                            className={`transition-colors hover:bg-blue-50/50 ${isChecked ? 'bg-blue-50/30' : ''}`}>
+                                                            key={numId || index}
+                                                            onClick={() => togglePercentageSelection(numId)}
+                                                            className={`transition-colors hover:bg-blue-50/50 cursor-pointer ${isChecked ? 'bg-blue-50/30' : ''}`}>
                                                             <td className='py-2.5 px-4 text-center border-r border-gray-200 font-medium text-gray-800'>
                                                                 {name}
                                                             </td>
@@ -563,14 +577,16 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                                                                 {type}
                                                             </td>
                                                             <td className='py-2.5 px-4 text-center border-r border-gray-200 text-gray-700'>
-                                                                {amountPercent} %
+                                                                {isItemPercentage ? `${amountPercent} %` : amountPercent}
                                                             </td>
                                                             <td className='py-2.5 px-4 text-center'>
-                                                                <div className='flex items-center justify-center'>
+                                                                <div
+                                                                    className='flex items-center justify-center'
+                                                                    onClick={(e) => e.stopPropagation()}>
                                                                     <input
                                                                         type='checkbox'
                                                                         checked={isChecked}
-                                                                        onChange={() => togglePercentageSelection(id)}
+                                                                        onChange={() => togglePercentageSelection(numId)}
                                                                         className='h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer'
                                                                     />
                                                                 </div>
@@ -585,73 +601,82 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
 
                                 {/* Pagination */}
                                 {totalPercentagePages > 1 && (
-                                    <div className='flex items-center gap-1 mt-3'>
-                                        <button
-                                            type='button'
-                                            onClick={() => setPercentagePage(1)}
-                                            disabled={percentagePage === 1}
-                                            className='px-2.5 py-1 text-xs font-semibold bg-[#0066cc] text-white rounded-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0052a3] transition-colors'
-                                            title='First Page'>
-                                            «
-                                        </button>
-                                        <button
-                                            type='button'
-                                            onClick={() => setPercentagePage((p) => Math.max(1, p - 1))}
-                                            disabled={percentagePage === 1}
-                                            className='px-2.5 py-1 text-xs font-semibold bg-[#0066cc] text-white rounded-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0052a3] transition-colors'
-                                            title='Previous Page'>
-                                            ‹
-                                        </button>
-                                        {Array.from({ length: totalPercentagePages }, (_, i) => i + 1)
-                                            .filter((page) => {
-                                                if (totalPercentagePages <= 5) return true;
-                                                if (page === 1 || page === totalPercentagePages) return true;
-                                                return Math.abs(page - percentagePage) <= 1;
-                                            })
-                                            .reduce<(number | string)[]>((acc, page, idx, arr) => {
-                                                if (idx > 0 && typeof arr[idx - 1] === 'number' && (page as number) - (arr[idx - 1] as number) > 1) {
-                                                    acc.push('...');
-                                                }
-                                                acc.push(page);
-                                                return acc;
-                                            }, [])
-                                            .map((page, index) =>
-                                                page === '...' ? (
-                                                    <span
-                                                        key={`ellipsis-${index}`}
-                                                        className='px-2 py-1 text-xs font-semibold bg-[#0066cc] text-white rounded-sm'>
-                                                        ...
-                                                    </span>
-                                                ) : (
-                                                    <button
-                                                        key={`page-${page}`}
-                                                        type='button'
-                                                        onClick={() => setPercentagePage(Number(page))}
-                                                        className={`px-3 py-1 text-xs font-semibold rounded-sm transition-colors ${
-                                                            percentagePage === page
-                                                                ? 'bg-black text-white'
-                                                                : 'bg-[#0066cc] text-white hover:bg-[#0052a3]'
-                                                        }`}>
-                                                        {page}
-                                                    </button>
-                                                )
-                                            )}
-                                        <button
-                                            type='button'
-                                            onClick={() => setPercentagePage((p) => Math.min(totalPercentagePages, p + 1))}
-                                            disabled={percentagePage === totalPercentagePages}
-                                            className='px-2.5 py-1 text-xs font-semibold bg-[#0066cc] text-white rounded-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0052a3] transition-colors'
-                                            title='Next Page'>
-                                            ›
-                                        </button>
-                                        <button
-                                            type='button'
-                                            onClick={() => setPercentagePage(totalPercentagePages)}
-                                            disabled={percentagePage === totalPercentagePages}
-                                            className='px-2.5 py-1 text-xs font-semibold bg-[#0066cc] text-white rounded-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0052a3] transition-colors'
-                                            title='Last Page'>
-                                            »
-                                        </button>
+                                    <div className='flex flex-wrap items-center justify-between gap-3 mt-3 px-1'>
+                                        <span className='text-xs text-muted-foreground'>
+                                            Showing {((percentagePage - 1) * pageSize) + 1} to {Math.min(percentagePage * pageSize, percentageOfList.length)} of {percentageOfList.length} items
+                                        </span>
+                                        <div className='flex items-center gap-1 border border-border bg-background rounded-full p-1 shadow-xs'>
+                                            <button
+                                                type='button'
+                                                onClick={() => setPercentagePage(1)}
+                                                disabled={percentagePage === 1}
+                                                className='h-7 w-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition-colors'
+                                                title='First Page'>
+                                                <ChevronsLeft className='h-3.5 w-3.5' />
+                                            </button>
+                                            <button
+                                                type='button'
+                                                onClick={() => setPercentagePage((p) => Math.max(1, p - 1))}
+                                                disabled={percentagePage === 1}
+                                                className='h-7 w-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition-colors'
+                                                title='Previous Page'>
+                                                <ChevronLeft className='h-3.5 w-3.5' />
+                                            </button>
+                                            {Array.from({ length: totalPercentagePages }, (_, i) => i + 1)
+                                                .filter((page) => {
+                                                    if (totalPercentagePages <= 5) return true;
+                                                    if (page === 1 || page === totalPercentagePages) return true;
+                                                    return Math.abs(page - percentagePage) <= 1;
+                                                })
+                                                .reduce<(number | string)[]>((acc, page, idx, arr) => {
+                                                    if (idx > 0 && typeof arr[idx - 1] === 'number' && (page as number) - (arr[idx - 1] as number) > 1) {
+                                                        acc.push('...');
+                                                    }
+                                                    acc.push(page);
+                                                    return acc;
+                                                }, [])
+                                                .map((page, index) =>
+                                                    page === '...' ? (
+                                                        <span
+                                                            key={`ellipsis-${index}`}
+                                                            className='h-7 w-6 flex items-center justify-center text-xs text-muted-foreground'>
+                                                            ...
+                                                        </span>
+                                                    ) : (
+                                                        <button
+                                                            key={`page-${page}`}
+                                                            type='button'
+                                                            onClick={() => setPercentagePage(Number(page))}
+                                                            className={`h-7 w-7 flex items-center justify-center text-xs font-semibold rounded-full transition-all ${
+                                                                percentagePage === page
+                                                                    ? 'bg-destructive text-destructive-foreground shadow-xs font-bold'
+                                                                    : 'text-foreground/80 hover:text-foreground hover:bg-muted'
+                                                            }`}>
+                                                            {page}
+                                                        </button>
+                                                    )
+                                                )}
+                                            <button
+                                                type='button'
+                                                onClick={() => setPercentagePage((p) => Math.min(totalPercentagePages, p + 1))}
+                                                disabled={percentagePage === totalPercentagePages}
+                                                className='h-7 w-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition-colors'
+                                                title='Next Page'>
+                                                <ChevronRight className='h-3.5 w-3.5' />
+                                            </button>
+                                            <button
+                                                type='button'
+                                                onClick={() => setPercentagePage(totalPercentagePages)}
+                                                disabled={percentagePage === totalPercentagePages}
+                                                className='h-7 w-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition-colors'
+                                                title='Last Page'>
+                                                <ChevronsRight className='h-3.5 w-3.5' />
+                                            </button>
+                                            <div className='h-3.5 w-px bg-border mx-1' />
+                                            <span className='text-xs font-medium text-muted-foreground px-2 whitespace-nowrap'>
+                                                Page {percentagePage} of {totalPercentagePages}
+                                            </span>
+                                        </div>
                                     </div>
                                 )}
                             </div>
