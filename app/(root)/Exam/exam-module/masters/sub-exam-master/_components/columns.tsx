@@ -44,20 +44,13 @@ export const MasterSubExamColumns: ColumnDef<IMasterSubExam>[] = [
 ];
 
 function ActionButtonsCell({ rowData }: { rowData: IMasterSubExam }) {
-    const { openEditForm, openDeleteForm, openToggleForm } = useFormContext<IMasterSubExam>();
+    const { openEditForm, openToggleForm } = useFormContext<IMasterSubExam>();
 
     const handleEdit = useCallback(
         (data: IMasterSubExam) => {
             openEditForm(data);
         },
         [openEditForm]
-    );
-
-    const handleDelete = useCallback(
-        (data: IMasterSubExam) => {
-            openDeleteForm(data);
-        },
-        [openDeleteForm]
     );
 
     const handleToggle = useCallback(
@@ -70,9 +63,8 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterSubExam }) {
     return (
         <ActionButtons
             rowData={rowData}
-            buttons={{ edit: true, delete: true, toggle: true }}
+            buttons={{ edit: true, toggle: true, delete: false }}
             onEdit={handleEdit}
-            onDelete={handleDelete}
             onToggle={handleToggle}
             toggleConditionKey='emsE_ActiveFlag'
         />

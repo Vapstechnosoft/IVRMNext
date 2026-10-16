@@ -115,8 +115,8 @@ class ApiService {
         if (key === 'exam') {
             return (
                 process.env.NEXT_PUBLIC_EXAM_LOCAL_API_BASE_URL ||
-                process.env.NEXT_PUBLIC_EXAM_API_BASE_URL ||
                 process.env.EXAM_API_BASE_URL ||
+                process.env.NEXT_PUBLIC_EXAM_API_BASE_URL ||
                 'https://localhost:50258/api'
             );
         }
