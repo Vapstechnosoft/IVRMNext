@@ -21,8 +21,59 @@ import {
 } from '@/server/coe/masters/master-coe';
 import { uploadDocument } from '@/server/document_upload';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { Eye, Image as ImageIcon, Pencil, Plus, RotateCcw, Save, ToggleLeft, ToggleRight, Trash2, Video } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
+const formatDateOnly = (date: Date | string | undefined | null): string | null => {
+    if (!date) return null;
+    if (typeof date === 'string') {
+        const trimmed = date.trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+            return trimmed;
+        }
+        const d = new Date(trimmed);
+        if (!Number.isNaN(d.getTime())) {
+            return format(d, 'yyyy-MM-dd');
+        }
+        return null;
+    }
+    if (date instanceof Date && !Number.isNaN(date.getTime())) {
+        return format(date, 'yyyy-MM-dd');
+    }
+    return null;
+};
+
+const parseDateSafe = (dateStr: string | Date | undefined | null): Date | undefined => {
+    if (!dateStr) return undefined;
+    if (dateStr instanceof Date) return dateStr;
+    if (typeof dateStr === 'string') {
+        const trimmed = dateStr.trim();
+        const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (match) {
+            const year = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10) - 1;
+            const day = parseInt(match[3], 10);
+            return new Date(year, month, day);
+        }
+        const d = new Date(trimmed);
+        return Number.isNaN(d.getTime()) ? undefined : d;
+    }
+    return undefined;
+};
+
+const formatTimeOnly = (timeStr: string | undefined | null): string => {
+    if (!timeStr) return '';
+    const trimmed = timeStr.trim();
+    if (trimmed.includes('T')) {
+        const timePart = trimmed.split('T')[1]?.replace(/Z$/, '').split('.')[0];
+        if (timePart) return timePart;
+    }
+    if (/^\d{4}-\d{2}-\d{2}\s+/.test(trimmed)) {
+        return trimmed.replace(/^\d{4}-\d{2}-\d{2}\s+/, '');
+    }
+    return trimmed;
+};
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type IEventsMapFormValues, eventsMapSchema } from './schema';
@@ -124,8 +175,10 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
                 ...values,
                 COEME_Id: Number(values.COEME_Id),
                 ASMAY_Id: Number(values.ASMAY_Id),
-                COEE_EStartDate: values.COEE_EStartDate.toISOString(),
-                COEE_EEndDate: values.COEE_EEndDate.toISOString(),
+                COEE_EStartDate: formatDateOnly(values.COEE_EStartDate),
+                COEE_EEndDate: formatDateOnly(values.COEE_EEndDate),
+                COEE_EStartTime: formatTimeOnly(values.COEE_EStartTime),
+                COEE_EEndTime: formatTimeOnly(values.COEE_EEndTime),
                 videos_list: values.videos_list.map((v) => v.COEEV_VideoURL)
             };
 
@@ -236,10 +289,10 @@ export default function EventsMapTab({ initialData }: EventsMapTabProps) {
                     COEE_Id: data.COEE_Id,
                     ASMAY_Id: data.ASMAY_Id.toString(),
                     COEME_Id: data.COEME_Id.toString(),
-                    COEE_EStartDate: new Date(data.COEE_EStartDate),
-                    COEE_EEndDate: new Date(data.COEE_EEndDate),
-                    COEE_EStartTime: data.COEE_EStartTime,
-                    COEE_EEndTime: data.COEE_EEndTime,
+                    COEE_EStartDate: parseDateSafe(data.COEE_EStartDate) as any,
+                    COEE_EEndDate: parseDateSafe(data.COEE_EEndDate) as any,
+                    COEE_EStartTime: formatTimeOnly(data.COEE_EStartTime),
+                    COEE_EEndTime: formatTimeOnly(data.COEE_EEndTime),
                     COEE_StudentFlag: data.COEE_StudentFlag,
                     COEE_EmployeeFlag: data.COEE_EmployeeFlag,
                     COEE_OtherFlag: data.COEE_OtherFlag,

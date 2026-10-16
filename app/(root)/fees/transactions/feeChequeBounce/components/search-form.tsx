@@ -44,7 +44,7 @@ export default function SearchFeeChequeBounceForm({
             };
 
             if (searchType === '1') {
-                payload.searchdate = searchDate?.toDateString();
+                payload.searchdate = searchDate instanceof Date ? searchDate.toISOString() : searchDate ? new Date(searchDate).toISOString() : undefined;
             } else {
                 payload.searchtext = searchText;
             }

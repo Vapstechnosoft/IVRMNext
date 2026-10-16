@@ -57,6 +57,25 @@ export default function StudentAttendanceEntryPage() {
     const viewAttendanceMutation = useViewAttendance();
     const [isPending, startTransition] = useTransition();
 
+    /* -------------------- Helper -------------------- */
+    const getMappedEntryType = (flag?: string | null): string => {
+        if (!flag) return '';
+        const clean = flag.toString().trim().toUpperCase();
+        if (clean === 'DT' || clean === 'H' || clean === 'DAILYTWICE' || clean === 'DAILY TWICE') {
+            return 'Dailytwice';
+        }
+        if (clean === 'D' || clean === 'DAILYONCE' || clean === 'DAILY ONCE' || clean === 'EOD') {
+            return 'Dailyonce';
+        }
+        if (clean === 'M' || clean === 'MONTHLY') {
+            return 'monthly';
+        }
+        if (clean === 'P' || clean === 'PERIOD' || clean === 'PERIOD WISE') {
+            return 'period';
+        }
+        return '';
+    };
+
     /* -------------------- Effects -------------------- */
     useEffect(() => {
         if (initialData?.data) {
@@ -69,13 +88,18 @@ export default function StudentAttendanceEntryPage() {
             }
 
             // Populate Initial Sections if available
-            if (data.sectionList?.length > 0 && sectionList.length === 0) {
-                setSectionList(data.sectionList);
+            const initialSections = data.sectionList?.length > 0 ? data.sectionList : data.section?.length > 0 ? data.section : [];
+            if (initialSections.length > 0 && sectionList.length === 0) {
+                setSectionList(initialSections);
             }
 
             // Configure Entry Type from settings
             const entryConfig = data.attendance_entrytype?.[0];
-            if (entryConfig) {
+            const dataEntryType = data.asA_Att_EntryType || entryConfig?.asA_Att_EntryType;
+            if (dataEntryType && !entryType) {
+                const mapped = getMappedEntryType(dataEntryType);
+                if (mapped) setEntryType(mapped);
+            } else if (entryConfig) {
                 if (!attEntryTypeFlag) {
                     setAttEntryTypeFlag(
                         entryConfig.asC_Att_DefaultEntry_Type === 'A'
@@ -85,21 +109,12 @@ export default function StudentAttendanceEntryPage() {
                 }
                 if (!entryType) {
                     const scheduler = entryConfig.asC_Att_Scheduler_Flag;
-                    if (scheduler === 'EOD') setEntryType('Dailyonce');
-                    else if (scheduler === 'Daily Twice') setEntryType('Dailytwice');
-                    else if (scheduler === 'Monthly') setEntryType('monthly');
-                    else if (scheduler === 'Period') setEntryType('period');
+                    const mapped = getMappedEntryType(scheduler);
+                    if (mapped) setEntryType(mapped);
                 }
             }
         }
     }, [initialData, asmayId, attEntryTypeFlag, entryType, sectionList.length]);
-
-    // Auto-fetch on Section or Date change
-    useEffect(() => {
-        if (asmayId > 0 && asmclId > 0 && asmsId > 0 && attDate) {
-            fetchStudents();
-        }
-    }, [asmayId, asmclId, asmsId, attDate, entryType, monthId, subjectId, periodId]);
 
     /* -------------------- Handlers -------------------- */
     const handleClassChange = async (cId: number) => {
@@ -107,17 +122,43 @@ export default function StudentAttendanceEntryPage() {
         setAsmsId(0);
         setStudentList([]);
         try {
-            const res = await getStudentDataMutation.mutateAsync({ ASMAY_Id: asmayId, ASMCL_Id: cId, classsecflag: '1' });
-            const pData = res?.data || res;
+            const res = await getStudentDataMutation.mutateAsync({
+                asmaY_Id: asmayId,
+                asmcL_Id: cId,
+                asmS_Id: 0,
+                asa_FromDate: attDate,
+                monthflag: '0',
+                monthflag1: '0',
+                classsecflag: '1',
+                checksubject: '0',
+                monthid: 0,
+                ismS_Id: 0,
+                ttmP_Id: 0
+            });
+            const pData = res?.data?.data || res?.data || res;
             if (pData) {
-                setSectionList(pData.sectionList || []);
-                if (pData.asA_Att_EntryType === 'Dailyonce') setEntryType('Dailyonce');
-                else if (pData.asA_Att_EntryType === 'Dailytwice') setEntryType('Dailytwice');
-                else if (pData.asA_Att_EntryType === 'monthly') setEntryType('monthly');
-                else if (pData.asA_Att_EntryType === 'period') setEntryType('period');
-                if (pData.attendanceentryflag)
+                const sList = pData.sectionList || pData.section || pData.data?.sectionList || pData.data?.section || [];
+                setSectionList(sList);
+                const flag = pData.asA_Att_EntryType || pData.data?.asA_Att_EntryType || res?.asA_Att_EntryType;
+                if (flag) {
+                    const clean = flag.toString().trim().toUpperCase();
+                    if (clean === 'DT') {
+                        setEntryType('Dailytwice');
+                    } else if (clean === 'D') {
+                        setEntryType('Dailyonce');
+                    } else if (clean === 'M') {
+                        setEntryType('monthly');
+                    } else if (clean === 'P') {
+                        setEntryType('period');
+                    } else {
+                        const mappedType = getMappedEntryType(flag);
+                        if (mappedType) setEntryType(mappedType);
+                    }
+                }
+                const attFlag = pData.attendanceentryflag || pData.data?.attendanceentryflag;
+                if (attFlag)
                     setAttEntryTypeFlag(
-                        pData.attendanceentryflag === 'A' ? 'Attendance Entry Type Is Absent' : 'Attendance Entry Type Is Present'
+                        attFlag === 'A' ? 'Attendance Entry Type Is Absent' : 'Attendance Entry Type Is Present'
                     );
             }
         } catch (error) {
@@ -175,38 +216,80 @@ export default function StudentAttendanceEntryPage() {
                 }
 
                 // Resilient data extraction
-                const responseData = res?.data || res;
+                const responseData = res?.data?.data || res?.data || res;
+                const entryFlag = responseData?.asA_Att_EntryType || responseData?.data?.asA_Att_EntryType || res?.asA_Att_EntryType;
+                const mappedType = getMappedEntryType(entryFlag);
+                if (mappedType && mappedType !== entryType) {
+                    setEntryType(mappedType);
+                }
+
                 const sList =
                     responseData?.studentList ||
-                    responseData?.studentList1 ||
                     responseData?.studestudentList1 ||
+                    responseData?.studentList1 ||
                     responseData?.students ||
                     responseData?.studentList5 ||
                     responseData?.data?.studentList ||
-                    responseData?.data?.studentList1 ||
                     responseData?.data?.studestudentList1 ||
+                    responseData?.data?.studentList1 ||
                     responseData?.data?.students ||
                     [];
 
                 if (sList.length > 0) {
                     const isAbsentMode = attEntryTypeFlag.includes('Absent');
+                    const isDailyTwice = entryFlag === 'DT' || mappedType === 'Dailytwice' || entryType === 'Dailytwice';
+
                     setStudentList(
                         sList.map((s: any) => {
                             let isSelected = false;
+                            let firstHalf = false;
+                            let secondHalf = false;
+
                             if (s.asA_Id > 0 || s.asaS_Id > 0 || s.ASAS_Id > 0) {
-                                isSelected = isAbsentMode
-                                    ? s.pdays === 0
-                                    : s.pdays > 0 || s.selected === true || s.FirstHalfflag === true || s.SecondHalfflag === true;
+                                if (isDailyTwice) {
+                                    if (isAbsentMode) {
+                                        if (s.pdays === 0) {
+                                            firstHalf = true;
+                                            secondHalf = true;
+                                        } else if (s.pdays === 0.5) {
+                                            const flag = (s.asA_Dailytwice_Flag || '').toLowerCase();
+                                            firstHalf = flag !== 'firsthalf';
+                                            secondHalf = flag === 'firsthalf';
+                                        } else {
+                                            firstHalf = false;
+                                            secondHalf = false;
+                                        }
+                                    } else {
+                                        if (s.pdays === 1) {
+                                            firstHalf = true;
+                                            secondHalf = true;
+                                        } else if (s.pdays === 0.5) {
+                                            const flag = (s.asA_Dailytwice_Flag || '').toLowerCase();
+                                            firstHalf = flag === 'firsthalf' || s.firstHalfflag === true;
+                                            secondHalf = flag === 'secondhalf' || s.secondHalfflag === true;
+                                        } else {
+                                            firstHalf = s.firstHalfflag === true;
+                                            secondHalf = s.secondHalfflag === true;
+                                        }
+                                    }
+                                } else {
+                                    isSelected = isAbsentMode
+                                        ? s.pdays === 0
+                                        : s.pdays > 0 || s.selected === true;
+                                }
                             } else {
                                 isSelected = !isAbsentMode;
+                                firstHalf = !isAbsentMode;
+                                secondHalf = !isAbsentMode;
                             }
+
                             return {
                                 ...s,
                                 AMST_Id: s.amsT_Id || s.AMST_Id,
                                 studentName: s.studentname || s.studentName,
                                 selected: isSelected,
-                                FirstHalfflag: s.FirstHalfflag ?? isSelected,
-                                SecondHalfflag: s.SecondHalfflag ?? isSelected
+                                FirstHalfflag: firstHalf,
+                                SecondHalfflag: secondHalf
                             };
                         })
                     );
@@ -469,7 +552,6 @@ export default function StudentAttendanceEntryPage() {
                                                 <RadioGroupItem
                                                     value={item.value}
                                                     id={item.value}
-                                                    disabled
                                                     className='h-3 w-3 border-gray-400'
                                                 />
                                                 <Label htmlFor={item.value} className='cursor-pointer font-bold text-[10px] text-gray-600'>

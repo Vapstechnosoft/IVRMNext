@@ -168,11 +168,7 @@ export default function UpdateSubjectAbbreviationForm({ onSuccess, masterday = '
                                     label='Subject Abbreviation'
                                     required
                                     id='ttmsuaB_Abbreviation'
-                                    {...register('ttmsuaB_Abbreviation', {
-                                        onChange: (e) => {
-                                            e.target.value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
-                                        }
-                                    })}
+                                    {...register('ttmsuaB_Abbreviation')}
                                     error={errors.ttmsuaB_Abbreviation?.message}
                                     className='w-full transition-colors focus:ring-2 focus:ring-primary/20'
                                     disabled={isSubmitting}

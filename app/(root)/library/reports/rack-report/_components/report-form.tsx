@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useRackReportInitialData, useRackReportLibraries } from '@/hooks/library/reports/useRackReport';
 import type { IRackReportRequest } from '@/types/library/reports/rack-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Search, X } from 'lucide-react';
+import { FileSpreadsheet, Loader2, Printer, Search, X } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -45,13 +46,13 @@ export const ReportForm = ({
     const rawInitial = (initialDataProp as any)?.data || initialDataProp || {};
     const { data: hookInitialWrapper } = useRackReportInitialData();
     const { data: hookLibWrapper } = useRackReportLibraries();
+    const [resetKey, setResetKey] = useState(0);
 
     const {
         control,
         handleSubmit,
         reset,
         setValue,
-        watch,
         formState: { errors }
     } = useForm<ReportFormValues>({
         resolver: zodResolver(reportFormSchema),
@@ -80,8 +81,6 @@ export const ReportForm = ({
     const libList = extractList(initialData?.lib_list || initialData?.libraryList || initialData?.libList || hookLibWrapper || []);
     const rackList = extractList(initialData?.racklist || initialData?.msterRacklist || initialData?.rackList || []);
 
-    const watchLmalId = watch('LMAL_Id');
-
     const onSubmit = (data: ReportFormValues) => {
         const rackVal = data.LMRA_Id === '0' || data.LMRA_Id === 'ALL' || !data.LMRA_Id ? 'ALL' : data.LMRA_Id;
         const payload: IRackReportRequest = {
@@ -92,10 +91,13 @@ export const ReportForm = ({
     };
 
     const handleReset = () => {
+        setValue('LMAL_Id', undefined as any, { shouldValidate: false, shouldDirty: false });
+        setValue('LMRA_Id', undefined as any, { shouldValidate: false, shouldDirty: false });
         reset({
             LMAL_Id: undefined,
             LMRA_Id: undefined
         });
+        setResetKey((prev) => prev + 1);
         onCancel?.();
     };
 
@@ -114,6 +116,7 @@ export const ReportForm = ({
                                 name='LMAL_Id'
                                 render={({ field }) => (
                                     <Select
+                                        key={`lib-${resetKey}-${field.value ?? 'empty'}`}
                                         onValueChange={(v) => field.onChange(v ? Number(v) : undefined)}
                                         value={field.value ? String(field.value) : ''}>
                                         <SelectTrigger className='w-full'>
@@ -153,6 +156,7 @@ export const ReportForm = ({
                                 name='LMRA_Id'
                                 render={({ field }) => (
                                     <Select
+                                        key={`rack-${resetKey}-${field.value ?? 'empty'}`}
                                         onValueChange={(v) => field.onChange(v || undefined)}
                                         value={field.value ? String(field.value) : ''}>
                                         <SelectTrigger className='w-full'>
@@ -184,7 +188,7 @@ export const ReportForm = ({
                 </div>
             </div>
 
-            {/* Action Buttons - Only REPORT and CANCEL */}
+            {/* Action Buttons */}
             <div className='flex items-center justify-center gap-4 pt-2'>
                 <Button
                     type='submit'
@@ -201,8 +205,25 @@ export const ReportForm = ({
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL
                 </Button>
+                {hasData && onPrint && (
+                    <Button
+                        type='button'
+                        className='!w-28 h-8 rounded-sm bg-[#4251b1] px-4 font-semibold text-white text-xs shadow-sm hover:bg-[#35418e]'
+                        onClick={onPrint}>
+                        <Printer className='mr-1.5 h-3.5 w-3.5' />
+                        PRINT
+                    </Button>
+                )}
+                {hasData && onExport && (
+                    <Button
+                        type='button'
+                        className='!w-32 h-8 rounded-sm bg-[#4251b1] px-4 font-semibold text-white text-xs shadow-sm hover:bg-[#35418e]'
+                        onClick={onExport}>
+                        <FileSpreadsheet className='mr-1.5 h-3.5 w-3.5' />
+                        EXPORT
+                    </Button>
+                )}
             </div>
         </form>
     );
 };
-

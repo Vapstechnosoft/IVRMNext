@@ -40,6 +40,11 @@ export interface IPreadmissionDocumentDropdown {
     amsmD_Id: number;
     amsmD_DocumentName: string;
     amsmD_FLAG: boolean;
+    mI_Id?: number;
+    amsmD_Description?: string;
+    amsmD_ActiveFlag?: boolean | null;
+    createdDate?: string;
+    updatedDate?: string;
 }
 export interface IPreadmissionClassDropdown {
     asmcL_Id: number;

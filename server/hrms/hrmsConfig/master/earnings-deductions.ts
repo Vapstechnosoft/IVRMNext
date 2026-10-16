@@ -64,11 +64,11 @@ export async function saveEarningsDeductionsType(data: any) {
 
 /**
  * Get Master Earnings Deductions By Id
- * POST /api/MasterEarningsDeductions/getmaster_earnings_deduction_save_update_byID/{id}
+ * GET /api/MasterEarningsDeductions/getmaster_earnings_deduction_save_update_byID/{id}
  */
 export async function getMasterEarningsDeductionsById(id: number) {
     const url = `/api/MasterEarningsDeductions/getmaster_earnings_deduction_save_update_byID/${id}`;
-    return await api.post<any>('hrms', url, {});
+    return await api.get<any>('hrms', url);
 }
 
 /**

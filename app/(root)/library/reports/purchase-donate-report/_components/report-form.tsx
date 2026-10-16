@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { IPurchaseDonateReportRequest } from '@/types/library/reports/purchase-donate-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FileSpreadsheet, Loader2, Printer, Search, X } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -27,10 +28,13 @@ interface ReportFormProps {
 }
 
 export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, hasData }: ReportFormProps) => {
+    const [resetKey, setResetKey] = useState(0);
+
     const {
         control,
         handleSubmit,
         reset,
+        setValue,
         formState: { errors }
     } = useForm<ReportFormValues>({
         resolver: zodResolver(reportFormSchema),
@@ -43,9 +47,22 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
     const onSubmit = (data: ReportFormValues) => {
         onSearch({
             mI_Id: 30,
+            MI_Id: 30,
             circ_Flag: data.LMB_BookType, // "Book" or "Non-Book"
-            lbcpA_Flg: data.book_Flag // "Purchased" or "Donated"
+            LMB_BookType: data.LMB_BookType,
+            lbcpA_Flg: data.book_Flag, // "Purchased" or "Donated"
+            book_Flag: data.book_Flag
         });
+    };
+
+    const handleCancel = () => {
+        setValue('LMB_BookType', '', { shouldValidate: false, shouldDirty: false });
+        reset({
+            book_Flag: 'Purchased',
+            LMB_BookType: ''
+        });
+        setResetKey((prev) => prev + 1);
+        onCancel();
     };
 
     return (
@@ -90,9 +107,12 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
                         control={control}
                         name='LMB_BookType'
                         render={({ field }) => (
-                            <Select onValueChange={field.onChange} value={field.value}>
+                            <Select
+                                key={`book-cat-${resetKey}-${field.value || 'empty'}`}
+                                onValueChange={field.onChange}
+                                value={field.value || ''}>
                                 <SelectTrigger className='h-10 w-full rounded-full border-slate-300 px-4 text-sm'>
-                                    <SelectValue placeholder='Select' />
+                                    <SelectValue placeholder='Select Book Category' />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value='Book'>Book</SelectItem>
@@ -118,13 +138,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, onCancel, h
                 <Button
                     type='button'
                     className='!w-auto h-9 min-w-[120px] rounded-md bg-[#ff5a30] px-6 py-2 font-medium text-white text-xs shadow-sm hover:bg-[#e64d26]'
-                    onClick={() => {
-                        reset({
-                            book_Flag: 'Purchased',
-                            LMB_BookType: ''
-                        });
-                        onCancel();
-                    }}
+                    onClick={handleCancel}
                     disabled={isLoading}>
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL

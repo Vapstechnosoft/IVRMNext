@@ -38,7 +38,6 @@ function MasterGradePageContent({
     refetchGrid: () => void;
 }) {
     const { openAddForm } = useFormContext<IMasterGrade>();
-    console.log('master grade details', response);
     const tableProps = useDataTableProps(response);
 
     return (
