@@ -4,14 +4,18 @@ import { Button } from '@/components/ui/button';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
+import { getClassDropDownByAcademicYearlist } from '@/server/exam/exam-module/reports/cumulative-report';
 import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
 // ─── Mock Data ─────────────────────────────────────────────────────────────────
 
 const MOCK_CLASSES = [
+    { asmcL_Id: 381, asmcL_ClassName: 'Pre-Nursery' },
+    { asmcL_Id: 382, asmcL_ClassName: 'LKG' },
+    { asmcL_Id: 383, asmcL_ClassName: 'UKG' },
     { asmcL_Id: 384, asmcL_ClassName: 'Class I' },
     { asmcL_Id: 385, asmcL_ClassName: 'Class II' },
     { asmcL_Id: 386, asmcL_ClassName: 'Class III' },
@@ -101,14 +105,16 @@ export const AnalysisReportForm = ({ title, onReportGenerated, onReset }: Analys
     const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
     const academicYears = academicData?.data || [];
 
-    const [classes] = useState(MOCK_CLASSES);
-    const [exams] = useState(MOCK_EXAMS);
+    const [classes, setClasses] = useState<any[]>(MOCK_CLASSES);
+    const [loadingClasses, setLoadingClasses] = useState(false);
+    const [exams] = useState<any[]>(MOCK_EXAMS);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const {
         control,
         handleSubmit,
         reset,
+        setValue,
         formState: { errors }
     } = useForm<FormValues>({
         defaultValues: { ASMAY_Id: '', ASMCL_Id: '', emE_Id: '' }
@@ -117,21 +123,49 @@ export const AnalysisReportForm = ({ title, onReportGenerated, onReset }: Analys
     const watchYear = useWatch({ control, name: 'ASMAY_Id' });
     const watchClass = useWatch({ control, name: 'ASMCL_Id' });
 
+    useEffect(() => {
+        if (!watchYear) {
+            setClasses(MOCK_CLASSES);
+            return;
+        }
+        (async () => {
+            try {
+                setLoadingClasses(true);
+                const res = await getClassDropDownByAcademicYearlist(Number(watchYear));
+                if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+                    setClasses(res.data);
+                } else {
+                    setClasses(MOCK_CLASSES);
+                }
+                setValue('ASMCL_Id', '');
+                setValue('emE_Id', '');
+            } catch {
+                setClasses(MOCK_CLASSES);
+            } finally {
+                setLoadingClasses(false);
+            }
+        })();
+    }, [watchYear, setValue]);
+
     const onSubmit = async (values: FormValues) => {
         setIsSubmitting(true);
         try {
             // APIs not ready — use mock data
             await new Promise((res) => setTimeout(res, 600));
-            const selectedClass = classes.find((c) => String(c.asmcL_Id) === values.ASMCL_Id);
-            const selectedExam = exams.find((e) => String(e.emE_Id) === values.emE_Id);
+            const selectedClass = classes.find((c: any) => String(c.asmcL_Id ?? c.ASMCL_Id ?? c.classid) === values.ASMCL_Id);
+            const selectedExam = exams.find((e: any) => String(e.emE_Id ?? e.EME_Id) === values.emE_Id);
+            const classIdNum =
+                Number(values.ASMCL_Id) ||
+                Number(selectedClass?.asmcL_Id ?? selectedClass?.ASMCL_Id ?? selectedClass?.classid) ||
+                MOCK_REPORT_DATA.asmcL_Id;
             const mockData = {
                 ...MOCK_REPORT_DATA,
                 studlist: MOCK_REPORT_DATA.studlist.map((r) => ({
                     ...r,
-                    ClassName: selectedClass?.asmcL_ClassName ?? r.ClassName,
-                    ExamName: selectedExam?.emE_ExamName ?? r.ExamName
+                    ClassName: selectedClass?.asmcL_ClassName ?? selectedClass?.ASMCL_ClassName ?? selectedClass?.classname ?? r.ClassName,
+                    ExamName: selectedExam?.emE_ExamName ?? selectedExam?.EME_ExamName ?? r.ExamName
                 })),
-                asmcL_Id: selectedClass?.asmcL_Id ?? MOCK_REPORT_DATA.asmcL_Id
+                asmcL_Id: classIdNum
             };
             onReportGenerated(mockData, values);
             toast.success('Report generated successfully');
@@ -202,11 +236,21 @@ export const AnalysisReportForm = ({ title, onReportGenerated, onReset }: Analys
                                         <SelectValue placeholder='Select Class' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {classes.map((c) => (
-                                            <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                {c.asmcL_ClassName}
+                                        {loadingClasses ? (
+                                            <SelectItem value='loading' disabled>
+                                                Loading Classes...
                                             </SelectItem>
-                                        ))}
+                                        ) : (
+                                            classes.map((c: any) => {
+                                                const id = c.asmcL_Id ?? c.ASMCL_Id ?? c.classid;
+                                                const name = c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.classname;
+                                                return (
+                                                    <SelectItem key={id} value={String(id)}>
+                                                        {name}
+                                                    </SelectItem>
+                                                );
+                                            })
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
