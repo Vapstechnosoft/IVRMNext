@@ -33,10 +33,65 @@ export function UpdateRollNoTab({ initialData, refetchAll }: UpdateRollNoTabProp
     const [amsE_Id, setAmsE_Id] = useState<string>('');
     const [acmS_Id, setAcmS_Id] = useState<string>('');
 
-    // Dynamic Lists
-    const [courseList, setCourseList] = useState<any[]>([]);
-    const [branchList, setBranchList] = useState<any[]>([]);
-    const [semList, setSemList] = useState<any[]>([]);
+    // Default lists from initialData (defensive against any casing / structure)
+    const yearList: any[] =
+        initialData?.yearList ||
+        initialData?.yearlist ||
+        initialData?.YearList ||
+        initialData?.accyearlist ||
+        initialData?.data?.yearList ||
+        initialData?.data?.yearlist ||
+        (Array.isArray(initialData) ? initialData : []);
+
+    const initialCourses: any[] =
+        initialData?.courselistdata ||
+        initialData?.courselist ||
+        initialData?.courseList ||
+        initialData?.data?.courselistdata ||
+        initialData?.data?.courselist ||
+        [];
+
+    const initialBranches: any[] =
+        initialData?.coursebranchlist ||
+        initialData?.courseBranchList ||
+        initialData?.branchList ||
+        initialData?.branchlist ||
+        initialData?.data?.coursebranchlist ||
+        [];
+
+    const initialSemesters: any[] =
+        initialData?.semlistdata ||
+        initialData?.semlist ||
+        initialData?.semList ||
+        initialData?.semesters ||
+        initialData?.data?.semlistdata ||
+        [];
+
+    const sectionList: any[] =
+        initialData?.sectionList ||
+        initialData?.sectionlist ||
+        initialData?.SectionList ||
+        initialData?.data?.sectionList ||
+        initialData?.data?.sectionlist ||
+        [];
+
+    // Dynamic dropdown lists seeded by initialData
+    const [courseList, setCourseList] = useState<any[]>(initialCourses);
+    const [branchList, setBranchList] = useState<any[]>(initialBranches);
+    const [semList, setSemList] = useState<any[]>(initialSemesters);
+
+    // Keep dropdown lists synced when initialData loads
+    useEffect(() => {
+        if (initialCourses.length > 0 && courseList.length === 0) {
+            setCourseList(initialCourses);
+        }
+        if (initialBranches.length > 0 && branchList.length === 0) {
+            setBranchList(initialBranches);
+        }
+        if (initialSemesters.length > 0 && semList.length === 0) {
+            setSemList(initialSemesters);
+        }
+    }, [initialData]);
 
     // Students for Roll No Assignment
     const [editableStudents, setEditableStudents] = useState<IClgSectionAllotmentStudent[]>([]);
@@ -51,24 +106,6 @@ export function UpdateRollNoTab({ initialData, refetchAll }: UpdateRollNoTabProp
     const getSemestersMutation = useGetClgSectionAllotmentSemesters();
     const getStudentsByURNMutation = useGetClgSectionAllotmentStudentsByURN();
     const saveRollNoMutation = useSaveClgSectionAllotmentRollNo();
-
-    // Default Academic Year from initialData (defensive against any casing / structure)
-    const yearList: any[] =
-        initialData?.yearList ||
-        initialData?.yearlist ||
-        initialData?.YearList ||
-        initialData?.accyearlist ||
-        initialData?.data?.yearList ||
-        initialData?.data?.yearlist ||
-        (Array.isArray(initialData) ? initialData : []);
-
-    const sectionList: any[] =
-        initialData?.sectionList ||
-        initialData?.sectionlist ||
-        initialData?.SectionList ||
-        initialData?.data?.sectionList ||
-        initialData?.data?.sectionlist ||
-        [];
 
     useEffect(() => {
         if (yearList.length > 0 && !asmaY_Id) {
@@ -88,25 +125,39 @@ export function UpdateRollNoTab({ initialData, refetchAll }: UpdateRollNoTabProp
         setAmB_Id('');
         setAmsE_Id('');
         setAcmS_Id('');
-        setCourseList([]);
-        setBranchList([]);
-        setSemList([]);
         setEditableStudents([]);
         setAllottedStudents([]);
 
-        if (!yearId) return;
+        if (!yearId) {
+            setCourseList(initialCourses);
+            setBranchList(initialBranches);
+            setSemList(initialSemesters);
+            return;
+        }
 
         try {
             const res = await getCoursesMutation.mutateAsync({ ASMAY_Id: Number(yearId) });
             const data = res?.data || res;
-            const courses = data?.courselist || data?.courseList || data?.courses || [];
+            const courses =
+                data?.courselistdata ||
+                data?.courselist ||
+                data?.courseList ||
+                data?.courses ||
+                (Array.isArray(data) ? data : []);
             if (courses.length > 0) {
                 setCourseList(courses);
+            } else if (initialCourses.length > 0) {
+                setCourseList(initialCourses);
             } else {
+                setCourseList([]);
                 toast.warning('No courses found');
             }
         } catch {
-            toast.error('Failed to load courses');
+            if (initialCourses.length > 0) {
+                setCourseList(initialCourses);
+            } else {
+                toast.error('Failed to load courses');
+            }
         }
     };
 
@@ -116,12 +167,14 @@ export function UpdateRollNoTab({ initialData, refetchAll }: UpdateRollNoTabProp
         setAmB_Id('');
         setAmsE_Id('');
         setAcmS_Id('');
-        setBranchList([]);
-        setSemList([]);
         setEditableStudents([]);
         setAllottedStudents([]);
 
-        if (!courseId || !asmaY_Id) return;
+        if (!courseId || !asmaY_Id) {
+            setBranchList(initialBranches);
+            setSemList(initialSemesters);
+            return;
+        }
 
         try {
             const res = await getBranchesMutation.mutateAsync({
@@ -129,14 +182,26 @@ export function UpdateRollNoTab({ initialData, refetchAll }: UpdateRollNoTabProp
                 AMCO_Id: Number(courseId)
             });
             const data = res?.data || res;
-            const branches = data?.coursebranchlist || data?.courseBranchList || data?.branchlist || data?.branches || [];
+            const branches =
+                data?.coursebranchlist ||
+                data?.courseBranchList ||
+                data?.branchlist ||
+                data?.branches ||
+                (Array.isArray(data) ? data : []);
             if (branches.length > 0) {
                 setBranchList(branches);
+            } else if (initialBranches.length > 0) {
+                setBranchList(initialBranches);
             } else {
+                setBranchList([]);
                 toast.warning('No branches found');
             }
         } catch {
-            toast.error('Failed to load branches');
+            if (initialBranches.length > 0) {
+                setBranchList(initialBranches);
+            } else {
+                toast.error('Failed to load branches');
+            }
         }
     };
 
@@ -145,11 +210,13 @@ export function UpdateRollNoTab({ initialData, refetchAll }: UpdateRollNoTabProp
         setAmB_Id(branchId);
         setAmsE_Id('');
         setAcmS_Id('');
-        setSemList([]);
         setEditableStudents([]);
         setAllottedStudents([]);
 
-        if (!branchId || !asmaY_Id || !amcO_Id) return;
+        if (!branchId || !asmaY_Id || !amcO_Id) {
+            setSemList(initialSemesters);
+            return;
+        }
 
         try {
             const res = await getSemestersMutation.mutateAsync({
@@ -158,14 +225,26 @@ export function UpdateRollNoTab({ initialData, refetchAll }: UpdateRollNoTabProp
                 AMB_Id: Number(branchId)
             });
             const data = res?.data || res;
-            const sems = data?.semlist || data?.semList || data?.semesters || [];
+            const sems =
+                data?.semlistdata ||
+                data?.semlist ||
+                data?.semList ||
+                data?.semesters ||
+                (Array.isArray(data) ? data : []);
             if (sems.length > 0) {
                 setSemList(sems);
+            } else if (initialSemesters.length > 0) {
+                setSemList(initialSemesters);
             } else {
+                setSemList([]);
                 toast.warning('No semesters found');
             }
         } catch {
-            toast.error('Failed to load semesters');
+            if (initialSemesters.length > 0) {
+                setSemList(initialSemesters);
+            } else {
+                toast.error('Failed to load semesters');
+            }
         }
     };
 
@@ -232,14 +311,15 @@ export function UpdateRollNoTab({ initialData, refetchAll }: UpdateRollNoTabProp
 
     // Clear
     const handleClear = () => {
-        setAsmaY_Id(yearList[0]?.asmaY_Id?.toString() || '');
+        const first = yearList[0];
+        setAsmaY_Id((first?.asmaY_Id ?? first?.ASMAY_Id ?? first?.id)?.toString() || '');
         setAmcO_Id('');
         setAmB_Id('');
         setAmsE_Id('');
         setAcmS_Id('');
-        setCourseList([]);
-        setBranchList([]);
-        setSemList([]);
+        setCourseList(initialCourses);
+        setBranchList(initialBranches);
+        setSemList(initialSemesters);
         setEditableStudents([]);
         setAllottedStudents([]);
     };

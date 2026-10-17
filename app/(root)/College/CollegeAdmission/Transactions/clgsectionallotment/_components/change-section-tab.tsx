@@ -32,24 +32,7 @@ export function ChangeSectionTab({ initialData, refetchAll }: ChangeSectionTabPr
     const [sourceSectionId, setSourceSectionId] = useState<string>('');
     const [targetSectionId, setTargetSectionId] = useState<string>('');
 
-    // Dynamic dropdown lists
-    const [courseList, setCourseList] = useState<any[]>([]);
-    const [branchList, setBranchList] = useState<any[]>([]);
-    const [semList, setSemList] = useState<any[]>([]);
-
-    // Students
-    const [availableStudents, setAvailableStudents] = useState<IClgSectionAllotmentStudent[]>([]);
-    const [selectedStudents, setSelectedStudents] = useState<IClgSectionAllotmentStudent[]>([]);
-    const [allottedStudents, setAllottedStudents] = useState<IClgSectionAllotmentStudent[]>([]);
-
-    // Mutations
-    const getCoursesMutation = useGetClgSectionAllotmentAcademicCourses();
-    const getBranchesMutation = useGetClgSectionAllotmentBranches();
-    const getSemestersMutation = useGetClgSectionAllotmentSemesters();
-    const getStudentsMutation = useGetClgSectionAllotmentStudents();
-    const saveMutation = useSaveClgSectionAllotment();
-
-    // Default Academic Year from initialData (defensive against any casing / structure)
+    // Default lists from initialData (defensive against any casing / structure)
     const yearList: any[] =
         initialData?.yearList ||
         initialData?.yearlist ||
@@ -59,6 +42,30 @@ export function ChangeSectionTab({ initialData, refetchAll }: ChangeSectionTabPr
         initialData?.data?.yearlist ||
         (Array.isArray(initialData) ? initialData : []);
 
+    const initialCourses: any[] =
+        initialData?.courselistdata ||
+        initialData?.courselist ||
+        initialData?.courseList ||
+        initialData?.data?.courselistdata ||
+        initialData?.data?.courselist ||
+        [];
+
+    const initialBranches: any[] =
+        initialData?.coursebranchlist ||
+        initialData?.courseBranchList ||
+        initialData?.branchList ||
+        initialData?.branchlist ||
+        initialData?.data?.coursebranchlist ||
+        [];
+
+    const initialSemesters: any[] =
+        initialData?.semlistdata ||
+        initialData?.semlist ||
+        initialData?.semList ||
+        initialData?.semesters ||
+        initialData?.data?.semlistdata ||
+        [];
+
     const sectionList: any[] =
         initialData?.sectionList ||
         initialData?.sectionlist ||
@@ -66,6 +73,37 @@ export function ChangeSectionTab({ initialData, refetchAll }: ChangeSectionTabPr
         initialData?.data?.sectionList ||
         initialData?.data?.sectionlist ||
         [];
+
+    // Dynamic dropdown lists seeded by initialData
+    const [courseList, setCourseList] = useState<any[]>(initialCourses);
+    const [branchList, setBranchList] = useState<any[]>(initialBranches);
+    const [semList, setSemList] = useState<any[]>(initialSemesters);
+
+    // Keep dropdown lists synced when initialData loads
+    useEffect(() => {
+        if (initialCourses.length > 0 && courseList.length === 0) {
+            setCourseList(initialCourses);
+        }
+        if (initialBranches.length > 0 && branchList.length === 0) {
+            setBranchList(initialBranches);
+        }
+        if (initialSemesters.length > 0 && semList.length === 0) {
+            setSemList(initialSemesters);
+        }
+    }, [initialData]);
+
+    // Students
+    const [availableStudents, setAvailableStudents] = useState<IClgSectionAllotmentStudent[]>([]);
+    const [selectedStudents, setSelectedStudents] = useState<IClgSectionAllotmentStudent[]>([]);
+    const [allottedStudents, setAllottedStudents] = useState<IClgSectionAllotmentStudent[]>([]);
+    const [allYearStudents, setAllYearStudents] = useState<IClgSectionAllotmentStudent[]>([]);
+
+    // Mutations
+    const getCoursesMutation = useGetClgSectionAllotmentAcademicCourses();
+    const getBranchesMutation = useGetClgSectionAllotmentBranches();
+    const getSemestersMutation = useGetClgSectionAllotmentSemesters();
+    const getStudentsMutation = useGetClgSectionAllotmentStudents();
+    const saveMutation = useSaveClgSectionAllotment();
 
     // Target section options excluding the selected source section
     const targetSectionList = useMemo(() => {
@@ -95,26 +133,47 @@ export function ChangeSectionTab({ initialData, refetchAll }: ChangeSectionTabPr
         setAmsE_Id('');
         setSourceSectionId('');
         setTargetSectionId('');
-        setCourseList([]);
-        setBranchList([]);
-        setSemList([]);
         setAvailableStudents([]);
         setSelectedStudents([]);
         setAllottedStudents([]);
+        setAllYearStudents([]);
 
-        if (!yearId) return;
+        if (!yearId) {
+            setCourseList(initialCourses);
+            setBranchList(initialBranches);
+            setSemList(initialSemesters);
+            return;
+        }
 
         try {
             const res = await getCoursesMutation.mutateAsync({ ASMAY_Id: Number(yearId) });
             const data = res?.data || res;
-            const courses = data?.courselist || data?.courseList || data?.courses || [];
+
+            const fetchedStudents = data?.studentList || data?.studentlist || (Array.isArray(data) ? data : []);
+            if (fetchedStudents.length > 0) {
+                setAllYearStudents(fetchedStudents);
+            }
+
+            const courses =
+                data?.courselistdata ||
+                data?.courselist ||
+                data?.courseList ||
+                data?.courses ||
+                [];
             if (courses.length > 0) {
                 setCourseList(courses);
-            } else {
+            } else if (initialCourses.length > 0) {
+                setCourseList(initialCourses);
+            } else if (fetchedStudents.length === 0) {
+                setCourseList([]);
                 toast.warning('No courses found');
             }
         } catch {
-            toast.error('Failed to load courses');
+            if (initialCourses.length > 0) {
+                setCourseList(initialCourses);
+            } else {
+                toast.error('Failed to load courses');
+            }
         }
     };
 
@@ -125,13 +184,15 @@ export function ChangeSectionTab({ initialData, refetchAll }: ChangeSectionTabPr
         setAmsE_Id('');
         setSourceSectionId('');
         setTargetSectionId('');
-        setBranchList([]);
-        setSemList([]);
         setAvailableStudents([]);
         setSelectedStudents([]);
         setAllottedStudents([]);
 
-        if (!courseId || !asmaY_Id) return;
+        if (!courseId || !asmaY_Id) {
+            setBranchList(initialBranches);
+            setSemList(initialSemesters);
+            return;
+        }
 
         try {
             const res = await getBranchesMutation.mutateAsync({
@@ -139,14 +200,26 @@ export function ChangeSectionTab({ initialData, refetchAll }: ChangeSectionTabPr
                 AMCO_Id: Number(courseId)
             });
             const data = res?.data || res;
-            const branches = data?.coursebranchlist || data?.courseBranchList || data?.branchlist || data?.branches || [];
+            const branches =
+                data?.coursebranchlist ||
+                data?.courseBranchList ||
+                data?.branchlist ||
+                data?.branches ||
+                (Array.isArray(data) ? data : []);
             if (branches.length > 0) {
                 setBranchList(branches);
+            } else if (initialBranches.length > 0) {
+                setBranchList(initialBranches);
             } else {
+                setBranchList([]);
                 toast.warning('No branches found');
             }
         } catch {
-            toast.error('Failed to load branches');
+            if (initialBranches.length > 0) {
+                setBranchList(initialBranches);
+            } else {
+                toast.error('Failed to load branches');
+            }
         }
     };
 
@@ -156,12 +229,14 @@ export function ChangeSectionTab({ initialData, refetchAll }: ChangeSectionTabPr
         setAmsE_Id('');
         setSourceSectionId('');
         setTargetSectionId('');
-        setSemList([]);
         setAvailableStudents([]);
         setSelectedStudents([]);
         setAllottedStudents([]);
 
-        if (!branchId || !asmaY_Id || !amcO_Id) return;
+        if (!branchId || !asmaY_Id || !amcO_Id) {
+            setSemList(initialSemesters);
+            return;
+        }
 
         try {
             const res = await getSemestersMutation.mutateAsync({
@@ -170,14 +245,26 @@ export function ChangeSectionTab({ initialData, refetchAll }: ChangeSectionTabPr
                 AMB_Id: Number(branchId)
             });
             const data = res?.data || res;
-            const sems = data?.semlist || data?.semList || data?.semesters || [];
+            const sems =
+                data?.semlistdata ||
+                data?.semlist ||
+                data?.semList ||
+                data?.semesters ||
+                (Array.isArray(data) ? data : []);
             if (sems.length > 0) {
                 setSemList(sems);
+            } else if (initialSemesters.length > 0) {
+                setSemList(initialSemesters);
             } else {
+                setSemList([]);
                 toast.warning('No semesters found');
             }
         } catch {
-            toast.error('Failed to load semesters');
+            if (initialSemesters.length > 0) {
+                setSemList(initialSemesters);
+            } else {
+                toast.error('Failed to load semesters');
+            }
         }
     };
 
@@ -203,16 +290,17 @@ export function ChangeSectionTab({ initialData, refetchAll }: ChangeSectionTabPr
         try {
             const res = await getStudentsMutation.mutateAsync({
                 ASMAY_Id: Number(asmaY_Id),
-                AMSE_Id: Number(amsE_Id),
-                AMB_Id: Number(amB_Id),
                 AMCO_Id: Number(amcO_Id),
+                AMB_Id: Number(amB_Id),
+                AMSE_Id: Number(amsE_Id),
                 ACMS_Id: Number(secId),
                 SectionAllotmentType: 'Change'
             });
             const data = res?.data || res;
 
-            if (data?.studentListYear?.length > 0) {
-                setAvailableStudents(data.studentListYear);
+            const students = data?.studentListYear || data?.studentList || data?.studentlist || data?.students || [];
+            if (students.length > 0) {
+                setAvailableStudents(students);
             } else {
                 toast.info('No students found to change section');
             }
@@ -229,15 +317,16 @@ export function ChangeSectionTab({ initialData, refetchAll }: ChangeSectionTabPr
 
     // Clear
     const handleClear = () => {
-        setAsmaY_Id(yearList[0]?.asmaY_Id?.toString() || '');
+        const first = yearList[0];
+        setAsmaY_Id((first?.asmaY_Id ?? first?.ASMAY_Id ?? first?.id)?.toString() || '');
         setAmcO_Id('');
         setAmB_Id('');
         setAmsE_Id('');
         setSourceSectionId('');
         setTargetSectionId('');
-        setCourseList([]);
-        setBranchList([]);
-        setSemList([]);
+        setCourseList(initialCourses);
+        setBranchList(initialBranches);
+        setSemList(initialSemesters);
         setAvailableStudents([]);
         setSelectedStudents([]);
         setAllottedStudents([]);

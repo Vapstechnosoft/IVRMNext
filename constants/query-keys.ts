@@ -740,7 +740,9 @@ export const COLLEGE_QUERY_KEYS = {
     COLLEGE_FEE_OPENING_BALANCE_GROUPS: 'college_fee_opening_balance_groups',
     COLLEGE_FEE_OPENING_BALANCE_HEADS: 'college_fee_opening_balance_heads',
     COLLEGE_FEE_OPENING_BALANCE_INSTALLMENTS: 'college_fee_opening_balance_installments',
-    COLLEGE_FEE_OPENING_BALANCE_STUDENTS: 'college_fee_opening_balance_students'
+    COLLEGE_FEE_OPENING_BALANCE_STUDENTS: 'college_fee_opening_balance_students',
+    DCPS_BONAFIDE_CERTIFICATE: 'college_dcps_bonafide_certificate',
+    COLLEGE_OVERALL_DAILY_ATTENDANCE_REPORT: 'college_overall_daily_attendance_report'
 };
 export const ONLINE_EXAM_QUERY_KEYS = {
     MASTER_QUESTION: 'online_exam_master_question',
