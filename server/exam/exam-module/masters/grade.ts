@@ -8,9 +8,9 @@ export async function getMasterGrade(searchParams?: ApiSearchparams) {
     const params = searchParams ? { ...searchParams } : {};
     if (params.search_query) {
         const sq = params.search_query.trim().toLowerCase();
-        if ('percentage'.startsWith(sq) || sq === 'percentage') {
+        if (sq === 'percentage' || sq === 'percent') {
             params.search_query = 'P';
-        } else if ('marks'.startsWith(sq) || sq === 'marks') {
+        } else if (sq === 'marks' || sq === 'mark') {
             params.search_query = 'M';
         }
     }

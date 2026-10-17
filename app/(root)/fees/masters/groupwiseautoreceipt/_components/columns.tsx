@@ -289,11 +289,22 @@ const generateIframeContent = (html: string, institute: IMasterInstitution | nul
                         box-sizing: border-box;
                     }
                     
-                    body {
+                    html, body {
                         background: white;
                         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                        padding: 20px;
+                        padding: 15px;
                         margin: 0;
+                        overflow-y: auto !important;
+                        height: auto !important;
+                        min-height: 100% !important;
+                    }
+                    
+                    .preview-container {
+                        width: 100%;
+                        height: auto !important;
+                        min-height: 100% !important;
+                        padding-bottom: 80px !important;
+                        overflow: visible !important;
                     }
                     
                     /* Hide Angular modal elements that are redundant in our React Dialog */
@@ -392,8 +403,45 @@ const generateIframeContent = (html: string, institute: IMasterInstitution | nul
                     .margin-bottom-5 { margin-bottom: 5px; }
                     .table-width { width: 100%; }
 
+                    /* Legacy Bootstrap 3 grid support for 3-copy templates */
+                    .col-xs-1, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6,
+                    .col-xs-7, .col-xs-8, .col-xs-9, .col-xs-10, .col-xs-11, .col-xs-12 {
+                        float: left;
+                        box-sizing: border-box;
+                        padding-left: 5px;
+                        padding-right: 5px;
+                    }
+                    .col-xs-4 { width: 33.33333333% !important; }
+                    .col-xs-6 { width: 50% !important; }
+                    .col-xs-12 { width: 100% !important; }
+
+                    /* If 3 copies are present inside #printmodal / .row, automatically fit all 3 side-by-side (33.33% each) */
+                    #printmodal > .col-sm-6:nth-last-child(3),
+                    #printmodal > .col-sm-6:nth-last-child(3) ~ .col-sm-6,
+                    .row > .col-sm-6:nth-last-child(3),
+                    .row > .col-sm-6:nth-last-child(3) ~ .col-sm-6 {
+                        width: 33.33333333% !important;
+                        max-width: 33.33333333% !important;
+                        flex: 0 0 33.33333333% !important;
+                    }
+
+                    .row::after {
+                        content: "";
+                        clear: both;
+                        display: table;
+                    }
+
                     @media print {
                         body { padding: 0; }
+                        #printmodal > .col-sm-6:nth-last-child(3),
+                        #printmodal > .col-sm-6:nth-last-child(3) ~ .col-sm-6,
+                        .row > .col-sm-6:nth-last-child(3),
+                        .row > .col-sm-6:nth-last-child(3) ~ .col-sm-6 {
+                            width: 33.33333333% !important;
+                            max-width: 33.33333333% !important;
+                            flex: 0 0 33.33333333% !important;
+                            float: left !important;
+                        }
                         .table thead th {
                             background-color: #0056b3 !important;
                             color: white !important;
@@ -472,7 +520,7 @@ export function TemplatePreviewCell({ templateHtml, rowData }: TemplatePreviewCe
             </Button>
 
             <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-                <DialogContent className='flex h-[85vh] max-h-[90vh] max-w-6xl flex-col overflow-hidden p-0'>
+                <DialogContent className='flex h-[90vh] max-h-[95vh] w-[96vw] max-w-7xl flex-col overflow-hidden p-0'>
                     <DialogHeader className='flex shrink-0 flex-row items-center justify-between border-b bg-gray-50 px-6 py-4'>
                         <DialogTitle className='font-semibold text-gray-800 text-xl'>
                             Receipt Template Preview
@@ -489,7 +537,7 @@ export function TemplatePreviewCell({ templateHtml, rowData }: TemplatePreviewCe
                         {loading ? (
                             <div className='flex h-full items-center justify-center'>
                                 <div className='text-center'>
-                                    <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-blue-600 border-b-2'></div>
+                                    <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-blue-600 border-b-2' />
                                     <p className='text-gray-500'>Loading preview...</p>
                                 </div>
                             </div>

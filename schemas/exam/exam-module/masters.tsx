@@ -273,7 +273,7 @@ export const masterSubjectGroupSchema = {
                 });
             }
 
-            if (emG_BestOff > emG_MaxAplSubjects) {
+            if (emG_BestOff > 0 && emG_BestOff > emG_MaxAplSubjects) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: `Best Off cannot exceed Max Applicable Subjects (${emG_MaxAplSubjects})`,
@@ -281,7 +281,7 @@ export const masterSubjectGroupSchema = {
                 });
             }
 
-            if (emG_BestOff < emG_MinAplSubjects) {
+            if (emG_BestOff > 0 && emG_BestOff < emG_MinAplSubjects) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: `Best Off must be >= Min Applicable Subjects (${emG_MinAplSubjects})`,

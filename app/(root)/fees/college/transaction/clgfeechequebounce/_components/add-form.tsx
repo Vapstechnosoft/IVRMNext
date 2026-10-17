@@ -185,7 +185,7 @@ export default function AddCollegeFeeChequeBounceForm({ onSuccess, pageData, cla
                 asmaY_Id: Number(data.asmaY_Id),
                 amcsT_Id: Number(data.amcsT_Id),
                 fyP_Id: Number(data.fyP_Id),
-                fccB_Date: data.fccB_Date ? new Date(data.fccB_Date).toDateString() : new Date().toDateString(),
+                fccB_Date: data.fccB_Date ? new Date(data.fccB_Date).toISOString() : new Date().toISOString(),
                 fccB_Remarks: data.fccB_Remarks
             };
 
