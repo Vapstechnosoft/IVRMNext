@@ -36,3 +36,30 @@ export interface IClgPreadmissionStatusUpdate {
     otptype?: string;
     forgetEmailOTP?: string;
 }
+
+export interface IClgSectionAllotmentStudent {
+    amsT_Id?: number;
+    amcsT_Id?: number;
+    acysT_Id?: number;
+    AMST_Id?: number;
+    amcsT_FirstName?: string;
+    amcsT_MiddleName?: string;
+    amcsT_LastName?: string;
+    amcsT_AdmNo?: string;
+    studentName?: string;
+    amcO_CourseName?: string;
+    amB_BranchName?: string;
+    amsE_SEMName?: string;
+    acmS_SectionName?: string;
+    acysT_RollNo?: string | number;
+    pdays?: string | number;
+    Selected?: boolean;
+    Selected1?: boolean;
+    Selected_CS?: boolean;
+    Selected1_CS?: boolean;
+    Selected_PS?: boolean;
+    Selected1_PS?: boolean;
+    Selected_YS?: boolean;
+    selectedAll1_YS?: boolean;
+}
+

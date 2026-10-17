@@ -51,7 +51,8 @@ function EmployeeRegisterPageContent({
                         Add Employee
                     </Button>
                 </div>
-
+                {/* Forms */}
+                <FormSections />
                 {/* Data Table Section */}
                 <CollapsibleSection
                     defaultOpen={true}
@@ -72,8 +73,7 @@ function EmployeeRegisterPageContent({
                     />
                 </CollapsibleSection>
 
-                {/* Forms */}
-                <FormSections />
+                
             </div>
         </div>
     );

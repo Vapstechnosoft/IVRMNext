@@ -21,8 +21,6 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     } | null;
     [key: string]: unknown;
 }
-
-import { signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
@@ -115,8 +113,8 @@ class ApiService {
         if (key === 'exam') {
             return (
                 process.env.NEXT_PUBLIC_EXAM_LOCAL_API_BASE_URL ||
-                process.env.NEXT_PUBLIC_EXAM_API_BASE_URL ||
                 process.env.EXAM_API_BASE_URL ||
+                process.env.NEXT_PUBLIC_EXAM_API_BASE_URL ||
                 'https://localhost:50258/api'
             );
         }
@@ -241,11 +239,9 @@ class ApiService {
                             sessionStorage.removeItem('isLoggedIn'); // Prevent double Swal on the sign-in page
                             await Swal.fire('Your Session has been Expired.....Please Re-login');
                             window.location.href = '/sign-in';
-                        } else {
-                            await signOut(); // uses the server-side signOut from top import
                         }
                     } catch (refreshError) {
-                        console.error('Error refreshing session:', refreshError);
+                        console.error('Error handling session expiration:', refreshError);
                     }
                 }
                 return Promise.reject(this.handleError(error));

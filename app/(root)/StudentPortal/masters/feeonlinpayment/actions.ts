@@ -159,3 +159,18 @@ export async function verifyRazorpayPayment(data: any) {
     }
     return { success: true };
 }
+
+export async function notifyPaymentResponseEasybuzz(data: any) {
+    try {
+        console.log('🚀 [Server Action] Calling /FeeOnlinePaymentFacade/getpaymentresponseeasybuzz with auth token...');
+        const response = await api.post<any>('fees', '/FeeOnlinePaymentFacade/getpaymentresponseeasybuzz', data);
+        console.log('✅ [Server Action] getpaymentresponseeasybuzz backend response:', response?.data);
+        return {
+            success: true,
+            data: response?.data
+        };
+    } catch (err: any) {
+        console.warn('⚠️ [Server Action] getpaymentresponseeasybuzz call warning:', err?.message || err);
+        return { success: false };
+    }
+}
