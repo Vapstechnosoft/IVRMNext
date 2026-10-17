@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { createAlphaNumericSchema, createExamCustomStringSchema, createStringSchema, deleteIdSchema } from '../../validationSchemas';
+import {
+    createAlphaNumericSchema,
+    createExamCustomStringSchema,
+    createOptionalExamCustomStringSchema,
+    createStringSchema,
+    deleteIdSchema
+} from '../../validationSchemas';
 
 export const loginSchema = z.object({
     email: z.string({ message: 'Email is required' }),
@@ -12,7 +18,7 @@ export const masterSubjectSchema = {
         mI_Id: z.number().int().optional(),
         ismS_IVRSSubjectName: createExamCustomStringSchema('IVRS Subject Name', 1, 100),
         ismS_SubjectCode: createExamCustomStringSchema('Subject Code', 1, 50),
-        ismS_SubjectNameNew: createExamCustomStringSchema('Subject Type / New Name', 1, 50),
+        ismS_SubjectNameNew: createOptionalExamCustomStringSchema('New Subject Name', 1, 50),
         ismS_SubjectName: createExamCustomStringSchema('Subject Name', 1, 50),
         ismS_PreadmFlag: z.number().int({ message: 'Pre-Admission Flag is required' }),
         ismS_AttendanceFlag: z.boolean({ required_error: 'Attendance Flag is required' }),
@@ -34,7 +40,7 @@ export const masterExamSchema = {
         emE_Id: z.number().optional(),
         mI_Id: z.number().optional(),
         emE_ExamName: createExamCustomStringSchema('Exam Name', 1, 100),
-        emE_ExamCode: createExamCustomStringSchema('Exam Code', 1, 50),
+        emE_ExamCode: createExamCustomStringSchema('Exam Code', 1, 50, true),
         emE_ExamDescription: createExamCustomStringSchema('Exam Description', 1, 100),
         emE_IVRSExamName: createExamCustomStringSchema('IVRS Exam Name', 1, 100),
         emE_FinalExamFlag: z.boolean({
