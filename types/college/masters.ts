@@ -5,6 +5,24 @@ export interface ICollegeCasteCategory {
     imcC_ActiveFlag?: boolean;
 }
 
+export interface ICollegeMasterCaste {
+    iC_Id: number;
+    imcC_Id: number;
+    iC_CasteName: string;
+    iC_CasteDesc: string;
+    categoryName?: string;
+    imcC_CategoryName?: string;
+    imC_Id?: number;
+    imC_CasteName?: string;
+    imC_CasteDesc?: string;
+}
+
+export interface ICollegeMasterCasteCategoryDropdown {
+    imcC_Id: number;
+    imcC_CategoryName: string;
+    selected?: boolean;
+}
+
 export interface IClgMasterCourseCategoryMap {
     amcocM_Id: number;
     amcO_Id: number;
@@ -25,7 +43,7 @@ export interface IClgMasterCourseBranchMap {
     amcobM_ElectiveIntroYear?: number | string;
     amcobM_FileName?: string;
     amcobM_FilePath?: string;
-    
+
     // Virtual fields
     amcO_CourseName?: string;
     amB_BranchName?: string;
@@ -139,4 +157,20 @@ export interface IClgMasterSemester {
     amsE_Year: number;
     amsE_EvenOdd: string;
     amsE_ActiveFlg?: boolean;
+}
+
+export interface IBranchChange {
+    acscoB_Id: number;
+    amcsT_Id: number;
+    sName?: string;
+    amcsT_Name?: string;
+    amcO_CourseName?: string;
+    amB_BranchName?: string;
+    newBranch?: string;
+    acscoB_COBFees?: number | string;
+    acscoB_OldRegNo?: string;
+    acscoB_NewRegNo?: string;
+    acscoB_Remarks?: string;
+    acscoB_ActiveFlag?: boolean | number;
+    acscoB_COBDate?: string;
 }

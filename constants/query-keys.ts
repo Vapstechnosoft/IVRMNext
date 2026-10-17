@@ -685,6 +685,8 @@ export const PRE_LIVE_MEETING_SCHEDULE = { DETAILS: () => ['PRE_LIVE_MEETING_SCH
 
 export const COLLEGE_QUERY_KEYS = {
     MASTER_CASTE_CATEGORY: 'college_master_caste_category',
+    MASTER_CASTE: 'college_master_caste',
+    BRANCH_CHANGE: 'college_branch_change',
     MASTER_COURSE_CATEGORY_MAP: 'college_master_course_category_map',
     MASTER_COURSE_BRANCH_MAP: 'college_master_course_branch_map',
     MASTER_BATCH: 'college_master_batch',
