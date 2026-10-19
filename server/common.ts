@@ -752,8 +752,12 @@ export async function getUserAccessibleModules() {
         };
 
         const isSuperAdmin = session?.role?.toUpperCase() === 'SUPER ADMIN' || session?.role?.toUpperCase() === 'SUPERADMIN';
+        const currentMiId = Number(
+            session?.mi_id || (session as any)?.user?.mi_id || (session as any)?.MI_Id || (session as any)?.mI_Id || 0
+        );
+        const currentMiName = (session?.mi_name || (session as any)?.user?.mi_name || '').trim().toLowerCase();
 
-        // Super Admin gets ONLY Super Admin and AI Edge (no school modules)
+        // Super Admin gets ONLY Super Admin and AI Edge (never school operational modules like Fees, Admission, etc.)
         if (isSuperAdmin) {
             return {
                 success: true,
@@ -762,23 +766,33 @@ export async function getUserAccessibleModules() {
             } as any;
         }
 
-        // Fetch data from backend APIs for School Admin / other user roles
-        const [mainModulesRes, subModulesRes, pageListRes, pageMappingsRes, menuPageMappingsRes, instMenuPageMappingsRes] =
-            await Promise.all([
-                api.get<any>('preadmission', '/configuration/get_main_module_list'),
-                api.get<any>('preadmission', '/configuration/get_submodule_list'),
-                api.get<any>('preadmission', '/configuration/get_page_list'),
-                api
-                    .get<any>('sadmin', 'MasterPageModuleMappingFacade/get_all_details_grid_page_mapping?page=1&page_size=1000')
-                    .catch(() => null),
-                api.get<any>('sadmin', 'MasterMenuPageMappingFacade/get_onload_grid?page=1&page_size=1000').catch(() => null),
-                api
-                    .get<any>(
-                        'sadmin',
-                        'MasterMenuPageMappingInstitutionwiseFacade/get_onload_grid_master_menu_mapping_institute_wise?page=1&page_size=1000'
-                    )
-                    .catch(() => null)
-            ]);
+        // Fetch data from backend APIs
+        const [
+            mainModulesRes,
+            subModulesRes,
+            pageListRes,
+            pageMappingsRes,
+            menuPageMappingsRes,
+            instMenuPageMappingsRes,
+            instRolePrivilegesRes
+        ] = await Promise.all([
+            api.get<any>('preadmission', '/configuration/get_main_module_list'),
+            api.get<any>('preadmission', '/configuration/get_submodule_list'),
+            api.get<any>('preadmission', '/configuration/get_page_list'),
+            api
+                .get<any>('sadmin', 'MasterPageModuleMappingFacade/get_all_details_grid_page_mapping?page=1&page_size=1000')
+                .catch(() => null),
+            api.get<any>('sadmin', 'MasterMenuPageMappingFacade/get_onload_grid?page=1&page_size=1000').catch(() => null),
+            api
+                .get<any>(
+                    'sadmin',
+                    'MasterMenuPageMappingInstitutionwiseFacade/get_onload_grid_master_menu_mapping_institute_wise?page=1&page_size=10000'
+                )
+                .catch(() => null),
+            api
+                .get<any>('sadmin', 'MasterInstitutionRoleandModuleMappingFacade/get_onload_grid_seach_list?page=1&page_size=10000')
+                .catch(() => null)
+        ]);
 
         // Safe extraction helper to handle raw arrays, wrapped objects, or $values metadata
         const extractArray = (res: any): any[] => {
@@ -821,6 +835,7 @@ export async function getUserAccessibleModules() {
         const pageMappings = pageMappingsRes ? extractArray(pageMappingsRes) : [];
         const menuPageMappings = menuPageMappingsRes ? extractArray(menuPageMappingsRes) : [];
         const instMenuPageMappings = instMenuPageMappingsRes ? extractArray(instMenuPageMappingsRes) : [];
+        const instRolePrivileges = instRolePrivilegesRes ? extractArray(instRolePrivilegesRes) : [];
 
         // Dynamic Title Case helper
         const toTitleCase = (str: string): string => {
@@ -884,71 +899,68 @@ export async function getUserAccessibleModules() {
             );
         };
 
-        // 1. Build lookup tables from backend mappings
-        const mappingByPageId = new Map<number, string>();
-        const mappingByPageName = new Map<string, string>();
-        pageMappings.forEach((m: any) => {
-            const modName = (m.ivrmM_ModuleName || '').trim();
-            const pId = Number(m.ivrmP_Id || 0);
-            const pName = (m.ivrmmP_PageName || '').trim().toLowerCase();
-            if (modName) {
-                if (pId > 0) mappingByPageId.set(pId, modName);
-                if (pName) mappingByPageName.set(pName, modName);
-            }
+        // 1. Build Page Catalog by ID and by lowercase Name
+        const pageCatalogById = new Map<number, any>();
+        const pageCatalogByName = new Map<string, any>();
+        pages.forEach((p: any) => {
+            const id = Number(p.pageId ?? p.ivrmP_Id ?? p.id ?? 0);
+            const rawName = (p.ivrmmP_PageName || p.ivrmP_PageDisplayName || p.name || '').trim().toLowerCase();
+            if (id > 0) pageCatalogById.set(id, p);
+            if (rawName) pageCatalogByName.set(rawName, p);
         });
 
-        // Master Menu Page Mapping lookup (General & Institutionwise)
-        const menuMappingByPageId = new Map<number, { moduleName: string; subMenuName: string }>();
-        const menuMappingByPageName = new Map<string, { moduleName: string; subMenuName: string }>();
+        // 2. Build Module Catalog for icons
+        const moduleCatalogByName = new Map<string, any>();
+        mainModules.forEach((m: any) => {
+            const mName = (m.ivrmM_ModuleName || m.name || '').trim().toLowerCase();
+            if (mName) moduleCatalogByName.set(mName, m);
+        });
 
-        const addMenuMappingItem = (item: any) => {
-            const modName = (item.modulename || item.IVRMM_ModuleName || item.ivrmM_ModuleName || item.moduleName || '').trim();
-            const subName = (
-                item.submenuname ||
-                item.IVRMMM_MenuName ||
-                item.ivrmmM_MenuName ||
-                item.subMenuName ||
-                item.IVRMMS_SubMenuName ||
-                ''
-            ).trim();
-            const pId = Number(item.ivrmP_Id || item.ivrmmP_Id || item.pageId || 0);
-            const pName = (item.pagename || item.IVRMP_PageName || item.ivrmP_PageName || item.pageName || item.ivrmmP_PageName || '')
-                .trim()
-                .toLowerCase();
-
-            if (modName || subName) {
-                if (pId > 0) menuMappingByPageId.set(pId, { moduleName: modName, subMenuName: subName });
-                if (pName) menuMappingByPageName.set(pName, { moduleName: modName, subMenuName: subName });
-            }
-        };
-
-        menuPageMappings.forEach(addMenuMappingItem);
-        instMenuPageMappings.forEach(addMenuMappingItem);
-
+        // 3. Build Sub-Module Catalog by menu ID
         const subByMenuId = new Map<number, any>();
         subModules.forEach((s: any) => {
             const id = Number(s.menuId ?? s.ivrmmM_Id ?? s.subModuleId ?? 0);
             if (id > 0) subByMenuId.set(id, s);
         });
 
-        const modById = new Map<number, any>();
-        mainModules.forEach((m: any) => {
-            const mId = Number(m.moduleId ?? m.ivrmM_Id ?? 0);
-            const menuId = Number(m.menuId ?? 0);
-            if (mId > 0) modById.set(mId, m);
-            if (menuId > 0) modById.set(menuId, m);
+        // 4. Strict Institution Filtering
+        const userInstMappings = instMenuPageMappings.filter((item: any) => {
+            if (!currentMiId && !currentMiName) return false;
+            const itemMiId = Number(item.mI_Id ?? item.MI_Id ?? item.mi_Id ?? item.mi_id ?? 0);
+            const itemMiName = (item.mI_Name || item.mi_Name || item.MI_Name || item.institution_name || '').trim().toLowerCase();
+
+            if (currentMiId > 0 && itemMiId > 0) {
+                return itemMiId === currentMiId;
+            }
+            if (currentMiName && itemMiName) {
+                return itemMiName === currentMiName;
+            }
+            return false;
         });
 
-        // 2. Initialize Module Map
+        const userInstPrivileges = instRolePrivileges.filter((item: any) => {
+            if (!currentMiId && !currentMiName) return false;
+            const itemMiId = Number(item.mI_Id ?? item.MI_Id ?? item.mi_Id ?? item.mi_id ?? 0);
+            const itemMiName = (item.mI_Name || item.mi_Name || item.MI_Name || item.institution_name || '').trim().toLowerCase();
+
+            if (currentMiId > 0 && itemMiId > 0) {
+                return itemMiId === currentMiId;
+            }
+            if (currentMiName && itemMiName) {
+                return itemMiName === currentMiName;
+            }
+            return false;
+        });
+
+        // Initialize Module Map
         const moduleMap = new Map<string, any>();
 
         const getOrCreateModule = (name: string, icon?: string): any => {
             const cleanName = toTitleCase(name) || 'General';
             const normKey = normalizeKey(cleanName);
 
-            // Check if module already exists by normalized key (e.g., "Fees" matches "Fee")
             let existingKey: string | undefined;
-            for (const k of moduleMap.keys()) {
+            for (const k of Array.from(moduleMap.keys())) {
                 if (normalizeKey(k) === normKey) {
                     existingKey = k;
                     break;
@@ -979,7 +991,6 @@ export async function getUserAccessibleModules() {
             const cleanSubName = toTitleCase(subMenuName) || 'General';
             const normKey = normalizeKey(cleanSubName);
 
-            // Check if sub-menu already exists using normalized key (e.g., "Masters" matches "Master")
             let subMenu = modObj.menu[0].sub_menu.find((s: any) => normalizeKey(s.name) === normKey);
             if (!subMenu) {
                 const subId =
@@ -997,185 +1008,262 @@ export async function getUserAccessibleModules() {
             return subMenu;
         };
 
-        // Pre-populate modules from mainModules and their subModules (Backend ground truth)
-        mainModules.forEach((m: any) => {
-            const mName = toTitleCase(m.ivrmM_ModuleName || m.name);
-            if (mName && mName.toLowerCase() !== 'super admin') {
-                const modObj = getOrCreateModule(mName, m.ivrmmmI_Icon || m.icon);
+        // ====================================================================
+        // PATH A: Strict Institution-Wise Menu Mapping (Highest Priority)
+        // If institution-wise menu page mappings exist for this MI_Id,
+        // ONLY display the pages and menus that were explicitly mapped!
+        // ====================================================================
+        if (userInstMappings.length > 0) {
+            console.info(`[Navigation] Rendering ${userInstMappings.length} institution-mapped pages for MI_Id: ${currentMiId}`);
+
+            userInstMappings.forEach((m: any) => {
+                const rawModName = (m.modulename || m.IVRMM_ModuleName || m.ivrmM_ModuleName || m.moduleName || '').trim();
+                const rawSubName = (
+                    m.submenuname ||
+                    m.IVRMMM_MenuName ||
+                    m.ivrmmM_MenuName ||
+                    m.subMenuName ||
+                    m.IVRMMS_SubMenuName ||
+                    ''
+                ).trim();
+                const rawPageName = (m.pagename || m.IVRMP_PageName || m.ivrmP_PageName || m.pageName || m.ivrmmP_PageName || '').trim();
+                const pageId = Number(m.ivrmmP_Id || m.ivrmP_Id || m.pageId || 0);
+                const displayName = (m.displayname || m.displayTitle || rawPageName).trim();
+
+                if (!rawModName || (!rawPageName && pageId === 0)) return;
+
+                // Lookup catalog page for URL and Icon
+                let catalogPage = pageId > 0 ? pageCatalogById.get(pageId) : null;
+                if (!catalogPage && rawPageName) {
+                    catalogPage = pageCatalogByName.get(rawPageName.toLowerCase());
+                }
+
+                const pageName = toTitleCase(displayName || rawPageName);
+                const rawUrl = catalogPage?.ivrmP_PageURL || catalogPage?.url || m.ivrmP_PageURL || m.url || '';
+                const resolvedUrl = normalizeUrl(rawUrl, pageName);
+                const pageIcon = mapIcon(catalogPage?.ivrmmmI_Icon || catalogPage?.icon || m.icon || 'FileText');
+                const pageOrder = Number(m.pageorder ?? m.ivrmimP_PageOrder ?? catalogPage?.order ?? catalogPage?.ivrmimP_PageOrder ?? 0);
+
+                if (isSuperAdminPage(pageName.toLowerCase(), resolvedUrl.toLowerCase())) {
+                    return;
+                }
+
+                const modIcon = moduleCatalogByName.get(rawModName.toLowerCase())?.ivrmmmI_Icon;
+                const modObj = getOrCreateModule(rawModName, modIcon);
+                const subMenuObj = getOrCreateSubMenu(modObj, rawSubName || 'General');
+
+                const pageAlreadyInSubMenu = subMenuObj.pages.some(
+                    (existingPage: any) =>
+                        (pageId > 0 && existingPage.id === pageId) ||
+                        (existingPage.url && existingPage.url === resolvedUrl) ||
+                        (existingPage.name && existingPage.name.toLowerCase() === pageName.toLowerCase())
+                );
+
+                if (!pageAlreadyInSubMenu) {
+                    subMenuObj.pages.push({
+                        id: pageId || Math.floor(Math.random() * 1000000) + 1,
+                        name: pageName,
+                        title: pageName,
+                        url: resolvedUrl,
+                        icon: pageIcon,
+                        description: pageName,
+                        order: pageOrder
+                    });
+                }
+            });
+        }
+        // ====================================================================
+        // PATH B: Institution Role Privileges (Institution Module Page)
+        // If institution-wise menu wasn't configured, but Institution Module
+        // Page was configured, render only those allowed pages.
+        // ====================================================================
+        else if (userInstPrivileges.length > 0) {
+            console.info(`[Navigation] Rendering ${userInstPrivileges.length} institution-privilege pages for MI_Id: ${currentMiId}`);
+
+            userInstPrivileges.forEach((p: any) => {
+                const rawModName = (p.ivrmM_ModuleName || p.modulename || '').trim();
+                const rawPageName = (p.ivrmmP_PageName || p.pagename || '').trim();
+                if (!rawModName || !rawPageName) return;
+
+                const catalogPage = pageCatalogByName.get(rawPageName.toLowerCase());
+                const pageId = Number(catalogPage?.pageId ?? catalogPage?.ivrmP_Id ?? p.ivrmP_Id ?? 0);
+                const pageName = toTitleCase(rawPageName);
+                const rawUrl = catalogPage?.ivrmP_PageURL || catalogPage?.url || '';
+                const resolvedUrl = normalizeUrl(rawUrl, pageName);
+                const pageIcon = mapIcon(catalogPage?.ivrmmmI_Icon || 'FileText');
+
+                if (isSuperAdminPage(pageName.toLowerCase(), resolvedUrl.toLowerCase())) {
+                    return;
+                }
+
+                const modIcon = moduleCatalogByName.get(rawModName.toLowerCase())?.ivrmmmI_Icon;
+                const modObj = getOrCreateModule(rawModName, modIcon);
+
+                let subName = 'General';
+                const menuId = Number(catalogPage?.menuId ?? catalogPage?.ivrmmM_Id ?? 0);
+                if (menuId > 0 && subByMenuId.has(menuId)) {
+                    subName = toTitleCase(subByMenuId.get(menuId).ivrmM_ModuleName || subByMenuId.get(menuId).name || 'General');
+                }
+                const subMenuObj = getOrCreateSubMenu(modObj, subName);
+
+                const pageAlreadyInSubMenu = subMenuObj.pages.some(
+                    (existingPage: any) =>
+                        (pageId > 0 && existingPage.id === pageId) ||
+                        (existingPage.url && existingPage.url === resolvedUrl) ||
+                        (existingPage.name && existingPage.name.toLowerCase() === pageName.toLowerCase())
+                );
+
+                if (!pageAlreadyInSubMenu) {
+                    subMenuObj.pages.push({
+                        id: pageId || Math.floor(Math.random() * 1000000) + 1,
+                        name: pageName,
+                        title: pageName,
+                        url: resolvedUrl,
+                        icon: pageIcon,
+                        description: pageName,
+                        order: Number(catalogPage?.order ?? catalogPage?.ivrmimP_PageOrder ?? 0)
+                    });
+                }
+            });
+        }
+        // ====================================================================
+        // PATH C: Fallback to General Mapping (ONLY when no institution is logged in / dev)
+        // Never dump unmapped pages into an institution portal!
+        // ====================================================================
+        else if (!currentMiId || currentMiId === 0) {
+            const mappingByPageId = new Map<number, string>();
+            const mappingByPageName = new Map<string, string>();
+            pageMappings.forEach((m: any) => {
+                const modName = (m.ivrmM_ModuleName || '').trim();
+                const pId = Number(m.ivrmP_Id || 0);
+                const pName = (m.ivrmmP_PageName || '').trim().toLowerCase();
+                if (modName) {
+                    if (pId > 0) mappingByPageId.set(pId, modName);
+                    if (pName) mappingByPageName.set(pName, modName);
+                }
+            });
+
+            const menuMappingByPageId = new Map<number, { moduleName: string; subMenuName: string }>();
+            const menuMappingByPageName = new Map<string, { moduleName: string; subMenuName: string }>();
+
+            const addMenuMappingItem = (item: any) => {
+                const modName = (item.modulename || item.IVRMM_ModuleName || item.ivrmM_ModuleName || item.moduleName || '').trim();
+                const subName = (
+                    item.submenuname ||
+                    item.IVRMMM_MenuName ||
+                    item.ivrmmM_MenuName ||
+                    item.subMenuName ||
+                    item.IVRMMS_SubMenuName ||
+                    ''
+                ).trim();
+                const pId = Number(item.ivrmP_Id || item.ivrmmP_Id || item.pageId || 0);
+                const pName = (item.pagename || item.IVRMP_PageName || item.ivrmP_PageName || item.pageName || item.ivrmmP_PageName || '')
+                    .trim()
+                    .toLowerCase();
+
+                if (modName || subName) {
+                    if (pId > 0) menuMappingByPageId.set(pId, { moduleName: modName, subMenuName: subName });
+                    if (pName) menuMappingByPageName.set(pName, { moduleName: modName, subMenuName: subName });
+                }
+            };
+
+            menuPageMappings.forEach(addMenuMappingItem);
+            instMenuPageMappings.forEach(addMenuMappingItem);
+
+            const subByMenuId = new Map<number, any>();
+            subModules.forEach((s: any) => {
+                const id = Number(s.menuId ?? s.ivrmmM_Id ?? s.subModuleId ?? 0);
+                if (id > 0) subByMenuId.set(id, s);
+            });
+
+            const modById = new Map<number, any>();
+            mainModules.forEach((m: any) => {
                 const mId = Number(m.moduleId ?? m.ivrmM_Id ?? 0);
                 const menuId = Number(m.menuId ?? 0);
+                if (mId > 0) modById.set(mId, m);
+                if (menuId > 0) modById.set(menuId, m);
+            });
 
-                subModules.forEach((s: any) => {
-                    const sParent = Number(s.parentId ?? 0);
-                    const sMod = Number(s.moduleId ?? 0);
-                    if ((menuId > 0 && sParent === menuId) || (mId > 0 && sMod === mId)) {
-                        const sName = toTitleCase(s.ivrmM_ModuleName || s.name);
-                        if (sName) {
-                            getOrCreateSubMenu(modObj, sName, s.ivrmmmI_Icon || s.icon);
+            mainModules.forEach((m: any) => {
+                const mName = toTitleCase(m.ivrmM_ModuleName || m.name);
+                if (mName && mName.toLowerCase() !== 'super admin') {
+                    const modObj = getOrCreateModule(mName, m.ivrmmmI_Icon || m.icon);
+                    const mId = Number(m.moduleId ?? m.ivrmM_Id ?? 0);
+                    const menuId = Number(m.menuId ?? 0);
+
+                    subModules.forEach((s: any) => {
+                        const sParent = Number(s.parentId ?? 0);
+                        const sMod = Number(s.moduleId ?? 0);
+                        if ((menuId > 0 && sParent === menuId) || (mId > 0 && sMod === mId)) {
+                            const sName = toTitleCase(s.ivrmM_ModuleName || s.name);
+                            if (sName) {
+                                getOrCreateSubMenu(modObj, sName, s.ivrmmmI_Icon || s.icon);
+                            }
                         }
-                    }
-                });
-            }
-        });
-
-        // Pre-populate any modules from Super Admin pageMappings
-        pageMappings.forEach((m: any) => {
-            const modName = (m.ivrmM_ModuleName || '').trim();
-            if (modName && modName.toLowerCase() !== 'super admin' && modName.toLowerCase() !== 'pre-configuration') {
-                getOrCreateModule(modName);
-            }
-        });
-
-        // Pre-populate modules and sub-menus from Super Admin menu page mappings
-        const prePopulateMenuMapping = (m: any) => {
-            const modName = (m.modulename || m.IVRMM_ModuleName || m.ivrmM_ModuleName || m.moduleName || '').trim();
-            const subName = (m.submenuname || m.IVRMMM_MenuName || m.ivrmmM_MenuName || m.subMenuName || m.IVRMMS_SubMenuName || '').trim();
-            if (modName && modName.toLowerCase() !== 'super admin' && modName.toLowerCase() !== 'pre-configuration') {
-                const modObj = getOrCreateModule(modName);
-                if (subName) {
-                    getOrCreateSubMenu(modObj, subName);
+                    });
                 }
-            }
-        };
+            });
 
-        menuPageMappings.forEach(prePopulateMenuMapping);
-        instMenuPageMappings.forEach(prePopulateMenuMapping);
+            pages.forEach((p: any) => {
+                const pageId = Number(p.pageId ?? p.ivrmP_Id ?? p.id ?? 0);
+                const rawName = p.ivrmmP_PageName || p.ivrmP_PageDisplayName || p.name || '';
+                const pageName = toTitleCase(rawName) || 'Untitled Page';
+                const rawUrl = p.ivrmP_PageURL || p.url || '';
+                const resolvedUrl = normalizeUrl(rawUrl, pageName);
+                const nameLower = pageName.toLowerCase();
+                const urlLower = (rawUrl || '').toLowerCase();
+                const pNameKey = rawName.trim().toLowerCase();
 
-        // 3. Map all pages from get_page_list dynamically
-        pages.forEach((p: any) => {
-            const pageId = Number(p.pageId ?? p.ivrmP_Id ?? p.id ?? 0);
-            const rawName = p.ivrmmP_PageName || p.ivrmP_PageDisplayName || p.name || '';
-            const pageName = toTitleCase(rawName) || 'Untitled Page';
-            const rawUrl = p.ivrmP_PageURL || p.url || '';
-            const resolvedUrl = normalizeUrl(rawUrl, pageName);
-            const nameLower = pageName.toLowerCase();
-            const urlLower = (rawUrl || '').toLowerCase();
-            const pNameKey = rawName.trim().toLowerCase();
-
-            // Skip super admin hardcoded pages in regular school portal
-            if (isSuperAdminPage(nameLower, urlLower)) {
-                return;
-            }
-
-            let targetModuleName = '';
-            let targetSubMenuName = '';
-
-            // Priority 1: Backend Master Menu Page Mapping (Explicit Page -> Module + SubMenu from DB)
-            if (pageId > 0 && menuMappingByPageId.has(pageId)) {
-                const mapObj = menuMappingByPageId.get(pageId)!;
-                if (mapObj.moduleName) targetModuleName = mapObj.moduleName;
-                if (mapObj.subMenuName) targetSubMenuName = mapObj.subMenuName;
-            } else if (pNameKey && menuMappingByPageName.has(pNameKey)) {
-                const mapObj = menuMappingByPageName.get(pNameKey)!;
-                if (mapObj.moduleName) targetModuleName = mapObj.moduleName;
-                if (mapObj.subMenuName) targetSubMenuName = mapObj.subMenuName;
-            }
-
-            // Priority 2: Backend Master Page Module Mapping (Explicit Page -> Module from DB)
-            if (!targetModuleName) {
-                if (pageId > 0 && mappingByPageId.has(pageId)) {
-                    targetModuleName = mappingByPageId.get(pageId)!;
-                } else if (pNameKey && mappingByPageName.has(pNameKey)) {
-                    targetModuleName = mappingByPageName.get(pNameKey)!;
+                if (isSuperAdminPage(nameLower, urlLower)) {
+                    return;
                 }
-            }
 
-            // Priority 3: Direct menuId or moduleId from backend get_page_list API
-            const menuId = Number(p.menuId ?? p.ivrmmM_Id ?? 0);
-            if (menuId > 0 && subByMenuId.has(menuId)) {
-                const sub = subByMenuId.get(menuId);
-                if (!targetSubMenuName) {
-                    targetSubMenuName = sub.ivrmM_ModuleName || sub.name;
+                let targetModuleName = '';
+                let targetSubMenuName = '';
+
+                if (pageId > 0 && menuMappingByPageId.has(pageId)) {
+                    const mapObj = menuMappingByPageId.get(pageId)!;
+                    if (mapObj.moduleName) targetModuleName = mapObj.moduleName;
+                    if (mapObj.subMenuName) targetSubMenuName = mapObj.subMenuName;
+                } else if (pNameKey && menuMappingByPageName.has(pNameKey)) {
+                    const mapObj = menuMappingByPageName.get(pNameKey)!;
+                    if (mapObj.moduleName) targetModuleName = mapObj.moduleName;
+                    if (mapObj.subMenuName) targetSubMenuName = mapObj.subMenuName;
                 }
-                const parentModId = Number(sub.moduleId ?? sub.parentId ?? 0);
-                if (!targetModuleName && modById.has(parentModId)) {
-                    targetModuleName = modById.get(parentModId).ivrmM_ModuleName;
-                }
-            }
 
-            const moduleId = Number(p.moduleId ?? p.ivrmM_Id ?? 0);
-            if (!targetModuleName && moduleId > 0 && modById.has(moduleId)) {
-                targetModuleName = modById.get(moduleId).ivrmM_ModuleName;
-            }
-
-            // Priority 4: URL Path segments matching against real backend modules
-            const cleanUrl = resolvedUrl.replace(/^\/+/, '');
-            const segments = cleanUrl.split('/').filter(Boolean);
-
-            if (segments.length >= 1) {
-                const seg0 = segments[0].toLowerCase();
-
-                // Match seg0 to an existing backend module from mainModules if not already set
                 if (!targetModuleName) {
-                    const matchedMod = mainModules.find((m: any) => {
-                        const mNorm = normalizeKey(m.ivrmM_ModuleName || m.name || '');
-                        return mNorm === normalizeKey(seg0);
-                    });
-                    if (matchedMod) {
-                        targetModuleName = matchedMod.ivrmM_ModuleName || matchedMod.name;
+                    if (pageId > 0 && mappingByPageId.has(pageId)) {
+                        targetModuleName = mappingByPageId.get(pageId)!;
+                    } else if (pNameKey && mappingByPageName.has(pNameKey)) {
+                        targetModuleName = mappingByPageName.get(pNameKey)!;
                     }
                 }
-            }
 
-            // If page is not mapped to any module from backend or valid URL, do not assign to fake modules
-            if (!targetModuleName) {
-                return;
-            }
+                if (!targetModuleName) return;
 
-            const modObj = getOrCreateModule(targetModuleName);
+                const modObj = getOrCreateModule(targetModuleName);
+                const subMenuObj = getOrCreateSubMenu(modObj, targetSubMenuName || 'General');
 
-            // Submenu assignment: resolve from backend sub-modules of this module
-            if (!targetSubMenuName) {
-                const existingSubMenus = modObj.menu[0]?.sub_menu || [];
+                const pageAlreadyInSubMenu = subMenuObj.pages.some(
+                    (existingPage: any) =>
+                        (pageId > 0 && existingPage.id === pageId) ||
+                        (existingPage.url && existingPage.url === resolvedUrl) ||
+                        (existingPage.name && existingPage.name.toLowerCase() === pageName.toLowerCase())
+                );
 
-                // 1. Match URL segments against this module's backend sub-modules
-                const matchedSubByUrl = existingSubMenus.find((s: any) => {
-                    const sNorm = normalizeKey(s.name);
-                    return segments.some((seg) => normalizeKey(seg) === sNorm);
-                });
-
-                if (matchedSubByUrl) {
-                    targetSubMenuName = matchedSubByUrl.name;
-                } else {
-                    // 2. Match page name keywords against this module's backend sub-modules
-                    const matchedSubByName = existingSubMenus.find((s: any) => {
-                        const sNorm = normalizeKey(s.name);
-                        return sNorm.length >= 3 && nameLower.includes(sNorm);
+                if (!pageAlreadyInSubMenu) {
+                    subMenuObj.pages.push({
+                        id: pageId || Math.floor(Math.random() * 1000000) + 1,
+                        name: pageName,
+                        title: pageName,
+                        url: resolvedUrl,
+                        icon: mapIcon(p.ivrmmmI_Icon || p.icon || 'FileText'),
+                        description: pageName,
+                        order: Number(p.order ?? p.ivrmimP_PageOrder ?? 0)
                     });
-
-                    if (matchedSubByName) {
-                        targetSubMenuName = matchedSubByName.name;
-                    } else if (existingSubMenus.length > 0) {
-                        // 3. Fallback to the first backend sub-module registered for this module
-                        targetSubMenuName = existingSubMenus[0].name;
-                    } else {
-                        targetSubMenuName = 'General';
-                    }
                 }
-            }
-
-            const subMenuObj = getOrCreateSubMenu(modObj, targetSubMenuName);
-
-            // Avoid duplicate page in the same sub-menu
-            const pageAlreadyInSubMenu = subMenuObj.pages.some(
-                (existingPage: any) =>
-                    (pageId > 0 && existingPage.id === pageId) ||
-                    (existingPage.url && existingPage.url === resolvedUrl) ||
-                    (existingPage.name && existingPage.name.toLowerCase() === pageName.toLowerCase())
-            );
-
-            if (!pageAlreadyInSubMenu) {
-                subMenuObj.pages.push({
-                    id: pageId || Math.floor(Math.random() * 1000000) + 1,
-                    name: pageName,
-                    title: pageName,
-                    url: resolvedUrl,
-                    icon: mapIcon(p.ivrmmmI_Icon || p.icon || 'FileText'),
-                    description: pageName,
-                    order: Number(p.order ?? p.ivrmimP_PageOrder ?? 0)
-                });
-            }
-        });
+            });
+        }
 
         // Filter and sort modules and submenus
         const topModules = Array.from(moduleMap.values())
