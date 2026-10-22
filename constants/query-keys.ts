@@ -685,6 +685,8 @@ export const PRE_LIVE_MEETING_SCHEDULE = { DETAILS: () => ['PRE_LIVE_MEETING_SCH
 
 export const COLLEGE_QUERY_KEYS = {
     MASTER_CASTE_CATEGORY: 'college_master_caste_category',
+    MASTER_CASTE: 'college_master_caste',
+    BRANCH_CHANGE: 'college_branch_change',
     MASTER_COURSE_CATEGORY_MAP: 'college_master_course_category_map',
     MASTER_COURSE_BRANCH_MAP: 'college_master_course_branch_map',
     MASTER_BATCH: 'college_master_batch',
@@ -740,7 +742,9 @@ export const COLLEGE_QUERY_KEYS = {
     COLLEGE_FEE_OPENING_BALANCE_GROUPS: 'college_fee_opening_balance_groups',
     COLLEGE_FEE_OPENING_BALANCE_HEADS: 'college_fee_opening_balance_heads',
     COLLEGE_FEE_OPENING_BALANCE_INSTALLMENTS: 'college_fee_opening_balance_installments',
-    COLLEGE_FEE_OPENING_BALANCE_STUDENTS: 'college_fee_opening_balance_students'
+    COLLEGE_FEE_OPENING_BALANCE_STUDENTS: 'college_fee_opening_balance_students',
+    DCPS_BONAFIDE_CERTIFICATE: 'college_dcps_bonafide_certificate',
+    COLLEGE_OVERALL_DAILY_ATTENDANCE_REPORT: 'college_overall_daily_attendance_report'
 };
 export const ONLINE_EXAM_QUERY_KEYS = {
     MASTER_QUESTION: 'online_exam_master_question',

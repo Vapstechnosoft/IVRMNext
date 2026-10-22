@@ -63,3 +63,37 @@ export interface IClgSectionAllotmentStudent {
     selectedAll1_YS?: boolean;
 }
 
+export interface IChangedCourseBranchItem {
+    years?: string;
+    asmaY_Year?: string;
+    old_CourseName?: string;
+    old_BranchName?: string;
+    old_SEMName?: string;
+    New_CourseName?: string;
+    New_BranchName?: string;
+    new_SEMName?: string;
+    Student_Name?: string;
+    studentName?: string;
+    amcsT_AdmNo?: string;
+    amcsT_FirstName?: string;
+    amcsT_LastName?: string;
+    amcsT_MiddleName?: string;
+}
+
+export interface ISaveCourseBranchChangePayload {
+    ASMAY_Id: number;
+    AMCO_Id_Old: number;
+    AMB_Id_Old: number;
+    ASME_Id_Old: number;
+    AMCO_Id_New: number;
+    AMB_Id_New: number;
+    AMCST_Id: number;
+    asmaY_Id?: number;
+    amcO_Id_Old?: number;
+    amB_Id_Old?: number;
+    amsE_Id_Old?: number;
+    amcO_Id_New?: number;
+    amB_Id_New?: number;
+    amcsT_Id?: number;
+}
+
