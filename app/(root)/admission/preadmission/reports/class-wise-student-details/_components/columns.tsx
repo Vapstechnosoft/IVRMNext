@@ -125,7 +125,11 @@ const createDynamicColumn = (fieldId: string): ColumnDef<any> => {
                 return <div>{formatDate(value)}</div>;
             }
 
-            return <div>{String(value) || 'N/A'}</div>;
+            if (value === null || value === undefined || value === 'null' || value === '') {
+                return <div>-</div>;
+            }
+
+            return <div>{String(value)}</div>;
         },
         enableSorting: true,
         enableHiding: true

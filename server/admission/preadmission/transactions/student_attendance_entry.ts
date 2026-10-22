@@ -18,17 +18,21 @@ export async function getInitialData(portalType?: string) {
  * Gets student data based on criteria (Class/Section/Year).
  */
 export async function getStudentData(data: {
-    asmaY_Id: number;
-    asmcL_Id: number;
-    asmS_Id: number;
-    asa_FromDate: string;
-    monthflag: string;
-    monthflag1: string;
-    classsecflag: string;
-    checksubject: string;
-    monthid: number;
-    ismS_Id: number;
-    ttmP_Id: number;
+    asmaY_Id?: number;
+    asmcL_Id?: number;
+    asmS_Id?: number;
+    asa_FromDate?: string;
+    monthflag?: string;
+    monthflag1?: string;
+    classsecflag?: string;
+    checksubject?: string;
+    monthid?: number;
+    ismS_Id?: number;
+    ttmP_Id?: number;
+    ASMAY_Id?: number;
+    ASMCL_Id?: number;
+    ASMS_Id?: number;
+    [key: string]: any;
 }) {
     return await api.post<any>('admission', '/StudentAttendanceEntry/getstudentdata', data);
 }

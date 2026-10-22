@@ -1,13 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { getViewRecordsMaster } from '@/server/coe/masters/master-coe';
 import type { IMasterEvent } from '@/types/alumni/master-coe';
 import { Plus, X } from 'lucide-react';
-import React, { useState, useCallback } from 'react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import React, { useCallback, useMemo, useState } from 'react';
 import ViewDetailsDialog from '../view-details-dialog';
 import MasterEventsForm from './add-update-form';
 import { MasterEventsColumns } from './columns';
@@ -17,9 +19,17 @@ interface MasterEventsContentProps {
     initialData: any;
     refreshData: () => void;
     isLoading?: boolean;
+    error?: any;
+    searchParams?: any;
 }
 
-export default function MasterEventsContent({ initialData, refreshData, isLoading = false }: MasterEventsContentProps) {
+export default function MasterEventsContent({
+    initialData,
+    refreshData,
+    isLoading = false,
+    error,
+    searchParams
+}: MasterEventsContentProps) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -27,6 +37,7 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
         isMappedviewOpen,
         selectedRow,
         openAddForm,
+        openEditForm,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
@@ -37,6 +48,12 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
 
     const [viewLoading, setViewLoading] = useState(false);
     const [viewData, setViewData] = useState<any[]>([]);
+
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withDefault(10));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withDefault(''));
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withDefault(''));
+    const [sortDirection] = useQueryState(tableSearchVariables.sort_direction, parseAsString.withDefault('asc'));
 
     const handleOpenMappedView = useCallback(async (row: IMasterEvent) => {
         const id = row.COEME_Id || (row as any).coemE_Id;
@@ -54,11 +71,60 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
     }, []);
 
     // Table data extraction logic
-    const tableData = (() => {
+    const rawEvents = useMemo(() => {
         const data = initialData?.data || initialData;
         if (Array.isArray(data)) return data;
         return data?.master_eventlist || data?.master_event_list || data?.query || [];
-    })();
+    }, [initialData]);
+
+    const filteredAndSortedEvents = useMemo(() => {
+        let result = [...rawEvents];
+
+        if (searchQuery && searchQuery.trim() !== '') {
+            const q = searchQuery.toLowerCase().trim();
+            result = result.filter((item) => {
+                const name = String(item.COEME_EventName || item.coemE_EventName || '').toLowerCase();
+                const desc = String(item.COEME_EventDesc || item.coemE_EventDesc || '').toLowerCase();
+                return name.includes(q) || desc.includes(q);
+            });
+        }
+
+        if (sortBy) {
+            result.sort((a, b) => {
+                const valA = a[sortBy] ?? '';
+                const valB = b[sortBy] ?? '';
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return sortDirection === 'desc' ? valB - valA : valA - valB;
+                }
+                const comp = String(valA).localeCompare(String(valB), undefined, { numeric: true, sensitivity: 'base' });
+                return sortDirection === 'desc' ? -comp : comp;
+            });
+        }
+
+        return result;
+    }, [rawEvents, searchQuery, sortBy, sortDirection]);
+
+    const totalEvents = filteredAndSortedEvents.length;
+
+    const pagedEvents = useMemo(() => {
+        const start = (page - 1) * pageSize;
+        return filteredAndSortedEvents.slice(start, start + pageSize);
+    }, [filteredAndSortedEvents, page, pageSize]);
+
+    const tableProps = useDataTableProps({
+        ...initialData,
+        data: pagedEvents,
+        total: totalEvents
+    });
+
+    React.useEffect(() => {
+        if (!isLoading && rawEvents.length > 0 && searchParams?.coeme_id) {
+            const record = rawEvents.find((r: IMasterEvent) => String(r.COEME_Id || (r as any).coemE_Id) === String(searchParams.coeme_id));
+            if (record && !isEditFormOpen) {
+                openEditForm(record);
+            }
+        }
+    }, [isLoading, rawEvents, searchParams, openEditForm]);
 
     const parameterlist = (() => {
         const data = initialData?.data || initialData;
@@ -124,17 +190,17 @@ export default function MasterEventsContent({ initialData, refreshData, isLoadin
                 title='Master Events List'
                 defaultOpen={true}
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable
+                <GenericDataTable<IMasterEvent>
+                    {...tableProps}
                     columns={MasterEventsColumns}
-                    data={tableData}
                     isLoading={isLoading}
-                    totalItems={tableData.length}
-                    success={!!initialData}
+                    error={error}
+                    showViewOptions={false}
                     columnPinning={{ right: ['actions'] }}
                     loadingMessage='Loading events...'
                     noDataTitle='No Master Events Found'
                     noDataDescription='Create a new event to get started.'
-                    manualPagination={false}
+                    errorTitle='Error Loading Events'
                 />
             </CollapsibleSection>
 

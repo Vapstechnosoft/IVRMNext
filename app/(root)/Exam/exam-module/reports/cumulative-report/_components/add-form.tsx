@@ -15,6 +15,7 @@ import {
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import type { ApiSearchparams } from '@/types';
+import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -76,7 +77,7 @@ export default function CumulativeReportForm({
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
-    const [students, setStudents] = useState<{ amsT_AdmNo: string; amsT_Id: number; studentName?: string | null }[]>([]);
+    const [students, setStudents] = useState<IAcademicYearandClassandsection[]>([]);
     const [allStudentsSelected, setAllStudentsSelected] = useState(false);
 
     const [loadingClasses, setLoadingClasses] = useState(false);
@@ -176,7 +177,7 @@ export default function CumulativeReportForm({
                     selectedClass,
                     selectedSection
                 );
-                const valid = Array.isArray(data) ? data.filter((s): s is any => !!s?.amsT_Id) : [];
+                const valid = Array.isArray(data) ? data.filter((s) => !!s?.amsT_Id) : [];
                 setStudents(valid);
                 setValue('studentList', []);
                 setAllStudentsSelected(false);

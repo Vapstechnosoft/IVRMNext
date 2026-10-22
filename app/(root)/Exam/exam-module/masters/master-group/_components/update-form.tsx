@@ -1,6 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { FormError } from '@/components/ui/extension/field';
+import { InputNumber } from '@/components/ui/extension/input-number';
 import { InputText } from '@/components/ui/extension/input-text';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import {
@@ -14,7 +16,7 @@ import type { IMasterSubjectGroup, IMasterSubjectGroupDetails } from '@/types/ex
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { type SubmitHandler, useForm } from 'react-hook-form';
+import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { SimpleSubjectTable } from './data-table';
@@ -44,13 +46,49 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
     // Fetch all available subjects
     const { data: allSubjectsResponse, isLoading: loadingAllSubjects } = useMasterGetAllSubjectGroupDetails();
 
-    useEffect(() => {
-        setIsLoading(true);
-        setAllSubjects([]);
-        setSelectedSubjects([]);
-    }, [initialData]);
+    // Initialize form
+    const {
+        register,
+        handleSubmit,
+        control,
+        watch,
+        reset,
+        trigger,
+        formState: { errors, isSubmitting }
+    } = useForm<FormFields>({
+        resolver: zodResolver(masterSubjectGroupSchema.addOrUpdate),
+        mode: 'onChange',
+        reValidateMode: 'onChange',
+        defaultValues: {
+            emG_Id: initialData?.emG_Id || 0,
+            emG_GroupName: initialData?.emG_GroupName || '',
+            emG_TotSubjects: initialData?.emG_TotSubjects || 1,
+            emG_MaxAplSubjects: initialData?.emG_MaxAplSubjects || 1,
+            emG_MinAplSubjects: initialData?.emG_MinAplSubjects || 1,
+            emG_BestOff: initialData?.emG_BestOff ?? 0,
+            subject_list: []
+        }
+    });
 
-    // Normalize API data once
+    // Reset form values whenever initialData changes
+    useEffect(() => {
+        if (initialData) {
+            reset({
+                emG_Id: initialData.emG_Id || 0,
+                emG_GroupName: initialData.emG_GroupName || '',
+                emG_TotSubjects: initialData.emG_TotSubjects || 1,
+                emG_MaxAplSubjects: initialData.emG_MaxAplSubjects || 1,
+                emG_MinAplSubjects: initialData.emG_MinAplSubjects || 1,
+                emG_BestOff: initialData.emG_BestOff ?? 0,
+                subject_list: []
+            });
+            setIsLoading(true);
+            setAllSubjects([]);
+            setSelectedSubjects([]);
+        }
+    }, [initialData, reset]);
+
+    // Normalize API data once loaded
     useEffect(() => {
         if (loadingAllSubjects || loadingGroupSubjects) return;
 
@@ -65,42 +103,34 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
 
         return () => clearTimeout(timer);
     }, [allSubjectsResponse, groupSubjectsResponse, loadingAllSubjects, loadingGroupSubjects]);
-    // Initialize form
-    const {
-        register,
-        handleSubmit,
-        watch,
-        reset,
-        formState: { errors, isSubmitting }
-    } = useForm<FormFields>({
-        resolver: zodResolver(masterSubjectGroupSchema.addOrUpdate),
-        mode: 'onChange',
-        defaultValues: {
-            emG_Id: initialData?.emG_Id || 0,
-            emG_GroupName: initialData?.emG_GroupName || '',
-            emG_TotSubjects: initialData?.emG_TotSubjects || 0,
-            emG_MaxAplSubjects: initialData?.emG_MaxAplSubjects || 1,
-            emG_MinAplSubjects: initialData?.emG_MinAplSubjects || 1,
-            emG_BestOff: initialData?.emG_BestOff || 0,
-            subject_list: []
-        }
-    });
 
-    const maxSubjects = watch('emG_MaxAplSubjects');
-    const minSubjects = watch('emG_MinAplSubjects');
-    const isSubjectsEnabled = minSubjects > 0 && maxSubjects >= minSubjects;
+    // Watch dependent fields for live cross-validation
+    const total = watch('emG_TotSubjects');
+    const max = watch('emG_MaxAplSubjects');
+    const min = watch('emG_MinAplSubjects');
+    const best = watch('emG_BestOff');
 
-    // Columns
+    // Live re-validation of dependent numeric rules
+    useEffect(() => {
+        trigger(['emG_TotSubjects', 'emG_MaxAplSubjects', 'emG_MinAplSubjects', 'emG_BestOff']);
+    }, [total, max, min, best, trigger]);
+
+    const isSubjectsEnabled = min > 0 && max > 0 && min <= max && max <= total;
 
     // Submit form
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         if (!isSubjectsEnabled) {
-            toast.error('Enter valid Min/Max subjects before selecting subjects');
+            toast.error('Enter valid Total, Min and Max subjects before saving');
             return;
         }
 
         if (selectedSubjects.length === 0) {
             toast.error('Please select at least one subject');
+            return;
+        }
+
+        if (selectedSubjects.length < data.emG_TotSubjects) {
+            toast.error(`Please select exactly ${data.emG_TotSubjects} subjects (currently selected: ${selectedSubjects.length})`);
             return;
         }
 
@@ -141,45 +171,99 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
         <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
             {/* Group Info */}
             <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <InputText
-                    label='Group Name'
-                    required
-                    placeholder='Enter Group Name'
-                    {...register('emG_GroupName')}
-                    error={errors.emG_GroupName?.message}
-                />
-                <InputText
-                    label='Total Subjects'
-                    type='number'
-                    required
-                    placeholder='Enter Total Subjects'
-                    {...register('emG_TotSubjects', { valueAsNumber: true })}
-                    error={errors.emG_TotSubjects?.message}
-                />
-                <InputText
-                    label='Max Applicable Subjects'
-                    type='number'
-                    required
-                    placeholder='Enter Max Applicable Subjects'
-                    {...register('emG_MaxAplSubjects', { valueAsNumber: true })}
-                    error={errors.emG_MaxAplSubjects?.message}
-                />
-                <InputText
-                    label='Min Applicable Subjects'
-                    type='number'
-                    required
-                    placeholder='Enter Min Applicable Subjects'
-                    {...register('emG_MinAplSubjects', { valueAsNumber: true })}
-                    error={errors.emG_MinAplSubjects?.message}
-                />
-                <InputText
-                    label='Best Off Subjects'
-                    type='number'
-                    required
-                    placeholder='Enter Best Off Subjects'
-                    {...register('emG_BestOff', { valueAsNumber: true })}
-                    error={errors.emG_BestOff?.message}
-                />
+                <div>
+                    <InputText
+                        label='Group Name'
+                        required
+                        placeholder='Enter Group Name'
+                        {...register('emG_GroupName')}
+                        error={errors.emG_GroupName?.message}
+                    />
+                </div>
+
+                <div>
+                    <Controller
+                        name='emG_TotSubjects'
+                        control={control}
+                        render={({ field }) => (
+                            <InputNumber
+                                label='Total Subjects'
+                                required
+                                placeholder='Enter Total Subjects'
+                                minValue={1}
+                                value={field.value}
+                                onChange={(v) => {
+                                    field.onChange(v);
+                                    trigger('emG_TotSubjects');
+                                }}
+                            />
+                        )}
+                    />
+                    {errors.emG_TotSubjects && <FormError>{errors.emG_TotSubjects.message}</FormError>}
+                </div>
+
+                <div>
+                    <Controller
+                        name='emG_MaxAplSubjects'
+                        control={control}
+                        render={({ field }) => (
+                            <InputNumber
+                                label='Max Applicable Subjects'
+                                required
+                                placeholder='Enter Max Applicable Subjects'
+                                minValue={1}
+                                value={field.value}
+                                onChange={(v) => {
+                                    field.onChange(v);
+                                    trigger('emG_MaxAplSubjects');
+                                }}
+                            />
+                        )}
+                    />
+                    {errors.emG_MaxAplSubjects && <FormError>{errors.emG_MaxAplSubjects.message}</FormError>}
+                </div>
+
+                <div>
+                    <Controller
+                        name='emG_MinAplSubjects'
+                        control={control}
+                        render={({ field }) => (
+                            <InputNumber
+                                label='Min Applicable Subjects'
+                                required
+                                placeholder='Enter Min Applicable Subjects'
+                                minValue={1}
+                                value={field.value}
+                                onChange={(v) => {
+                                    field.onChange(v);
+                                    trigger('emG_MinAplSubjects');
+                                }}
+                            />
+                        )}
+                    />
+                    {errors.emG_MinAplSubjects && <FormError>{errors.emG_MinAplSubjects.message}</FormError>}
+                </div>
+
+                <div>
+                    <Controller
+                        name='emG_BestOff'
+                        control={control}
+                        render={({ field }) => (
+                            <InputNumber
+                                label='Best Off Subjects'
+                                required
+                                placeholder='Enter Best Off Subjects'
+                                minValue={0}
+                                value={field.value}
+                                onChange={(v) => {
+                                    field.onChange(v);
+                                    trigger('emG_BestOff');
+                                }}
+                            />
+                        )}
+                    />
+                    {errors.emG_BestOff && <FormError>{errors.emG_BestOff.message}</FormError>}
+                </div>
             </div>
 
             {/* Subjects Table */}
@@ -196,10 +280,33 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
                     <SimpleSubjectTable
                         allSubjects={allSubjects}
                         preselectedSubjects={selectedSubjects}
-                        maxSelectableRows={maxSubjects}
+                        maxSelectableRows={total}
+                        disabled={!isSubjectsEnabled}
                         onSelectionChange={setSelectedSubjects}
                     />
                 </DataStateHandler>
+
+                {/* Selection Summary */}
+                {selectedSubjects.length > 0 && (
+                    <div className='mt-4 rounded border bg-gray-50 p-3'>
+                        <div className='flex flex-wrap items-center justify-between gap-2'>
+                            <div className='font-medium text-sm'>
+                                Selected: <span className='text-blue-600'>{selectedSubjects.length}</span> of {total} required subjects
+                            </div>
+                            <div className='flex items-center gap-3'>
+                                <div className='text-gray-500 text-xs'>
+                                    {selectedSubjects.length === total ? (
+                                        <span className='text-green-600'>✓ Selection requirement met</span>
+                                    ) : selectedSubjects.length < total ? (
+                                        <span className='text-amber-600'>Select {total - selectedSubjects.length} more subject(s)</span>
+                                    ) : (
+                                        <span className='text-red-600'>Remove {selectedSubjects.length - total} subject(s)</span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </CollapsibleSection>
 
             {/* Actions */}
@@ -211,10 +318,10 @@ export default function MasterSubjectGroupUpdateForm({ initialData, onSuccess, c
                         reset({
                             emG_Id: initialData?.emG_Id || 0,
                             emG_GroupName: initialData?.emG_GroupName || '',
-                            emG_TotSubjects: initialData?.emG_TotSubjects || 0,
+                            emG_TotSubjects: initialData?.emG_TotSubjects || 1,
                             emG_MaxAplSubjects: initialData?.emG_MaxAplSubjects || 1,
                             emG_MinAplSubjects: initialData?.emG_MinAplSubjects || 1,
-                            emG_BestOff: initialData?.emG_BestOff || 0,
+                            emG_BestOff: initialData?.emG_BestOff ?? 0,
                             subject_list: []
                         });
 

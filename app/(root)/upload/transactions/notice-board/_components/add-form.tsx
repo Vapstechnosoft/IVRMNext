@@ -64,6 +64,7 @@ export default function AddNoticeBoardForm({
         resolver: zodResolver(noticeBoardSchema),
         defaultValues: {
             intB_FilePath_Array: [{ intbfL_FilePath: '', fileName: '' }],
+            intB_UrlPath_Array: [],
             asmaY_Id: defaultYearId,
             ntB_TTSylabusFlg: 'O',
             intB_Title: '',
@@ -106,6 +107,15 @@ export default function AddNoticeBoardForm({
         name: 'intB_FilePath_Array'
     });
 
+    const {
+        fields: urlFields,
+        append: appendUrl,
+        remove: removeUrl
+    } = useFieldArray({
+        control,
+        name: 'intB_UrlPath_Array'
+    });
+
     const asmaY_Id = useWatch({ control, name: 'asmaY_Id' });
     const intB_StartDate = useWatch({ control, name: 'intB_StartDate' });
     const check_student = useWatch({ control, name: 'check_student' });
@@ -120,6 +130,14 @@ export default function AddNoticeBoardForm({
     const amsT_Id = useWatch({ control, name: 'amsT_Id' });
     const ismS_Id = useWatch({ control, name: 'ismS_Id' });
     const hrmE_Id = useWatch({ control, name: 'hrmE_Id' });
+
+    // Sync defaultYearId if not set
+    useEffect(() => {
+        if (!asmaY_Id && (defaultYearId || (yearList && yearList.length > 0))) {
+            const yId = defaultYearId || yearList[0]?.asmaY_Id || yearList[0]?.asmay_Id;
+            if (yId) setValue('asmaY_Id', yId);
+        }
+    }, [defaultYearId, yearList, asmaY_Id, setValue]);
 
     // Cascading Dropdowns: Designations after Department Selection
     useEffect(() => {
@@ -222,6 +240,20 @@ export default function AddNoticeBoardForm({
         }
     };
 
+    const onError = (errors: any) => {
+        console.error('Validation errors:', errors);
+        const errorValues = Object.values(errors);
+        if (errorValues.length > 0) {
+            const firstError: any = errorValues[0];
+            const message =
+                firstError?.message ||
+                firstError?.root?.message ||
+                (Array.isArray(firstError) && firstError[0]?.message) ||
+                'Please fill all required fields correctly.';
+            toast.error(typeof message === 'string' ? message : 'Please fill all required fields correctly.');
+        }
+    };
+
     const onSubmit = async (data: INoticeBoard) => {
         try {
             // Map form data to the specific payload structure required by the backend
@@ -246,18 +278,26 @@ export default function AddNoticeBoardForm({
                           const sectionInfo = sections.find((sec) => (sec.ASMS_Id || sec.asmS_Id || sec.asms_Id) === s.asmS_Id);
                           return {
                               ASMS_Id: s.asmS_Id,
-                              ASMCL_Id: sectionInfo?.asmcL_Id || sectionInfo?.asmcl_Id || data.asmcL_Id?.[0]?.asmcL_Id || 0
+                              ASMCL_Id:
+                                  sectionInfo?.asmcL_Id ||
+                                  sectionInfo?.asmcl_Id ||
+                                  sectionInfo?.ASMCL_Id ||
+                                  data.asmcL_Id?.[0]?.asmcL_Id ||
+                                  0
                           };
                       })
                     : [],
                 studentarray: data.check_student ? (data.amsT_Id || []).map((s) => ({ AMST_Id: s.amsT_Id })) : [],
                 employeearraylist: data.check_staff ? (data.hrmE_Id || []).map((e) => ({ HRME_Id: e.hrmE_Id })) : [],
-                FilePath_Array: (data.intB_FilePath_Array || [])
+                FilePath_Array: [
+                    ...(data.intB_FilePath_Array || []),
+                    ...(isUrlMode ? data.intB_UrlPath_Array || [] : [])
+                ]
                     .map((f) => ({
-                        FileName: f.fileName,
-                        INTBFL_FilePath: f.intbfL_FilePath
+                        FileName: f.fileName || '',
+                        INTBFL_FilePath: f.intbfL_FilePath || ''
                     }))
-                    .filter((f) => f.INTBFL_FilePath !== ''),
+                    .filter((f) => f.INTBFL_FilePath && f.INTBFL_FilePath.trim() !== ''),
                 fee_def: data.check_student ? data.fee_def : false,
                 routeflag: data.check_student ? data.select_route : false,
                 defgrparray: data.check_student && data.fee_def ? (data.feeGroupList || []).map((f) => ({ FMG_Id: f.fmg_Id })) : [],
@@ -266,12 +306,29 @@ export default function AddNoticeBoardForm({
             };
 
             const result = await saveNoticeBoardDetail(payload);
-            if (result?.success) {
-                toast.success(result.message || 'Notice sent successfully');
+            const isSuccess =
+                result?.success === true ||
+                result?.returnval === true ||
+                result?.returnval === 'true' ||
+                result?.returnVal === true ||
+                result?.returnVal === 'true' ||
+                result?.returnval === 'Save' ||
+                result?.returnval === 'Update' ||
+                result?.returnVal === 'Saved' ||
+                result?.returnVal === 'Saved successfully';
+
+            if (isSuccess) {
+                const successMsg =
+                    (typeof result?.message === 'string' && result.message) ||
+                    (typeof result?.returnVal === 'string' && result.returnVal) ||
+                    'Notice sent successfully';
+                toast.success(successMsg);
                 onSuccess();
                 reset();
+            } else if (result?.returnval === false || result?.dulicate === true || result?.duplicate === true) {
+                toast.error(typeof result?.message === 'string' ? result.message : 'Notice already exists or duplicate record found.');
             } else {
-                toast.error(result?.message || 'Failed to send notice');
+                toast.error(typeof result?.message === 'string' ? result.message : 'Failed to send notice');
             }
         } catch (error: any) {
             console.error('Save Error:', error);
@@ -281,7 +338,7 @@ export default function AddNoticeBoardForm({
 
     return (
         <div className='flex w-full flex-col gap-6'>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
+            <form onSubmit={handleSubmit(onSubmit, onError)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
                 {/* Selection Type Toggles */}
                 <div className='flex flex-wrap gap-6 border-b pb-4'>
                     <Controller
@@ -526,7 +583,7 @@ export default function AddNoticeBoardForm({
                             <thead className='bg-muted/50'>
                                 <tr>
                                     <th className='w-12 border p-2 text-center'>SL NO</th>
-                                    <th className='border p-2 text-center'>Upload File / URL</th>
+                                    <th className='border p-2 text-center'>Upload File</th>
                                     <th className='border p-2 text-center'>File Name</th>
                                     <th className='w-20 border p-2 text-center'>View</th>
                                     <th className='w-24 border p-2 text-center'>Action</th>
@@ -537,32 +594,24 @@ export default function AddNoticeBoardForm({
                                     <tr key={field.id} className='border-b transition-colors hover:bg-gray-50/50'>
                                         <td className='border p-2 text-center'>{index + 1}</td>
                                         <td className='border p-2'>
-                                            {isUrlMode ? (
-                                                <Controller
-                                                    control={control}
-                                                    name={`intB_FilePath_Array.${index}.intbfL_FilePath`}
-                                                    render={({ field }) => <Input {...field} placeholder='Enter URL' className='h-9' />}
+                                            <div className='flex justify-center'>
+                                                <input
+                                                    type='file'
+                                                    className='hidden'
+                                                    ref={(el) => {
+                                                        if (el) fileInputRefs.current[index] = el;
+                                                    }}
+                                                    onChange={(e) => handleFileUpload(e, index)}
                                                 />
-                                            ) : (
-                                                <div className='flex justify-center'>
-                                                    <input
-                                                        type='file'
-                                                        className='hidden'
-                                                        ref={(el) => {
-                                                            if (el) fileInputRefs.current[index] = el;
-                                                        }}
-                                                        onChange={(e) => handleFileUpload(e, index)}
-                                                    />
-                                                    <Button
-                                                        type='button'
-                                                        variant='outline'
-                                                        size='sm'
-                                                        onClick={() => fileInputRefs.current[index]?.click()}
-                                                        className='h-9 w-full border-dashed'>
-                                                        <Upload className='mr-2 h-4 w-4' /> Browse
-                                                    </Button>
-                                                </div>
-                                            )}
+                                                <Button
+                                                    type='button'
+                                                    variant='outline'
+                                                    size='sm'
+                                                    onClick={() => fileInputRefs.current[index]?.click()}
+                                                    className='h-9 w-full border-dashed'>
+                                                    <Upload className='mr-2 h-4 w-4' /> Browse
+                                                </Button>
+                                            </div>
                                         </td>
                                         <td className='border p-2'>
                                             <Controller
@@ -571,8 +620,8 @@ export default function AddNoticeBoardForm({
                                                 render={({ field }) => (
                                                     <Input
                                                         {...field}
-                                                        readOnly={!isUrlMode}
-                                                        placeholder={isUrlMode ? 'Enter Label' : 'No file'}
+                                                        readOnly
+                                                        placeholder='No file'
                                                         className='h-9 bg-muted/20'
                                                     />
                                                 )}
@@ -623,12 +672,108 @@ export default function AddNoticeBoardForm({
                             </tbody>
                         </table>
                     </div>
+                    <div className='pt-1'>
+                        <span className='font-semibold text-red-500 text-xs'>
+                            Accept File: jpg, jpeg, png, doc, ppt, excel, mp3, mp4, wmv, pdf
+                        </span>
+                    </div>
                     <div className='flex items-center space-x-2 pt-2'>
-                        <Checkbox id='url-mode' checked={isUrlMode} onCheckedChange={(c) => setIsUrlMode(!!c)} />
+                        <Checkbox
+                            id='url-mode'
+                            checked={isUrlMode}
+                            onCheckedChange={(c) => {
+                                const val = !!c;
+                                setIsUrlMode(val);
+                                if (val && urlFields.length === 0) {
+                                    appendUrl({ intbfL_FilePath: '', fileName: '' });
+                                }
+                            }}
+                        />
                         <Label htmlFor='url-mode' className='cursor-pointer font-semibold text-xs'>
                             Use URLs instead of Files
                         </Label>
                     </div>
+
+                    {isUrlMode && (
+                        <div className='overflow-x-auto pt-4'>
+                            <table className='w-full table-auto border-collapse border bg-white text-left text-sm'>
+                                <thead className='bg-muted/50'>
+                                    <tr>
+                                        <th className='w-12 border p-2 text-center'>SL NO</th>
+                                        <th className='border p-2 text-center'>URL</th>
+                                        <th className='border p-2 text-center'>Label</th>
+                                        <th className='w-20 border p-2 text-center'>View</th>
+                                        <th className='w-24 border p-2 text-center'>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {urlFields.map((field, index) => (
+                                        <tr key={field.id} className='border-b transition-colors hover:bg-gray-50/50'>
+                                            <td className='border p-2 text-center'>{index + 1}</td>
+                                            <td className='border p-2'>
+                                                <Controller
+                                                    control={control}
+                                                    name={`intB_UrlPath_Array.${index}.intbfL_FilePath`}
+                                                    render={({ field }) => (
+                                                        <Input {...field} placeholder='Enter URL' className='h-9' />
+                                                    )}
+                                                />
+                                            </td>
+                                            <td className='border p-2'>
+                                                <Controller
+                                                    control={control}
+                                                    name={`intB_UrlPath_Array.${index}.fileName`}
+                                                    render={({ field }) => (
+                                                        <Input {...field} placeholder='Enter Label' className='h-9' />
+                                                    )}
+                                                />
+                                            </td>
+                                            <td className='border p-2 text-center'>
+                                                <Controller
+                                                    control={control}
+                                                    name={`intB_UrlPath_Array.${index}.intbfL_FilePath`}
+                                                    render={({ field }) => (
+                                                        <Button
+                                                            type='button'
+                                                            variant='ghost'
+                                                            size='sm'
+                                                            disabled={!field.value}
+                                                            onClick={() => window.open(field.value, '_blank')}>
+                                                            <Eye className={cn('h-4 w-4', field.value ? 'text-blue-600' : 'text-gray-300')} />
+                                                        </Button>
+                                                    )}
+                                                />
+                                            </td>
+                                            <td className='border p-2 text-center'>
+                                                <div className='flex justify-center gap-1'>
+                                                    {index === urlFields.length - 1 && (
+                                                        <Button
+                                                            type='button'
+                                                            size='icon'
+                                                            variant='outline'
+                                                            className='h-8 w-8'
+                                                            onClick={() => appendUrl({ intbfL_FilePath: '', fileName: '' })}>
+                                                            <Plus className='h-4 w-4' />
+                                                        </Button>
+                                                    )}
+                                                    {urlFields.length > 1 && (
+                                                        <Button
+                                                            type='button'
+                                                            size='icon'
+                                                            variant='destructive'
+                                                            className='h-8 w-8'
+                                                            onClick={() => removeUrl(index)}>
+                                                            <Minus className='h-4 w-4' />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
 
                 {/* Student Targeting Logic */}
@@ -782,29 +927,33 @@ export default function AddNoticeBoardForm({
                             <Controller
                                 control={control}
                                 name='amsT_Id'
-                                render={({ field }) => (
-                                    <CustomMultiSelectBox
-                                        label='Students'
-                                        options={Array.from(
-                                            new Map(
-                                                (students || []).map((s: any) => [
-                                                    (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString(),
-                                                    s
-                                                ])
-                                            ).values()
-                                        )
-                                            .map((s: any) => ({
-                                                label:
-                                                    `${s.studentname || s.AMST_FirstName || s.amsT_FirstName || s.amst_firstname || ''}${s.AMST_AdmNo || s.amst_admno ? ` (${s.AMST_AdmNo || s.amst_admno})` : ''}` ||
-                                                    '',
-                                                value: (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString()
-                                            }))
-                                            .filter((opt) => opt.value)}
-                                        value={field.value?.map((v) => v.amsT_Id?.toString()).filter((id): id is string => !!id) || []}
-                                        onChange={(vals) => field.onChange((vals || []).map((v) => ({ amsT_Id: Number(v) })))}
-                                        isSearchRequired
-                                        disabled={!asmS_Id?.length}
-                                    />
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col'>
+                                        <CustomMultiSelectBox
+                                            label='Students'
+                                            isRequired
+                                            options={Array.from(
+                                                new Map(
+                                                    (students || []).map((s: any) => [
+                                                        (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString(),
+                                                        s
+                                                    ])
+                                                ).values()
+                                            )
+                                                .map((s: any) => ({
+                                                    label:
+                                                        `${s.studentname || s.AMST_FirstName || s.amsT_FirstName || s.amst_firstname || ''}${s.AMST_AdmNo || s.amst_admno ? ` (${s.AMST_AdmNo || s.amst_admno})` : ''}` ||
+                                                        '',
+                                                    value: (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString()
+                                                }))
+                                                .filter((opt) => opt.value)}
+                                            value={field.value?.map((v) => v.amsT_Id?.toString()).filter((id): id is string => !!id) || []}
+                                            onChange={(vals) => field.onChange((vals || []).map((v) => ({ amsT_Id: Number(v) })))}
+                                            isSearchRequired
+                                            disabled={!asmS_Id?.length}
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
                         </div>
@@ -864,20 +1013,24 @@ export default function AddNoticeBoardForm({
                         <Controller
                             control={control}
                             name='hrmE_Id'
-                            render={({ field }) => (
-                                <CustomMultiSelectBox
-                                    label='Employees'
-                                    options={(employees || [])
-                                        .map((e: any) => ({
-                                            label: e.userEmpName || e.HRME_EmployeeName || e.hrmE_EmployeeName || e.hrme_employeename || '',
-                                            value: (e.HRME_Id || e.hrmE_Id || e.hrme_Id || '').toString()
-                                        }))
-                                        .filter((opt) => opt.value)}
-                                    value={field.value?.map((v) => v.hrmE_Id?.toString()).filter((id): id is string => !!id) || []}
-                                    onChange={(vals) => field.onChange((vals || []).map((v) => ({ hrmE_Id: Number(v) })))}
-                                    isSearchRequired
-                                    disabled={!hrmd_Id?.length && !hrmdeS_Id?.length}
-                                />
+                            render={({ field, fieldState }) => (
+                                <div className='flex flex-col'>
+                                    <CustomMultiSelectBox
+                                        label='Employees'
+                                        isRequired
+                                        options={(employees || [])
+                                            .map((e: any) => ({
+                                                label: e.userEmpName || e.HRME_EmployeeName || e.hrmE_EmployeeName || e.hrme_employeename || '',
+                                                value: (e.HRME_Id || e.hrmE_Id || e.hrme_Id || '').toString()
+                                            }))
+                                            .filter((opt) => opt.value)}
+                                        value={field.value?.map((v) => v.hrmE_Id?.toString()).filter((id): id is string => !!id) || []}
+                                        onChange={(vals) => field.onChange((vals || []).map((v) => ({ hrmE_Id: Number(v) })))}
+                                        isSearchRequired
+                                        disabled={!hrmd_Id?.length && !hrmdeS_Id?.length}
+                                    />
+                                    {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                </div>
                             )}
                         />
                     </div>

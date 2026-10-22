@@ -6,6 +6,8 @@ import 'next-auth';
 declare module 'next-auth' {
     interface Session {
         mi_id: number;
+        user_id?: number;
+        userId?: number;
         name: string;
         email: string;
         token: string;
@@ -26,6 +28,8 @@ declare module 'next-auth' {
 
     interface User {
         mi_id: number;
+        user_id?: number;
+        userId?: number;
         name: string;
         email: string;
         token: string;

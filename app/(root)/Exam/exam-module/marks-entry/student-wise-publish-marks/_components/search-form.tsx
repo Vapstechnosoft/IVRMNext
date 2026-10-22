@@ -275,21 +275,19 @@ export default function SearchForm({ onSuccess, onRefresh, onPayloadChange }: Pr
                             <>
                                 <button
                                     type='button'
-                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
-                                        field.value === 'Exam'
-                                            ? 'bg-purple-600 text-white'
-                                            : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                    }`}
+                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'Exam'
+                                        ? 'bg-purple-600 text-white'
+                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                        }`}
                                     onClick={() => field.onChange('Exam')}>
                                     Exam Wise
                                 </button>
                                 <button
                                     type='button'
-                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${
-                                        field.value === 'Promotion'
-                                            ? 'bg-purple-600 text-white'
-                                            : 'bg-transparent text-gray-600 hover:bg-gray-100'
-                                    }`}
+                                    className={`rounded-md px-6 py-2 font-medium text-sm transition-colors ${field.value === 'Promotion'
+                                        ? 'bg-purple-600 text-white'
+                                        : 'bg-transparent text-gray-600 hover:bg-gray-100'
+                                        }`}
                                     onClick={() => {
                                         field.onChange('Promotion');
                                         setValue('emE_Id', 0);

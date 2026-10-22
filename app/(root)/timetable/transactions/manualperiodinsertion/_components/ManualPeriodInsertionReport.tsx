@@ -70,10 +70,19 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
             actualReportData?.period_list ||
             actualReportData?.period_List ||
             [];
+        const parseNum = (v: any): number => {
+            if (v === null || v === undefined) return 0;
+            const m = String(v).match(/\d+/);
+            return m ? Number(m[0]) : 0;
+        };
+
         const breakList =
             actualReportData?.break_list ||
             actualReportData?.breakList ||
             actualReportData?.tT_Break_list ||
+            actualReportData?.break_list_all ||
+            actualReportData?.allBreakList ||
+            actualReportData?.tT_Break_list_all ||
             [];
         const timeTableList =
             actualReportData?.time_Table ||
@@ -94,11 +103,56 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
         if (Array.isArray(periodList) && periodList.length > 0) {
             const result: ColumnItem[] = [];
 
+            // Collect unique breaks from breakList and break_list_all
+            const uniqueBreaks: any[] = [];
+            const seenKeys = new Set<string>();
+            const rawBreaks = [
+                ...(Array.isArray(breakList) ? breakList : []),
+                ...(Array.isArray(actualReportData?.break_list_all) ? actualReportData.break_list_all : [])
+            ];
+            rawBreaks.forEach((b: any) => {
+                const bAfter = b.ttmB_AfterPeriod ?? b.afterPeriod ?? b.ttmb_afterperiod;
+                const bName = b.ttmB_BreakName || b.breakName || 'SHORT BREAK';
+                const key = `${bAfter}_${bName}`;
+                if (!seenKeys.has(key)) {
+                    seenKeys.add(key);
+                    uniqueBreaks.push(b);
+                }
+            });
+
+            const addedBreaks = new Set<any>();
+
+            const firstPedNum = parseNum(
+                getVal(periodList[0], ['ttmp_periodname', 'periodname', 'ped_name', 'ttcp_periodname']) || 1
+            );
+
+            // 1. Insert breaks that occur before or at the first period in the grid (e.g. after period 1 when grid starts at 2)
+            uniqueBreaks.forEach((b: any) => {
+                const bAfter = parseNum(b.ttmB_AfterPeriod ?? b.afterPeriod ?? b.ttmb_afterperiod);
+                if (bAfter < firstPedNum && !addedBreaks.has(b)) {
+                    addedBreaks.add(b);
+                    result.push({
+                        type: 'break',
+                        afterPeriod: String(bAfter),
+                        name: b.ttmB_BreakName || b.breakName || 'SHORT BREAK',
+                        isBreak: true,
+                        raw: b
+                    });
+                }
+            });
+
+            // 2. Loop through each period and insert matching breaks
             periodList.forEach((period: any, idx: number) => {
                 const pedId = getVal(period, ['ttmp_id', 'ped_id']) || (idx + 1);
-                const pedName = String(
-                    getVal(period, ['ttmp_periodname', 'periodname', 'ped_name', 'ttcp_periodname']) || `Period ${idx + 1}`
-                );
+                const rawPedName = getVal(period, ['ttmp_periodname', 'periodname', 'ped_name', 'ttcp_periodname']);
+                const pedName = String(rawPedName || `Period ${idx + 1}`);
+                const currentPedNum = parseNum(rawPedName || pedName || idx + 1);
+
+                const nextPeriod = periodList[idx + 1];
+                const nextRawPedName = nextPeriod
+                    ? getVal(nextPeriod, ['ttmp_periodname', 'periodname', 'ped_name', 'ttcp_periodname'])
+                    : null;
+                const nextPedNum = nextPeriod ? parseNum(nextRawPedName || idx + 2) : Number.POSITIVE_INFINITY;
 
                 result.push({
                     type: 'period',
@@ -108,21 +162,41 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
                     raw: period
                 });
 
-                // Check if there is a break defined after this period
-                const breakItem = Array.isArray(breakList)
-                    ? breakList.find((b: any) => {
-                        const bAfter = b.ttmB_AfterPeriod ?? b.afterPeriod ?? b.ttmb_afterperiod;
-                        return String(bAfter) === pedName || Number.parseFloat(String(pedName)) === Number.parseFloat(String(bAfter));
-                    })
-                    : null;
+                // Check for breaks mapped directly after this period, or between this period and the next period
+                uniqueBreaks.forEach((b: any) => {
+                    if (addedBreaks.has(b)) return;
+                    const bAfter = parseNum(b.ttmB_AfterPeriod ?? b.afterPeriod ?? b.ttmb_afterperiod);
 
-                if (breakItem) {
+                    const isExactMatch =
+                        String(bAfter) === String(pedName) ||
+                        String(b.ttmB_AfterPeriod) === String(pedName) ||
+                        bAfter === currentPedNum;
+                    const isBetween = bAfter > currentPedNum && bAfter < nextPedNum;
+
+                    if (isExactMatch || isBetween) {
+                        addedBreaks.add(b);
+                        result.push({
+                            type: 'break',
+                            afterPeriod: String(bAfter),
+                            name: b.ttmB_BreakName || b.breakName || 'SHORT BREAK',
+                            isBreak: true,
+                            raw: b
+                        });
+                    }
+                });
+            });
+
+            // 3. Insert any remaining breaks (e.g. after the last period)
+            uniqueBreaks.forEach((b: any) => {
+                if (!addedBreaks.has(b)) {
+                    addedBreaks.add(b);
+                    const bAfter = b.ttmB_AfterPeriod ?? b.afterPeriod ?? b.ttmb_afterperiod;
                     result.push({
                         type: 'break',
-                        afterPeriod: pedName,
-                        name: breakItem.ttmB_BreakName || breakItem.breakName || 'SHORT BREAK',
+                        afterPeriod: String(bAfter),
+                        name: b.ttmB_BreakName || b.breakName || 'SHORT BREAK',
                         isBreak: true,
-                        raw: breakItem
+                        raw: b
                     });
                 }
             });
@@ -197,7 +271,8 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
             [];
 
         if (Array.isArray(allBreakList) && allBreakList.length > 0) {
-            const matchedBreak = allBreakList.find((b: any) => {
+            // 1. Match by day and period
+            let matchedBreak = allBreakList.find((b: any) => {
                 const bDayId = b.ttmD_Id || b.TTMD_Id || b.day_id;
                 const bAfter = b.ttmB_AfterPeriod ?? b.afterPeriod;
 
@@ -210,6 +285,20 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
 
                 return isDayMatch && isPeriodMatch;
             });
+
+            // 2. Fallback: match by break name or period if day-specific row was not mapped
+            if (!matchedBreak) {
+                matchedBreak = allBreakList.find((b: any) => {
+                    const bAfter = b.ttmB_AfterPeriod ?? b.afterPeriod;
+                    const isPeriodMatch =
+                        String(bAfter) === String(col.afterPeriod) || Number(bAfter) === Number(col.afterPeriod);
+                    const isNameMatch =
+                        b.ttmB_BreakName &&
+                        col.name &&
+                        String(b.ttmB_BreakName).trim().toLowerCase() === String(col.name).trim().toLowerCase();
+                    return isPeriodMatch || isNameMatch;
+                });
+            }
 
             if (matchedBreak) {
                 const startTime = matchedBreak.ttmB_BreakStartTime;
