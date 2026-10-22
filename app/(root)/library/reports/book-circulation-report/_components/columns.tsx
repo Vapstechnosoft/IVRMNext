@@ -32,38 +32,40 @@ const SharedColumns: ColumnDef<IBookCirculationReportGridData>[] = [
     }
 ];
 
+const formatDateSafe = (dateVal: any) => {
+    if (!dateVal) return '--';
+    try {
+        const d = new Date(dateVal);
+        if (Number.isNaN(d.getTime())) return String(dateVal);
+        return format(d, 'dd/MM/yyyy');
+    } catch {
+        return String(dateVal);
+    }
+};
+
 const StatusDateColumns: ColumnDef<IBookCirculationReportGridData>[] = [
     {
         accessorKey: 'LBTR_STATUS',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Transaction Status' />,
-        cell: ({ row }) => <div>{row.getValue('LBTR_STATUS')}</div>,
+        cell: ({ row }) => <div>{row.getValue('LBTR_STATUS') || '--'}</div>,
         enableSorting: true
     },
     {
         accessorKey: 'LBTR_ISSUEDDATE',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Issue Date' />,
-        cell: ({ row }) => {
-            const date = row.getValue('LBTR_ISSUEDDATE') as string;
-            return <div>{date ? format(new Date(date), 'dd/MM/yyyy') : ''}</div>;
-        },
+        cell: ({ row }) => <div>{formatDateSafe(row.getValue('LBTR_ISSUEDDATE'))}</div>,
         enableSorting: true
     },
     {
         accessorKey: 'LBTR_DUEDATE',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Due Date' />,
-        cell: ({ row }) => {
-            const date = row.getValue('LBTR_DUEDATE') as string;
-            return <div>{date ? format(new Date(date), 'dd/MM/yyyy') : ''}</div>;
-        },
+        cell: ({ row }) => <div>{formatDateSafe(row.getValue('LBTR_DUEDATE'))}</div>,
         enableSorting: true
     },
     {
         accessorKey: 'LBTR_RETURNEDDATE',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Return Date' />,
-        cell: ({ row }) => {
-            const date = row.getValue('LBTR_RETURNEDDATE') as string;
-            return <div>{date ? format(new Date(date), 'dd/MM/yyyy') : ''}</div>;
-        },
+        cell: ({ row }) => <div>{formatDateSafe(row.getValue('LBTR_RETURNEDDATE'))}</div>,
         enableSorting: true
     },
     {

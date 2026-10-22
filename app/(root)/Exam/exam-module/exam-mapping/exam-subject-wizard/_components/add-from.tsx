@@ -219,7 +219,14 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                         });
                     }
                 }
+                if (!rowData && cats.length > 0 && !cats.some((c) => Number(c.eyC_Id) === Number(watchCategory) || Number(c.emcA_Id) === Number(watchCategory))) {
+                    setValue('EYC_Id', undefined as any);
+                    setValue('EMCA_Id', undefined as any);
+                }
                 setCategories(cats);
+                if (cats.length === 0) {
+                    toast.info('No mapped categories found for this academic year. Please ensure categories are configured in Yearly Category Dates Mapping.');
+                }
             } catch (err: any) {
                 toast.error(err?.message ?? 'Failed to load categories');
                 setCategories([]);
@@ -360,49 +367,56 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     rowData?.eycE_Id ? getExamSubjectWizardDetails(Number(rowData.eycE_Id)) : Promise.resolve(null)
                 ]);
 
-                const rawSubj = (subjRes as any)?.data ?? subjRes;
-                const subj = Array.isArray(rawSubj)
-                    ? rawSubj
-                    : Array.isArray(rawSubj?.subject_list)
-                        ? rawSubj.subject_list
-                        : Array.isArray(rawSubj?.subjectlist)
-                            ? rawSubj.subjectlist
-                            : Array.isArray(rawSubj?.subjectList)
-                                ? rawSubj.subjectList
-                                : Array.isArray(rawSubj?.subjects)
-                                    ? rawSubj.subjects
-                                    : Array.isArray(rawSubj?.get_subjects)
-                                        ? rawSubj.get_subjects
-                                        : Array.isArray(rawSubj?.data?.subject_list)
-                                            ? rawSubj.data.subject_list
-                                            : Array.isArray(rawSubj?.data?.$values)
-                                                ? rawSubj.data.$values
-                                                : Array.isArray(rawSubj?.$values)
-                                                    ? rawSubj.$values
-                                                    : [];
+                const extractSubjectsList = (res: any): any[] => {
+                    if (!res) return [];
+                    if (Array.isArray(res)) return res;
+                    if (Array.isArray(res?.data)) return res.data;
+                    if (Array.isArray(res?.data?.$values)) return res.data.$values;
+                    if (Array.isArray(res?.$values)) return res.$values;
+                    const keys = ['subject_list', 'subjectlist', 'subjectList', 'subjects', 'get_subjects', 'category_subjects'];
+                    for (const k of keys) {
+                        if (Array.isArray(res?.[k])) return res[k];
+                        if (Array.isArray(res?.[k]?.$values)) return res[k].$values;
+                        if (Array.isArray(res?.data?.[k])) return res.data[k];
+                        if (Array.isArray(res?.data?.[k]?.$values)) return res.data[k].$values;
+                    }
+                    const target = res?.data ?? res;
+                    if (target && typeof target === 'object') {
+                        for (const key of Object.keys(target)) {
+                            const val = target[key];
+                            if (Array.isArray(val) && val.length > 0 && typeof val[0] === 'object') return val;
+                            if (val && typeof val === 'object' && Array.isArray(val.$values) && val.$values.length > 0) return val.$values;
+                        }
+                    }
+                    return [];
+                };
+
+                const subj = extractSubjectsList(subjRes);
                 const formattedSubjects = Array.isArray(subj)
-                    ? subj.map((s: any) => ({
-                        ismS_Id: s.ismS_Id,
-                        ismS_SubjectName: s.ismS_SubjectName,
-                        ismS_SubjectCode: s.ismS_SubjectCode,
-                        ismS_Max_Marks: s.ismS_Max_Marks,
-                        ismS_Min_Marks: s.ismS_Min_Marks,
-                        ismS_OrderFlag: s.ismS_OrderFlag,
-                        eyceS_MarksEntryMax: 0,
-                        emgr_Id: watchGrade ?? 0,
-                        eyceS_Id: s.eyceS_Id ?? s.EYCES_d ?? 0,
-                        eyceS_SubExamFlg: false,
-                        eyceS_SubSubjectFlg: false,
-                        eyceS_ActiveFlg: true,
-                        eyceS_MarksGradeEntryFlg: 'M',
-                        eyceS_MarksDisplayFlg: false,
-                        eyceS_GradeDisplayFlg: false,
-                        eyceS_AplResultFlg: false,
-                        subExamConfig: [],
-                        subSubjectConfig: [],
-                        subSubjectSubExamConfig: [],
-                        exam_Subject_PT_GradeList: []
-                    }))
+                    ? subj
+                          .map((s: any) => ({
+                              ismS_Id: Number(s.ismS_Id ?? s.ISMS_Id ?? s.isms_Id ?? 0),
+                              ismS_SubjectName: s.ismS_SubjectName ?? s.ISMS_SubjectName ?? s.isms_SubjectName ?? '',
+                              ismS_SubjectCode: s.ismS_SubjectCode ?? s.ISMS_SubjectCode ?? s.isms_SubjectCode ?? '',
+                              ismS_Max_Marks: Number(s.ismS_Max_Marks ?? s.ISMS_Max_Marks ?? s.eyceS_MaxMarks ?? s.EYCES_MaxMarks ?? 0),
+                              ismS_Min_Marks: Number(s.ismS_Min_Marks ?? s.ISMS_Min_Marks ?? s.eyceS_MinMarks ?? s.EYCES_MinMarks ?? 0),
+                              ismS_OrderFlag: Number(s.ismS_OrderFlag ?? s.ISMS_OrderFlag ?? s.eyceS_SubjectOrder ?? 0),
+                              eyceS_MarksEntryMax: Number(s.eyceS_MarksEntryMax ?? s.EYCES_MarksEntryMax ?? 0),
+                              emgr_Id: watchGrade ?? 0,
+                              eyceS_Id: Number(s.eyceS_Id ?? s.EYCES_Id ?? s.EYCES_d ?? 0),
+                              eyceS_SubExamFlg: false,
+                              eyceS_SubSubjectFlg: false,
+                              eyceS_ActiveFlg: true,
+                              eyceS_MarksGradeEntryFlg: s.eyceS_MarksGradeEntryFlg || 'M',
+                              eyceS_MarksDisplayFlg: false,
+                              eyceS_GradeDisplayFlg: false,
+                              eyceS_AplResultFlg: false,
+                              subExamConfig: [],
+                              subSubjectConfig: [],
+                              subSubjectSubExamConfig: [],
+                              exam_Subject_PT_GradeList: []
+                          }))
+                          .filter((s: any) => s.ismS_Id > 0)
                     : [];
 
                 if (rowData?.eycE_Id) {

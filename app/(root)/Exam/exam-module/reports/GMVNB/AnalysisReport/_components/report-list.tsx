@@ -60,7 +60,7 @@ interface AnalysisReportListProps {
 }
 
 // Classes that show EVS instead of Science & Social Science
-const EVS_CLASS_IDS = [384, 385, 386];
+const EVS_CLASS_IDS = [381, 382, 383, 384, 385, 386];
 // Classes that show Fail5Subject
 const FAIL5_CLASS_IDS = [387, 388, 389, 390, 391];
 

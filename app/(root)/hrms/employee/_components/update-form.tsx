@@ -672,16 +672,32 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             earningList:
                 (Array.isArray(earningListData) ? earningListData : (earningListData as any)?.data) ||
                 (onloadData as any)?.data?.earningList ||
+                (onloadData as any)?.data?.earninglist ||
+                (onloadData as any)?.data?.EarningDTO ||
+                (onloadData as any)?.earningList ||
+                (onloadData as any)?.earninglist ||
                 [],
             detectionList:
                 (Array.isArray(deductionListData) ? deductionListData : (deductionListData as any)?.data) ||
                 (onloadData as any)?.data?.detectionList ||
+                (onloadData as any)?.data?.deductionList ||
+                (onloadData as any)?.data?.detectionlist ||
+                (onloadData as any)?.data?.deductionlist ||
+                (onloadData as any)?.data?.DeductionDTO ||
+                (onloadData as any)?.detectionList ||
+                (onloadData as any)?.deductionList ||
+                (onloadData as any)?.detectionlist ||
+                (onloadData as any)?.deductionlist ||
                 [],
             arrearList:
-                (Array.isArray(arrearsListData) ? arrearsListData : (arrearsListData as any)?.data) ||
                 (onloadData as any)?.data?.arrearList ||
+                (onloadData as any)?.data?.arrearlist ||
+                (onloadData as any)?.data?.ArrearDTO ||
+                (onloadData as any)?.arrearList ||
+                (onloadData as any)?.arrearlist ||
+                (Array.isArray(arrearsListData) ? arrearsListData : (arrearsListData as any)?.data) ||
                 [],
-            grossList: (onloadData as any)?.data?.grossList || [],
+            grossList: (onloadData as any)?.data?.grossList || (onloadData as any)?.grossList || [],
             documentList: [],
             employeedetailList: []
         };
@@ -5739,7 +5755,11 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                             <PayrollTab
                                                 employeeId={savedEmployeeId}
                                                 employeeCode={watch('employeeCode')}
-                                                MI_Id={30}
+                                                MI_Id={selectedRow?.mI_Id || 30}
+                                                earningList={options.earningList}
+                                                detectionList={options.detectionList}
+                                                arrearList={options.arrearList}
+                                                grossList={options.grossList}
                                             />
                                         ) : (
                                             <div className='rounded-md border p-6 text-center text-muted-foreground'>
