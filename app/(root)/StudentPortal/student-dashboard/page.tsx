@@ -38,7 +38,8 @@ import {
 import { DashboardCharts } from './_components/dashboard-charts';
 import { DashboardWidget } from './_components/dashboard-widget';
 
-import { useStudentPortalInformation } from '@/hooks/staff-portal/useFeeOnlinePayment';
+import { useStudentInformation, useStudentPortalInformation } from '@/hooks/staff-portal/useFeeOnlinePayment';
+import { useStudentPortalAcademic } from '@/hooks/fees/useReports';
 import { useClasswork, useNoticeBoard } from '@/hooks/student-portal/useStudentDashboard';
 
 // Sample Data for Tables
@@ -105,21 +106,33 @@ export default function StudentDashboardPage() {
     const closeModal = () => setActiveModal(null);
 
     const { data: studentInfoDetails, isLoading, error } = useStudentPortalInformation();
+    const { data: academicYears } = useStudentPortalAcademic();
 
     // The student object contains asmY_Id and amsT_Id but let's check what's available
-    const amstId = studentInfoDetails?.amsT_Id;
-    const asmayId = studentInfoDetails?.asmaY_Id;
+    const amstId = studentInfoDetails?.amsT_Id ?? studentInfoDetails?.amst_Id ?? (studentInfoDetails as any)?.AMST_Id;
+    const asmayId =
+        studentInfoDetails?.asmaY_Id ??
+        studentInfoDetails?.asmY_Id ??
+        (studentInfoDetails as any)?.ASMAY_Id ??
+        academicYears?.data?.[0]?.asmaY_Id;
+
+    const { data: feeInfo, isLoading: isFeeLoading } = useStudentInformation(asmayId ?? null, 'T', amstId ?? 0);
+
+    const isFeeMapped = Boolean(
+        !isFeeLoading &&
+            feeInfo &&
+            ((feeInfo.groupTermMappings && feeInfo.groupTermMappings.length > 0) ||
+                (feeInfo.filonlinepaymentgrid && feeInfo.filonlinepaymentgrid.length > 0) ||
+                (feeInfo.feeSummary &&
+                    (Number(feeInfo.feeSummary.charges) > 0 ||
+                        Number(feeInfo.feeSummary.paid) > 0 ||
+                        Number(feeInfo.feeSummary.outstanding) > 0)))
+    );
 
     const { data: noticeBoardData, isLoading: isNoticeBoardLoading } = useNoticeBoard(amstId, asmayId);
     const { data: classworkData, isLoading: isClassworkLoading } = useClasswork(amstId, asmayId);
 
     console.log('studentInfoDetails', studentInfoDetails);
-
-    const fees = {
-        total: 50000,
-        paid: 35000,
-        balance: 15000
-    };
 
     const attendance = {
         totalClasses: 120,
@@ -168,27 +181,29 @@ export default function StudentDashboardPage() {
                 </DashboardWidget>
 
                 {/* Fees */}
-                <DashboardWidget
-                    title='FEES'
-                    icon={<Banknote className='h-6 w-6' />}
-                    colorClass='bg-blue-500'
-                    footerText='FEE DETAILS'
-                    onViewClick={() => router.push('/StudentPortal/student-dashboard/Fees/FeeDetails')}>
-                    <div className='mt-2 space-y-1 text-slate-700 text-sm dark:text-slate-300'>
-                        <div className='flex justify-between'>
-                            <span>Total Fees:</span>
-                            <span className='font-semibold'>{fees.total}</span>
+                {isFeeMapped && (
+                    <DashboardWidget
+                        title='FEES'
+                        icon={<Banknote className='h-6 w-6' />}
+                        colorClass='bg-blue-500'
+                        footerText='FEE DETAILS'
+                        onViewClick={() => router.push('/StudentPortal/student-dashboard/Fees/FeeDetails')}>
+                        <div className='mt-2 space-y-1 text-slate-700 text-sm dark:text-slate-300'>
+                            <div className='flex justify-between'>
+                                <span>Total Fees:</span>
+                                <span className='font-semibold'>{feeInfo?.feeSummary?.charges ?? 0}</span>
+                            </div>
+                            <div className='flex justify-between'>
+                                <span>Total Paid:</span>
+                                <span className='font-semibold'>{feeInfo?.feeSummary?.paid ?? 0}</span>
+                            </div>
+                            <div className='flex justify-between font-semibold text-red-500'>
+                                <span>Balance:</span>
+                                <span>{feeInfo?.feeSummary?.outstanding ?? 0}</span>
+                            </div>
                         </div>
-                        <div className='flex justify-between'>
-                            <span>Total Paid:</span>
-                            <span className='font-semibold'>{fees.paid}</span>
-                        </div>
-                        <div className='flex justify-between font-semibold text-red-500'>
-                            <span>Balance:</span>
-                            <span>{fees.balance}</span>
-                        </div>
-                    </div>
-                </DashboardWidget>
+                    </DashboardWidget>
+                )}
 
                 {/* Attendance */}
                 <DashboardWidget
@@ -491,7 +506,7 @@ export default function StudentDashboardPage() {
 
                 {/* Charts */}
                 <div className='lg:col-span-2'>
-                    <DashboardCharts />
+                    <DashboardCharts isFeeMapped={isFeeMapped} feeSummary={feeInfo?.feeSummary} />
                 </div>
             </div>
         </div>

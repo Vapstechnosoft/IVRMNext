@@ -31,6 +31,7 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
     const { refetchAll } = useMasterFeeYearlyRebateSettingFacade();
 
     const [isInitializing, setIsInitializing] = useState(false);
+    const [isDateOpen, setIsDateOpen] = useState(false);
     const { data: academicYearOptions, isLoading: isAcademicYearLoading } = useAcademicYearDropdown();
 
     console.log('academicYearOptions:', academicYearOptions);
@@ -360,7 +361,7 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
                                     <label htmlFor='rebateDate' className='mb-1 font-medium text-gray-700 text-sm'>
                                         Rebate Date <span className='text-red-500'>*</span>
                                     </label>
-                                    <Popover>
+                                    <Popover open={isDateOpen} onOpenChange={setIsDateOpen}>
                                         <PopoverTrigger asChild>
                                             <Button
                                                 type='button'
@@ -378,7 +379,10 @@ export default function UpdateYearlyRebateSettingForm({ onSuccess, selectedRow }
                                             <CalendarPicker
                                                 mode='single'
                                                 selected={selectedDate}
-                                                onSelect={(d) => field.onChange(d ? format(d as Date, 'yyyy-MM-dd') : '')}
+                                                onSelect={(d) => {
+                                                    field.onChange(d ? format(d as Date, 'yyyy-MM-dd') : '');
+                                                    setIsDateOpen(false);
+                                                }}
                                                 initialFocus
                                             />
                                         </PopoverContent>
