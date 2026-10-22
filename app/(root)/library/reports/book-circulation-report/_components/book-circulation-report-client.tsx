@@ -86,6 +86,10 @@ export function BookCirculationReportClient({ initialData }: BookCirculationRepo
                     onExport={handleExport}
                     hasData={reportData.length > 0}
                     initialData={initialData}
+                    onCancel={() => {
+                        setReportData([]);
+                        setView('form');
+                    }}
                 />
             </CollapsibleSection>
 

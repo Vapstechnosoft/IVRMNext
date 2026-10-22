@@ -52,8 +52,42 @@ export async function getBookCirculationReportInitialData() {
         }
     }
 
+const normalizeLibraryList = (list: any[]) => {
+    return list
+        .map((lib: any) => {
+            if (!lib || typeof lib !== 'object') return null;
+            const lmaL_Id = lib.lmaL_Id ?? lib.LMAL_Id ?? lib.lmal_Id ?? lib.lmal_id ?? lib.lmalId ?? lib.id;
+            const lmaL_LibraryName =
+                lib.lmaL_LibraryName ??
+                lib.LMAL_LibraryName ??
+                lib.lmal_LibraryName ??
+                lib.lmal_libraryname ??
+                lib.libraryname ??
+                lib.libraryName ??
+                lib.name;
+            const idNum = Number(lmaL_Id);
+            if (!idNum || isNaN(idNum)) return null;
+            return {
+                ...lib,
+                lmaL_Id: idNum,
+                lmaL_LibraryName: String(lmaL_LibraryName || `Library ${idNum}`)
+            };
+        })
+        .filter(Boolean);
+};
+
     // Extract lists from circulation-getdetails response
-    let finalLibList = extractList(finalData.lib_list || finalData.msterliblist1 || finalData.libraryList || finalData.library_list || []);
+    let finalLibList = extractList(
+        finalData.lib_list ||
+            finalData.msterliblist1 ||
+            finalData.msterliblist ||
+            finalData.libraryList ||
+            finalData.libList ||
+            finalData.library_list ||
+            finalData.masterliblist ||
+            finalData.masterlibrary ||
+            []
+    );
     let finalClassList = extractList(
         finalData.classList || finalData.classlist || finalData.msterclasslist || finalData.fillclass || finalData.classlist1 || []
     );
@@ -74,7 +108,17 @@ export async function getBookCirculationReportInitialData() {
             const mData = masterLibRes?.data || masterLibRes;
             if (mData) {
                 if (finalLibList.length === 0) {
-                    finalLibList = extractList(mData.list || mData.librylist || mData.liballdata || mData.msterliblist1 || []);
+                    finalLibList = extractList(
+                        mData.list ||
+                            mData.librylist ||
+                            mData.liballdata ||
+                            mData.msterliblist1 ||
+                            mData.msterliblist ||
+                            mData.libraryList ||
+                            mData.lib_list ||
+                            mData.libList ||
+                            (Array.isArray(mData) ? mData : [])
+                    );
                 }
                 if (finalClassList.length === 0) {
                     finalClassList = extractList(mData.classlist || mData.classList || mData.msterclasslist || []);
@@ -84,6 +128,8 @@ export async function getBookCirculationReportInitialData() {
             console.warn('Failed to fetch master libraries/classes fallback:', e?.message || String(e));
         }
     }
+
+    finalLibList = normalizeLibraryList(finalLibList);
 
     return {
         lib_list: finalLibList,
