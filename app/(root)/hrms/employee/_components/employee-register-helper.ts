@@ -1063,8 +1063,20 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
             (data && data.HRMET_Id)
         ),
         employeeGroup: numToString(v('hrmgT_Id') || v('HRMGT_Id')),
-        department: numToString(v('hrmD_Id') || v('HRMD_Id') || v('mI_Id') || v('MI_Id')),
-        designation: numToString(v('hrmdeS_Id') || v('HRMDES_Id')),
+        department: numToString(
+            v('hrmD_Id') ||
+            v('HRMD_Id') ||
+            v('departmentId') ||
+            v('hrmD_DepartmentId') ||
+            v('HRMD_DepartmentId')
+        ),
+        designation: numToString(
+            v('hrmdeS_Id') ||
+            v('HRMDES_Id') ||
+            v('designationId') ||
+            v('hrmdeS_DesignationId') ||
+            v('HRMDES_DesignationId')
+        ),
         grade: numToString(v('hrmG_Id') || v('HRMG_Id')),
         gender: numToString(v('ivrmmG_Id') || v('IVRMMG_Id')),
         maritalStatus: numToString(v('ivrmmmS_Id') || v('IVRMMMS_Id')),

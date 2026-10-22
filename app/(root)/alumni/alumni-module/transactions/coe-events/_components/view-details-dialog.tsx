@@ -22,9 +22,9 @@ export default function ViewDetailsDialog({ isOpen, onClose, title, description,
     const isArrayData = Array.isArray(data);
 
     // Extract data sections gracefully if structured
-    // Prioritize edit_m_event for schedule details (Mapping), and edit_m_events for templates (Master)
-    const mapEventInfo = isStructuredData ? data?.edit_m_event?.[0] || {} : {};
-    const masterEventInfo = isStructuredData ? data?.edit_m_events?.[0] || {} : {};
+    // Prioritize edit_map_event for schedule details (Mapping), and edit_m_event for templates (Master)
+    const mapEventInfo = isStructuredData ? data?.edit_map_event?.[0] || {} : {};
+    const masterEventInfo = isStructuredData ? data?.edit_m_event?.[0] || {} : {};
 
     // Merge info: Provide mapping info for schedule, master info for templates
     const eventInfo = mapEventInfo;

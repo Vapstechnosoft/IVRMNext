@@ -10,12 +10,63 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getPageDetailsMap, saveEventsMapData } from '@/server/alumni/master-coe';
 import { uploadDocument } from '@/server/document_upload';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format } from 'date-fns';
 import { Image as ImageIcon, Plus, RotateCcw, Save, Trash2, Video } from 'lucide-react';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { type EventsMapFormValues, eventsMapSchema } from './schema';
+
+const formatDateOnly = (date: Date | string | undefined | null): string | null => {
+    if (!date) return null;
+    if (typeof date === 'string') {
+        const trimmed = date.trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+            return trimmed;
+        }
+        const d = new Date(trimmed);
+        if (!Number.isNaN(d.getTime())) {
+            return format(d, 'yyyy-MM-dd');
+        }
+        return null;
+    }
+    if (date instanceof Date && !Number.isNaN(date.getTime())) {
+        return format(date, 'yyyy-MM-dd');
+    }
+    return null;
+};
+
+const parseDateSafe = (dateStr: string | Date | undefined | null): Date | undefined => {
+    if (!dateStr) return undefined;
+    if (dateStr instanceof Date) return dateStr;
+    if (typeof dateStr === 'string') {
+        const trimmed = dateStr.trim();
+        const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (match) {
+            const year = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10) - 1;
+            const day = parseInt(match[3], 10);
+            return new Date(year, month, day);
+        }
+        const d = new Date(trimmed);
+        return Number.isNaN(d.getTime()) ? undefined : d;
+    }
+    return undefined;
+};
+
+const formatTimeOnly = (timeStr: string | undefined | null): string => {
+    if (!timeStr) return '';
+    const trimmed = timeStr.trim();
+    if (trimmed.includes('T')) {
+        const timePart = trimmed.split('T')[1]?.replace(/Z$/, '').split('.')[0];
+        if (timePart) return timePart;
+    }
+    if (/^\d{4}-\d{2}-\d{2}\s+/.test(trimmed)) {
+        return trimmed.replace(/^\d{4}-\d{2}-\d{2}\s+/, '');
+    }
+    return trimmed;
+};
 
 interface EventsMappingFormProps {
     onSuccess?: () => void;
@@ -110,28 +161,19 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                         const empList = responseData.edit_emp_type_list || responseData.emp_type_list || [];
                         const imageList = responseData.edit_images_list || responseData.images_list || [];
                         const videoList = responseData.edit_videos_list || responseData.videos_list || [];
-                        const otherList = responseData.others_list || [];
+                        const otherList = responseData.edit_oth_mobilenos_list || responseData.others_list || [];
                         const urlList = responseData.urldocumentlist || [];
 
                         form.reset({
                             COEE_Id: mainData.coeE_Id || mainData.COEE_Id,
                             ASMAY_Id: (mainData.asmaY_Id || mainData.ASMAY_Id || '').toString(),
                             COEME_Id: (mainData.coemE_Id || mainData.COEME_Id || '').toString(),
-                            COEE_EStartDate:
-                                mainData.coeE_EStartDate || mainData.COEE_EStartDate
-                                    ? new Date(mainData.coeE_EStartDate || mainData.COEE_EStartDate)
-                                    : undefined,
-                            COEE_EEndDate:
-                                mainData.coeE_EEndDate || mainData.COEE_EEndDate
-                                    ? new Date(mainData.coeE_EEndDate || mainData.COEE_EEndDate)
-                                    : undefined,
-                            COEE_EStartTime: mainData.coeE_EStartTime || mainData.COEE_EStartTime || '',
-                            COEE_EEndTime: mainData.coeE_EEndTime || mainData.COEE_EEndTime || '',
+                            COEE_EStartDate: parseDateSafe(mainData.coeE_EStartDate || mainData.COEE_EStartDate),
+                            COEE_EEndDate: parseDateSafe(mainData.coeE_EEndDate || mainData.COEE_EEndDate),
+                            COEE_EStartTime: formatTimeOnly(mainData.coeE_EStartTime || mainData.COEE_EStartTime || ''),
+                            COEE_EEndTime: formatTimeOnly(mainData.coeE_EEndTime || mainData.COEE_EEndTime || ''),
                             COEE_ReminderDays: (mainData.coeE_ReminderDays || mainData.COEE_ReminderDays || '').toString(),
-                            COEE_ReminderDate:
-                                mainData.coeE_ReminderDate || mainData.COEE_ReminderDate
-                                    ? new Date(mainData.coeE_ReminderDate || mainData.COEE_ReminderDate)
-                                    : undefined,
+                            COEE_ReminderDate: parseDateSafe(mainData.coeE_ReminderDate || mainData.COEE_ReminderDate),
                             COEE_MailActiveFlag: mainData.coeE_MailActiveFlag ?? mainData.COEE_MailActiveFlag ?? false,
                             COEE_SMSActiveFlag: mainData.coeE_SMSActiveFlag ?? mainData.COEE_SMSActiveFlag ?? false,
                             COEE_RepeatFlag: mainData.coeE_RepeatFlag ?? mainData.COEE_RepeatFlag ?? false,
@@ -176,9 +218,11 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                 ...values,
                 COEME_Id: Number(values.COEME_Id),
                 ASMAY_Id: Number(values.ASMAY_Id),
-                COEE_EStartDate: values.COEE_EStartDate ? values.COEE_EStartDate.toISOString() : null,
-                COEE_EEndDate: values.COEE_EEndDate ? values.COEE_EEndDate.toISOString() : null,
-                COEE_ReminderDate: values.COEE_ReminderDate ? values.COEE_ReminderDate.toISOString() : null,
+                COEE_EStartDate: formatDateOnly(values.COEE_EStartDate),
+                COEE_EEndDate: formatDateOnly(values.COEE_EEndDate),
+                COEE_EStartTime: formatTimeOnly(values.COEE_EStartTime),
+                COEE_EEndTime: formatTimeOnly(values.COEE_EEndTime),
+                COEE_ReminderDate: formatDateOnly(values.COEE_ReminderDate),
                 ASMAY_Id_o_s: values.ASMAY_Id_o_s ? Number(values.ASMAY_Id_o_s) : 0,
                 COEE_ReminderDays: values.COEE_ReminderDays ? Number(values.COEE_ReminderDays) : 0,
                 videos_list: values.videos_list.map((v) => v.COEEV_VideoURL)

@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import type { BookRegisterPayload } from '@/types/library/masters/bookRegister';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 
 export default function TabPurchaseDetails({
@@ -33,6 +34,7 @@ export default function TabPurchaseDetails({
         register,
         formState: { errors }
     } = useFormContext<BookRegisterPayload>();
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const purchaseType = useWatch({ control, name: 'lmB_PurOrDonated' });
     const { data: directVendorData } = useVendorDropdown();
     const { data: directPublisherData } = usePublisherDropdown();
@@ -59,7 +61,7 @@ export default function TabPurchaseDetails({
                         control={control}
                         name='purchase_Date'
                         render={({ field }) => (
-                            <Popover>
+                            <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant={'outline'}
@@ -72,7 +74,10 @@ export default function TabPurchaseDetails({
                                     <Calendar
                                         mode='single'
                                         selected={field.value ? new Date(field.value) : undefined}
-                                        onSelect={field.onChange}
+                                        onSelect={(date) => {
+                                            field.onChange(date);
+                                            setIsCalendarOpen(false);
+                                        }}
                                         disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
                                         initialFocus
                                     />

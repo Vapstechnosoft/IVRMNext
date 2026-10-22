@@ -12,11 +12,7 @@ interface AddressBookPrintProps {
     rangeType: string;
 }
 
-const formatDate = (date: any) => {
-    if (!date) return 'N/A';
-    const d = new Date(date);
-    return isValid(d) ? format(d, 'dd-MM-yyyy') : 'N/A';
-};
+import { formatDate, getStudentName } from './columns';
 
 export default function AddressBookPrint({ data, logo, reportType, academicYear, fromDate, toDate, rangeType }: AddressBookPrintProps) {
     const reportNames: Record<string, string> = {
@@ -84,12 +80,12 @@ export default function AddressBookPrint({ data, logo, reportType, academicYear,
                             {[0, 1].map((colIndex) => {
                                 const user = data[rowIndex * 2 + colIndex];
                                 if (!user) return <td key={colIndex} className='w-1/2' />;
-                                const fullName = [user.FirstName, user.MiddleName, user.LastName].filter(Boolean).join(' ');
+                                const studentName = getStudentName(user);
                                 return (
                                     <td key={colIndex} className='w-1/2 p-4 align-top'>
                                         <div className='flex flex-col space-y-1 border-gray-300 border-b pb-4'>
                                             <div style={{ fontWeight: 'bold', fontSize: '14px', textTransform: 'uppercase' }}>
-                                                D/o {fullName || 'N/A'}
+                                                D/o {studentName}
                                             </div>
                                             <div style={{ fontSize: '12px' }}>Mobile No : {user.Mobileno || 'N/A'}</div>
                                         </div>
