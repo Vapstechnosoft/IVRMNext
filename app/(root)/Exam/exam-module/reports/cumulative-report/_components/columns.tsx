@@ -73,6 +73,46 @@ export default function CumulativeReportGridView({
         return name;
     };
 
+    const getTotalMaxMarks = (student: ICumulativeReport) => {
+        if (student.estmP_Result === 'AB') return '';
+        if (student.estmP_TotalMaxMarks != null && Number(student.estmP_TotalMaxMarks) > 0) {
+            return student.estmP_TotalMaxMarks;
+        }
+        const validMax = student.sub_list?.reduce((acc, sub: any) => {
+            const m = Number(sub.estmpS_MaxMarks ?? subjects.find((s) => s.ismS_Id === sub.ismS_Id)?.estmpS_MaxMarks);
+            return acc + (!isNaN(m) && m > 0 ? m : 0);
+        }, 0) ?? 0;
+        if (validMax > 0) return validMax;
+
+        const subjectsMax = subjects
+            .filter((s) => s.eyceS_AplResultFlg !== false)
+            .reduce((acc, s) => acc + (Number(s.estmpS_MaxMarks) || 0), 0);
+        if (subjectsMax > 0) return subjectsMax;
+
+        return (student.estmP_TotalMaxMarks != null && student.estmP_TotalMaxMarks !== 0 && student.estmP_TotalMaxMarks !== '0')
+            ? student.estmP_TotalMaxMarks
+            : '-';
+    };
+
+    const getTotalObtMarks = (student: ICumulativeReport) => {
+        if (student.estmP_Result === 'AB') return '';
+        if (student.estmP_TotalObtMarks != null && Number(student.estmP_TotalObtMarks) > 0) {
+            return student.estmP_TotalObtMarks;
+        }
+        let hasMarks = false;
+        const validObt = student.sub_list?.reduce((acc, sub: any) => {
+            if (sub.estmpS_PassFailFlg === 'AB') return acc;
+            const m = Number(sub.estmpS_ObtainedMarks);
+            if (!isNaN(m)) {
+                hasMarks = true;
+                return acc + m;
+            }
+            return acc;
+        }, 0) ?? 0;
+        if (hasMarks) return validObt;
+        return (student.estmP_TotalObtMarks != null && student.estmP_TotalObtMarks !== 0 && student.estmP_TotalObtMarks !== '0') ? student.estmP_TotalObtMarks : '-';
+    };
+
     // ====================== EXCEL EXPORT FUNCTION ======================
     const exportToExcel = () => {
         if (!reportData.length) {
@@ -287,8 +327,8 @@ export default function CumulativeReportGridView({
             });
 
             // Totals
-            tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${isAbsent ? '' : (student.estmP_TotalMaxMarks ?? '-')}</td>
-                          <td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${isAbsent ? '' : (student.estmP_TotalObtMarks ?? '-')}</td>`;
+            tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${isAbsent ? '' : getTotalMaxMarks(student)}</td>
+                          <td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${isAbsent ? '' : getTotalObtMarks(student)}</td>`;
 
             if (columnFlags.readmit) {
                 tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${isAbsent || student.estmP_Percentage == null ? '-' : `${student.estmP_Percentage}`}</td>`;
@@ -558,10 +598,10 @@ export default function CumulativeReportGridView({
                                         ))}
 
                                         <td className='border border-gray-300 px-3 py-2 text-center font-medium text-gray-900'>
-                                            {isAbsent ? '' : (student.estmP_TotalMaxMarks ?? '-')}
+                                            {isAbsent ? '' : getTotalMaxMarks(student)}
                                         </td>
                                         <td className='border border-gray-300 px-3 py-2 text-center font-medium text-gray-900'>
-                                            {isAbsent ? '' : (student.estmP_TotalObtMarks ?? '-')}
+                                            {isAbsent ? '' : getTotalObtMarks(student)}
                                         </td>
                                         {columnFlags.readmit && (
                                             <td className='border border-gray-300 px-3 py-2 text-center'>

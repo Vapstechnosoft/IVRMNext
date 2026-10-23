@@ -214,7 +214,9 @@ export default function CumulativeReportForm({
             Grade_Flag: data.Grade_Flag,
             Marks_Flag: data.Marks_Flag,
             OverallGrade_Flag: data.OverallGrade_Flag,
-            Status_Flag: data.Status_Flag
+            Status_Flag: data.Status_Flag,
+            studentList: data.studentList,
+            selectedStudents: data.studentList
             //page_size: data.page_size
         };
         if (onSuccess) {
