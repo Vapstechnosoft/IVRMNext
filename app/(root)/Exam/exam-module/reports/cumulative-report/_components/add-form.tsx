@@ -196,13 +196,19 @@ export default function CumulativeReportForm({
             return;
         }
 
+        const studentIdsJoined = data.studentList.map((s) => s.amsT_Id).join(',');
         const payload = {
-            // mI_Id: 30, // <-- hard-coded as required
             asmaY_Id: data.asmaY_Id,
+            ASMAY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
+            ASMCL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
+            ASMS_Id: data.asmS_Id,
             emE_Id: data.emE_Id,
-            amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
+            EME_Id: data.emE_Id,
+            EME_ID: data.emE_Id,
+            amsT_Ids: studentIdsJoined,
+            AMST_Ids: studentIdsJoined,
             Left_Flag: data.Left_Flag,
             Deactive_Flag: data.Deactive_Flag,
             applicableFlag: data.applicableFlag === true ? '1' : '0',
@@ -214,7 +220,9 @@ export default function CumulativeReportForm({
             Grade_Flag: data.Grade_Flag,
             Marks_Flag: data.Marks_Flag,
             OverallGrade_Flag: data.OverallGrade_Flag,
-            Status_Flag: data.Status_Flag
+            Status_Flag: data.Status_Flag,
+            studentList: data.studentList,
+            selectedStudents: data.studentList
             //page_size: data.page_size
         };
         if (onSuccess) {
