@@ -7,10 +7,17 @@ import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/r
 // 🔹 Cumulative Report Submit
 
 export async function getCumulativeReport(data: any, apiSearchParams?: ApiSearchparams) {
-    const params = { ...(apiSearchParams ?? {}), _t: Date.now() };
-    const urlParams = getSearchParamsUrl(params);
-    const url = `/cumulative_report?${urlParams}`;
-    const response = await api.post<any>('exam', url, data);
+    const { auth } = await import('@/lib/auth');
+    const session = await auth();
+    const miId = session?.mi_id ? Number(session.mi_id) : (session?.user as any)?.mi_id ? Number((session?.user as any)?.mi_id) : 0;
+
+    const urlParams = getSearchParamsUrl(apiSearchParams ?? {});
+    const url = urlParams ? `/cumulative_report?${urlParams}` : '/cumulative_report';
+    const payload = {
+        ...(miId > 0 ? { MI_Id: miId, mI_Id: miId, mi_id: miId } : {}),
+        ...data
+    };
+    const response = await api.post<any>('exam', url, payload);
     return response;
 }
 

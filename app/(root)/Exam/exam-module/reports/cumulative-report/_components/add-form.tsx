@@ -196,8 +196,8 @@ export default function CumulativeReportForm({
             return;
         }
 
+        const studentIdsJoined = data.studentList.map((s) => s.amsT_Id).join(',');
         const payload = {
-            // mI_Id: 30, // <-- hard-coded as required
             asmaY_Id: data.asmaY_Id,
             ASMAY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
@@ -207,13 +207,11 @@ export default function CumulativeReportForm({
             emE_Id: data.emE_Id,
             EME_Id: data.emE_Id,
             EME_ID: data.emE_Id,
-            amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
-            AMST_Ids: data.studentList.map((s) => Number(s.amsT_Id)),
+            amsT_Ids: studentIdsJoined,
+            AMST_Ids: studentIdsJoined,
             Left_Flag: data.Left_Flag,
             Deactive_Flag: data.Deactive_Flag,
-            applicableflag: data.applicableFlag === true || data.applicableFlag === '1',
             applicableFlag: data.applicableFlag === true ? '1' : '0',
-            nonapplicableflag: data.nonApplicableFlag === true || data.nonApplicableFlag === '1',
             nonApplicableFlag: data.nonApplicableFlag === true ? '1' : '0',
             classrank: data.classrank,
             sectionrank: data.sectionrank,
