@@ -1075,7 +1075,7 @@ function mapLeaveConfigurationToApiData(data: LeaveConfigurationFormData): Leave
         HRLPC_Id: data.id || 0,
         MI_Id: HRMS_MI_ID,
         HRLPC_LeavePolicyName: data.policy_name,
-        HRLPC_SPName: data.proc_name,
+        HRLPC_SPName: data.proc_name ?? '',
         HRLPC_ServiceName: data.servic_name,
         HRLPC_LateInFlag: data.late_flag,
         HRLPC_LateInTime: data.Late_Time,

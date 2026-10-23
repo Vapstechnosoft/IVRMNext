@@ -14,7 +14,7 @@ import type {
  * @returns Leave configuration data
  */
 export async function getLeaveConfiguration(): Promise<ApiResponse<LeaveConfigurationData>> {
-    const primaryUrl = `/api/LeaveConfig/getSPName/${HRMS_MI_ID}`;
+    const primaryUrl = `/api/LeaveConfig/get_leave_configuartion/${HRMS_MI_ID}`;
     console.log('🔵 [SERVER] GET Leave Configuration Request URL:', primaryUrl);
 
     try {
@@ -22,7 +22,7 @@ export async function getLeaveConfiguration(): Promise<ApiResponse<LeaveConfigur
         try {
             response = await api.get<LeaveConfigurationGetResponse>('hmslms', primaryUrl);
         } catch (getSpErr: any) {
-            console.warn('⚠️ [SERVER] Primary endpoint getSPName failed, trying fallback /api/LeaveConfig/get_leave_configuartion', getSpErr?.message);
+            console.warn('⚠️ [SERVER] Primary endpoint get_leave_configuartion failed, trying fallback /api/LeaveConfig/get_leave_configuartion', getSpErr?.message);
             response = await api.get<LeaveConfigurationGetResponse>('hmslms', '/api/LeaveConfig/get_leave_configuartion');
         }
 
@@ -81,7 +81,7 @@ export async function getLeaveConfiguration(): Promise<ApiResponse<LeaveConfigur
  * @returns Save response
  */
 export async function saveLeaveConfiguration(data: LeaveConfigurationSaveRequest): Promise<ApiResponse<any>> {
-    const primaryUrl = '/api/LeaveConfig/SaveData';
+    const primaryUrl = '/api/LeaveConfig/add_or_update_leave_configuration';
 
     const requestBody: LeaveConfigurationSaveRequest = {
         HRLPC_Id: data.HRLPC_Id || 0,
