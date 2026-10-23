@@ -57,9 +57,6 @@ export default function CumulativeReportGridView({
     // Helper to get subject header text
     const getSubjectHeaderName = (subj: ISubject) => {
         const name = subj.ismS_SubjectName || '';
-        const isEVS = name.toUpperCase().includes('EVS');
-        if (isEVS) return name; // EVS always shows Marks & Grade
-
         const showMarks = columnFlags.marksdisplay;
         const showGrade = columnFlags.grdaeDisply;
 
@@ -141,8 +138,7 @@ export default function CumulativeReportGridView({
         if (columnFlags.rollno) totalCols++;
 
         finalApplicableSubjects.forEach((subj) => {
-            const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-            totalCols += (isEVS || !showBothSubj) ? 1 : 2;
+            totalCols += !showBothSubj ? 1 : 2;
         });
 
         totalCols += 2; // TOTAL + OBTAINED
@@ -154,8 +150,7 @@ export default function CumulativeReportGridView({
         if (columnFlags.status) totalCols++;
 
         nonApplicableSubjects.forEach((subj) => {
-            const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-            totalCols += (isEVS || !showBothSubj) ? 1 : 2;
+            totalCols += !showBothSubj ? 1 : 2;
         });
 
         // Build Excel Table HTML with guaranteed native center alignment & original colors
@@ -202,12 +197,7 @@ export default function CumulativeReportGridView({
             if (columnFlags.rollno) tableHtml += `<th rowspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">ROLL NO</th>`;
 
             finalApplicableSubjects.forEach((subj) => {
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-                if (isEVS) {
-                    tableHtml += `<th rowspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">${subj.ismS_SubjectName?.toUpperCase()}</th>`;
-                } else {
-                    tableHtml += `<th colspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">${subj.ismS_SubjectName?.toUpperCase()}</th>`;
-                }
+                tableHtml += `<th colspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">${subj.ismS_SubjectName?.toUpperCase()}</th>`;
             });
 
             tableHtml += `<th colspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">TOTAL</th>`;
@@ -223,33 +213,22 @@ export default function CumulativeReportGridView({
             if (columnFlags.status) tableHtml += `<th rowspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">STATUS</th>`;
 
             nonApplicableSubjects.forEach((subj) => {
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-                if (isEVS) {
-                    tableHtml += `<th rowspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">${subj.ismS_SubjectName?.toUpperCase()}</th>`;
-                } else {
-                    tableHtml += `<th colspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">${subj.ismS_SubjectName?.toUpperCase()}</th>`;
-                }
+                tableHtml += `<th colspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">${subj.ismS_SubjectName?.toUpperCase()}</th>`;
             });
 
             tableHtml += `</tr><tr style="background-color: #D9EAD3; font-weight: bold; text-align: center;">`;
 
             finalApplicableSubjects.forEach((subj) => {
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-                if (!isEVS) {
-                    tableHtml += `<th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">MARKS</th>
-                                  <th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">GRADE</th>`;
-                }
+                tableHtml += `<th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">MARKS</th>
+                              <th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">GRADE</th>`;
             });
 
             tableHtml += `<th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">MAX</th>
                           <th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">OBTAINED</th>`;
 
             nonApplicableSubjects.forEach((subj) => {
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-                if (!isEVS) {
-                    tableHtml += `<th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">MARKS</th>
-                                  <th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">GRADE</th>`;
-                }
+                tableHtml += `<th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">MARKS</th>
+                              <th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">GRADE</th>`;
             });
 
             tableHtml += `</tr>`;
@@ -305,24 +284,20 @@ export default function CumulativeReportGridView({
                 const marks = sub?.estmpS_ObtainedMarks;
                 const grade = sub?.estmpS_ObtainedGrade;
                 const isAB = sub?.estmpS_PassFailFlg === 'AB';
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
 
                 if (isAB) {
-                    if (isEVS || !showBothSubj) {
+                    if (!showBothSubj) {
                         tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">AB</td>`;
                     } else {
                         tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">AB</td><td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">AB</td>`;
                     }
-                } else if (isEVS) {
-                    const val = marks != null && grade ? `${marks} | ${grade}` : (marks ?? grade ?? '-');
-                    tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${val}</td>`;
                 } else if (showBothSubj) {
                     tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${marks ?? '-'}</td>
                                   <td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${grade ?? '-'}</td>`;
                 } else if (columnFlags.grdaeDisply) {
                     tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${grade ?? '-'}</td>`;
                 } else {
-                    tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${marks ?? grade ?? '-'}</td>`;
+                    tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${marks ?? '-'}</td>`;
                 }
             });
 
@@ -356,24 +331,20 @@ export default function CumulativeReportGridView({
                 const marks = sub?.estmpS_ObtainedMarks;
                 const grade = sub?.estmpS_ObtainedGrade;
                 const isAB = sub?.estmpS_PassFailFlg === 'AB';
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
 
                 if (isAB) {
-                    if (isEVS || !showBothSubj) {
+                    if (!showBothSubj) {
                         tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">AB</td>`;
                     } else {
                         tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">AB</td><td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">AB</td>`;
                     }
-                } else if (isEVS) {
-                    const val = marks != null && grade ? `${marks} | ${grade}` : (marks ?? grade ?? '-');
-                    tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${val}</td>`;
                 } else if (showBothSubj) {
                     tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${marks ?? '-'}</td>
                                   <td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${grade ?? '-'}</td>`;
                 } else if (columnFlags.grdaeDisply) {
                     tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${grade ?? '-'}</td>`;
                 } else {
-                    tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${marks ?? grade ?? '-'}</td>`;
+                    tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${marks ?? '-'}</td>`;
                 }
             });
 
@@ -438,15 +409,6 @@ export default function CumulativeReportGridView({
 
         const marksVal = mark.estmpS_ObtainedMarks;
         const gradeVal = mark.estmpS_ObtainedGrade;
-
-        const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-
-        if (isEVS) {
-            if (marksVal != null && gradeVal) {
-                return `${marksVal} | ${gradeVal}`;
-            }
-            return marksVal ?? gradeVal ?? '-';
-        }
 
         if (showMarks && showGrade) {
             if (marksVal != null && gradeVal) {

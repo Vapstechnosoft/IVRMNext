@@ -608,17 +608,42 @@ export default function CumulativeReportPage() {
                     const subId = Number(sub.ismS_Id ?? sub.ISMS_Id ?? 0);
                     if (subId) {
                         const obt =
+                            sub.estM_Marks_new ??
+                            sub.estM_Marks ??
+                            sub.ESTM_Marks ??
+                            sub.estmsS_Marks ??
+                            sub.ESTMSS_Marks ??
+                            sub.estmS_Marks ??
+                            sub.ESTMS_Marks ??
                             sub.hema_estmpS_ObtainedMarks ??
                             sub.estmpS_ObtainedMarks ??
                             sub.ESTMPS_ObtainedMarks ??
                             sub.obtainedMarks ??
+                            sub.ObtainedMarks ??
+                            sub.obtainedmarks ??
+                            sub.marks ??
+                            sub.Marks ??
                             null;
+                        const finalObt = (obt === 1000 || obt === '1000' || obt === '' || obt === '-') ? null : obt;
+
                         const grd =
+                            sub.estM_Grade_new ??
+                            sub.estM_Grade ??
+                            sub.ESTM_Grade ??
+                            sub.estmsS_Grade ??
+                            sub.ESTMSS_Grade ??
+                            sub.estmS_Grade ??
+                            sub.ESTMS_Grade ??
                             sub.hema_estmpS_ObtainedGrade ??
                             sub.estmpS_ObtainedGrade ??
                             sub.ESTMPS_ObtainedGrade ??
                             sub.obtainedGrade ??
+                            sub.ObtainedGrade ??
+                            sub.grade ??
+                            sub.Grade ??
                             null;
+                        const finalGrd = (grd === 1000 || grd === '1000' || grd === '' || grd === '-') ? null : grd;
+
                         const det = findSubjectDetail(subId);
                         const maxM =
                             extractSubjectMaxMarks(sub) ??
@@ -633,16 +658,17 @@ export default function CumulativeReportPage() {
                             }
                         }
 
+                        const existingSub = sItem.raw_subs.get(subId);
                         sItem.raw_subs.set(subId, {
                             ismS_Id: subId,
-                            estmpS_MaxMarks: maxM !== null ? parseMarks(maxM) : null,
-                            estmpS_ObtainedMarks: obt === 1000 || obt === '1000' ? null : obt,
-                            estmpS_ObtainedGrade: grd === '1000' || grd === 1000 ? null : grd,
-                            estmpS_PassFailFlg: sub.estmpS_PassFailFlg ?? sub.ESTMPS_PassFailFlg ?? null,
-                            eyceS_MarksDisplayFlg: sub.eyceS_MarksDisplayFlg ?? sub.EYCES_MarksDisplayFlg ?? true,
-                            eyceS_GradeDisplayFlg: sub.eyceS_GradeDisplayFlg ?? sub.EYCES_GradeDisplayFlg ?? true,
-                            empatY_PaperTypeName: sub.empatY_PaperTypeName ?? sub.EMPATY_PaperTypeName ?? '',
-                            empatY_Color: sub.empatY_Color ?? sub.EMPATY_Color ?? ''
+                            estmpS_MaxMarks: maxM !== null ? parseMarks(maxM) : (existingSub?.estmpS_MaxMarks ?? null),
+                            estmpS_ObtainedMarks: finalObt !== null ? finalObt : (existingSub?.estmpS_ObtainedMarks ?? null),
+                            estmpS_ObtainedGrade: finalGrd !== null ? finalGrd : (existingSub?.estmpS_ObtainedGrade ?? null),
+                            estmpS_PassFailFlg: sub.estmpS_PassFailFlg ?? sub.ESTMPS_PassFailFlg ?? existingSub?.estmpS_PassFailFlg ?? null,
+                            eyceS_MarksDisplayFlg: sub.eyceS_MarksDisplayFlg ?? sub.EYCES_MarksDisplayFlg ?? existingSub?.eyceS_MarksDisplayFlg ?? true,
+                            eyceS_GradeDisplayFlg: sub.eyceS_GradeDisplayFlg ?? sub.EYCES_GradeDisplayFlg ?? existingSub?.eyceS_GradeDisplayFlg ?? true,
+                            empatY_PaperTypeName: sub.empatY_PaperTypeName ?? sub.EMPATY_PaperTypeName ?? existingSub?.empatY_PaperTypeName ?? '',
+                            empatY_Color: sub.empatY_Color ?? sub.EMPATY_Color ?? existingSub?.empatY_Color ?? ''
                         });
                     }
                 });
@@ -725,8 +751,43 @@ export default function CumulativeReportPage() {
                 listToProcess.forEach((sub: any) => {
                     const subId = Number(sub.ismS_Id ?? sub.ISMS_Id ?? 0);
                     if (subId) {
-                        const obt = sub.hema_estmpS_ObtainedMarks ?? sub.estmpS_ObtainedMarks ?? sub.ESTMPS_ObtainedMarks ?? null;
-                        const grd = sub.hema_estmpS_ObtainedGrade ?? sub.estmpS_ObtainedGrade ?? sub.ESTMPS_ObtainedGrade ?? null;
+                        const obt =
+                            sub.estM_Marks_new ??
+                            sub.estM_Marks ??
+                            sub.ESTM_Marks ??
+                            sub.estmsS_Marks ??
+                            sub.ESTMSS_Marks ??
+                            sub.estmS_Marks ??
+                            sub.ESTMS_Marks ??
+                            sub.hema_estmpS_ObtainedMarks ??
+                            sub.estmpS_ObtainedMarks ??
+                            sub.ESTMPS_ObtainedMarks ??
+                            sub.obtainedMarks ??
+                            sub.ObtainedMarks ??
+                            sub.obtainedmarks ??
+                            sub.marks ??
+                            sub.Marks ??
+                            null;
+                        const finalObt = (obt === 1000 || obt === '1000' || obt === '' || obt === '-') ? null : obt;
+
+                        const grd =
+                            sub.estM_Grade_new ??
+                            sub.estM_Grade ??
+                            sub.ESTM_Grade ??
+                            sub.estmsS_Grade ??
+                            sub.ESTMSS_Grade ??
+                            sub.estmS_Grade ??
+                            sub.ESTMS_Grade ??
+                            sub.hema_estmpS_ObtainedGrade ??
+                            sub.estmpS_ObtainedGrade ??
+                            sub.ESTMPS_ObtainedGrade ??
+                            sub.obtainedGrade ??
+                            sub.ObtainedGrade ??
+                            sub.grade ??
+                            sub.Grade ??
+                            null;
+                        const finalGrd = (grd === 1000 || grd === '1000' || grd === '' || grd === '-') ? null : grd;
+
                         const det = findSubjectDetail(subId);
                         const maxM =
                             extractSubjectMaxMarks(sub) ??
@@ -741,16 +802,17 @@ export default function CumulativeReportPage() {
                             }
                         }
 
+                        const existingSub = sItem.raw_subs.get(subId);
                         sItem.raw_subs.set(subId, {
                             ismS_Id: subId,
-                            estmpS_MaxMarks: maxM !== null ? parseMarks(maxM) : null,
-                            estmpS_ObtainedMarks: obt === 1000 || obt === '1000' ? null : obt,
-                            estmpS_ObtainedGrade: grd === '1000' || grd === 1000 ? null : grd,
-                            estmpS_PassFailFlg: sub.estmpS_PassFailFlg ?? sub.ESTMPS_PassFailFlg ?? null,
-                            eyceS_MarksDisplayFlg: sub.eyceS_MarksDisplayFlg ?? true,
-                            eyceS_GradeDisplayFlg: sub.eyceS_GradeDisplayFlg ?? true,
-                            empatY_PaperTypeName: sub.empatY_PaperTypeName ?? '',
-                            empatY_Color: sub.empatY_Color ?? ''
+                            estmpS_MaxMarks: maxM !== null ? parseMarks(maxM) : (existingSub?.estmpS_MaxMarks ?? null),
+                            estmpS_ObtainedMarks: finalObt !== null ? finalObt : (existingSub?.estmpS_ObtainedMarks ?? null),
+                            estmpS_ObtainedGrade: finalGrd !== null ? finalGrd : (existingSub?.estmpS_ObtainedGrade ?? null),
+                            estmpS_PassFailFlg: sub.estmpS_PassFailFlg ?? sub.ESTMPS_PassFailFlg ?? existingSub?.estmpS_PassFailFlg ?? null,
+                            eyceS_MarksDisplayFlg: sub.eyceS_MarksDisplayFlg ?? existingSub?.eyceS_MarksDisplayFlg ?? true,
+                            eyceS_GradeDisplayFlg: sub.eyceS_GradeDisplayFlg ?? existingSub?.eyceS_GradeDisplayFlg ?? true,
+                            empatY_PaperTypeName: sub.empatY_PaperTypeName ?? existingSub?.empatY_PaperTypeName ?? '',
+                            empatY_Color: sub.empatY_Color ?? existingSub?.empatY_Color ?? ''
                         });
                     }
                 });

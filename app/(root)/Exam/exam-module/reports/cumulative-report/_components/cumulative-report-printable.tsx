@@ -42,9 +42,6 @@ export default function CumulativeReportPrintView({
     // Helper to get subject header text
     const getSubjectHeaderName = (subj: ISubject) => {
         const name = subj.ismS_SubjectName || '';
-        const isEVS = name.toUpperCase().includes('EVS');
-        if (isEVS) return name;
-
         const showMarks = columnFlags.marksdisplay;
         const showGrade = columnFlags.grdaeDisply;
 
@@ -73,15 +70,6 @@ export default function CumulativeReportPrintView({
 
         const marksVal = mark.estmpS_ObtainedMarks;
         const gradeVal = mark.estmpS_ObtainedGrade;
-
-        const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-
-        if (isEVS) {
-            if (marksVal != null && gradeVal) {
-                return `${marksVal} | ${gradeVal}`;
-            }
-            return marksVal ?? gradeVal ?? '-';
-        }
 
         if (showMarks && showGrade) {
             if (marksVal != null && gradeVal) {

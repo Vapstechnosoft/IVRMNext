@@ -7,7 +7,8 @@ import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/r
 // 🔹 Cumulative Report Submit
 
 export async function getCumulativeReport(data: any, apiSearchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(apiSearchParams ?? {});
+    const params = { ...(apiSearchParams ?? {}), _t: Date.now() };
+    const urlParams = getSearchParamsUrl(params);
     const url = `/cumulative_report?${urlParams}`;
     const response = await api.post<any>('exam', url, data);
     return response;
