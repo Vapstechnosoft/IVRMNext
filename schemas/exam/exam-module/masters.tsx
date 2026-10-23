@@ -17,7 +17,7 @@ export const masterSubjectSchema = {
         ismS_Id: z.number().int({ message: 'Subject Id is required' }).optional(),
         mI_Id: z.number().int().optional(),
         ismS_IVRSSubjectName: createExamCustomStringSchema('IVRS Subject Name', 1, 100),
-        ismS_SubjectCode: createExamCustomStringSchema('Subject Code', 1, 50),
+        ismS_SubjectCode: createExamCustomStringSchema('Subject Code', 1, 50, true),
         ismS_SubjectNameNew: createOptionalExamCustomStringSchema('New Subject Name', 1, 50),
         ismS_SubjectName: createExamCustomStringSchema('Subject Name', 1, 50),
         ismS_PreadmFlag: z.number().int({ message: 'Pre-Admission Flag is required' }),
@@ -87,7 +87,7 @@ export const masterSubSubjectSchema = {
         emsS_Id: z.number().int().optional(), // optional for new entries
         mI_Id: z.number().int().optional(),
         emsS_SubSubjectName: createExamCustomStringSchema('Sub Subject Name', 1, 100),
-        emsS_SubSubjectCode: createExamCustomStringSchema('Sub Subject Code', 1, 50),
+        emsS_SubSubjectCode: createExamCustomStringSchema('Sub Subject Code', 1, 50, true),
         emsS_Order: z.number().int().optional(), // backend can handle default
         emsS_ActiveFlag: z.boolean().optional() // not edited, will pass existing value
     }),
