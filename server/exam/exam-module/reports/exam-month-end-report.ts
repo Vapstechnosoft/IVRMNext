@@ -7,6 +7,21 @@ export const getInitialData = async () => {
     let monthlist: any[] = [];
     let examlist: any[] = [];
 
+    const DEFAULT_MONTHS = [
+        { ivrM_Month_Id: 1, ivrM_Month_Name: 'January' },
+        { ivrM_Month_Id: 2, ivrM_Month_Name: 'February' },
+        { ivrM_Month_Id: 3, ivrM_Month_Name: 'March' },
+        { ivrM_Month_Id: 4, ivrM_Month_Name: 'April' },
+        { ivrM_Month_Id: 5, ivrM_Month_Name: 'May' },
+        { ivrM_Month_Id: 6, ivrM_Month_Name: 'June' },
+        { ivrM_Month_Id: 7, ivrM_Month_Name: 'July' },
+        { ivrM_Month_Id: 8, ivrM_Month_Name: 'August' },
+        { ivrM_Month_Id: 9, ivrM_Month_Name: 'September' },
+        { ivrM_Month_Id: 10, ivrM_Month_Name: 'October' },
+        { ivrM_Month_Id: 11, ivrM_Month_Name: 'November' },
+        { ivrM_Month_Id: 12, ivrM_Month_Name: 'December' }
+    ];
+
     const endpoints = [
         '/ExamMonthEndReport/getdetails/0',
         '/ExamMonthEndReport/getdetails',
@@ -14,23 +29,36 @@ export const getInitialData = async () => {
         '/ExamMonthEndReportFacade/getdetails'
     ];
 
+    const getArray = (val: any) => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        if (typeof val === 'object' && Array.isArray(val.$values)) return val.$values;
+        return [];
+    };
+
     for (const ep of endpoints) {
         try {
             let res: any;
             if (ep.includes('Facade')) {
                 res = await api.post<any>('exam', ep, {});
             } else {
-                res = await api.get<any>('exam', ep);
+                try {
+                    res = await api.get<any>('exam', ep);
+                } catch {
+                    res = await api.post<any>('exam', ep, {});
+                }
             }
             const raw = res?.data || res;
             if (raw && typeof raw === 'object') {
-                const years = raw.acdlist || raw.yearlist || raw.yearList || raw.getyear || raw.academicYearList || raw.year_list;
-                const months = raw.monthlist || raw.monthList || raw.getmonth || raw.month_list;
-                const exams = raw.examlist || raw.examList || raw.getexam || raw.exam_list;
+                const years = getArray(raw.acdlist || raw.yearlist || raw.yearList || raw.getyear || raw.academicYearList || raw.year_list);
+                const months = getArray(
+                    raw.monthlist || raw.monthList || raw.getmonth || raw.getMonth || raw.month_list || raw.months || raw.allMonths
+                );
+                const exams = getArray(raw.examlist || raw.examList || raw.getexam || raw.getExam || raw.exam_list || raw.exams);
 
-                if (Array.isArray(years) && years.length > 0) acdlist = years;
-                if (Array.isArray(months) && months.length > 0) monthlist = months;
-                if (Array.isArray(exams) && exams.length > 0) examlist = exams;
+                if (years.length > 0) acdlist = years;
+                if (months.length > 0) monthlist = months;
+                if (exams.length > 0) examlist = exams;
 
                 if (acdlist.length > 0 || monthlist.length > 0 || examlist.length > 0) {
                     break;
@@ -41,12 +69,17 @@ export const getInitialData = async () => {
         }
     }
 
+    if (monthlist.length === 0) {
+        monthlist = DEFAULT_MONTHS;
+    }
+
     if (acdlist.length === 0) {
         try {
             const yrRes: any = await api.get<any>('exam', '/exam_master/get_academic_year_list');
             const rawYr = yrRes?.data || yrRes;
-            if (Array.isArray(rawYr) && rawYr.length > 0) {
-                acdlist = rawYr;
+            const years = getArray(rawYr);
+            if (years.length > 0) {
+                acdlist = years;
             }
         } catch (err) {
             console.warn('[getInitialData] /exam_master/get_academic_year_list failed:', err);
