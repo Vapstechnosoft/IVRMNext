@@ -35,16 +35,26 @@ export const feeInstallmentColumns: ColumnDef<IMasterFeesInstallmentList>[] = [
         enableSorting: true,
         enableHiding: true
     },
-    // {
-    //     accessorKey: 'fmI_Installment_Type',
-    //     header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Type' />,
-    //     cell: ({ row }) => {
-    //         const type = row.getValue('fmI_Installment_Type') as string;
-    //         return <div>{type === '1' ? 'Monthly' : type === '2' ? 'Quarterly' : type}</div>;
-    //     },
-    //     enableSorting: true,
-    //     enableHiding: true
-    // },
+    {
+        accessorKey: 'fmI_Installment_Type',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Installment Type' />,
+        cell: ({ row }) => {
+            const type = String(row.getValue('fmI_Installment_Type') ?? '').trim();
+            const typeMap: Record<string, string> = {
+                '1': 'General',
+                '2': 'Once In a Carrier',
+                '3': 'Monthly',
+                '4': 'Quarterly',
+                '5': 'Yearly',
+                '6': 'Half Yearly',
+                '7': 'Bi Monthly',
+                '8': 'Anytime'
+            };
+            return <div>{typeMap[type] || type || 'N/A'}</div>;
+        },
+        enableSorting: true,
+        enableHiding: true
+    },
 
     {
         id: 'actions',
@@ -68,7 +78,7 @@ function ActionButtonsCell({
     const sanitizeRowForEdit = (r: any) => {
         if (!r || typeof r !== 'object') return r;
         const copy: any = { ...r };
-        const raw = copy.fmI_Id ?? copy.id ?? copy.fmIId;
+        const raw = copy.fmI_Id ?? copy.FMI_Id ?? copy.id ?? copy.fmIId ?? copy.fmi_id;
         if (raw === null || raw === undefined) {
             copy.fmI_Id = undefined;
         } else if (typeof raw === 'number') {
@@ -90,12 +100,19 @@ function ActionButtonsCell({
             else copy.fmI_ActiveFlag = undefined;
         }
 
-        const inst = copy.fydto ?? copy.installments;
+        const inst =
+            copy.fydto ??
+            copy.installments ??
+            copy.installmentnameList ??
+            copy.installmentlist ??
+            copy.installmentvaluelist ??
+            copy.feeinstallmentList;
         if (Array.isArray(inst)) {
             copy.fydto = inst.map((it: any) => ({
                 ...it,
+                ftI_Name: it?.ftI_Name ?? it?.FTI_Name ?? it?.name ?? '',
                 ftI_Id: (() => {
-                    const v = it?.ftI_Id ?? it?.id;
+                    const v = it?.ftI_Id ?? it?.FTI_Id ?? it?.id ?? it?.fti_id;
                     if (v === null || v === undefined) return undefined;
                     if (typeof v === 'number') return v > 0 ? v : undefined;
                     if (typeof v === 'string') {
@@ -144,13 +161,30 @@ function ActionButtonsCell({
             }
 
             if (record) {
+                const rawInstallments =
+                    record.fydto ??
+                    record.installmentnameList ??
+                    record.installmentlist ??
+                    record.installmentvaluelist ??
+                    record.feeinstallmentList ??
+                    record.installments ??
+                    (rowData as any)?.fydto;
+
                 const enriched: any = {
                     ...record,
-                    fmI_Id: record.fmI_Id ?? (fetchId as any) ?? (rowData as any)?.fmI_Id,
-                    mI_Id: record.mI_Id ?? (rowData as any)?.mI_Id,
+                    fmI_Id:
+                        record.fmI_Id ??
+                        record.FMI_Id ??
+                        (fetchId as any) ??
+                        (rowData as any)?.fmI_Id ??
+                        (rowData as any)?.FMI_Id,
+                    mI_Id: record.mI_Id ?? record.MI_Id ?? (rowData as any)?.mI_Id,
+                    fydto: rawInstallments,
                     fmI_ActiveFlag:
                         record.fmI_ActiveFlag ??
                         record.fmI_ActiceFlag ??
+                        record.FMI_ActiveFlag ??
+                        record.FMI_ActiceFlag ??
                         (rowData as any)?.fmI_ActiveFlag ??
                         (rowData as any)?.fmI_ActiceFlag
                 };
@@ -159,7 +193,7 @@ function ActionButtonsCell({
                     const num = Number(enriched.fmI_Id);
                     if (!Number.isNaN(num)) enriched.fmI_Id = num;
                     else if (String(enriched.fmI_Id).toLowerCase().includes('undefined')) {
-                        enriched.fmI_Id = (fetchId as any) ?? (rowData as any)?.fmI_Id;
+                        enriched.fmI_Id = (fetchId as any) ?? (rowData as any)?.fmI_Id ?? (rowData as any)?.FMI_Id;
                     }
                 }
 
@@ -178,7 +212,11 @@ function ActionButtonsCell({
             } else {
                 const fallback = {
                     ...(anyData as any),
-                    fmI_Id: (fetchId as any) ?? (rowData as any)?.fmI_Id ?? (rowData as any)?.id,
+                    fmI_Id:
+                        (fetchId as any) ??
+                        (rowData as any)?.fmI_Id ??
+                        (rowData as any)?.FMI_Id ??
+                        (rowData as any)?.id,
                     mI_Id: (rowData as any)?.mI_Id
                 };
                 const sanitizedData = sanitizeRowForEdit(fallback);
@@ -186,12 +224,17 @@ function ActionButtonsCell({
             }
             setFetchId(0);
         }
-    }, [isFetching, fetchId, fetchedData, openEditForm]);
+    }, [isFetching, fetchId, fetchedData, openEditForm, rowData]);
 
     const handleEdit = useCallback(
         (data: IMasterFeesInstallmentList) => {
             // Accept multiple possible id field names coming from different backends
-            const candidate = (data as any)?.fmI_Id ?? (data as any)?.fmIId ?? (data as any)?.fmi_id ?? (data as any)?.id;
+            const candidate =
+                (data as any)?.fmI_Id ??
+                (data as any)?.FMI_Id ??
+                (data as any)?.fmIId ??
+                (data as any)?.fmi_id ??
+                (data as any)?.id;
 
             const sanitize = (id: any): number | undefined => {
                 if (id === null || id === undefined) return undefined;
@@ -217,7 +260,10 @@ function ActionButtonsCell({
             } else {
                 const sanitizedData = sanitizeRowForEdit({
                     ...data,
-                    fmI_Id: sanitize((data as any)?.fmI_Id) ?? sanitize((data as any)?.id)
+                    fmI_Id:
+                        sanitize((data as any)?.fmI_Id) ??
+                        sanitize((data as any)?.FMI_Id) ??
+                        sanitize((data as any)?.id)
                 });
                 openEditForm(sanitizedData as any);
             }

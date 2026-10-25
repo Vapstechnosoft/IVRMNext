@@ -180,31 +180,35 @@ export default function StudentDashboardPage() {
                     </div>
                 </DashboardWidget>
 
-                {/* Fees */}
-                {isFeeMapped && (
-                    <DashboardWidget
-                        title='FEES'
-                        icon={<Banknote className='h-6 w-6' />}
-                        colorClass='bg-blue-500'
-                        footerText='FEE DETAILS'
-                        onViewClick={() => router.push('/StudentPortal/student-dashboard/Fees/FeeDetails')}>
-                        <div className='mt-2 space-y-1 text-slate-700 text-sm dark:text-slate-300'>
-                            <div className='flex justify-between'>
-                                <span>Total Fees:</span>
-                                <span className='font-semibold'>{feeInfo?.feeSummary?.charges ?? 0}</span>
-                            </div>
-                            <div className='flex justify-between'>
-                                <span>Total Paid:</span>
-                                <span className='font-semibold'>{feeInfo?.feeSummary?.paid ?? 0}</span>
-                            </div>
-                            <div className='flex justify-between font-semibold text-red-500'>
-                                <span>Balance:</span>
-                                <span>{feeInfo?.feeSummary?.outstanding ?? 0}</span>
-                            </div>
-                        </div>
-                    </DashboardWidget>
-                )}
-
+               {/* Fees */}
+<DashboardWidget
+    title='FEES'
+    icon={<Banknote className='h-6 w-6' />}
+    colorClass='bg-blue-500'
+    footerText='FEE DETAILS'
+    onViewClick={() => router.push('/StudentPortal/student-dashboard/Fees/FeeDetails')}
+>
+    {isFeeMapped ? (
+        <div className='mt-2 space-y-1 text-slate-700 text-sm dark:text-slate-300'>
+            <div className='flex justify-between'>
+                <span>Total Fees:</span>
+                <span className='font-semibold'>{feeInfo?.feeSummary?.charges ?? 0}</span>
+            </div>
+            <div className='flex justify-between'>
+                <span>Total Paid:</span>
+                <span className='font-semibold'>{feeInfo?.feeSummary?.paid ?? 0}</span>
+            </div>
+            <div className='flex justify-between font-semibold text-red-500'>
+                <span>Balance:</span>
+                <span>{feeInfo?.feeSummary?.outstanding ?? 0}</span>
+            </div>
+        </div>
+    ) : (
+        <div className='mt-4 flex justify-center'>
+            <p className='text-muted-foreground text-sm italic'>No fee details available</p>
+        </div>
+    )}
+</DashboardWidget>
                 {/* Attendance */}
                 <DashboardWidget
                     title='ATTENDANCE'

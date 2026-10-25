@@ -2,7 +2,6 @@ import { z } from 'zod';
 import {
     createEmailSchema,
     createNumberOnlyStringSchema,
-    createStringOnlyOptionalSchema,
     createStringOnlySchema,
     createStringSchema,
     createStringSchemaAllowNumbers,
@@ -234,13 +233,15 @@ export const masterGroupsGroupingSchema = {
 export const masterInstallmentSchema = {
     addOrUpdate: z
         .object({
+            fmI_Id: z.union([z.number(), z.string()]).optional(),
             fmI_Name: createStringOnlySchema('Master Installment Name', 1, 100),
-            fmI_Installment_Type: createStringOnlyOptionalSchema('Installment Type', 1, 30),
+            fmI_Installment_Type: z.string().min(1, { message: 'Installment Type is required' }),
             fmI_No_Of_Installments: z.number().max(365, { message: 'Maximum number of installments is 365' }).optional(),
             installments: z
                 .array(
                     z.object({
-                        sno: z.number(),
+                        sno: z.number().optional(),
+                        ftI_Id: z.union([z.number(), z.string()]).optional(),
                         ftI_Name: createStringSchema('Installment Name', 1, 100)
                     })
                 )
@@ -249,7 +250,7 @@ export const masterInstallmentSchema = {
         .refine(
             (data) => {
                 // Custom validation for Installment Type
-                if (!data.fmI_Installment_Type || data.fmI_Installment_Type.trim().length === 0) {
+                if (!data.fmI_Installment_Type || String(data.fmI_Installment_Type).trim().length === 0) {
                     return false;
                 }
                 return true;
