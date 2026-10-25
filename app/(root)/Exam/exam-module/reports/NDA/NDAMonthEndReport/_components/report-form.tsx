@@ -10,7 +10,7 @@ import { useAcademicYearDropdown } from '@/hooks/fees/useMasters';
 import { type ExamMonthEndReportFormValues, examMonthEndReportSchema } from '@/schemas/exam/exam-module/reports';
 import { getInitialDataNDA, getNDAMonthEndReportData } from '@/server/exam/exam-module/reports/NDA/nda-month-end-report';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Printer, Search, RotateCcw } from 'lucide-react';
+import { Loader2, Printer, RotateCcw, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -25,6 +25,21 @@ interface NDAMonthEndReportFormProps {
     }) => void;
     onPrint?: () => void;
 }
+
+const DEFAULT_MONTHS = [
+    { ivrM_Month_Id: 1, ivrM_Month_Name: 'January' },
+    { ivrM_Month_Id: 2, ivrM_Month_Name: 'February' },
+    { ivrM_Month_Id: 3, ivrM_Month_Name: 'March' },
+    { ivrM_Month_Id: 4, ivrM_Month_Name: 'April' },
+    { ivrM_Month_Id: 5, ivrM_Month_Name: 'May' },
+    { ivrM_Month_Id: 6, ivrM_Month_Name: 'June' },
+    { ivrM_Month_Id: 7, ivrM_Month_Name: 'July' },
+    { ivrM_Month_Id: 8, ivrM_Month_Name: 'August' },
+    { ivrM_Month_Id: 9, ivrM_Month_Name: 'September' },
+    { ivrM_Month_Id: 10, ivrM_Month_Name: 'October' },
+    { ivrM_Month_Id: 11, ivrM_Month_Name: 'November' },
+    { ivrM_Month_Id: 12, ivrM_Month_Name: 'December' }
+];
 
 export default function NDAMonthEndReportForm({ onSuccess, onPrint }: NDAMonthEndReportFormProps) {
     const [isLoading, setIsLoading] = useState(true);
@@ -59,21 +74,7 @@ export default function NDAMonthEndReportForm({ onSuccess, onPrint }: NDAMonthEn
                 if (data?.monthlist?.length > 0) {
                     setMonthList(data.monthlist);
                 } else {
-                    // Standard fallback months
-                    setMonthList([
-                        { ivrM_Month_Id: 1, ivrM_Month_Name: 'January' },
-                        { ivrM_Month_Id: 2, ivrM_Month_Name: 'February' },
-                        { ivrM_Month_Id: 3, ivrM_Month_Name: 'March' },
-                        { ivrM_Month_Id: 4, ivrM_Month_Name: 'April' },
-                        { ivrM_Month_Id: 5, ivrM_Month_Name: 'May' },
-                        { ivrM_Month_Id: 6, ivrM_Month_Name: 'June' },
-                        { ivrM_Month_Id: 7, ivrM_Month_Name: 'July' },
-                        { ivrM_Month_Id: 8, ivrM_Month_Name: 'August' },
-                        { ivrM_Month_Id: 9, ivrM_Month_Name: 'September' },
-                        { ivrM_Month_Id: 10, ivrM_Month_Name: 'October' },
-                        { ivrM_Month_Id: 11, ivrM_Month_Name: 'November' },
-                        { ivrM_Month_Id: 12, ivrM_Month_Name: 'December' }
-                    ]);
+                    setMonthList(DEFAULT_MONTHS);
                 }
                 if (data?.acdlist?.length > 0) setInitialAcademicYears(data.acdlist);
                 if (data?.examlist?.length > 0) setInitialExams(data.examlist);
@@ -137,7 +138,8 @@ export default function NDAMonthEndReportForm({ onSuccess, onPrint }: NDAMonthEn
             toast.success(`Generated report with ${safeReportData.length} records`);
 
             const year = academicYearsList.find((i: any) => String(i.asmaY_Id) === String(data.ASMAY_Id))?.asmaY_Year || '2025-2026';
-            const month = monthList?.find((i: any) => String(i.ivrM_Month_Id) === String(data.IVRM_Month_Id))?.ivrM_Month_Name || 'February';
+            const month =
+                monthList?.find((i: any) => String(i.ivrM_Month_Id) === String(data.IVRM_Month_Id))?.ivrM_Month_Name || 'February';
             const exam = examsList.find((i: any) => String(i.emE_Id) === String(data.EME_Id))?.emE_ExamName || 'Term Exam';
 
             onSuccess({
@@ -212,8 +214,8 @@ export default function NDAMonthEndReportForm({ onSuccess, onPrint }: NDAMonthEn
         initialAcademicYears.length > 0
             ? initialAcademicYears
             : academicYear?.data && academicYear.data.length > 0
-            ? academicYear.data
-            : FALLBACK_ACADEMIC_YEARS;
+              ? academicYear.data
+              : FALLBACK_ACADEMIC_YEARS;
 
     const academicYearsList = rawAcademicYears
         .map((i: any) => ({
@@ -222,12 +224,15 @@ export default function NDAMonthEndReportForm({ onSuccess, onPrint }: NDAMonthEn
         }))
         .filter((i: any) => i.asmaY_Id > 0);
 
-    const rawExams =
-        initialExams.length > 0
-            ? initialExams
-            : examData?.data && examData.data.length > 0
-            ? examData.data
-            : FALLBACK_EXAMS;
+    const rawExams = initialExams.length > 0 ? initialExams : examData?.data && examData.data.length > 0 ? examData.data : FALLBACK_EXAMS;
+
+    const rawMonths = monthList.length > 0 ? monthList : DEFAULT_MONTHS;
+    const monthsList = rawMonths
+        .map((i: any) => ({
+            ivrM_Month_Id: Number(i.ivrM_Month_Id ?? i.IVRM_Month_Id ?? i.month_Id ?? i.monthId ?? i.id ?? 0),
+            ivrM_Month_Name: i.ivrM_Month_Name || i.IVRM_Month_Name || i.month_Name || i.monthName || i.name || ''
+        }))
+        .filter((i: any) => i.ivrM_Month_Id > 0 && i.ivrM_Month_Name);
 
     const examsList = rawExams
         .map((i: any) => ({
@@ -275,7 +280,11 @@ export default function NDAMonthEndReportForm({ onSuccess, onPrint }: NDAMonthEn
                             <Select key={field.value} onValueChange={field.onChange} value={field.value ?? undefined}>
                                 <SelectTrigger className={errors.ASMAY_Id ? 'border-destructive' : ''}>
                                     <SelectValue
-                                        placeholder={academicYearLoading && academicYearsList.length === 0 ? 'Loading Academic Year...' : 'Select Academic Year'}
+                                        placeholder={
+                                            academicYearLoading && academicYearsList.length === 0
+                                                ? 'Loading Academic Year...'
+                                                : 'Select Academic Year'
+                                        }
                                     />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -311,7 +320,7 @@ export default function NDAMonthEndReportForm({ onSuccess, onPrint }: NDAMonthEn
                                     <SelectValue placeholder='Select Month' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {monthList.map((item: any) => (
+                                    {monthsList.map((item: any) => (
                                         <SelectItem key={item.ivrM_Month_Id} value={String(item.ivrM_Month_Id)}>
                                             {item.ivrM_Month_Name}
                                         </SelectItem>
@@ -358,11 +367,7 @@ export default function NDAMonthEndReportForm({ onSuccess, onPrint }: NDAMonthEn
                 {/* Implementation Name */}
                 <div className='space-y-2'>
                     <Label htmlFor='iename'>Implementation Name</Label>
-                    <Input
-                        {...register('iename')}
-                        className={errors.iename ? 'border-destructive' : ''}
-                        placeholder='Enter Name'
-                    />
+                    <Input {...register('iename')} className={errors.iename ? 'border-destructive' : ''} placeholder='Enter Name' />
                     {errors.iename && <p className='text-destructive text-sm'>{errors.iename.message}</p>}
                 </div>
             </div>

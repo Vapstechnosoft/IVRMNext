@@ -564,6 +564,16 @@ export function PayrollTab({
         };
 
         const updateItem = (item: EditablePayrollItem): EditablePayrollItem => {
+            // If item is unchecked/inactive, preserve inactive state and set amount to 0
+            if (item.HREED_ActiveFlag === false) {
+                return {
+                    ...item,
+                    localAmount: 0,
+                    HREED_Amount: 0,
+                    HREED_ActiveFlag: false
+                };
+            }
+
             const perc = getHeadPercentage(item);
             if (!isPercentageHead(item, perc) || perc <= 0) {
                 return item;
@@ -1187,6 +1197,13 @@ export function PayrollTab({
             newProps.HREED_ApplicablePercentage = String(validatedValue);
         } else if (field === 'localAmount') {
             newProps.HREED_Amount = validatedValue;
+        } else if (field === 'HREED_ActiveFlag') {
+            const isActive = Boolean(validatedValue);
+            newProps.HREED_ActiveFlag = isActive;
+            if (!isActive) {
+                newProps.localAmount = 0;
+                newProps.HREED_Amount = 0;
+            }
         }
 
         updated[index] = { ...currentItem, ...newProps };
@@ -1214,6 +1231,11 @@ export function PayrollTab({
             setArrears(calculated.newArrears);
             dirtyRowsRef.current.earnings.add(index);
             calculateTotalsWithArrays(calculated.newEarnings, calculated.newDeductions, calculated.newArrears);
+
+            if (field === 'HREED_ActiveFlag' && calculated.newEarnings[index]) {
+                handleAutoSave(calculated.newEarnings[index]);
+            }
+
             return calculated.newEarnings;
         }
 
@@ -1246,6 +1268,13 @@ export function PayrollTab({
             newProps.HREED_ApplicablePercentage = String(validatedValue);
         } else if (field === 'localAmount') {
             newProps.HREED_Amount = validatedValue;
+        } else if (field === 'HREED_ActiveFlag') {
+            const isActive = Boolean(validatedValue);
+            newProps.HREED_ActiveFlag = isActive;
+            if (!isActive) {
+                newProps.localAmount = 0;
+                newProps.HREED_Amount = 0;
+            }
         }
 
         updated[index] = { ...currentItem, ...newProps };
@@ -1273,6 +1302,11 @@ export function PayrollTab({
             setArrears(calculated.newArrears);
             dirtyRowsRef.current.deductions.add(index);
             calculateTotalsWithArrays(calculated.newEarnings, calculated.newDeductions, calculated.newArrears);
+
+            if (field === 'HREED_ActiveFlag' && calculated.newDeductions[index]) {
+                handleAutoSave(calculated.newDeductions[index]);
+            }
+
             return calculated.newDeductions;
         }
 
@@ -1305,6 +1339,13 @@ export function PayrollTab({
             newProps.HREED_ApplicablePercentage = String(validatedValue);
         } else if (field === 'localAmount') {
             newProps.HREED_Amount = validatedValue;
+        } else if (field === 'HREED_ActiveFlag') {
+            const isActive = Boolean(validatedValue);
+            newProps.HREED_ActiveFlag = isActive;
+            if (!isActive) {
+                newProps.localAmount = 0;
+                newProps.HREED_Amount = 0;
+            }
         }
 
         updated[index] = { ...currentItem, ...newProps };
@@ -1332,6 +1373,11 @@ export function PayrollTab({
             setArrears(calculated.newArrears);
             dirtyRowsRef.current.arrears.add(index);
             calculateTotalsWithArrays(calculated.newEarnings, calculated.newDeductions, calculated.newArrears);
+
+            if (field === 'HREED_ActiveFlag' && calculated.newArrears[index]) {
+                handleAutoSave(calculated.newArrears[index]);
+            }
+
             return calculated.newArrears;
         }
 

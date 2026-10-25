@@ -18,13 +18,20 @@ export async function getExamCalculation(
     // This is the CORRECT endpoint that actually exists
     const url = '/exam_calculation/Calculation';
 
-    // Parameters must be passed as query string for this endpoint
+    const { auth } = await import('@/lib/auth');
+    const session = await auth();
+    const miId = session?.mi_id ? Number(session.mi_id) : (session?.user as any)?.mi_id ? Number((session?.user as any)?.mi_id) : 0;
+
     const params = {
-        // MI_Id: 30,
+        ...(miId > 0 ? { MI_Id: miId, mI_Id: miId, mi_id: miId } : {}),
         ASMAY_Id: asmaY_Id,
+        asmaY_Id: asmaY_Id,
         ASMCL_Id: asmcL_Id,
+        asmcL_Id: asmcL_Id,
         ASMS_Id: asmS_Id,
-        EME_Id: emE_Id
+        asmS_Id: asmS_Id,
+        EME_Id: emE_Id,
+        emE_Id: emE_Id
     };
 
     // Use GET with params instead of POST with body

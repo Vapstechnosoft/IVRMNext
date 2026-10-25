@@ -19,6 +19,31 @@ import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { toast } from 'sonner';
+const FALLBACK_ACADEMIC_YEARS = [
+    { asmaY_Id: 25, asmaY_Year: '2024-2025' },
+    { asmaY_Id: 26, asmaY_Year: '2025-2026' }
+];
+
+const FALLBACK_EXAMS = [
+    { emE_Id: 1, emE_ExamName: 'Annual Exam' },
+    { emE_Id: 2, emE_ExamName: 'Term Exam' },
+    { emE_Id: 3, emE_ExamName: 'First Evaluation' }
+];
+
+const FALLBACK_MONTHS = [
+    { ivrM_Month_Id: 1, ivrM_Month_Name: 'January' },
+    { ivrM_Month_Id: 2, ivrM_Month_Name: 'February' },
+    { ivrM_Month_Id: 3, ivrM_Month_Name: 'March' },
+    { ivrM_Month_Id: 4, ivrM_Month_Name: 'April' },
+    { ivrM_Month_Id: 5, ivrM_Month_Name: 'May' },
+    { ivrM_Month_Id: 6, ivrM_Month_Name: 'June' },
+    { ivrM_Month_Id: 7, ivrM_Month_Name: 'July' },
+    { ivrM_Month_Id: 8, ivrM_Month_Name: 'August' },
+    { ivrM_Month_Id: 9, ivrM_Month_Name: 'September' },
+    { ivrM_Month_Id: 10, ivrM_Month_Name: 'October' },
+    { ivrM_Month_Id: 11, ivrM_Month_Name: 'November' },
+    { ivrM_Month_Id: 12, ivrM_Month_Name: 'December' }
+];
 
 export default function ExamMonthEndReportPage() {
     const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +89,11 @@ export default function ExamMonthEndReportPage() {
             try {
                 const [data, institutionRes] = await Promise.all([getInitialData(), getMasterInstitution()]);
 
-                if (data.monthlist && data.monthlist.length > 0) setMonthList(data.monthlist);
+                if (data.monthlist && data.monthlist.length > 0) {
+                    setMonthList(data.monthlist);
+                } else {
+                    setMonthList(FALLBACK_MONTHS);
+                }
                 if (data.acdlist && data.acdlist.length > 0) setInitialAcademicYears(data.acdlist);
                 if (data.examlist && data.examlist.length > 0) setInitialExams(data.examlist);
 
@@ -136,7 +165,8 @@ export default function ExamMonthEndReportPage() {
             const year = academicYearsList.find((i: any) => String(i.asmaY_Id) === String(data.ASMAY_Id))?.asmaY_Year || '2025-2026';
 
             // Resolve Month name
-            const month = monthList?.find((i: any) => String(i.ivrM_Month_Id) === String(data.IVRM_Month_Id))?.ivrM_Month_Name || 'February';
+            const month =
+                monthsList.find((i: any) => String(i.ivrM_Month_Id) === String(data.IVRM_Month_Id))?.ivrM_Month_Name || 'February';
 
             // Resolve Exam name
             const exam = examsList.find((i: any) => String(i.emE_Id) === String(data.EME_Id))?.emE_ExamName || 'Term Exam';
@@ -297,23 +327,21 @@ export default function ExamMonthEndReportPage() {
         );
     }
 
-    const FALLBACK_ACADEMIC_YEARS = [
-        { asmaY_Id: 25, asmaY_Year: '2024-2025' },
-        { asmaY_Id: 26, asmaY_Year: '2025-2026' }
-    ];
+    const rawMonths = monthList.length > 0 ? monthList : FALLBACK_MONTHS;
 
-    const FALLBACK_EXAMS = [
-        { emE_Id: 1, emE_ExamName: 'Annual Exam' },
-        { emE_Id: 2, emE_ExamName: 'Term Exam' },
-        { emE_Id: 3, emE_ExamName: 'First Evaluation' }
-    ];
+    const monthsList = rawMonths
+        .map((i: any) => ({
+            ivrM_Month_Id: Number(i.ivrM_Month_Id ?? i.IVRM_Month_Id ?? i.month_Id ?? i.monthId ?? i.id ?? 0),
+            ivrM_Month_Name: i.ivrM_Month_Name || i.IVRM_Month_Name || i.month_Name || i.monthName || i.name || ''
+        }))
+        .filter((i: any) => i.ivrM_Month_Id > 0 && i.ivrM_Month_Name);
 
     const rawAcademicYears =
         initialAcademicYears.length > 0
             ? initialAcademicYears
             : academicYear?.data && academicYear.data.length > 0
-            ? academicYear.data
-            : FALLBACK_ACADEMIC_YEARS;
+              ? academicYear.data
+              : FALLBACK_ACADEMIC_YEARS;
 
     const academicYearsList = rawAcademicYears
         .map((i: any) => ({
@@ -322,12 +350,7 @@ export default function ExamMonthEndReportPage() {
         }))
         .filter((i: any) => i.asmaY_Id > 0);
 
-    const rawExams =
-        initialExams.length > 0
-            ? initialExams
-            : examData?.data && examData.data.length > 0
-            ? examData.data
-            : FALLBACK_EXAMS;
+    const rawExams = initialExams.length > 0 ? initialExams : examData?.data && examData.data.length > 0 ? examData.data : FALLBACK_EXAMS;
 
     const examsList = rawExams
         .map((i: any) => ({
@@ -383,7 +406,11 @@ export default function ExamMonthEndReportPage() {
                                         <Select key={field.value} onValueChange={field.onChange} value={field.value ?? undefined}>
                                             <SelectTrigger>
                                                 <SelectValue
-                                                    placeholder={academicYearLoading && academicYearsList.length === 0 ? 'Loading Academic Year...' : 'Select Academic Year'}
+                                                    placeholder={
+                                                        academicYearLoading && academicYearsList.length === 0
+                                                            ? 'Loading Academic Year...'
+                                                            : 'Select Academic Year'
+                                                    }
                                                 />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -419,12 +446,12 @@ export default function ExamMonthEndReportPage() {
                                                 <SelectValue placeholder='Select Month' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {monthList.length === 0 ? (
+                                                {monthsList.length === 0 ? (
                                                     <SelectItem value='0' disabled>
                                                         No Months found
                                                     </SelectItem>
                                                 ) : (
-                                                    monthList.map((item: any) => (
+                                                    monthsList.map((item: any) => (
                                                         <SelectItem key={item.ivrM_Month_Id} value={String(item.ivrM_Month_Id)}>
                                                             {item.ivrM_Month_Name}
                                                         </SelectItem>
@@ -504,18 +531,16 @@ export default function ExamMonthEndReportPage() {
             {reportData && reportData.length > 0 && (
                 <div id='printSectionId' ref={printRef}>
                     <Card className='fade-in-50 slide-in-from-bottom-5 w-full animate-in shadow-lg'>
-                        <CardHeader className='pb-4 text-center border-b'>
-                            <div className='flex justify-center mb-2'>
+                        <CardHeader className='border-b pb-4 text-center'>
+                            <div className='mb-2 flex justify-center'>
                                 <img
                                     src='/assets/nda_logo.jpg'
                                     alt='Institution Logo'
-                                    className='max-h-28 md:max-h-32 w-auto object-contain mx-auto'
+                                    className='mx-auto max-h-28 w-auto object-contain md:max-h-32'
                                 />
                             </div>
-                            <h3 className='text-center font-bold text-xl uppercase tracking-wide text-slate-800'>
-                                EXAM MODULE
-                            </h3>
-                            <h4 className='text-center font-bold text-lg text-[#0066cc] uppercase tracking-wide mt-1'>
+                            <h3 className='text-center font-bold text-slate-800 text-xl uppercase tracking-wide'>EXAM MODULE</h3>
+                            <h4 className='mt-1 text-center font-bold text-[#0066cc] text-lg uppercase tracking-wide'>
                                 {selectedExam} {selectedMonth} MONTH END REPORT
                             </h4>
                         </CardHeader>
@@ -565,16 +590,43 @@ export default function ExamMonthEndReportPage() {
                                     </TableHeader>
                                     <TableBody>
                                         {reportData.map((item: any, index: number) => {
-                                            const className = item.ASMCL_ClassName || item.asmcL_ClassName || item.Class || item.class || item.className || item.class_Name || item.ASMCL_Class || '-';
-                                            const passCount = item.Pass ?? item.pass ?? item.PASS ?? item.ESTMP_PassCount ?? item.passCount ?? item.pass_count ?? item.Passed ?? 0;
-                                            const failCount = item.Fail ?? item.fail ?? item.FAIL ?? item.ESTMP_FailCount ?? item.failCount ?? item.fail_count ?? item.Failed ?? item.scoredBelowMin ?? 0;
+                                            const className =
+                                                item.ASMCL_ClassName ||
+                                                item.asmcL_ClassName ||
+                                                item.Class ||
+                                                item.class ||
+                                                item.className ||
+                                                item.class_Name ||
+                                                item.ASMCL_Class ||
+                                                '-';
+                                            const passCount =
+                                                item.Pass ??
+                                                item.pass ??
+                                                item.PASS ??
+                                                item.ESTMP_PassCount ??
+                                                item.passCount ??
+                                                item.pass_count ??
+                                                item.Passed ??
+                                                0;
+                                            const failCount =
+                                                item.Fail ??
+                                                item.fail ??
+                                                item.FAIL ??
+                                                item.ESTMP_FailCount ??
+                                                item.failCount ??
+                                                item.fail_count ??
+                                                item.Failed ??
+                                                item.scoredBelowMin ??
+                                                0;
 
                                             return (
                                                 <TableRow key={index} className='hover:bg-muted/50'>
                                                     <TableCell className='text-center'>{index + 1}</TableCell>
                                                     <TableCell className='font-medium'>{className}</TableCell>
                                                     <TableCell className='text-center font-semibold text-green-600'>{passCount}</TableCell>
-                                                    <TableCell className='text-center font-semibold text-destructive'>{failCount}</TableCell>
+                                                    <TableCell className='text-center font-semibold text-destructive'>
+                                                        {failCount}
+                                                    </TableCell>
                                                 </TableRow>
                                             );
                                         })}
@@ -591,9 +643,32 @@ export default function ExamMonthEndReportPage() {
                                     <ResponsiveContainer width='100%' height='100%'>
                                         <BarChart
                                             data={reportData.map((item: any) => ({
-                                                class: item.ASMCL_ClassName || item.asmcL_ClassName || item.Class || item.class || item.className || item.class_Name || '',
-                                                pass: item.Pass ?? item.pass ?? item.PASS ?? item.ESTMP_PassCount ?? item.passCount ?? item.pass_count ?? item.Passed ?? 0,
-                                                fail: item.Fail ?? item.fail ?? item.FAIL ?? item.ESTMP_FailCount ?? item.failCount ?? item.fail_count ?? item.Failed ?? 0
+                                                class:
+                                                    item.ASMCL_ClassName ||
+                                                    item.asmcL_ClassName ||
+                                                    item.Class ||
+                                                    item.class ||
+                                                    item.className ||
+                                                    item.class_Name ||
+                                                    '',
+                                                pass:
+                                                    item.Pass ??
+                                                    item.pass ??
+                                                    item.PASS ??
+                                                    item.ESTMP_PassCount ??
+                                                    item.passCount ??
+                                                    item.pass_count ??
+                                                    item.Passed ??
+                                                    0,
+                                                fail:
+                                                    item.Fail ??
+                                                    item.fail ??
+                                                    item.FAIL ??
+                                                    item.ESTMP_FailCount ??
+                                                    item.failCount ??
+                                                    item.fail_count ??
+                                                    item.Failed ??
+                                                    0
                                             }))}
                                             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                             <CartesianGrid strokeDasharray='3 3' vertical={false} />
