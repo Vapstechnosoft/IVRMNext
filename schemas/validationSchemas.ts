@@ -283,8 +283,8 @@ export function createCustomStringSchema(field: string, min: number, max: number
         .refine((val) => !/^[0-9]+$/.test(val), { message: `${field} cannot be only numbers` });
 }
 
-export function createExamCustomStringSchema(field: string, min: number, max: number) {
-    return z
+export function createExamCustomStringSchema(field: string, min: number, max: number, allowNumbersOnly = false) {
+    const base = z
         .string({ message: `${field} is required` })
         .min(min, { message: `Minimum ${min} characters required for ${field}` })
         .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
@@ -296,10 +296,39 @@ export function createExamCustomStringSchema(field: string, min: number, max: nu
         })
         .refine((val) => /^[A-Za-z0-9][A-Za-z0-9+_\s\/!@#$%^&*(),.?":{}|<>-]*$/.test(val), {
             message: `${field} should not start with a special character`
-        })
-        .refine((val) => !/^[0-9]+$/.test(val.trim()), {
-            message: `${field} cannot contain only numbers`
         });
+
+    if (allowNumbersOnly) {
+        return base;
+    }
+
+    return base.refine((val) => !/^[0-9]+$/.test(val.trim()), {
+        message: `${field} cannot contain only numbers`
+    });
+}
+
+export function createOptionalExamCustomStringSchema(field: string, min: number, max: number, allowNumbersOnly = false) {
+    return z
+        .string()
+        .max(max, { message: `Maximum ${max} characters allowed for ${field}` })
+        .refine((value) => !value || value.length === 0 || value.trim() === value, {
+            message: `${field} cannot have leading or trailing spaces`
+        })
+        .refine((val) => !val || val.length === 0 || /[A-Za-z0-9]/.test(val), {
+            message: `${field} cannot contain only special characters`
+        })
+        .refine((val) => !val || val.length === 0 || /^[A-Za-z0-9][A-Za-z0-9+_\s\/!@#$%^&*(),.?":{}|<>-]*$/.test(val), {
+            message: `${field} should not start with a special character`
+        })
+        .refine((val) => !val || val.length === 0 || allowNumbersOnly || !/^[0-9]+$/.test(val.trim()), {
+            message: `${field} cannot contain only numbers`
+        })
+        .refine((val) => !val || val.length === 0 || val.length >= min, {
+            message: `Minimum ${min} characters required for ${field}`
+        })
+        .optional()
+        .nullable()
+        .or(z.literal(''));
 }
 
 export function createAlphaNumericSchema(field: string, min: number, max: number) {

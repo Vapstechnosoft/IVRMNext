@@ -163,13 +163,13 @@ function ExamSubjectWizardPageContent({
                     />
                 )}
 
-                <FormSections />
+                <FormSections refetchAll={refetchAll} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ refetchAll }: { refetchAll: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -183,6 +183,21 @@ function FormSections() {
         editFormRef,
         closeDetailsView
     } = useFormContext<IExamSubjectWizard>();
+
+    const handleAddSuccess = () => {
+        closeAddForm();
+        refetchAll();
+    };
+
+    const handleEditSuccess = () => {
+        closeEditForm();
+        refetchAll();
+    };
+
+    const handleToggleClose = () => {
+        closeToggleForm();
+        refetchAll();
+    };
 
     return (
         <>
@@ -205,7 +220,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddExamSubjectWizard onSuccess={closeAddForm} />
+                            <AddExamSubjectWizard onSuccess={handleAddSuccess} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -229,14 +244,14 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddExamSubjectWizard rowData={selectedRow} onSuccess={closeEditForm} />
+                            <AddExamSubjectWizard rowData={selectedRow} onSuccess={handleEditSuccess} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && <ToggleSubjectWizardForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {isToggleFormOpen && selectedRow && <ToggleSubjectWizardForm rowData={selectedRow} onClose={handleToggleClose} />}
 
             {/* Details View */}
             {isDetailsViewOpen && selectedRow && <ExamSubjectWizardDetailsPage rowData={selectedRow} onClose={closeDetailsView} />}

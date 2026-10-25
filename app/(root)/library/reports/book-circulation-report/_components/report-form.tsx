@@ -81,14 +81,17 @@ interface ReportFormProps {
     onExport: () => void;
     hasData: boolean;
     initialData: any;
+    onCancel?: () => void;
 }
 
-export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, initialData: initialDataProp }: ReportFormProps) => {
+export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, initialData: initialDataProp, onCancel }: ReportFormProps) => {
     const initialData = (initialDataProp as any)?.data || initialDataProp;
 
     // Local state for multi-select to handle UI before sync with form
     const [selectedClasses, setSelectedClasses] = useState<number[]>([]);
     const [selectedSections, setSelectedSections] = useState<number[]>([]);
+    const [resetKey, setResetKey] = useState(0);
+    const isInitializedRef = React.useRef(false);
 
     const [classSearch, setClassSearch] = useState('');
     const [sectionSearch, setSectionSearch] = useState('');
@@ -147,16 +150,50 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
         });
     }, [initialData?.sectionList]);
 
+    const libList: any[] = React.useMemo(() => {
+        const raw =
+            initialData?.lib_list ??
+            initialData?.msterliblist1 ??
+            initialData?.msterliblist ??
+            initialData?.libraryList ??
+            initialData?.libList ??
+            initialData?.library_list ??
+            [];
+        const list = Array.isArray(raw) ? raw : (raw?.data || raw?.$values || []);
+        return (Array.isArray(list) ? list : [])
+            .map((lib: any) => {
+                const id = Number(lib?.lmaL_Id ?? lib?.LMAL_Id ?? lib?.lmal_Id ?? lib?.lmal_id ?? lib?.id ?? 0);
+                const name = String(
+                    lib?.lmaL_LibraryName ??
+                        lib?.LMAL_LibraryName ??
+                        lib?.lmal_LibraryName ??
+                        lib?.libraryName ??
+                        lib?.libraryname ??
+                        lib?.name ??
+                        ''
+                );
+                return {
+                    ...lib,
+                    lmaL_Id: id,
+                    lmaL_LibraryName: name || `Library ${id}`
+                };
+            })
+            .filter((l: any) => l.lmaL_Id > 0);
+    }, [initialData]);
+
+    const defaultLibId = libList.length > 0 ? libList[0].lmaL_Id : undefined;
+
     const {
         handleSubmit,
         setValue,
         control,
         reset,
         watch,
-        formState: { errors }
+        formState: { errors, isSubmitted }
     } = useForm<ReportFormValues>({
         resolver: zodResolver(reportFormSchema),
         defaultValues: {
+            LMAL_Id: defaultLibId,
             AGType: 'Student',
             Type: 'all',
             TrnType: 'all',
@@ -173,28 +210,31 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
     const issueFromDate = useWatch({ control, name: 'IssueFromDate' });
     const dueFromDate = useWatch({ control, name: 'DueFromdate' });
 
-    // Initialize checkboxes on load
+    // Initialize library, checkboxes on initial load
     useEffect(() => {
-        if (initialData?.lib_list && initialData.lib_list.length > 0 && !watch('LMAL_Id')) {
-            setValue('LMAL_Id', initialData.lib_list[0].lmaL_Id);
+        if (!isInitializedRef.current && (libList.length > 0 || initialData?.classList?.length || sectionList?.length)) {
+            if (libList.length > 0) {
+                setValue('LMAL_Id', libList[0].lmaL_Id, { shouldValidate: false });
+            }
+            if (initialData?.classList && initialData.classList.length > 0) {
+                const allClassIds: number[] = initialData.classList.map((c: any) => c.asmcL_Id);
+                setSelectedClasses(allClassIds);
+                setValue(
+                    'selectedClasslist',
+                    allClassIds.map((id: number) => ({ asmcL_Id: id }))
+                );
+            }
+            if (sectionList && sectionList.length > 0) {
+                const allSectionIds: number[] = sectionList.map((s: any) => s.asmS_Id);
+                setSelectedSections(allSectionIds);
+                setValue(
+                    'selectedSectionlist',
+                    allSectionIds.map((id: number) => ({ asmS_Id: id }))
+                );
+            }
+            isInitializedRef.current = true;
         }
-        if (initialData?.classList && (initialData.classList.length || 0) > 0) {
-            const allClassIds: number[] = initialData.classList.map((c: any) => c.asmcL_Id);
-            setSelectedClasses(allClassIds);
-            setValue(
-                'selectedClasslist',
-                allClassIds.map((id: number) => ({ asmcL_Id: id }))
-            );
-        }
-        if (sectionList && (sectionList.length || 0) > 0) {
-            const allSectionIds: number[] = sectionList.map((s: any) => s.asmS_Id);
-            setSelectedSections(allSectionIds);
-            setValue(
-                'selectedSectionlist',
-                allSectionIds.map((id: number) => ({ asmS_Id: id }))
-            );
-        }
-    }, [initialData, sectionList, setValue, watch]);
+    }, [initialData, libList, sectionList, setValue]);
 
     const handleClassToggle = (id: number) => {
         let newSelected = [...selectedClasses];
@@ -278,20 +318,21 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                     </Label>
                     <div className='flex-1'>
                         <Select
-                            value={watch('LMAL_Id')?.toString()}
-                            onValueChange={(v) => setValue('LMAL_Id', Number(v), { shouldValidate: true })}>
+                            key={`lib-select-${resetKey}`}
+                            value={watch('LMAL_Id') ? String(watch('LMAL_Id')) : ''}
+                            onValueChange={(v) => setValue('LMAL_Id', v ? Number(v) : (undefined as any), { shouldValidate: true })}>
                             <SelectTrigger className='h-9 w-full border-slate-200 text-xs focus:ring-1 focus:ring-[#4255a7]'>
                                 <SelectValue placeholder='Select Library' />
                             </SelectTrigger>
                             <SelectContent>
-                                {initialData?.lib_list?.map((lib: any) => (
-                                    <SelectItem key={lib.lmaL_Id} value={lib.lmaL_Id.toString()} className='text-xs'>
+                                {libList.map((lib: any) => (
+                                    <SelectItem key={String(lib.lmaL_Id)} value={String(lib.lmaL_Id)} className='text-xs'>
                                         {lib.lmaL_LibraryName}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors.LMAL_Id && <p className='mt-1 text-red-500 text-xs'>{errors.LMAL_Id.message}</p>}
+                        {isSubmitted && errors.LMAL_Id && <p className='mt-1 text-red-500 text-xs'>{errors.LMAL_Id.message}</p>}
                     </div>
                 </div>
 
@@ -530,7 +571,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                     </div>
                                 </div>
                             </div>
-                            {errors.selectedClasslist && (
+                            {isSubmitted && errors.selectedClasslist && (
                                 <p className='mt-1 font-semibold text-red-500 text-xs'>{errors.selectedClasslist.message}</p>
                             )}
                         </div>
@@ -576,7 +617,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                     align='end'
                                 />
                             </div>
-                            {errors.IssueToDate && <p className='mt-1 font-semibold text-red-500 text-xs'>{errors.IssueToDate.message}</p>}
+                            {isSubmitted && errors.IssueToDate && <p className='mt-1 font-semibold text-red-500 text-xs'>{errors.IssueToDate.message}</p>}
                         </div>
 
                         <div className='space-y-2.5 rounded-lg border border-slate-200 bg-white p-3 shadow-sm'>
@@ -617,7 +658,7 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                                     align='end'
                                 />
                             </div>
-                            {errors.DueTodate && <p className='mt-1 font-semibold text-red-500 text-xs'>{errors.DueTodate.message}</p>}
+                            {isSubmitted && errors.DueTodate && <p className='mt-1 font-semibold text-red-500 text-xs'>{errors.DueTodate.message}</p>}
                         </div>
                     </div>
                 </div>
@@ -638,11 +679,16 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                     className='h-9 w-32 rounded-md bg-[#ff5a30] font-semibold text-white text-xs uppercase tracking-wider shadow-sm hover:bg-[#e64d26]'
                     onClick={() => {
                         reset({
+                            LMAL_Id: undefined,
                             AGType: 'Student',
                             Type: 'all',
                             TrnType: 'all',
                             Issuecount: false,
+                            IssueFromDate: undefined,
+                            IssueToDate: undefined,
                             Duecount: false,
+                            DueFromdate: undefined,
+                            DueTodate: undefined,
                             selectedClasslist: [],
                             selectedSectionlist: []
                         });
@@ -650,6 +696,8 @@ export const ReportForm = ({ onSearch, isLoading, onPrint, onExport, hasData, in
                         setSelectedSections([]);
                         setClassSearch('');
                         setSectionSearch('');
+                        setResetKey((prev) => prev + 1);
+                        onCancel?.();
                     }}>
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL

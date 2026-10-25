@@ -265,12 +265,29 @@ export default function AddNoticeBoardForm({
             };
 
             const result = await saveNoticeBoardDetail(payload);
-            if (result?.success) {
-                toast.success(result.message || 'Notice sent successfully');
+            const isSuccess =
+                result?.success === true ||
+                result?.returnval === true ||
+                result?.returnval === 'true' ||
+                result?.returnVal === true ||
+                result?.returnVal === 'true' ||
+                result?.returnval === 'Save' ||
+                result?.returnval === 'Update' ||
+                result?.returnVal === 'Saved' ||
+                result?.returnVal === 'Saved successfully';
+
+            if (isSuccess) {
+                const successMsg =
+                    (typeof result?.message === 'string' && result.message) ||
+                    (typeof result?.returnVal === 'string' && result.returnVal) ||
+                    'Notice sent successfully';
+                toast.success(successMsg);
                 onSuccess();
                 reset();
+            } else if (result?.returnval === false || result?.dulicate === true || result?.duplicate === true) {
+                toast.error(typeof result?.message === 'string' ? result.message : 'Notice already exists or duplicate record found.');
             } else {
-                toast.error(result?.message || 'Failed to send notice');
+                toast.error(typeof result?.message === 'string' ? result.message : 'Failed to send notice');
             }
         } catch (error: any) {
             console.error('Save Error:', error);
@@ -278,9 +295,23 @@ export default function AddNoticeBoardForm({
         }
     };
 
+    const onError = (errors: any) => {
+        console.error('Validation errors:', errors);
+        const errorValues = Object.values(errors);
+        if (errorValues.length > 0) {
+            const firstError: any = errorValues[0];
+            const message =
+                firstError?.message ||
+                firstError?.root?.message ||
+                (Array.isArray(firstError) && firstError[0]?.message) ||
+                'Please fill all required fields correctly.';
+            toast.error(typeof message === 'string' ? message : 'Please fill all required fields correctly.');
+        }
+    };
+
     return (
         <div className='flex w-full flex-col gap-6'>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
+            <form onSubmit={handleSubmit(onSubmit, onError)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
                 {/* Selection Type Toggles */}
                 <div className='flex flex-wrap gap-6 border-b pb-4'>
                     <Controller
