@@ -252,7 +252,7 @@ export const gradeMasterSchema = z
             // Pay Scale To must be greater than Pay Scale From
             // Handle edge cases where values might be undefined
             if (data.hrmG_PayScaleFrom === undefined || data.hrmG_PayScaleTo === undefined) return true;
-            return data.hrmG_PayScaleTo > data.hrmG_PayScaleFrom;
+            return data.hrmG_PayScaleTo >= data.hrmG_PayScaleFrom;
         },
         {
             message: 'Pay Scale To must be greater than Pay Scale From',
