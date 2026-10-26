@@ -57,6 +57,9 @@ export default function UpdateNoticeBoardForm({
     const [employees, setEmployees] = useState<any[]>([]);
     const [filteredDesgList, setFilteredDesgList] = useState<any[]>(desgList);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const [isStartDateOpen, setIsStartDateOpen] = useState(false);
+    const [isEndDateOpen, setIsEndDateOpen] = useState(false);
+    const [isDisplayDateOpen, setIsDisplayDateOpen] = useState(false);
     const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
     const methods = useForm<INoticeBoard>({
@@ -329,15 +332,46 @@ export default function UpdateNoticeBoardForm({
             };
 
             const result = await saveNoticeBoardDetail(payload);
-            if (result?.success) {
-                toast.success(result.message || 'Notice updated successfully');
+            const isSuccess =
+                result?.success === true ||
+                result?.returnval === true ||
+                result?.returnval === 'true' ||
+                result?.returnVal === true ||
+                result?.returnVal === 'true' ||
+                result?.returnval === 'Save' ||
+                result?.returnval === 'Update' ||
+                result?.returnVal === 'Saved' ||
+                result?.returnVal === 'Saved successfully';
+
+            if (isSuccess) {
+                const successMsg =
+                    (typeof result?.message === 'string' && result.message) ||
+                    (typeof result?.returnVal === 'string' && result.returnVal) ||
+                    'Notice updated successfully';
+                toast.success(successMsg);
                 onSuccess();
+            } else if (result?.returnval === false || result?.dulicate === true || result?.duplicate === true) {
+                toast.error(typeof result?.message === 'string' ? result.message : 'Notice already exists or duplicate record found.');
             } else {
-                toast.error(result?.message || 'Failed to update notice');
+                toast.error(typeof result?.message === 'string' ? result.message : 'Failed to update notice');
             }
         } catch (error: any) {
             console.error('Update Error:', error);
             toast.error(error?.message || error || 'Error occurred while updating notice');
+        }
+    };
+
+    const onError = (errors: any) => {
+        console.error('Validation errors:', errors);
+        const errorValues = Object.values(errors);
+        if (errorValues.length > 0) {
+            const firstError: any = errorValues[0];
+            const message =
+                firstError?.message ||
+                firstError?.root?.message ||
+                (Array.isArray(firstError) && firstError[0]?.message) ||
+                'Please fill all required fields correctly.';
+            toast.error(typeof message === 'string' ? message : 'Please fill all required fields correctly.');
         }
     };
 
@@ -351,7 +385,7 @@ export default function UpdateNoticeBoardForm({
 
     return (
         <div className='flex w-full flex-col gap-6'>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
+            <form onSubmit={handleSubmit(onSubmit, onError)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
                 {/* Selection Type Toggles */}
                 <div className='flex flex-wrap gap-6 border-b pb-4'>
                     <Controller
@@ -460,7 +494,7 @@ export default function UpdateNoticeBoardForm({
                                 <Label>
                                     Start Date <span className='text-red-500'>*</span>
                                 </Label>
-                                <Popover>
+                                <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={'outline'}
@@ -470,7 +504,15 @@ export default function UpdateNoticeBoardForm({
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={(date) => {
+                                                field.onChange(date);
+                                                setIsStartDateOpen(false);
+                                            }}
+                                            initialFocus
+                                        />
                                     </PopoverContent>
                                 </Popover>
                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -487,7 +529,7 @@ export default function UpdateNoticeBoardForm({
                                 <Label>
                                     End Date <span className='text-red-500'>*</span>
                                 </Label>
-                                <Popover>
+                                <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={'outline'}
@@ -497,7 +539,15 @@ export default function UpdateNoticeBoardForm({
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={(date) => {
+                                                field.onChange(date);
+                                                setIsEndDateOpen(false);
+                                            }}
+                                            initialFocus
+                                        />
                                     </PopoverContent>
                                 </Popover>
                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -531,7 +581,7 @@ export default function UpdateNoticeBoardForm({
                                     <Label>
                                         Display Date <span className='text-red-500'>*</span>
                                     </Label>
-                                    <Popover>
+                                    <Popover open={isDisplayDateOpen} onOpenChange={setIsDisplayDateOpen}>
                                         <PopoverTrigger asChild>
                                             <Button
                                                 variant={'outline'}
@@ -547,7 +597,10 @@ export default function UpdateNoticeBoardForm({
                                             <Calendar
                                                 mode='single'
                                                 selected={field.value || undefined}
-                                                onSelect={field.onChange}
+                                                onSelect={(date) => {
+                                                    field.onChange(date);
+                                                    setIsDisplayDateOpen(false);
+                                                }}
                                                 initialFocus
                                             />
                                         </PopoverContent>

@@ -115,7 +115,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                     pasrpS_Address: ''
                 }
             ],
-            siblingsDetails: []
+            siblingsDetails: [],
+            pasR_TransportReqdFlag: undefined
         }
     });
 
@@ -326,15 +327,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         } else if (currentStep === 3) {
             fieldsToValidate = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
 
-            if (!fatherPhoto?.pasR_FatherPhoto) {
-                toast.error('Please upload father photo');
-                return;
-            }
 
-            if (!motherPhoto?.pasR_MotherPhoto) {
-                toast.error('Please upload mother photo');
-                return;
-            }
             // Validate optional phone fields if they have values
             const phoneFieldsToCheck = [
                 { name: 'pasR_FatherMobleNo', label: 'Father mobile number' },
@@ -365,7 +358,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             const mandatoryDocs =
                 preadmissionDocuments?.data?.filter((doc) => {
                     // Check if document is mandatory by default
-                    if (doc.amsmD_FLAG) return true;
+                    const isFlagMandatory =
+                        doc.amsmD_FLAG === true || (doc.amsmD_FLAG as any) === 'true' || (doc.amsmD_FLAG as any) === 1;
+                    if (isFlagMandatory) return true;
 
                     // Make Baptism Certificate mandatory for Roman Catholic religion
                     if (doc.amsmD_DocumentName === 'Baptism Certificate' && isRomanCatholic) {
@@ -430,30 +425,29 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             return;
         }
 
-        if (!fatherPhoto?.pasR_FatherPhoto) {
-            toast.error('Please upload father photo');
-            setCurrentStep(3);
-            return;
-        }
 
-        if (!motherPhoto?.pasR_MotherPhoto) {
-            toast.error('Please upload mother photo');
-            setCurrentStep(3);
-            return;
-        }
-
-        // Add baptism certificate validation for Roman Catholic
+        // Validate mandatory documents before submission
         const selectedReligionId = watch('religion_Id');
         const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
         const isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
 
-        if (isRomanCatholic) {
-            const baptismDoc = preadmissionDocuments?.data?.find((doc) => doc.amsmD_DocumentName === 'Baptism Certificate');
-            if (baptismDoc && !isDocumentUploaded(baptismDoc.amsmD_Id)) {
-                toast.error('Baptism Certificate is required for Roman Catholic religion');
-                setCurrentStep(4);
-                return;
-            }
+        const mandatoryDocs =
+            preadmissionDocuments?.data?.filter((doc) => {
+                const isFlagMandatory =
+                    doc.amsmD_FLAG === true || (doc.amsmD_FLAG as any) === 'true' || (doc.amsmD_FLAG as any) === 1;
+                if (isFlagMandatory) return true;
+                if (doc.amsmD_DocumentName === 'Baptism Certificate' && isRomanCatholic) {
+                    return true;
+                }
+                return false;
+            }) || [];
+
+        const missingDocs = mandatoryDocs.filter((doc) => !isDocumentUploaded(doc.amsmD_Id));
+        if (missingDocs.length > 0) {
+            const docNames = missingDocs.map((doc) => doc.amsmD_DocumentName).join(', ');
+            toast.error(`Please upload mandatory documents: ${docNames}`);
+            setCurrentStep(4);
+            return;
         }
 
         if (data.pasR_UndertakingFlag === 0) {
@@ -525,12 +519,22 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                 })),
                 examSubjectDTO: [],
                 elesubsubject: [],
-                selectedDocuments: uploadedDocuments.map((doc) => ({
-                    pasrD_Id: doc.pasrD_Id,
-                    pasR_Id: doc.pasR_Id,
-                    amsmD_Id: doc.amsmD_Id,
-                    document_Path: doc.document_Path
-                })),
+                selectedDocuments: uploadedDocuments
+                    .filter((doc) => Boolean(doc.document_Path) && !doc.isUploading)
+                    .map((doc) => ({
+                        pasrD_Id: doc.pasrD_Id || 0,
+                        pasR_Id: doc.pasR_Id || 0,
+                        amsmD_Id: doc.amsmD_Id,
+                        document_Path: doc.document_Path
+                    })),
+                student_documents: uploadedDocuments
+                    .filter((doc) => Boolean(doc.document_Path) && !doc.isUploading)
+                    .map((doc) => ({
+                        pasrD_Id: doc.pasrD_Id || 0,
+                        pasR_Id: doc.pasR_Id || 0,
+                        amsmD_Id: doc.amsmD_Id,
+                        document_Path: doc.document_Path
+                    })),
                 PASR_RegistrationNo: '',
                 pasA_WillingToContributeFlg: pasA_WillingToContributeFlg === 1,
                 pasP_Id: 0
@@ -636,21 +640,26 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     const getExpectedPhoneLength = (countryData: any): number | undefined => {
         if (!countryData) return undefined;
 
-        const format = countryData?.format;
-        if (format && typeof format === 'string') {
-            const placeholders = (format.match(/[0-9xX\.\#9]/g) || []).length;
-            if (placeholders > 0) return placeholders;
-        }
-
         const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
         const fallback: Record<string, number> = {
-            '91': 10,
+            '91': 12,
             '1': 10,
             '44': 10,
             '61': 9
         };
 
-        return fallback[dial] ?? undefined;
+        if (fallback[dial]) return fallback[dial];
+
+        const format = countryData?.format;
+        if (format && typeof format === 'string') {
+            const placeholders = (format.match(/[0-9xX\.\#9]/g) || []).length;
+            if (placeholders > 0) {
+                const dialCodeLength = String(countryData.dialCode ?? '').length;
+                return placeholders > dialCodeLength ? placeholders - dialCodeLength : placeholders;
+            }
+        }
+
+        return undefined;
     };
 
     const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
@@ -668,11 +677,17 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         if (numberPart.startsWith(countryCode)) {
             numberPart = numberPart.slice(String(countryCode).length);
         }
+        const expected = getExpectedPhoneLength(countryData);
+
+        if (expected && numberPart.length > expected) {
+            numberPart = numberPart.slice(0, expected);
+        }
+
+        const rawPhone = countryCode + numberPart;
         const formattedPhone = `+${countryCode} ${numberPart}`;
-        setPhoneValues((prev) => ({ ...prev, [fieldName]: formattedPhone }));
+        setPhoneValues((prev) => ({ ...prev, [fieldName]: rawPhone }));
         setValue(fieldName as any, formattedPhone);
 
-        const expected = getExpectedPhoneLength(countryData);
         setPhoneExpectedInfo((prev) => ({
             ...prev,
             [fieldName]: {
@@ -887,7 +902,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     };
 
     const isDocumentUploaded = (amsmD_Id: number) => {
-        return uploadedDocuments.some((doc) => doc.amsmD_Id === amsmD_Id);
+        return uploadedDocuments.some((doc) => doc.amsmD_Id === amsmD_Id && Boolean(doc.document_Path) && !doc.isUploading);
     };
 
     const getUploadedDocument = (amsmD_Id: number) => {
@@ -901,9 +916,10 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         console.log('preadmissionClass:', preadmissionClass);
 
         if (!date || !masterConfig?.data) {
-            console.log('Date or masterConfig missing. Defaulting to all classes.');
-            setIsClassDisabled(false);
-            setFilteredClasses(preadmissionClass?.data || []);
+            console.log('Date or masterConfig missing. Disabling class dropdown.');
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
             return;
         }
 
@@ -942,7 +958,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
     // Reactively validate classes when DOB or config/master data changes
     useEffect(() => {
         const dob = getValues('pasR_DOB');
-        handleDOBChange(dob);
+        if (dob) {
+            handleDOBChange(dob);
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [watch('pasR_DOB'), masterConfig, preadmissionClass]);
 
@@ -1145,8 +1163,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-400'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1195,8 +1213,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-500'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -1398,7 +1416,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             <InputText
                                                 label='Middle Name'
-                                                required
                                                 id='pasR_MiddleName'
                                                 placeholder='Enter middle name'
                                                 {...register('pasR_MiddleName')}
@@ -1406,7 +1423,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                             />
                                             <InputText
                                                 label='Last Name'
-                                                required
                                                 id='pasR_LastName'
                                                 placeholder='Enter last name'
                                                 {...register('pasR_LastName')}
@@ -1499,14 +1515,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                 enableSearch
                                                                 disableCountryCode={false}
-                                                                enableLongNumbers={true}
+                                                                enableLongNumbers={false}
                                                                 isValid={true}
                                                                 preserveOrder={['country', 'nationalNumber']}
                                                             />
                                                             {phoneExpectedInfo.pasR_MobileNo?.expected && (
                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
-                                                                        }`}
+                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${
+                                                                        phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
+                                                                    }`}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1651,7 +1668,11 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 disabled={isClassDisabled}>
                                                                 <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
                                                                     <SelectValue
-                                                                        placeholder='Please select the class name'
+                                                                        placeholder={
+                                                                            isClassDisabled
+                                                                                ? 'Please select Date of Birth first'
+                                                                                : 'Select a class'
+                                                                        }
                                                                     />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
@@ -1831,9 +1852,9 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
-                                                            key={field.value || 'empty'}
+                                                            allowZero={true}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || ''}>
+                                                            value={field.value !== undefined && field.value !== null ? String(field.value) : undefined}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select option' />
                                                             </SelectTrigger>
@@ -1976,15 +1997,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             rules={
                                                                 conZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2166,15 +2187,15 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                             rules={
                                                                 perZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2245,7 +2266,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
                                                             <div className='mb-1'>
                                                                 <Label htmlFor='father_photo'>
-                                                                    Father Photo <span className='ml-1 text-red-500'>*</span>
+                                                                    Father Photo
                                                                 </Label>
                                                             </div>
 
@@ -2496,15 +2517,16 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
                                                                     {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_FatherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_FatherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -2572,7 +2594,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                         <div className='rounded-lg border-2 border-blue-200 bg-blue-50 p-2'>
                                                             <div className='mb-1'>
                                                                 <Label htmlFor='mother_photo'>
-                                                                    Mother Photo <span className='ml-1 text-red-500'>*</span>
+                                                                    Mother Photo
                                                                 </Label>
                                                             </div>
 
@@ -2823,15 +2845,16 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
                                                                     {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_MotherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -2930,7 +2953,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
@@ -3012,7 +3035,6 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                 <tr
                                                                     key={document.amsmD_Id}
                                                                     className={(() => {
-                                                                        // Get selected religion details
                                                                         const selectedReligionId = watch('religion_Id');
                                                                         const selectedReligion = religion?.data?.find(
                                                                             (r) => r.ivrmmR_Id === selectedReligionId
@@ -3020,20 +3042,23 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         const isRomanCatholic =
                                                                             selectedReligion?.ivrmmR_Name === 'Roman Catholic';
 
-                                                                        // Check if this document is conditionally mandatory
                                                                         const isConditionallyMandatory =
                                                                             document.amsmD_DocumentName === 'Baptism Certificate' &&
                                                                             isRomanCatholic;
 
-                                                                        const isMandatory = document.amsmD_FLAG || isConditionallyMandatory;
+                                                                        const isFlagMandatory =
+                                                                            document.amsmD_FLAG === true ||
+                                                                            (document.amsmD_FLAG as any) === 'true' ||
+                                                                            (document.amsmD_FLAG as any) === 1;
 
-                                                                        if (uploadedDoc && !isUploading) return 'bg-green-50';
-                                                                        if (isMandatory) return 'bg-orange-50';
-                                                                        return '';
+                                                                        const isMandatory = isFlagMandatory || isConditionallyMandatory;
+
+                                                                        if (uploadedDoc && !isUploading) return 'bg-green-50/60 hover:bg-green-50';
+                                                                        if (isMandatory) return 'bg-red-50/30 hover:bg-red-50/50';
+                                                                        return 'hover:bg-gray-50/50';
                                                                     })()}>
                                                                     <td className='whitespace-nowrap px-6 py-4'>
                                                                         {(() => {
-                                                                            // Get selected religion details
                                                                             const selectedReligionId = watch('religion_Id');
                                                                             const selectedReligion = religion?.data?.find(
                                                                                 (r) => r.ivrmmR_Id === selectedReligionId
@@ -3041,33 +3066,52 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                             const isRomanCatholic =
                                                                                 selectedReligion?.ivrmmR_Name === 'Roman Catholic';
 
-                                                                            // Check if this document is conditionally mandatory
                                                                             const isConditionallyMandatory =
                                                                                 document.amsmD_DocumentName === 'Baptism Certificate' &&
                                                                                 isRomanCatholic;
 
-                                                                            const isMandatory =
-                                                                                document.amsmD_FLAG || isConditionallyMandatory;
+                                                                            const isFlagMandatory =
+                                                                                document.amsmD_FLAG === true ||
+                                                                                (document.amsmD_FLAG as any) === 'true' ||
+                                                                                (document.amsmD_FLAG as any) === 1;
+
+                                                                            const isMandatory = isFlagMandatory || isConditionallyMandatory;
 
                                                                             return (
-                                                                                <>
+                                                                                <div>
                                                                                     <div className='flex items-center gap-2'>
                                                                                         <span className='font-semibold text-gray-900 text-sm'>
                                                                                             {document.amsmD_DocumentName}
                                                                                         </span>
                                                                                         {isMandatory && (
-                                                                                            <span className='text-red-500'>*</span>
+                                                                                            <span className='font-bold text-red-500'>*</span>
                                                                                         )}
                                                                                     </div>
-                                                                                    <p className='mt-0.5 text-gray-500 text-xs'>
-                                                                                        {isMandatory ? 'Required' : 'Optional'}
-                                                                                        {isConditionallyMandatory && (
-                                                                                            <span className='ml-1 text-orange-600'>
-                                                                                                (for Roman Catholic)
+                                                                                    {document.amsmD_Description &&
+                                                                                        document.amsmD_Description.trim() !== '' &&
+                                                                                        document.amsmD_Description.trim().toLowerCase() !==
+                                                                                            document.amsmD_DocumentName.trim().toLowerCase() && (
+                                                                                            <p className='mt-0.5 max-w-sm truncate text-gray-500 text-xs'>
+                                                                                                {document.amsmD_Description}
+                                                                                            </p>
+                                                                                        )}
+                                                                                    <div className='mt-1 flex items-center gap-1.5'>
+                                                                                        {isMandatory ? (
+                                                                                            <span className='inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 font-medium text-red-800 text-xs'>
+                                                                                                Mandatory
+                                                                                            </span>
+                                                                                        ) : (
+                                                                                            <span className='inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 font-medium text-gray-600 text-xs'>
+                                                                                                Not Mandatory
                                                                                             </span>
                                                                                         )}
-                                                                                    </p>
-                                                                                </>
+                                                                                        {isConditionallyMandatory && (
+                                                                                            <span className='font-medium text-orange-600 text-xs'>
+                                                                                                (Required for Roman Catholic)
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
                                                                             );
                                                                         })()}
                                                                     </td>
@@ -3643,8 +3687,8 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                             classes={ineligibleClasses}
                             cutOffDate={
                                 masterConfig?.data &&
-                                    masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                    masterConfig.data.asmaY_Cut_Of_Date
+                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                masterConfig.data.asmaY_Cut_Of_Date
                                     ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
                                     : new Date()
                             }

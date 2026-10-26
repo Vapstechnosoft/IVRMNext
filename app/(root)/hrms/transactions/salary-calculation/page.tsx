@@ -302,7 +302,7 @@ export default function SalaryCalculationPage() {
         const payload: NewSalaryCalculationGenerateRequest = {
             hreS_Year: currentSearchData.salaryYear,
             hreS_Month: currentSearchData.salaryMonth,
-            comm: 'bank',
+            comm: 'bank', //"cashbank",
             masterEmployeeList: selectedEmployees.map((empId) => ({
                 hrmE_Id: empId,
                 type: 'bank',

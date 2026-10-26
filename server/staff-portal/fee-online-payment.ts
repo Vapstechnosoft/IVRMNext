@@ -1,6 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import type { IGroupTermMapping } from '@/types/student-portal/masters/fee_online_payment';
 
 export interface AcademicYear {
     asmaY_Id: number;
@@ -21,6 +22,8 @@ export interface StudentInfo {
     amst_mobile: number;
     asmaY_Id: number;
     amaY_RollNo: string;
+    mI_Id?: number;
+    MI_Id?: number;
 }
 
 export interface FeeGroup {
@@ -84,27 +87,72 @@ export async function getAcademicYears(): Promise<AcademicYear[]> {
     }
 }
 
-export async function getStudentInformation(academicYearId: number): Promise<{
+export interface FeeSummaryDetails {
+    charges: number;
+    paid: number;
+    outstanding: number;
+    concession: number;
+}
+
+export async function getStudentInformation(
+    academicYearId: number,
+    feeConfig: any,
+    amst_Id: number
+): Promise<{
     studentInfo: StudentInfo | null;
-    groupTermMappings: GroupTermMapping[];
+    groupTermMappings: IGroupTermMapping[];
     feeConfig: any;
+    filonlinepaymentgrid?: FeeStructure[];
+    feeSummary?: FeeSummaryDetails;
+    fillpaymentgateway?: any[];
+    mI_Id?: number;
 }> {
     try {
-        //const url = '/OnlinePayment/getalldetails';
-        const url = '/OnlinePayment/student-information';
+        const url = '/FeeOnlinePaymentFacade/getdetails';
+        //const url = '/OnlinePayment/student-information';
 
-        const response = await api.post<any>('portal', url, {
+        const response = await api.post<any>('fees', url, {
+            configset: feeConfig,
+            MI_Id: 0,
             ASMAY_Id: academicYearId,
-            configset: 'group'
+            Amst_Id: amst_Id
         });
 
         if (!response.data) {
             throw new Error('Failed to fetch student information');
         }
-        console.log('Server Action received response:', JSON.stringify(response, null, 2));
+        //console.log('Server Action received response:', JSON.stringify(response, null, 2));
+
+        const grid: FeeStructure[] = response.data?.filonlinepaymentgrid || response.data?.fillstudentviewdetails || [];
+
+        const charges =
+            grid.length > 0
+                ? grid.reduce((acc: number, curr: any) => acc + (Number(curr.fsS_NetAmount) || 0), 0)
+                : Number(response.data?.fsS_NetAmount || 0);
+        const paid =
+            grid.length > 0
+                ? grid.reduce((acc: number, curr: any) => acc + (Number(curr.fsS_PaidAmount) || 0), 0)
+                : Number(response.data?.fsS_PaidAmount || 0);
+        const outstanding =
+            grid.length > 0
+                ? grid.reduce((acc: number, curr: any) => acc + (Number(curr.fsS_ToBePaid) || 0), 0)
+                : Number(response.data?.fsS_ToBePaid || 0);
+        const concession =
+            grid.length > 0
+                ? grid.reduce((acc: number, curr: any) => acc + (Number(curr.fsS_ConcessionAmount) || 0), 0)
+                : Number(response.data?.fsS_ConcessionAmount || 0);
+
+        const termList = response.data?.termlist || response.data?.termlst || [];
 
         return {
             studentInfo: response.data?.fillstudent?.[0] || null,
+            mI_Id:
+                response.data?.mI_Id ||
+                response.data?.MI_Id ||
+                response.data?.fillstudent?.[0]?.mI_Id ||
+                response.data?.fillstudent?.[0]?.MI_Id ||
+                response.data?.institutiondet?.[0]?.mI_Id ||
+                0,
             groupTermMappings:
                 response.data?.customgrplist?.map((group: any) => ({
                     grp: {
@@ -114,24 +162,45 @@ export async function getStudentInformation(academicYearId: number): Promise<{
                         grpdisable: false
                     },
                     trm_list:
-                        response.data?.termlist
+                        termList
                             ?.filter((term: any) => term.fmgG_Id === group.fmgG_Id)
                             ?.map((term: any) => ({
+                                ...term,
                                 fmT_Id: term.fmT_Id,
                                 fmT_Name: term.fmT_Name,
                                 fmgG_Id: term.fmgG_Id,
+                                fmgG_GroupName: group.fmgG_GroupName,
+                                fmT_Amount: term.fmT_Amount ?? term.payable ?? 0,
+                                fmT_Order: term.fmT_Order ?? 0,
+                                preAdmFlag: term.preAdmFlag ?? false,
                                 checkedheadlst: false,
-                                termdisablechk: false
+                                termdisablechk: term.payable ? Number(term.payable) <= Number(term.paid || 0) : false
                             })) || []
                 })) || [],
-            feeConfig: response.data?.readterms?.[0] || null
+            feeConfig: response.data?.readterms?.[0] || null,
+            filonlinepaymentgrid: grid,
+            fillpaymentgateway: response.data?.fillpaymentgateway || [],
+            feeSummary: {
+                charges,
+                paid,
+                outstanding,
+                concession
+            }
         };
     } catch (error) {
         console.error('Error fetching student information:', error);
         return {
             studentInfo: null,
             groupTermMappings: [],
-            feeConfig: null
+            feeConfig: null,
+            filonlinepaymentgrid: [],
+            fillpaymentgateway: [],
+            feeSummary: {
+                charges: 0,
+                paid: 0,
+                outstanding: 0,
+                concession: 0
+            }
         };
     }
 }

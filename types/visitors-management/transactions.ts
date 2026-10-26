@@ -5,14 +5,20 @@ export interface VisitorTransactionData {
     vmmV_VisitorEmailid: string;
     vmmV_MeetingDateTime: string; // ISO String
     vmmV_EntryDateTime: string;
-    vmmV_FromPlace: string;
-    empname?: string; // For display
+    vmmV_FromPlace?: string;
+    empname?: string; // To Meet
     vmmV_MeetingPurpose: string;
-    vmmV_FromAddress: string;
-    vmmV_MeetingLocation: string;
+    vmmV_FromAddress?: string;
+    vmmV_MeetingLocation?: string;
     vmmV_VisitorPhoto?: string;
-    vmmV_ExitDate?: string; // Potential future field
-    vmmV_ExitTime?: string; // Potential future field
+    vmmV_ExitDate?: string;
+    vmmV_ExitTime?: string;
+    vmmV_BlockedFlg?: boolean;
+    vmmV_IDCardNo?: string;
+    vmmV_CkeckedInOutStatus?: string; // Checked In / Checked Out
+    multivisitor?: any[];
+    files?: any[];
+    assignedDetails?: any;
 }
 
 export interface AddVisitorInitialData {

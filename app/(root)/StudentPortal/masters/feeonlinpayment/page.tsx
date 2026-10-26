@@ -1,10 +1,12 @@
+import { Suspense } from 'react';
 import FeeOnlinePaymentClient from './_components/fee-online-payment-client';
-import { getFeeOnlinePaymentLoadData } from './actions';
 
-export default async function FeeOnlinePaymentPage() {
+export default function FeeOnlinePaymentPage() {
     return (
         <div className='container mx-auto max-w-7xl p-4'>
-            <FeeOnlinePaymentClient />
+            <Suspense fallback={<div className='p-8 text-center text-muted-foreground'>Loading...</div>}>
+                <FeeOnlinePaymentClient />
+            </Suspense>
         </div>
     );
 }

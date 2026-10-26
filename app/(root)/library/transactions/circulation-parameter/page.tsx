@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { Form } from '@/components/ui/form';
+import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import {
     useCirculationData,
     useCirculationParameterDetails,
@@ -23,6 +24,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { CirculationParameterForm } from './_components/CirculationParameterForm';
 import { createCirculationParameterColumns } from './_components/columns';
 import { ToggleCirculationParameterDialog } from './_components/toggle-dialog';
@@ -162,7 +164,9 @@ export default function CirculationParameterPage() {
     }, [details]);
 
     const departmentList: IDepartmentItem[] = useMemo(() => {
-        return extractList(getField(details, 'departmentlist', 'departmentList', 'filldepartment', 'filldept', 'deptlist', 'dept_list', 'fillDepartment'));
+        return extractList(
+            getField(details, 'departmentlist', 'departmentList', 'filldepartment', 'filldept', 'deptlist', 'dept_list', 'fillDepartment')
+        );
     }, [details]);
 
     const guestList: IGuestItem[] = useMemo(() => {
@@ -198,9 +202,7 @@ export default function CirculationParameterPage() {
         categoryMutation.mutate(payload, {
             onSuccess: (res: any) => {
                 const innerRes = resolveDetails(res);
-                const dynamicCat = extractList(
-                    getField(innerRes, 'categorylist', 'categoryList', 'categories', 'fillcategory')
-                );
+                const dynamicCat = extractList(getField(innerRes, 'categorylist', 'categoryList', 'categories', 'fillcategory'));
 
                 if (dynamicCat.length > 0) {
                     setCategoryListState(dynamicCat);
@@ -216,9 +218,13 @@ export default function CirculationParameterPage() {
     }, [bookParameterFlag, fetchNonBookCategories]);
 
     // Name lookup maps for table enrichment
-    const classMap = useMemo(() => new Map(classList.map((c: any) => [c.asmcL_Id ?? c.asmcl_id ?? c.ASMCL_Id, c.asmcL_ClassName ?? c.className])), [classList]);
+    const classMap = useMemo(
+        () => new Map(classList.map((c: any) => [c.asmcL_Id ?? c.asmcl_id ?? c.ASMCL_Id, c.asmcL_ClassName ?? c.className])),
+        [classList]
+    );
     const employeeGroupMap = useMemo(
-        () => new Map(employeeGroupList.map((e: any) => [e.hrmgT_Id ?? e.hrmgt_id ?? e.HRMGT_Id, e.hrmgT_EmployeeGroupType ?? e.groupName])),
+        () =>
+            new Map(employeeGroupList.map((e: any) => [e.hrmgT_Id ?? e.hrmgt_id ?? e.HRMGT_Id, e.hrmgT_EmployeeGroupType ?? e.groupName])),
         [employeeGroupList]
     );
     const departmentMap = useMemo(
@@ -240,14 +246,26 @@ export default function CirculationParameterPage() {
         const parentLnbcpaId = Number(getField(details, 'LNBCPA_Id', 'lnbcpA_Id', 'lnbcpa_Id') ?? 0);
         const defaultItems = Number(getField(details, 'max_Issue_Items', 'max_issue_items', 'Max_Issue_Items', 'lbcpaS_NoOfItems') ?? 3);
         const defaultDays = Number(getField(details, 'max_Issue_Days', 'max_issue_days', 'Max_Issue_Days', 'lbcpaS_IssueDays') ?? 8);
-        const defaultRenewals = Number(getField(details, 'max_No_Renewals', 'max_no_renewals', 'Max_No_Renewals', 'lbcpaS_NoOfRenewals') ?? 3);
+        const defaultRenewals = Number(
+            getField(details, 'max_No_Renewals', 'max_no_renewals', 'Max_No_Renewals', 'lbcpaS_NoOfRenewals') ?? 3
+        );
 
         const currentIssuer = (issuerType || 'STUDENT').toUpperCase();
         const isNbp = bookParameterFlag === 'NBP';
 
         // 1. First priority: Check allCirculationData returned from onload API
         const allCircList = extractList(
-            getField(details, 'allCirculationData', 'allCirculationList', 'allcirculationdata', 'circulation_list', 'circulationList', 'alldata', 'griddata', 'saveddata')
+            getField(
+                details,
+                'allCirculationData',
+                'allCirculationList',
+                'allcirculationdata',
+                'circulation_list',
+                'circulationList',
+                'alldata',
+                'griddata',
+                'saveddata'
+            )
         );
 
         if (allCircList.length > 0) {
@@ -265,10 +283,13 @@ export default function CirculationParameterPage() {
                 return matchesIssuer && matchesBookFlag;
             });
 
-            const rowsToMap = matchingRows.length > 0 ? matchingRows : allCircList.filter((row: any) => {
-                const rowIssuer = (row.lbcpA_Flg || row.issuertype1 || row.schclgflag || '').toUpperCase();
-                return !rowIssuer || rowIssuer === currentIssuer;
-            });
+            const rowsToMap =
+                matchingRows.length > 0
+                    ? matchingRows
+                    : allCircList.filter((row: any) => {
+                          const rowIssuer = (row.lbcpA_Flg || row.issuertype1 || row.schclgflag || '').toUpperCase();
+                          return !rowIssuer || rowIssuer === currentIssuer;
+                      });
 
             if (rowsToMap.length > 0) {
                 return rowsToMap.map((row: any) => {
@@ -279,11 +300,24 @@ export default function CirculationParameterPage() {
                     const guestId = Number(row.guest_Id || row.guest_id || (rowIssuer === 'GUEST' ? row.type_Id : undefined) || 0);
                     const catId = Number(row.lmC_Id || row.lmc_id || (isNbp ? row.type_Id : undefined) || 0);
 
-                    const className = row.asmcL_ClassName || (classId ? classMap.get(classId) : undefined) || (rowIssuer === 'STUDENT' ? row.type_Name : undefined);
-                    const empGroupName = row.hrmgT_EmployeeGroupType || (empId ? employeeGroupMap.get(empId) : undefined) || (rowIssuer === 'STAFF' ? row.type_Name : undefined);
-                    const deptName = row.hrmD_DepartmentName || (deptId ? departmentMap.get(deptId) : undefined) || (rowIssuer === 'DEPARTMENT' ? row.type_Name : undefined);
-                    const guestName = row.guest_Name || (guestId ? guestMap.get(guestId) : undefined) || (rowIssuer === 'GUEST' ? row.type_Name : undefined);
-                    const catName = row.lmC_CategoryName || (catId ? categoryMap.get(catId) : undefined) || (isNbp ? row.type_Name : undefined);
+                    const className =
+                        row.asmcL_ClassName ||
+                        (classId ? classMap.get(classId) : undefined) ||
+                        (rowIssuer === 'STUDENT' ? row.type_Name : undefined);
+                    const empGroupName =
+                        row.hrmgT_EmployeeGroupType ||
+                        (empId ? employeeGroupMap.get(empId) : undefined) ||
+                        (rowIssuer === 'STAFF' ? row.type_Name : undefined);
+                    const deptName =
+                        row.hrmD_DepartmentName ||
+                        (deptId ? departmentMap.get(deptId) : undefined) ||
+                        (rowIssuer === 'DEPARTMENT' ? row.type_Name : undefined);
+                    const guestName =
+                        row.guest_Name ||
+                        (guestId ? guestMap.get(guestId) : undefined) ||
+                        (rowIssuer === 'GUEST' ? row.type_Name : undefined);
+                    const catName =
+                        row.lmC_CategoryName || (catId ? categoryMap.get(catId) : undefined) || (isNbp ? row.type_Name : undefined);
 
                     const rowActiveFlag =
                         row.param_ActiveFlg ??
@@ -300,7 +334,9 @@ export default function CirculationParameterPage() {
                         row.activeFlag ??
                         true;
 
-                    const paramId = Number(row.param_Id || row.parmeter_Id || row.Parmeter_Id || row.lbcpaS_Id || row.LBCPAS_Id || row.circ_Id || 0);
+                    const paramId = Number(
+                        row.param_Id || row.parmeter_Id || row.Parmeter_Id || row.lbcpaS_Id || row.LBCPAS_Id || row.circ_Id || 0
+                    );
                     const lbcpaId = Number(row.lbcpA_Id || row.LBCPA_Id || row.lbcpa_Id || parentLbcpaId);
                     const lnbcpaId = Number(row.lnbcpA_Id || row.LNBCPA_Id || row.lnbcpa_Id || parentLnbcpaId);
 
@@ -362,13 +398,32 @@ export default function CirculationParameterPage() {
         // 2. Check tab-specific saved circulation parameter lists
         let savedList: any[] = [];
         if (currentIssuer === 'STUDENT') {
-            savedList = extractList(getField(details, 'classlist', 'classList', 'fillstudent', 'student_list', 'lbcpaS_list'));
+            savedList = extractList(
+                getField(
+                    details,
+                    'lbcpaS_list',
+                    'lbcpaS_List',
+                    'student_list',
+                    'studentList',
+                    'fillstudent_list',
+                    'lbcpa_list',
+                    'lbcpa_List'
+                )
+            );
         } else if (currentIssuer === 'STAFF') {
-            savedList = extractList(getField(details, 'emplist', 'empList', 'fillemp', 'lbcpaE_list', 'staff_list'));
+            savedList = extractList(getField(details, 'lbcpaE_list', 'lbcpaE_List', 'staff_list', 'staffList', 'fillemp_list', 'emp_list'));
         } else if (currentIssuer === 'DEPARTMENT') {
-            savedList = extractList(getField(details, 'departmentlist', 'departmentList', 'filldepartment', 'filldept', 'dept_list', 'lbcpaD_list'));
+            savedList = extractList(
+                getField(details, 'lbcpaD_list', 'lbcpaD_List', 'dept_list', 'department_list', 'filldepartment_list', 'filldept_list')
+            );
         } else if (currentIssuer === 'GUEST') {
-            savedList = extractList(getField(details, 'guestlist', 'guestList', 'fillguest', 'guest_list', 'lbcpaG_list'));
+            savedList = extractList(getField(details, 'lbcpaG_list', 'lbcpaG_List', 'guest_list', 'guestList', 'fillguest_list'));
+        }
+
+        if (isNbp && savedList.length === 0) {
+            savedList = extractList(
+                getField(details, 'lnbcpaS_list', 'lnbcpaE_list', 'lnbcpaD_list', 'lnbcpaG_list', 'lnbcpa_list', 'nonbook_list')
+            );
         }
 
         if (savedList.length > 0) {
@@ -467,8 +522,8 @@ export default function CirculationParameterPage() {
                     BOOKFLAG: bookParameterFlag,
                     lmB_BookType: bookParameterFlag === 'BP' ? 'Issue' : undefined,
                     lbcpA_IssueRefFlg: bookParameterFlag === 'BP' ? 'Issue' : undefined,
-                    catgname: bookParameterFlag === 'BP' ? 'Issue' : (categoryListState[0]?.lmC_CategoryName || 'Non-Book'),
-                    lmC_CategoryName: bookParameterFlag === 'NBP' ? (categoryListState[0]?.lmC_CategoryName || 'Non-Book') : undefined,
+                    catgname: bookParameterFlag === 'BP' ? 'Issue' : categoryListState[0]?.lmC_CategoryName || 'Non-Book',
+                    lmC_CategoryName: bookParameterFlag === 'NBP' ? categoryListState[0]?.lmC_CategoryName || 'Non-Book' : undefined,
                     max_Issue_Items: defaultItems,
                     max_Issue_Days: defaultDays,
                     max_No_Renewals: defaultRenewals,
@@ -497,8 +552,8 @@ export default function CirculationParameterPage() {
                     BOOKFLAG: bookParameterFlag,
                     lmB_BookType: bookParameterFlag === 'BP' ? 'Issue' : undefined,
                     lbcpA_IssueRefFlg: bookParameterFlag === 'BP' ? 'Issue' : undefined,
-                    catgname: bookParameterFlag === 'BP' ? 'Issue' : (categoryListState[0]?.lmC_CategoryName || 'Non-Book'),
-                    lmC_CategoryName: bookParameterFlag === 'NBP' ? (categoryListState[0]?.lmC_CategoryName || 'Non-Book') : undefined,
+                    catgname: bookParameterFlag === 'BP' ? 'Issue' : categoryListState[0]?.lmC_CategoryName || 'Non-Book',
+                    lmC_CategoryName: bookParameterFlag === 'NBP' ? categoryListState[0]?.lmC_CategoryName || 'Non-Book' : undefined,
                     max_Issue_Items: defaultItems,
                     max_Issue_Days: defaultDays,
                     max_No_Renewals: defaultRenewals,
@@ -527,7 +582,7 @@ export default function CirculationParameterPage() {
                     BOOKFLAG: bookParameterFlag,
                     lmB_BookType: bookParameterFlag === 'BP' ? 'Issue' : undefined,
                     lbcpA_IssueRefFlg: bookParameterFlag === 'BP' ? 'Issue' : undefined,
-                    catgname: bookParameterFlag === 'BP' ? 'Issue' : (categoryListState[0]?.lmC_CategoryName || 'Non-Book'),
+                    catgname: bookParameterFlag === 'BP' ? 'Issue' : categoryListState[0]?.lmC_CategoryName || 'Non-Book',
                     max_Issue_Items: defaultItems,
                     max_Issue_Days: defaultDays,
                     max_No_Renewals: defaultRenewals,
@@ -556,7 +611,7 @@ export default function CirculationParameterPage() {
                     BOOKFLAG: bookParameterFlag,
                     lmB_BookType: bookParameterFlag === 'BP' ? 'Issue' : undefined,
                     lbcpA_IssueRefFlg: bookParameterFlag === 'BP' ? 'Issue' : undefined,
-                    catgname: bookParameterFlag === 'BP' ? 'Issue' : (categoryListState[0]?.lmC_CategoryName || 'Non-Book'),
+                    catgname: bookParameterFlag === 'BP' ? 'Issue' : categoryListState[0]?.lmC_CategoryName || 'Non-Book',
                     max_Issue_Items: defaultItems,
                     max_Issue_Days: defaultDays,
                     max_No_Renewals: defaultRenewals,
@@ -619,7 +674,16 @@ export default function CirculationParameterPage() {
         () =>
             createCirculationParameterColumns({
                 onEdit: (data: any) => {
-                    const rowId = Number(data.param_Id ?? data.Parmeter_Id ?? data.parmeter_Id ?? data.lbcpaS_Id ?? data.LBCPAS_Id ?? data.circ_Id ?? data.lnbcpA_Id ?? 0);
+                    const rowId = Number(
+                        data.param_Id ??
+                            data.Parmeter_Id ??
+                            data.parmeter_Id ??
+                            data.lbcpaS_Id ??
+                            data.LBCPAS_Id ??
+                            data.circ_Id ??
+                            data.lnbcpA_Id ??
+                            0
+                    );
                     setEditingId(rowId || null);
 
                     const isNbp = data.BOOKFLAG === 'NBP' || data.lmB_BookTypeflag === 'NBP';
@@ -633,7 +697,7 @@ export default function CirculationParameterPage() {
                         maxIssueDays: Number(data.max_Issue_Days ?? data.param_IssueDays ?? 8),
                         maxRenewals: Number(data.max_No_Renewals ?? data.param_NoOfRenewals ?? 3),
                         status: data.circ_ActiveFlag ?? data.param_ActiveFlg ?? true,
-                        bookType: !isNbp ? (data.lbcpA_IssueRefFlg || 'Issue') : undefined,
+                        bookType: !isNbp ? data.lbcpA_IssueRefFlg || 'Issue' : undefined,
                         categoryId: isNbp ? (data.lmC_Id ?? data.type_Id) : undefined,
                         categoryName: isNbp ? data.lmC_CategoryName : undefined,
                         classId: issuer === 'STUDENT' ? (data.asmcL_Id ?? data.type_Id) : undefined,
@@ -659,38 +723,41 @@ export default function CirculationParameterPage() {
         const isNbp = data.BOOKFLAG === 'NBP' || data.lmB_BookTypeflag === 'NBP';
         const issuer = (data.lbcpA_Flg || data.issuertype1 || data.schclgflag || issuerType || 'STUDENT').toUpperCase();
 
-        const lbcpaId = isNbp
-            ? 0
-            : Number(data.LBCPA_Id ?? data.lbcpA_Id ?? data.lbcpa_Id ?? details?.LBCPA_Id ?? details?.lbcpA_Id ?? 0);
-
-        const lnbcpaId = isNbp
-            ? Number(data.LNBCPA_Id ?? data.lnbcpA_Id ?? data.lnbcpa_Id ?? details?.LNBCPA_Id ?? details?.lnbcpA_Id ?? 0)
-            : 0;
+        const lbcpaId = Number(
+            data.lbcpa_Id ??
+                data.LBCPA_Id ??
+                data.lbcpA_Id ??
+                (isNbp
+                    ? (data.lnbcpA_Id ?? data.LNBCPA_Id ?? details?.LNBCPA_Id ?? details?.lnbcpA_Id ?? 0)
+                    : (details?.LBCPA_Id ?? details?.lbcpA_Id ?? 0))
+        );
 
         const resolvedParmeterId = Number(
             data.param_Id ??
-            data.Parmeter_Id ??
-            data.parmeter_Id ??
-            data.lbcpaS_Id ??
-            data.LBCPAS_Id ??
-            data.lbcpaE_Id ??
-            data.LBCPAE_Id ??
-            data.lbcpaD_Id ??
-            data.LBCPAD_Id ??
-            data.lbcpaG_Id ??
-            data.LBCPAG_Id ??
-            data.lnbcpaS_Id ??
-            data.LNBCPAS_Id ??
-            data.circ_Id ??
-            0
+                data.Parmeter_Id ??
+                data.parmeter_Id ??
+                data.lbcpaS_Id ??
+                data.LBCPAS_Id ??
+                data.lbcpaE_Id ??
+                data.LBCPAE_Id ??
+                data.lbcpaD_Id ??
+                data.LBCPAD_Id ??
+                data.lbcpaG_Id ??
+                data.LBCPAG_Id ??
+                data.lnbcpaS_Id ??
+                data.LNBCPAS_Id ??
+                data.circ_Id ??
+                0
         );
 
+        if (!resolvedParmeterId || resolvedParmeterId === 0) {
+            toast.warning('Please configure and save this parameter record first before toggling status.');
+            setToggleRow(null);
+            return;
+        }
+
         const schoolCollegeFlag =
-            data.MI_SchoolCollegeFlag ||
-            data.mI_SchoolCollegeFlag ||
-            details?.mI_SchoolCollegeFlag ||
-            details?.MI_SchoolCollegeFlag ||
-            'S';
+            data.MI_SchoolCollegeFlag || data.mI_SchoolCollegeFlag || details?.mI_SchoolCollegeFlag || details?.MI_SchoolCollegeFlag || 'S';
 
         const currentActiveStatus =
             data.param_ActiveFlg ??
@@ -703,12 +770,12 @@ export default function CirculationParameterPage() {
 
         toggleStatusMutation.mutate(
             {
-                LBCPA_Id: Number(lbcpaId),
-                LNBCPA_Id: Number(lnbcpaId),
-                Parmeter_Id: Number(resolvedParmeterId),
-                BOOKFLAG: isNbp ? 'NBP' : 'BP',
+                lbcpa_Id: Number(lbcpaId),
+                parmeter_Id: Number(resolvedParmeterId),
+                bookflag: isNbp ? 'NBP' : 'BP',
                 issuertype1: issuer,
-                MI_SchoolCollegeFlag: schoolCollegeFlag,
+                mi_SchoolCollegeFlag: schoolCollegeFlag,
+                returnval: false,
                 currentActiveStatus
             },
             {
@@ -727,8 +794,10 @@ export default function CirculationParameterPage() {
     const onSubmit = async (values: CirculationParameterFormValues) => {
         const isNbp = values.bookParameterFlag === 'NBP';
         const catgName = isNbp
-            ? (values.categoryName || categoryListState.find((c: any) => (c.lmC_Id ?? c.lmc_id) === values.categoryId)?.lmC_CategoryName || 'Non-Book')
-            : (values.bookType || 'Issue');
+            ? values.categoryName ||
+              categoryListState.find((c: any) => (c.lmC_Id ?? c.lmc_id) === values.categoryId)?.lmC_CategoryName ||
+              'Non-Book'
+            : values.bookType || 'Issue';
 
         const payload: CirculationParameterPayload = {
             lbcpa_Id: Number(editingId || 0),
@@ -767,48 +836,53 @@ export default function CirculationParameterPage() {
             <FormProvider {...form}>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
-                        <div className='overflow-hidden rounded-lg border border-t-4 border-t-orange-400 bg-white shadow-sm'>
-                            <div className='bg-[#4251b1] px-4 py-2 font-semibold text-sm text-white'>CIRCULATION PARAMETER</div>
-                            <div className='p-6'>
-                                <CirculationParameterForm
-                                    categoryList={categoryListState}
-                                    bookTypeList={bookTypeList}
-                                    classList={classList}
-                                    departmentList={departmentList}
-                                    employeeGroupList={employeeGroupList}
-                                    guestList={guestList}
-                                />
-                                <div className='mt-8 flex justify-center gap-4'>
-                                    <Button
-                                        type='submit'
-                                        disabled={saveMutation.isPending}
-                                        className='h-8 w-auto min-w-[120px] rounded-sm bg-[#4251b1] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#35418e]'>
-                                        {saveMutation.isPending ? (
-                                            <span aria-hidden='true' className='mr-1.5 inline-block animate-spin'>
-                                                *
-                                            </span>
-                                        ) : null}
-                                        {editingId ? 'UPDATE' : 'SAVE'}
-                                    </Button>
-                                    <Button
-                                        type='button'
-                                        onClick={handleCancel}
-                                        className='h-8 w-auto min-w-[120px] rounded-sm bg-[#ff5a30] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#e64d26]'>
-                                        CANCEL
-                                    </Button>
-                                </div>
+                        <CollapsibleSection
+                            title='CIRCULATION PARAMETER'
+                            description='Fill in the details below to configure circulation parameters'
+                            defaultOpen={true}
+                            variant='outline'
+                            size='md'
+                            className='shadow-lg duration-300'>
+                            <CirculationParameterForm
+                                categoryList={categoryListState}
+                                bookTypeList={bookTypeList}
+                                classList={classList}
+                                departmentList={departmentList}
+                                employeeGroupList={employeeGroupList}
+                                guestList={guestList}
+                            />
+                            <div className='mt-8 flex justify-center gap-4'>
+                                <Button
+                                    type='submit'
+                                    disabled={saveMutation.isPending}
+                                    className='h-8 w-auto min-w-[120px] rounded-sm bg-[#4251b1] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#35418e]'>
+                                    {saveMutation.isPending ? (
+                                        <span aria-hidden='true' className='mr-1.5 inline-block animate-spin'>
+                                            *
+                                        </span>
+                                    ) : null}
+                                    {editingId ? 'UPDATE' : 'SAVE'}
+                                </Button>
+                                <Button
+                                    type='button'
+                                    onClick={handleCancel}
+                                    className='h-8 w-auto min-w-[120px] rounded-sm bg-[#ff5a30] px-8 py-1 text-white text-xs shadow-sm hover:bg-[#e64d26]'>
+                                    CANCEL
+                                </Button>
                             </div>
-                        </div>
+                        </CollapsibleSection>
                     </form>
                 </Form>
             </FormProvider>
 
-            <div className='overflow-hidden rounded-lg border border-t-4 border-t-orange-400 bg-white shadow-sm'>
-                <div className='bg-[#4251b1] px-4 py-2 font-semibold text-sm text-white'>CIRCULATION PARAMETER LIST</div>
-                <div className='p-6'>
-                    <GenericDataTable columns={columns as any} data={gridData} isLoading={isDetailsLoading} />
-                </div>
-            </div>
+            <CollapsibleSection
+                title='CIRCULATION PARAMETER LIST'
+                defaultOpen={true}
+                variant='default'
+                size='lg'
+                className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
+                <GenericDataTable columns={columns as any} data={gridData} isLoading={isDetailsLoading} />
+            </CollapsibleSection>
 
             {/* Toggle Status Confirmation Dialog */}
             <ToggleCirculationParameterDialog

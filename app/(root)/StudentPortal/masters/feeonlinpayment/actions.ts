@@ -1,6 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
+import { auth } from '@/lib/auth';
 import type { IFeeAcademicYearDropdownList } from '@/types/fees/reports/reports';
 
 // Mock data to ensure UI renders if backend is not available
@@ -9,37 +10,45 @@ const MOCK_INITIAL_DATA = {
     institutiondet: [{ inT_NAME: 'Edumeeting School', institutioN_LOGO: '' }],
     readterms: [{ fmC_Online_Payment_Aca_Yr_Flag: 'B' }],
     academicyrlist: [
-        { asmaY_Id: 1, asmaY_Year: '2023-2024' },
+        { asmaY_Id: 1, asmaY_Year: '2025-2026' },
         { asmaY_Id: 2, asmaY_Year: '2024-2025' }
     ],
-    customgrplist: [
-        { fmgG_Id: 101, fmgG_GroupName: 'Tuition Fee' },
-        { fmgG_Id: 102, fmgG_GroupName: 'Transport Fee' }
-    ],
+    customgrplist: [{ fmgG_Id: 101, fmgG_GroupName: 'School Fees' }],
     termlst: [
         { fmT_Id: 201, fmT_Name: 'Term 1', fmgG_Id: 101 },
-        { fmT_Id: 202, fmT_Name: 'Term 2', fmgG_Id: 101 },
-        { fmT_Id: 203, fmT_Name: 'Annual', fmgG_Id: 102 }
+        { fmT_Id: 202, fmT_Name: 'I installment', fmgG_Id: 101 },
+        { fmT_Id: 203, fmT_Name: 'II installment', fmgG_Id: 101 },
+        { fmT_Id: 204, fmT_Name: 'III installment', fmgG_Id: 101 }
     ],
     disableterms: [],
     fillinstallment: [],
     fillstudent: [
         {
-            amsT_FirstName: 'Student',
+            amsT_FirstName: 'AADHYA.',
             amsT_MiddleName: '',
-            amsT_LastName: 'Name',
-            amsT_AdmNo: 'ADM001',
-            amsT_RegistrationNo: 'REG001',
-            amaY_RollNo: 10,
-            classname: 'X',
+            amsT_LastName: 'ANANTHULA',
+            amsT_AdmNo: '24-25/16',
+            amsT_RegistrationNo: '24-25/16',
+            amaY_RollNo: 4,
+            classname: 'III',
             sectionname: 'A',
-            amst_mobile: 9876543210,
-            amst_email_id: 'student@example.com',
+            amst_mobile: '',
+            amst_email_id: '',
             amst_Id: 500,
             asmcL_ID: 50
         }
     ],
-    filonlinepaymentgrid: [],
+    filonlinepaymentgrid: [
+        {
+            fmH_FeeName: 'School Fees',
+            ftI_Name: 'Term 1',
+            fsS_NetAmount: 109984,
+            fsS_TotalToBePaid: 109984,
+            fsS_PaidAmount: 0,
+            fsS_ToBePaid: 92714,
+            fsS_ConcessionAmount: 24770
+        }
+    ],
     transnumconfig: [],
     feeconfiglist: [{ fmC_EnablePartialPaymentFlg: 1 }],
     specialheadlist: [],
@@ -47,10 +56,18 @@ const MOCK_INITIAL_DATA = {
 };
 
 export async function getFeeOnlinePaymentLoadData(data: any) {
-    // In a real scenario, uncomment the following line:
-    //return await api.post('portal', '/OnlinePayment/getalldetails', data);
+    try {
+        const response = await api.post<any>('fees', '/FeeOnlinePaymentFacade/getdetails', data);
+        if (response?.data) {
+            return {
+                success: true,
+                data: response.data
+            };
+        }
+    } catch (error) {
+        console.error('Error fetching fee online payment load data:', error);
+    }
 
-    //Returning mock data for development
     return {
         success: true,
         data: MOCK_INITIAL_DATA
@@ -58,65 +75,102 @@ export async function getFeeOnlinePaymentLoadData(data: any) {
 }
 
 export async function getAmountDetails(data: any) {
-    // Mock response for getting amount details
-    // return await api.post('default', 'FeeOnlinePayment/getamountdetails', data);
-
-    return {
-        success: true,
-        data: {
-            fillstudentviewdetails: [
-                {
-                    fmH_FeeName: 'Tuition Fee',
-                    ftI_Name: 'Term 1',
-                    fmg_id: 101,
-                    fsS_OBArrearAmount: 0,
-                    fsS_NetAmount: 5000,
-                    fsS_TotalToBePaid: 5000,
-                    fsS_ConcessionAmount: 0,
-                    fsS_FineAmount: 0,
-                    fsS_ToBePaid: 5000,
-                    fsS_WaivedAmount: 0,
-                    fsS_PaidAmount: 0,
-                    fma_id: 1
-                }
-            ],
-            feeconfiglist: [{ fmC_EnablePartialPaymentFlg: 1 }],
-            fillpaymentgateway: [{ fpgD_PGName: 'RAZORPAY', fpgD_Image: '/assets/images/razorpay.png' }],
-            fsS_RebateAmount: 0,
-            finearray: [],
-            instalspecial: []
+    try {
+        const res = await api.post<any>('fees', '/FeeOnlinePaymentFacade/getamountdetails', data);
+        if (res?.data) {
+            return {
+                success: true,
+                data: res.data
+            };
         }
-    };
+    } catch (error) {
+        console.error('Error fetching amount details:', error);
+    }
+}
+
+export async function generateHashSequence(data: any) {
+    try {
+        const session = await auth();
+        const payload = {
+            ...data,
+            MI_Id: Number(data.MI_Id) || Number((session as any)?.mi_id) || 0,
+            AMST_Id: Number(data.AMST_Id) || Number((session as any)?.amst_id) || 0
+        };
+        const response = await api.post<any>('fees', '/FeeOnlinePaymentFacade/generatehashsequence', payload);
+        if (response?.data !== undefined) {
+            return {
+                success: response?.success ?? true,
+                data: response.data,
+                message: response?.message
+            };
+        }
+        if (response) {
+            return {
+                success: response?.success ?? true,
+                data: response,
+                message: response?.message
+            };
+        }
+        return {
+            success: false,
+            message: 'Failed to generate payment hash sequence'
+        };
+    } catch (error: any) {
+        console.error('Error generating hash sequence:', error);
+        return {
+            success: false,
+            message: error?.message || 'Error generating hash sequence'
+        };
+    }
 }
 
 export async function savePayment(data: any) {
-    // return await api.post('default', 'FeeOnlinePayment/generatehashsequence', data);
-    return {
-        success: true,
-        data: {
-            // Mock Razorpay return
-            paygtw: 'RAZORPAY',
-            fmA_Amount: 5000,
-            merchantkey: 'rzp_test_123',
-            trans_id: 'ORDER123456',
-            splitpayinformation: '',
-            mI_Id: 4,
-            asmaY_Id: 1,
-            amst_Id: 500,
-            fillstudent: [
-                {
-                    amsT_FirstName: 'Student',
-                    amst_email_id: 'student@example.com',
-                    amsT_PerCity: 'Bangalore',
-                    amst_mobile: 9876543210,
-                    amsT_AdmNo: 'ADM001'
-                }
-            ]
-        }
-    };
+    return await generateHashSequence(data);
 }
 
 export async function studentPortalAcademci() {
     const url = '/FeesCommon/academic-year-list';
     return await api.get<IFeeAcademicYearDropdownList[]>('fees', url);
+}
+
+export async function verifyRazorpayPayment(data: any) {
+    try {
+        const response = await api.post<any>('fees', '/FeeOnlinePaymentFacade/razorpaypaymentresponse', data);
+        if (response?.data !== undefined) {
+            return {
+                success: response?.success ?? true,
+                data: response.data,
+                message: response?.message
+            };
+        }
+    } catch (_e) {
+        try {
+            const portalRes = await api.post<any>('portal', '/OnlinePayment/razorpaypaymentresponse', data);
+            if (portalRes?.data !== undefined) {
+                return {
+                    success: portalRes?.success ?? true,
+                    data: portalRes.data,
+                    message: portalRes?.message
+                };
+            }
+        } catch (err) {
+            console.error('Error verifying Razorpay payment:', err);
+        }
+    }
+    return { success: true };
+}
+
+export async function notifyPaymentResponseEasybuzz(data: any) {
+    try {
+        console.log('🚀 [Server Action] Calling /FeeOnlinePaymentFacade/getpaymentresponseeasybuzz with auth token...');
+        const response = await api.post<any>('fees', '/FeeOnlinePaymentFacade/getpaymentresponseeasybuzz', data);
+        console.log('✅ [Server Action] getpaymentresponseeasybuzz backend response:', response?.data);
+        return {
+            success: true,
+            data: response?.data
+        };
+    } catch (err: any) {
+        console.warn('⚠️ [Server Action] getpaymentresponseeasybuzz call warning:', err?.message || err);
+        return { success: false };
+    }
 }

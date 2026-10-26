@@ -6,6 +6,7 @@ import {
     getAdminUserList,
     getCategoryDropdownByInstitution,
     getInstitutionDropdown,
+    getInstitutionOnChangeOfTrust,
     getMasterPageListGridOnChangeOfModule,
     getMasterPageListGridOnChangeOfStaff,
     getMobileAppMasterPageListOnChangeOfStaff,
@@ -40,7 +41,7 @@ import type {
 } from '@/types/super-admin/user-creation/staff-user-creation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, RotateCcw, Save, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -100,6 +101,7 @@ export default function StaffUserCreationPage() {
     const [lastSelectedStaffId, setLastSelectedStaffId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isOnloadLoading, setIsOnloadLoading] = useState(false);
+    const [isInstitutionsLoading, setIsInstitutionsLoading] = useState(false);
     const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
     const [isModulesLoading, setIsModulesLoading] = useState(false);
     const [isStaffListLoading, setIsStaffListLoading] = useState(false);
@@ -223,6 +225,79 @@ export default function StaffUserCreationPage() {
         fetchOnload();
     }, []);
 
+    const isFirstMount = useRef(true);
+
+    useEffect(() => {
+        if (isFirstMount.current) {
+            isFirstMount.current = false;
+            return;
+        }
+
+        const handleTrustChange = async () => {
+            const trustId = Number(watchTrust);
+            if (watchTrust && trustId > 0) {
+                try {
+                    setIsInstitutionsLoading(true);
+                    console.info(`📡 [CLIENT] Fetching institutions for Trust ID: ${trustId}`);
+                    const result = await getInstitutionOnChangeOfTrust(trustId);
+                    console.info('📦 [CLIENT] getInstitutionOnChangeOfTrust Result:', result);
+
+                    const rawList = Array.isArray(result)
+                        ? result
+                        : (result?.data ?? (result?.data ?? []));
+
+                    if (Array.isArray(rawList)) {
+                        const formattedInstitutions: InstitutionDTO[] = rawList.map((inst: any) => ({
+                            ...inst,
+                            mI_Id: inst.mI_Id ?? inst.mi_id ?? inst.MI_Id,
+                            mI_Name: inst.mI_Name ?? inst.mi_name ?? inst.MI_Name ?? inst.institutionName,
+                            Selected: false
+                        }));
+                        setInstitutions(formattedInstitutions);
+                    } else {
+                        setInstitutions([]);
+                    }
+
+                    // Reset selected institution and dependent fields
+                    methods.setValue('institution', '');
+                    methods.setValue('staffId', '');
+                    methods.setValue('userName', '');
+                    setStaffList([]);
+                    setCategories([]);
+                    setModules([]);
+                    clearGrids();
+                } catch (error) {
+                    console.error('handleTrustChange error:', error);
+                } finally {
+                    setIsInstitutionsLoading(false);
+                }
+            } else if (!watchTrust) {
+                // If trust was cleared, reload full institutions list
+                try {
+                    setIsInstitutionsLoading(true);
+                    console.info('📡 [CLIENT] Trust cleared, restoring default institutions list...');
+                    const instResult = await getInstitutionDropdown();
+                    if (instResult.success && instResult.data) {
+                        setInstitutions(instResult.data.map((inst: any) => ({ ...inst, Selected: false })));
+                    }
+                    methods.setValue('institution', '');
+                    methods.setValue('staffId', '');
+                    methods.setValue('userName', '');
+                    setStaffList([]);
+                    setCategories([]);
+                    setModules([]);
+                    clearGrids();
+                } catch (err) {
+                    console.error('Failed to reload institutions on trust reset:', err);
+                } finally {
+                    setIsInstitutionsLoading(false);
+                }
+            }
+        };
+
+        handleTrustChange();
+    }, [watchTrust]);
+
     useEffect(() => {
         const handleInstitutionChange = async () => {
             const selectedRole = roleTypes.find((r) => String(r.ivrmrT_Id) === watchRoleType);
@@ -278,7 +353,7 @@ export default function StaffUserCreationPage() {
                     const staffResult = await getStaffDropdownByInstitution(payload);
                     console.log('staffResult', staffResult);
                     if (staffResult.success && staffResult.data) {
-                        setStaffList(staffResult?.data?.studentDetails);
+                        setStaffList(staffResult?.data?.fillstaff);
 
                     }
                     setIsStaffListLoading(false);
@@ -647,16 +722,17 @@ export default function StaffUserCreationPage() {
         const isAdmin = selectedRole?.ivrmrT_Role.toUpperCase() === 'ADMIN' || selectedRole?.ivrmrT_Role.toUpperCase() === 'SUPER ADMIN';
 
         let selectedInstitutes: any[] = [];
+        if (!data.userName || data.userName.trim() === '') {
+            toast.error('Please enter User Name');
+            return;
+        }
         if (isAdmin) {
             selectedInstitutes = institutions.filter((i) => i.Selected).map((i) => ({ mi_id: i.mI_Id, MI_Id: i.mI_Id }));
             if (selectedInstitutes.length === 0) {
                 toast.error('Please select at least one institution');
                 return;
             }
-            if (!data.userName || data.userName.trim() === '') {
-                toast.error('Please enter User Name');
-                return;
-            }
+            
         } else {
             if (!data.institution) {
                 toast.error('Please select an institution');
@@ -789,7 +865,11 @@ export default function StaffUserCreationPage() {
         getPagesBasedOnModules(checkedModuleIds);
     };
 
-    const getPagesBasedOnModules = async (moduleIds: number[]) => {
+    const getPagesBasedOnModules = async (
+        moduleIds: number[],
+        username?: string,
+        updateModuleCheckboxes: boolean = false
+    ) => {
         if (!effectiveMiId || !watchRoleType) return;
 
         if (moduleIds.length === 0) {
@@ -801,7 +881,7 @@ export default function StaffUserCreationPage() {
             ? institutions.filter((i) => i.Selected).map((i) => i.mI_Id)
             : [Number(watchInstitution)];
 
-        const payloadUserName = watchUserName || methods.getValues('userName') || '';
+        const payloadUserName = username?.trim() || watchUserName || methods.getValues('userName') || '';
         console.info(`📡 [CLIENT] Fetching pages based on modules: ${moduleIds}`);
         try {
             setIsWebPageLoading(true);
@@ -818,16 +898,16 @@ export default function StaffUserCreationPage() {
             if (result.success) {
                 const mappedPages = Array.isArray(result.data)
                     ? result.data.map((item: any) => ({
-                        pageMappingId: item.ivrmimP_Id || item.ivrmmP_Id || item.ivrmP_Id,
-                        pageName: item.ivrmmP_PageName,
-                        moduleName: item.ivrmm_ModuleName || item.ivrmM_ModuleName || '',
-                        institutionName: item.intname || item.instituteName || '',
-                        addFlag: Boolean(item.ivrmrP_AddFlag),
-                        deleteFlag: Boolean(item.ivrmrP_DeleteFlag),
-                        updateFlag: Boolean(item.ivrmrP_UpdateFlag),
-                        processFlag: Boolean(item.ivrmrP_ProcessFlag),
-                        reportFlag: Boolean(item.ivrmrP_ReportFlag),
-                        checked: false
+                        pageMappingId: item.pageMappingId || item.ivrmimP_Id || item.IVRMIMP_Id || item.ivrmmP_Id || item.ivrmP_Id,
+                        pageName: item.pageName || item.ivrmmP_PageName || item.IVRMMP_PageName || '',
+                        moduleName: item.moduleName || item.ivrmm_ModuleName || item.ivrmM_ModuleName || item.IVRMM_ModuleName || '',
+                        institutionName: item.institutionName || item.intname || item.instituteName || '',
+                        addFlag: Boolean(item.ivrmrP_AddFlag ?? item.IVRMRP_AddFlag ?? item.addFlag),
+                        deleteFlag: Boolean(item.ivrmrP_DeleteFlag ?? item.IVRMRP_DeleteFlag ?? item.deleteFlag),
+                        updateFlag: Boolean(item.ivrmrP_UpdateFlag ?? item.IVRMRP_UpdateFlag ?? item.updateFlag),
+                        processFlag: Boolean(item.ivrmrP_ProcessFlag ?? item.IVRMRP_ProcessFlag ?? item.processFlag),
+                        reportFlag: Boolean(item.ivrmrP_ReportFlag ?? item.IVRMRP_ReportFlag ?? item.reportFlag),
+                        checked: stagedWebPages.some((s) => s.pageMappingId === (item.ivrmimP_Id || item.IVRMIMP_Id || item.ivrmmP_Id || item.pageMappingId))
                     }))
                     : [];
 
@@ -835,8 +915,40 @@ export default function StaffUserCreationPage() {
                 setWebPageTotal(typeof result.total === 'number' ? result.total : mappedPages.length);
 
                 if (result.savedGrid) {
-                    setSavedGrid(result.savedGrid.map((p: any) => ({ ...p, checked: false })));
-                    setSavedGridTotal(result.savedGrid.length);
+                    const mappedSavedGrid = (Array.isArray(result.savedGrid) ? result.savedGrid : []).map((p: any) => ({
+                        ivrmmP_PageName: p.ivrmmP_PageName || p.IVRMMP_PageName || '',
+                        ivrmstauP_Id: p.ivrmstauP_Id ?? p.IVRMSTAUP_Id ?? 0,
+                        ivrmrP_AddFlag: Boolean(p.ivrmrP_AddFlag ?? p.IVRMRP_AddFlag),
+                        ivrmrP_DeleteFlag: Boolean(p.ivrmrP_DeleteFlag ?? p.IVRMRP_DeleteFlag),
+                        ivrmrP_UpdateFlag: Boolean(p.ivrmrP_UpdateFlag ?? p.IVRMRP_UpdateFlag),
+                        ivrmrP_ProcessFlag: Boolean(p.ivrmrP_ProcessFlag ?? p.IVRMRP_ProcessFlag),
+                        ivrmrP_ReportFlag: Boolean(p.ivrmrP_ReportFlag ?? p.IVRMRP_ReportFlag),
+                        ivrmimP_Id: p.ivrmimP_Id ?? p.IVRMIMP_Id ?? 0,
+                        checked: false
+                    }));
+                    setSavedGrid(mappedSavedGrid);
+                    setSavedGridTotal(mappedSavedGrid.length);
+                }
+
+                // Update module checkboxes based on moduleexistid when requested
+                if (updateModuleCheckboxes && result.moduleexistid) {
+                    const allModulesData = Array.isArray(result.moduleexistid)
+                        ? result.moduleexistid
+                        : (result.moduleexistid.$values || []);
+
+                    console.info('📦 [CLIENT] Updating module checkboxes from moduleexistid:', allModulesData);
+                    setModules((prevModules) =>
+                        prevModules.map((mod) => {
+                            const isMatched = allModulesData.some((m: any) => {
+                                if (typeof m === 'number' || typeof m === 'string') {
+                                    return Number(m) === Number(mod.ivrmM_Id);
+                                }
+                                const id = m?.ivrmM_Id ?? m?.IVRMM_Id ?? m?.ivrmm_id ?? m?.id;
+                                return Number(id) === Number(mod.ivrmM_Id);
+                            });
+                            return { ...mod, model: isMatched };
+                        })
+                    );
                 }
             } else {
                 setWebPages([]);
@@ -849,6 +961,31 @@ export default function StaffUserCreationPage() {
         } finally {
             setIsWebPageLoading(false);
         }
+    };
+
+    const handleAdminUsernameBlur = async (username: string) => {
+        const normalizedUsername = username.trim();
+        if (!normalizedUsername) {
+            clearGrids();
+            return;
+        }
+
+        if (!isAdmin || !effectiveMiId || !watchRoleType) return;
+
+        let currentModules = modules;
+        if (currentModules.length === 0) {
+            const moduleResult = await getModuleDropdownByInstitution(effectiveMiId);
+            if (moduleResult.success && moduleResult.data) {
+                currentModules = moduleResult.data;
+                setModules(currentModules);
+            }
+        }
+
+        const moduleIds = currentModules.map((module) => module.ivrmM_Id);
+        if (moduleIds.length === 0) return;
+
+        clearGrids();
+        await getPagesBasedOnModules(moduleIds, normalizedUsername, true);
     };
 
     const hasInstitutionSelected = isAdmin
@@ -886,6 +1023,7 @@ export default function StaffUserCreationPage() {
                                 isOnloadLoading={isOnloadLoading}
                                 isStaffListLoading={isStaffListLoading}
                                 isStaffDataLoading={isStaffDataLoading}
+                                isInstitutionsLoading={isInstitutionsLoading}
                                 onStaffCheckboxChange={handleStaffCheckboxChange}
                                 onSelectAllStaff={handleSelectAllStaff}
                                 onInstitutionCheckboxChange={handleInstitutionCheckboxChange}
@@ -916,6 +1054,7 @@ export default function StaffUserCreationPage() {
                                                 onModuleChange={handleModulesChange}
                                                 onSelectAllCategories={handleSelectAllCategories}
                                                 onSelectAllModules={handleSelectAllModules}
+                                                onAdminUsernameBlur={handleAdminUsernameBlur}
                                                 isUserNameDisabled={isAdmin ? false : isUserNameDisabled}
                                                 onChangeUsernameToggle={() => setIsChangeModalOpen(true)}
                                                 isStaffDataLoading={isStaffDataLoading}
@@ -955,7 +1094,7 @@ export default function StaffUserCreationPage() {
                                                         onSavedGridUpdate={setSavedGrid}
                                                         savedMobilePages={savedMobilePages}
                                                         onSavedMobileUpdate={setSavedMobilePages}
-                                                        showInstitution={!!watchTrust}
+                                                        showInstitution={isAdmin}
                                                     />
                                                 )}
 

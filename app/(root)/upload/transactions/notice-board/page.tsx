@@ -197,7 +197,7 @@ export default function NoticeBoardPage() {
 
             {/* Add Modal */}
             <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-                <DialogContent className='max-h-[90vh] max-w-[85vw] overflow-y-auto'>
+                <DialogContent className='max-h-[90vh] max-w-[85vw] overflow-y-auto' onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle>Add Notice Board</DialogTitle>
                     </DialogHeader>
@@ -220,7 +220,7 @@ export default function NoticeBoardPage() {
 
             {/* Update Modal */}
             <Dialog open={isUpdateModalOpen} onOpenChange={setIsUpdateModalOpen}>
-                <DialogContent className='max-h-[90vh] max-w-[85vw] overflow-y-auto'>
+                <DialogContent className='max-h-[90vh] max-w-[85vw] overflow-y-auto' onInteractOutside={(e) => e.preventDefault()}>
                     <DialogHeader>
                         <DialogTitle>Update Notice Board</DialogTitle>
                     </DialogHeader>

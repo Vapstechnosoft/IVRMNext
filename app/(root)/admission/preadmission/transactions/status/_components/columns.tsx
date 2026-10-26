@@ -10,12 +10,14 @@ export const getStatusColumns = (
     statusList: { pamsT_Id: number; pamsT_Status: string }[],
     onStatusChange: (id: number, statusId: number) => void,
     onRemarkChange: (id: number, remark: string) => void,
-    rptStatus: boolean
+    rptStatus: boolean,
+    page: number = 1,
+    pageSize: number = 10
 ): ColumnDef<IStatusStudent>[] => [
     {
         id: 'slno',
         header: 'SL.NO',
-        cell: ({ row }) => <div className='text-center font-medium'>{row.index + 1}</div>
+        cell: ({ row }) => <div className='text-center font-medium'>{(page - 1) * pageSize + row.index + 1}</div>
     },
     {
         id: 'select',

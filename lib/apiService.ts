@@ -21,8 +21,6 @@ export interface ApiArrayResponse<T> extends Partial<PaginationData> {
     } | null;
     [key: string]: unknown;
 }
-
-import { signOut } from '@/lib/auth';
 import type { ApiSearchparams } from '@/types';
 import axios, { type AxiosInstance, type AxiosRequestConfig } from 'axios';
 
@@ -52,7 +50,8 @@ export type ApiBaseUrlKey =
     | 'transport'
     | 'pettycashandassettracking'
     | 'hrmsrecruitment'
-    | 'collegepreadmission';
+    | 'collegepreadmission'
+    | 'visitors';
 
 class ApiService {
     private instances: Map<string, AxiosInstance>;
@@ -88,7 +87,15 @@ class ApiService {
             hrmsrecruitment: process.env.NEXT_PUBLIC_HRMS_RECRUITMENT_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             college: process.env.NEXT_PUBLIC_COLLEGE_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
             collegepreadmission: process.env.NEXT_PUBLIC_COLLEGEPREADMISSION_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || '',
-
+            visitors:
+                process.env.NEXT_PUBLIC_VISITORS_API_BASE_URL ||
+                (process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL
+                    ? process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL.endsWith('/api')
+                        ? process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL
+                        : `${process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL}/api`
+                    : '') ||
+                process.env.NEXT_PUBLIC_API_BASE_URL ||
+                ''
         };
 
         // Debug: info base URLs in development
@@ -106,9 +113,18 @@ class ApiService {
         if (key === 'exam') {
             return (
                 process.env.NEXT_PUBLIC_EXAM_LOCAL_API_BASE_URL ||
-                process.env.NEXT_PUBLIC_EXAM_API_BASE_URL ||
                 process.env.EXAM_API_BASE_URL ||
+                process.env.NEXT_PUBLIC_EXAM_API_BASE_URL ||
                 'https://localhost:50258/api'
+            );
+        }
+        if (key === 'visitors' || key === 'hrmsfrontoffice') {
+            return (
+                process.env.NEXT_PUBLIC_VISITORS_API_BASE_URL ||
+                process.env.VISITORS_API_BASE_URL ||
+                process.env.NEXT_PUBLIC_HRMS_FRONTOFFICE_BASE_URL ||
+                process.env.HRMS_FRONTOFFICE_BASE_URL ||
+                'http://localhost:50198/api'
             );
         }
         return typeof key === 'string' && key in this.baseUrls ? this.baseUrls[key as ApiBaseUrlKey] : this.baseUrls.default;
@@ -118,7 +134,7 @@ class ApiService {
         const baseURL = this.getBaseUrl(key);
         if (!this.instances.has(key)) {
             // Check if this is a localhost URL in development mode
-            const isLocalhost =
+            const _isLocalhost =
                 baseURL &&
                 (baseURL.includes('localhost') ||
                     baseURL.includes('127.0.0.1') ||
@@ -223,11 +239,9 @@ class ApiService {
                             sessionStorage.removeItem('isLoggedIn'); // Prevent double Swal on the sign-in page
                             await Swal.fire('Your Session has been Expired.....Please Re-login');
                             window.location.href = '/sign-in';
-                        } else {
-                            await signOut(); // uses the server-side signOut from top import
                         }
                     } catch (refreshError) {
-                        console.error('Error refreshing session:', refreshError);
+                        console.error('Error handling session expiration:', refreshError);
                     }
                 }
                 return Promise.reject(this.handleError(error));

@@ -11,6 +11,7 @@ interface SimpleSubjectTableProps {
     allSubjects: IMasterSubjectGroupDetails[];
     preselectedSubjects?: IMasterSubjectGroupDetails[];
     maxSelectableRows?: number;
+    disabled?: boolean;
     onSelectionChange?: (selected: IMasterSubjectGroupDetails[]) => void;
 }
 
@@ -18,6 +19,7 @@ export function SimpleSubjectTable({
     allSubjects,
     preselectedSubjects = [],
     maxSelectableRows = 0,
+    disabled = false,
     onSelectionChange
 }: SimpleSubjectTableProps) {
     const [search, setSearch] = useState('');
@@ -33,15 +35,33 @@ export function SimpleSubjectTable({
         setSelectedIds(preselectedIds);
     }, [preselectedSubjects]);
 
-    // Filter subjects by search
+    // Filter subjects by search and sort selected to the top
     const filteredSubjects = useMemo(() => {
-        if (!search) return allSubjects;
-        return allSubjects.filter((subj) => subj.ismS_SubjectName.toLowerCase().includes(search.toLowerCase()));
-    }, [allSubjects, search]);
+        let list = allSubjects;
+        if (search.trim()) {
+            const term = search.toLowerCase().trim();
+            list = list.filter(
+                (subj) => subj.ismS_SubjectName?.toLowerCase().includes(term) || subj.ismS_SubjectCode?.toLowerCase().includes(term)
+            );
+        }
+        return [...list].sort((a, b) => {
+            const aSelected = a.ismS_Id !== undefined && selectedIds.has(a.ismS_Id) ? 1 : 0;
+            const bSelected = b.ismS_Id !== undefined && selectedIds.has(b.ismS_Id) ? 1 : 0;
+            if (aSelected !== bSelected) {
+                return bSelected - aSelected;
+            }
+            return (a.ismS_OrderFlag || 0) - (b.ismS_OrderFlag || 0);
+        });
+    }, [allSubjects, search, selectedIds]);
 
     // Handle selection toggle
     const toggleSelection = (subject: IMasterSubjectGroupDetails) => {
         if (subject.ismS_Id === undefined) return; // safety check
+
+        if (disabled) {
+            toast.error('Enter valid Total, Min and Max subjects before selecting subjects');
+            return;
+        }
 
         const updatedSelection = new Set(selectedIds);
 

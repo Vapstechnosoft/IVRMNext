@@ -1,104 +1,127 @@
 /**
  * Leave Configuration Types
- * Based on API structure from /api/LeaveConfig/get_leave_configuartion
+ * Matching IVRM LeaveConfiguration (HR_Leave_Policy_Config_DTO)
  */
 
 /**
- * Leave Configuration Data Structure (API Response)
+ * Raw Leave Configuration Data Structure (API Response / DTO)
  */
 export interface LeaveConfigurationData {
-    hrlpC_Id: number;
-    mI_Id: number;
-    hrlpC_SpOrGenFlg: string; // "G" or "SP"
-    hrlpC_PunchGAPTime: string; // Time format "HH:mm"
-    hrlpC_AbsentFlag: string; // "Y" or "N"
-    hrlpC_LateInEarlyOutFlag: string; // "Y" or "N"
-    hrlpC_LateInRelaxFlag: boolean;
-    hrlpC_LateInEarlyOut: string; // "LateIn" or "EarlyOut"
-    hrlpC_LateInTime: string; // Time in minutes or "HH:mm"
-    hrlpC_EarlyOutRelaxFlag: boolean;
-    hrlpC_EarlyOutTime: string; // Time in minutes or "HH:mm"
-    hrlpC_CummulativeTimeFlag: boolean;
-    hrlpC_CummulativeTime: number; // Minutes
-    hrlpC_AfterCummulativeTime: string; // "HalfDay" or other
-    hrlpC_NoOfLatesFlag: boolean;
-    hrlpC_NoofMonthlyLateInExempted: number;
-    hrlpC_NoOfLates: number;
-    hrlpC_NoOfLatesCFFlag: boolean;
-    hrlpC_LeavePrefixSuffixFlag: boolean;
-    hrlpC_IncludeHolidayFlag: boolean;
-    hrlpC_ActiveFlag: boolean;
-    hrlpC_CreeatedDate?: string | null;
-    hrlpC_UpdatedDate?: string | null;
-    hrlpC_CreatedBy?: number;
-    hrlpC_UpdatedBy?: number;
+    hrlpC_Id?: number;
+    HRLPC_Id?: number;
+    mI_Id?: number;
+    MI_Id?: number;
+    hrlpC_LeavePolicyName?: string;
+    HRLPC_LeavePolicyName?: string;
+    hrlpC_SPName?: string;
+    HRLPC_SPName?: string;
+    hrlpC_ServiceName?: string;
+    HRLPC_ServiceName?: string;
+    hrlpC_LateInFlag?: boolean | string;
+    HRLPC_LateInFlag?: boolean | string;
+    hrlpC_LateInTime?: string;
+    HRLPC_LateInTime?: string;
+    hrlpC_EarlyOutFlag?: boolean | string;
+    HRLPC_EarlyOutFlag?: boolean | string;
+    hrlpC_EarlyOutTime?: string;
+    HRLPC_EarlyOutTime?: string;
+    hrlpC_CummulativeTimeFlag?: boolean | string;
+    HRLPC_CummulativeTimeFlag?: boolean | string;
+    hrlpC_CummulativeTime?: string | number;
+    HRLPC_CummulativeTime?: string | number;
+    hrlpC_AfterCummulativeTime?: string;
+    HRLPC_AfterCummulativeTime?: string;
+    hrlpC_NoOfLates?: number | string;
+    HRLPC_NoOfLates?: number | string;
+    hrlpC_NoOfLatesFag?: boolean | string;
+    HRLPC_NoOfLatesFag?: boolean | string;
+    hrlpC_NoOfLatesFlag?: boolean | string;
+    HRLPC_NoOfLatesFlag?: boolean | string;
+    hrlpC_NoOfLatesCFFlag?: boolean | string;
+    HRLPC_NoOfLatesCFFlag?: boolean | string;
+    hrlpC_LeavePrefixSuffixFlag?: boolean | string;
+    HRLPC_LeavePrefixSuffixFlag?: boolean | string;
+    hrlpC_IncludeHolidayFlag?: boolean | string;
+    HRLPC_IncludeHolidayFlag?: boolean | string;
+    hrlpC_LateLOPFlag?: boolean | string;
+    HRLPC_LateLOPFlag?: boolean | string;
+    hrlpC_LateLeaveFlag?: boolean | string;
+    HRLPC_LateLeaveFlag?: boolean | string;
+    hrlpC_SpOrGen?: string;
+    HRLPC_SpOrGen?: string;
+    hrlpC_AbsentLOPFlag?: boolean | string;
+    HRLPC_AbsentLOPFlag?: boolean | string;
+    hrlpC_AbsentLeaveFlag?: boolean | string;
+    HRLPC_AbsentLeaveFlag?: boolean | string;
+    config_data?: any[];
+    returnval?: boolean;
+    [key: string]: any;
 }
 
 /**
- * API Response for GET Leave Configuration
+ * API Response for GET Leave Configuration (getSPName)
  */
 export interface LeaveConfigurationGetResponse {
-    success: boolean;
-    message: string;
-    data: LeaveConfigurationData | null;
-    total?: number | null;
-    page?: number | null;
-    page_size?: number | null;
+    success?: boolean;
+    message?: string;
+    config_data?: any[];
+    data?: LeaveConfigurationData | any[] | null;
+    returnval?: boolean;
+    HRLPC_Id?: number;
+    [key: string]: any;
 }
 
 /**
- * API Request for POST/Save Leave Configuration
+ * API Request for Save Leave Configuration (SaveData)
  */
 export interface LeaveConfigurationSaveRequest {
-    hrlpC_Id: number;
-    mI_Id: number;
-    hrlpC_SpOrGenFlg: string;
-    hrlpC_PunchGAPTime: string;
-    hrlpC_AbsentFlag: string;
-    hrlpC_LateInEarlyOutFlag: string;
-    hrlpC_LateInRelaxFlag: boolean;
-    hrlpC_LateInEarlyOut: string;
-    hrlpC_LateInTime: string;
-    hrlpC_EarlyOutRelaxFlag: boolean;
-    hrlpC_EarlyOutTime: string;
-    hrlpC_CummulativeTimeFlag: boolean;
-    hrlpC_CummulativeTime: number;
-    hrlpC_AfterCummulativeTime: string;
-    hrlpC_NoOfLatesFlag: boolean;
-    hrlpC_NoofMonthlyLateInExempted: number;
-    hrlpC_NoOfLates: number;
-    hrlpC_NoOfLatesCFFlag: boolean;
-    hrlpC_LeavePrefixSuffixFlag: boolean;
-    hrlpC_IncludeHolidayFlag: boolean;
-    hrlpC_ActiveFlag: boolean;
-    hrlpC_CreeatedDate?: string | null;
-    hrlpC_UpdatedDate?: string | null;
-    hrlpC_CreatedBy: number;
-    hrlpC_UpdatedBy: number;
+    HRLPC_Id?: number;
+    MI_Id?: number;
+    HRLPC_LeavePolicyName: string;
+    HRLPC_SPName: string;
+    HRLPC_ServiceName: string;
+    HRLPC_LateInFlag: boolean | string;
+    HRLPC_LateInTime: string;
+    HRLPC_EarlyOutFlag: boolean | string;
+    HRLPC_EarlyOutTime: string;
+    HRLPC_CummulativeTimeFlag: boolean | string;
+    HRLPC_CummulativeTime: string;
+    HRLPC_AfterCummulativeTime: string;
+    HRLPC_NoOfLatesCFFlag: boolean | string;
+    HRLPC_LeavePrefixSuffixFlag: boolean | string;
+    HRLPC_IncludeHolidayFlag: boolean | string;
+    HRLPC_LateLeaveFlag: boolean;
+    HRLPC_LateLOPFlag: boolean;
+    HRLPC_NoOfLatesFag: boolean | string;
+    HRLPC_NoOfLates: number;
+    HRLPC_SpOrGen: string;
+    HRLPC_AbsentLOPFlag: boolean;
+    HRLPC_AbsentLeaveFlag: boolean;
+    LoginId?: number;
+    [key: string]: any;
 }
 
 /**
- * Frontend Form Data Structure
+ * Frontend Form Data Structure matching IVRM LeaveConfiguration.html
  */
 export interface LeaveConfigurationFormData {
-    id: number;
-    spOrGenFlg: string;
-    punchGapTime: string;
-    absentFlag: string;
-    lateInEarlyOutFlag: string;
-    lateInRelaxFlag: boolean;
-    lateInEarlyOut: string;
-    lateInTime: string;
-    earlyOutRelaxFlag: boolean;
-    earlyOutTime: string;
-    cummulativeTimeFlag: boolean;
-    cummulativeTime: number;
-    afterCummulativeTime: string;
-    noOfLatesFlag: boolean;
-    noofMonthlyLateInExempted: number;
-    noOfLates: number;
-    noOfLatesCFFlag: boolean;
-    leavePrefixSuffixFlag: boolean;
-    includeHolidayFlag: boolean;
-    activeFlag: boolean;
+    id?: number;
+    policy_name: string;
+    proc_name?: string;
+    servic_name: string;
+    late_flag: boolean;
+    Late_Time: string;
+    numlate_flag: boolean;
+    Late_num: string;
+    Early: boolean;
+    Early_Time: string;
+    Time_flag: boolean;
+    cum_time: string;
+    Aftr_cum_time: string;
+    carry_flag: boolean;
+    sufix_flag: boolean;
+    holiday_inc_flag: boolean;
+    HRLPC_LateLeaveFlag: 'leave' | 'lop';
+    sporgen_flag: 'SP' | 'GEN';
+    HRLPC_AbsentLeaveFlag: 'leave' | 'lop';
 }

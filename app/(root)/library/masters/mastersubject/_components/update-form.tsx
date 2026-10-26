@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { FormError } from '@/components/ui/extension/field';
@@ -12,7 +12,6 @@ import { addOrUpdateMasterSubject } from '@/server/library/masters/master_subjec
 import type { IMasterSubjectList } from '@/types/library/masters/masters';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -41,15 +40,22 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
         mode: 'onSubmit'
     });
 
+    const parentList = Array.isArray(parentData?.data)
+        ? parentData.data
+        : Array.isArray(parentData)
+          ? parentData
+          : [];
+
     useEffect(() => {
         if (row) {
             reset({
                 lmS_Id: row.lmS_Id,
                 lmS_ParentId: row.lmS_ParentId,
-                ismS_SubjectName: row.lmS_SubjectName,
-                lmS_Level: row.lmS_Level?.toString(),
-                lmS_SubjectNo: row.lmS_SubjectNo?.toString(),
-                lmS_ClassNo: row.lmS_ClassNo?.toString(),
+                ismS_SubjectName: row.lmS_SubjectName || row.ismS_SubjectName || '',
+                lmS_SubjectName: row.lmS_SubjectName || '',
+                lmS_Level: row.lmS_Level?.toString() || '',
+                lmS_SubjectNo: row.lmS_SubjectNo?.toString() || '',
+                lmS_ClassNo: row.lmS_ClassNo?.toString() || '',
                 lmS_ActiveFlg: row.lmS_ActiveFlg
             });
         }
@@ -58,37 +64,43 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
             const payload = {
-                lmS_Id: row.lmS_Id,
-                lmS_ParentId: data.lmS_ParentId,
-                lmS_SubjectName: data.ismS_SubjectName,
-                lmS_Level: data.lmS_Level,
-                lmS_SubjectNo: data.lmS_SubjectNo,
-                lmS_ClassNo: data.lmS_ClassNo,
+                lmS_Id: row.lmS_Id || 0,
+                lmS_SubjectNo: data.lmS_SubjectNo || '',
+                lmS_SubjectName: data.ismS_SubjectName || data.lmS_SubjectName || '',
+                lmS_ParentId: Number(data.lmS_ParentId),
+                lmS_Level: data.lmS_Level ? Number(data.lmS_Level) : 0,
+                lmS_ClassNo: data.lmS_ClassNo || '',
                 lmS_ActiveFlg: row.lmS_ActiveFlg
             };
 
             const response: any = await addOrUpdateMasterSubject(payload);
 
-            if (response.success) {
+            if (response?.success) {
                 toast.success(response.message || 'Master Subject updated successfully');
                 refetchAll();
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to update Master Subject');
+                toast.error(response?.message || 'Failed to update Master Subject');
             }
         } catch (error: any) {
+            console.error('Update Error:', error);
             toast.error(error?.message || 'Something went wrong');
         }
     };
 
     const handleReset = () => {
-        reset({
-            lmS_ParentId: undefined,
-            ismS_SubjectName: '',
-            lmS_Level: '',
-            lmS_SubjectNo: '',
-            lmS_ClassNo: ''
-        });
+        if (row) {
+            reset({
+                lmS_Id: row.lmS_Id,
+                lmS_ParentId: row.lmS_ParentId,
+                ismS_SubjectName: row.lmS_SubjectName || row.ismS_SubjectName || '',
+                lmS_SubjectName: row.lmS_SubjectName || '',
+                lmS_Level: row.lmS_Level?.toString() || '',
+                lmS_SubjectNo: row.lmS_SubjectNo?.toString() || '',
+                lmS_ClassNo: row.lmS_ClassNo?.toString() || '',
+                lmS_ActiveFlg: row.lmS_ActiveFlg
+            });
+        }
         setResetKey((prev) => prev + 1);
     };
 
@@ -108,22 +120,22 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                                     render={({ field }) => (
                                         <Select
                                             key={resetKey}
-                                            onValueChange={(val) => field.onChange(Number(val))}
-                                            value={field.value?.toString() || undefined}>
+                                            onValueChange={(val) => field.onChange(val === 'none' ? undefined : Number(val))}
+                                            value={field.value?.toString() || ''}>
                                             <SelectTrigger className='w-full'>
                                                 <SelectValue placeholder='Select Parent Subject' />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {parentLoading ? (
                                                     <SelectItem value='loading' disabled>
-                                                        Loading...
+                                                        Loading Parent Subject...
                                                     </SelectItem>
                                                 ) : parentError ? (
                                                     <SelectItem value='error' disabled>
-                                                        Error loading
+                                                        Error loading Parent Subjects
                                                     </SelectItem>
                                                 ) : (
-                                                    parentData?.data?.map((item: any) => (
+                                                    parentList.map((item: any) => (
                                                         <SelectItem
                                                             key={item.ismS_Id || Math.random()}
                                                             value={item.ismS_Id?.toString() || ''}>
@@ -161,6 +173,7 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                         />
                         <InputText
                             label='Subject No :'
+                            placeholder='Enter Subject No'
                             {...register('lmS_SubjectNo')}
                             error={errors.lmS_SubjectNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -171,7 +184,9 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
                 <div className='space-y-4'>
                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                         <InputText
-                            label='Class No  :'
+                            label='Class No :'
+                            id='lmS_ClassNo'
+                            placeholder='Enter Class No'
                             {...register('lmS_ClassNo')}
                             error={errors.lmS_ClassNo?.message}
                             className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -204,3 +219,4 @@ export default function UpdateMasterSubjectForm({ onSuccess, className = '', sel
         </div>
     );
 }
+

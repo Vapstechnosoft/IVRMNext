@@ -261,8 +261,8 @@ export default function ModuleMenuGrid({ data: initialData, onSave, onCancel }: 
                                                                 item.selectedColor === 'color1'
                                                                     ? 'red'
                                                                     : item.selectedColor === 'color2'
-                                                                        ? 'blue'
-                                                                        : 'gray' /* Simple preview logic, expand if needed */
+                                                                      ? 'blue'
+                                                                      : 'gray' /* Simple preview logic, expand if needed */
                                                         }}>
                                                         <i className={`fa fa-${item.selectedIcon} text-white`}></i>
                                                     </div>

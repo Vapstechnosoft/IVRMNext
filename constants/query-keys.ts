@@ -637,7 +637,9 @@ export const STAFF_PORTAL_QUERY_KEYS = {
 export const COE_QUERY_KEYS = {
     MASTER_EVENT_COE: 'master_event_coe',
     MASTER_EVENT_COE_INITIAL_DATA: 'master_event_coe_initial_data',
-    EVENT_DROPDOWN: 'event_dropdown'
+    EVENT_DROPDOWN: 'event_dropdown',
+    MASTER_COE: 'master_coe',
+    COE_MAPPING_DETAILS: 'coe_mapping_details'
 };
 
 export const TRANSPORT_QUERY_KEYS = {
@@ -683,6 +685,8 @@ export const PRE_LIVE_MEETING_SCHEDULE = { DETAILS: () => ['PRE_LIVE_MEETING_SCH
 
 export const COLLEGE_QUERY_KEYS = {
     MASTER_CASTE_CATEGORY: 'college_master_caste_category',
+    MASTER_CASTE: 'college_master_caste',
+    BRANCH_CHANGE: 'college_branch_change',
     MASTER_COURSE_CATEGORY_MAP: 'college_master_course_category_map',
     MASTER_COURSE_BRANCH_MAP: 'college_master_course_branch_map',
     MASTER_BATCH: 'college_master_batch',
@@ -710,6 +714,7 @@ export const COLLEGE_QUERY_KEYS = {
     CLG_REG_NO_FORMAT: 'college_clg_reg_no_format',
     COLLEGE_USERNAME_CREATION: 'college_username_creation',
     CLG_YEARLY_COURSE_MAPPING: 'college_yearly_course_mapping',
+    CLG_SECTION_ALLOTMENT: 'college_section_allotment',
     COLLEGE_FEE_TRANSACTION: 'college_fee_transaction',
     COLLEGE_FEE_TRANSACTION_ACADEMIC_YEARS: 'college_fee_transaction_academic_years',
     COLLEGE_LOAN_SCHOLARSHIP_LOAD: 'college_loan_scholarship_load',
@@ -738,10 +743,8 @@ export const COLLEGE_QUERY_KEYS = {
     COLLEGE_FEE_OPENING_BALANCE_HEADS: 'college_fee_opening_balance_heads',
     COLLEGE_FEE_OPENING_BALANCE_INSTALLMENTS: 'college_fee_opening_balance_installments',
     COLLEGE_FEE_OPENING_BALANCE_STUDENTS: 'college_fee_opening_balance_students',
-    TRANSACTION_ACTIVE_DEACTIVE_STUDENTS: 'college_transaction_active_deactive_students',
-    TRANSACTION_ATTEN_LOGIN_USER: 'college_transaction_atten_login_user',
-    TRANSACTION_CLG_SEAT_DISTRIBUTION: 'college_transaction_clg_seat_distribution',
-    TRANSACTION_COLLEGE_STUDENT_TC: 'college_transaction_college_student_tc'
+    DCPS_BONAFIDE_CERTIFICATE: 'college_dcps_bonafide_certificate',
+    COLLEGE_OVERALL_DAILY_ATTENDANCE_REPORT: 'college_overall_daily_attendance_report'
 };
 export const ONLINE_EXAM_QUERY_KEYS = {
     MASTER_QUESTION: 'online_exam_master_question',

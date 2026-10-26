@@ -14,21 +14,7 @@ interface ManualPeriodInsertionReportProps {
     data: any; // This matches the filter values from the form
 }
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-const DEFAULT_PERIODS = [
-    'Period 1',
-    'Period 2',
-    'Period Break',
-    'Period 3',
-    'Period 4',
-    'Period Break',
-    'Period 5',
-    'Period 6',
-    'Period Break',
-    'Period 7',
-    'Period 8'
-];
 
 interface CellData {
     hrmE_Id: string;
@@ -84,10 +70,19 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
             actualReportData?.period_list ||
             actualReportData?.period_List ||
             [];
+        const parseNum = (v: any): number => {
+            if (v === null || v === undefined) return 0;
+            const m = String(v).match(/\d+/);
+            return m ? Number(m[0]) : 0;
+        };
+
         const breakList =
             actualReportData?.break_list ||
             actualReportData?.breakList ||
             actualReportData?.tT_Break_list ||
+            actualReportData?.break_list_all ||
+            actualReportData?.allBreakList ||
+            actualReportData?.tT_Break_list_all ||
             [];
         const timeTableList =
             actualReportData?.time_Table ||
@@ -95,14 +90,69 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
             actualReportData?.tt ||
             [];
 
+        const getVal = (obj: any, keys: string[]) => {
+            if (!obj) return null;
+            const objKeys = Object.keys(obj).map(k => k.toLowerCase());
+            for (const key of keys) {
+                const idx = objKeys.indexOf(key.toLowerCase());
+                if (idx !== -1) return obj[Object.keys(obj)[idx]];
+            }
+            return null;
+        };
+
         if (Array.isArray(periodList) && periodList.length > 0) {
             const result: ColumnItem[] = [];
 
+            // Collect unique breaks from breakList and break_list_all
+            const uniqueBreaks: any[] = [];
+            const seenKeys = new Set<string>();
+            const rawBreaks = [
+                ...(Array.isArray(breakList) ? breakList : []),
+                ...(Array.isArray(actualReportData?.break_list_all) ? actualReportData.break_list_all : [])
+            ];
+            rawBreaks.forEach((b: any) => {
+                const bAfter = b.ttmB_AfterPeriod ?? b.afterPeriod ?? b.ttmb_afterperiod;
+                const bName = b.ttmB_BreakName || b.breakName || 'SHORT BREAK';
+                const key = `${bAfter}_${bName}`;
+                if (!seenKeys.has(key)) {
+                    seenKeys.add(key);
+                    uniqueBreaks.push(b);
+                }
+            });
+
+            const addedBreaks = new Set<any>();
+
+            const firstPedNum = parseNum(
+                getVal(periodList[0], ['ttmp_periodname', 'periodname', 'ped_name', 'ttcp_periodname']) || 1
+            );
+
+            // 1. Insert breaks that occur before or at the first period in the grid (e.g. after period 1 when grid starts at 2)
+            uniqueBreaks.forEach((b: any) => {
+                const bAfter = parseNum(b.ttmB_AfterPeriod ?? b.afterPeriod ?? b.ttmb_afterperiod);
+                if (bAfter < firstPedNum && !addedBreaks.has(b)) {
+                    addedBreaks.add(b);
+                    result.push({
+                        type: 'break',
+                        afterPeriod: String(bAfter),
+                        name: b.ttmB_BreakName || b.breakName || 'SHORT BREAK',
+                        isBreak: true,
+                        raw: b
+                    });
+                }
+            });
+
+            // 2. Loop through each period and insert matching breaks
             periodList.forEach((period: any, idx: number) => {
-                const pedId = period.ttmP_Id || period.TTMP_Id || period.ped_id || period.ttmp_id || (idx + 1);
-                const pedName = String(
-                    period.ttmP_PeriodName || period.periodName || period.ped_name || period.ttcP_PeriodName || `Period ${idx + 1}`
-                );
+                const pedId = getVal(period, ['ttmp_id', 'ped_id']) || (idx + 1);
+                const rawPedName = getVal(period, ['ttmp_periodname', 'periodname', 'ped_name', 'ttcp_periodname']);
+                const pedName = String(rawPedName || `Period ${idx + 1}`);
+                const currentPedNum = parseNum(rawPedName || pedName || idx + 1);
+
+                const nextPeriod = periodList[idx + 1];
+                const nextRawPedName = nextPeriod
+                    ? getVal(nextPeriod, ['ttmp_periodname', 'periodname', 'ped_name', 'ttcp_periodname'])
+                    : null;
+                const nextPedNum = nextPeriod ? parseNum(nextRawPedName || idx + 2) : Number.POSITIVE_INFINITY;
 
                 result.push({
                     type: 'period',
@@ -112,21 +162,41 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
                     raw: period
                 });
 
-                // Check if there is a break defined after this period
-                const breakItem = Array.isArray(breakList)
-                    ? breakList.find((b: any) => {
-                          const bAfter = b.ttmB_AfterPeriod ?? b.afterPeriod ?? b.ttmb_afterperiod;
-                          return String(bAfter) === pedName || Number.parseFloat(String(pedName)) === Number.parseFloat(String(bAfter));
-                      })
-                    : null;
+                // Check for breaks mapped directly after this period, or between this period and the next period
+                uniqueBreaks.forEach((b: any) => {
+                    if (addedBreaks.has(b)) return;
+                    const bAfter = parseNum(b.ttmB_AfterPeriod ?? b.afterPeriod ?? b.ttmb_afterperiod);
 
-                if (breakItem) {
+                    const isExactMatch =
+                        String(bAfter) === String(pedName) ||
+                        String(b.ttmB_AfterPeriod) === String(pedName) ||
+                        bAfter === currentPedNum;
+                    const isBetween = bAfter > currentPedNum && bAfter < nextPedNum;
+
+                    if (isExactMatch || isBetween) {
+                        addedBreaks.add(b);
+                        result.push({
+                            type: 'break',
+                            afterPeriod: String(bAfter),
+                            name: b.ttmB_BreakName || b.breakName || 'SHORT BREAK',
+                            isBreak: true,
+                            raw: b
+                        });
+                    }
+                });
+            });
+
+            // 3. Insert any remaining breaks (e.g. after the last period)
+            uniqueBreaks.forEach((b: any) => {
+                if (!addedBreaks.has(b)) {
+                    addedBreaks.add(b);
+                    const bAfter = b.ttmB_AfterPeriod ?? b.afterPeriod ?? b.ttmb_afterperiod;
                     result.push({
                         type: 'break',
-                        afterPeriod: pedName,
-                        name: breakItem.ttmB_BreakName || breakItem.breakName || 'SHORT BREAK',
+                        afterPeriod: String(bAfter),
+                        name: b.ttmB_BreakName || b.breakName || 'SHORT BREAK',
                         isBreak: true,
-                        raw: breakItem
+                        raw: b
                     });
                 }
             });
@@ -134,27 +204,7 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
             return result;
         }
 
-        // Fallback if periodslst is not provided
-        return DEFAULT_PERIODS.map((p, idx): ColumnItem => {
-            const isBreak = p.toLowerCase().includes('break');
-            const cleanNum = p.replace(/\D/g, '');
-
-            const matchedTT = Array.isArray(timeTableList)
-                ? timeTableList.find((t: any) => {
-                      const name = String(t.ttcP_PeriodName || t.ttmP_PeriodName || t.periodName || '').toLowerCase().trim();
-                      return name === p.toLowerCase().trim() || name === `period ${cleanNum}` || name === cleanNum;
-                  })
-                : null;
-
-            const pedId = matchedTT?.ttmP_Id || matchedTT?.TTMP_Id || matchedTT?.ped_id || (cleanNum ? Number(cleanNum) : idx + 1);
-
-            return {
-                type: isBreak ? 'break' : 'period',
-                id: isBreak ? undefined : Number(pedId),
-                name: isBreak ? 'BREAK' : p.replace('Period ', ''),
-                isBreak
-            };
-        });
+        return [];
     }, [actualReportData]);
 
     // Construct day rows from gridweeks with fallback
@@ -178,43 +228,37 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
             actualReportData?.tt ||
             [];
 
+        const getVal = (obj: any, keys: string[]) => {
+            if (!obj) return null;
+            const objKeys = Object.keys(obj).map(k => k.toLowerCase());
+            for (const key of keys) {
+                const idx = objKeys.indexOf(key.toLowerCase());
+                if (idx !== -1) return obj[Object.keys(obj)[idx]];
+            }
+            return null;
+        };
+
+        const uniqueDayIdsFromBreaks = Array.from(
+            new Set(
+                Array.isArray(allBreakList)
+                    ? allBreakList.map((b: any) => getVal(b, ['ttmd_id'])).filter(Boolean)
+                    : []
+            )
+        );
+
         if (Array.isArray(gridWeeks) && gridWeeks.length > 0) {
-            return gridWeeks.map((d: any, idx: number) => ({
-                dayId: Number(d.ttmD_Id || d.TTMD_Id || d.day_id || d.ttmd_id || idx + 1),
-                dayName: d.ttmD_DayName || d.dayName || d.day_name || DAYS[idx] || `Day ${idx + 1}`
-            }));
+            return gridWeeks.map((d: any, idx: number) => {
+                const ttId = getVal(d, ['ttmd_id', 'day_id']);
+                const ttmDId = ttId || uniqueDayIdsFromBreaks[idx];
+                const ttmDName = getVal(d, ['ttmd_dayname', 'dayname', 'day_name']) || d.name || `Day ${idx + 1}`;
+                return {
+                    dayId: Number(ttmDId),
+                    dayName: String(ttmDName)
+                };
+            });
         }
 
-        // If gridweeks is empty, map default DAYS and infer ttmD_Id from break_list_all, timeTable or fallback index
-        return DAYS.map((dayName, idx) => {
-            const matchedBreak = Array.isArray(allBreakList)
-                ? allBreakList.find((b: any) => {
-                      const name = b.ttmd_DayName || b.ttmD_DayName || b.dayName;
-                      return name && String(name).toLowerCase().trim() === dayName.toLowerCase().trim();
-                  })
-                : null;
-
-            const matchedTT = Array.isArray(timeTableList)
-                ? timeTableList.find((t: any) => {
-                      const name = t.ttmd_DayName || t.ttmD_DayName || t.dayName;
-                      return name && String(name).toLowerCase().trim() === dayName.toLowerCase().trim();
-                  })
-                : null;
-
-            const dayId =
-                matchedBreak?.ttmD_Id ||
-                matchedBreak?.TTMD_Id ||
-                matchedBreak?.day_id ||
-                matchedTT?.ttmD_Id ||
-                matchedTT?.TTMD_Id ||
-                matchedTT?.day_id ||
-                idx + 1;
-
-            return {
-                dayId: Number(dayId),
-                dayName
-            };
-        });
+        return [];
     }, [actualReportData]);
 
     // Get break name and timing for a specific day and break column
@@ -227,7 +271,8 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
             [];
 
         if (Array.isArray(allBreakList) && allBreakList.length > 0) {
-            const matchedBreak = allBreakList.find((b: any) => {
+            // 1. Match by day and period
+            let matchedBreak = allBreakList.find((b: any) => {
                 const bDayId = b.ttmD_Id || b.TTMD_Id || b.day_id;
                 const bAfter = b.ttmB_AfterPeriod ?? b.afterPeriod;
 
@@ -240,6 +285,20 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
 
                 return isDayMatch && isPeriodMatch;
             });
+
+            // 2. Fallback: match by break name or period if day-specific row was not mapped
+            if (!matchedBreak) {
+                matchedBreak = allBreakList.find((b: any) => {
+                    const bAfter = b.ttmB_AfterPeriod ?? b.afterPeriod;
+                    const isPeriodMatch =
+                        String(bAfter) === String(col.afterPeriod) || Number(bAfter) === Number(col.afterPeriod);
+                    const isNameMatch =
+                        b.ttmB_BreakName &&
+                        col.name &&
+                        String(b.ttmB_BreakName).trim().toLowerCase() === String(col.name).trim().toLowerCase();
+                    return isPeriodMatch || isNameMatch;
+                });
+            }
 
             if (matchedBreak) {
                 const startTime = matchedBreak.ttmB_BreakStartTime;
@@ -361,6 +420,31 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
             actualReportData?.period_List ||
             [];
 
+        const getVal = (obj: any, keys: string[]) => {
+            if (!obj) return null;
+            const objKeys = Object.keys(obj).map(k => k.toLowerCase());
+            for (const key of keys) {
+                const idx = objKeys.indexOf(key.toLowerCase());
+                if (idx !== -1) return obj[Object.keys(obj)[idx]];
+            }
+            return null;
+        };
+
+        // Recreate the dayperiodlist to generate the exact same "ID" property as Angular
+        let idd = 0;
+        const dayperiodlist: any[] = [];
+
+        days.forEach((mm) => {
+            periodList.forEach((nn: any) => {
+                idd++;
+                dayperiodlist.push({
+                    id: idd,
+                    TTMD_Id: Number(mm.dayId),
+                    TTMP_Id: Number(getVal(nn, ['ttmp_id', 'ped_id']))
+                });
+            });
+        });
+
         selectedKeys.forEach((key) => {
             const separatorIndex = key.indexOf('-');
             const part1 = key.substring(0, separatorIndex).trim();
@@ -381,18 +465,18 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
                 const cleanPart2 = part2.toLowerCase().replace(/^period\s*/, '').trim();
                 const periodObj = Array.isArray(periodList)
                     ? periodList.find((p: any) => {
-                          const pName = String(
-                              p.ttmP_PeriodName || p.periodName || p.ttcP_PeriodName || p.ped_name || ''
-                          )
-                              .toLowerCase()
-                              .trim();
-                          const pClean = pName.replace(/^period\s*/, '').trim();
-                          return (
-                              pName === part2.toLowerCase() ||
-                              pClean === cleanPart2 ||
-                              String(p.ttmP_Id || p.TTMP_Id || p.ttmp_id) === part2
-                          );
-                      })
+                        const pName = String(
+                            getVal(p, ['ttmp_periodname', 'periodname', 'ttcp_periodname', 'ped_name']) || ''
+                        )
+                            .toLowerCase()
+                            .trim();
+                        const pClean = pName.replace(/^period\s*/, '').trim();
+                        return (
+                            pName === part2.toLowerCase() ||
+                            pClean === cleanPart2 ||
+                            String(getVal(p, ['ttmp_id', 'ped_id'])) === part2
+                        );
+                    })
                     : null;
 
                 const colMatch = columns.find(
@@ -405,17 +489,8 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
                 );
 
                 ttmD_Id = dayObj?.dayId ? Number(dayObj.dayId) : null;
-                ttmP_Id = periodObj?.ttmP_Id
-                    ? Number(periodObj.ttmP_Id)
+                ttmP_Id = periodObj ? Number(getVal(periodObj, ['ttmp_id', 'ped_id']))
                     : (colMatch?.id ? Number(colMatch.id) : (colIdFromKey(part2) || (Number(cleanPart2) ? Number(cleanPart2) : null)));
-            }
-
-            // Fallback for days if still null
-            if (!ttmD_Id) {
-                const dayIdx = DAYS.findIndex((d) => d.toLowerCase().trim() === part1.toLowerCase());
-                if (dayIdx !== -1) {
-                    ttmD_Id = dayIdx + 1;
-                }
             }
 
             // Fallback for period if still null
@@ -425,25 +500,18 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
                     ttmP_Id = Number(num);
                 }
             }
+            console.log('Resolved IDs for key:', key, '=> ttmD_Id:', ttmD_Id, ', ttmP_Id:', ttmP_Id);
 
             if (ttmD_Id && ttmP_Id) {
+                // Find matching generated ID
+                const matchedItem = dayperiodlist.find(
+                    (dp) => Number(dp.TTMD_Id) === Number(ttmD_Id) && Number(dp.TTMP_Id) === Number(ttmP_Id)
+                );
+
                 payloadTimeTable.push({
+                    ID: matchedItem ? matchedItem.id : 0,
                     TTMD_Id: Number(ttmD_Id),
-                    TTMP_Id: Number(ttmP_Id),
-                    ttmD_Id: Number(ttmD_Id),
-                    ttmP_Id: Number(ttmP_Id),
-                    HRME_Id: Number(tempSelection.hrmE_Id),
-                    hrmE_Id: Number(tempSelection.hrmE_Id),
-                    ISMS_Id: Number(tempSelection.ismS_Id),
-                    ismS_Id: Number(tempSelection.ismS_Id),
-                    ASMAY_Id: Number(data.asmaY_Id),
-                    asmaY_Id: Number(data.asmaY_Id),
-                    TTMC_Id: Number(data.ttmC_Id),
-                    ttmC_Id: Number(data.ttmC_Id),
-                    ASMCL_Id: Number(data.asmcL_Id),
-                    asmcL_Id: Number(data.asmcL_Id),
-                    ASMS_Id: Number(data.asms_Id),
-                    asms_Id: Number(data.asms_Id)
+                    TTMP_Id: Number(ttmP_Id)
                 });
             }
         });
@@ -455,19 +523,12 @@ export default function ManualPeriodInsertionReport({ data }: ManualPeriodInsert
 
         const finalPayload = {
             ASMAY_Id: Number(data.asmaY_Id),
-            asmaY_Id: Number(data.asmaY_Id),
             TTMC_Id: Number(data.ttmC_Id),
-            ttmC_Id: Number(data.ttmC_Id),
             ASMCL_Id: Number(data.asmcL_Id),
-            asmcL_Id: Number(data.asmcL_Id),
             ASMS_Id: Number(data.asms_Id),
-            asms_Id: Number(data.asms_Id),
             HRME_Id: Number(tempSelection.hrmE_Id),
-            hrmE_Id: Number(tempSelection.hrmE_Id),
             ISMS_Id: Number(tempSelection.ismS_Id),
-            ismS_Id: Number(tempSelection.ismS_Id),
-            Time_Table: payloadTimeTable,
-            time_Table: payloadTimeTable
+            Time_Table: payloadTimeTable
         };
 
         saveTimetable(finalPayload, {

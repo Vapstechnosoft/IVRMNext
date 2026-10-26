@@ -116,43 +116,83 @@ function FormSections({ refetch }: { refetch: () => void }) {
         refetch();
     };
 
+    const isCurrentRowActive = selectedRow
+        ? (() => {
+              const accFlag =
+                  selectedRow.lmbanO_ActiveFlag ??
+                  (selectedRow as any).LMBANO_ActiveFlag ??
+                  (selectedRow as any).lmbanO_activeFlag ??
+                  (selectedRow as any).LMBANO_activeFlag;
+
+              if (accFlag !== undefined && accFlag !== null) {
+                  return accFlag === true || accFlag === 1 || accFlag === 'true' || accFlag === '1';
+              }
+
+              const bookFlag =
+                  selectedRow.mB_ActiveFlag ??
+                  (selectedRow as any).MB_ActiveFlag ??
+                  (selectedRow as any).lmB_ActiveFlag ??
+                  (selectedRow as any).LMB_ActiveFlag;
+
+              if (bookFlag !== undefined && bookFlag !== null) {
+                  return bookFlag === true || bookFlag === 1 || bookFlag === 'true' || bookFlag === '1';
+              }
+
+              return false;
+          })()
+        : false;
+
     const handleToggleConfirm = async () => {
         if (!selectedRow) return;
-        console.log('Book Register Toggle Selected Row:', selectedRow);
 
         const accessionId =
             selectedRow.lmbanO_Id ||
             (selectedRow as any).LMBANO_Id ||
             (selectedRow as any).lmbanO_ID ||
             (selectedRow as any).lmbanO_id ||
-            selectedRow.lmB_Id ||
-            (selectedRow as any).LMB_Id;
+            (selectedRow as any).lmbano_Id ||
+            0;
 
-        if (!accessionId) {
-            console.error('Missing ID in row details. Keys present:', Object.keys(selectedRow));
-            toast.error('Accession Number ID is missing');
+        const bookId =
+            selectedRow.lmB_Id ||
+            (selectedRow as any).LMB_Id ||
+            (selectedRow as any).lmb_Id ||
+            0;
+
+        const targetId = accessionId || bookId;
+
+        if (!targetId) {
+            toast.error('Book or Accession ID is missing');
             return;
         }
 
+        // When row is currently ACTIVE (true), we want to DEACTIVATE -> returnval = true
+        // When row is currently INACTIVE (false), we want to ACTIVATE -> returnval = false
+        const returnval = isCurrentRowActive;
+
         try {
             const payload = {
-                LMBANO_Id: Number(accessionId)
+                ...selectedRow,
+                LMBANO_Id: Number(targetId),
+                lmbanO_Id: Number(targetId),
+                LMB_Id: Number(bookId || targetId),
+                lmB_Id: Number(bookId || targetId),
+                LMB_BookTitle: selectedRow.lmB_BookTitle || (selectedRow as any).LMB_BookTitle || '',
+                returnval: returnval
             };
-            console.log('Dispatching toggle payload:', payload);
 
             const response: any = await deactivateMutation.mutateAsync(payload);
-            console.log('Toggle API Response:', response);
 
-            if (response.success || response.message?.toLowerCase().includes('success')) {
-                toast.success(response.message || 'Status updated successfully');
+            if (response?.success || response?.message?.toLowerCase().includes('success')) {
+                toast.success(response.message || (returnval ? 'Record deactivated successfully' : 'Record activated successfully'));
                 handleSuccess();
                 closeToggleForm();
             } else {
-                toast.error(response.message || 'Failed to update status');
+                toast.error(response?.message || 'Failed to update status');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error during toggle update:', error);
-            toast.error('An error occurred during update');
+            toast.error(error?.message || 'An error occurred during update');
         }
     };
 
@@ -193,9 +233,9 @@ function FormSections({ refetch }: { refetch: () => void }) {
                 <AdaptiveDialog isOpen={isToggleFormOpen} onClose={closeToggleForm} title='Toggle Book Status'>
                     <AdaptiveBody className='flex flex-col gap-4'>
                         <p className='text-slate-600 text-sm'>
-                            Are you sure you want to {selectedRow.mB_ActiveFlag ? 'deactivate' : 'activate'} book:{' '}
-                            <strong>{selectedRow.lmB_BookTitle}</strong> (Accession No:{' '}
-                            <strong>{selectedRow.lmbanO_AccessionNo || '-'}</strong>)?
+                            Are you sure you want to {isCurrentRowActive ? 'deactivate' : 'activate'} book:{' '}
+                            <strong>{selectedRow.lmB_BookTitle || (selectedRow as any).LMB_BookTitle}</strong> (Accession No:{' '}
+                            <strong>{selectedRow.lmbanO_AccessionNo || (selectedRow as any).LMBANO_AccessionNo || '-'}</strong>)?
                         </p>
                     </AdaptiveBody>
                     <AdaptiveFooter>
@@ -207,12 +247,12 @@ function FormSections({ refetch }: { refetch: () => void }) {
                             CANCEL
                         </Button>
                         <Button
-                            variant={selectedRow.mB_ActiveFlag ? 'destructive' : 'default'}
+                            variant={isCurrentRowActive ? 'destructive' : 'default'}
                             onClick={handleToggleConfirm}
                             isLoading={deactivateMutation.isPending}
                             disabled={deactivateMutation.isPending}
                             className='h-9 px-6 text-xs'>
-                            {selectedRow.mB_ActiveFlag ? 'DEACTIVATE' : 'ACTIVATE'}
+                            {isCurrentRowActive ? 'DEACTIVATE' : 'ACTIVATE'}
                         </Button>
                     </AdaptiveFooter>
                 </AdaptiveDialog>

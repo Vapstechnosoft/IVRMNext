@@ -115,7 +115,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         mode: 'onChange',
         defaultValues: {
             pasA_WillingToContributeFlg: 0,
-            pasR_UndertakingFlag: 0
+            pasR_UndertakingFlag: 0,
+            pasR_TransportReqdFlag: undefined
         }
     });
 
@@ -216,6 +217,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             if (rowData.religion_Id) setValue('religion_Id', Number(rowData.religion_Id));
             if (rowData.caste_Id) setValue('caste_Id', Number(rowData.caste_Id));
             if (rowData.pasR_Nationality) setValue('pasR_Nationality', String(rowData.pasR_Nationality));
+            if (rowData.pasR_TransportReqdFlag !== undefined) setValue('pasR_TransportReqdFlag', Number(rowData.pasR_TransportReqdFlag));
 
             setValue('pasA_WillingToContributeFlg', rowData.pasA_WillingToContributeFlg ? 1 : 0);
             setValue('pasA_WillingToContributeRemarks', rowData.pasA_WillingToContributeRemarks ?? undefined);
@@ -243,8 +245,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             if (rowData.previousSchoolDetails?.[0]) {
                 setPreviousSchool(rowData.previousSchoolDetails[0]);
             }
-            if (rowData.selectedDocuments) {
-                setUploadedDocuments(rowData.selectedDocuments);
+            const docs = rowData.selectedDocuments || (rowData as any).student_documents || (rowData as any).selecteddocuments;
+            if (docs && Array.isArray(docs) && docs.length > 0) {
+                setUploadedDocuments(docs);
             }
 
             if (rowData.pasR_Student_Pic_Path) {
@@ -481,15 +484,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         } else if (currentStep === 3) {
             fieldsToValidate = ['pasR_FatherName', 'pasR_FatherNationality', 'pasR_MotherName', 'pasR_MotherNationality'];
 
-            if (!fatherPhoto?.pasR_FatherPhoto) {
-                toast.error('Please upload father photo');
-                return;
-            }
 
-            if (!motherPhoto?.pasR_MotherPhoto) {
-                toast.error('Please upload mother photo');
-                return;
-            }
 
             // Validate optional phone fields if they have values
             const phoneFieldsToCheck = [
@@ -518,7 +513,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
             const mandatoryDocs =
                 preadmissionDocuments?.data?.filter((doc) => {
-                    if (doc.amsmD_FLAG) return true;
+                    const isFlagMandatory =
+                        doc.amsmD_FLAG === true || (doc.amsmD_FLAG as any) === 'true' || (doc.amsmD_FLAG as any) === 1;
+                    if (isFlagMandatory) return true;
                     if (doc.amsmD_DocumentName === 'Baptism Certificate' && isRomanCatholic) {
                         return true;
                     }
@@ -570,21 +567,23 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const getExpectedPhoneLength = (countryData: any): number | undefined => {
         if (!countryData) return undefined;
 
+        const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
+        const fallback: Record<string, number> = {
+            '91': 12,
+            '1': 10,
+            '44': 10,
+            '61': 9
+        };
+
+        if (fallback[dial]) return fallback[dial];
+
         const format = countryData?.format;
         if (format && typeof format === 'string') {
             const placeholders = (format.match(/[0-9xX\.\#9]/g) || []).length;
             if (placeholders > 0) return placeholders;
         }
 
-        const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
-        const fallback: Record<string, number> = {
-            '91': 10,
-            '1': 10,
-            '44': 10,
-            '61': 9
-        };
-
-        return fallback[dial] ?? undefined;
+        return undefined;
     };
 
     const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
@@ -602,11 +601,17 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         if (numberPart.startsWith(countryCode)) {
             numberPart = numberPart.slice(String(countryCode).length);
         }
+        const expected = getExpectedPhoneLength(countryData);
+
+        if (expected && numberPart.length > expected) {
+            numberPart = numberPart.slice(0, expected);
+        }
+
+        const rawPhone = countryCode + numberPart;
         const formattedPhone = `+${countryCode} ${numberPart}`;
-        setPhoneValues((prev) => ({ ...prev, [fieldName]: formattedPhone }));
+        setPhoneValues((prev) => ({ ...prev, [fieldName]: rawPhone }));
         setValue(fieldName as any, formattedPhone);
 
-        const expected = getExpectedPhoneLength(countryData);
         setPhoneExpectedInfo((prev) => ({
             ...prev,
             [fieldName]: {
@@ -690,6 +695,30 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const onSubmit: SubmitHandler<FormFields | any> = async (data: FormFields) => {
         if (data.pasR_UndertakingFlag === 0) {
             toast.error('Please accept undertaking');
+            return;
+        }
+
+        // Validate mandatory documents before submission
+        const selectedReligionId = watch('religion_Id');
+        const selectedReligion = religion?.data?.find((r) => r.ivrmmR_Id === selectedReligionId);
+        const isRomanCatholic = selectedReligion?.ivrmmR_Name === 'Roman Catholic';
+
+        const mandatoryDocs =
+            preadmissionDocuments?.data?.filter((doc) => {
+                const isFlagMandatory =
+                    doc.amsmD_FLAG === true || (doc.amsmD_FLAG as any) === 'true' || (doc.amsmD_FLAG as any) === 1;
+                if (isFlagMandatory) return true;
+                if (doc.amsmD_DocumentName === 'Baptism Certificate' && isRomanCatholic) {
+                    return true;
+                }
+                return false;
+            }) || [];
+
+        const missingDocs = mandatoryDocs.filter((doc) => !isDocumentUploaded(doc.amsmD_Id));
+        if (missingDocs.length > 0) {
+            const docNames = missingDocs.map((doc) => doc.amsmD_DocumentName).join(', ');
+            toast.error(`Please upload mandatory documents: ${docNames}`);
+            setCurrentStep(4);
             return;
         }
 
@@ -779,12 +808,22 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                 })),
                 examSubjectDTO: [],
                 elesubsubject: [],
-                selectedDocuments: uploadedDocuments.map((doc) => ({
-                    pasrD_Id: doc.pasrD_Id,
-                    pasR_Id: doc.pasR_Id,
-                    amsmD_Id: doc.amsmD_Id,
-                    document_Path: toNullOther(doc.document_Path)
-                })),
+                selectedDocuments: uploadedDocuments
+                    .filter((doc) => Boolean(doc.document_Path) && !doc.isUploading)
+                    .map((doc) => ({
+                        pasrD_Id: doc.pasrD_Id || 0,
+                        pasR_Id: doc.pasR_Id || 0,
+                        amsmD_Id: doc.amsmD_Id,
+                        document_Path: toNullOther(doc.document_Path)
+                    })),
+                student_documents: uploadedDocuments
+                    .filter((doc) => Boolean(doc.document_Path) && !doc.isUploading)
+                    .map((doc) => ({
+                        pasrD_Id: doc.pasrD_Id || 0,
+                        pasR_Id: doc.pasR_Id || 0,
+                        amsmD_Id: doc.amsmD_Id,
+                        document_Path: toNullOther(doc.document_Path)
+                    })),
                 PASR_RegistrationNo: toNullOther((data as any).pasR_RegistrationNo),
                 pasA_WillingToContributeFlg: pasA_WillingToContributeFlg === 1
             };
@@ -1134,7 +1173,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     };
 
     const isDocumentUploaded = (amsmD_Id: number) => {
-        return uploadedDocuments.some((doc) => doc.amsmD_Id === amsmD_Id);
+        return uploadedDocuments.some((doc) => doc.amsmD_Id === amsmD_Id && Boolean(doc.document_Path) && !doc.isUploading);
     };
 
     const getUploadedDocument = (amsmD_Id: number) => {
@@ -1207,8 +1246,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
     const handleDOBChange = (date: Date | undefined) => {
         if (!date || !masterConfig?.data) {
-            setIsClassDisabled(false);
-            setFilteredClasses(preadmissionClass?.data || []);
+            setIsClassDisabled(true);
+            setFilteredClasses([]);
+            setValue('asmcL_Id', 0);
             return;
         }
 
@@ -1353,8 +1393,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         currentStep === step.id
                                                             ? 'border-blue-600 bg-blue-600 text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-400'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-400'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-5 w-5' />
@@ -1403,8 +1443,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                         currentStep === step.id
                                                             ? 'border-secondary bg-secondary text-white shadow-blue-200 shadow-lg'
                                                             : currentStep > step.id
-                                                                ? 'border-green-500 bg-green-500 text-white'
-                                                                : 'border-gray-300 bg-white text-gray-500'
+                                                              ? 'border-green-500 bg-green-500 text-white'
+                                                              : 'border-gray-300 bg-white text-gray-500'
                                                     )}>
                                                     {currentStep > step.id ? (
                                                         <Check className='h-6 w-6' />
@@ -1640,7 +1680,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             />
                                             <InputText
                                                 label='Middle Name'
-                                                required
                                                 id='pasR_MiddleName'
                                                 placeholder='Enter middle name'
                                                 {...register('pasR_MiddleName')}
@@ -1648,7 +1687,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                             />
                                             <InputText
                                                 label='Last Name'
-                                                required
                                                 id='pasR_LastName'
                                                 placeholder='Enter last name'
                                                 {...register('pasR_LastName')}
@@ -1745,14 +1783,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                 enableSearch
                                                                 disableCountryCode={false}
-                                                                enableLongNumbers={true}
+                                                                enableLongNumbers={false}
                                                                 isValid={true}
                                                                 preserveOrder={['country', 'nationalNumber']}
                                                             />
                                                             {phoneExpectedInfo.pasR_MobileNo?.expected && (
                                                                 <span className='mt-1 text-muted-foreground text-xs'>
-                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
-                                                                        }`}
+                                                                    {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MobileNo.expected} digits for ${
+                                                                        phoneExpectedInfo.pasR_MobileNo.name ?? 'selected country'
+                                                                    }`}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -1904,7 +1943,11 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 disabled={isClassDisabled}>
                                                                 <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
                                                                     <SelectValue
-                                                                        placeholder='Please select the class name'
+                                                                        placeholder={
+                                                                            isClassDisabled
+                                                                                ? 'Please select Date of Birth first'
+                                                                                : 'Select a class'
+                                                                        }
                                                                     />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
@@ -2078,8 +2121,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                     control={control}
                                                     render={({ field }) => (
                                                         <Select
+                                                            allowZero={true}
                                                             onValueChange={(value) => field.onChange(Number(value))}
-                                                            value={field.value?.toString() || undefined}>
+                                                            value={field.value !== undefined && field.value !== null ? String(field.value) : undefined}>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder='Select option' />
                                                             </SelectTrigger>
@@ -2217,15 +2261,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             rules={
                                                                 conZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: conZipLength,
-                                                                            message: `Pin code must be ${conZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: conZipLength,
+                                                                              message: `Pin code must be ${conZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2400,15 +2444,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             rules={
                                                                 perZipLength
                                                                     ? {
-                                                                        minLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        },
-                                                                        maxLength: {
-                                                                            value: perZipLength,
-                                                                            message: `Pin code must be ${perZipLength} digits`
-                                                                        }
-                                                                    }
+                                                                          minLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          },
+                                                                          maxLength: {
+                                                                              value: perZipLength,
+                                                                              message: `Pin code must be ${perZipLength} digits`
+                                                                          }
+                                                                      }
                                                                     : undefined
                                                             }
                                                             render={({ field }) => (
@@ -2500,7 +2544,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             />
                                                             <div className='mb-1'>
                                                                 <Label htmlFor='father_photo'>
-                                                                    Father Photo <span className='ml-1 text-red-500'>*</span>
+                                                                    Father Photo
                                                                 </Label>
                                                             </div>
 
@@ -2750,15 +2794,16 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
                                                                     {phoneExpectedInfo.pasR_FatherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_FatherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_FatherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_FatherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -2847,7 +2892,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             />
                                                             <div className='mb-1'>
                                                                 <Label htmlFor='mother_photo'>
-                                                                    Mother Photo <span className='ml-1 text-red-500'>*</span>
+                                                                    Mother Photo
                                                                 </Label>
                                                             </div>
 
@@ -3097,15 +3142,16 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
                                                                     {phoneExpectedInfo.pasR_MotherMobleNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${phoneExpectedInfo.pasR_MotherMobleNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_MotherMobleNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_MotherMobleNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3204,15 +3250,16 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         inputClass='w-full px-4 py-2 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500'
                                                                         enableSearch
                                                                         disableCountryCode={false}
-                                                                        enableLongNumbers={true}
+                                                                        enableLongNumbers={false}
                                                                         isValid={true}
                                                                         preserveOrder={['country', 'nationalNumber']}
                                                                     />
                                                                     {phoneExpectedInfo.pasR_AltContactNo?.expected && (
                                                                         <span className='mt-1 text-muted-foreground text-xs'>
-                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${phoneExpectedInfo.pasR_AltContactNo.name ??
+                                                                            {`Mobile number must be exactly ${phoneExpectedInfo.pasR_AltContactNo.expected} digits for ${
+                                                                                phoneExpectedInfo.pasR_AltContactNo.name ??
                                                                                 'selected country'
-                                                                                }`}
+                                                                            }`}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -3290,7 +3337,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                 <tr
                                                                     key={document.amsmD_Id}
                                                                     className={(() => {
-                                                                        // Get selected religion details
                                                                         const selectedReligionId = watch('religion_Id');
                                                                         const selectedReligion = religion?.data?.find(
                                                                             (r) => r.ivrmmR_Id === selectedReligionId
@@ -3298,20 +3344,23 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                         const isRomanCatholic =
                                                                             selectedReligion?.ivrmmR_Name === 'Roman Catholic';
 
-                                                                        // Check if this document is conditionally mandatory
                                                                         const isConditionallyMandatory =
                                                                             document.amsmD_DocumentName === 'Baptism Certificate' &&
                                                                             isRomanCatholic;
 
-                                                                        const isMandatory = document.amsmD_FLAG || isConditionallyMandatory;
+                                                                        const isFlagMandatory =
+                                                                            document.amsmD_FLAG === true ||
+                                                                            (document.amsmD_FLAG as any) === 'true' ||
+                                                                            (document.amsmD_FLAG as any) === 1;
 
-                                                                        if (uploadedDoc && !isUploading) return 'bg-green-50';
-                                                                        if (isMandatory) return 'bg-orange-50';
-                                                                        return '';
+                                                                        const isMandatory = isFlagMandatory || isConditionallyMandatory;
+
+                                                                        if (uploadedDoc && !isUploading) return 'bg-green-50/60 hover:bg-green-50';
+                                                                        if (isMandatory) return 'bg-red-50/30 hover:bg-red-50/50';
+                                                                        return 'hover:bg-gray-50/50';
                                                                     })()}>
                                                                     <td className='whitespace-nowrap px-6 py-4'>
                                                                         {(() => {
-                                                                            // Get selected religion details
                                                                             const selectedReligionId = watch('religion_Id');
                                                                             const selectedReligion = religion?.data?.find(
                                                                                 (r) => r.ivrmmR_Id === selectedReligionId
@@ -3319,33 +3368,52 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             const isRomanCatholic =
                                                                                 selectedReligion?.ivrmmR_Name === 'Roman Catholic';
 
-                                                                            // Check if this document is conditionally mandatory
                                                                             const isConditionallyMandatory =
                                                                                 document.amsmD_DocumentName === 'Baptism Certificate' &&
                                                                                 isRomanCatholic;
 
-                                                                            const isMandatory =
-                                                                                document.amsmD_FLAG || isConditionallyMandatory;
+                                                                            const isFlagMandatory =
+                                                                                document.amsmD_FLAG === true ||
+                                                                                (document.amsmD_FLAG as any) === 'true' ||
+                                                                                (document.amsmD_FLAG as any) === 1;
+
+                                                                            const isMandatory = isFlagMandatory || isConditionallyMandatory;
 
                                                                             return (
-                                                                                <>
+                                                                                <div>
                                                                                     <div className='flex items-center gap-2'>
                                                                                         <span className='font-semibold text-gray-900 text-sm'>
                                                                                             {document.amsmD_DocumentName}
                                                                                         </span>
                                                                                         {isMandatory && (
-                                                                                            <span className='text-red-500'>*</span>
+                                                                                            <span className='font-bold text-red-500'>*</span>
                                                                                         )}
                                                                                     </div>
-                                                                                    <p className='mt-0.5 text-gray-500 text-xs'>
-                                                                                        {isMandatory ? 'Required' : 'Optional'}
-                                                                                        {isConditionallyMandatory && (
-                                                                                            <span className='ml-1 text-orange-600'>
-                                                                                                (for Roman Catholic)
+                                                                                    {document.amsmD_Description &&
+                                                                                        document.amsmD_Description.trim() !== '' &&
+                                                                                        document.amsmD_Description.trim().toLowerCase() !==
+                                                                                            document.amsmD_DocumentName.trim().toLowerCase() && (
+                                                                                            <p className='mt-0.5 max-w-sm truncate text-gray-500 text-xs'>
+                                                                                                {document.amsmD_Description}
+                                                                                            </p>
+                                                                                        )}
+                                                                                    <div className='mt-1 flex items-center gap-1.5'>
+                                                                                        {isMandatory ? (
+                                                                                            <span className='inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 font-medium text-red-800 text-xs'>
+                                                                                                Mandatory
+                                                                                            </span>
+                                                                                        ) : (
+                                                                                            <span className='inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 font-medium text-gray-600 text-xs'>
+                                                                                                Not Mandatory
                                                                                             </span>
                                                                                         )}
-                                                                                    </p>
-                                                                                </>
+                                                                                        {isConditionallyMandatory && (
+                                                                                            <span className='font-medium text-orange-600 text-xs'>
+                                                                                                (Required for Roman Catholic)
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
                                                                             );
                                                                         })()}
                                                                     </td>
@@ -3982,8 +4050,8 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                             classes={ineligibleClasses}
                             cutOffDate={
                                 masterConfig?.data &&
-                                    masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                    masterConfig.data.asmaY_Cut_Of_Date
+                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
+                                masterConfig.data.asmaY_Cut_Of_Date
                                     ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
                                     : new Date()
                             }

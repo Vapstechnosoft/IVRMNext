@@ -101,9 +101,8 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                             error={errors.ismS_SubjectCode?.message}
                         />
                         <InputText
-                            label='Description'
-                            required
-                            placeholder='Enter Description'
+                            label='New Subject Name'
+                            placeholder='Enter New Subject Name'
                             id='ismS_SubjectNameNew'
                             {...register('ismS_SubjectNameNew')}
                             error={errors.ismS_SubjectNameNew?.message}

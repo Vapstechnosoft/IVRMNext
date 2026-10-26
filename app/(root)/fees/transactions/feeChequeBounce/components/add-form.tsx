@@ -89,7 +89,7 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
                 ASMAY_ID: Number(data.asmaY_Id),
                 AMST_Id: Number(data.amst_Id),
                 FYP_ID: Number(data.FYP_ID),
-                FCB_DATE: data.FCB_DATE instanceof Date ? data.FCB_DATE.toDateString() : new Date(data.FCB_DATE).toDateString(),
+                FCB_DATE: data.FCB_DATE instanceof Date ? data.FCB_DATE.toISOString() : new Date(data.FCB_DATE).toISOString(),
                 FCB_Remarks: data.FCB_Remarks
             };
 

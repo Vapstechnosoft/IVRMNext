@@ -17,7 +17,7 @@ export const MasterGradeColumns: ColumnDef<IMasterGrade>[] = [
             const continuousIndex = pageIndex * pageSize + row.index + 1;
             return <div>{continuousIndex}</div>;
         },
-        enableHiding: true,
+        enableHiding: false,
         enableSorting: false
     },
     {
@@ -34,8 +34,8 @@ export const MasterGradeColumns: ColumnDef<IMasterGrade>[] = [
     {
         id: 'actions',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Actions' className='text-center' />,
-        accessorFn: (row: any) => row,
         enableSorting: false,
+        enableHiding: false,
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];

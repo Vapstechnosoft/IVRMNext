@@ -62,11 +62,12 @@ export interface IMasterSubjectList {
     lmS_Id: number;
     lmS_SubjectName: string;
     lmS_ParentId: number;
-    ismS_SubjectName: string;
+    ismS_SubjectName?: string;
     lmS_ActiveFlg: boolean;
-    lmS_Level: string;
+    lmS_Level: string | number;
     lmS_SubjectNo: string;
     lmS_ClassNo: string;
+    mI_Id?: number;
 }
 
 export interface IParentSubjectDropdownList {

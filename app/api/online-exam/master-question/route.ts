@@ -96,12 +96,13 @@ export async function POST(req: NextRequest) {
             LPMOEQ_NoOfOptions: Number(body.LPMOEQ_NoOfOptions || (body.tempoptionsDTO || body.questionOptions || []).length || 0),
             selectedClassList: (body.selectedClassList || body.classlist || []).map((c: any) => typeof c === 'number' ? c : (c.ASMCL_Id ?? c.asmcL_Id ?? 0)).filter((id: number) => id > 0),
             tempoptionsDTO: (body.tempoptionsDTO || body.questionOptions || []).map((opt: any, idx: number) => ({
-                LPMOEQOA_Id: Number(opt.LPMOEQOA_Id ?? 0),
-                LPMOEQOA_Option: opt.LPMOEQOA_Option ?? opt.lmsmoeqoA_Option ?? opt.option ?? '',
-                LPMOEQOA_OptionCode: opt.LPMOEQOA_OptionCode ?? String.fromCharCode(65 + idx),
+                LPMOEQOA_Id: Number(opt.LPMOEQOA_Id ?? opt.lmsmoeqoA_Id ?? 0),
+                LPMOEQOA_Option: opt.LPMOEQOA_Option ?? opt.lmsmoeqoA_Option ?? opt.option ?? String.fromCharCode(65 + idx),
+                LPMOEQOA_OptionCode: opt.LPMOEQOA_OptionCode ?? opt.lmsmoeqoA_OptionCode ?? opt.answer ?? '',
                 LPMOEQOA_AnswerFlag: Boolean(opt.LPMOEQOA_AnswerFlag ?? opt.lmsmoeqoA_AnswerFlag ?? false),
                 LPMOEQOA_Marks: Number(opt.LPMOEQOA_Marks ?? opt.lmsmoeqoA_Marks ?? 1),
-                LPMOEQOA_ActiveFlg: true
+                LPMOEQOA_ActiveFlg: true,
+                tempoptionsfiles: opt.files || opt.tempoptionsfiles || []
             })),
             tempfilesDTO: (body.tempfilesDTO || body.questionFiles || []).map((file: any) => ({
                 LPMOEQF_Id: Number(file.LPMOEQF_Id ?? 0),

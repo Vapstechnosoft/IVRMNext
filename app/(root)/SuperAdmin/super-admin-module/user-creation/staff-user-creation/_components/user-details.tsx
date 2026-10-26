@@ -16,6 +16,7 @@ interface UserDetailsProps {
     onModuleChange: (modules: ModuleDTO[]) => void;
     onSelectAllCategories: () => void;
     onSelectAllModules: () => void;
+    onAdminUsernameBlur?: (username: string) => void | Promise<void>;
     isUserNameDisabled?: boolean;
     onChangeUsernameToggle?: () => void;
     isStaffDataLoading?: boolean;
@@ -29,12 +30,14 @@ export default function UserDetails({
     onModuleChange,
     onSelectAllCategories,
     onSelectAllModules,
+    onAdminUsernameBlur,
     isUserNameDisabled = false,
     onChangeUsernameToggle,
     isStaffDataLoading = false,
     isAdmin = false
 }: UserDetailsProps) {
     const { register, watch } = useFormContext();
+    const userNameRegistration = register('userName');
     const filterData = watch('filterData');
 
     const handleCategoryCheck = (catId: number, checked: boolean) => {
@@ -55,18 +58,25 @@ export default function UserDetails({
                     <Label className='font-semibold text-sm'>User Name: <span className='text-red-500'>*</span></Label>
                     <div className='flex items-center gap-2'>
                         <Input
-                            {...register('userName')}
-                            className='bg-gray-50 uppercase placeholder:text-gray-500 placeholder:normal-case'
+                            {...userNameRegistration}
+                            onBlur={async (event) => {
+                                const username = event.currentTarget.value;
+                                await userNameRegistration.onBlur(event);
+                                if (isAdmin) {
+                                    await onAdminUsernameBlur?.(username);
+                                }
+                            }}
+                            className='bg-gray-50  placeholder:text-gray-500 placeholder:normal-case'
                             placeholder={!isAdmin && filterData === 'Multiple' ? 'N/A FOR MULTIPLE' : 'ENTER USERNAME'}
                             readOnly={isUserNameDisabled}
                             disabled={!isAdmin && filterData === 'Multiple'}
                         />
-                        {!isAdmin && (
+                        {(
                             <Button
                                 type='button'
                                 variant='secondary'
                                 onClick={onChangeUsernameToggle}
-                                disabled={filterData === 'Multiple' || !isUserNameDisabled}
+                                // disabled={filterData === 'Multiple' || !isUserNameDisabled}
                                 size='sm'
                                 className='font-bold text-[10px] uppercase'>
                                 <UserCog className='mr-2 h-3.5 w-3.5' />
@@ -75,18 +85,21 @@ export default function UserDetails({
                         )}
                     </div>
                 </div>
-
-                <div className='rounded-md border-orange-400 border-l-4 bg-orange-50 p-4'>
-                    <p className='font-medium text-orange-800 text-sm'>
-                        {!isAdmin && filterData === 'Multiple' ? (
-                            'Password settings will be managed individually for each selected staff.'
-                        ) : (
-                            <>
-                                Initial password is "<strong>Password@123</strong>"
-                            </>
-                        )}
-                    </p>
-                </div>
+                {
+                    !isAdmin && (
+                        <div className='rounded-md border-orange-400 border-l-4 bg-orange-50 p-4'>
+                            <p className='font-medium text-orange-800 text-sm'>
+                                {!isAdmin && filterData === 'Multiple' ? (
+                                    'Password settings will be managed individually for each selected staff.'
+                                ) : (
+                                    <>
+                                        Initial password is <strong>Password@123</strong>
+                                    </>
+                                )}
+                            </p>
+                        </div>
+                    )
+                }
             </div>
 
             {/* Selection Lists (Modules) */}

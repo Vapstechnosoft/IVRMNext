@@ -59,7 +59,13 @@ export const BookArrivalReportColumns: ColumnDef<IBookArrivalReportGridData>[] =
         header: ({ column }) => <DataTableColumnHeader column={column} title='Purchase Date' />,
         cell: ({ row }) => {
             const date = row.getValue('lmB_PurchaseDate') as string;
-            return <div>{date ? format(new Date(date), 'dd-MM-yyyy') : '-'}</div>;
+            if (!date) return <div>-</div>;
+            try {
+                const d = new Date(date);
+                return <div>{!Number.isNaN(d.getTime()) ? format(d, 'dd-MM-yyyy') : date}</div>;
+            } catch {
+                return <div>{date}</div>;
+            }
         },
         enableSorting: true
     },
@@ -68,7 +74,13 @@ export const BookArrivalReportColumns: ColumnDef<IBookArrivalReportGridData>[] =
         header: ({ column }) => <DataTableColumnHeader column={column} title='Entry Date' />,
         cell: ({ row }) => {
             const date = row.getValue('lmB_EntryDate') as string;
-            return <div>{date ? format(new Date(date), 'dd-MM-yyyy') : '-'}</div>;
+            if (!date) return <div>-</div>;
+            try {
+                const d = new Date(date);
+                return <div>{!Number.isNaN(d.getTime()) ? format(d, 'dd-MM-yyyy') : date}</div>;
+            } catch {
+                return <div>{date}</div>;
+            }
         },
         enableSorting: true
     },

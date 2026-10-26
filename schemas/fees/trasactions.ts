@@ -51,12 +51,7 @@ export const thirdPartyTransactionSchema = {
             chequeDate: z.string().optional(),
             // chequeNo: z.string().optional(),
             //chequeNo: z.string().min(13, 'Minimum 13 characters for Cheque Number is required').max(19, 'Cheque Number is too long'),
-            //TASK/21407/2026-2027--- Done by Doddaranga swamy
-            chequeNo: z
-                .string()
-                .min(13, 'Cheque number must be at least 13 characters')
-                .max(16, 'Cheque number must not exceed 16 characters')
-                .optional(),
+            chequeNo: z.string().optional(),
             bankName: z.string().optional()
         })
         .superRefine((data, ctx) => {
@@ -81,16 +76,22 @@ export const thirdPartyTransactionSchema = {
                         message: 'Cheque Number is required',
                         path: ['chequeNo']
                     });
+                } else if (!/^\d+$/.test(data.chequeNo)) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Cheque Number must contain only numbers',
+                        path: ['chequeNo']
+                    });
                 } else if (data.chequeNo.length < 13) {
                     ctx.addIssue({
                         code: 'custom',
-                        message: 'Card Number must be at least 13 digits',
+                        message: 'Cheque Number must be at least 13 digits',
                         path: ['chequeNo']
                     });
-                } else if (data.chequeNo.length > 19) {
+                } else if (data.chequeNo.length > 16) {
                     ctx.addIssue({
                         code: 'custom',
-                        message: 'Card Number cannot exceed 19 digits',
+                        message: 'Cheque Number cannot exceed 16 digits',
                         path: ['chequeNo']
                     });
                 }
@@ -102,16 +103,22 @@ export const thirdPartyTransactionSchema = {
                         message: 'Cheque Number is required',
                         path: ['chequeNo']
                     });
+                } else if (!/^\d+$/.test(data.chequeNo)) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Cheque Number must contain only numbers',
+                        path: ['chequeNo']
+                    });
                 } else if (data.chequeNo.length < 13) {
                     ctx.addIssue({
                         code: 'custom',
                         message: 'Cheque Number must be at least 13 digits',
                         path: ['chequeNo']
                     });
-                } else if (data.chequeNo.length > 19) {
+                } else if (data.chequeNo.length > 16) {
                     ctx.addIssue({
                         code: 'custom',
-                        message: 'Cheque Number cannot exceed 19 digits',
+                        message: 'Cheque Number cannot exceed 16 digits',
                         path: ['chequeNo']
                     });
                 }
@@ -661,16 +668,22 @@ export const GMthirdPartyTransactionSchema = {
                         message: 'Cheque Number is required',
                         path: ['chequeNo']
                     });
+                } else if (!/^\d+$/.test(data.chequeNo)) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Cheque Number must contain only numbers',
+                        path: ['chequeNo']
+                    });
                 } else if (data.chequeNo.length < 13) {
                     ctx.addIssue({
                         code: 'custom',
-                        message: 'Card Number must be at least 13 digits',
+                        message: 'Cheque Number must be at least 13 digits',
                         path: ['chequeNo']
                     });
-                } else if (data.chequeNo.length > 19) {
+                } else if (data.chequeNo.length > 16) {
                     ctx.addIssue({
                         code: 'custom',
-                        message: 'Card Number cannot exceed 19 digits',
+                        message: 'Cheque Number cannot exceed 16 digits',
                         path: ['chequeNo']
                     });
                 }
@@ -682,16 +695,22 @@ export const GMthirdPartyTransactionSchema = {
                         message: 'Cheque Number is required',
                         path: ['chequeNo']
                     });
+                } else if (!/^\d+$/.test(data.chequeNo)) {
+                    ctx.addIssue({
+                        code: 'custom',
+                        message: 'Cheque Number must contain only numbers',
+                        path: ['chequeNo']
+                    });
                 } else if (data.chequeNo.length < 13) {
                     ctx.addIssue({
                         code: 'custom',
                         message: 'Cheque Number must be at least 13 digits',
                         path: ['chequeNo']
                     });
-                } else if (data.chequeNo.length > 19) {
+                } else if (data.chequeNo.length > 16) {
                     ctx.addIssue({
                         code: 'custom',
-                        message: 'Cheque Number cannot exceed 19 digits',
+                        message: 'Cheque Number cannot exceed 16 digits',
                         path: ['chequeNo']
                     });
                 }
