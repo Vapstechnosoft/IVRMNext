@@ -40,12 +40,15 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
         register,
         handleSubmit,
         control,
+        getValues,
         reset,
         trigger,
+        clearErrors,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(hrmsMasterSchemas.grade.add),
-        mode: 'onChange',
+        mode: 'onSubmit',
+        reValidateMode: 'onChange',
         defaultValues: {
             // @ts-ignore
             hrmG_PayScaleFrom: undefined,
@@ -56,6 +59,13 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
             hrmG_Order: 0
         }
     });
+
+    const validatePayScaleRange = () => {
+        const [from, to] = getValues(['hrmG_PayScaleFrom', 'hrmG_PayScaleTo']);
+        if (typeof from === 'number' && Number.isFinite(from) && typeof to === 'number' && Number.isFinite(to)) {
+            trigger(['hrmG_PayScaleFrom', 'hrmG_PayScaleTo']);
+        }
+    };
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {
         try {
@@ -87,6 +97,7 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
 
     const handleReset = () => {
         reset();
+        clearErrors();
     };
 
     return (
@@ -130,11 +141,11 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                                         const numValue = Number.isNaN(value) ? undefined : value;
                                         // @ts-ignore
                                         field.onChange(numValue);
-                                        trigger(['hrmG_PayScaleFrom', 'hrmG_PayScaleTo']);
+                                        validatePayScaleRange();
                                     }}
                                     onBlur={() => {
                                         field.onBlur();
-                                        trigger(['hrmG_PayScaleFrom', 'hrmG_PayScaleTo']);
+                                        validatePayScaleRange();
                                     }}
                                     error={errors.hrmG_PayScaleFrom?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -174,15 +185,16 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                                     id='hrmG_PayScaleTo'
                                     value={field.value ?? Number.NaN}
                                     maxDigits={6}
+                                    minValue={0}
                                     onChange={(value) => {
                                         const numValue = Number.isNaN(value) ? undefined : value;
                                         // @ts-ignore
                                         field.onChange(numValue);
-                                        trigger(['hrmG_PayScaleFrom', 'hrmG_PayScaleTo']);
+                                        validatePayScaleRange();
                                     }}
                                     onBlur={() => {
                                         field.onBlur();
-                                        trigger(['hrmG_PayScaleFrom', 'hrmG_PayScaleTo']);
+                                        validatePayScaleRange();
                                     }}
                                     error={errors.hrmG_PayScaleTo?.message}
                                     className='transition-colors focus:ring-2 focus:ring-primary/20'
@@ -190,10 +202,10 @@ export default function AddGradeForm({ onSuccess, className = '' }: AddGradeForm
                             )}
                         />
 
-                        <div className='flex flex-col gap-2'>
+                        <div className='flex flex-col gap-1.5'>
                             {/* biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-                            <label className='font-medium text-sm'>Pay Scale Range</label>
-                            <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50'>
+                            <label className='font-normal text-sm leading-none'>Pay Scale Range</label>
+                            <div className='flex h-9 w-full rounded-md border border-input bg-muted px-3 py-1 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50'>
                                 <PayScaleRangeDisplay control={control} />
                             </div>
                             {errors.hrmG_PayScaleTo && (
