@@ -39,12 +39,68 @@ export function PromotionSectionTab({ initialData, refetchAll }: PromotionSectio
     const [targetSectionId, setTargetSectionId] = useState<string>('');
     const [promotedflag, setPromotedflag] = useState<any>(null);
 
-    // Dynamic Lists
-    const [courseList, setCourseList] = useState<any[]>([]);
-    const [branchList, setBranchList] = useState<any[]>([]);
-    const [semList, setSemList] = useState<any[]>([]);
-    const [proSemList, setProSemList] = useState<any[]>([]);
+    // Default lists from initialData (defensive against any casing / structure)
+    const yearList: any[] =
+        initialData?.yearList ||
+        initialData?.yearlist ||
+        initialData?.YearList ||
+        initialData?.accyearlist ||
+        initialData?.data?.yearList ||
+        initialData?.data?.yearlist ||
+        (Array.isArray(initialData) ? initialData : []);
+
+    const initialCourses: any[] =
+        initialData?.courselistdata ||
+        initialData?.courselist ||
+        initialData?.courseList ||
+        initialData?.data?.courselistdata ||
+        initialData?.data?.courselist ||
+        [];
+
+    const initialBranches: any[] =
+        initialData?.coursebranchlist ||
+        initialData?.courseBranchList ||
+        initialData?.branchList ||
+        initialData?.branchlist ||
+        initialData?.data?.coursebranchlist ||
+        [];
+
+    const initialSemesters: any[] =
+        initialData?.semlistdata ||
+        initialData?.semlist ||
+        initialData?.semList ||
+        initialData?.semesters ||
+        initialData?.data?.semlistdata ||
+        [];
+
+    const sectionList: any[] =
+        initialData?.sectionList ||
+        initialData?.sectionlist ||
+        initialData?.SectionList ||
+        initialData?.data?.sectionList ||
+        initialData?.data?.sectionlist ||
+        [];
+
+    // Dynamic Lists seeded with initialData
+    const [courseList, setCourseList] = useState<any[]>(initialCourses);
+    const [branchList, setBranchList] = useState<any[]>(initialBranches);
+    const [semList, setSemList] = useState<any[]>(initialSemesters);
+    const [proSemList, setProSemList] = useState<any[]>(initialSemesters);
     const [targetYearList, setTargetYearList] = useState<any[]>([]);
+
+    // Keep dropdown lists synced when initialData loads
+    useEffect(() => {
+        if (initialCourses.length > 0 && courseList.length === 0) {
+            setCourseList(initialCourses);
+        }
+        if (initialBranches.length > 0 && branchList.length === 0) {
+            setBranchList(initialBranches);
+        }
+        if (initialSemesters.length > 0 && semList.length === 0) {
+            setSemList(initialSemesters);
+            setProSemList(initialSemesters);
+        }
+    }, [initialData]);
 
     // Students
     const [availableStudents, setAvailableStudents] = useState<IClgSectionAllotmentStudent[]>([]);
@@ -58,24 +114,6 @@ export function PromotionSectionTab({ initialData, refetchAll }: PromotionSectio
     const getPromoSemOnChangeMutation = useGetClgSectionAllotmentPromoSemOnChange();
     const getStudentsMutation = useGetClgSectionAllotmentStudents();
     const saveMutation = useSaveClgSectionAllotment();
-
-    // Default Academic Year from initialData (defensive against any casing / structure)
-    const yearList: any[] =
-        initialData?.yearList ||
-        initialData?.yearlist ||
-        initialData?.YearList ||
-        initialData?.accyearlist ||
-        initialData?.data?.yearList ||
-        initialData?.data?.yearlist ||
-        (Array.isArray(initialData) ? initialData : []);
-
-    const sectionList: any[] =
-        initialData?.sectionList ||
-        initialData?.sectionlist ||
-        initialData?.SectionList ||
-        initialData?.data?.sectionList ||
-        initialData?.data?.sectionlist ||
-        [];
 
     useEffect(() => {
         if (yearList.length > 0 && !asmaY_Id) {
@@ -98,27 +136,41 @@ export function PromotionSectionTab({ initialData, refetchAll }: PromotionSectio
         setTargetYearId(yearId);
         setTargetSemId('');
         setTargetSectionId('');
-        setCourseList([]);
-        setBranchList([]);
-        setSemList([]);
-        setProSemList([]);
         setAvailableStudents([]);
         setSelectedStudents([]);
         setAllottedStudents([]);
 
-        if (!yearId) return;
+        if (!yearId) {
+            setCourseList(initialCourses);
+            setBranchList(initialBranches);
+            setSemList(initialSemesters);
+            setProSemList(initialSemesters);
+            return;
+        }
 
         try {
             const res = await getPromoCoursesMutation.mutateAsync({ ASMAY_Id: Number(yearId) });
             const data = res?.data || res;
-            const courses = data?.courselist || data?.courseList || data?.courses || [];
+            const courses =
+                data?.courselistdata ||
+                data?.courselist ||
+                data?.courseList ||
+                data?.courses ||
+                (Array.isArray(data) ? data : []);
             if (courses.length > 0) {
                 setCourseList(courses);
+            } else if (initialCourses.length > 0) {
+                setCourseList(initialCourses);
             } else {
+                setCourseList([]);
                 toast.warning('No courses found for promotion');
             }
         } catch {
-            toast.error('Failed to load promotion courses');
+            if (initialCourses.length > 0) {
+                setCourseList(initialCourses);
+            } else {
+                toast.error('Failed to load promotion courses');
+            }
         }
     };
 
@@ -130,14 +182,15 @@ export function PromotionSectionTab({ initialData, refetchAll }: PromotionSectio
         setSourceSectionId('');
         setTargetSemId('');
         setTargetSectionId('');
-        setBranchList([]);
-        setSemList([]);
-        setProSemList([]);
         setAvailableStudents([]);
         setSelectedStudents([]);
         setAllottedStudents([]);
 
-        if (!courseId || !asmaY_Id) return;
+        if (!courseId || !asmaY_Id) {
+            setBranchList(initialBranches);
+            setSemList(initialSemesters);
+            return;
+        }
 
         try {
             const res = await getPromoBranchesMutation.mutateAsync({
@@ -145,14 +198,26 @@ export function PromotionSectionTab({ initialData, refetchAll }: PromotionSectio
                 AMCO_Id: Number(courseId)
             });
             const data = res?.data || res;
-            const branches = data?.coursebranchlist || data?.courseBranchList || data?.branchlist || data?.branches || [];
+            const branches =
+                data?.coursebranchlist ||
+                data?.courseBranchList ||
+                data?.branchlist ||
+                data?.branches ||
+                (Array.isArray(data) ? data : []);
             if (branches.length > 0) {
                 setBranchList(branches);
+            } else if (initialBranches.length > 0) {
+                setBranchList(initialBranches);
             } else {
+                setBranchList([]);
                 toast.warning('No branches found');
             }
         } catch {
-            toast.error('Failed to load promotion branches');
+            if (initialBranches.length > 0) {
+                setBranchList(initialBranches);
+            } else {
+                toast.error('Failed to load promotion branches');
+            }
         }
     };
 
@@ -163,13 +228,14 @@ export function PromotionSectionTab({ initialData, refetchAll }: PromotionSectio
         setSourceSectionId('');
         setTargetSemId('');
         setTargetSectionId('');
-        setSemList([]);
-        setProSemList([]);
         setAvailableStudents([]);
         setSelectedStudents([]);
         setAllottedStudents([]);
 
-        if (!branchId || !asmaY_Id || !amcO_Id) return;
+        if (!branchId || !asmaY_Id || !amcO_Id) {
+            setSemList(initialSemesters);
+            return;
+        }
 
         try {
             const res = await getPromoSemestersMutation.mutateAsync({
@@ -178,13 +244,30 @@ export function PromotionSectionTab({ initialData, refetchAll }: PromotionSectio
                 AMB_Id: Number(branchId)
             });
             const data = res?.data || res;
-            if (data?.semlist?.length > 0) {
-                setSemList(data.semlist);
+            const sems =
+                data?.semlistdata ||
+                data?.semlist ||
+                data?.semList ||
+                data?.semesters ||
+                (Array.isArray(data) ? data : []);
+            if (sems.length > 0) {
+                setSemList(sems);
+                setProSemList(sems);
+            } else if (initialSemesters.length > 0) {
+                setSemList(initialSemesters);
+                setProSemList(initialSemesters);
             } else {
+                setSemList([]);
+                setProSemList([]);
                 toast.warning('No semesters found');
             }
         } catch {
-            toast.error('Failed to load promotion semesters');
+            if (initialSemesters.length > 0) {
+                setSemList(initialSemesters);
+                setProSemList(initialSemesters);
+            } else {
+                toast.error('Failed to load promotion semesters');
+            }
         }
     };
 
@@ -240,16 +323,17 @@ export function PromotionSectionTab({ initialData, refetchAll }: PromotionSectio
         try {
             const res = await getStudentsMutation.mutateAsync({
                 ASMAY_Id: Number(asmaY_Id),
-                AMSE_Id: Number(amsE_Id),
-                AMB_Id: Number(amB_Id),
                 AMCO_Id: Number(amcO_Id),
+                AMB_Id: Number(amB_Id),
+                AMSE_Id: Number(amsE_Id),
                 ACMS_Id: Number(secId),
                 SectionAllotmentType: 'Promotion'
             });
             const data = res?.data || res;
 
-            if (data?.studentListYear?.length > 0) {
-                setAvailableStudents(data.studentListYear);
+            const students = data?.studentListYear || data?.studentList || data?.studentlist || data?.students || [];
+            if (students.length > 0) {
+                setAvailableStudents(students);
             } else {
                 toast.info('No students found to promote');
             }
@@ -266,7 +350,8 @@ export function PromotionSectionTab({ initialData, refetchAll }: PromotionSectio
 
     // Clear
     const handleClear = () => {
-        setAsmaY_Id(yearList[0]?.asmaY_Id?.toString() || '');
+        const first = yearList[0];
+        setAsmaY_Id((first?.asmaY_Id ?? first?.ASMAY_Id ?? first?.id)?.toString() || '');
         setAmcO_Id('');
         setAmB_Id('');
         setAmsE_Id('');
@@ -274,10 +359,10 @@ export function PromotionSectionTab({ initialData, refetchAll }: PromotionSectio
         setTargetYearId('');
         setTargetSemId('');
         setTargetSectionId('');
-        setCourseList([]);
-        setBranchList([]);
-        setSemList([]);
-        setProSemList([]);
+        setCourseList(initialCourses);
+        setBranchList(initialBranches);
+        setSemList(initialSemesters);
+        setProSemList(initialSemesters);
         setAvailableStudents([]);
         setSelectedStudents([]);
         setAllottedStudents([]);
