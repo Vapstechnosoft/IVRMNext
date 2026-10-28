@@ -213,17 +213,9 @@ export default function ParentsDashboard({ className }: { className?: string } =
     // Empty State (No applications filled yet - show Fill AdmissionForm button)
     if (!applications || applications.length === 0) {
         return (
-            <div className={className || 'container mx-auto p-6'}>
-                <div className='mb-8 w-full'>
-                    <Link href='/admission/preadmission/transactions/application-form' className='block w-full'>
-                        <Button className='flex w-full items-center justify-center rounded-md bg-[#2c5282] py-6 font-semibold text-lg text-white shadow-md hover:bg-[#1a365d]'>
-                            Fill AdmissionForm-SCHOOL <Edit className='ml-2 h-4 w-4' />
-                        </Button>
-                    </Link>
-                </div>
-                <div className='rounded-xl border border-gray-200 bg-white p-8 py-12 text-center shadow-sm'>
-                    <p className='font-medium text-lg text-muted-foreground'>No applications found</p>
-                    <p className='mt-1 text-gray-500 text-sm'>Click the button above to fill and submit your admission form.</p>
+            <div className='container mx-auto p-6'>
+                <div className='py-12 text-center'>
+                    <p className='text-lg text-muted-foreground'>No applications found</p>
                 </div>
             </div>
         );
