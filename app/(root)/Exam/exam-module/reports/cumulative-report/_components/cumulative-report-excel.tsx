@@ -29,9 +29,6 @@ interface CumulativeReportExcelProps {
 export default function CumulativeReportExcel({ reportData, subjects, headerInfo, columnFlags }: CumulativeReportExcelProps) {
     const getSubjectHeaderName = (subj: ISubject) => {
         const name = subj.ismS_SubjectName || '';
-        const isEVS = name.toUpperCase().includes('EVS');
-        if (isEVS) return name;
-
         const showMarks = columnFlags.marksdisplay;
         const showGrade = columnFlags.grdaeDisply;
 
@@ -43,6 +40,46 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
             return `${name} (G)`;
         }
         return name;
+    };
+
+    const getTotalMaxMarks = (student: ICumulativeReport) => {
+        if (student.estmP_Result === 'AB') return '';
+        if (student.estmP_TotalMaxMarks != null && Number(student.estmP_TotalMaxMarks) > 0) {
+            return student.estmP_TotalMaxMarks;
+        }
+        const validMax = student.sub_list?.reduce((acc, sub: any) => {
+            const m = Number(sub.estmpS_MaxMarks ?? subjects.find((s) => s.ismS_Id === sub.ismS_Id)?.estmpS_MaxMarks);
+            return acc + (!isNaN(m) && m > 0 ? m : 0);
+        }, 0) ?? 0;
+        if (validMax > 0) return validMax;
+
+        const subjectsMax = subjects
+            .filter((s) => s.eyceS_AplResultFlg !== false)
+            .reduce((acc, s) => acc + (Number(s.estmpS_MaxMarks) || 0), 0);
+        if (subjectsMax > 0) return subjectsMax;
+
+        return (student.estmP_TotalMaxMarks != null && student.estmP_TotalMaxMarks !== 0 && student.estmP_TotalMaxMarks !== '0')
+            ? student.estmP_TotalMaxMarks
+            : '-';
+    };
+
+    const getTotalObtMarks = (student: ICumulativeReport) => {
+        if (student.estmP_Result === 'AB') return '';
+        if (student.estmP_TotalObtMarks != null && Number(student.estmP_TotalObtMarks) > 0) {
+            return student.estmP_TotalObtMarks;
+        }
+        let hasMarks = false;
+        const validObt = student.sub_list?.reduce((acc, sub: any) => {
+            if (sub.estmpS_PassFailFlg === 'AB') return acc;
+            const m = Number(sub.estmpS_ObtainedMarks);
+            if (!isNaN(m)) {
+                hasMarks = true;
+                return acc + m;
+            }
+            return acc;
+        }, 0) ?? 0;
+        if (hasMarks) return validObt;
+        return (student.estmP_TotalObtMarks != null && student.estmP_TotalObtMarks !== 0 && student.estmP_TotalObtMarks !== '0') ? student.estmP_TotalObtMarks : '-';
     };
 
     const exportToExcel = () => {
@@ -69,8 +106,7 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
         if (columnFlags.rollno) totalCols++;
 
         finalApplicableSubjects.forEach((subj) => {
-            const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-            totalCols += (isEVS || !showBothSubj) ? 1 : 2;
+            totalCols += !showBothSubj ? 1 : 2;
         });
 
         totalCols += 2; // TOTAL + OBTAINED
@@ -82,8 +118,7 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
         if (columnFlags.status) totalCols++;
 
         nonApplicableSubjects.forEach((subj) => {
-            const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-            totalCols += (isEVS || !showBothSubj) ? 1 : 2;
+            totalCols += !showBothSubj ? 1 : 2;
         });
 
         // Build Excel Table HTML with guaranteed native center alignment & original colors
@@ -130,12 +165,7 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
             if (columnFlags.rollno) tableHtml += `<th rowspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">ROLL NO</th>`;
 
             finalApplicableSubjects.forEach((subj) => {
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-                if (isEVS) {
-                    tableHtml += `<th rowspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">${subj.ismS_SubjectName?.toUpperCase()}</th>`;
-                } else {
-                    tableHtml += `<th colspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">${subj.ismS_SubjectName?.toUpperCase()}</th>`;
-                }
+                tableHtml += `<th colspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">${subj.ismS_SubjectName?.toUpperCase()}</th>`;
             });
 
             tableHtml += `<th colspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">TOTAL</th>`;
@@ -151,33 +181,22 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
             if (columnFlags.status) tableHtml += `<th rowspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">STATUS</th>`;
 
             nonApplicableSubjects.forEach((subj) => {
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-                if (isEVS) {
-                    tableHtml += `<th rowspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">${subj.ismS_SubjectName?.toUpperCase()}</th>`;
-                } else {
-                    tableHtml += `<th colspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">${subj.ismS_SubjectName?.toUpperCase()}</th>`;
-                }
+                tableHtml += `<th colspan="2" align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 6px; text-align: center;">${subj.ismS_SubjectName?.toUpperCase()}</th>`;
             });
 
             tableHtml += `</tr><tr style="background-color: #D9EAD3; font-weight: bold; text-align: center;">`;
 
             finalApplicableSubjects.forEach((subj) => {
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-                if (!isEVS) {
-                    tableHtml += `<th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">MARKS</th>
-                                  <th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">GRADE</th>`;
-                }
+                tableHtml += `<th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">MARKS</th>
+                              <th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">GRADE</th>`;
             });
 
             tableHtml += `<th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">MAX</th>
                           <th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">OBTAINED</th>`;
 
             nonApplicableSubjects.forEach((subj) => {
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-                if (!isEVS) {
-                    tableHtml += `<th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">MARKS</th>
-                                  <th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">GRADE</th>`;
-                }
+                tableHtml += `<th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">MARKS</th>
+                              <th align="center" style="background-color: #D9EAD3; border: 1px solid #000000; padding: 4px; text-align: center;">GRADE</th>`;
             });
 
             tableHtml += `</tr>`;
@@ -233,30 +252,26 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
                 const marks = sub?.estmpS_ObtainedMarks;
                 const grade = sub?.estmpS_ObtainedGrade;
                 const isAB = sub?.estmpS_PassFailFlg === 'AB';
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
 
                 if (isAB) {
-                    if (isEVS || !showBothSubj) {
+                    if (!showBothSubj) {
                         tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">AB</td>`;
                     } else {
                         tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">AB</td><td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">AB</td>`;
                     }
-                } else if (isEVS) {
-                    const val = marks != null && grade ? `${marks} | ${grade}` : (marks ?? grade ?? '-');
-                    tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${val}</td>`;
                 } else if (showBothSubj) {
                     tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${marks ?? '-'}</td>
                                   <td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${grade ?? '-'}</td>`;
                 } else if (columnFlags.grdaeDisply) {
                     tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${grade ?? '-'}</td>`;
                 } else {
-                    tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${marks ?? grade ?? '-'}</td>`;
+                    tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${marks ?? '-'}</td>`;
                 }
             });
 
             // Totals
-            tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${isAbsent ? '' : (student.estmP_TotalMaxMarks ?? '-')}</td>
-                          <td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${isAbsent ? '' : (student.estmP_TotalObtMarks ?? '-')}</td>`;
+            tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${isAbsent ? '' : getTotalMaxMarks(student)}</td>
+                          <td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${isAbsent ? '' : getTotalObtMarks(student)}</td>`;
 
             if (columnFlags.readmit) {
                 tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${isAbsent || student.estmP_Percentage == null ? '-' : `${student.estmP_Percentage}`}</td>`;
@@ -284,24 +299,20 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
                 const marks = sub?.estmpS_ObtainedMarks;
                 const grade = sub?.estmpS_ObtainedGrade;
                 const isAB = sub?.estmpS_PassFailFlg === 'AB';
-                const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
 
                 if (isAB) {
-                    if (isEVS || !showBothSubj) {
+                    if (!showBothSubj) {
                         tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">AB</td>`;
                     } else {
                         tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">AB</td><td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">AB</td>`;
                     }
-                } else if (isEVS) {
-                    const val = marks != null && grade ? `${marks} | ${grade}` : (marks ?? grade ?? '-');
-                    tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${val}</td>`;
                 } else if (showBothSubj) {
                     tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${marks ?? '-'}</td>
                                   <td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${grade ?? '-'}</td>`;
                 } else if (columnFlags.grdaeDisply) {
                     tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${grade ?? '-'}</td>`;
                 } else {
-                    tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${marks ?? grade ?? '-'}</td>`;
+                    tableHtml += `<td align="center" style="text-align: center; border: 1px solid #000000; padding: 5px;">${marks ?? '-'}</td>`;
                 }
             });
 

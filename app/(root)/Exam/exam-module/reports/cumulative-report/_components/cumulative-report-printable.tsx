@@ -42,9 +42,6 @@ export default function CumulativeReportPrintView({
     // Helper to get subject header text
     const getSubjectHeaderName = (subj: ISubject) => {
         const name = subj.ismS_SubjectName || '';
-        const isEVS = name.toUpperCase().includes('EVS');
-        if (isEVS) return name;
-
         const showMarks = columnFlags.marksdisplay;
         const showGrade = columnFlags.grdaeDisply;
 
@@ -74,15 +71,6 @@ export default function CumulativeReportPrintView({
         const marksVal = mark.estmpS_ObtainedMarks;
         const gradeVal = mark.estmpS_ObtainedGrade;
 
-        const isEVS = subj.ismS_SubjectName?.toUpperCase().includes('EVS');
-
-        if (isEVS) {
-            if (marksVal != null && gradeVal) {
-                return `${marksVal} | ${gradeVal}`;
-            }
-            return marksVal ?? gradeVal ?? '-';
-        }
-
         if (showMarks && showGrade) {
             if (marksVal != null && gradeVal) {
                 return `${marksVal} | ${gradeVal}`;
@@ -96,6 +84,46 @@ export default function CumulativeReportPrintView({
             return gradeVal ?? '-';
         }
         return marksVal ?? gradeVal ?? '-';
+    };
+
+    const getTotalMaxMarks = (student: ICumulativeReport) => {
+        if (student.estmP_Result === 'AB') return '';
+        if (student.estmP_TotalMaxMarks != null && Number(student.estmP_TotalMaxMarks) > 0) {
+            return student.estmP_TotalMaxMarks;
+        }
+        const validMax = student.sub_list?.reduce((acc, sub: any) => {
+            const m = Number(sub.estmpS_MaxMarks ?? subjects.find((s) => s.ismS_Id === sub.ismS_Id)?.estmpS_MaxMarks);
+            return acc + (!isNaN(m) && m > 0 ? m : 0);
+        }, 0) ?? 0;
+        if (validMax > 0) return validMax;
+
+        const subjectsMax = subjects
+            .filter((s) => s.eyceS_AplResultFlg !== false)
+            .reduce((acc, s) => acc + (Number(s.estmpS_MaxMarks) || 0), 0);
+        if (subjectsMax > 0) return subjectsMax;
+
+        return (student.estmP_TotalMaxMarks != null && student.estmP_TotalMaxMarks !== 0 && student.estmP_TotalMaxMarks !== '0')
+            ? student.estmP_TotalMaxMarks
+            : '-';
+    };
+
+    const getTotalObtMarks = (student: ICumulativeReport) => {
+        if (student.estmP_Result === 'AB') return '';
+        if (student.estmP_TotalObtMarks != null && Number(student.estmP_TotalObtMarks) > 0) {
+            return student.estmP_TotalObtMarks;
+        }
+        let hasMarks = false;
+        const validObt = student.sub_list?.reduce((acc, sub: any) => {
+            if (sub.estmpS_PassFailFlg === 'AB') return acc;
+            const m = Number(sub.estmpS_ObtainedMarks);
+            if (!isNaN(m)) {
+                hasMarks = true;
+                return acc + m;
+            }
+            return acc;
+        }, 0) ?? 0;
+        if (hasMarks) return validObt;
+        return (student.estmP_TotalObtMarks != null && student.estmP_TotalObtMarks !== 0 && student.estmP_TotalObtMarks !== '0') ? student.estmP_TotalObtMarks : '-';
     };
 
     const schoolName = headerInfo.mI_Name || institution?.mI_Name || "BALDWIN BOYS' HIGH SCHOOL";
@@ -302,8 +330,8 @@ export default function CumulativeReportPrintView({
                                     ))}
 
                                     {/* Totals & Ranks */}
-                                    <td>{isAbsent ? '' : (student.estmP_TotalMaxMarks ?? '-')}</td>
-                                    <td>{isAbsent ? '' : (student.estmP_TotalObtMarks ?? '-')}</td>
+                                    <td>{isAbsent ? '' : getTotalMaxMarks(student)}</td>
+                                    <td>{isAbsent ? '' : getTotalObtMarks(student)}</td>
                                     {columnFlags.readmit && (
                                         <td>{isAbsent ? '-' : student.estmP_Percentage ? `${student.estmP_Percentage}` : '-'}</td>
                                     )}

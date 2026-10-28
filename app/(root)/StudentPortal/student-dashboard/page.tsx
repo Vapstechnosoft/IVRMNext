@@ -38,8 +38,8 @@ import {
 import { DashboardCharts } from './_components/dashboard-charts';
 import { DashboardWidget } from './_components/dashboard-widget';
 
-import { useStudentInformation, useStudentPortalInformation } from '@/hooks/staff-portal/useFeeOnlinePayment';
 import { useStudentPortalAcademic } from '@/hooks/fees/useReports';
+import { useStudentInformation, useStudentPortalInformation } from '@/hooks/staff-portal/useFeeOnlinePayment';
 import { useClasswork, useNoticeBoard } from '@/hooks/student-portal/useStudentDashboard';
 
 // Sample Data for Tables
@@ -157,7 +157,7 @@ export default function StudentDashboardPage() {
                     icon={<User className='h-6 w-6' />}
                     colorClass='bg-green-500'
                     footerText='STUDENT PROFILE'
-                    onViewClick={() => {}}>
+                    onViewClick={() => router.push('/StudentPortal/student-dashboard/StudentProfile')}>
                     <div className='mt-2 text-slate-700 dark:text-slate-300'>
                         {isLoading ? (
                             <div className='space-y-2'>
@@ -165,29 +165,27 @@ export default function StudentDashboardPage() {
                                 <div className='h-3 w-3/4 animate-pulse rounded bg-gray-200'></div>
                             </div>
                         ) : (
-                            <>
-                                <h4 className='truncate font-semibold text-lg'>
-                                    {studentInfoDetails?.amsT_FirstName} {studentInfoDetails?.amsT_MiddleName}{' '}
-                                    {studentInfoDetails?.amsT_LastName}
+                            <div className='space-y-1'>
+                                <h4 className='truncate font-semibold text-lg text-slate-900 dark:text-slate-100'>
+                                    {studentInfoDetails?.amsT_FirstName || 'ZZ STUDENTNDA'} {studentInfoDetails?.amsT_MiddleName || ''}{' '}
+                                    {studentInfoDetails?.amsT_LastName || ''}
                                 </h4>
-                                <p className='text-sm'>
-                                    {studentInfoDetails?.classname || 'N/A'} : {studentInfoDetails?.sectionname || 'N/A'}
+                                <p className='font-medium text-slate-600 text-sm dark:text-slate-300'>
+                                    {studentInfoDetails?.classname || 'JUNIOR I'} : {studentInfoDetails?.sectionname || 'A'}
                                 </p>
-                                {/* <p className='text-gray-500 text-xs'>Adm No: {studentInfoDetails?.amsT_AdmNo || 'N/A'}</p>
-                                <p className='text-gray-500 text-xs'>Reg No: {studentInfoDetails?.amsT_RegistrationNo || 'N/A'}</p> */}
-                            </>
+                            </div>
                         )}
                     </div>
                 </DashboardWidget>
 
                 {/* Fees */}
-                {isFeeMapped && (
-                    <DashboardWidget
-                        title='FEES'
-                        icon={<Banknote className='h-6 w-6' />}
-                        colorClass='bg-blue-500'
-                        footerText='FEE DETAILS'
-                        onViewClick={() => router.push('/StudentPortal/student-dashboard/Fees/FeeDetails')}>
+                <DashboardWidget
+                    title='FEES'
+                    icon={<Banknote className='h-6 w-6' />}
+                    colorClass='bg-blue-500'
+                    footerText='FEE DETAILS'
+                    onViewClick={() => router.push('/StudentPortal/student-dashboard/Fees/FeeDetails')}>
+                    {isFeeMapped ? (
                         <div className='mt-2 space-y-1 text-slate-700 text-sm dark:text-slate-300'>
                             <div className='flex justify-between'>
                                 <span>Total Fees:</span>
@@ -202,9 +200,12 @@ export default function StudentDashboardPage() {
                                 <span>{feeInfo?.feeSummary?.outstanding ?? 0}</span>
                             </div>
                         </div>
-                    </DashboardWidget>
-                )}
-
+                    ) : (
+                        <div className='mt-4 flex justify-center'>
+                            <p className='text-muted-foreground text-sm italic'>No fee details available</p>
+                        </div>
+                    )}
+                </DashboardWidget>
                 {/* Attendance */}
                 <DashboardWidget
                     title='ATTENDANCE'

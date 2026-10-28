@@ -132,6 +132,7 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                 closeDeleteForm();
                 onRefresh();
             } else {
+                // biome-ignore lint/complexity/useOptionalChain: <explanation>
                 if (res.message && res.message.toLowerCase().includes('already mapping')) {
                     toast.error('This record is already mapped and cannot be deleted.');
                 } else {

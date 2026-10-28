@@ -30,13 +30,14 @@ export function DashboardCharts({ isFeeMapped = false, feeSummary }: DashboardCh
     ];
 
     return (
-        <div className={cn('mt-6 grid grid-cols-1 gap-6', isFeeMapped ? 'md:grid-cols-2' : 'md:grid-cols-1')}>
-            {isFeeMapped && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Academic Year Fees Details</CardTitle>
-                    </CardHeader>
-                    <CardContent>
+        // Always use 2 columns on medium screens since we are always showing both cards now
+        <div className='mt-6 grid grid-cols-1 gap-6 md:grid-cols-2'>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Academic Year Fees Details</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {isFeeMapped ? (
                         <div className='h-[300px]'>
                             <ResponsiveContainer width='100%' height='100%'>
                                 <BarChart data={feesData}>
@@ -49,15 +50,20 @@ export function DashboardCharts({ isFeeMapped = false, feeSummary }: DashboardCh
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
-                    </CardContent>
-                </Card>
-            )}
+                    ) : (
+                        <div className='flex h-[300px] items-center justify-center'>
+                            <p className='text-muted-foreground italic text-sm'>No fee data available</p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>
                     <CardTitle>Academic Year Attendance Details</CardTitle>
                 </CardHeader>
                 <CardContent>
+                    {/* Attendance chart code remains unchanged */}
                     <div className='h-[300px]'>
                         <ResponsiveContainer width='100%' height='100%'>
                             <BarChart data={attendanceData}>
