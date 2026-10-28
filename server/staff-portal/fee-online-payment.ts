@@ -372,3 +372,17 @@ export async function getPaymentCharges(): Promise<{
         };
     }
 }
+
+
+// Added the student view details by Durga
+
+export async function getStudentViewDetails() {
+    try {
+        const url = '/OnlinePayment/viewStudentAllDetails';
+        const response = await api.get<any>('portal', url);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching student view details:', error);
+        throw new Error('Failed to fetch student view details');
+    }
+}
