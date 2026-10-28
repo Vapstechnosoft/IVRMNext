@@ -1,7 +1,7 @@
 'use client';
 
 import { format } from 'date-fns';
-import { CalendarIcon, Check, Loader2, Printer, QrCode, RotateCcw } from 'lucide-react';
+import { CalendarIcon, Check, Loader2, Printer, RotateCcw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
@@ -17,7 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 
 import {
-    useStudyCertificateConductDetails,
     useStudyCertificateDetails,
     useStudyCertificateLoadData,
     useStudyCertificateQRMutation as useStudyCertificateQR,
@@ -143,11 +142,10 @@ export default function USAStudyCertificatePage() {
         AMST_Id: studentId ?? 0,
         AllOrInd: studentScope === 'indid' ? 'I' : 'A',
         AMST_SOL: studentStatus,
-        ASCISS_CertificateFlg: certificateType === '0' ? 'SC' : 'CC'
+        ASCISS_CertificateFlg: certificateType === '0' ? 'SC' : 'BC'
     };
 
     const studyReport = useStudyCertificateDetails(reportParams, false);
-    const characterReport = useStudyCertificateConductDetails(reportParams, false);
     const qrcodeGen = useStudyCertificateQR();
 
     const generateQRCodePayload = (student: any) => {
@@ -177,7 +175,7 @@ export default function USAStudyCertificatePage() {
             setShowCertificate(false);
             setStudentData(null);
 
-            const res = certificateType === '0' ? await studyReport.refetch() : await characterReport.refetch();
+            const res = await studyReport.refetch();
 
             const studentListResult = (res.data as any)?.data?.studentList ?? [];
 
@@ -263,10 +261,33 @@ export default function USAStudyCertificatePage() {
 
     const handlePrint = useReactToPrint({
         contentRef: printRef,
-        documentTitle: `Universal_School_of_Administration_${certificateType === '0' ? 'Study' : 'Bonafide'}_Certificate`
+        documentTitle: '',
+        pageStyle: `
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+            @media print {
+                html, body {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    height: auto !important;
+                    background: #ffffff !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                .printable-content,
+                .printable-content * {
+                    visibility: visible !important;
+                }
+                .no-print {
+                    display: none !important;
+                }
+            }
+        `
     });
 
-    const reportStudentsList = studentData?.studentList || [];
+    const reportStudentsList = studentData?.studentList || studentData?.studentlist || [];
 
     return (
         <div className='min-h-screen space-y-6 p-4 font-sans text-slate-800'>
@@ -579,55 +600,38 @@ export default function USAStudyCertificatePage() {
                         </div>
                     </div>
 
-                    {/* Action Buttons matching study-certificate-report exactly */}
-                    <div className='flex flex-wrap justify-center gap-4 pt-6'>
+                    {/* Action Buttons: Horizontal compact box layout */}
+                    <div className='flex flex-row items-center justify-center gap-4 pt-6'>
                         <Button
                             size='sm'
                             onClick={handleReport}
                             disabled={isLoading}
-                            className='min-w-[100px] bg-[#3f51b5] text-white shadow-md hover:bg-[#303f9f]'>
-                            {isLoading ? <RotateCcw className='mr-1 h-3 w-3 animate-spin' /> : <Printer className='mr-1 h-3 w-3' />}
+                            className='w-auto min-w-[110px] rounded-md bg-[#3f51b5] px-5 py-2 font-semibold text-white shadow hover:bg-[#303f9f]'>
+                            {isLoading ? <RotateCcw className='mr-1.5 h-3.5 w-3.5 animate-spin' /> : <Printer className='mr-1.5 h-3.5 w-3.5' />}
                             REPORT
                         </Button>
                         <Button
                             size='sm'
-                            onClick={handleGenerateQRCode}
-                            className='min-w-[100px] bg-[#3f51b5] text-white shadow-md hover:bg-[#303f9f]'>
-                            <QrCode className='mr-1 h-3 w-3' />
-                            QRCODE
-                        </Button>
-                        <Button
-                            size='sm'
                             onClick={handleReset}
-                            className='min-w-[100px] bg-[#ff5722] text-white uppercase shadow-md hover:bg-[#f4511e]'>
-                            <RotateCcw className='mr-1 h-3 w-3' />
+                            className='w-auto min-w-[110px] rounded-md bg-[#ff5722] px-5 py-2 font-semibold text-white uppercase shadow hover:bg-[#f4511e]'>
+                            <RotateCcw className='mr-1.5 h-3.5 w-3.5' />
                             CANCEL
                         </Button>
                         <Button
                             size='sm'
                             onClick={handlePrint}
                             disabled={!showCertificate || reportStudentsList.length === 0}
-                            className='min-w-[100px] bg-[#1e293b] text-white uppercase shadow-md hover:bg-[#0f172a] disabled:bg-gray-200 disabled:text-gray-400'>
-                            <Printer className='mr-1 h-3 w-3' />
+                            className='w-auto min-w-[110px] rounded-md bg-[#1e293b] px-5 py-2 font-semibold text-white uppercase shadow hover:bg-[#0f172a] disabled:bg-gray-200 disabled:text-gray-400'>
+                            <Printer className='mr-1.5 h-3.5 w-3.5' />
                             PRINT
                         </Button>
                     </div>
                 </div>
             </CollapsibleSection>
 
-            {/* Generated Certificate Display (Preview Only) matching Universal School of Administration branding */}
+            {/* Generated Certificate Display matching Universal School of Administration branding */}
             {showCertificate && studentData && reportStudentsList.length > 0 && (
                 <div className='mt-8 flex flex-col items-center justify-center overflow-x-auto rounded-xl border-2 border-gray-300 border-dashed bg-gray-100 p-6'>
-                    <div className='mb-4 flex w-full max-w-[850px] items-center justify-between'>
-                        <span className='font-semibold text-slate-700 text-sm'>
-                            Previewing {reportStudentsList.length} {reportStudentsList.length === 1 ? 'Certificate' : 'Certificates'}
-                        </span>
-                        <Button size='sm' onClick={handlePrint} className='bg-[#1e293b] text-white hover:bg-[#0f172a]'>
-                            <Printer className='mr-1.5 h-3.5 w-3.5' />
-                            Print Certificate
-                        </Button>
-                    </div>
-
                     <div className='w-full max-w-[850px] bg-white shadow-2xl'>
                         <CertificatePrint
                             ref={printRef}

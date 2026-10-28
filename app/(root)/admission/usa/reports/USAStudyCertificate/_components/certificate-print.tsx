@@ -40,39 +40,55 @@ export const CertificatePrint = forwardRef<HTMLDivElement, CertificatePrintProps
         if (!students || students.length === 0) return null;
 
         return (
-            <div ref={ref} className='certificate-print-root w-full'>
-                <style jsx global>{`
-                    @media print {
-                        @page {
-                            size: A4 portrait;
-                            margin: 15mm 15mm 15mm 15mm;
+            <div ref={ref} className='printable-content w-full bg-white text-black'>
+                <style
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                        @media print {
+                            @page {
+                                size: A4 portrait;
+                                margin: 0;
+                            }
+                            html, body {
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                background: #ffffff !important;
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                            }
+                            .printable-content {
+                                width: 210mm !important;
+                                margin: 0 auto !important;
+                                padding: 0 !important;
+                                background: #ffffff !important;
+                                box-shadow: none !important;
+                            }
+                            .certificate-single-page {
+                                width: 210mm !important;
+                                height: 297mm !important;
+                                max-height: 297mm !important;
+                                box-sizing: border-box !important;
+                                margin: 0 auto !important;
+                                padding: 15mm 15mm !important;
+                                border: none !important;
+                                box-shadow: none !important;
+                                overflow: hidden !important;
+                                page-break-after: always !important;
+                                break-after: page !important;
+                                page-break-inside: avoid !important;
+                                break-inside: avoid !important;
+                                background: #ffffff !important;
+                                display: flex !important;
+                                flex-direction: column !important;
+                            }
+                            .certificate-single-page:last-child {
+                                page-break-after: avoid !important;
+                                break-after: avoid !important;
+                            }
                         }
-                        body {
-                            background: white !important;
-                            color: black !important;
-                            -webkit-print-color-adjust: exact !important;
-                            print-color-adjust: exact !important;
-                        }
-                        .certificate-print-root {
-                            width: 100% !important;
-                            padding: 0 !important;
-                            background: transparent !important;
-                        }
-                        .certificate-single-page {
-                            box-shadow: none !important;
-                            border: none !important;
-                            padding: 10mm 5mm !important;
-                            width: 100% !important;
-                            min-height: auto !important;
-                            page-break-after: always !important;
-                            break-after: page !important;
-                        }
-                        .certificate-single-page:last-child {
-                            page-break-after: avoid !important;
-                            break-after: avoid !important;
-                        }
-                    }
-                `}</style>
+                    `
+                    }}
+                />
 
                 <div className='flex flex-col gap-10 print:gap-0'>
                     {students.map((student, idx) => {
@@ -120,7 +136,7 @@ export const CertificatePrint = forwardRef<HTMLDivElement, CertificatePrintProps
                         return (
                             <div
                                 key={student.amcsT_Id ?? student.AMCST_Id ?? idx}
-                                className='certificate-single-page mx-auto flex w-full max-w-[850px] flex-col rounded-lg border border-slate-200 bg-white p-8 font-serif shadow-xl print:m-0 print:border-none print:p-4 print:shadow-none'
+                                className='certificate-single-page mx-auto flex w-full max-w-[850px] flex-col rounded-lg border border-slate-200 bg-white p-8 font-serif shadow-xl print:m-0 print:border-none print:p-[15mm] print:shadow-none'
                                 style={{ fontFamily: "'Times New Roman', Times, serif" }}>
                                 {/* Institution Header */}
                                 <div className='flex items-center gap-6 border-transparent border-b pb-4'>
@@ -216,9 +232,9 @@ export const CertificatePrint = forwardRef<HTMLDivElement, CertificatePrintProps
                                 </div>
 
                                 {/* Principal Signature Footer */}
-                                <div className='mt-24 mb-8 flex justify-end pr-6'>
+                                <div className='mt-20 mb-6 flex justify-end pr-6'>
                                     <div className='flex flex-col items-center text-center'>
-                                        <div className='h-12 w-32'>{/* Signature/Seal area */}</div>
+                                        <div className='h-10 w-32'>{/* Signature/Seal area */}</div>
                                         <span className='font-bold font-serif text-[15px] text-slate-900 uppercase tracking-wider'>
                                             PRINCIPAL
                                         </span>
