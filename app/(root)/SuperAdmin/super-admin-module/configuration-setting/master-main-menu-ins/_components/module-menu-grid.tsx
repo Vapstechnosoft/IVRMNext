@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { MainMenuModuleDTO } from '@/types/super-admin/configuration-setting/master-main-menu-ins';
 import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Minus, Save, Search, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 // Static lists for Icon and Color as per user requirement
 const ICON_LIST = [
@@ -131,13 +132,13 @@ export default function ModuleMenuGrid({ data: initialData, onSave, onCancel }: 
         // Filter only checked items
         const checkedItems = data.filter((item) => item.checked);
         if (checkedItems.length === 0) {
-            alert('Please select at least one item to save.');
+            toast.error('Please select at least one item to save.');
             return;
         }
         // Basic validation
         const invalidItems = checkedItems.filter((item) => !item.selectedIcon || !item.selectedColor || !item.customMenuName);
         if (invalidItems.length > 0) {
-            alert('Please select Icon and Color for all selected items.');
+            toast.error('Please select Icon and Color for all selected items.');
             return;
         }
 
@@ -255,6 +256,7 @@ export default function ModuleMenuGrid({ data: initialData, onSave, onCancel }: 
                                             <td className='border p-2 text-center'>
                                                 {item.selectedIcon && item.selectedColor && (
                                                     <div
+                                                        // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
                                                         className={`inline-flex h-8 w-8 items-center justify-center rounded-full`}
                                                         style={{
                                                             backgroundColor:
@@ -264,12 +266,14 @@ export default function ModuleMenuGrid({ data: initialData, onSave, onCancel }: 
                                                                       ? 'blue'
                                                                       : 'gray' /* Simple preview logic, expand if needed */
                                                         }}>
-                                                        <i className={`fa fa-${item.selectedIcon} text-white`}></i>
+                                                        {/* biome-ignore lint/style/useSelfClosingElements: <explanation> */}
+<i className={`fa fa-${item.selectedIcon} text-white`}></i>
                                                     </div>
                                                 )}
                                                 {/* Fallback text preview if visual color map is too complex for simple string */}
                                                 {item.selectedIcon && !item.selectedColor && (
-                                                    <i className={`fa fa-${item.selectedIcon}`}></i>
+                                                    // biome-ignore lint/style/useSelfClosingElements: <explanation>
+<i className={`fa fa-${item.selectedIcon}`}></i>
                                                 )}
                                             </td>
 

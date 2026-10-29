@@ -6,7 +6,7 @@ import type { InstitutionDTO, MasterMainMenuINSDTO, ModuleDTO } from '@/types/su
 const API_KEY = 'sadmin';
 
 // Reusing specific facade as per pattern
-const FACADE = 'MasterInstitutionRoleandModuleMappingFacade';
+const FACADE = '/MasterInstitutionRoleandModuleMappingFacade';
 
 export async function getInstitutionDropdown() {
     try {
