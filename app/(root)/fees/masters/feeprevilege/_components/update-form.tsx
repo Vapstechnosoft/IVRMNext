@@ -541,9 +541,7 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
 
                         {academicYear && group && (
                             <div>
-                                <Label>
-                                    Head Name <span className='text-red-500'>*</span>
-                                </Label>
+                               
                                 <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
                                     {/* <InputText
                                         placeholder='Search Head Name...'
@@ -611,15 +609,9 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
                                                     Head Name <span className='text-red-500'>*</span>
                                                 </Label>
                                                 <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
-                                                    <InputText
-                                                        placeholder='Search Head Name...'
-                                                        value={headSearchTerm}
-                                                        onChange={(e) => setHeadSearchTerm(e.target.value)}
-                                                        className='mb-3'
-                                                        disabled={!academicYear || !group}
-                                                    />
+                                             
 
-                                                    <div className='mt-2 rounded-md border border-gray-300 bg-white p-3'>
+                                                 
                                                         <InputText
                                                             placeholder='Search Head Name...'
                                                             value={headSearchTerm}
@@ -667,7 +659,7 @@ export default function UpdateFeePrivilegeForm({ onSuccess, selectedRow, classNa
                                                                 })
                                                             )}
                                                         </div>
-                                                    </div>
+                                               
                                                 </div>
 
                                                 {!isInitializing && errors.heads && <FormError>{errors.heads.message}</FormError>}
