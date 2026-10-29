@@ -7,9 +7,17 @@ import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/r
 // 🔹 Cumulative Report Submit
 
 export async function getCumulativeReport(data: any, apiSearchParams?: ApiSearchparams) {
+    const { auth } = await import('@/lib/auth');
+    const session = await auth();
+    const miId = session?.mi_id ? Number(session.mi_id) : (session?.user as any)?.mi_id ? Number((session?.user as any)?.mi_id) : 0;
+
     const urlParams = getSearchParamsUrl(apiSearchParams ?? {});
-    const url = `/cumulative_report?${urlParams}`;
-    const response = await api.post<any>('exam', url, data);
+    const url = urlParams ? `/cumulative_report?${urlParams}` : '/cumulative_report';
+    const payload = {
+        ...(miId > 0 ? { MI_Id: miId, mI_Id: miId, mi_id: miId } : {}),
+        ...data
+    };
+    const response = await api.post<any>('exam', url, payload);
     return response;
 }
 
@@ -41,7 +49,7 @@ function extractArray(res: any, ...keys: string[]): any[] {
 export async function getClassDropDownByAcademicYearlist(asmaY_Id: number) {
     try {
         if (!asmaY_Id) return { success: false, message: 'Academic Year ID is required', data: [] };
-        
+
         // 1. Try exam master category class dropdown
         const url = `/exam_master_category/class_drop_down_by_academic_year_list/${asmaY_Id}`;
         const res: any = await api.get('exam', url);
@@ -52,7 +60,7 @@ export async function getClassDropDownByAcademicYearlist(asmaY_Id: number) {
             try {
                 const resFee: any = await api.post('fees', `/fee_class_category/class_drop_down_list?asmay_id=${asmaY_Id}`, {});
                 data = extractArray(resFee, 'classlist', 'getclass', 'classes', 'classList');
-            } catch {}
+            } catch { }
         }
 
         // 3. Fallback: Try master class dropdown list
@@ -60,7 +68,7 @@ export async function getClassDropDownByAcademicYearlist(asmaY_Id: number) {
             try {
                 const resApp: any = await api.get('preadmission', '/student_application_form/master_class_drop_down_list');
                 data = extractArray(resApp, 'classlist', 'getclass', 'classes', 'classList');
-            } catch {}
+            } catch { }
         }
 
         return { success: true, data };
@@ -74,7 +82,7 @@ export async function getClassDropDownByAcademicYearlist(asmaY_Id: number) {
 export async function getSectionsDropDownByAcademicYearandClasslist(asmaY_Id: number, asmcL_Id: number) {
     try {
         if (!asmaY_Id || !asmcL_Id) return { success: false, message: 'Academic Year and Class ID are required', data: [] };
-        
+
         // 1. Standard exam section dropdown
         const url = `/exam_master_category/sections_drop_down_by_class_list/${asmcL_Id}/${asmaY_Id}`;
         const res: any = await api.get('exam', url);
@@ -86,7 +94,7 @@ export async function getSectionsDropDownByAcademicYearandClasslist(asmaY_Id: nu
                 const urlSwapped = `/exam_master_category/sections_drop_down_by_class_list/${asmaY_Id}/${asmcL_Id}`;
                 const resSwapped: any = await api.get('exam', urlSwapped);
                 data = extractArray(resSwapped, 'sectionlist', 'getsection', 'sections', 'sectionList');
-            } catch {}
+            } catch { }
         }
 
         // 3. Unmapped sections fallback
@@ -95,7 +103,7 @@ export async function getSectionsDropDownByAcademicYearandClasslist(asmaY_Id: nu
                 const urlUnmapped = `/exam_master_category/un_mapped_sections_drop_down_by_class_list/${asmcL_Id}/${asmaY_Id}`;
                 const resUnmapped: any = await api.get('exam', urlUnmapped);
                 data = extractArray(resUnmapped, 'sectionlist', 'getsection', 'sections', 'sectionList');
-            } catch {}
+            } catch { }
         }
 
         return { success: true, data };
@@ -111,7 +119,7 @@ export async function getExamsDropDownByAcademicYearandClassandSectionlist(asmaY
         if (!asmaY_Id || !asmcL_Id || asmS_Id === undefined || asmS_Id === null) {
             return { success: false, message: 'Academic Year, Class, and Section ID are required', data: [] };
         }
-        
+
         // 1. Try specific year, class, and section exam dropdown
         const url = `/exam_master/exam_drop_down_by_year_class_section_list/${asmaY_Id}/${asmcL_Id}/${asmS_Id}`;
         const res: any = await api.get('exam', url);
@@ -122,7 +130,7 @@ export async function getExamsDropDownByAcademicYearandClassandSectionlist(asmaY
             try {
                 const resOrder: any = await api.get('exam', '/exam_master/exam_master_order_list');
                 data = extractArray(resOrder, 'examlist', 'getexam', 'exams', 'examList', 'master_exam_list', 'exam_list');
-            } catch {}
+            } catch { }
         }
 
         // 3. Fallback: Try /exam_master
@@ -130,7 +138,7 @@ export async function getExamsDropDownByAcademicYearandClassandSectionlist(asmaY
             try {
                 const resMaster: any = await api.get('exam', '/exam_master');
                 data = extractArray(resMaster, 'examlist', 'getexam', 'exams', 'examList', 'master_exam_list', 'exam_list');
-            } catch {}
+            } catch { }
         }
 
         // 4. Fallback: Try /exam_master/get_exam_list/${asmaY_Id}
@@ -138,7 +146,7 @@ export async function getExamsDropDownByAcademicYearandClassandSectionlist(asmaY
             try {
                 const resEx: any = await api.get('exam', `/exam_master/get_exam_list/${asmaY_Id}`);
                 data = extractArray(resEx, 'examlist', 'getexam', 'exams', 'examList');
-            } catch {}
+            } catch { }
         }
 
         return { success: true, data };

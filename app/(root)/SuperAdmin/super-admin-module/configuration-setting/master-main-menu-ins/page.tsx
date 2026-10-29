@@ -16,6 +16,16 @@ import { z } from 'zod';
 import MainMenuGrid from './_components/main-menu-grid';
 import ModuleMenuGrid from './_components/module-menu-grid';
 import SelectionForm from './_components/selection-form';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const formSchema = z.object({
     institution: z.string().min(1, 'Institution is required'),
@@ -123,22 +133,54 @@ export default function MasterMainMenuINSPage() {
 
     fetchModuleMenuList();
 }, [moduleId]);
+const [deleteTarget, setDeleteTarget] = useState<MasterMainMenuINSDTO | null>(null);
+const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleDelete = async (item: MasterMainMenuINSDTO) => {
-        if (confirm(`Are you sure you want to delete ${item.ivrmmmI_MenuName}?`)) {
-            const res = await deleteMainMenuINS(item);
-            if (res.success) {
-                toast.success('Deleted successfully');
-                // Refresh grid
-                const response = await getMainMenuListINS();
-                if (response.success && response.data?.gridDetails) {
-                    setGridData(response.data.gridDetails);
-                }
-            } else {
-                toast.error('Failed to delete: ' + res.message);
+    // const handleDelete = async (item: MasterMainMenuINSDTO) => {
+    //     if (confirm(`Are you sure you want to delete ${item.ivrmmmI_MenuName}?`)) {
+    //         const res = await deleteMainMenuINS(item);
+    //         if (res.success) {
+    //             toast.success('Deleted successfully');
+    //             // Refresh grid
+    //             const response = await getMainMenuListINS();
+    //             if (response.success && response.data?.gridDetails) {
+    //                 setGridData(response.data.gridDetails);
+    //             }
+    //         } else {
+    //             toast.error('Failed to delete: ' + res.message);
+    //         }
+    //     }
+    // };
+    // Opens the popup
+const handleDelete = (item: MasterMainMenuINSDTO) => {
+    setDeleteTarget(item);
+};
+
+// Runs when the user confirms in the popup
+const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    setIsDeleting(true);
+    try {
+        const res = await deleteMainMenuINS(deleteTarget);
+
+        if (res.success) {
+            toast.success('Deleted successfully');
+
+            const response = await getMainMenuListINS();
+            if (response.success && response.data?.gridDetails) {
+                setGridData(response.data.gridDetails);
             }
+        } else {
+            toast.error('Failed to delete: ' + res.message);
         }
-    };
+    } catch (err) {
+        toast.error('Something went wrong while deleting');
+    } finally {
+        setIsDeleting(false);
+        setDeleteTarget(null);
+    }
+};
 
     const handleSaveModules = async (items: MainMenuModuleDTO[]) => {
         const institutionId = methods.getValues('institution');
@@ -231,6 +273,39 @@ export default function MasterMainMenuINSPage() {
                     </FormProvider>
                 </CardContent>
             </Card>
+
+
+<AlertDialog
+    open={!!deleteTarget}
+    onOpenChange={(open) => {
+        if (!open && !isDeleting) setDeleteTarget(null);
+    }}
+>
+    <AlertDialogContent>
+        <AlertDialogHeader>
+            <AlertDialogTitle>Delete menu?</AlertDialogTitle>
+            <AlertDialogDescription>
+                Are you sure you want to delete{' '}
+                <span className="font-semibold">{deleteTarget?.ivrmmmI_MenuName}</span>?
+                This action cannot be undone.
+            </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+                disabled={isDeleting}
+                onClick={(e) => {
+                    e.preventDefault(); // keep the dialog open until the request finishes
+                    confirmDelete();
+                }}
+                className="bg-red-600 hover:bg-red-700"
+            >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+        </AlertDialogFooter>
+    </AlertDialogContent>
+</AlertDialog>
         </div>
     );
 }
+

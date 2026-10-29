@@ -15,6 +15,7 @@ import {
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import type { ApiSearchparams } from '@/types';
+import type { IAcademicYearandClassandsection } from '@/types/exam/exam-module/report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
@@ -76,7 +77,7 @@ export default function CumulativeReportForm({
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
     const [exams, setExams] = useState<{ emE_Id: number; emE_ExamName: string }[]>([]);
-    const [students, setStudents] = useState<{ amsT_AdmNo: string; amsT_Id: number; studentName?: string | null }[]>([]);
+    const [students, setStudents] = useState<IAcademicYearandClassandsection[]>([]);
     const [allStudentsSelected, setAllStudentsSelected] = useState(false);
 
     const [loadingClasses, setLoadingClasses] = useState(false);
@@ -176,7 +177,7 @@ export default function CumulativeReportForm({
                     selectedClass,
                     selectedSection
                 );
-                const valid = Array.isArray(data) ? data.filter((s): s is any => !!s?.amsT_Id) : [];
+                const valid = Array.isArray(data) ? data.filter((s) => !!s?.amsT_Id) : [];
                 setStudents(valid);
                 setValue('studentList', []);
                 setAllStudentsSelected(false);
@@ -195,13 +196,19 @@ export default function CumulativeReportForm({
             return;
         }
 
+        const studentIdsJoined = data.studentList.map((s) => s.amsT_Id).join(',');
         const payload = {
-            // mI_Id: 30, // <-- hard-coded as required
             asmaY_Id: data.asmaY_Id,
+            ASMAY_Id: data.asmaY_Id,
             asmcL_Id: data.asmcL_Id,
+            ASMCL_Id: data.asmcL_Id,
             asmS_Id: data.asmS_Id,
+            ASMS_Id: data.asmS_Id,
             emE_Id: data.emE_Id,
-            amsT_Ids: data.studentList.map((s) => s.amsT_Id).join(','),
+            EME_Id: data.emE_Id,
+            EME_ID: data.emE_Id,
+            amsT_Ids: studentIdsJoined,
+            AMST_Ids: studentIdsJoined,
             Left_Flag: data.Left_Flag,
             Deactive_Flag: data.Deactive_Flag,
             applicableFlag: data.applicableFlag === true ? '1' : '0',
@@ -213,7 +220,9 @@ export default function CumulativeReportForm({
             Grade_Flag: data.Grade_Flag,
             Marks_Flag: data.Marks_Flag,
             OverallGrade_Flag: data.OverallGrade_Flag,
-            Status_Flag: data.Status_Flag
+            Status_Flag: data.Status_Flag,
+            studentList: data.studentList,
+            selectedStudents: data.studentList
             //page_size: data.page_size
         };
         if (onSuccess) {

@@ -123,8 +123,8 @@ export default function FeeYearlyCollectionReport() {
         //breakdown: 'Fee Group Wise',
         breakdown: 'FGW',
         academicYearId: '',
-        classId: 0,
-        sectionId: 0,
+        classId: '' as string | number,
+        sectionId: '' as string | number,
         includeClassSection: false,
         status: {
             active: true,
@@ -242,12 +242,17 @@ export default function FeeYearlyCollectionReport() {
     }, [classListResponse, classListError]);
 
     useEffect(() => {
-        if (filters.classId > 0) refetchSections();
-        else {
+        if (filters.classId !== '') {
+            if (sectionListResponse?.data && Array.isArray(sectionListResponse.data)) {
+                setSections(sectionListResponse.data);
+            } else {
+                refetchSections();
+            }
+        } else {
             setSections([]);
-            setFilters((prev) => ({ ...prev, sectionId: 0 }));
+            setFilters((prev) => ({ ...prev, sectionId: '' }));
         }
-    }, [filters.classId, refetchSections]);
+    }, [filters.classId, refetchSections, sectionListResponse]);
 
     useEffect(() => {
         if (sectionListError) {
@@ -255,10 +260,10 @@ export default function FeeYearlyCollectionReport() {
             setSections([]);
             return;
         }
-        if (sectionListResponse?.data && Array.isArray(sectionListResponse.data)) {
+        if (filters.classId !== '' && sectionListResponse?.data && Array.isArray(sectionListResponse.data)) {
             setSections(sectionListResponse.data);
         }
-    }, [sectionListResponse, sectionListError]);
+    }, [sectionListResponse, sectionListError, filters.classId]);
 
     useEffect(() => {
         if (feegroupError) toast.error(feegroupError?.message || 'Failed to load fee groups');
@@ -408,9 +413,9 @@ export default function FeeYearlyCollectionReport() {
             filters.breakdown === 'STRMW' ||
             filters.breakdown === 'CWTPC'
         ) {
-            if (filters.classId === 0) return toast.error('Please select Class');
+            if (filters.classId === '' || filters.classId === undefined) return toast.error('Please select Class');
 
-            if (filters.sectionId === 0) return toast.error('Please select Section');
+            if (filters.sectionId === '' || filters.sectionId === undefined) return toast.error('Please select Section');
         }
 
         if (filters.viewMode === 'date') {
@@ -432,19 +437,19 @@ export default function FeeYearlyCollectionReport() {
                 FTI_ids: filters.breakdown === 'INMW' ? filters.installmentIds : filters.termIds,
                 FMT_Ids:
                     filters.breakdown === 'FGW' ||
-                    filters.breakdown === 'FHW' ||
-                    filters.breakdown === 'FCW' ||
-                    filters.breakdown === 'FSW' ||
-                    filters.breakdown === 'TRMW' ||
-                    filters.breakdown === 'STRMW' ||
-                    filters.breakdown === 'CW' ||
-                    filters.breakdown === 'CTW' ||
-                    filters.breakdown === 'CTC' ||
-                    filters.breakdown === 'SWTPC' ||
-                    filters.breakdown === 'CWTPC' ||
-                    filters.breakdown === 'FPW' ||
-                    filters.breakdown === 'FSHW' ||
-                    filters.breakdown === 'FSGW'
+                        filters.breakdown === 'FHW' ||
+                        filters.breakdown === 'FCW' ||
+                        filters.breakdown === 'FSW' ||
+                        filters.breakdown === 'TRMW' ||
+                        filters.breakdown === 'STRMW' ||
+                        filters.breakdown === 'CW' ||
+                        filters.breakdown === 'CTW' ||
+                        filters.breakdown === 'CTC' ||
+                        filters.breakdown === 'SWTPC' ||
+                        filters.breakdown === 'CWTPC' ||
+                        filters.breakdown === 'FPW' ||
+                        filters.breakdown === 'FSHW' ||
+                        filters.breakdown === 'FSGW'
                         ? filters.termIds
                         : [],
                 // FMG_Ids: [385, 385, 377, 378],
@@ -487,8 +492,8 @@ export default function FeeYearlyCollectionReport() {
 
                 // Category / Class / Section
                 FMCC_Id: 1, // static (change if required)
-                ASMCL_Id: filters.classId ?? 0,
-                AMSC_Id: filters.sectionId ?? 0
+                ASMCL_Id: Number(filters.classId) || 0,
+                AMSC_Id: Number(filters.sectionId) || 0
             };
             console.log('payload', payload);
             const response = await getFeeYearlyCollectionReport(payload);
@@ -1677,70 +1682,72 @@ export default function FeeYearlyCollectionReport() {
                                             filters.breakdown === 'STRMW' ||
                                             filters.breakdown === 'SWTPC' ||
                                             filters.breakdown === 'CWTPC') && (
-                                            <>
-                                                {/* Class */}
-                                                <div className='flex min-w-[220px] flex-grow items-center gap-3'>
-                                                    <Label htmlFor='includeClass' className='whitespace-nowrap font-medium'>
-                                                        Class <span className='text-red-500'>*</span>:
-                                                    </Label>
-                                                    <Select
-                                                        value={filters.classId === 0 ? '' : String(filters.classId)}
-                                                        onValueChange={(val) => {
-                                                            const id = Number(val);
-                                                            setFilters((prev) => ({
-                                                                ...prev,
-                                                                classId: id
-                                                                // sectionId: 0,
-                                                            }));
-                                                        }}>
-                                                        <SelectTrigger className='w-full'>
-                                                            <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {classes.map((cls) => (
-                                                                <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
-                                                                    {cls.asmcL_ClassName}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
+                                                <>
+                                                    {/* Class */}
+                                                    <div className='flex min-w-[220px] flex-grow items-center gap-3'>
+                                                        <Label htmlFor='includeClass' className='whitespace-nowrap font-medium'>
+                                                            Class <span className='text-red-500'>*</span>:
+                                                        </Label>
+                                                        <Select
+                                                            value={filters.classId !== '' ? String(filters.classId) : ''}
+                                                            onValueChange={(val) => {
+                                                                setFilters((prev) => ({
+                                                                    ...prev,
+                                                                    classId: val,
+                                                                    sectionId: ''
+                                                                }));
+                                                            }}>
+                                                            <SelectTrigger className='w-full'>
+                                                                <SelectValue placeholder={loadingClasses ? 'Loading...' : 'Select Class'} />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value='0'>All</SelectItem>
+                                                                {classes.map((cls) => (
+                                                                    <SelectItem key={cls.asmcL_Id} value={String(cls.asmcL_Id)}>
+                                                                        {cls.asmcL_ClassName}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
 
-                                                {/* Section */}
-                                                <div className='flex min-w-[220px] flex-grow items-center gap-3'>
-                                                    <Label className='whitespace-nowrap font-medium'>
-                                                        Section <span className='text-red-500'>*</span>:
-                                                    </Label>
-                                                    <Select
-                                                        value={filters.sectionId === 0 ? '' : String(filters.sectionId)}
-                                                        onValueChange={(val) =>
-                                                            setFilters((prev) => ({
-                                                                ...prev,
-                                                                sectionId: Number(val)
-                                                            }))
-                                                        }>
-                                                        <SelectTrigger className='w-full'>
-                                                            <SelectValue
-                                                                placeholder={
-                                                                    !filters.classId
-                                                                        ? 'Select Class first'
-                                                                        : loadingSections
-                                                                          ? 'Loading...'
-                                                                          : 'Select Section'
-                                                                }
-                                                            />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {sections.map((sec) => (
-                                                                <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
-                                                                    {sec.asmC_SectionName}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                            </>
-                                        )}
+                                                    {/* Section */}
+                                                    <div className='flex min-w-[220px] flex-grow items-center gap-3'>
+                                                        <Label className='whitespace-nowrap font-medium'>
+                                                            Section <span className='text-red-500'>*</span>:
+                                                        </Label>
+                                                        <Select
+                                                            disabled={filters.classId === ''}
+                                                            value={filters.sectionId !== '' ? String(filters.sectionId) : ''}
+                                                            onValueChange={(val) =>
+                                                                setFilters((prev) => ({
+                                                                    ...prev,
+                                                                    sectionId: val
+                                                                }))
+                                                            }>
+                                                            <SelectTrigger className='w-full'>
+                                                                <SelectValue
+                                                                    placeholder={
+                                                                        filters.classId === ''
+                                                                            ? 'Select Class first'
+                                                                            : loadingSections
+                                                                              ? 'Loading...'
+                                                                              : 'Select Section'
+                                                                    }
+                                                                />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value='0'>All</SelectItem>
+                                                                {sections.map((sec) => (
+                                                                    <SelectItem key={sec.asmS_Id} value={String(sec.asmS_Id)}>
+                                                                        {sec.asmC_SectionName}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </>
+                                            )}
                                     </div>
 
                                     {/* Date section - ONLY shown when Date Wise is selected */}

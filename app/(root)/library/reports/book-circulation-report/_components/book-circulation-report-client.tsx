@@ -33,14 +33,15 @@ export function BookCirculationReportClient({ initialData }: BookCirculationRepo
                 if (Array.isArray(response)) {
                     list = response;
                 } else if (response && typeof response === 'object') {
-                    const possibleList =
-                        response.reportlist ||
-                        response.reportList ||
-                        response.gridList ||
-                        response.gridlist ||
-                        response.alldata ||
-                        response.data ||
-                        response;
+                    const possibleList = Array.isArray(response.data)
+                        ? response.data
+                        : response.reportlist ||
+                          response.reportList ||
+                          response.gridList ||
+                          response.gridlist ||
+                          response.alldata ||
+                          response.data ||
+                          response;
                     if (Array.isArray(possibleList)) {
                         list = possibleList;
                     } else if (possibleList && typeof possibleList === 'object' && '$values' in possibleList) {
@@ -50,6 +51,7 @@ export function BookCirculationReportClient({ initialData }: BookCirculationRepo
                 setReportData(list);
                 if (list.length > 0) {
                     setView('grid');
+                    toast.success(`Found ${list.length} records.`);
                 } else {
                     toast.info('No records found for the selected criteria');
                 }
@@ -84,11 +86,15 @@ export function BookCirculationReportClient({ initialData }: BookCirculationRepo
                     onExport={handleExport}
                     hasData={reportData.length > 0}
                     initialData={initialData}
+                    onCancel={() => {
+                        setReportData([]);
+                        setView('form');
+                    }}
                 />
             </CollapsibleSection>
 
             {reportData.length > 0 && (
-                <div className='mx-auto max-w-5xl print:m-0 print:max-w-none'>
+                <div className='w-full print:m-0'>
                     <CollapsibleSection
                         title='Book Circulation Report'
                         defaultOpen={true}
@@ -104,7 +110,13 @@ export function BookCirculationReportClient({ initialData }: BookCirculationRepo
                                 </div>
                             </div>
 
-                            <GenericDataTable columns={getColumns(memberType)} data={reportData} isLoading={false} />
+                            <GenericDataTable
+                                columns={getColumns(memberType)}
+                                data={reportData}
+                                totalItems={reportData.length}
+                                isPaginationRequired={true}
+                                isLoading={false}
+                            />
                         </div>
                     </CollapsibleSection>
                 </div>

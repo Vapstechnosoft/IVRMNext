@@ -943,10 +943,12 @@ export function useSaveEmployeeSalaryDetails(options?: { suppressSuccessToast?: 
 /**
  * Hook to fetch employee earnings and deductions
  */
-export function useEmployeeEarningsDeductions(hrme_id: number | null) {
+export function useEmployeeEarningsDeductions(hrme_id: number | null | undefined) {
+    const effectiveId = hrme_id !== null && hrme_id !== undefined ? Number(hrme_id) : 0;
     return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'earnings-deductions', hrme_id],
-        queryFn: () => getEmployeeEarningsDeductions(hrme_id!),
-        enabled: !!hrme_id && hrme_id > 0
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'earnings-deductions', effectiveId],
+        queryFn: () => getEmployeeEarningsDeductions(effectiveId),
+        enabled: true
     });
 }
+

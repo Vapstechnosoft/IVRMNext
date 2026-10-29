@@ -1059,7 +1059,7 @@ export default function SubjectTableWithValidation({
     // ---------- table rendering ----------
     return (
         <div className='overflow-x-auto rounded-md bg-white p-2 shadow-sm'>
-            {subjects.length !== 0 && (
+            {subjects.length !== 0 ? (
                 <>
                     <div className='mb-3 flex items-center justify-between gap-4'>
                         <div>
@@ -1257,6 +1257,14 @@ export default function SubjectTableWithValidation({
                         />
                     )}
                 </>
+            ) : (
+                <div className='rounded-lg border border-amber-200 bg-amber-50/60 p-6 text-center'>
+                    <p className='font-semibold text-amber-900 text-sm'>No Subjects Mapped to this Category</p>
+                    <p className='mt-1 text-amber-700 text-xs'>
+                        Please map subjects for this academic year and category in{' '}
+                        <span className='font-medium underline'>Yearly Category Subject Mapping</span> first.
+                    </p>
+                </div>
             )}
         </div>
     );

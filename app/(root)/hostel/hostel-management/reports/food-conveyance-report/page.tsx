@@ -29,6 +29,7 @@ import { toast } from 'sonner';
 export default function HostelFoodConveyanceReportPage() {
     const [reportData, setReportData] = useState<HFCReportStudent[]>([]);
     const [loading, setLoading] = useState(false);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [currentDate] = useState(new Date());
 
     const [academicYears, setAcademicYears] = useState<any[]>([]);
@@ -44,15 +45,32 @@ export default function HostelFoodConveyanceReportPage() {
 
     useEffect(() => {
         async function load() {
-            const data: HFCReportLoadDataResponse | null = await getHFCReportLoadData();
-            if (data) {
-                setAcademicYears(data.allAcademicYear || []);
-                setClasses(data.allClass || []);
-                setSections(data.allSection || []);
+            try {
+                setIsInitialLoading(true);
+                const data: HFCReportLoadDataResponse | null = await getHFCReportLoadData();
+                if (data) {
+                    const years = data.allAcademicYear || [];
+                    setAcademicYears(years);
+                    setClasses(data.allClass || []);
+                    setSections(data.allSection || []);
+
+                    if (years.length > 0 && !form.getValues('asmaY_Id')) {
+                        const activeYear = years.find((y: any) => y.asmaY_ActiveFlag === 1 || y.ASMAY_ActiveFlag === 1) || years[0];
+                        const activeId = activeYear?.asmaY_Id ?? activeYear?.ASMAY_Id;
+                        if (activeId) {
+                            form.setValue('asmaY_Id', Number(activeId));
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading initial data:', err);
+                toast.error('Failed to load initial data');
+            } finally {
+                setIsInitialLoading(false);
             }
         }
         load();
-    }, []);
+    }, [form]);
 
     const watchYear = form.watch('asmaY_Id');
     const watchClass = form.watch('asmcL_Id');
@@ -79,14 +97,20 @@ export default function HostelFoodConveyanceReportPage() {
         setLoading(true);
         try {
             const data: HFCReportResponse | null = await getHFCReport(values);
-            if (data && data.studentlist && data.studentlist.length > 0) {
-                const formattedList = data.studentlist.map((item: HFCReportStudent) => {
-                    let name = item.stuFN || '';
-                    if (item.stuMN) name += ' ' + item.stuMN;
-                    if (item.stuLN) name += ' ' + item.stuLN;
+            if (data?.studentlist && data.studentlist.length > 0) {
+                const formattedList = data.studentlist.map((item: any) => {
+                    let name = item.stuFN || item.AMST_FirstName || '';
+                    const mn = item.stuMN || item.AMST_MiddleName;
+                    const ln = item.stuLN || item.AMST_LastName;
+                    if (mn) name += ` ${mn}`;
+                    if (ln) name += ` ${ln}`;
                     return {
                         ...item,
-                        namme: name.replace(/ {2,}/g, ' ').trim()
+                        regno: item.regno || item.AMST_RegistrationNo,
+                        admno: item.admno || item.AMST_AdmNo,
+                        class: item.class || item.ASMCL_ClassName,
+                        section: item.section || item.ASMC_SectionName,
+                        namme: item.namme || name.replace(/ {2,}/g, ' ').trim()
                     };
                 });
                 setReportData(formattedList);
@@ -226,17 +250,33 @@ export default function HostelFoodConveyanceReportPage() {
                                                             Academic Year: <span className='text-red-500'>*</span>
                                                         </Label>
                                                         <Select
-                                                            onValueChange={field.onChange}
-                                                            value={field.value ? String(field.value) : undefined}>
+                                                            disabled={isInitialLoading}
+                                                            onValueChange={(val) => field.onChange(val ? Number(val) : undefined)}
+                                                            value={
+                                                                field.value !== undefined && field.value !== null && field.value !== ''
+                                                                    ? String(field.value)
+                                                                    : undefined
+                                                            }>
                                                             <SelectTrigger className='w-full border border-gray-200 bg-white'>
-                                                                <SelectValue placeholder='Select Academic Year' />
+                                                                <SelectValue
+                                                                    placeholder={
+                                                                        isInitialLoading
+                                                                            ? 'Loading Academic Years...'
+                                                                            : 'Select Academic Year'
+                                                                    }
+                                                                />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {academicYears.map((y: any) => (
-                                                                    <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                                        {y.asmaY_Year}
-                                                                    </SelectItem>
-                                                                ))}
+                                                                {academicYears.map((y: any) => {
+                                                                    const id = y.asmaY_Id ?? y.ASMAY_Id;
+                                                                    const yearName = y.asmaY_Year ?? y.ASMAY_Year;
+                                                                    if (id === undefined || id === null) return null;
+                                                                    return (
+                                                                        <SelectItem key={String(id)} value={String(id)}>
+                                                                            {yearName}
+                                                                        </SelectItem>
+                                                                    );
+                                                                })}
                                                             </SelectContent>
                                                         </Select>
                                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -254,17 +294,27 @@ export default function HostelFoodConveyanceReportPage() {
                                                             Class: <span className='text-red-500'>*</span>
                                                         </Label>
                                                         <Select
-                                                            onValueChange={field.onChange}
-                                                            value={field.value ? String(field.value) : undefined}>
+                                                            disabled={isInitialLoading}
+                                                            onValueChange={(val) => field.onChange(val ? Number(val) : undefined)}
+                                                            value={
+                                                                field.value !== undefined && field.value !== null && field.value !== ''
+                                                                    ? String(field.value)
+                                                                    : undefined
+                                                            }>
                                                             <SelectTrigger className='w-full border border-gray-200 bg-white'>
                                                                 <SelectValue placeholder='Select Class' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {classes.map((c: any) => (
-                                                                    <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                                        {c.asmcL_ClassName}
-                                                                    </SelectItem>
-                                                                ))}
+                                                                {classes.map((c: any) => {
+                                                                    const id = c.asmcL_Id ?? c.ASMCL_Id;
+                                                                    const className = c.asmcL_ClassName ?? c.ASMCL_ClassName;
+                                                                    if (id === undefined || id === null) return null;
+                                                                    return (
+                                                                        <SelectItem key={String(id)} value={String(id)}>
+                                                                            {className}
+                                                                        </SelectItem>
+                                                                    );
+                                                                })}
                                                             </SelectContent>
                                                         </Select>
                                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -282,19 +332,28 @@ export default function HostelFoodConveyanceReportPage() {
                                                             Section: <span className='text-red-500'>*</span>
                                                         </Label>
                                                         <Select
-                                                            onValueChange={field.onChange}
-                                                            value={field.value ? String(field.value) : undefined}>
+                                                            disabled={isInitialLoading}
+                                                            onValueChange={(val) => field.onChange(val ? Number(val) : undefined)}
+                                                            value={
+                                                                field.value !== undefined && field.value !== null && field.value !== ''
+                                                                    ? String(field.value)
+                                                                    : undefined
+                                                            }>
                                                             <SelectTrigger className='w-full border border-gray-200 bg-white'>
                                                                 <SelectValue placeholder='Select Section' />
                                                             </SelectTrigger>
                                                             <SelectContent>
-                                                                {sections.map((s: any) => (
-                                                                    <SelectItem
-                                                                        key={s.asmS_Id || s.asmC_Id}
-                                                                        value={String(s.asmS_Id || s.asmC_Id)}>
-                                                                        {s.asmC_SectionName}
-                                                                    </SelectItem>
-                                                                ))}
+                                                                {sections.map((s: any) => {
+                                                                    const id = s.asmS_Id ?? s.asmC_Id ?? s.ASMS_Id ?? s.ASMC_Id;
+                                                                    const sectionName =
+                                                                        s.asmC_SectionName ?? s.ASMC_SectionName ?? s.sectionName;
+                                                                    if (id === undefined || id === null) return null;
+                                                                    return (
+                                                                        <SelectItem key={String(id)} value={String(id)}>
+                                                                            {sectionName}
+                                                                        </SelectItem>
+                                                                    );
+                                                                })}
                                                             </SelectContent>
                                                         </Select>
                                                         {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

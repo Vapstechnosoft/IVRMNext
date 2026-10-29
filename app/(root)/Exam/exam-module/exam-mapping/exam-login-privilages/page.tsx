@@ -17,6 +17,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function ExamLoginPrivilegesPage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useExamLoginPrivileges(searchParams);
+    console.log('response login ', response);
     return (
         <FormProvider<IExamLoginPrivileges>>
             <ExamLoginPrivilegesPageContent

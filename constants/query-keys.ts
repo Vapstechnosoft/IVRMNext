@@ -631,7 +631,8 @@ export const STAFF_PORTAL_QUERY_KEYS = {
     FEE_RAZORPAY_PAYMENT: 'fee_razorpay_payment',
     FEE_PAYMENT_CHARGES: 'fee_payment_charges',
     FEE_ONLINE_PAYMENT_STUDENT_INFO: 'fee_online_student_info',
-    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list'
+    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list',
+    FEE_STUDENT_VIEW: 'fee_student_view'
 };
 
 export const COE_QUERY_KEYS = {
@@ -685,6 +686,8 @@ export const PRE_LIVE_MEETING_SCHEDULE = { DETAILS: () => ['PRE_LIVE_MEETING_SCH
 
 export const COLLEGE_QUERY_KEYS = {
     MASTER_CASTE_CATEGORY: 'college_master_caste_category',
+    MASTER_CASTE: 'college_master_caste',
+    BRANCH_CHANGE: 'college_branch_change',
     MASTER_COURSE_CATEGORY_MAP: 'college_master_course_category_map',
     MASTER_COURSE_BRANCH_MAP: 'college_master_course_branch_map',
     MASTER_BATCH: 'college_master_batch',
@@ -712,6 +715,7 @@ export const COLLEGE_QUERY_KEYS = {
     CLG_REG_NO_FORMAT: 'college_clg_reg_no_format',
     COLLEGE_USERNAME_CREATION: 'college_username_creation',
     CLG_YEARLY_COURSE_MAPPING: 'college_yearly_course_mapping',
+    CLG_SECTION_ALLOTMENT: 'college_section_allotment',
     COLLEGE_FEE_TRANSACTION: 'college_fee_transaction',
     COLLEGE_FEE_TRANSACTION_ACADEMIC_YEARS: 'college_fee_transaction_academic_years',
     COLLEGE_LOAN_SCHOLARSHIP_LOAD: 'college_loan_scholarship_load',
@@ -739,7 +743,9 @@ export const COLLEGE_QUERY_KEYS = {
     COLLEGE_FEE_OPENING_BALANCE_GROUPS: 'college_fee_opening_balance_groups',
     COLLEGE_FEE_OPENING_BALANCE_HEADS: 'college_fee_opening_balance_heads',
     COLLEGE_FEE_OPENING_BALANCE_INSTALLMENTS: 'college_fee_opening_balance_installments',
-    COLLEGE_FEE_OPENING_BALANCE_STUDENTS: 'college_fee_opening_balance_students'
+    COLLEGE_FEE_OPENING_BALANCE_STUDENTS: 'college_fee_opening_balance_students',
+    DCPS_BONAFIDE_CERTIFICATE: 'college_dcps_bonafide_certificate',
+    COLLEGE_OVERALL_DAILY_ATTENDANCE_REPORT: 'college_overall_daily_attendance_report'
 };
 export const ONLINE_EXAM_QUERY_KEYS = {
     MASTER_QUESTION: 'online_exam_master_question',
