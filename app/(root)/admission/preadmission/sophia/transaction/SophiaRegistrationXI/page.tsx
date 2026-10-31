@@ -43,6 +43,8 @@ import {
     useSophiaRegistrationXIToggleStatus
 } from '@/hooks/admission/preadmission/transactions/useSophiaRegistrationXI';
 import { useAdmissionFormDetails } from '@/hooks/admission/admissionForm';
+import { useActivePreadmissionDetails, useReligionDropdown } from '@/hooks/admission/preadmission/useTransactions';
+import { useAcademicYearDropdown, useMasterCasteCategory, useMasterCasteCategoryDropdown, useMasterReligion } from '@/hooks/admission/preadmission/useMasters';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -247,6 +249,12 @@ export default function SophiaRegistrationXI() {
     /* -------------------- Hooks -------------------- */
     const { data: initialData, isLoading: isInitialLoading } = useSophiaRegistrationXIInitialData(0, 0);
     const { data: admissionDetails } = useAdmissionFormDetails();
+    const { data: activePreadmission } = useActivePreadmissionDetails();
+    const { data: academicYearDropdown } = useAcademicYearDropdown();
+    const { data: religionDropdownData } = useReligionDropdown();
+    const { data: masterReligionData } = useMasterReligion();
+    const { data: casteCategoryDropdownData } = useMasterCasteCategoryDropdown();
+    const { data: masterCasteCategoryData } = useMasterCasteCategory();
     const casteMutation = useSophiaRegistrationXICaste();
     const classChangeMutation = useSophiaRegistrationXIClassChange();
     const streamsMutation = useSophiaRegistrationXIStreams();
@@ -260,28 +268,38 @@ export default function SophiaRegistrationXI() {
 
     /* -------------------- Memo -------------------- */
     const religions = useMemo(() => {
-        return (
+        const raw =
+            (religionDropdownData as any)?.data ||
+            (Array.isArray(religionDropdownData) ? religionDropdownData : null) ||
+            (masterReligionData as any)?.data ||
+            (Array.isArray(masterReligionData) ? masterReligionData : null) ||
             (admissionDetails as any)?.religions ||
             (admissionDetails as any)?.allReligion ||
             (admissionDetails as any)?.allReligionList ||
             (admissionDetails as any)?.AllReligion ||
             (initialData?.data as any)?.religiondrp ||
-            []
-        );
-    }, [admissionDetails, initialData]);
+            (initialData as any)?.religiondrp ||
+            [];
+        return Array.isArray(raw) ? raw : [];
+    }, [religionDropdownData, masterReligionData, admissionDetails, initialData]);
 
     const casteCategories = useMemo(() => {
-        return (
+        const raw =
+            (casteCategoryDropdownData as any)?.data ||
+            (Array.isArray(casteCategoryDropdownData) ? casteCategoryDropdownData : null) ||
+            (masterCasteCategoryData as any)?.data ||
+            (Array.isArray(masterCasteCategoryData) ? masterCasteCategoryData : null) ||
             (admissionDetails as any)?.casteCategoryes ||
             (admissionDetails as any)?.allCasteCategory ||
             (admissionDetails as any)?.vpre_allCasteCategory ||
             (admissionDetails as any)?.allCasteCategoryList ||
             (admissionDetails as any)?.AllCasteCategory ||
             (initialData?.data as any)?.castecategorydrp ||
+            (initialData as any)?.castecategorydrp ||
             (initialData?.data as any)?.arrlist9 ||
-            []
-        );
-    }, [admissionDetails, initialData]);
+            [];
+        return Array.isArray(raw) ? raw : [];
+    }, [casteCategoryDropdownData, masterCasteCategoryData, admissionDetails, initialData]);
 
     const allCastes = useMemo(() => {
         return (
@@ -301,35 +319,64 @@ export default function SophiaRegistrationXI() {
 
     const isRomanCatholic = useMemo(() => {
         const religionId = Number(reg.Religion_Id);
-        const religion = religions.find((r: any) => Number(r.ivrmmR_Id) === religionId);
+        const religion = religions.find((r: any) => Number(r.ivrmmR_Id || r.IVRMMR_Id || r.religion_Id) === religionId);
         const name = (religion?.ivrmmR_ReligionName || religion?.ivrmmR_Name || '').toLowerCase();
         return name.includes('roman catholic');
     }, [reg.Religion_Id, religions]);
 
+    const activeAcademicYear = useMemo(() => {
+        if (activePreadmission?.data?.asmaY_Year) return activePreadmission.data.asmaY_Year;
+        const pData = (initialData as any)?.data || initialData;
+        const academic = pData?.academicdrp || pData?.allAcademicYear;
+        if (academic && Array.isArray(academic) && academic.length > 0) {
+            const found = academic.find((y: any) => (y.asmaY_Id || y.ASMAY_Id) === reg.ASMAY_Id) || academic[0];
+            return found?.asmaY_Year || found?.ASMAY_Year || '';
+        }
+        const dropdownList = (academicYearDropdown as any)?.data || (Array.isArray(academicYearDropdown) ? academicYearDropdown : null);
+        if (dropdownList && Array.isArray(dropdownList) && dropdownList.length > 0) {
+            const found = dropdownList.find((y: any) => (y.asmaY_Id || y.ASMAY_Id) === reg.ASMAY_Id) || dropdownList[0];
+            return found?.asmaY_Year || found?.ASMAY_Year || '';
+        }
+        return (admissionDetails as any)?.allAcademicYear?.[0]?.asmaY_Year || '';
+    }, [activePreadmission, initialData, reg.ASMAY_Id, academicYearDropdown, admissionDetails]);
+
     /* -------------------- Effects -------------------- */
     useEffect(() => {
-        if (initialData?.data) {
-            const pData = initialData.data;
-            if (pData.documentList) {
-                setDocumentList(pData.documentList.map((d: any) => ({ ...d, document_Path: '' })));
+        if (initialData) {
+            const pData = (initialData as any)?.data || initialData;
+            const docs = pData?.documentList || pData?.DocumentList;
+            if (docs && Array.isArray(docs)) {
+                setDocumentList(docs.map((d: any) => ({ ...d, document_Path: '' })));
             }
-            if (pData.academicdrp?.length > 0) {
+            if (pData?.academicdrp?.length > 0) {
                 const activeYear = pData.academicdrp.find((y: any) => y.asmaY_Id === pData.asmaY_Id) || pData.academicdrp[0];
-                setReg((prev: any) => ({ ...prev, ASMAY_Id: activeYear.asmaY_Id }));
+                const yearId = activeYear?.asmaY_Id || activeYear?.ASMAY_Id;
+                if (yearId) {
+                    setReg((prev: any) => ({ ...prev, ASMAY_Id: yearId }));
+                }
             }
 
             // Set counts
             setCounts({
-                regisrertotal: pData.regisrertotal || 0,
-                notappform: pData.notappform || 0,
-                appform: pData.appform || 0,
-                duplicate: pData.duplicate || 0,
-                pay: pData.pay || 0,
-                notpay: pData.notpay || 0,
-                transferstu: pData.transferstu || 0
+                regisrertotal: pData?.regisrertotal || 0,
+                notappform: pData?.notappform || 0,
+                appform: pData?.appform || 0,
+                duplicate: pData?.duplicate || 0,
+                pay: pData?.pay || 0,
+                notpay: pData?.notpay || 0,
+                transferstu: pData?.transferstu || 0
             });
         }
     }, [initialData]);
+
+    useEffect(() => {
+        const yearId =
+            activePreadmission?.data?.asmaY_Id ||
+            (academicYearDropdown as any)?.data?.[0]?.asmaY_Id;
+        if (yearId && (!reg.ASMAY_Id || reg.ASMAY_Id === 0)) {
+            setReg((prev: any) => ({ ...prev, ASMAY_Id: yearId }));
+        }
+    }, [activePreadmission, academicYearDropdown, reg.ASMAY_Id]);
 
     /* -------------------- Handlers -------------------- */
     const handleInputChange = (field: string, value: any) => {
@@ -561,8 +608,7 @@ export default function SophiaRegistrationXI() {
                 </div>
                 <div className='flex items-center gap-3'>
                     <Badge variant='outline' className='border-indigo-200 bg-indigo-50 px-3 py-1 font-medium text-indigo-700 text-sm'>
-                        Academic Year:{' '}
-                        {(initialData?.data as any)?.academicdrp?.find((y: any) => y.asmaY_Id === reg.ASMAY_Id)?.asmaY_Year || 'Loading...'}
+                        Academic Year: {activeAcademicYear || 'Loading...'}
                     </Badge>
                 </div>
             </div>
@@ -820,17 +866,22 @@ export default function SophiaRegistrationXI() {
                                                 Religion <span className='text-red-500'>*</span>
                                             </Label>
                                             <Select
-                                                value={reg.Religion_Id?.toString()}
+                                                value={reg.Religion_Id && reg.Religion_Id !== 0 ? reg.Religion_Id.toString() : ''}
                                                 onValueChange={(v) => handleInputChange('Religion_Id', Number(v))}>
                                                 <SelectTrigger className='h-10'>
                                                     <SelectValue placeholder='Select Religion' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {religions.map((r: any) => (
-                                                        <SelectItem key={r.ivrmmR_Id} value={r.ivrmmR_Id.toString()}>
-                                                            {r.ivrmmR_ReligionName || r.ivrmmR_Name}
-                                                        </SelectItem>
-                                                    ))}
+                                                    {religions.map((r: any) => {
+                                                        const id = r.ivrmmR_Id ?? r.IVRMMR_Id ?? r.religion_Id ?? r.religionId;
+                                                        const name = r.ivrmmR_ReligionName || r.ivrmmR_Name || r.IVRMMR_Name || r.religionName;
+                                                        if (id === undefined || id === null) return null;
+                                                        return (
+                                                            <SelectItem key={id.toString()} value={id.toString()}>
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -838,18 +889,23 @@ export default function SophiaRegistrationXI() {
                                             <Label className='font-bold text-slate-500 text-xs uppercase'>
                                                 Caste Category <span className='text-red-500'>*</span>
                                             </Label>
-                                            <Select value={reg.IMCC_Id?.toString()} onValueChange={handleCasteCategoryChange}>
+                                            <Select
+                                                value={reg.IMCC_Id && reg.IMCC_Id !== 0 ? reg.IMCC_Id.toString() : ''}
+                                                onValueChange={handleCasteCategoryChange}>
                                                 <SelectTrigger className='h-10'>
                                                     <SelectValue placeholder='Select Category' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {casteCategories.map((c: any) => (
-                                                        <SelectItem
-                                                            key={c.imcC_Id || c.imCC_Id || c.imc_id}
-                                                            value={(c.imcC_Id || c.imCC_Id || c.imc_id).toString()}>
-                                                            {c.imcC_CategoryName || c.imCC_CategoryName || c.imC_CategoryName}
-                                                        </SelectItem>
-                                                    ))}
+                                                    {casteCategories.map((c: any) => {
+                                                        const id = c.imcC_Id ?? c.imCC_Id ?? c.IMCC_Id ?? c.imc_id;
+                                                        const name = c.imcC_CategoryName || c.imCC_CategoryName || c.IMCC_CategoryName || c.imC_CategoryName;
+                                                        if (id === undefined || id === null) return null;
+                                                        return (
+                                                            <SelectItem key={id.toString()} value={id.toString()}>
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })}
                                                 </SelectContent>
                                             </Select>
                                         </div>
@@ -1311,11 +1367,16 @@ export default function SophiaRegistrationXI() {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {(initialData?.data as any)?.religiondrp?.map((r: any) => (
-                                                            <SelectItem key={r.ivrmmR_Id} value={r.ivrmmR_Id.toString()}>
-                                                                {r.ivrmmR_Name}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {religions.map((r: any) => {
+                                                            const id = r.ivrmmR_Id ?? r.IVRMMR_Id ?? r.religion_Id ?? r.religionId;
+                                                            const name = r.ivrmmR_ReligionName || r.ivrmmR_Name || r.IVRMMR_Name || r.religionName;
+                                                            if (id === undefined || id === null) return null;
+                                                            return (
+                                                                <SelectItem key={id.toString()} value={id.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
@@ -1470,11 +1531,16 @@ export default function SophiaRegistrationXI() {
                                                         <SelectValue placeholder='Select' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {(initialData?.data as any)?.religiondrp?.map((r: any) => (
-                                                            <SelectItem key={r.ivrmmR_Id} value={r.ivrmmR_Id.toString()}>
-                                                                {r.ivrmmR_Name}
-                                                            </SelectItem>
-                                                        ))}
+                                                        {religions.map((r: any) => {
+                                                            const id = r.ivrmmR_Id ?? r.IVRMMR_Id ?? r.religion_Id ?? r.religionId;
+                                                            const name = r.ivrmmR_ReligionName || r.ivrmmR_Name || r.IVRMMR_Name || r.religionName;
+                                                            if (id === undefined || id === null) return null;
+                                                            return (
+                                                                <SelectItem key={id.toString()} value={id.toString()}>
+                                                                    {name}
+                                                                </SelectItem>
+                                                            );
+                                                        })}
                                                     </SelectContent>
                                                 </Select>
                                             </div>
