@@ -18,13 +18,17 @@ import {
     useStudentAttendanceInitialData,
     useViewAttendance
 } from '@/hooks/admission/preadmission/transactions/useStudentAttendanceEntry';
-import { useMasterMonthDropDownList } from '@/hooks/admission/preadmission/useMasters';
+import {
+    useMasterClassDropdown,
+    useMasterMonthDropDownList,
+    useMasterSectionDropdown
+} from '@/hooks/admission/preadmission/useMasters';
 import type {
     StudentAttendanceDetail,
     StudentAttendanceStudent
 } from '@/server/admission/preadmission/attendance-entry/student_attendance';
 import { Eye, Search } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { AttendanceDetailsModal } from './_components/AttendanceDetailsModal';
 import { getStudentAttendanceColumns } from './_components/columns';
@@ -35,13 +39,49 @@ export default function StudentAttendancePage() {
     const initialData = initialDataRes?.data;
     const { data: monthRes } = useMasterMonthDropDownList();
     const monthList: any[] = Array.isArray(monthRes?.data) ? monthRes?.data : (monthRes?.data as any)?.monthList || [];
+    const { data: masterClassRes } = useMasterClassDropdown();
+    const { data: masterSectionRes } = useMasterSectionDropdown();
+
+    const masterClassList: any[] = useMemo(() => {
+        if (!masterClassRes) return [];
+        if (Array.isArray(masterClassRes)) return masterClassRes;
+        if (Array.isArray((masterClassRes as any).data)) return (masterClassRes as any).data;
+        return [];
+    }, [masterClassRes]);
+
+    const masterSectionList: any[] = useMemo(() => {
+        if (!masterSectionRes) return [];
+        if (Array.isArray(masterSectionRes)) return masterSectionRes;
+        if (Array.isArray((masterSectionRes as any).data)) return (masterSectionRes as any).data;
+        return [];
+    }, [masterSectionRes]);
 
     // Form States
     const [selectedYear, setSelectedYear] = useState<string>('');
     const [selectedClass, setSelectedClass] = useState<string>('');
     const [selectedSection, setSelectedSection] = useState<string>('');
+    const [dynamicSectionList, setDynamicSectionList] = useState<any[]>([]);
     const [attendanceType, setAttendanceType] = useState<string>('Dailyonce');
     const [doe, setDoe] = useState<string>(new Date().toISOString().slice(0, 10));
+
+    const classList = useMemo(() => {
+        const list = initialData?.classList;
+        if (Array.isArray(list) && list.length > 0) {
+            return list;
+        }
+        return masterClassList;
+    }, [initialData?.classList, masterClassList]);
+
+    const sectionList = useMemo(() => {
+        if (dynamicSectionList.length > 0) {
+            return dynamicSectionList;
+        }
+        const initialSections = initialData?.sectionList;
+        if (Array.isArray(initialSections) && initialSections.length > 0) {
+            return initialSections;
+        }
+        return masterSectionList;
+    }, [dynamicSectionList, initialData?.sectionList, masterSectionList]);
 
     // Monthly States
     const [selectedMonth, setSelectedMonth] = useState<string>('');
@@ -90,6 +130,7 @@ export default function StudentAttendancePage() {
     const handleClassChange = (classId: string) => {
         setSelectedClass(classId);
         setSelectedSection('');
+        setDynamicSectionList([]);
         setSearched(false);
         setStudents([]);
 
@@ -111,14 +152,20 @@ export default function StudentAttendancePage() {
             },
             {
                 onSuccess: (res) => {
-                    if (res?.data) {
-                        const type = res.data.asA_Att_EntryType;
+                    const data = res?.data?.data || res?.data || res;
+                    if (data) {
+                        const type = data.asA_Att_EntryType || data.ASA_Att_EntryType;
                         if (type === 'D') setAttendanceType('Dailyonce');
                         else if (type === 'H') setAttendanceType('Dailytwice');
                         else if (type === 'M') setAttendanceType('monthly');
                         else if (type === 'P') setAttendanceType('period');
-                    } else {
-                        toast.error('No Records Found');
+
+                        const sList = data.sectionList || data.section || [];
+                        if (Array.isArray(sList) && sList.length > 0) {
+                            setDynamicSectionList(sList);
+                        }
+                    } else if (res?.message) {
+                        toast.error(res.message);
                     }
                 }
             }
@@ -453,7 +500,16 @@ export default function StudentAttendancePage() {
                                     <Label className='text-left font-medium text-sm md:text-right'>
                                         Academic Year: <span className='text-red-500'>*</span>
                                     </Label>
-                                    <Select value={selectedYear} onValueChange={setSelectedYear}>
+                                    <Select
+                                        value={selectedYear}
+                                        onValueChange={(val) => {
+                                            setSelectedYear(val);
+                                            setSelectedClass('');
+                                            setSelectedSection('');
+                                            setDynamicSectionList([]);
+                                            setSearched(false);
+                                            setStudents([]);
+                                        }}>
                                         <SelectTrigger className='border-blue-400'>
                                             <SelectValue placeholder='Select Academic Year' />
                                         </SelectTrigger>
@@ -477,11 +533,16 @@ export default function StudentAttendancePage() {
                                             <SelectValue placeholder='Select Class' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {initialData?.classList?.map((cls: any) => (
-                                                <SelectItem key={cls.asmcL_Id} value={cls.asmcL_Id.toString()}>
-                                                    {cls.asmcL_ClassName}
-                                                </SelectItem>
-                                            ))}
+                                            {classList.map((cls: any) => {
+                                                const id = cls.asmcL_Id ?? cls.ASMCL_Id;
+                                                const name = cls.asmcL_ClassName ?? cls.ASMCL_ClassName;
+                                                if (id == null) return null;
+                                                return (
+                                                    <SelectItem key={String(id)} value={String(id)}>
+                                                        {name}
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -547,11 +608,16 @@ export default function StudentAttendancePage() {
                                                     <SelectValue placeholder='Select Section' />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {initialData?.sectionList?.map((sec: any) => (
-                                                        <SelectItem key={sec.asmS_Id} value={sec.asmS_Id.toString()}>
-                                                            {sec.asmC_SectionName}
-                                                        </SelectItem>
-                                                    ))}
+                                                    {sectionList.map((sec: any) => {
+                                                        const id = sec.asmS_Id ?? sec.ASMS_Id;
+                                                        const name = sec.asmC_SectionName ?? sec.ASMC_SectionName;
+                                                        if (id == null) return null;
+                                                        return (
+                                                            <SelectItem key={String(id)} value={String(id)}>
+                                                                {name}
+                                                            </SelectItem>
+                                                        );
+                                                    })}
                                                 </SelectContent>
                                             </Select>
                                         </div>

@@ -19,49 +19,75 @@ export const registrationNumberingColumns: ColumnDef<IMasterTransactionNumbering
     {
         accessorKey: 'imN_StartingNo',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Starting Number' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('imN_StartingNo') || 'N/A'}</div>,
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            return <div>{rowData.imN_StartingNo ?? rowData.IMN_StartingNo ?? 'N/A'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imN_WidthNumeric',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Width of Numeric' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('imN_WidthNumeric') || 'N/A'}</div>,
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            return <div>{rowData.imN_WidthNumeric ?? rowData.IMN_WidthNumeric ?? 'N/A'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imN_ZeroPrefixFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Zero Prefix' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('imN_ZeroPrefixFlag')}</div>,
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            const val = rowData.imN_ZeroPrefixFlag ?? rowData.IMN_ZeroPrefixFlag;
+            return <div>{val === 'Y' || val === 'Yes' || val === true ? 'Yes' : 'No'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imN_RestartNumFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Restart Numbering' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('imN_RestartNumFlag')}</div>,
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            const val = rowData.imN_RestartNumFlag ?? rowData.IMN_RestartNumFlag;
+            return <div>{val === 'Y' || val === 'Yearly' ? 'Yearly' : val === 'M' || val === 'Monthly' ? 'Monthly' : 'Never'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imN_AutoManualFlag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Auto/Manual' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('imN_AutoManualFlag')}</div>,
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            const val = rowData.imN_AutoManualFlag ?? rowData.IMN_AutoManualFlag;
+            return <div>{val === 'M' || val === 'Manual' ? 'Manual' : 'Auto'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imN_SuffixAcadYearCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Academic Year Suffix' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('imN_SuffixAcadYearCode')}</div>,
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            const suffixVal = rowData.imN_SuffixParticular || rowData.IMN_SuffixParticular || (rowData.imN_SuffixAcadYearCode || rowData.IMN_SuffixAcadYearCode ? 'Academic Year' : '');
+            return <div>{suffixVal || 'N/A'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
     {
         accessorKey: 'imN_PrefixAcadYearCode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Prefix' className='font-bold text-black' />,
-        cell: ({ row }) => <div>{row.getValue('imN_PrefixAcadYearCode')}</div>,
+        cell: ({ row }) => {
+            const rowData: any = row.original;
+            const prefixVal = rowData.imN_PrefixParticular || rowData.IMN_PrefixParticular || (rowData.imN_PrefixAcadYearCode || rowData.IMN_PrefixAcadYearCode ? 'Academic Year' : '');
+            return <div>{prefixVal || 'N/A'}</div>;
+        },
         enableSorting: true,
         enableHiding: true
     },
