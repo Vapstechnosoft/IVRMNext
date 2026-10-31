@@ -245,8 +245,22 @@ export default function SophiaRegistrationXI() {
     ];
 
     /* -------------------- Hooks -------------------- */
-    const { data: initialData, isLoading: isInitialLoading } = useSophiaRegistrationXIInitialData(0, 0);
+    const { data: initialData, isLoading: isInitialLoading, isError: isInitialError } = useSophiaRegistrationXIInitialData(0, 0);
     const { data: admissionDetails } = useAdmissionFormDetails();
+    const academicYears = useMemo(() => {
+        const payload = initialData?.data as any;
+        const years = Array.isArray(payload) ? payload : payload?.academicdrp ?? payload?.Items;
+        if (!Array.isArray(years)) return [];
+
+        return years.map((year: any) => ({
+            ...year,
+            asmaY_Id: year.asmaY_Id ?? year.ASMAY_Id,
+            asmaY_Year: year.asmaY_Year ?? year.ASMAY_Year
+        }));
+    }, [initialData]);
+
+    console.log(academicYears, "academic years final");
+
     const casteMutation = useSophiaRegistrationXICaste();
     const classChangeMutation = useSophiaRegistrationXIClassChange();
     const streamsMutation = useSophiaRegistrationXIStreams();
@@ -313,8 +327,9 @@ export default function SophiaRegistrationXI() {
             if (pData.documentList) {
                 setDocumentList(pData.documentList.map((d: any) => ({ ...d, document_Path: '' })));
             }
-            if (pData.academicdrp?.length > 0) {
-                const activeYear = pData.academicdrp.find((y: any) => y.asmaY_Id === pData.asmaY_Id) || pData.academicdrp[0];
+            if (academicYears.length > 0) {
+                const activeYear =
+                    academicYears.find((y: any) => Number(y.asmaY_Id) === Number(pData.asmaY_Id ?? pData.ASMAY_Id)) || academicYears[0];
                 setReg((prev: any) => ({ ...prev, ASMAY_Id: activeYear.asmaY_Id }));
             }
 
@@ -329,7 +344,7 @@ export default function SophiaRegistrationXI() {
                 transferstu: pData.transferstu || 0
             });
         }
-    }, [initialData]);
+    }, [initialData, academicYears]);
 
     /* -------------------- Handlers -------------------- */
     const handleInputChange = (field: string, value: any) => {
@@ -562,7 +577,16 @@ export default function SophiaRegistrationXI() {
                 <div className='flex items-center gap-3'>
                     <Badge variant='outline' className='border-indigo-200 bg-indigo-50 px-3 py-1 font-medium text-indigo-700 text-sm'>
                         Academic Year:{' '}
-                        {(initialData?.data as any)?.academicdrp?.find((y: any) => y.asmaY_Id === reg.ASMAY_Id)?.asmaY_Year || 'Loading...'}
+                        {(() => {
+                            if (isInitialLoading) return 'Loading...';
+                            if (isInitialError) return 'Failed to load';
+                            if (academicYears.length === 0) return 'No academic year available';
+                            return (
+                                academicYears.find((y: any) => Number(y.asmaY_Id) === Number(reg.ASMAY_Id))?.asmaY_Year ||
+                                academicYears[0]?.asmaY_Year ||
+                                'No academic year available'
+                            );
+                        })()}
                     </Badge>
                 </div>
             </div>
