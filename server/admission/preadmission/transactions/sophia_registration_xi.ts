@@ -2,7 +2,7 @@ import { type ApiResponse, api } from '@/lib/apiService';
 
 export const server = {
     getInitialData: async (orgId: number, instId: number): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', '/student_application_form/getdpforreg', { Organization: orgId, Institute: instId });
+        return api.post('preadmission', '/student_application_form/academicyear_dropdown', { Organization: orgId, Institute: instId });
     },
 
     getCaste: async (IMCC_Id: number): Promise<ApiResponse<any>> => {
