@@ -109,14 +109,14 @@ export const SUPER_ADMIN_WIZARD_STEPS: WizardStep[] = [
         description: 'Manage Master School Types'
     },
 
-    // 3. Configuration Setting Wizard Group
-    {
-        id: 15,
-        title: 'Configuration Setting Wizard',
-        url: '/SuperAdmin/super-admin-module/configuration-setting/wizard',
-        group: 'Configuration Setting',
-        description: 'Configuration Setting Wizard overview and setup'
-    },
+    // // 3. Configuration Setting Wizard Group
+    // {
+    //     id: 15,
+    //     title: 'Configuration Setting Wizard',
+    //     url: '/SuperAdmin/super-admin-module/configuration-setting/wizard',
+    //     group: 'Configuration Setting',
+    //     description: 'Configuration Setting Wizard overview and setup'
+    // },
     {
         id: 16,
         title: 'Master Institution Role and Module Mapping',
@@ -145,20 +145,20 @@ export const SUPER_ADMIN_WIZARD_STEPS: WizardStep[] = [
         group: 'Configuration Setting',
         description: 'Master Menu Page Mapping Institutionwise'
     },
-    {
-        id: 20,
-        title: 'Mobile App Master Pages',
-        url: '/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage',
-        group: 'Mobile Configuration',
-        description: 'Mobile App Master Pages configuration'
-    },
-    {
-        id: 21,
-        title: 'Mobile APP Master Role Privileges',
-        url: '/SuperAdmin/super-admin-module/configuration-setting/mobileroleprivileges',
-        group: 'Mobile Configuration',
-        description: 'Mobile App Master Role Privileges'
-    },
+    // {
+    //     id: 20,
+    //     title: 'Mobile App Master Pages',
+    //     url: '/SuperAdmin/super-admin-module/configuration-setting/mobilemasterpage',
+    //     group: 'Mobile Configuration',
+    //     description: 'Mobile App Master Pages configuration'
+    // },
+    // {
+    //     id: 21,
+    //     title: 'Mobile APP Master Role Privileges',
+    //     url: '/SuperAdmin/super-admin-module/configuration-setting/mobileroleprivileges',
+    //     group: 'Mobile Configuration',
+    //     description: 'Mobile App Master Role Privileges'
+    // },
 
     // 4. User Creation Group
     {

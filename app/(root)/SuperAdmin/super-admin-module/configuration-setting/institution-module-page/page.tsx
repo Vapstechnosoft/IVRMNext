@@ -17,6 +17,7 @@ import PageListGrid from './_components/page-list-grid';
 import PrivilegeGrid from './_components/privilege-grid';
 import SavedGrid from './_components/saved-grid';
 import SelectionForm from './_components/selection-form';
+import { toast } from 'sonner';
 
 const formSchema = z.object({
     institution: z.string().min(1, 'Select institute'),
@@ -60,7 +61,7 @@ export default function InstitutionModulePage() {
 
         const result = await deleteInstitutionRolePrivileges(payload);
         if (result.success) {
-            alert(result.message);
+            toast.success(result.message);
             // Clear delete cart
             setDeleteCartData([]);
             // Refresh grid
@@ -69,7 +70,7 @@ export default function InstitutionModulePage() {
                 setGridData(response.data.institutionRolePrivilegesList);
             }
         } else {
-            alert(result.message);
+            toast.error(result.message);
         }
     };
 
@@ -104,7 +105,7 @@ export default function InstitutionModulePage() {
         const formValues = methods.getValues();
 
         if (!formValues.institution || !formValues.module || !formValues.roleid) {
-            alert('Please select Institution, Module and Role');
+            toast.error('Please select Institution, Module and Role');
             return;
         }
 
@@ -133,13 +134,13 @@ export default function InstitutionModulePage() {
 
         const result = await saveInstitutionRolePrivileges(payload);
         if (result.success) {
-            alert(result.message);
+            toast.success(result.message);
             setCartData([]);
             // Optionally refresh grid
             // const response = await getInstitutionRolePrivileges();
             // if(response.success && response.data?.institutionRolePrivilegesList) setGridData(response.data.institutionRolePrivilegesList);
         } else {
-            alert(result.message);
+            toast.error(result.message);
         }
     };
 

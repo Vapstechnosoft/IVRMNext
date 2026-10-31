@@ -247,7 +247,7 @@ export default function SophiaRegistrationXI() {
     ];
 
     /* -------------------- Hooks -------------------- */
-    const { data: initialData, isLoading: isInitialLoading } = useSophiaRegistrationXIInitialData(0, 0);
+    const { data: initialData, isLoading: isInitialLoading, isError: isInitialError } = useSophiaRegistrationXIInitialData(0, 0);
     const { data: admissionDetails } = useAdmissionFormDetails();
     const { data: activePreadmission } = useActivePreadmissionDetails();
     const { data: academicYearDropdown } = useAcademicYearDropdown();
@@ -255,6 +255,18 @@ export default function SophiaRegistrationXI() {
     const { data: masterReligionData } = useMasterReligion();
     const { data: casteCategoryDropdownData } = useMasterCasteCategoryDropdown();
     const { data: masterCasteCategoryData } = useMasterCasteCategory();
+
+    const academicYears = useMemo(() => {
+        const payload = initialData?.data as any;
+        const years = Array.isArray(payload) ? payload : payload?.academicdrp ?? payload?.Items;
+        if (!Array.isArray(years)) return [];
+
+        return years.map((year: any) => ({
+            ...year,
+            asmaY_Id: year.asmaY_Id ?? year.ASMAY_Id,
+            asmaY_Year: year.asmaY_Year ?? year.ASMAY_Year
+        }));
+    }, [initialData]);
     const casteMutation = useSophiaRegistrationXICaste();
     const classChangeMutation = useSophiaRegistrationXIClassChange();
     const streamsMutation = useSophiaRegistrationXIStreams();
@@ -326,6 +338,10 @@ export default function SophiaRegistrationXI() {
 
     const activeAcademicYear = useMemo(() => {
         if (activePreadmission?.data?.asmaY_Year) return activePreadmission.data.asmaY_Year;
+        if (academicYears && academicYears.length > 0) {
+            const found = academicYears.find((y: any) => Number(y.asmaY_Id) === Number(reg.ASMAY_Id)) || academicYears[0];
+            if (found?.asmaY_Year) return found.asmaY_Year;
+        }
         const pData = (initialData as any)?.data || initialData;
         const academic = pData?.academicdrp || pData?.allAcademicYear;
         if (academic && Array.isArray(academic) && academic.length > 0) {
@@ -338,7 +354,7 @@ export default function SophiaRegistrationXI() {
             return found?.asmaY_Year || found?.ASMAY_Year || '';
         }
         return (admissionDetails as any)?.allAcademicYear?.[0]?.asmaY_Year || '';
-    }, [activePreadmission, initialData, reg.ASMAY_Id, academicYearDropdown, admissionDetails]);
+    }, [activePreadmission, academicYears, initialData, reg.ASMAY_Id, academicYearDropdown, admissionDetails]);
 
     /* -------------------- Effects -------------------- */
     useEffect(() => {
@@ -348,7 +364,13 @@ export default function SophiaRegistrationXI() {
             if (docs && Array.isArray(docs)) {
                 setDocumentList(docs.map((d: any) => ({ ...d, document_Path: '' })));
             }
-            if (pData?.academicdrp?.length > 0) {
+            if (academicYears.length > 0) {
+                const activeYear =
+                    academicYears.find((y: any) => Number(y.asmaY_Id) === Number(pData.asmaY_Id ?? pData.ASMAY_Id)) || academicYears[0];
+                if (activeYear?.asmaY_Id) {
+                    setReg((prev: any) => ({ ...prev, ASMAY_Id: activeYear.asmaY_Id }));
+                }
+            } else if (pData?.academicdrp?.length > 0) {
                 const activeYear = pData.academicdrp.find((y: any) => y.asmaY_Id === pData.asmaY_Id) || pData.academicdrp[0];
                 const yearId = activeYear?.asmaY_Id || activeYear?.ASMAY_Id;
                 if (yearId) {
@@ -367,7 +389,7 @@ export default function SophiaRegistrationXI() {
                 transferstu: pData?.transferstu || 0
             });
         }
-    }, [initialData]);
+    }, [initialData, academicYears]);
 
     useEffect(() => {
         const yearId =
@@ -608,7 +630,18 @@ export default function SophiaRegistrationXI() {
                 </div>
                 <div className='flex items-center gap-3'>
                     <Badge variant='outline' className='border-indigo-200 bg-indigo-50 px-3 py-1 font-medium text-indigo-700 text-sm'>
-                        Academic Year: {activeAcademicYear || 'Loading...'}
+                        Academic Year:{' '}
+                        {(() => {
+                            if (isInitialLoading) return 'Loading...';
+                            if (isInitialError) return 'Failed to load';
+                            if (activeAcademicYear) return activeAcademicYear;
+                            if (academicYears.length === 0) return 'No academic year available';
+                            return (
+                                academicYears.find((y: any) => Number(y.asmaY_Id) === Number(reg.ASMAY_Id))?.asmaY_Year ||
+                                academicYears[0]?.asmaY_Year ||
+                                'No academic year available'
+                            );
+                        })()}
                     </Badge>
                 </div>
             </div>

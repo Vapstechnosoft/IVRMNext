@@ -631,7 +631,8 @@ export const STAFF_PORTAL_QUERY_KEYS = {
     FEE_RAZORPAY_PAYMENT: 'fee_razorpay_payment',
     FEE_PAYMENT_CHARGES: 'fee_payment_charges',
     FEE_ONLINE_PAYMENT_STUDENT_INFO: 'fee_online_student_info',
-    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list'
+    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list',
+    FEE_STUDENT_VIEW: 'fee_student_view'
 };
 
 export const COE_QUERY_KEYS = {

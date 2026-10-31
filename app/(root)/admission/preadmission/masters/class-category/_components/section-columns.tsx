@@ -58,6 +58,10 @@ export default function ViewDetailModal({ rowData, isOpen, onClose }: ViewDetail
         // If API returned an array of class-category items
         if (Array.isArray(src)) {
             return src.flatMap((item: any) => {
+                if (item.asmcC_Id != null && Number(item.asmcC_Id) !== rowData.asmcC_Id) {
+                    return [];
+                }
+
                 if (item.sections && Array.isArray(item.sections)) {
                     return item.sections.map((s: any) => ({
                         asmcC_Id: item.asmcC_Id,
@@ -70,7 +74,10 @@ export default function ViewDetailModal({ rowData, isOpen, onClose }: ViewDetail
                         asmccS_ActiveFlg: s.asmccS_ActiveFlg
                     }));
                 }
-                // fallback: include the item itself
+                if (item.asmS_Id != null || item.asmccS_Id != null) {
+                    return [item];
+                }
+
                 return [
                     {
                         asmcC_Id: item.asmcC_Id,

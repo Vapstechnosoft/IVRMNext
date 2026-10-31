@@ -3,9 +3,13 @@ import { type ApiResponse, api } from '@/lib/apiService';
 export const server = {
     getInitialData: async (orgId: number, instId: number): Promise<ApiResponse<any>> => {
         try {
-            return await api.post('preadmission', '/student_application_form/country', { Organization: orgId, Institute: instId });
+            return await api.post('preadmission', '/student_application_form/academicyear_dropdown', { Organization: orgId, Institute: instId });
         } catch {
-            return await api.post('preadmission', '/StudentApplication/getdpforreg', { Organization: orgId, Institute: instId });
+            try {
+                return await api.post('preadmission', '/student_application_form/country', { Organization: orgId, Institute: instId });
+            } catch {
+                return await api.post('preadmission', '/StudentApplication/getdpforreg', { Organization: orgId, Institute: instId });
+            }
         }
     },
 
