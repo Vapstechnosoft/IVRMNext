@@ -44,6 +44,29 @@ export const masterModeOfPaymentSchema = {
         ivrmmoD_Id: deleteIdSchema('ivrmmoD_Id')
     })
 };
+
+export const masterBankDetailsSchema = {
+    addOrUpdate: z.object({
+        fmbanK_Id: z.number().int({ message: 'fmbanK_Id is required' }).optional(),
+        fmbanK_BankName: z
+            .string({ message: 'Bank Name is required' })
+            .trim()
+            .min(2, { message: 'Bank Name must be at least 2 characters' })
+            .max(100, { message: 'Bank Name must not exceed 100 characters' })
+            .regex(/^[A-Za-z0-9\s.\-&,]+$/, {
+                message: 'Bank Name can only contain letters, numbers, spaces, dots, hyphens, and &'
+            }),
+        fmbanK_BankDescription: z
+            .string({ message: 'Bank Details is required' })
+            .trim()
+            .min(2, { message: 'Bank Details must be at least 2 characters' })
+            .max(250, { message: 'Bank Details must not exceed 250 characters' })
+    }),
+    delete: z.object({
+        fmbanK_Id: deleteIdSchema('fmbanK_Id')
+    })
+};
+
 export const paymentgatewaydetailsSchema = {
     addOrUpdate: z.object({
         institution_Name: z.string().optional(),

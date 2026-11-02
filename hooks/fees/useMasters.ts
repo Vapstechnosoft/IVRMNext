@@ -34,6 +34,7 @@ import {
     getFeeMasterGroupwiseAutoReceiptGroupDropDown
 } from '@/server/fees/masters/fee_master_groupwise_auto_receipt';
 
+import { getFeeBankDetails } from '@/server/fees/masters/bank_details';
 import {
     getConcessionCategoryGroupHeadMappingDetails,
     getcategorydropdowndropdown,
@@ -109,6 +110,23 @@ export const useMasterModeOfPayment = (searchParams?: ApiSearchparams) => {
         refetchAll: () => {
             return queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_MODEOFPAYMENT]
+            });
+        }
+    };
+};
+
+export const useMasterBankDetails = (searchParams?: ApiSearchparams) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_BANK_DETAILS, searchParams ?? {}],
+            queryFn: async () => getFeeBankDetails(searchParams),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_BANK_DETAILS]
             });
         }
     };
