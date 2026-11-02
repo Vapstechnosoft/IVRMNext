@@ -174,3 +174,66 @@ export async function notifyPaymentResponseEasybuzz(data: any) {
         return { success: false };
     }
 }
+
+export async function notifyPaymentResponseEdviron(data: any) {
+    try {
+        const session = await auth();
+        const miId = Number(
+            data?.mI_Id ||
+            data?.MI_Id ||
+            (session as any)?.mi_id ||
+            (session as any)?.user?.mi_id ||
+            0
+        );
+
+        const collectRequestId = String(
+            data?.collect_request_id ||
+            data?.EdvironCollectRequestId ||
+            data?.edvironCollectRequestId ||
+            data?.txnid ||
+            data?.transaction_id ||
+            ''
+        );
+
+        const status = String(data?.status || 'cancelled');
+        const amount = String(data?.amount || '0');
+        const sign = String(data?.sign || '');
+        const collectRequestUrl = String(data?.collect_request_url || '');
+
+        const additionalData =
+            Array.isArray(data?.additional_data) && data.additional_data.length > 0
+                ? data.additional_data
+                : [
+                    {
+                        uid: String(data?.uid || data?.reason || data?.message || ''),
+                        uid1: String(data?.uid1 || ''),
+                        uid2: String(data?.uid2 || ''),
+                        uid3: String(data?.uid3 || ''),
+                        uid4: String(data?.uid4 || '')
+                    }
+                ];
+
+        const payload = {
+            collect_request_id: collectRequestId,
+            collect_request_url: collectRequestUrl,
+            sign: sign,
+            status: status,
+            amount: amount,
+            mI_Id: miId,
+            additional_data: additionalData
+        };
+
+        console.log('🚀 [Server Action] Calling /FeeOnlinePaymentFacade/EdvironnResponse with formatted payload:', payload);
+        const response = await api.post<any>('fees', '/FeeOnlinePaymentFacade/EdvironnResponse', payload);
+        console.log('✅ [Server Action] EdvironnResponse backend response:', response?.data);
+        return {
+            success: true,
+            data: response?.data
+        };
+    } catch (err: any) {
+        console.warn('⚠️ [Server Action] EdvironnResponse call warning:', err?.message || err);
+        return { success: false, error: err?.message };
+    }
+}
+
+
