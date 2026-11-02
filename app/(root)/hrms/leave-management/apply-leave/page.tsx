@@ -108,7 +108,38 @@ function ApplyLeavePageContent({
     const columns = createLeaveHistoryColumns(handleDelete);
 
     return (
-        <div className='min-h-screen bg-muted/20 pb-8'>
+        <div className='min-h-screen bg-muted/20 pb-8 py-6'>
+            {/* Box 1: Employee Information */}
+            <CollapsibleSection title='Employee Information' defaultOpen={true} variant='outline' className='container '>
+                <div className='grid grid-cols-1 gap-6 p-2 md:grid-cols-2'>
+                    <div className='space-y-4'>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='min-w-[120px] font-semibold text-muted-foreground'>Employee Name</span>
+                            <span className='text-foreground'>: {defaultEmployee.name || '-'}</span>
+                        </div>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='min-w-[120px] font-semibold text-muted-foreground'>DOJ</span>
+                            <span className='text-foreground'>
+                                : {defaultEmployee.doj ? new Date(defaultEmployee.doj).toLocaleDateString('en-GB') : '-'}
+                            </span>
+                        </div>
+                    </div>
+                    <div className='space-y-4'>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='min-w-[120px] font-semibold text-muted-foreground'>Designation</span>
+                            <span className='text-foreground'>: {defaultEmployee.designation || '-'}</span>
+                        </div>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='min-w-[120px] font-semibold text-muted-foreground'>Email</span>
+                            <span className='text-foreground'>: {defaultEmployee.email || '-'}</span>
+                        </div>
+                        <div className='flex items-center gap-3 border-b pb-2'>
+                            <span className='min-w-[120px] font-semibold text-muted-foreground'>Phone</span>
+                            <span className='text-foreground'>: {defaultEmployee.phone || '-'}</span>
+                        </div>
+                    </div>
+                </div>
+            </CollapsibleSection>
             <div className='container space-y-6 py-6'>
                 {/* Header with Title and Action */}
                 <div className='flex items-center justify-between'>
@@ -184,37 +215,7 @@ function FormSections({ refetchAll, defaultEmployee }: FormSectionsProps) {
                 </div>
             </CollapsibleSection>
 
-            {/* Box 1: Employee Information */}
-            <CollapsibleSection title='Employee Information' defaultOpen={true} variant='outline' className='bg-white shadow-sm'>
-                <div className='grid grid-cols-1 gap-6 p-2 md:grid-cols-2'>
-                    <div className='space-y-4'>
-                        <div className='flex items-center gap-3 border-b pb-2'>
-                            <span className='min-w-[120px] font-semibold text-muted-foreground'>Employee Name</span>
-                            <span className='text-foreground'>: {defaultEmployee.name || '-'}</span>
-                        </div>
-                        <div className='flex items-center gap-3 border-b pb-2'>
-                            <span className='min-w-[120px] font-semibold text-muted-foreground'>DOJ</span>
-                            <span className='text-foreground'>
-                                : {defaultEmployee.doj ? new Date(defaultEmployee.doj).toLocaleDateString('en-GB') : '-'}
-                            </span>
-                        </div>
-                    </div>
-                    <div className='space-y-4'>
-                        <div className='flex items-center gap-3 border-b pb-2'>
-                            <span className='min-w-[120px] font-semibold text-muted-foreground'>Designation</span>
-                            <span className='text-foreground'>: {defaultEmployee.designation || '-'}</span>
-                        </div>
-                        <div className='flex items-center gap-3 border-b pb-2'>
-                            <span className='min-w-[120px] font-semibold text-muted-foreground'>Email</span>
-                            <span className='text-foreground'>: {defaultEmployee.email || '-'}</span>
-                        </div>
-                        <div className='flex items-center gap-3 border-b pb-2'>
-                            <span className='min-w-[120px] font-semibold text-muted-foreground'>Phone</span>
-                            <span className='text-foreground'>: {defaultEmployee.phone || '-'}</span>
-                        </div>
-                    </div>
-                </div>
-            </CollapsibleSection>
+            
         </div>
     );
 }
