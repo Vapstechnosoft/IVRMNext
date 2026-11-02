@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { useRef } from 'react';
 
-interface Props { data: any; }
+interface Props { data: any; year?: string; }
 
 // ── Group-column builder (mirrors legacy AngularJS logic exactly) ──
 function buildGroupDetails(rawGroups: any[]): any[] {
@@ -97,7 +97,7 @@ const GRADE_SCALE = [
     { grade: 'E+', range: '20% Below' },
 ];
 
-export default function SamarthaProgressCardReportPromotionView({ data }: Props) {
+export default function SamarthaProgressCardReportPromotionView({ data, year }: Props) {
     const printRef = useRef<HTMLDivElement>(null);
 
     if (!data) return null;
@@ -275,7 +275,7 @@ export default function SamarthaProgressCardReportPromotionView({ data }: Props)
                             &nbsp;
                             {/* ── Academic Year Heading ── */}
                             <div style={{ textAlign: 'center', margin: '8px 0 12px' }}>
-                                <strong style={{ fontSize: 24 }}>Academic Year: 2025-2026</strong>
+                                <strong style={{ fontSize: 24 }}>Academic Year: {year || report.asmaY_Year || report.ASMAY_Year || data?.asmaY_Year || data?.ASMAY_Year || data?.selectedYearName || ''}</strong>
                             </div>
 
                             {/* ── Scholastic Areas Table ── */}
