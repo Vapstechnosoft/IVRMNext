@@ -3,7 +3,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon, FileSpreadsheet, Printer, Search } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
@@ -89,21 +89,50 @@ export default function StudentBirthdayReportPage() {
     const [allReportData, setAllReportData] = useState<any[]>([]);
     const [isPrinting, setIsPrinting] = useState(false);
 
-    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withDefault(1));
-    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withDefault(10));
     const [search] = useQueryState(tableSearchVariables.search, parseAsString.withDefault(''));
-    const [sortColumn] = useQueryState(tableSearchVariables.sort_column, parseAsString.withDefault(''));
-    const [sortDirection] = useQueryState(tableSearchVariables.sort_direction, parseAsString.withDefault(''));
 
-    const searchParams = {
-        page,
-        page_size: pageSize,
-        search_query: search,
-        sort_column: sortColumn,
-        sort_direction: sortDirection
-    };
+    const { data: reportData, isLoading, refetch } = useStudentBirthdayReportDetails(filterPayload, undefined, showGrid);
 
-    const { data: reportData, isLoading, refetch } = useStudentBirthdayReportDetails(filterPayload, searchParams, showGrid);
+    const rawData: any[] = useMemo(() => {
+        if (!reportData) return [];
+        if (Array.isArray(reportData)) return reportData;
+        if (Array.isArray((reportData as any).data)) return (reportData as any).data;
+        return [];
+    }, [reportData]);
+
+    const filteredData = useMemo(() => {
+        if (!search || !search.trim()) return rawData;
+        const q = search.toLowerCase().trim();
+        return rawData.filter((row: any) => {
+            const studentName = String(row.studentname || row.studentName || row.amsT_FirstName || '').toLowerCase();
+            const admNo = String(row.admno || row.admNo || row.amsT_AdmNo || '').toLowerCase();
+            const className = String(row.classname || row.className || row.asmcL_ClassName || '').toLowerCase();
+            const sectionName = String(row.sectionname || row.sectionName || row.asmC_SectionName || '').toLowerCase();
+            let dobFormatted = '';
+            if (row.amst_dob) {
+                try {
+                    const d = new Date(row.amst_dob);
+                    if (!isNaN(d.getTime())) {
+                        dobFormatted = format(d, 'dd-MM-yyyy').toLowerCase();
+                    }
+                } catch {
+                    dobFormatted = '';
+                }
+            }
+            const dobRaw = String(row.amst_dob || '').toLowerCase();
+            const address = String(row.stdaddress || row.address || '').toLowerCase();
+
+            return (
+                studentName.includes(q) ||
+                admNo.includes(q) ||
+                className.includes(q) ||
+                sectionName.includes(q) ||
+                dobFormatted.includes(q) ||
+                dobRaw.includes(q) ||
+                address.includes(q)
+            );
+        });
+    }, [rawData, search]);
 
     const printRef = useRef<HTMLDivElement>(null);
     const handlePrint = useReactToPrint({
@@ -125,22 +154,8 @@ export default function StudentBirthdayReportPage() {
         refetch();
     };
 
-    const handleExportExcel = async () => {
-        let dataToExport = selectedRows.length > 0 ? selectedRows : allReportData;
-
-        if (dataToExport.length === 0 && reportData) {
-            toast.loading('Fetching all records for export...', { id: 'export-all' });
-            const total = (reportData as any).total || (reportData as any).data?.length || 0;
-            const response = await getStudentBirthdayReportDetails(filterPayload, { page: 1, page_size: total });
-            if (response?.success && response.data) {
-                dataToExport = response.data;
-                setAllReportData(response.data);
-                toast.success('Ready to export', { id: 'export-all' });
-            } else {
-                toast.error('Failed to fetch records', { id: 'export-all' });
-                return;
-            }
-        }
+    const handleExportExcel = () => {
+        const dataToExport = selectedRows.length > 0 ? selectedRows : filteredData;
 
         if (dataToExport.length === 0) {
             toast.error('No records to export');
@@ -164,31 +179,14 @@ export default function StudentBirthdayReportPage() {
         XLSX.writeFile(wb, `StudentBirthdayReport_${format(new Date(), 'ddMMyyyy')}.xlsx`);
     };
 
-    const handlePrintClick = async () => {
-        if (selectedRows.length === 0 && (!(reportData as any)?.data || (reportData as any).data.length === 0)) {
+    const handlePrintClick = () => {
+        const dataToPrint = selectedRows.length > 0 ? selectedRows : filteredData;
+        if (dataToPrint.length === 0) {
             toast.error('No records to print');
             return;
         }
-
-        if (selectedRows.length === 0 && allReportData.length === 0 && reportData) {
-            setIsPrinting(true);
-            toast.loading('Fetching all records for print...', { id: 'print-all' });
-            const total = (reportData as any).total || (reportData as any).data?.length || 0;
-            const response = await getStudentBirthdayReportDetails(filterPayload, { page: 1, page_size: total });
-            if (response?.success && response.data) {
-                setAllReportData(response.data);
-                toast.success('Ready to print', { id: 'print-all' });
-                setTimeout(() => {
-                    handlePrint();
-                    setIsPrinting(false);
-                }, 500);
-            } else {
-                toast.error('Failed to fetch records', { id: 'print-all' });
-                setIsPrinting(false);
-            }
-        } else {
-            handlePrint();
-        }
+        setAllReportData(dataToPrint);
+        handlePrint();
     };
 
     return (
@@ -349,11 +347,13 @@ export default function StudentBirthdayReportPage() {
                                 onClick={() => {
                                     reset();
                                     setShowGrid(false);
+                                    setFilterPayload(null);
                                     setAllReportData([]);
+                                    setSelectedRows([]);
                                 }}>
                                 Cancel
                             </Button>
-                            {(reportData as any)?.data?.length > 0 && (
+                            {rawData.length > 0 && (
                                 <>
                                     <Button type='button' variant='success' onClick={handleExportExcel}>
                                         <FileSpreadsheet className='mr-2 h-4 w-4' />
@@ -374,9 +374,12 @@ export default function StudentBirthdayReportPage() {
                 <CollapsibleSection title='Student Birthday Report Details' defaultOpen={true}>
                     <GenericDataTable
                         columns={birthdayColumns}
-                        data={(reportData as any)?.data || []}
+                        data={filteredData}
                         isLoading={isLoading}
-                        totalItems={(reportData as any)?.total || (reportData as any)?.data?.length || 0}
+                        totalItems={filteredData.length}
+                        manualFiltering={true}
+                        manualPagination={false}
+                        manualSorting={false}
                         maxSelectableRows={1000}
                         onRowSelectionChange={(rows) => setSelectedRows(rows)}
                     />
@@ -398,13 +401,12 @@ export default function StudentBirthdayReportPage() {
                 <StudentBirthdayPrint
                     ref={printRef}
                     data={{
-                        ...(reportData as any),
                         data:
                             selectedRows.length > 0
                                 ? selectedRows
                                 : allReportData.length > 0
                                   ? allReportData
-                                  : (reportData as any)?.data || []
+                                  : filteredData
                     }}
                     monthName={monthList.find((m) => m.value === month)?.label}
                     fromDate={fromDate}

@@ -156,7 +156,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
             enabled: isPercentage
         });
 
-    const { data: recordDetailsResponse } = useMasterEarningsDeductionsById(row?.hrmeD_Id);
+    const { data: recordDetailsResponse, isLoading: isLoadingDetails } = useMasterEarningsDeductionsById(row?.hrmeD_Id);
 
     const [selectedPercentageIds, setSelectedPercentageIds] = useState<number[]>([]);
     const initialSelectedPercentageIdsRef = useRef<number[]>([]);

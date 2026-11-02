@@ -48,9 +48,11 @@ export default function LeaveConfigurationForm({ initialData, onSubmit, onCancel
         control,
         watch,
         reset,
+        clearErrors,
         formState: { errors }
     } = useForm<LeaveConfigurationFormValues>({
-        mode: 'onChange',
+        mode: 'onSubmit',
+        reValidateMode: 'onChange',
         resolver: zodResolver(leaveConfigurationSchema),
         defaultValues: initialData ? { ...DEFAULT_FORM_VALUES, ...initialData, id: initialData.id ?? 0 } : DEFAULT_FORM_VALUES
     });
@@ -67,6 +69,10 @@ export default function LeaveConfigurationForm({ initialData, onSubmit, onCancel
 
     const handleClear = () => {
         reset(DEFAULT_FORM_VALUES);
+        // clearErrors must be called after reset when using onChange validation mode
+        // otherwise onChange re-triggers immediately on the empty default values and
+        // shows validation errors (e.g. "Please Select Service Name") upon cancel
+        clearErrors();
         if (onCancel) {
             onCancel();
         }

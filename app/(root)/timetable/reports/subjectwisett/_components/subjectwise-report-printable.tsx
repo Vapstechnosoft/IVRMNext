@@ -10,21 +10,27 @@ const SubjectWiseReportPrintable = forwardRef<HTMLDivElement, SubjectWiseReportP
     return (
         <div ref={ref} className='print-only'>
             <style jsx global>{`
-                @media print {
-                    .print-only {
-                        display: block !important;
-                    }
-                    .screen-only {
-                        display: none !important;
-                    }
-                    @page {
-                        size: landscape;
-                        margin: 10mm;
-                    }
-                }
-            `}</style>
+    .print-only {
+        display: none;
+    }
+    @media print {
+        .print-only {
+            display: block !important;
+        }
+        .screen-only {
+            display: none !important;
+        }
+        .no-print {
+            display: none !important;
+        }
+        @page {
+            size: landscape;
+            margin: 10mm;
+        }
+    }
+`}</style>
             {reportData.map((table, idx) => (
-                <div key={idx} className='page-break-after-always mb-12'>
+                <div key={idx} className='mb-12 break-after-page'>
                     <h3 className='mb-4 text-center font-bold text-green-700 text-xl' style={{ color: '#15803d' }}>
                         {table.header}
                     </h3>

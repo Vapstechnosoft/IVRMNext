@@ -190,7 +190,8 @@ export async function getExcelOverallAttendanceReport(
 ) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
 
-    const url = `/OverallAttendance/ExportOverallDailyAttendanceSimpleToExcel?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}`;
+    const flag = frequency === 'once' || frequency === 'twice' ? '0' : frequency || '0';
+    const url = `/OverallAttendance/ExportOverallDailyAttendanceSimpleToExcel?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${flag}`;
 
     try {
         const responseData = await api.postBinary('admission', url);

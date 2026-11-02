@@ -81,6 +81,7 @@ import type { z } from 'zod';
 import {
     employeeRegisterSteps,
     fileToBase64,
+    formatDateOnly,
     mapFormDataToApiFormat,
     mapFormDataToApiFormatWithoutAddress,
     mapFormDataToPascalCaseApiFormat,
@@ -853,7 +854,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     hrmE_MotherName: String(data.motherName || ''),
                     hrmE_Gender: String(data.gender || ''),
                     hrmE_DOB: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : null,
-                    hrmE_DOJ: data.dateOfJoining ? new Date(data.dateOfJoining).toISOString() : null,
+                    hrmE_DOJ: formatDateOnly(data.dateOfJoining),
                     hrmE_Id: savedEmployeeId || 0
                 }
             });
