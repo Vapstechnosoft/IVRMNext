@@ -136,6 +136,7 @@ export const FEES_QUERY_KEYS = {
     FEE_CHALLAN_REPORT: 'fee_challan_report',
     FEE_HEADS: 'fee_head',
     FEE_MODEOFPAYMENT: 'fee_modeofpayment',
+    FEE_BANK_DETAILS: 'fee_bank_details',
     MASTER_CLASS_CATEGORY: 'master_class_category',
     ACADEMIC_DROPDOWN: 'academic_dropdown',
     FEE_PAYMENTGATEWAY_DETAILS: 'paymentGatewayDetails',
