@@ -114,7 +114,9 @@ export default function SalaryApprovalPage() {
             hreS_Year: yearString,
             hreS_Month: monthName,
             hrmdeS_IdList: data.designation.map(Number),
-            hrmdeS_Ids: 'string'
+            hrmdeS_Ids: 'string',
+            groupTypeIdList: data.groupType.map(Number),
+            hrmD_IdList: data.department.map(Number),
         };
         console.log('form data', data);
 

@@ -21,38 +21,38 @@ export const employeeAbsentReportColumns: ColumnDef<EmployeeAbsentReportRow>[] =
             const pageIndex = table.getState().pagination.pageIndex;
             const pageSize = table.getState().pagination.pageSize;
             const continuousIndex = pageIndex * pageSize + row.index + 1;
-            return <div className='ml-4 text-left'>{continuousIndex}</div>;
+            return <div className='text-center'>{continuousIndex}</div>;
         },
 
-        enableSorting: true,
+        enableSorting: false,
         enableHiding: false
     },
     {
         accessorKey: 'ecode',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
         cell: ({ row }) => <div className='w-fit'>{row.getValue('ecode')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        enableSorting: false,
+        enableHiding: false
     },
     {
         accessorKey: 'ename',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
         cell: ({ row }) => <div className='w-fit'>{row.getValue('ename')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        enableSorting: false,
+        enableHiding: false
     },
     {
         accessorKey: 'designation',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' />,
-        cell: ({ row }) => <div>{row.getValue('designation')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Designation' className='text-center' />,
+        cell: ({ row }) => <div className='text-center'>{row.getValue('designation')}</div>,
+        enableSorting: false,
+        enableHiding: false
     },
     {
         accessorKey: 'absentdays',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Absent' />,
-        cell: ({ row }) => <div className='font-bold text-destructive'>{row.getValue('absentdays')}</div>,
-        enableSorting: true,
-        enableHiding: true
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Total Absent' className='text-center' />,
+        cell: ({ row }) => <div className='font-bold text-destructive text-center'>{row.getValue('absentdays')}</div>,
+        enableSorting: false,
+        enableHiding: false
     }
 ];

@@ -165,10 +165,52 @@ export default function AddEmployeeAbsentReportForm({ onSuccess, isPageLoading }
             };
 
             const response = await getEmployeeMonthlyReport(payload);
-
+            console.log("Absent report", response);
             if (response.success) {
-                setReportData(response.data || []);
-                toast.success(response.message || 'Report generated successfully');
+                let parsedRows: any[] = [];
+                const rawData = response.data;
+
+                if (Array.isArray(rawData)) {
+                    for (const item of rawData) {
+                        if (item && item.report_data) {
+                            try {
+                                const parsed = typeof item.report_data === 'string' ? JSON.parse(item.report_data) : item.report_data;
+                                if (Array.isArray(parsed)) {
+                                    parsedRows.push(...parsed);
+                                } else if (parsed) {
+                                    parsedRows.push(parsed);
+                                }
+                            } catch (e) {
+                                console.error('Error parsing report_data:', e);
+                            }
+                        } else if (item) {
+                            parsedRows.push(item);
+                        }
+                    }
+                } else if (rawData && typeof rawData === 'object') {
+                    const rData = (rawData as any).report_data;
+                    if (rData) {
+                        try {
+                            const parsed = typeof rData === 'string' ? JSON.parse(rData) : rData;
+                            if (Array.isArray(parsed)) {
+                                parsedRows.push(...parsed);
+                            } else if (parsed) {
+                                parsedRows.push(parsed);
+                            }
+                        } catch (e) {
+                            console.error('Error parsing report_data:', e);
+                        }
+                    } else {
+                        parsedRows = [rawData];
+                    }
+                }
+
+                setReportData(parsedRows);
+                if (parsedRows.length === 0) {
+                    toast.info('No absent records found for the selected criteria');
+                } else {
+                    toast.success(response.message || 'Report generated successfully');
+                }
                 onSuccess?.();
             } else {
                 setError(response.message || 'Failed to generate report');
@@ -201,23 +243,26 @@ export default function AddEmployeeAbsentReportForm({ onSuccess, isPageLoading }
         setResetKey((prev) => prev + 1);
     };
     const handleExportToExcel = () => {
-        const dataToExport = reportData || [];
+        const dataToExport = tableData || [];
         if (dataToExport.length === 0) return;
 
         const exportData = dataToExport.map((row: any, index: number) => ({
             SLNO: index + 1,
-            'Employee Code': row.ecode || '',
-            'Employee Name': row.ename || '',
-            Designation: row.designation || '',
-            'Total Absent': row.absentdays || 0
+            'Employee Code': row.ecode !== '-' ? row.ecode : '',
+            'Employee Name': row.ename !== '-' ? row.ename : '',
+            Designation: row.designation !== '-' ? row.designation : '',
+            'Total Absent': row.absentdays ?? 0
         }));
 
         exportToExcel(exportData, `Employee_Absent_Report_${new Date().toLocaleDateString()}`);
     };
 
     const handlePrint = () => {
-        const dataToPrint = reportData || [];
+        const dataToPrint = tableData || [];
         if (dataToPrint.length === 0) return;
+
+        const fromDateFormatted = watch('fromDate') ? new Date(watch('fromDate')).toLocaleDateString() : '';
+        const toDateFormatted = watch('toDate') ? new Date(watch('toDate')).toLocaleDateString() : '';
 
         const printWindow = window.open('', '_blank');
         if (!printWindow) return;
@@ -247,7 +292,7 @@ export default function AddEmployeeAbsentReportForm({ onSuccess, isPageLoading }
             </head>
             <body>
                 <div class="report-header">
-                    Monthly Report from ${new Date(watch('fromDate')).toLocaleDateString()} to ${new Date(watch('toDate')).toLocaleDateString()}
+                    Monthly Report ${fromDateFormatted && toDateFormatted ? `from ${fromDateFormatted} to ${toDateFormatted}` : ''}
                 </div>
                 <table>
                     <thead>
@@ -261,18 +306,18 @@ export default function AddEmployeeAbsentReportForm({ onSuccess, isPageLoading }
                     </thead>
                     <tbody>
                         ${dataToPrint
-                            .map(
-                                (row: any, index: number) => `
+                .map(
+                    (row: any, index: number) => `
                             <tr>
                                 <td>${index + 1}</td>
-                                <td>${row.ecode || ''}</td>
-                                <td class="ename-cell">${row.ename || ''}</td>
-                                <td>${row.designation || ''}</td>
-                                <td class="absent-cell">${row.absentdays || 0}</td>
+                                <td>${row.ecode !== '-' ? row.ecode : ''}</td>
+                                <td class="ename-cell">${row.ename !== '-' ? row.ename : ''}</td>
+                                <td>${row.designation !== '-' ? row.designation : ''}</td>
+                                <td class="absent-cell">${row.absentdays ?? 0}</td>
                             </tr>
                         `
-                            )
-                            .join('')}
+                )
+                .join('')}
                     </tbody>
                 </table>
                 <div class="footer">Generated on ${new Date().toLocaleString()}</div>
@@ -292,24 +337,26 @@ export default function AddEmployeeAbsentReportForm({ onSuccess, isPageLoading }
     // Transform report data for table
     const tableData: EmployeeAbsentReportRow[] = useMemo(() => {
         return reportData.map((item: any) => {
-            let attendanceData = {};
-            try {
-                attendanceData = typeof item.attendance_data === 'string' ? JSON.parse(item.attendance_data) : item.attendance_data || {};
-            } catch {
-                attendanceData = {};
+            let attendanceData: any = {};
+            if (item.attendance_data) {
+                try {
+                    attendanceData = typeof item.attendance_data === 'string' ? JSON.parse(item.attendance_data) : item.attendance_data || {};
+                } catch {
+                    attendanceData = {};
+                }
             }
 
             return {
-                hrme_id: item.hrme_id,
+                hrme_id: item.HRME_Id ?? item.hrmE_Id ?? item.hrme_id ?? item.id,
                 ecode: item.ecode || '-',
                 ename: item.ename || '-',
-                hrme_doj: item.hrme_doj || '-',
-                designation: item.designation || '-',
-                tpdays: item.tpdays || 0,
+                hrme_doj: item.HRME_DOJ || item.hrmE_DOJ || item.hrme_doj || '-',
+                designation: item.HRMDES_DesignationName || item.hrmdeS_DesignationName || item.designation || '-',
+                tpdays: item.tpdays ?? attendanceData?.tpdays ?? 0,
                 hwkdays: item.hwkdays || 0,
-                workday: (attendanceData as any)?.workday || 0,
-                absentdays: (attendanceData as any)?.absentdays || 0,
-                presence_breakdown: (attendanceData as any)?.presence_breakdown || '-'
+                workday: item.workday ?? attendanceData?.workday ?? 0,
+                absentdays: item.absentdays ?? attendanceData?.absentdays ?? 0,
+                presence_breakdown: attendanceData?.presence_breakdown || '-'
             };
         });
     }, [reportData]);
@@ -511,14 +558,14 @@ export default function AddEmployeeAbsentReportForm({ onSuccess, isPageLoading }
                                     setDate={(date: Date | undefined) => field.onChange(date?.toISOString())}
                                     placeholder='Select To Date'
                                     className={errors.toDate ? 'border-red-500' : ''}
-                                    // disabled={
-                                    //     fromDateObject
-                                    //         ? [
-                                    //             { before: fromDateObject },
-                                    //             { after: today }
-                                    //         ]
-                                    //         : [{ after: today }]
-                                    // }
+                                // disabled={
+                                //     fromDateObject
+                                //         ? [
+                                //             { before: fromDateObject },
+                                //             { after: today }
+                                //         ]
+                                //         : [{ after: today }]
+                                // }
                                 />
                             )}
                         />
@@ -592,7 +639,7 @@ export default function AddEmployeeAbsentReportForm({ onSuccess, isPageLoading }
                                 noDataTitle='No records matches your criteria'
                                 noDataDescription='Try adjusting your category, department or date range filters.'
                                 errorTitle='Unable to load report'
-                                // scrollable={true}
+                            // scrollable={true}
                             />
                         </div>
                     </div>

@@ -456,6 +456,25 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const [savedEmployeeId, setSavedEmployeeId] = useState<number | null>(selectedRow?.hrmE_Id || null);
     const [isFormInitialized, setIsFormInitialized] = useState(false);
 
+    // Helper to extract retirement date from selectedRow
+    const initialRetirementDate = useMemo(() => {
+        const rawDate =
+            (selectedRow as any)?.dateOfRetirement ||
+            selectedRow?.hrmE_ExpectedRetirementDate ||
+            (selectedRow as any)?.expectedRetirementDate ||
+            (selectedRow as any)?.HRME_ExpectedRetirementDate;
+        if (!rawDate) return '';
+        try {
+            const d = new Date(rawDate);
+            if (!Number.isNaN(d.getTime())) {
+                return format(d, 'yyyy-MM-dd');
+            }
+        } catch {
+            // ignore
+        }
+        return '';
+    }, [selectedRow]);
+
     // Empty default values for update form
     const formDefaultValues = useMemo(
         () => ({
@@ -487,9 +506,9 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             emailDetails: [{ emailId: '', type: 'Default' }],
             bankDetails: [],
             dateOfBirth: '',
-            dateOfRetirement: ''
+            dateOfRetirement: initialRetirementDate
         }),
-        []
+        [initialRetirementDate]
     );
     // Refs for tracking initialization state
     const _employeeDetailsRef = useRef<any>(null);
@@ -770,10 +789,28 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
             setSavedEmployeeId(selectedRow.hrmE_Id);
             setIsFormInitialized(false); // Reset initialization flag
             hasAppliedDetailedData.current = false; // Reset detailed data flag
+            prevDobRef.current = null;
             setCurrentStep(1); // Reset back to the first tab when a new employee is selected
+
+            const rawRetirement =
+                (selectedRow as any)?.dateOfRetirement ||
+                selectedRow?.hrmE_ExpectedRetirementDate ||
+                (selectedRow as any)?.expectedRetirementDate ||
+                (selectedRow as any)?.HRME_ExpectedRetirementDate;
+            if (rawRetirement) {
+                try {
+                    const d = new Date(rawRetirement);
+                    if (!Number.isNaN(d.getTime())) {
+                        setValue('dateOfRetirement', format(d, 'yyyy-MM-dd'));
+                    }
+                } catch {
+                    // ignore
+                }
+            }
+
             refetchEmployee();
         }
-    }, [selectedRow?.hrmE_Id]);
+    }, [selectedRow, setValue, refetchEmployee]);
 
     // SAFETY: Re-hydrate arrays when switching tabs if they appear empty but data exists
 
@@ -1445,9 +1482,18 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
     const contactPincode = useWatch({ control, name: 'contactPincode' });
     const _permanentState = useWatch({ control, name: 'permanentState' });
 
-    // Auto-calculate retirement date from DOB
+    // Auto-calculate retirement date from DOB only if not already set or if DOB changes
+    const prevDobRef = useRef<string | null>(null);
     useEffect(() => {
-        if (dateOfBirth && isFormInitialized) {
+        if (!isFormInitialized) {
+            prevDobRef.current = dateOfBirth || null;
+            return;
+        }
+
+        const isDobChanged = prevDobRef.current !== null && prevDobRef.current !== dateOfBirth;
+        prevDobRef.current = dateOfBirth || null;
+
+        if (dateOfBirth && (isDobChanged || !getValues('dateOfRetirement'))) {
             try {
                 const dob = new Date(dateOfBirth);
                 if (!Number.isNaN(dob.getTime())) {
@@ -1717,6 +1763,27 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                     formData.employeeGroup ||= String(selectedRow.hrmgT_Id || '');
                     formData.department ||= String(selectedRow.hrmD_Id || '');
                     formData.designation ||= String(selectedRow.hrmdeS_Id || '');
+
+                    // Bind dateOfRetirement if present in selectedRow and not already provided by sourceData
+                    const rawRetirement =
+                        (selectedRow as any)?.dateOfRetirement ||
+                        selectedRow?.hrmE_ExpectedRetirementDate ||
+                        (selectedRow as any)?.expectedRetirementDate ||
+                        (selectedRow as any)?.HRME_ExpectedRetirementDate;
+                    if (rawRetirement) {
+                        try {
+                            const d = new Date(rawRetirement);
+                            if (!Number.isNaN(d.getTime())) {
+                                formData.dateOfRetirement = formData.dateOfRetirement || format(d, 'yyyy-MM-dd');
+                            } else if (!formData.dateOfRetirement) {
+                                formData.dateOfRetirement = String(rawRetirement);
+                            }
+                        } catch {
+                            if (!formData.dateOfRetirement) {
+                                formData.dateOfRetirement = String(rawRetirement);
+                            }
+                        }
+                    }
 
                     // VALIDATION: Ensure we actually found the employee data
                     const hasData = (formData as any).firstName || (formData as any).employeeCode || (formData as any).hrmE_Id;
@@ -3209,33 +3276,12 @@ export default function UpdateEmployeeForm({ selectedRow, onSuccess, className =
                                                         name='dateOfRetirement'
                                                         control={control}
                                                         render={({ field, fieldState }) => (
-                                                            <div className='mt-5 flex flex-col gap-1.5'>
-                                                                <Label htmlFor={field.name}>
-                                                                    Date Of Retirement
-                                                                    <span className='ml-1 text-red-500'>*</span>
-                                                                </Label>
-                                                                <div className='flex h-10 w-full rounded-md border border-input bg-muted px-3 py-2 text-muted-foreground text-sm'>
-                                                                    {field.value
-                                                                        ? (() => {
-                                                                            try {
-                                                                                const date = new Date(field.value);
-                                                                                return date.toLocaleDateString('en-GB', {
-                                                                                    day: '2-digit',
-                                                                                    month: '2-digit',
-                                                                                    year: 'numeric'
-                                                                                });
-                                                                            } catch {
-                                                                                return field.value;
-                                                                            }
-                                                                        })()
-                                                                        : 'Pick date of retirement'}
-                                                                </div>
-                                                                {fieldState?.error && (
-                                                                    <div className='text-destructive text-sm'>
-                                                                        {fieldState.error.message}
-                                                                    </div>
-                                                                )}
-                                                            </div>
+                                                            <DateField
+                                                                field={field}
+                                                                fieldState={fieldState}
+                                                                label='Date Of Retirement'
+                                                                placeholder='Pick date of retirement'
+                                                            />
                                                         )}
                                                     />
                                                     <Controller
