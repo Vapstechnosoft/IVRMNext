@@ -7,10 +7,12 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FEES_QUERY_KEYS } from '@/constants/query-keys';
 import { useFeeConcessionStudentConcessionGrid, useconcessionacademicyerdropdowndatafee } from '@/hooks/fees/useTrasactions';
+import { useQueryClient } from '@tanstack/react-query';
 import { Plus, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import type { IFeeConcessionStudentConcessionGrid } from '@/types/fees/transactions/transactions';
 import AddFeeConcessionForm from './_components/add-form';
@@ -46,18 +48,31 @@ export default function FeeConcessionPage() {
         }
     }, [academicYears, loadingYears, selectedAsmaY_Id]);
 
-    const apiSearchParams = searchParams ? Object.fromEntries(searchParams.entries()) : {};
+    const searchParamsString = useMemo(() => searchParams?.toString() || '', [searchParams]);
+    const apiSearchParams = useMemo(() => {
+        return searchParams ? Object.fromEntries(searchParams.entries()) : {};
+    }, [searchParamsString]);
+
+    const queryClient = useQueryClient();
 
     const {
         data: response,
         isLoading,
-        // refetch,
+        refetch,
         refetchAll,
         error
     } = useFeeConcessionStudentConcessionGrid(MI_ID, selectedAsmaY_Id ?? 0, asmcL_Id, apiSearchParams as any);
 
     const tableData: IFeeConcessionStudentConcessionGrid[] = response?.data ?? [];
     const totalRecords = response?.total ?? 0;
+
+    const handleRefetch = useCallback(() => {
+        queryClient.invalidateQueries({
+            queryKey: [FEES_QUERY_KEYS.FEE_CONCESSION_STUDENT_GRID]
+        });
+        refetch();
+        router.refresh();
+    }, [queryClient, refetch, router]);
 
     const handleAcademicYearChange = (value: string) => {
         const newAsmaY_Id = Number.parseInt(value, 10);
@@ -92,7 +107,7 @@ export default function FeeConcessionPage() {
                 loadingYears={loadingYears}
                 selectedAsmaY_Id={selectedAsmaY_Id}
                 onAcademicYearChange={handleAcademicYearChange}
-                refetchAll={refetchAll}
+                refetchAll={handleRefetch}
                 //searchParams={searchParams}
                 //router={router}
                 //pathname={pathname}
@@ -237,7 +252,7 @@ function FormSections({ refetch, selectedAsmaY_Id }: { refetch: () => void; sele
                                 onSuccess={() => {
                                     if (isEditFormOpen) closeEditForm();
                                     else closeAddForm();
-                                    // refetch();
+                                    refetch();
                                 }}
                             />
                         </div>
@@ -251,7 +266,7 @@ function FormSections({ refetch, selectedAsmaY_Id }: { refetch: () => void; sele
                     onClose={closeDeleteForm}
                     onSuccess={() => {
                         closeDeleteForm();
-                        // refetch();
+                        refetch();
                     }}
                 />
             )}
