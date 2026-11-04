@@ -17,14 +17,40 @@ export default function TransactionNumberingContent({ numberingType }: { numberi
     const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<IMasterTransactionNumberingList>();
 
-    const arrayKey =
-        numberingType === 'TC'
-            ? 'tcNumberingArraylist'
-            : numberingType === 'RollNumber'
-              ? 'rollNumberingArraylist'
-              : numberingType.charAt(0).toLowerCase() + numberingType.slice(1) + 'NumberingArraylist';
+    const getTableData = (res: any, type: string) => {
+        if (!res) return [];
+        const resData = res?.data ?? res;
+        if (type === 'RollNumber') {
+            return (
+                resData.rolenoNumbering ||
+                resData.RolenoNumbering ||
+                resData.rollNumberingArraylist ||
+                resData.RollNumberingArraylist ||
+                resData.rollnoNumbering ||
+                resData.RollnoNumbering ||
+                resData.rollNumbering ||
+                resData.RollNumbering ||
+                resData.rollNoNumbering ||
+                resData.RollNoNumbering ||
+                []
+            );
+        }
+        if (type === 'TC') {
+            return resData.tcNumberingArraylist || resData.TcNumberingArraylist || [];
+        }
+        const camel = `${type.charAt(0).toLowerCase() + type.slice(1)}NumberingArraylist`;
+        const pascal = `${type.charAt(0).toUpperCase() + type.slice(1)}NumberingArraylist`;
+        return resData[camel] || resData[pascal] || [];
+    };
 
-    const tableData = response?.data?.[arrayKey] || [];
+    const resData = response?.data ?? response;
+    const tableData = getTableData(resData, numberingType);
+    const rollConfig =
+        resData?.rolenoNumberingConfig ||
+        resData?.RolenoNumberingConfig ||
+        resData?.rollNumberingconfig ||
+        resData?.RollNumberingconfig ||
+        [];
     const tableProps = useDataTableProps({ ...response, data: tableData });
 
     return (
@@ -104,7 +130,18 @@ export default function TransactionNumberingContent({ numberingType }: { numberi
                             </Button>
                             <UpdateTransactionNumberingForm
                                 numberingType={numberingType}
-                                selectedRow={selectedRow}
+                                selectedRow={{
+                                    ...selectedRow,
+                                    rollNumberingconfig:
+                                        selectedRow?.rollNumberingconfig && selectedRow.rollNumberingconfig.length > 0
+                                            ? selectedRow.rollNumberingconfig
+                                            : selectedRow?.RollNumberingconfig && selectedRow.RollNumberingconfig.length > 0
+                                              ? selectedRow.RollNumberingconfig
+                                              : rollConfig
+                                }}
+                                initialData={{
+                                    rollNumberingconfig: rollConfig
+                                }}
                                 onSuccess={closeEditForm}
                             />
                         </div>

@@ -22,6 +22,21 @@ interface AddTransactionNumberingFormProps {
     className?: string;
 }
 
+const getBackendFlag = (type: string): string => {
+    switch (type) {
+        case 'TC':
+            return 'tcno';
+        case 'OnlineBooking':
+            return 'TripOnlineBooking';
+        case 'Trip':
+            return 'TripNo';
+        case 'Leave':
+            return 'LeaveNo';
+        default:
+            return type;
+    }
+};
+
 export default function AddTransactionNumberingForm({ numberingType, onSuccess, className = '' }: AddTransactionNumberingFormProps) {
     const { refetchAll } = useRegNumbering(numberingType);
     const {
@@ -71,7 +86,8 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
             const autoManualFlagVal = data.auto_manual_flag === 'Manual' ? 'Manual' : 'Auto';
             const duplicatesFlagVal = data.auto_manual_flag === 'Manual' ? (data.duplicates_flag === 'Yes' ? 'Yes' : 'No') : 'No';
             const zeroPrefixFlagVal = data.prefix_with_zero === 'yes' ? 'Yes' : 'No';
-            const restartNumFlagVal = data.restart_frequency === 'yearly' ? 'Yearly' : data.restart_frequency === 'monthly' ? 'Monthly' : 'Never';
+            const restartNumFlagVal =
+                data.restart_frequency === 'yearly' ? 'Yearly' : data.restart_frequency === 'monthly' ? 'Monthly' : 'Never';
             const prefixAcadYear = data.prefix_type === 'academic';
             const suffixAcadYear = data.suffix_type === 'academic';
             const prefixParticular = data.prefix_type === 'particulars' ? data.prefix_particulars || '' : '';
@@ -97,8 +113,8 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                 IMN_SuffixParticular: suffixParticular,
                 imN_RestartNumFlag: restartNumFlagVal,
                 IMN_RestartNumFlag: restartNumFlagVal,
-                imN_Flag: numberingType,
-                IMN_Flag: numberingType,
+                imN_Flag: getBackendFlag(numberingType),
+                IMN_Flag: getBackendFlag(numberingType),
 
                 // Defaults for Master
                 imN_PrefixAcadYearCode: prefixAcadYear,
@@ -144,14 +160,20 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
                     IMN_SuffixFinYearCode: suffixAcadYear
                 };
             } else if (numberingType === 'RollNumber') {
+                const mappedRollConfig = data.rollNumberingconfig?.map((item, index) => ({
+                    ivrmarnC_Field: item.ivrmarnC_Field,
+                    IVRMARNC_Field: item.ivrmarnC_Field,
+                    ivrmarnC_AscDscOrder: item.ivrmarnC_AscDscOrder,
+                    IVRMARNC_AscDscOrder: item.ivrmarnC_AscDscOrder,
+                    ivrmarnC_Order: item.ivrmarnC_Order || index + 1,
+                    IVRMARNC_Order: item.ivrmarnC_Order || index + 1,
+                    ivrmarnC_Id: item.ivrmarnC_Id || 0,
+                    IVRMARNC_Id: item.ivrmarnC_Id || 0
+                }));
                 payload = {
                     ...payload,
-                    rollNumberingconfig: data.rollNumberingconfig?.map((item, index) => ({
-                        ivrmarnC_Field: item.ivrmarnC_Field,
-                        ivrmarnC_AscDscOrder: item.ivrmarnC_AscDscOrder,
-                        ivrmarnC_Order: item.ivrmarnC_Order || index + 1,
-                        ivrmarnC_Id: item.ivrmarnC_Id || 0
-                    }))
+                    rollNumberingconfig: mappedRollConfig,
+                    RollNumberingconfig: mappedRollConfig
                 };
             }
 
