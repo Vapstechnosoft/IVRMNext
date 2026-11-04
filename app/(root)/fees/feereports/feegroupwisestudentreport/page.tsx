@@ -961,23 +961,38 @@ export default function FeeGroupwiseStudentReport() {
                                                                                 onCheckedChange={() => toggleRow(row.id)}
                                                                             />
                                                                         </td>
+                                                                        {/* Sl No - Centered */}
                                                                         <td className='border px-2 py-2 text-center'>{index + 1}</td>
-                                                                        <td className='border px-2 py-2 text-left'>{row.amsT_AdmNo}</td>
-                                                                        <td className='border px-2 py-2 text-right'>
+
+                                                                        {/* Admission No - Centered or Left aligned */}
+                                                                        <td className='border px-2 py-2 text-center'>{row.amsT_AdmNo}</td>
+
+                                                                        {/* Student Name - Left aligned for readability */}
+                                                                        <td className='border px-2 py-2 text-left'>
                                                                             {row.amsT_FirstName || '-'}
                                                                         </td>
-                                                                        <td className='border px-2 py-2 text-right'>
+
+                                                                        {/* Class - Left or Centered */}
+                                                                        <td className='border px-2 py-2 text-left'>
                                                                             {row.asmcL_ClassName?.toLocaleString() || '-'}
                                                                         </td>
-                                                                        <td className='border px-2 py-2 text-right'>
+
+                                                                        {/* Section - Centered */}
+                                                                        <td className='border px-2 py-2 text-center'>
                                                                             {row.asmC_SectionName?.toLocaleString() || '-'}
                                                                         </td>
-                                                                        <td className='border px-2 py-2 text-right'>
+
+                                                                        {/* Roll No - Centered */}
+                                                                        <td className='border px-2 py-2 text-center'>
                                                                             {row.amaY_RollNo?.toLocaleString() || '-'}
                                                                         </td>
-                                                                        <td className='border px-2 py-2 text-right'>
+
+                                                                        {/* Fee Group - Left aligned */}
+                                                                        <td className='border px-2 py-2 text-left'>
                                                                             {row.fmG_GroupName?.toLocaleString() || '-'}
                                                                         </td>
+
+                                                                        {/* Amount - Right aligned since it's numeric/currency */}
                                                                         {amntchecked && (
                                                                             <td className='border px-2 py-2 text-right'>₹{row.amount}</td>
                                                                         )}

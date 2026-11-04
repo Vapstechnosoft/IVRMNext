@@ -255,3 +255,15 @@ export interface IFeeStudentAcademicYear {
     asmcL_ClassName: string;
     asmC_SectionName: string;
 }
+
+export interface IFeeBankDetailsList {
+    fmbanK_Id: number;
+    mI_Id?: number;
+    fmbanK_BankName: string;
+    fmbanK_BankDescription: string;
+    fmbanK_ActiveFlg: boolean;
+    fmbanK_CreatedDate?: string;
+    fmbanK_UpdatedDate?: string;
+    fmbanK_CreatedBy?: number;
+    fmbanK_UpdatedBy?: number;
+}
