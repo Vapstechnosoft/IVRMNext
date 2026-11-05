@@ -16,10 +16,37 @@ import { tableSearchVariables } from '@/lib/data-table.config';
 import type { ILoginPrivilege, ILoginPrivilegeDTO } from '@/types/admission/preadmission/login_privilege';
 import { Loader2, X } from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { loginPrivilegeColumns } from './_components/columns';
 import DeleteLoginPrivilegeForm from './_components/delete-form';
+
+const getResponseList = (response: any, ...keys: string[]) => {
+    const candidates = [response, response?.data, response?.data?.data];
+
+    for (const candidate of candidates) {
+        for (const key of keys) {
+            const value = candidate?.[key];
+            if (Array.isArray(value)) return value;
+            if (Array.isArray(value?.$values)) return value.$values;
+        }
+    }
+
+    return [];
+};
+
+const getClassSectionIds = (item: any) => ({
+    classId: item.asmcL_Id ?? item.asmcl_Id ?? item.asmcl_id ?? item.ASMCL_Id,
+    sectionId: item.asmC_Id ?? item.asmc_Id ?? item.asmc_id ?? item.ASMC_Id
+});
+
+const getClassSectionLabel = (item: any) =>
+    item.name ||
+    item.classsection ||
+    item.classSection ||
+    `${item.asmcL_ClassName || item.asmcl_ClassName || item.ASMCL_ClassName || ''} : ${
+        item.asmC_SectionName || item.asmc_SectionName || item.ASMC_SectionName || ''
+    }`.replace(/^ : | : $/g, '');
 
 export default function LoginPrivilegePage() {
     return (
@@ -41,12 +68,14 @@ function LoginPrivilegePageContent() {
         isSearching
     } = useLoginPrivileges({
         entryType: Number(role),
-        hrmeId: Number(selectedStaffId)
+        hrmeId: Number(selectedStaffId),
+        enabled: role === '2' && selectedStaffId !== '0'
     });
     const [showList, setShowList] = useState(false);
     const [tableData, setTableData] = useState<any[]>([]);
     const [totalItems, setTotalItems] = useState(0);
     const [showMapping, setShowMapping] = useState(false);
+    const [hasSelectionSearchResult, setHasSelectionSearchResult] = useState(false);
     const [classSectionList, setMappingClassSections] = useState<any[]>([]);
     const [subjects, setMappingSubjects] = useState<any[]>([]);
 
@@ -71,6 +100,47 @@ function LoginPrivilegePageContent() {
             if (initialData) {
                 const rawData = (initialData as any)?.data || initialData;
 
+                if (role === '2') {
+                    const privileges = getResponseList(initialData, 'loginPrivileges', 'loginPData');
+                    const total = rawData.total || rawData.count || privileges.length;
+                    setTableData(privileges);
+                    setTotalItems(total);
+
+                    const rawClassList = getResponseList(initialData, 'classsectionList', 'classSectionList', 'ClassSectionList');
+                    const seenIds = new Set<string>();
+                    const csList = rawClassList.reduce((acc: any[], item: any) => {
+                        const { classId, sectionId } = getClassSectionIds(item);
+                        if (
+                            classId == null ||
+                            sectionId == null ||
+                            !Number.isFinite(Number(classId)) ||
+                            !Number.isFinite(Number(sectionId))
+                        ) {
+                            return acc;
+                        }
+
+                        const id = `${classId}-${sectionId}`;
+                        if (!seenIds.has(id)) {
+                            seenIds.add(id);
+                            acc.push({
+                                ...item,
+                                id,
+                                asmcL_Id: Number(classId),
+                                asmC_Id: Number(sectionId),
+                                label: getClassSectionLabel(item)
+                            });
+                        }
+                        return acc;
+                    }, []);
+                    setMappingClassSections(csList);
+
+                    const rawSubjectList = getResponseList(initialData, 'subjectList', 'subjectlist', 'SubjectList');
+                    if (rawSubjectList.length > 0) setMappingSubjects(rawSubjectList);
+                    setShowList(true);
+                    setShowMapping(true);
+                    return;
+                }
+
                 // Extract grid data
                 let data: any[] = [];
                 let total = 0;
@@ -89,41 +159,42 @@ function LoginPrivilegePageContent() {
                 // Grid will only show when onSearchSuccess is called
                 // setShowList(true);
 
-                // Extract mapping data (Available classes and subjects)
-                const rawClassList = rawData.classsectionList || [];
-                if (Array.isArray(rawClassList)) {
-                    const seenIds = new Set();
-                    const csList = rawClassList.reduce((acc: any[], item: any) => {
-                        const uniqueId = `${item.asmcL_Id}-${item.asmC_Id}`;
-                        if (!seenIds.has(uniqueId)) {
-                            seenIds.add(uniqueId);
-                            acc.push({
-                                id: uniqueId,
-                                label: item.name || `${item.asmcL_ClassName || ''} : ${item.asmC_SectionName || ''}`.replace(/^ : /, ''),
-                                asmcL_Id: item.asmcL_Id,
-                                asmC_Id: item.asmC_Id
-                            });
-                        }
-                        return acc;
-                    }, []);
-                    setMappingClassSections(csList);
-                }
+                if (!hasSelectionSearchResult) {
+                    // Keep the initial grid-provided mapping until a selection search returns.
+                    const rawClassList = rawData.classsectionList || [];
+                    if (Array.isArray(rawClassList)) {
+                        const seenIds = new Set();
+                        const csList = rawClassList.reduce((acc: any[], item: any) => {
+                            const uniqueId = `${item.asmcL_Id}-${item.asmC_Id}`;
+                            if (!seenIds.has(uniqueId)) {
+                                seenIds.add(uniqueId);
+                                acc.push({
+                                    id: uniqueId,
+                                    label: item.name || `${item.asmcL_ClassName || ''} : ${item.asmC_SectionName || ''}`.replace(/^ : /, ''),
+                                    asmcL_Id: item.asmcL_Id,
+                                    asmC_Id: item.asmC_Id
+                                });
+                            }
+                            return acc;
+                        }, []);
+                        setMappingClassSections(csList);
+                    }
 
-                const rawSubjectList = rawData.subjectList || [];
-                if (Array.isArray(rawSubjectList)) {
-                    setMappingSubjects(rawSubjectList);
-                }
+                    const rawSubjectList = rawData.subjectList || [];
+                    if (Array.isArray(rawSubjectList)) {
+                        setMappingSubjects(rawSubjectList);
+                    }
 
-                // Show mapping section if we have data to map
-                if ((rawClassList.length > 0 || rawSubjectList.length > 0) && selectedStaffId !== '0') {
-                    setShowMapping(true);
+                    if ((rawClassList.length > 0 || rawSubjectList.length > 0) && selectedStaffId !== '0') {
+                        setShowMapping(true);
+                    }
                 }
             }
         } catch (error) {
             console.error('Error setting initial data:', error);
             setTableData([]);
         }
-    }, [initialData, selectedStaffId]);
+    }, [initialData, selectedStaffId, hasSelectionSearchResult, role]);
 
     const tableProps = {
         data: filteredTableData || [],
@@ -143,6 +214,7 @@ function LoginPrivilegePageContent() {
                     onSearchSuccess={(data, total) => {
                         setTableData(data);
                         setTotalItems(total);
+                        setHasSelectionSearchResult(true);
                         setShowList(true);
                     }}
                     role={role}
@@ -238,6 +310,9 @@ function PrivilegeForm({
     const [subSearch, setSubSearch] = useState('');
     const [csSearchAvail, setCsSearchAvail] = useState('');
     const [csSearchSel, setCsSearchSel] = useState('');
+    const searchRequestId = useRef(0);
+    const activeSearchKey = useRef<string | null>(null);
+    const completedSearchKey = useRef<string | null>(null);
 
     useEffect(() => {
         const loadEditData = async () => {
@@ -300,10 +375,12 @@ function PrivilegeForm({
         loadEditData();
     }, [selectedRow]);
 
-    const handleSearch = async (yearId?: string, typeId?: string, staffId?: string) => {
+    const handleSearch = async (yearId?: string, typeId?: string, staffId?: string, force = false) => {
         const yId = yearId || selectedYearId;
         const tId = typeId || role;
         const sId = staffId || selectedStaffId;
+
+        if (tId === '2') return;
 
         // Skip search if we don't have basic requirements
         if (!yId || !sId || yId === '0' || sId === '0') {
@@ -318,6 +395,12 @@ function PrivilegeForm({
             return;
         }
 
+        const searchKey = `${yIdNum}:${Number(tId)}:${sIdNum}`;
+        if (!force && (activeSearchKey.current === searchKey || completedSearchKey.current === searchKey)) return;
+
+        const requestId = ++searchRequestId.current;
+        activeSearchKey.current = searchKey;
+
         try {
             const result: any = await fetchDataByType({
                 ASMAY_Id: yIdNum,
@@ -325,45 +408,61 @@ function PrivilegeForm({
                 HRME_Id: sIdNum
             });
 
-            if (result) {
-                const rawClassList =
-                    result.classSectionList ||
-                    result.data?.classSectionList ||
-                    result.classsectionList ||
-                    result.data?.classsectionList ||
-                    [];
+            if (requestId !== searchRequestId.current) return;
 
-                const seenIds = new Set();
+            if (result) {
+                completedSearchKey.current = searchKey;
+                const rawClassList = getResponseList(result, 'classSectionList', 'classsectionList', 'ClassSectionList');
+                const seenIds = new Set<string>();
                 const csList = rawClassList.reduce((acc: any[], item: any) => {
-                    const uniqueId = `${item.asmcL_Id}-${item.asmC_Id}`;
+                    const { classId, sectionId } = getClassSectionIds(item);
+                    if (
+                        classId == null ||
+                        sectionId == null ||
+                        !Number.isFinite(Number(classId)) ||
+                        !Number.isFinite(Number(sectionId))
+                    ) {
+                        return acc;
+                    }
+
+                    const uniqueId = `${classId}-${sectionId}`;
                     if (!seenIds.has(uniqueId)) {
                         seenIds.add(uniqueId);
                         acc.push({
                             ...item,
                             id: uniqueId,
-                            label: item.name || `${item.asmcL_ClassName} : ${item.asmC_SectionName}`
+                            asmcL_Id: Number(classId),
+                            asmC_Id: Number(sectionId),
+                            label: getClassSectionLabel(item)
                         });
                     }
                     return acc;
                 }, []);
 
-                if (csList.length > 0) {
-                    setMappingClassSections(csList);
-                }
+                setMappingClassSections(csList);
 
-                const subList = result.subjectList || result.data?.subjectList || [];
+                const subList = getResponseList(result, 'subjectList', 'subjectlist', 'SubjectList').map((item: any) => ({
+                    ...item,
+                    ismS_Id: item.ismS_Id ?? item.isms_Id ?? item.ISMS_Id,
+                    ismS_SubjectName: item.ismS_SubjectName ?? item.isms_SubjectName ?? item.ISMS_SubjectName
+                }));
                 if (Array.isArray(subList) && subList.length > 0) {
                     setMappingSubjects(subList);
                 }
 
-                const privileges =
-                    result.loginPrivileges || result.data?.loginPrivileges || result.loginPData || result.data?.loginPData || [];
+                const privileges = getResponseList(result, 'loginPrivileges', 'loginPData');
                 const total = result.total || result.data?.count || privileges.length;
                 onSearchSuccess(privileges, total);
                 setShowMapping(true);
             }
         } catch (e) {
-            toast.error('Failed to fetch data');
+            if (requestId === searchRequestId.current) {
+                toast.error('Failed to fetch data');
+            }
+        } finally {
+            if (activeSearchKey.current === searchKey) {
+                activeSearchKey.current = null;
+            }
         }
     };
 
@@ -480,7 +579,9 @@ function PrivilegeForm({
 
             await createPrivilege(payload);
             handleClear();
-            await handleSearch();
+            if (role !== '2') {
+                await handleSearch(undefined, undefined, undefined, true);
+            }
         } catch (error) {
             console.error(error);
         } finally {
@@ -496,8 +597,10 @@ function PrivilegeForm({
     };
 
     const handleRefresh = async () => {
+        if (role === '2') return;
+
         if (selectedYearId && selectedStaffId) {
-            await handleSearch();
+            await handleSearch(undefined, undefined, undefined, true);
         } else {
             refetch();
         }
@@ -530,6 +633,7 @@ function PrivilegeForm({
 
                                     // Only fetch if Year and Staff are selected and valid
                                     if (
+                                        val !== '2' &&
                                         selectedYearId &&
                                         selectedStaffId &&
                                         !isNaN(Number(selectedYearId)) &&
@@ -572,10 +676,18 @@ function PrivilegeForm({
                                     value={selectedYearId}
                                     onValueChange={(val) => {
                                         setSelectedYearId(val);
-                                        setMappingClassSections([]);
-                                        setMappingSubjects([]);
+                                        if (role !== '2') {
+                                            setMappingClassSections([]);
+                                            setMappingSubjects([]);
+                                        }
                                         // Auto-search if staff is also selected
-                                        if (selectedStaffId && val && selectedStaffId !== '0' && val !== '0') {
+                                        if (
+                                            role !== '2' &&
+                                            selectedStaffId &&
+                                            val &&
+                                            selectedStaffId !== '0' &&
+                                            val !== '0'
+                                        ) {
                                             handleSearch(val, role, selectedStaffId);
                                         }
                                     }}>
@@ -604,7 +716,13 @@ function PrivilegeForm({
                                     onValueChange={(val) => {
                                         setSelectedStaffId(val);
                                         // Auto-search if year is also selected
-                                        if (selectedYearId && val && selectedYearId !== '0' && val !== '0') {
+                                        if (
+                                            role !== '2' &&
+                                            selectedYearId &&
+                                            val &&
+                                            selectedYearId !== '0' &&
+                                            val !== '0'
+                                        ) {
                                             handleSearch(selectedYearId, role, val);
                                         }
                                     }}>

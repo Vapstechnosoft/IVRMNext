@@ -12,13 +12,16 @@ import { toast } from 'sonner';
 
 const QUERY_KEY = 'admission_login_privileges';
 
-export const useLoginPrivileges = (params: { entryType: number; hrmeId: number } = { entryType: 2, hrmeId: 0 }) => {
+export const useLoginPrivileges = (
+    params: { entryType: number; hrmeId: number; enabled?: boolean } = { entryType: 2, hrmeId: 0 }
+) => {
     const queryClient = useQueryClient();
 
     const query = useQuery({
         queryKey: [QUERY_KEY, params.entryType, params.hrmeId],
         queryFn: () => getStaffWiseGrid(params.entryType, params.hrmeId),
-        staleTime: 0
+        staleTime: 0,
+        enabled: params.enabled ?? false
     });
 
     const createMutation = useMutation({
