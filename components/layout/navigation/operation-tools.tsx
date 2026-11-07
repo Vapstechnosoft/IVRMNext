@@ -173,7 +173,8 @@ export function OperationTools() {
                                             const Icon = getIconByName(module.icon) || Boxes;
                                             const isActive = selectedModuleId === module.id;
                                             return (
-                                                <button
+                                                // biome-ignore lint/a11y/useButtonType: <explanation>
+                                                   <button
                                                     key={module.id}
                                                     onMouseEnter={() => setSelectedModuleId(module.id)}
                                                     onClick={() => setSelectedModuleId(module.id)}
@@ -325,7 +326,8 @@ export function OperationTools() {
                                                                     return displayPages.map((page: any, pageIdx: number) => {
                                                                         const PageIcon = getIconByName(page.icon) || Boxes;
                                                                         return (
-                                                                            <button
+                                                                            // biome-ignore lint/a11y/useButtonType: <explanation>
+                                                                                <button
                                                                                 key={page.id ? `page-${page.id}` : pageIdx}
                                                                                 onClick={() => handlePageClick(page, menu, subMenu)}
                                                                                 className='group/btn relative flex items-center justify-between overflow-hidden rounded-2xl px-3 py-2 text-left transition-all hover:bg-slate-50 hover:text-orange-600'>

@@ -12,5 +12,5 @@ export async function getDocumentView(asmay_id: number, asmcl_id: number, search
 
 export async function getDocumentpdf(pasr_id: number) {
     const url = `/document_view/generate_preadmission_report/${pasr_id}`;
-    return await api.get<IPreadmissionDocumentView[]>('preadmission', url);
+    return await api.get<any[]>('preadmission', url);
 }

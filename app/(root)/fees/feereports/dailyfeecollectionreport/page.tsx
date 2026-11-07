@@ -364,9 +364,11 @@ export default function DailyFeeCollectionReportForm() {
         // API CALL
         // ===================================================
 
+        // ❌ COMMENTED OUT: Prevents 'all' from being forced into multiplepaymentmode
         // if (data.Fmc_allorsudentorother === 'all') {
         //     data.Fmc_allorsudentorother = 'multiplepaymentmode';
         // }
+
         try {
             setShowTable(false);
             setLoading(true);
@@ -404,7 +406,7 @@ export default function DailyFeeCollectionReportForm() {
             } else if (
                 // ((data.Fmc_allorsudentorother === 'multiplepaymentmode' || data.Fmc_allorsudentorother === 'all') &&
                 //     data.Fmc_allorcorddorop === 'All')
-                (data.Fmc_allorsudentorother === 'multiplepaymentmode' || data.Fmc_allorsudentorother === 'all') &&
+                data.Fmc_allorsudentorother === 'multiplepaymentmode' &&
                 report === 'students'
             ) {
                 const allList = selectedGroupIds.map((id) => ({
@@ -413,11 +415,10 @@ export default function DailyFeeCollectionReportForm() {
                 payload = {
                     AsmayId: asmaY_Id,
                     classid: asmcL_Id ?? 0,
-                    classFlag: '1',
                     FromDate: formatDate(fromDate),
                     ToDate: formatDate(toDate),
                     regornamedetails: report,
-                    allorstdorothersflag: 'all',
+                    allorstdorothersflag: Fmc_allorsudentorother,
                     All_List: allList
                 };
             } else if (report === 'students' && data.Fmc_allorsudentorother !== 'multiplepaymentmode') {
@@ -487,21 +488,93 @@ export default function DailyFeeCollectionReportForm() {
 
             const rawData: any = response?.data;
 
-            if (!Array.isArray(rawData?.list) || rawData.list.length === 0) {
+            // ------------------------------------------------------------------
+            // 🔹 EXTRACT & PARSE JSON FROM result_data IF STRINGIFIED
+            // ------------------------------------------------------------------
+            let list: any[] = [];
+
+            if (Array.isArray(rawData?.list) && rawData.list.length > 0) {
+                if (typeof rawData.list[0]?.result_data === 'string') {
+                    try {
+                        list = JSON.parse(rawData.list[0].result_data);
+                    } catch (parseErr) {
+                        console.error('Failed to parse result_data JSON:', parseErr);
+                        list = [];
+                    }
+                } else {
+                    list = rawData.list;
+                }
+            }
+
+            if (!Array.isArray(list) || list.length === 0) {
                 toast.error('No data found');
                 setShowTable(false);
                 setTableRows([]);
+                setTableColumns([]);
                 return;
             }
 
-            console.log('rawData', rawData);
+            console.log('Parsed list data:', list);
 
             const currentReportType = rawData?.listName || '';
             setReportType(currentReportType);
 
-            if (currentReportType === 'Headwise') {
-                const list = Array.isArray(rawData?.list) ? rawData.list : [];
+            // ===================================================
+            // 🔹 REPORT BINDING BASED ON listName
+            // ===================================================
+            if (currentReportType === 'All') {
+                toast.success('Report Data Fetched Successfully');
 
+                // Mapping for PaymentMode labels
+                const getPaymentModeLabel = (code: string) => {
+                    switch (code) {
+                        case 'C':
+                            return 'Cash';
+                        case 'B':
+                            return 'Bank/Cheque';
+                        case 'O':
+                            return 'Online';
+                        case 'Ecs':
+                            return 'ECS';
+                        case 'S':
+                            return 'Card';
+                        case 'R':
+                            return 'RTGS';
+                        case 'BT':
+                            return 'Bank Transfer';
+                        case 'U':
+                            return 'UPI';
+                        default:
+                            return code ?? '';
+                    }
+                };
+
+                const rows = list.map((item: any, index: number) => ({
+                    SLNO: index + 1,
+                    ReceiptNo: item.FYP_Receipt_No ?? item.fyp_Receipt_No ?? '',
+                    SettlementDate: item.Settlement_Date ? new Date(item.Settlement_Date).toLocaleDateString('en-GB') : '',
+                    PaymentMode: getPaymentModeLabel(item.PaymentMode ?? item.paymentMode),
+                    Amount: Number(item.Amount ?? item.amount ?? 0)
+                }));
+
+                const columns = ['SLNO', 'ReceiptNo', 'SettlementDate', 'PaymentMode', 'Amount'];
+
+                setTableColumns(columns);
+                setTableRows(rows);
+
+                // Calculate Total for Amount
+                const totalAmount = rows.reduce((sum: number, r: any) => sum + Number(r.Amount || 0), 0);
+
+                const sumRow: any = {
+                    SLNO: '',
+                    ReceiptNo: '',
+                    SettlementDate: '',
+                    PaymentMode: 'Total',
+                    Amount: totalAmount
+                };
+
+                setTableSumRow(sumRow);
+            } else if (currentReportType === 'Headwise') {
                 toast.success('Report Data Fetched Successfully');
 
                 console.log('list', list);
@@ -517,7 +590,7 @@ export default function DailyFeeCollectionReportForm() {
                 const rows = list.map((item: any, index: number) => {
                     const row: any = {
                         SLNO: index + 1,
-                        Date: new Date(item.date).toLocaleDateString('en-GB')
+                        Date: item.date ? new Date(item.date).toLocaleDateString('en-GB') : ''
                     };
 
                     allFeeHeads.forEach((head) => {
@@ -539,10 +612,6 @@ export default function DailyFeeCollectionReportForm() {
                     Date: 'Total'
                 };
 
-                // First columns
-                sumRow.SLNO = '';
-                sumRow.Date = 'Total';
-
                 // Initialize sums
                 columns.forEach((col) => {
                     if (col !== 'SLNO' && col !== 'Date') {
@@ -560,7 +629,6 @@ export default function DailyFeeCollectionReportForm() {
 
                 setTableSumRow(sumRow);
             } else if (currentReportType === 'Paymentwise') {
-                const list = Array.isArray(rawData?.list) ? rawData.list : [];
                 toast.success('Report Data Fetched Successfully');
                 // 🔹 Collect payment modes
                 const paymentModeSet = new Set<string>();
@@ -571,13 +639,12 @@ export default function DailyFeeCollectionReportForm() {
                 });
 
                 const paymentModes = Array.from(paymentModeSet);
-                // Example: ['Bank', 'Cash', 'RTGS/NEFT', 'Swipe/Card', 'UPI']
 
                 // 🔹 Group by Date + HeadName
                 const grouped: Record<string, any> = {};
 
                 list.forEach((item: any) => {
-                    const date = new Date(item.date).toLocaleDateString('en-GB');
+                    const date = item.date ? new Date(item.date).toLocaleDateString('en-GB') : '';
                     const headName = item.headName;
                     const key = `${date}_${headName}`;
 
@@ -632,8 +699,8 @@ export default function DailyFeeCollectionReportForm() {
                 });
 
                 setTableSumRow(sumRow);
-            } else if (currentReportType === 'Student') {
-                const list = Array.isArray(rawData?.list) ? rawData.list : [];
+            } else {
+                // 🔹 Student / Default Fallback
                 toast.success('Report Data Fetched Successfully');
                 const rows = list.map((item: any, index: number) => ({
                     SLNO: index + 1,
@@ -731,7 +798,7 @@ export default function DailyFeeCollectionReportForm() {
             toast.error('Failed to fetch report');
             setTableColumns([]);
             setTableRows([]);
-            setShowTable(true);
+            setShowTable(false);
         } finally {
             setLoading(false);
         }
@@ -1007,38 +1074,12 @@ export default function DailyFeeCollectionReportForm() {
 
                         {/* DATES & CLASS */}
                         <div className='space-y-5 rounded-lg border p-4'>
-                            {/* <div className='flex items-center gap-4'>
-                                <Label className='w-32'>
-                                    From Date <span className='text-red-500'>*</span>
-                                </Label>
-                                <input type='date'
-                                 className='flex-1 rounded-md border px-3 py-2' 
-                                 {...register('fromDate')} />
-                                {errors.fromDate && <FormError>{errors.fromDate.message}</FormError>}
-                            </div>
-
-                           
-                            <div className='flex items-center gap-4'>
-                                <Label className='w-32'>
-                                    To Date <span className='text-red-500'>*</span>
-                                </Label>
-                                <input type='date' className='flex-1 rounded-md border px-3 py-2' {...register('toDate')} />
-                                {errors.toDate && <FormError>{errors.toDate.message}</FormError>}
-                            </div> */}
-
                             {/* FROM DATE */}
                             <div className='flex flex-col gap-1'>
                                 <div className='flex items-center gap-4'>
                                     <Label className='w-32'>
                                         From Date <span className='text-red-500'>*</span>
                                     </Label>
-
-                                    {/* <input
-                                        type='date'
-                                        className='flex-1 rounded-md border px-3 py-2'
-                                        onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
-                                        {...register('fromDate')}
-                                    /> */}
 
                                     <input
                                         type='date'
@@ -1068,13 +1109,6 @@ export default function DailyFeeCollectionReportForm() {
                                     <Label className='w-32'>
                                         To Date <span className='text-red-500'>*</span>
                                     </Label>
-                                    {/* 
-                                    <input
-                                        type='date'
-                                        className='flex-1 rounded-md border px-3 py-2'
-                                        onKeyDown={(e) => e.preventDefault()} // 🔒 blocks typing
-                                        {...register('toDate')}
-                                    /> */}
 
                                     <input
                                         type='date'
@@ -1096,7 +1130,6 @@ export default function DailyFeeCollectionReportForm() {
                             </div>
 
                             {/* CLASS */}
-
                             {rpttyp === 'Individual' && (
                                 <div className='flex items-center gap-4'>
                                     {/* Checkbox + Label */}
@@ -1154,7 +1187,7 @@ export default function DailyFeeCollectionReportForm() {
             </form>
             <div className='my-6 border-gray-300 border-t' />
 
-            {!loading && tableRows.length > 0 && (
+            {!loading && showTable && tableRows.length > 0 && (
                 <CollapsibleSection defaultOpen={true}>
                     <div className='mt-10'>
                         {/* 🔹 REPORT HEADER */}
@@ -1207,7 +1240,11 @@ export default function DailyFeeCollectionReportForm() {
                                         <tr className='bg-gray-100 font-semibold'>
                                             {tableColumns.map((col) => (
                                                 <td key={col} className='border px-3 py-2 text-right'>
-                                                    {col === 'SLNO' ? '' : col === 'Date' ? 'Total' : `Sum: ${tableSumRow[col] ?? 0}`}
+                                                    {col === 'SLNO'
+                                                        ? ''
+                                                        : col === 'Date' || col === 'PaymentMode'
+                                                          ? 'Total'
+                                                          : `Sum: ${tableSumRow[col] ?? 0}`}
                                                 </td>
                                             ))}
                                         </tr>

@@ -22,6 +22,21 @@ interface AddTransactionNumberingFormProps {
     className?: string;
 }
 
+const getBackendFlag = (type: string): string => {
+    switch (type) {
+        case 'TC':
+            return 'tcno';
+        case 'OnlineBooking':
+            return 'TripOnlineBooking';
+        case 'Trip':
+            return 'TripNo';
+        case 'Leave':
+            return 'LeaveNo';
+        default:
+            return type;
+    }
+};
+
 export default function AddTransactionNumberingForm({ numberingType, onSuccess, className = '' }: AddTransactionNumberingFormProps) {
     const { refetchAll } = useRegNumbering(numberingType);
     const {
@@ -68,55 +83,97 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
 
     const onSubmit = async (data: FormFields) => {
         try {
+            const autoManualFlagVal = data.auto_manual_flag === 'Manual' ? 'Manual' : 'Auto';
+            const duplicatesFlagVal = data.auto_manual_flag === 'Manual' ? (data.duplicates_flag === 'Yes' ? 'Yes' : 'No') : 'No';
+            const zeroPrefixFlagVal = data.prefix_with_zero === 'yes' ? 'Yes' : 'No';
+            const restartNumFlagVal =
+                data.restart_frequency === 'yearly' ? 'Yearly' : data.restart_frequency === 'monthly' ? 'Monthly' : 'Never';
+            const prefixAcadYear = data.prefix_type === 'academic';
+            const suffixAcadYear = data.suffix_type === 'academic';
+            const prefixParticular = data.prefix_type === 'particulars' ? data.prefix_particulars || '' : '';
+            const suffixParticular = data.suffix_type === 'particulars' ? data.suffix_particulars || '' : '';
+
             // Default Master Payload
             let payload: any = {
                 imN_Id: 0,
-                imN_AutoManualFlag: data.auto_manual_flag === 'Manual' ? 'Manual' : 'Auto',
-                imN_DuplicatesFlag: data.auto_manual_flag === 'Manual' ? (data.duplicates_flag === 'Yes' ? 'Yes' : 'No') : 'No',
+                IMN_Id: 0,
+                imN_AutoManualFlag: autoManualFlagVal,
+                IMN_AutoManualFlag: autoManualFlagVal,
+                imN_DuplicatesFlag: duplicatesFlagVal,
+                IMN_DuplicatesFlag: duplicatesFlagVal,
                 imN_StartingNo: data.suffix_starting_from?.toString() || '1',
+                IMN_StartingNo: data.suffix_starting_from?.toString() || '1',
                 imN_WidthNumeric: data.prefix_numeric_width?.toString() || '1',
-                imN_ZeroPrefixFlag: data.prefix_with_zero === 'yes' ? 'Yes' : 'No',
-                imN_PrefixParticular: data.prefix_type === 'particulars' ? data.prefix_particulars || '' : '',
-                imN_SuffixParticular: data.suffix_type === 'particulars' ? data.suffix_particulars || '' : '',
-                imN_RestartNumFlag: data.restart_frequency === 'yearly' ? 'Y' : data.restart_frequency === 'monthly' ? 'M' : 'N',
-                imN_Flag: numberingType,
+                IMN_WidthNumeric: data.prefix_numeric_width?.toString() || '1',
+                imN_ZeroPrefixFlag: zeroPrefixFlagVal,
+                IMN_ZeroPrefixFlag: zeroPrefixFlagVal,
+                imN_PrefixParticular: prefixParticular,
+                IMN_PrefixParticular: prefixParticular,
+                imN_SuffixParticular: suffixParticular,
+                IMN_SuffixParticular: suffixParticular,
+                imN_RestartNumFlag: restartNumFlagVal,
+                IMN_RestartNumFlag: restartNumFlagVal,
+                imN_Flag: getBackendFlag(numberingType),
+                IMN_Flag: getBackendFlag(numberingType),
 
                 // Defaults for Master
-                imN_PrefixAcadYearCode: data.prefix_type === 'academic',
+                imN_PrefixAcadYearCode: prefixAcadYear,
+                IMN_PrefixAcadYearCode: prefixAcadYear,
                 imN_PrefixFinYearCode: false,
+                IMN_PrefixFinYearCode: false,
                 imN_PrefixCalYearCode: false,
-                imN_SuffixAcadYearCode: data.suffix_type === 'academic',
+                IMN_PrefixCalYearCode: false,
+                imN_SuffixAcadYearCode: suffixAcadYear,
+                IMN_SuffixAcadYearCode: suffixAcadYear,
                 imN_SuffixFinYearCode: false,
-                imN_SuffixCalYearCode: false
+                IMN_SuffixFinYearCode: false,
+                imN_SuffixCalYearCode: false,
+                IMN_SuffixCalYearCode: false
             };
 
             if (numberingType === 'Receipt') {
                 payload = {
                     ...payload,
                     irN_TransactionName: data.transaction_name,
+                    IRN_TransactionName: data.transaction_name,
                     irN_RestartAcadYear: !!data.restart_acad_year,
+                    IRN_RestartAcadYear: !!data.restart_acad_year,
                     irN_RestartFinYear: !!data.restart_fin_year,
-                    irN_RestartcalendYear: !!data.restart_cal_year
+                    IRN_RestartFinYear: !!data.restart_fin_year,
+                    irN_RestartcalendYear: !!data.restart_cal_year,
+                    IRN_RestartcalendYear: !!data.restart_cal_year
                 };
             } else if (numberingType === 'Voucher') {
                 payload = {
                     ...payload,
                     voucherName: data.voucher_name,
+                    VoucherName: data.voucher_name,
                     voucherType: data.voucher_type,
+                    VoucherType: data.voucher_type,
                     imN_PrefixAcadYearCode: false,
-                    imN_PrefixFinYearCode: data.prefix_type === 'academic',
+                    IMN_PrefixAcadYearCode: false,
+                    imN_PrefixFinYearCode: prefixAcadYear,
+                    IMN_PrefixFinYearCode: prefixAcadYear,
                     imN_SuffixAcadYearCode: false,
-                    imN_SuffixFinYearCode: data.suffix_type === 'academic'
+                    IMN_SuffixAcadYearCode: false,
+                    imN_SuffixFinYearCode: suffixAcadYear,
+                    IMN_SuffixFinYearCode: suffixAcadYear
                 };
             } else if (numberingType === 'RollNumber') {
+                const mappedRollConfig = data.rollNumberingconfig?.map((item, index) => ({
+                    ivrmarnC_Field: item.ivrmarnC_Field,
+                    IVRMARNC_Field: item.ivrmarnC_Field,
+                    ivrmarnC_AscDscOrder: item.ivrmarnC_AscDscOrder,
+                    IVRMARNC_AscDscOrder: item.ivrmarnC_AscDscOrder,
+                    ivrmarnC_Order: item.ivrmarnC_Order || index + 1,
+                    IVRMARNC_Order: item.ivrmarnC_Order || index + 1,
+                    ivrmarnC_Id: item.ivrmarnC_Id || 0,
+                    IVRMARNC_Id: item.ivrmarnC_Id || 0
+                }));
                 payload = {
                     ...payload,
-                    rollNumberingconfig: data.rollNumberingconfig?.map((item, index) => ({
-                        ivrmarnC_Field: item.ivrmarnC_Field,
-                        ivrmarnC_AscDscOrder: item.ivrmarnC_AscDscOrder,
-                        ivrmarnC_Order: item.ivrmarnC_Order || index + 1,
-                        ivrmarnC_Id: item.ivrmarnC_Id || 0
-                    }))
+                    rollNumberingconfig: mappedRollConfig,
+                    RollNumberingconfig: mappedRollConfig
                 };
             }
 

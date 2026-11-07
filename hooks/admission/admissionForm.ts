@@ -11,13 +11,13 @@ import { type UseQueryResult, useQuery, useQueryClient } from '@tanstack/react-q
 
 import type { ApiSearchparams } from '@/types';
 
-export const useGetAllAdmissionLists = (searchParams?: ApiSearchparams) => {
+export const useGetAllAdmissionLists = (asmaY_Id: number,searchParams?: ApiSearchparams) => {
     const queryClient = useQueryClient();
 
     return {
         ...useQuery({
-            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_FORM_GET_ALL, searchParams ?? {}],
-            queryFn: async () => getAllAdmissionLists(searchParams),
+            queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_FORM_GET_ALL,asmaY_Id, searchParams ?? {}],
+            queryFn: async () => getAllAdmissionLists(asmaY_Id,searchParams),
             staleTime: 0
         }),
         refetchAll: () => {

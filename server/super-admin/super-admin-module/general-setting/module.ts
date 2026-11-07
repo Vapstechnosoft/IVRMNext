@@ -51,7 +51,7 @@ export async function getMasterModules(searchParams: any) {
             search_column: searchParams.search_column || searchParams.search_columns || (searchParams.search_query ? 'ivrmM_ModuleName' : '')
         };
         const query = getSearchParamsUrl(params);
-        const url = `MastersModuleFacade/get_master_module_onload_grid?${query}`;
+        const url = `/MastersModuleFacade/get_master_module_onload_grid?${query}`;
 
         const response = await api.get<any>('sadmin', url);
 

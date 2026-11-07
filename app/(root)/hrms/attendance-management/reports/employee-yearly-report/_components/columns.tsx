@@ -54,22 +54,22 @@ export const getEmployeeYearlyReportColumns = (dynamicMonths: string[] = [], mod
             accessorKey: 'ecode',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Code' />,
             cell: ({ row }) => <div>{row.getValue('ecode')}</div>,
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         },
         {
             accessorKey: 'ename',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Name' />,
             cell: ({ row }) => <div>{row.getValue('ename')}</div>,
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         },
         {
             accessorKey: 'designation',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Employee Designation' />,
             cell: ({ row }) => <div>{row.getValue('designation')}</div>,
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         }
     ];
 
@@ -79,8 +79,8 @@ export const getEmployeeYearlyReportColumns = (dynamicMonths: string[] = [], mod
             accessorKey: month,
             header: ({ column }) => <DataTableColumnHeader column={column} title={month.replace('_', ' ')} />,
             cell: ({ row }) => <div>{row.original[month]}</div>,
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         });
     });
 
@@ -89,8 +89,8 @@ export const getEmployeeYearlyReportColumns = (dynamicMonths: string[] = [], mod
             accessorKey: 'tpdays',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Total Working Day' />,
             cell: ({ row }) => <div>{row.getValue('tpdays')}</div>,
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         });
     }
 
@@ -100,8 +100,8 @@ export const getEmployeeYearlyReportColumns = (dynamicMonths: string[] = [], mod
             accessorKey: 'hwkdays',
             header: ({ column }) => <DataTableColumnHeader column={column} title='Total Worked on Holidays' />,
             cell: ({ row }) => <div>{row.getValue('hwkdays')}</div>,
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         });
     }
 
@@ -114,8 +114,8 @@ export const getEmployeeYearlyReportColumns = (dynamicMonths: string[] = [], mod
                 const date = row.getValue('doj') as string;
                 return <div>{formatDate(date)}</div>;
             },
-            enableSorting: true,
-            enableHiding: true
+            enableSorting: false,
+            enableHiding: false
         });
     }
 

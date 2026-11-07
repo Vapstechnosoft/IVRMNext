@@ -1,59 +1,71 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
-import { tableSearchVariables } from '@/lib/data-table.config';
+import { Input } from '@/components/ui/input';
+import { useDebounce } from '@/hooks/utils/use-debounce';
 import { deletePageMapping, getSavedMappings } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
 import type { ISavedMapping } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
+import { ChevronLeft, ChevronRight, Search, Trash2, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
 import { usePageMapping } from './mapping-context';
 
-import { Button } from '@/components/ui/button';
-import type { ColumnDef } from '@tanstack/react-table';
-import { Trash2 } from 'lucide-react';
-
 export default function SavedGrid() {
-    const { selectedModuleId } = usePageMapping();
+    const { savedMappings } = usePageMapping();
     const [data, setData] = useState<ISavedMapping[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
     const [totalItems, setTotalItems] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
 
-    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
-    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
-    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
-    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
-    const [sortDirection] = useQueryState(
-        tableSearchVariables.sort_direction,
-        parseAsString.withOptions({ shallow: false }).withDefault('asc')
-    );
+    const debouncedSearch = useDebounce(searchTerm, 400);
 
     const fetchData = useCallback(async () => {
         setIsLoading(true);
-        const searchParams = {
-            page: page,
-            page_size: pageSize,
-            search_query: searchQuery,
-            sort_column: sortBy,
-            sort_direction: sortDirection,
-            ivrmM_Id: selectedModuleId || 0
-        };
         try {
-            const res = await getSavedMappings(searchParams);
+            const res = await getSavedMappings({
+                page,
+                page_size: pageSize,
+                search_query: debouncedSearch
+            });
             if (res.success) {
                 setData(res.data || []);
                 setTotalItems(res.total || 0);
+            } else {
+                setData([]);
+                setTotalItems(0);
             }
         } catch (error) {
             console.error('Failed to fetch saved mappings', error);
+            setData([]);
+            setTotalItems(0);
         } finally {
             setIsLoading(false);
         }
-    }, [selectedModuleId, page, pageSize, searchQuery, sortBy, sortDirection]);
+    }, [page, pageSize, debouncedSearch]);
 
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    useEffect(() => {
+        setPage(1);
+    }, [debouncedSearch]);
+
+    // Keep in sync with context updates (e.g. after save)
+    const isFirstRender = useRef(true);
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        if (savedMappings.length > 0) {
+            fetchData();
+        }
+    }, [savedMappings, fetchData]);
 
     const handleDelete = async (id: number) => {
         const result = await Swal.fire({
@@ -75,21 +87,21 @@ export default function SavedGrid() {
                 } else {
                     Swal.fire({ title: 'Failed!', text: res.message || 'Failed to delete mapping.', icon: 'error' });
                 }
-            } catch (error) {
+            } catch (_error) {
                 Swal.fire({ title: 'Error!', text: 'An unexpected error occurred.', icon: 'error' });
             }
         }
     };
+
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
 
     const columns = useMemo<ColumnDef<ISavedMapping>[]>(
         () => [
             {
                 accessorKey: 'slno',
                 header: 'SL.NO',
-                cell: ({ row, table }) => {
-                    const { pagination } = table.getState();
-                    return pagination.pageIndex * pagination.pageSize + row.index + 1;
-                }
+                cell: ({ row }) => (page - 1) * pageSize + row.index + 1,
+                enableSorting: false
             },
             {
                 accessorKey: 'ivrmM_ModuleName',
@@ -116,18 +128,87 @@ export default function SavedGrid() {
                 )
             }
         ],
-        []
+        [page, pageSize]
     );
 
     return (
         <div className='flex h-full flex-col rounded-md border bg-white shadow-sm'>
-            <div className='flex items-center justify-between border-b bg-gray-50 p-3'>
-                <h3 className='font-semibold text-lg'>Saved Records of Module - Page Mapping</h3>
+            <div className='flex flex-wrap items-center justify-between gap-3 border-b bg-gray-50 p-3'>
+                <h3 className='font-semibold text-lg text-slate-800'>Saved Records of Module - Page Mapping</h3>
+                <div className='relative w-64'>
+                    <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-slate-400' />
+                    <Input
+                        placeholder='Search saved records...'
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className='h-9 rounded-md border-slate-200 bg-white pr-8 pl-9 text-sm focus:ring-1 focus:ring-blue-500'
+                    />
+                    {searchTerm && (
+                        <button
+                            type='button'
+                            onClick={() => setSearchTerm('')}
+                            className='-translate-y-1/2 absolute top-1/2 right-2.5 text-slate-400 hover:text-slate-600'>
+                            <X className='h-4 w-4' />
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className='flex-1 overflow-auto p-2'>
-                <GenericDataTable data={data} columns={columns} isLoading={isLoading} isPaginationRequired={true} totalItems={totalItems} />
+                <GenericDataTable
+                    data={data}
+                    columns={columns}
+                    isLoading={isLoading}
+                    isSearchRequired={false}
+                    isPaginationRequired={false}
+                    totalItems={totalItems}
+                />
             </div>
+
+            {totalItems > 0 && (
+                <div className='flex flex-wrap items-center justify-between gap-2 border-t bg-slate-50/50 px-4 py-2.5 text-slate-600 text-sm'>
+                    <div>
+                        Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalItems)} of {totalItems} entries
+                    </div>
+                    <div className='flex items-center gap-3'>
+                        <div className='flex items-center gap-1.5'>
+                            <span className='text-slate-500 text-xs'>Rows per page:</span>
+                            <select
+                                value={pageSize}
+                                onChange={(e) => {
+                                    setPageSize(Number(e.target.value));
+                                    setPage(1);
+                                }}
+                                className='h-8 rounded border border-slate-200 bg-white px-2 font-medium text-slate-700 text-xs shadow-sm'>
+                                <option value={10}>10</option>
+                                <option value={20}>20</option>
+                                <option value={50}>50</option>
+                            </select>
+                        </div>
+                        <div className='flex items-center gap-1'>
+                            <Button
+                                variant='outline'
+                                size='icon'
+                                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className='h-8 w-8 rounded'>
+                                <ChevronLeft className='h-4 w-4' />
+                            </Button>
+                            <span className='px-2 font-medium text-xs'>
+                                Page {page} of {totalPages}
+                            </span>
+                            <Button
+                                variant='outline'
+                                size='icon'
+                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                                disabled={page >= totalPages}
+                                className='h-8 w-8 rounded'>
+                                <ChevronRight className='h-4 w-4' />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
