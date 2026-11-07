@@ -31,16 +31,7 @@ export const columns: ColumnDef<IMasterCourseList>[] = [
         header: ({ column }) => <DataTableColumnHeader column={column} title='Description' className='whitespace-nowrap' />,
         meta: { title: 'Qualification Description' }
     },
-    {
-        accessorKey: 'hrmC_Order',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
-        meta: { title: 'Order' },
-        filterFn: 'equalsString',
-        cell: ({ row }) => {
-            const orderValue = row.original.hrmC_Order;
-            return <div>{orderValue ?? '-'}</div>;
-        }
-    },
+    
     {
         accessorKey: 'hrmC_DefaultQualFag',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Default' className='whitespace-nowrap' />,
@@ -76,6 +67,16 @@ export const columns: ColumnDef<IMasterCourseList>[] = [
                 )}
             </div>
         )
+    },
+    {
+        accessorKey: 'hrmC_Order',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Order' className='whitespace-nowrap' />,
+        meta: { title: 'Order' },
+        filterFn: 'equalsString',
+        cell: ({ row }) => {
+            const orderValue = row.original.hrmC_Order;
+            return <div>{orderValue ?? '-'}</div>;
+        }
     },
     {
         id: 'actions',

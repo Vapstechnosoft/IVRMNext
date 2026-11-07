@@ -181,8 +181,8 @@ export default function AddTransactionNumberingForm({ numberingType, onSuccess, 
             if (response.success || response) {
                 toast.success('Saved Successfully');
                 reset();
+                await refetchAll();
                 onSuccess?.();
-                refetchAll();
             } else {
                 toast.error('Failed to save');
             }
