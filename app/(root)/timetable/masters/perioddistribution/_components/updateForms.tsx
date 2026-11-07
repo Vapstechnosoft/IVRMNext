@@ -40,7 +40,7 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
     const { data: staffData } = useStaffPeriodDistrubution();
     const { data: sectionData } = useSectionPeriodDistrubution();
     const { data: subjectData } = useSubjectPeriodDistrubution();
-    const { data: classData } = useClassPeriodDistrubution();
+    const { data: classData, isLoading: isLoadingClassData } = useClassPeriodDistrubution();
 
     const academicList = (academicData as any) || [];
     const staffList = (staffData as any) || [];
@@ -58,7 +58,6 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
         // Support nested classarray from hook if needed
         return list.length > 0 ? list : classDataAny?.classarray || [];
     }, [initialData, classData, classDataAny]);
-
     // Handle nested sectionarray if present
     const sectionDataAny = sectionData as any;
     const sectionList = Array.isArray(sectionDataAny) ? sectionDataAny : sectionDataAny?.sectionarray || [];
@@ -72,7 +71,7 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
     const [availablePeriods, setAvailablePeriods] = useState<number>(0);
     const [editLoaded, setEditLoaded] = useState(false);
     const [classList, setClassList] = useState<any[]>([]);
-    const [isLoadingClasses, setIsLoadingClasses] = useState(false);
+    const classOptions = useMemo(() => [...classList, ...allClassList], [classList, allClassList]);
 
     const {
         register,
@@ -110,7 +109,8 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
         if (
             academicList.length === 0 ||
             staffList.length === 0 ||
-            categoryList.length === 0
+            categoryList.length === 0 ||
+            (allClassList.length === 0 && isLoadingClassData)
             // Note: classList and sectionList might depend on category selection in some forms,
             // but for initial edit mapping, we need the underlying records to show up.
         )
@@ -157,9 +157,13 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
                 categoryList.find((c: any) => c.ttmC_CategoryName?.trim().toLowerCase() === row.ttmC_CategoryName?.trim().toLowerCase())
                     ?.ttmC_Id || undefined;
 
+            const className = row.asmcL_ClassName?.trim().toLowerCase();
             const asmcL_Id =
-                classList.find((c: any) => c.asmcL_ClassName?.trim().toLowerCase() === row.asmcL_ClassName?.trim().toLowerCase())
-                    ?.asmcL_Id || undefined;
+                row.asmcL_Id ??
+                row.ASMCL_Id ??
+                (className
+                    ? classOptions.find((c: any) => c.asmcL_ClassName?.trim().toLowerCase() === className)?.asmcL_Id
+                    : undefined);
 
             const asmS_Id =
                 sectionList.find((s: any) => s.asmC_SectionName?.trim().toLowerCase() === row.asmC_SectionName?.trim().toLowerCase())
@@ -186,7 +190,20 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
 
         setTempList(mappedDetails);
         setEditLoaded(true);
-    }, [editData, isLoadingEdit, selectedRow, editLoaded, academicList, staffList, categoryList, classList, sectionList, subjectList]);
+    }, [
+        editData,
+        isLoadingEdit,
+        selectedRow,
+        editLoaded,
+        academicList,
+        staffList,
+        categoryList,
+        classOptions,
+        allClassList.length,
+        isLoadingClassData,
+        sectionList,
+        subjectList
+    ]);
 
     // Recalculate available periods whenever total or grid changes
     useEffect(() => {
@@ -201,10 +218,8 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
             // Filter classes in frontend like the report page does
             const filtered = allClassList.filter((c: any) => !c.ttmC_Id || c.ttmC_Id === watchedCategory);
             setClassList(filtered);
-            setIsLoadingClasses(false);
         } else if (watchedAcademicYear && watchedCategory) {
             const fetchClasses = async () => {
-                setIsLoadingClasses(true);
                 try {
                     const res = await getClassDropDownMasterDayClasswiseOnchnageofCatandyr(
                         Number(watchedAcademicYear),
@@ -218,8 +233,6 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
                 } catch (error) {
                     console.error('Error fetching classes:', error);
                     setClassList([]);
-                } finally {
-                    setIsLoadingClasses(false);
                 }
             };
             fetchClasses();
@@ -311,6 +324,10 @@ export default function UpdatePeriodDistributionForm({ onSuccess, selectedRow, i
         }
         if (tempList.length === 0) {
             toast.error('Need to distribute at least one period');
+            return;
+        }
+        if (tempList.some((item) => !Number(item.asmcL_Id))) {
+            toast.error('A class could not be resolved for one or more period details. Remove and re-add the affected detail, then try again.');
             return;
         }
 
