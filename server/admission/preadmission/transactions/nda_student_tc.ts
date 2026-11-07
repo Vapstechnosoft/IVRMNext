@@ -49,8 +49,8 @@ export async function saveNdaStudentTcData(data: {
 /**
  * Fetches TC PDF data for viewing
  */
-export async function getNdaStudentTcPdfData(data: { AMST_Id: number }) {
-    const url = `/StudentTc/tcpdf?AMST_Id=${data.AMST_Id}`;
+export async function getNdaStudentTcPdfData(data: { AMST_Id: number; ASMAY_Id?: number }) {
+    const url = `/StudentTc/tcpdf?AMST_Id=${data.AMST_Id}${data.ASMAY_Id ? `&ASMAY_Id=${data.ASMAY_Id}` : ''}`;
     const res = await api.post<any>('admission', url, {});
     return res?.data || res;
 }

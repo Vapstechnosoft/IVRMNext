@@ -36,17 +36,19 @@ const getResponseList = (response: any, ...keys: string[]) => {
 };
 
 const getClassSectionIds = (item: any) => ({
-    classId: item.asmcL_Id ?? item.asmcl_Id ?? item.asmcl_id ?? item.ASMCL_Id,
-    sectionId: item.asmC_Id ?? item.asmc_Id ?? item.asmc_id ?? item.ASMC_Id
+    classId: item.asmcL_Id ?? item.asmcl_Id ?? item.asmcl_id ?? item.ASMCL_Id ?? item.classId ?? item.ClassId,
+    sectionId: item.asmC_Id ?? item.asmc_Id ?? item.asmc_id ?? item.ASMC_Id ?? item.asms_Id ?? item.ASMS_Id ?? item.sectionId ?? item.SectionId
 });
 
 const getClassSectionLabel = (item: any) =>
     item.name ||
-    item.classsection ||
-    item.classSection ||
+    item.label ||
     `${item.asmcL_ClassName || item.asmcl_ClassName || item.ASMCL_ClassName || ''} : ${
         item.asmC_SectionName || item.asmc_SectionName || item.ASMC_SectionName || ''
-    }`.replace(/^ : | : $/g, '');
+    }`.replace(/^ : | : $/g, '') ||
+    item.classsection ||
+    item.classSection ||
+    '';
 
 export default function LoginPrivilegePage() {
     return (
@@ -390,7 +392,7 @@ function PrivilegeForm({
         const yIdNum = Number(yId);
         const sIdNum = Number(sId);
 
-        if (isNaN(yIdNum) || isNaN(sIdNum)) {
+        if (Number.isNaN(yIdNum) || Number.isNaN(sIdNum)) {
             toast.error('Invalid selection');
             return;
         }
@@ -636,10 +638,10 @@ function PrivilegeForm({
                                         val !== '2' &&
                                         selectedYearId &&
                                         selectedStaffId &&
-                                        !isNaN(Number(selectedYearId)) &&
-                                        !isNaN(Number(selectedStaffId))
+                                        !Number.isNaN(Number(selectedYearId)) &&
+                                        !Number.isNaN(Number(selectedStaffId))
                                     ) {
-                                        handleSearch(selectedYearId, val, selectedStaffId);
+                                        handleSearch(selectedYearId, val, selectedStaffId, true);
                                     }
                                 }}
                                 className='flex flex-wrap items-center gap-8'>
@@ -688,7 +690,7 @@ function PrivilegeForm({
                                             selectedStaffId !== '0' &&
                                             val !== '0'
                                         ) {
-                                            handleSearch(val, role, selectedStaffId);
+                                            handleSearch(val, role, selectedStaffId, true);
                                         }
                                     }}>
                                     <SelectTrigger>
@@ -723,7 +725,7 @@ function PrivilegeForm({
                                             selectedYearId !== '0' &&
                                             val !== '0'
                                         ) {
-                                            handleSearch(selectedYearId, role, val);
+                                            handleSearch(selectedYearId, role, val, true);
                                         }
                                     }}>
                                     <SelectTrigger>
