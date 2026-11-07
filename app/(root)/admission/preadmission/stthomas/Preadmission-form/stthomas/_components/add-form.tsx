@@ -2647,7 +2647,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         inputProps={{
                                                                             id: 'pasR_FatherMobleNo',
                                                                             name: 'pasR_FatherMobleNo',
-                                                                            maxLength: 25,
+                                                                            maxLength:15,
                                                                             required: false,
                                                                             style: {
                                                                                 width: '87%',
