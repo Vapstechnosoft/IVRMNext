@@ -684,7 +684,11 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
                                                     {field.required && <span className='text-destructive'>*</span>}
                                                 </Label>
                                                 <div className='col-span-2 space-y-1'>
+<<<<<<< HEAD
+                                                    <Input {...register(field.name as any)} type='number' min='1' max='200' />
+=======
                                                     <Input {...register(field.name as any)} type='number' min='1' max='15000' />
+>>>>>>> 59b889f1fc32f1c1f9d5a3070c20d3d0a0409d62
                                                     {errors[field.name as keyof GenConfigFormValues] && (
                                                         <p className='text-destructive text-xs'>
                                                             {errors[field.name as keyof GenConfigFormValues]?.message as string}
@@ -705,14 +709,18 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
                                         <div className='grid grid-cols-3 items-center gap-4'>
                                             <Label className='text-right'>SC Locking Period:</Label>
                                             <div className='col-span-2'>
-                                                <Input {...register('IVRMGC_SCLockingPeriod')} type='number' min='1' max='15' />
+                                                <Input {...register('IVRMGC_SCLockingPeriod')} type='number' min='0' max='200' />
                                             </div>
                                         </div>
                                         <div className='grid grid-cols-3 items-center gap-4'>
                                             <Label className='text-right'>FP Locking Period:</Label>
                                             <div className='col-span-2'>
+<<<<<<< HEAD
+                                                <Input {...register('IVRMGC_FPLockingPeriod')} type='number' min='0' max='200' />
+=======
                                                 <Input {...register('IVRMGC_FPLockingPeriod')} type='number' min='1' max='15' />
                                                 
+>>>>>>> 59b889f1fc32f1c1f9d5a3070c20d3d0a0409d62
                                             </div>
                                             
                                         </div>

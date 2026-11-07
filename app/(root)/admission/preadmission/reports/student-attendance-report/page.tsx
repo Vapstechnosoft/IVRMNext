@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Bell, CalendarIcon, FileSpreadsheet, Printer, Save, Search } from 'lucide-react';
+import { Bell, CalendarIcon, FileSpreadsheet, Printer, RotateCcw, Save, Search } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
@@ -332,6 +332,10 @@ export default function StudyCertificateReportPage(props: {
         } finally {
             setIsSending(false);
         }
+    };
+
+    const handleReset = () => {
+        window.location.reload();
     };
 
     /* ---------------- Effects ---------------- */
@@ -691,11 +695,9 @@ export default function StudyCertificateReportPage(props: {
                         <Button
                             type='button'
                             variant='outline'
-                            onClick={() => {
-                                reset();
-                                setShowGrid(false);
-                            }}
+                            onClick={handleReset}
                             className='w-fit'>
+                            <RotateCcw className='mr-2 h-4 w-4' />
                             Reset
                         </Button>
                         <Button type='submit' isLoading={isSubmitting} className='w-fit'>

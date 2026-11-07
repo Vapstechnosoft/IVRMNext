@@ -130,7 +130,23 @@ export const studentAdmissionFormSchema = {
         // NATIONALITY - STRING
         amsT_FatherNationality: z.number().int().optional(),
 
-        amsT_MobileNo: z.string({ required_error: 'Mobile Number is required' }).min(1, 'Mobile Number is required'),
+        amsT_MobileNo: z
+            .string({ required_error: 'Mobile Number is required' })
+            .min(1, 'Mobile Number is required')
+            .refine(
+                (val) => {
+                    if (!val) return false;
+                    // Strip country code (e.g. "+91 ") and spaces/dashes, keep only digits after dial code
+                    const digitsOnly = val.replace(/\D/g, '');
+                    // For India (+91) the national number is the last 10 digits
+                    // For other countries the number stored as "+(dialCode) (nationalNumber)"
+                    // We validate by checking national number part length is exactly 10
+                    const spaceIdx = val.indexOf(' ');
+                    const nationalPart = spaceIdx !== -1 ? val.slice(spaceIdx + 1).replace(/\D/g, '') : digitsOnly;
+                    return nationalPart.length === 10;
+                },
+                { message: 'Mobile number must be exactly 10 digits' }
+            ),
 
         amsT_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
         asmS_Id: z.preprocess(
