@@ -94,15 +94,15 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
             };
 
             const result = (await saveFeeChequeBounce(payload)) as any;
-            const validationValue = result?.validationvalue || result?.data?.validationvalue;
 
-            if (validationValue === 'Saved' || validationValue === 'Updated') {
-                toast.success(`Record ${validationValue} Successfully`);
+            if (result?.success) {
+                toast.success(result.message);
+
                 queryClient.invalidateQueries();
                 onSuccess();
                 reset();
             } else {
-                toast.error(String(validationValue || 'Failed to save record'));
+                toast.error(result?.message);
             }
         } catch (error) {
             toast.error('An error occurred while saving the record');
