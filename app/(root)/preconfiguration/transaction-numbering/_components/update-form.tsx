@@ -376,8 +376,8 @@ export default function UpdateTransactionNumberingForm({
             if (response?.success || response?.status === 200 || (!response?.message && response)) {
                 toast.success('Updated Successfully');
                 reset();
+                await refetchAll();
                 onSuccess?.();
-                refetchAll();
             } else {
                 toast.error(response?.message || 'Failed to update');
             }
