@@ -65,7 +65,9 @@ function MasterSectionPageContent({
     if (normalizedResponse && normalizedResponse.data) {
         const dataArray = Array.isArray(normalizedResponse.data) ? normalizedResponse.data : [];
 
-        let filteredData = dataArray;
+ let filteredData = [...dataArray].sort(
+    (a: any, b: any) => Number(a.asmC_Order) - Number(b.asmC_Order)
+);
         if (searchQuery) {
             filteredData = dataArray.filter((item: any) => {
                 return (
@@ -93,7 +95,9 @@ function MasterSectionPageContent({
             total: filteredData.length
         };
     } else if (Array.isArray(normalizedResponse)) {
-        let filteredData = normalizedResponse;
+        let filteredData = [...normalizedResponse].sort(
+    (a: any, b: any) => Number(a.asmC_Order) - Number(b.asmC_Order)
+);
         if (searchQuery) {
             filteredData = normalizedResponse.filter((item: any) => {
                 return (

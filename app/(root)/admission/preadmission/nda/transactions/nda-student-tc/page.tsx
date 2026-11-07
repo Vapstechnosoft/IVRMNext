@@ -164,15 +164,23 @@ export default function NdaStudentTcPage() {
     const handleViewPdf = async (student: any) => {
         try {
             setPrintModal({ isOpen: true, data: null });
-            const res = (await pdfMutation.mutateAsync({ AMST_Id: student.AMST_Id ?? student.amst_id })) as any;
+            const amstId = student.AMST_Id ?? student.amst_id;
+            const asmayId = student.ASMAY_Id ?? student.asmay_id;
+            const res = (await pdfMutation.mutateAsync({ AMST_Id: amstId, ASMAY_Id: asmayId })) as any;
 
-            let tcList = [];
+            let tcList: any[] = [];
             if (Array.isArray(res)) {
                 tcList = res;
             } else if (res?.data && Array.isArray(res.data)) {
                 tcList = res.data;
+            } else if (res?.data?.$values && Array.isArray(res.data.$values)) {
+                tcList = res.data.$values;
+            } else if (res?.$values && Array.isArray(res.$values)) {
+                tcList = res.$values;
             } else if (res?.studenttcpdf && Array.isArray(res.studenttcpdf)) {
                 tcList = res.studenttcpdf;
+            } else if (res?.studenttcpdf?.$values && Array.isArray(res.studenttcpdf.$values)) {
+                tcList = res.studenttcpdf.$values;
             }
 
             if (tcList && tcList.length > 0) {
@@ -205,7 +213,7 @@ export default function NdaStudentTcPage() {
 
                 setPrintModal({ isOpen: true, data: mappedData });
             } else {
-                toast.error('No PDF data found');
+                toast.error(res?.message || 'No PDF data found');
                 setPrintModal({ isOpen: false, data: null });
             }
         } catch (error) {

@@ -13,9 +13,16 @@ import { registrationNumberingColumns } from './columns';
 import UpdateTransactionNumberingForm from './update-form';
 
 export default function TransactionNumberingContent({ numberingType }: { numberingType: string }) {
-    const { data: response, isLoading, error } = useRegNumbering(numberingType);
+    const { data: response, isLoading, error, refetch, refetchAll } = useRegNumbering(numberingType);
     const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<IMasterTransactionNumberingList>();
+
+    const handleSuccess = async () => {
+        closeAddForm();
+        closeEditForm();
+        await refetchAll();
+        refetch();
+    };
 
     const getTableData = (res: any, type: string) => {
         if (!res) return [];
@@ -105,7 +112,7 @@ export default function TransactionNumberingContent({ numberingType }: { numberi
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddTransactionNumberingForm numberingType={numberingType} onSuccess={closeAddForm} />
+                            <AddTransactionNumberingForm numberingType={numberingType} onSuccess={handleSuccess} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -142,7 +149,7 @@ export default function TransactionNumberingContent({ numberingType }: { numberi
                                 initialData={{
                                     rollNumberingconfig: rollConfig
                                 }}
-                                onSuccess={closeEditForm}
+                                onSuccess={handleSuccess}
                             />
                         </div>
                     </CollapsibleSection>
