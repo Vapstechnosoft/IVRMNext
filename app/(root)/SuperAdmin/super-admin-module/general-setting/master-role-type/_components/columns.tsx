@@ -12,26 +12,38 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { useFormContext } from '@/components/ui/form/form-provider';
-import { activateDeactivateMasterRoleType } from '@/server/super-admin/super-admin-module/general-setting/master-role-type';
+import { deleteMasterRoleType } from '@/server/super-admin/super-admin-module/general-setting/master-role-type';
 import type { IMasterRoleType } from '@/types/super-admin/super-admin-module/general-setting/master-role-type';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Pencil } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { usePageContext } from './page-context';
 
 const ActionCell = ({ row }: { row: any }) => {
     const { openEditForm } = useFormContext<IMasterRoleType>();
+    const { refreshData } = usePageContext();
     const [open, setOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleDelete = async () => {
-        const result = await activateDeactivateMasterRoleType(row.original.id);
-        if (result.success) {
-            toast.success(result.message);
-            window.location.reload();
-        } else {
-            toast.error(result.message);
+    const handleDelete = async (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        setIsDeleting(true);
+        try {
+            const result = await deleteMasterRoleType(row.original.id);
+            if (result.success) {
+                toast.success(result.message);
+                setOpen(false);
+                refreshData();
+            } else {
+                toast.error(result.message);
+            }
+        } catch (error) {
+            console.error('Failed to delete master role type:', error);
+            toast.error(error instanceof Error ? error.message : 'An error occurred while deleting the role type.');
+        } finally {
+            setIsDeleting(false);
         }
-        setOpen(false);
     };
 
     return (
@@ -46,40 +58,31 @@ const ActionCell = ({ row }: { row: any }) => {
                     <Pencil className='h-4 w-4' />
                 </Button>
                 <span className='text-gray-300'>|</span>
-                {row.original.activeFlag === 0 ? (
-                    <Button
-                        variant='ghost'
-                        size='sm'
-                        className='px-2 text-green-600 hover:bg-green-50 hover:text-green-700'
-                        title='Activate'
-                        onClick={() => setOpen(true)}>
-                        Activate
-                    </Button>
-                ) : (
-                    <Button
-                        variant='ghost'
-                        size='sm'
-                        className='px-2 text-red-600 hover:bg-red-50 hover:text-red-700'
-                        title='Deactivate'
-                        onClick={() => setOpen(true)}>
-                        Deactivate
-                    </Button>
-                )}
+                <Button
+                    variant='ghost'
+                    size='icon'
+                    className='h-8 w-8 text-destructive hover:bg-destructive/10'
+                    title='Delete'
+                    aria-label='Delete role type'
+                    onClick={() => setOpen(true)}>
+                    <Trash2 className='h-4 w-4' />
+                </Button>
             </div>
             <AlertDialog open={open} onOpenChange={setOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogTitle>Delete role type?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Do you want to {row.original.activeFlag === 0 ? 'Activate' : 'Deactivate'} this role type?
+                            This action cannot be undone. If this role type is assigned to users, the server may prevent deletion.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
-                            className={row.original.activeFlag === 0 ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}>
-                            {row.original.activeFlag === 0 ? 'Activate' : 'Deactivate'}
+                            disabled={isDeleting}
+                            className='bg-destructive hover:bg-destructive/90'>
+                            {isDeleting ? 'Deleting...' : 'Delete'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -112,7 +115,7 @@ export const masterRoleTypeColumns: ColumnDef<IMasterRoleType>[] = [
     },
     {
         id: 'actions',
-        header: 'Edit | Activate/Deactivate',
+        header: 'Edit | Delete',
         cell: ({ row }) => <ActionCell row={row} />,
         enableSorting: false
     }
