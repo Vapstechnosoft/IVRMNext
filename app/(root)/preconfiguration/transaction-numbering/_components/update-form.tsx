@@ -26,6 +26,166 @@ interface NumberingConfigUpdateFormProps {
     initialData?: Partial<FormFields>;
 }
 
+const getBackendFlag = (type: string): string => {
+    switch (type) {
+        case 'TC':
+            return 'tcno';
+        case 'OnlineBooking':
+            return 'TripOnlineBooking';
+        case 'Trip':
+            return 'TripNo';
+        case 'Leave':
+            return 'LeaveNo';
+        default:
+            return type;
+    }
+};
+
+const mapRowToFormData = (row: any, type: string, initialCfg?: any[]): Partial<FormFields> => {
+    if (!row) return {};
+    const autoManualRaw =
+        row.imN_AutoManualFlag ??
+        row.IMN_AutoManualFlag ??
+        row.irN_AutoManualFlag ??
+        row.IRN_AutoManualFlag ??
+        row.ivN_AutoManualFlag ??
+        row.IVN_AutoManualFlag;
+    const isManual = autoManualRaw === 'M' || autoManualRaw === 'Manual';
+
+    const duplicateRaw =
+        row.imN_DuplicatesFlag ??
+        row.IMN_DuplicatesFlag ??
+        row.irN_DuplicatesFlag ??
+        row.IRN_DuplicatesFlag ??
+        row.ivN_DuplicatesFlag ??
+        row.IVN_DuplicatesFlag;
+    const isDuplicate = duplicateRaw === 'Y' || duplicateRaw === 'Yes' || duplicateRaw === true;
+
+    const prefixFinYear =
+        row.ivN_PrefixFinYearCode ??
+        row.IVN_PrefixFinYearCode ??
+        row.imN_PrefixFinYearCode ??
+        row.IMN_PrefixFinYearCode ??
+        row.irN_PrefixFinYearCode ??
+        row.IRN_PrefixFinYearCode;
+
+    const prefixAcadYear =
+        type === 'Voucher'
+            ? prefixFinYear
+            : (row.imN_PrefixAcadYearCode ??
+                row.IMN_PrefixAcadYearCode ??
+                row.irN_PrefixAcadYearCode ??
+                row.IRN_PrefixAcadYearCode ??
+                prefixFinYear);
+
+    const prefixParticular =
+        row.imN_PrefixParticular ??
+        row.IMN_PrefixParticular ??
+        row.irN_PrefixParticular ??
+        row.IRN_PrefixParticular ??
+        row.ivN_PrefixParticular ??
+        row.IVN_PrefixParticular ??
+        '';
+
+    const suffixFinYear =
+        row.ivN_SuffixFinYearCode ??
+        row.IVN_SuffixFinYearCode ??
+        row.imN_SuffixFinYearCode ??
+        row.IMN_SuffixFinYearCode ??
+        row.irN_SuffixFinYearCode ??
+        row.IRN_SuffixFinYearCode;
+
+    const suffixAcadYear =
+        type === 'Voucher'
+            ? suffixFinYear
+            : (row.imN_SuffixAcadYearCode ??
+                row.IMN_SuffixAcadYearCode ??
+                row.irN_SuffixAcadYearCode ??
+                row.IRN_SuffixAcadYearCode ??
+                suffixFinYear);
+
+    const suffixParticular =
+        row.imN_SuffixParticular ??
+        row.IMN_SuffixParticular ??
+        row.irN_SuffixParticular ??
+        row.IRN_SuffixParticular ??
+        row.ivN_SuffixParticular ??
+        row.IVN_SuffixParticular ??
+        '';
+
+    const zeroPrefixRaw =
+        row.imN_ZeroPrefixFlag ??
+        row.IMN_ZeroPrefixFlag ??
+        row.irN_ZeroPrefixFlag ??
+        row.IRN_ZeroPrefixFlag ??
+        row.ivN_ZeroPrefixFlag ??
+        row.IVN_ZeroPrefixFlag;
+    const zeroPrefix = zeroPrefixRaw === 'Y' || zeroPrefixRaw === 'Yes' || zeroPrefixRaw === true;
+
+    const restartFlag =
+        row.imN_RestartNumFlag ??
+        row.IMN_RestartNumFlag ??
+        row.irN_RestartNumFlag ??
+        row.IRN_RestartNumFlag ??
+        row.ivN_RestartNumFlag ??
+        row.IVN_RestartNumFlag ??
+        '';
+    const restartFreq =
+        restartFlag === 'Y' || restartFlag === 'Yearly' ? 'yearly' : restartFlag === 'M' || restartFlag === 'Monthly' ? 'monthly' : 'never';
+
+    const widthVal =
+        row.imN_WidthNumeric ??
+        row.IMN_WidthNumeric ??
+        row.irN_WidthNumeric ??
+        row.IRN_WidthNumeric ??
+        row.ivN_WidthNumeric ??
+        row.IVN_WidthNumeric ??
+        0;
+
+    const startVal =
+        row.imN_StartingNo ??
+        row.IMN_StartingNo ??
+        row.irN_StartingNo ??
+        row.IRN_StartingNo ??
+        row.ivN_StartingNo ??
+        row.IVN_StartingNo ??
+        0;
+
+    const rawRollConfig =
+        row.rollNumberingconfig && row.rollNumberingconfig.length > 0
+            ? row.rollNumberingconfig
+            : row.RollNumberingconfig && row.RollNumberingconfig.length > 0
+                ? row.RollNumberingconfig
+                : initialCfg || [];
+
+    const mappedRollConfig = rawRollConfig.map((item: any, idx: number) => ({
+        ivrmarnC_Field: item.ivrmarnC_Field ?? item.IVRMARNC_Field ?? 'AMST_FirstName',
+        ivrmarnC_AscDscOrder: item.ivrmarnC_AscDscOrder ?? item.IVRMARNC_AscDscOrder ?? 'ASC',
+        ivrmarnC_Order: Number(item.ivrmarnC_Order ?? item.IVRMARNC_Order ?? idx + 1),
+        ivrmarnC_Id: Number(item.ivrmarnC_Id ?? item.IVRMARNC_Id ?? 0)
+    }));
+
+    return {
+        auto_manual_flag: isManual ? 'Manual' : 'Auto',
+        duplicates_flag: isDuplicate ? 'Yes' : 'No',
+        prefix_type: prefixAcadYear ? 'academic' : prefixParticular ? 'particulars' : 'academic',
+        prefix_particulars: prefixParticular,
+        prefix_numeric_width: Number(widthVal),
+        suffix_type: suffixAcadYear ? 'academic' : suffixParticular ? 'particulars' : 'academic',
+        suffix_particulars: suffixParticular,
+        suffix_starting_from: Number(startVal),
+        prefix_with_zero: zeroPrefix ? 'yes' : 'no',
+        restart_frequency: restartFreq,
+        transaction_name: row.irN_TransactionName || row.IRN_TransactionName || '',
+        restart_acad_year: !!(row.irN_RestartAcadYear ?? row.IRN_RestartAcadYear),
+        restart_fin_year: !!(row.irN_RestartFinYear ?? row.IRN_RestartFinYear),
+        restart_cal_year: !!(row.irN_RestartcalendYear ?? row.IRN_RestartcalendYear),
+        voucher_name: row.ivN_VoucherName || row.IVN_VoucherName || row.voucherName || row.VoucherName || '',
+        voucher_type: row.ivN_VoucherID || row.IVN_VoucherID || row.voucherType || row.VoucherType || '',
+        rollNumberingconfig: mappedRollConfig
+    };
+};
+
 export default function UpdateTransactionNumberingForm({
     numberingType,
     onSuccess,
@@ -81,75 +241,9 @@ export default function UpdateTransactionNumberingForm({
 
     useEffect(() => {
         if (selectedRow) {
-            const isManual =
-                selectedRow.imN_AutoManualFlag === 'M' ||
-                selectedRow.imN_AutoManualFlag === 'Manual' ||
-                selectedRow.IMN_AutoManualFlag === 'M' ||
-                selectedRow.IMN_AutoManualFlag === 'Manual';
-
-            const isDuplicate =
-                selectedRow.imN_DuplicatesFlag === 'Y' ||
-                selectedRow.imN_DuplicatesFlag === 'Yes' ||
-                selectedRow.IMN_DuplicatesFlag === 'Y' ||
-                selectedRow.IMN_DuplicatesFlag === 'Yes';
-
-            const prefixAcadYear = numberingType === 'Voucher'
-                ? (selectedRow.imN_PrefixFinYearCode ?? selectedRow.IMN_PrefixFinYearCode)
-                : (selectedRow.imN_PrefixAcadYearCode ?? selectedRow.IMN_PrefixAcadYearCode);
-
-            const prefixParticular = selectedRow.imN_PrefixParticular ?? selectedRow.IMN_PrefixParticular ?? '';
-
-            const suffixAcadYear = numberingType === 'Voucher'
-                ? (selectedRow.imN_SuffixFinYearCode ?? selectedRow.IMN_SuffixFinYearCode)
-                : (selectedRow.imN_SuffixAcadYearCode ?? selectedRow.IMN_SuffixAcadYearCode);
-
-            const suffixParticular = selectedRow.imN_SuffixParticular ?? selectedRow.IMN_SuffixParticular ?? '';
-
-            const zeroPrefix =
-                selectedRow.imN_ZeroPrefixFlag === 'Y' ||
-                selectedRow.imN_ZeroPrefixFlag === 'Yes' ||
-                selectedRow.IMN_ZeroPrefixFlag === 'Y' ||
-                selectedRow.IMN_ZeroPrefixFlag === 'Yes';
-
-            const restartFlag = selectedRow.imN_RestartNumFlag ?? selectedRow.IMN_RestartNumFlag ?? '';
-            const restartFreq =
-                restartFlag === 'Y' || restartFlag === 'Yearly'
-                    ? 'yearly'
-                    : restartFlag === 'M' || restartFlag === 'Monthly'
-                      ? 'monthly'
-                      : 'never';
-
-            const mappedData: Partial<FormFields> = {
-                auto_manual_flag: isManual ? 'Manual' : 'Auto',
-                duplicates_flag: isDuplicate ? 'Yes' : 'No',
-                prefix_type: prefixAcadYear
-                    ? 'academic'
-                    : prefixParticular
-                      ? 'particulars'
-                      : 'academic',
-                prefix_particulars: prefixParticular,
-                prefix_numeric_width: Number(selectedRow.imN_WidthNumeric ?? selectedRow.IMN_WidthNumeric ?? 0),
-                suffix_type: suffixAcadYear
-                    ? 'academic'
-                    : suffixParticular
-                      ? 'particulars'
-                      : 'academic',
-                suffix_particulars: suffixParticular,
-                suffix_starting_from: Number(selectedRow.imN_StartingNo ?? selectedRow.IMN_StartingNo ?? 0),
-                prefix_with_zero: zeroPrefix ? 'yes' : 'no',
-                restart_frequency: restartFreq,
-                transaction_name: selectedRow.irN_TransactionName || selectedRow.IRN_TransactionName || '',
-                restart_acad_year: !!(selectedRow.irN_RestartAcadYear ?? selectedRow.IRN_RestartAcadYear),
-                restart_fin_year: !!(selectedRow.irN_RestartFinYear ?? selectedRow.IRN_RestartFinYear),
-                restart_cal_year: !!(selectedRow.irN_RestartcalendYear ?? selectedRow.IRN_RestartcalendYear),
-                voucher_name: selectedRow.voucherName || selectedRow.VoucherName || '',
-                voucher_type: selectedRow.voucherType || selectedRow.VoucherType || '',
-                rollNumberingconfig: selectedRow.rollNumberingconfig || selectedRow.RollNumberingconfig || []
-            };
-
-            reset(mappedData);
+            reset(mapRowToFormData(selectedRow, numberingType, initialData?.rollNumberingconfig));
         }
-    }, [selectedRow, reset, numberingType]);
+    }, [selectedRow, reset, numberingType, initialData]);
 
     const handleDeleteRollConfig = async (index: number, id: number) => {
         if (id === 0) {
@@ -175,20 +269,29 @@ export default function UpdateTransactionNumberingForm({
 
     const onSubmit = async (data: FormFields) => {
         try {
-            const imnId = selectedRow?.imN_Id || selectedRow?.IMN_Id || 0;
+            const recordId =
+                selectedRow?.imN_Id ||
+                selectedRow?.IMN_Id ||
+                selectedRow?.irN_Id ||
+                selectedRow?.IRN_Id ||
+                selectedRow?.ivN_Id ||
+                selectedRow?.IVN_Id ||
+                0;
             const autoManualFlagVal = data.auto_manual_flag === 'Manual' ? 'Manual' : 'Auto';
             const duplicatesFlagVal = data.auto_manual_flag === 'Manual' ? (data.duplicates_flag === 'Yes' ? 'Yes' : 'No') : 'No';
             const zeroPrefixFlagVal = data.prefix_with_zero === 'yes' ? 'Yes' : 'No';
-            const restartNumFlagVal = data.restart_frequency === 'yearly' ? 'Yearly' : data.restart_frequency === 'monthly' ? 'Monthly' : 'Never';
+            const restartNumFlagVal =
+                data.restart_frequency === 'yearly' ? 'Yearly' : data.restart_frequency === 'monthly' ? 'Monthly' : 'Never';
             const prefixAcadYear = data.prefix_type === 'academic';
             const suffixAcadYear = data.suffix_type === 'academic';
             const prefixParticular = data.prefix_type === 'particulars' ? data.prefix_particulars || '' : '';
             const suffixParticular = data.suffix_type === 'particulars' ? data.suffix_particulars || '' : '';
+            const backendFlag = getBackendFlag(numberingType);
 
             // Default Master Payload
             let payload: any = {
-                imN_Id: imnId,
-                IMN_Id: imnId,
+                imN_Id: recordId,
+                IMN_Id: recordId,
                 imN_AutoManualFlag: autoManualFlagVal,
                 IMN_AutoManualFlag: autoManualFlagVal,
                 imN_DuplicatesFlag: duplicatesFlagVal,
@@ -205,8 +308,8 @@ export default function UpdateTransactionNumberingForm({
                 IMN_SuffixParticular: suffixParticular,
                 imN_RestartNumFlag: restartNumFlagVal,
                 IMN_RestartNumFlag: restartNumFlagVal,
-                imN_Flag: numberingType,
-                IMN_Flag: numberingType,
+                imN_Flag: backendFlag,
+                IMN_Flag: backendFlag,
 
                 // Defaults for Master
                 imN_PrefixAcadYearCode: prefixAcadYear,
@@ -252,23 +355,29 @@ export default function UpdateTransactionNumberingForm({
                     IMN_SuffixFinYearCode: suffixAcadYear
                 };
             } else if (numberingType === 'RollNumber') {
+                const mappedConfig = data.rollNumberingconfig?.map((item, index) => ({
+                    ivrmarnC_Field: item.ivrmarnC_Field,
+                    IVRMARNC_Field: item.ivrmarnC_Field,
+                    ivrmarnC_AscDscOrder: item.ivrmarnC_AscDscOrder,
+                    IVRMARNC_AscDscOrder: item.ivrmarnC_AscDscOrder,
+                    ivrmarnC_Order: item.ivrmarnC_Order || index + 1,
+                    IVRMARNC_Order: item.ivrmarnC_Order || index + 1,
+                    ivrmarnC_Id: item.ivrmarnC_Id || 0,
+                    IVRMARNC_Id: item.ivrmarnC_Id || 0
+                }));
                 payload = {
                     ...payload,
-                    rollNumberingconfig: data.rollNumberingconfig?.map((item, index) => ({
-                        ivrmarnC_Field: item.ivrmarnC_Field,
-                        ivrmarnC_AscDscOrder: item.ivrmarnC_AscDscOrder,
-                        ivrmarnC_Order: item.ivrmarnC_Order || index + 1,
-                        ivrmarnC_Id: item.ivrmarnC_Id || 0
-                    }))
+                    rollNumberingconfig: mappedConfig,
+                    RollNumberingconfig: mappedConfig
                 };
             }
 
-            const response = await addOrUpdateTransactionNumbering(payload);
-            if (response?.success || response?.status === 200 || response) {
+            const response: any = await addOrUpdateTransactionNumbering(payload);
+            if (response?.success || response?.status === 200 || (!response?.message && response)) {
                 toast.success('Updated Successfully');
                 reset();
+                await refetchAll();
                 onSuccess?.();
-                refetchAll();
             } else {
                 toast.error(response?.message || 'Failed to update');
             }
@@ -279,72 +388,7 @@ export default function UpdateTransactionNumberingForm({
 
     const handleReset = () => {
         if (selectedRow) {
-            const isManual =
-                selectedRow.imN_AutoManualFlag === 'M' ||
-                selectedRow.imN_AutoManualFlag === 'Manual' ||
-                selectedRow.IMN_AutoManualFlag === 'M' ||
-                selectedRow.IMN_AutoManualFlag === 'Manual';
-
-            const isDuplicate =
-                selectedRow.imN_DuplicatesFlag === 'Y' ||
-                selectedRow.imN_DuplicatesFlag === 'Yes' ||
-                selectedRow.IMN_DuplicatesFlag === 'Y' ||
-                selectedRow.IMN_DuplicatesFlag === 'Yes';
-
-            const prefixAcadYear = numberingType === 'Voucher'
-                ? (selectedRow.imN_PrefixFinYearCode ?? selectedRow.IMN_PrefixFinYearCode)
-                : (selectedRow.imN_PrefixAcadYearCode ?? selectedRow.IMN_PrefixAcadYearCode);
-
-            const prefixParticular = selectedRow.imN_PrefixParticular ?? selectedRow.IMN_PrefixParticular ?? '';
-
-            const suffixAcadYear = numberingType === 'Voucher'
-                ? (selectedRow.imN_SuffixFinYearCode ?? selectedRow.IMN_SuffixFinYearCode)
-                : (selectedRow.imN_SuffixAcadYearCode ?? selectedRow.IMN_SuffixAcadYearCode);
-
-            const suffixParticular = selectedRow.imN_SuffixParticular ?? selectedRow.IMN_SuffixParticular ?? '';
-
-            const zeroPrefix =
-                selectedRow.imN_ZeroPrefixFlag === 'Y' ||
-                selectedRow.imN_ZeroPrefixFlag === 'Yes' ||
-                selectedRow.IMN_ZeroPrefixFlag === 'Y' ||
-                selectedRow.IMN_ZeroPrefixFlag === 'Yes';
-
-            const restartFlag = selectedRow.imN_RestartNumFlag ?? selectedRow.IMN_RestartNumFlag ?? '';
-            const restartFreq =
-                restartFlag === 'Y' || restartFlag === 'Yearly'
-                    ? 'yearly'
-                    : restartFlag === 'M' || restartFlag === 'Monthly'
-                      ? 'monthly'
-                      : 'never';
-
-            const mappedData: Partial<FormFields> = {
-                auto_manual_flag: isManual ? 'Manual' : 'Auto',
-                duplicates_flag: isDuplicate ? 'Yes' : 'No',
-                prefix_type: prefixAcadYear
-                    ? 'academic'
-                    : prefixParticular
-                      ? 'particulars'
-                      : 'academic',
-                prefix_particulars: prefixParticular,
-                prefix_numeric_width: Number(selectedRow.imN_WidthNumeric ?? selectedRow.IMN_WidthNumeric ?? 0),
-                suffix_type: suffixAcadYear
-                    ? 'academic'
-                    : suffixParticular
-                      ? 'particulars'
-                      : 'academic',
-                suffix_particulars: suffixParticular,
-                suffix_starting_from: Number(selectedRow.imN_StartingNo ?? selectedRow.IMN_StartingNo ?? 0),
-                prefix_with_zero: zeroPrefix ? 'yes' : 'no',
-                restart_frequency: restartFreq,
-                transaction_name: selectedRow.irN_TransactionName || selectedRow.IRN_TransactionName || '',
-                restart_acad_year: !!(selectedRow.irN_RestartAcadYear ?? selectedRow.IRN_RestartAcadYear),
-                restart_fin_year: !!(selectedRow.irN_RestartFinYear ?? selectedRow.IRN_RestartFinYear),
-                restart_cal_year: !!(selectedRow.irN_RestartcalendYear ?? selectedRow.IRN_RestartcalendYear),
-                voucher_name: selectedRow.voucherName || selectedRow.VoucherName || '',
-                voucher_type: selectedRow.voucherType || selectedRow.VoucherType || '',
-                rollNumberingconfig: selectedRow.rollNumberingconfig || selectedRow.RollNumberingconfig || []
-            };
-            reset(mappedData);
+            reset(mapRowToFormData(selectedRow, numberingType, initialData?.rollNumberingconfig));
         } else {
             reset({
                 auto_manual_flag: 'Auto',

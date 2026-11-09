@@ -2174,11 +2174,16 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                 dial: String(countryData?.dialCode ?? '')
             }
         }));
-        if (expected !== undefined && numberPart.length > 0) {
-            if (numberPart.length < expected) {
+        if (expected !== undefined) {
+            if (numberPart.length === 0) {
                 setError(fieldName as any, {
                     type: 'manual',
-                    message: `Mobile number must be at least ${expected} digits for ${countryData?.name ?? countryData?.country ?? 'selected country'}`
+                    message: 'Mobile Number is required'
+                });
+            } else if (numberPart.length < expected) {
+                setError(fieldName as any, {
+                    type: 'manual',
+                    message: `Mobile number must be exactly ${expected} digits for ${countryData?.name ?? countryData?.country ?? 'selected country'}`
                 });
             } else if (numberPart.length > expected) {
                 setError(fieldName as any, {

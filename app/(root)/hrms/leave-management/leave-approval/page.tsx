@@ -1,9 +1,10 @@
 'use client';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { AdaptiveDialog } from '@/components/ui/extension/adaptive-dialog';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
     useApproveOrRejectLeaveStatus,
@@ -12,10 +13,10 @@ import {
     useViewLeaveBalanceHistory
 } from '@/hooks/hrms/leave-management/useLeaveApproval';
 import { cn } from '@/lib/utils';
-import { Check, Loader2, X } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2, Search, X } from 'lucide-react';
 import { use, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { type LeaveApprovalRow, getLeaveApprovalColumns } from './_components/columns';
+import type { LeaveApprovalRow } from './_components/columns';
 import { LeaveApprovalForm, type LeaveApprovalFormData } from './_components/leave-approval-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function LeaveApprovalPage(props: { searchParams: SearchParams }) {
@@ -69,7 +70,9 @@ interface LeaveApprovalPageContentProps {
 
 function LeaveApprovalPageContent({ response, isLoading, error, mockResponse }: LeaveApprovalPageContentProps) {
     const { openEditForm } = useFormContext<LeaveApprovalRow>();
-    const tableProps = useDataTableProps(mockResponse);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
     const { refetchAll } = useLeaveAppliedOrApprovalGrid();
     const { data: approvedResponse, refetch: refetchApproved } = useApprovedLeave();
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
@@ -191,16 +194,6 @@ function LeaveApprovalPageContent({ response, isLoading, error, mockResponse }: 
         }
     };
 
-    const columns = useMemo(
-        () =>
-            getLeaveApprovalColumns({
-                onApprove: handleApprove,
-                onReject: handleReject,
-                onViewBalance: handleViewBalance
-            }),
-        [stagedLeaves]
-    );
-
     // Filter leaves into processed and pending
     const processedLeaves = useMemo(() => {
         // Option 1: Combine mockResponse data that is processed
@@ -257,13 +250,39 @@ function LeaveApprovalPageContent({ response, isLoading, error, mockResponse }: 
     // Filter out staged leaves from the pending list for the bottom grid
     const filteredPendingData = useMemo(() => {
         const stagedIds = new Set(stagedLeaves.map((l) => l.hrelaP_Id));
-        return pendingLeaves.filter((item) => !stagedIds.has(item.hrelaP_Id));
-    }, [pendingLeaves, stagedLeaves]);
+        const query = searchTerm.trim().toLowerCase();
+        return pendingLeaves.filter((item) => {
+            if (stagedIds.has(item.hrelaP_Id)) return false;
+            if (!query) return true;
 
-    const activeTableProps = {
-        ...tableProps,
-        data: filteredPendingData,
-        total: filteredPendingData.length
+            const fromDate = item.fromDate ? new Date(item.fromDate).toLocaleDateString('en-GB') : '';
+            const toDate = item.toDate ? new Date(item.toDate).toLocaleDateString('en-GB') : '';
+            return [
+                item.employeeCode,
+                item.employeeName,
+                item.leaveName,
+                item.fromDate,
+                fromDate,
+                item.toDate,
+                toDate,
+                item.totalDays,
+                item.leaveStatus
+            ].some((value) => String(value ?? '').toLowerCase().includes(query));
+        });
+    }, [pendingLeaves, stagedLeaves, searchTerm]);
+
+    const pageCount = Math.max(1, Math.ceil(filteredPendingData.length / rowsPerPage));
+    const safeCurrentPage = Math.min(currentPage, pageCount);
+    const firstEntry = filteredPendingData.length === 0 ? 0 : (safeCurrentPage - 1) * rowsPerPage + 1;
+    const lastEntry = Math.min(safeCurrentPage * rowsPerPage, filteredPendingData.length);
+    const pageLeaves = filteredPendingData.slice(firstEntry - 1, lastEntry);
+
+    const getPageNumbers = () => {
+        if (pageCount <= 7) return Array.from({ length: pageCount }, (_, index) => index + 1);
+        if (safeCurrentPage <= 3) return [1, 2, 3, 4, '...', pageCount - 2, pageCount - 1, pageCount] as const;
+        if (safeCurrentPage >= pageCount - 2)
+            return [1, 2, 3, '...', pageCount - 3, pageCount - 2, pageCount - 1, pageCount] as const;
+        return [1, 2, '...', safeCurrentPage - 1, safeCurrentPage, safeCurrentPage + 1, '...', pageCount - 1, pageCount] as const;
     };
 
     return (
@@ -408,18 +427,215 @@ function LeaveApprovalPageContent({ response, isLoading, error, mockResponse }: 
                     variant='default'
                     size='lg'
                     className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                    <GenericDataTable<LeaveApprovalRow>
-                        {...activeTableProps}
-                        columns={columns}
-                        isLoading={isLoading}
-                        error={error}
-                        showViewOptions={false}
-                        columnPinning={{ right: ['actions'] }}
-                        loadingMessage='Loading leave approvals...'
-                        noDataTitle='No Pending Leave Approvals'
-                        noDataDescription='All leave requests have been processed.'
-                        errorTitle='Error Loading Leave Approvals'
-                    />
+                    <div className='space-y-3'>
+                        <div className='relative w-full max-w-xs'>
+                            <Search className='-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground' />
+                            <Input
+                                type='search'
+                                placeholder='Search...'
+                                value={searchTerm}
+                                onChange={(event) => {
+                                    setSearchTerm(event.target.value);
+                                    setCurrentPage(1);
+                                }}
+                                className='pl-9'
+                                aria-label='Search leave approvals'
+                            />
+                        </div>
+                        <div className='overflow-x-auto rounded-md border'>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className='whitespace-nowrap'>SL.No</TableHead>
+                                        <TableHead className='whitespace-nowrap'>Employee Code</TableHead>
+                                        <TableHead className='whitespace-nowrap'>Employee Name</TableHead>
+                                        <TableHead className='whitespace-nowrap'>Leave Name</TableHead>
+                                        <TableHead className='whitespace-nowrap'>From Date</TableHead>
+                                        <TableHead className='whitespace-nowrap'>To Date</TableHead>
+                                        <TableHead className='whitespace-nowrap'>Total Days</TableHead>
+                                        <TableHead className='whitespace-nowrap'>Leave Status</TableHead>
+                                        <TableHead className='whitespace-nowrap'>Actions</TableHead>
+                                        <TableHead className='whitespace-nowrap'>Remark</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {isLoading ? (
+                                        <TableRow>
+                                            <TableCell colSpan={10} className='h-24 text-center text-muted-foreground'>
+                                                Loading leave approvals...
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : error ? (
+                                        <TableRow>
+                                            <TableCell colSpan={10} className='h-24 text-center text-destructive'>
+                                                Failed to load leave approvals.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : pageLeaves.length > 0 ? (
+                                        pageLeaves.map((row, index) => {
+                                            const isPending = row.leaveStatus === 'Applied' || row.leaveStatus === 'Pending';
+                                            const statusClass =
+                                                row.leaveStatus === 'Approved'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : row.leaveStatus === 'Rejected'
+                                                      ? 'bg-red-100 text-red-700'
+                                                      : row.leaveStatus === 'Pending'
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : 'bg-yellow-100 text-yellow-700';
+                                            return (
+                                                <TableRow key={row.hrelaP_Id}>
+                                                    <TableCell>{firstEntry + index}</TableCell>
+                                                    <TableCell className='font-medium'>{row.employeeCode}</TableCell>
+                                                    <TableCell className='whitespace-nowrap'>{row.employeeName}</TableCell>
+                                                    <TableCell>{row.leaveName}</TableCell>
+                                                    <TableCell className='whitespace-nowrap'>
+                                                        {row.fromDate ? new Date(row.fromDate).toLocaleDateString('en-GB') : '-'}
+                                                    </TableCell>
+                                                    <TableCell className='whitespace-nowrap'>
+                                                        {row.toDate ? new Date(row.toDate).toLocaleDateString('en-GB') : '-'}
+                                                    </TableCell>
+                                                    <TableCell>{row.totalDays}</TableCell>
+                                                    <TableCell>
+                                                        <span className={cn('inline-flex rounded-full px-2 py-1 font-medium text-xs', statusClass)}>
+                                                            {row.leaveStatus}
+                                                        </span>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className='flex items-center gap-2'>
+                                                            {isPending && (
+                                                                <>
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='outline'
+                                                                        size='icon'
+                                                                        className='h-8 w-8 text-green-700'
+                                                                        onClick={() => handleApprove(row)}
+                                                                        title='Approve'
+                                                                        aria-label={`Approve leave for ${row.employeeName}`}>
+                                                                        <Check className='h-4 w-4' />
+                                                                    </Button>
+                                                                    <Button
+                                                                        type='button'
+                                                                        variant='outline'
+                                                                        size='icon'
+                                                                        className='h-8 w-8 text-red-700'
+                                                                        onClick={() => handleReject(row)}
+                                                                        title='Reject'
+                                                                        aria-label={`Reject leave for ${row.employeeName}`}>
+                                                                        <X className='h-4 w-4' />
+                                                                    </Button>
+                                                                </>
+                                                            )}
+                                                            <Button
+                                                                type='button'
+                                                                variant='outline'
+                                                                size='sm'
+                                                                className='text-blue-700'
+                                                                onClick={() => handleViewBalance(row)}>
+                                                                View Balance
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className='max-w-xs'>{row.remark || '-'}</TableCell>
+                                                </TableRow>
+                                            );
+                                        })
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={10} className='h-24 text-center text-muted-foreground'>
+                                                {searchTerm ? `No leave requests match "${searchTerm}".` : 'No pending leave approvals.'}
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        <div className='flex flex-col items-center justify-between gap-3 text-sm sm:flex-row'>
+                            <div className='text-muted-foreground'>
+                                Showing <span className='font-medium text-foreground'>{firstEntry}</span> to{' '}
+                                <span className='font-medium text-foreground'>{lastEntry}</span> of{' '}
+                                <span className='font-medium text-foreground'>{filteredPendingData.length}</span> entries
+                            </div>
+                            <div className='flex flex-wrap items-center justify-center gap-1'>
+                                <span className='mr-2 whitespace-nowrap text-muted-foreground'>Rows per page</span>
+                                <Select
+                                    value={String(rowsPerPage)}
+                                    onValueChange={(value) => {
+                                        setRowsPerPage(Number(value));
+                                        setCurrentPage(1);
+                                    }}>
+                                    <SelectTrigger className='mr-2 h-8 w-[72px]'>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {[10, 20, 30, 40, 50].map((size) => (
+                                            <SelectItem key={size} value={String(size)}>
+                                                {size}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <Button
+                                    type='button'
+                                    variant='ghost'
+                                    size='icon'
+                                    className='h-8 w-8 rounded-full'
+                                    onClick={() => setCurrentPage(1)}
+                                    disabled={safeCurrentPage <= 1}
+                                    aria-label='Go to first page'>
+                                    <ChevronsLeft className='h-4 w-4' />
+                                </Button>
+                                <Button
+                                    type='button'
+                                    variant='ghost'
+                                    size='icon'
+                                    className='h-8 w-8 rounded-full'
+                                    onClick={() => setCurrentPage((page) => page - 1)}
+                                    disabled={safeCurrentPage <= 1}
+                                    aria-label='Go to previous page'>
+                                    <ChevronLeft className='h-4 w-4' />
+                                </Button>
+                                {getPageNumbers().map((page, index) =>
+                                    page === '...' ? (
+                                        <span key={`ellipsis-${index}`} className='px-1 text-muted-foreground'>
+                                            ...
+                                        </span>
+                                    ) : (
+                                        <Button
+                                            key={page}
+                                            type='button'
+                                            variant={safeCurrentPage === page ? 'default' : 'ghost'}
+                                            size='icon'
+                                            className='h-8 w-8 rounded-full'
+                                            onClick={() => setCurrentPage(page)}
+                                            aria-label={`Go to page ${page}`}>
+                                            {page}
+                                        </Button>
+                                    )
+                                )}
+                                <Button
+                                    type='button'
+                                    variant='ghost'
+                                    size='icon'
+                                    className='h-8 w-8 rounded-full'
+                                    onClick={() => setCurrentPage((page) => page + 1)}
+                                    disabled={safeCurrentPage >= pageCount}
+                                    aria-label='Go to next page'>
+                                    <ChevronRight className='h-4 w-4' />
+                                </Button>
+                                <Button
+                                    type='button'
+                                    variant='ghost'
+                                    size='icon'
+                                    className='h-8 w-8 rounded-full'
+                                    onClick={() => setCurrentPage(pageCount)}
+                                    disabled={safeCurrentPage >= pageCount}
+                                    aria-label='Go to last page'>
+                                    <ChevronsRight className='h-4 w-4' />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
                 </CollapsibleSection>
                 {/* Forms */}
                 <FormSections refetch={refetchAll} />
