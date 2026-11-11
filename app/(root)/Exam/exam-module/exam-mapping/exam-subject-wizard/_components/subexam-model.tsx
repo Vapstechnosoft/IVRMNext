@@ -493,7 +493,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                                 }
                             }));
                         }
-                        if (!item.eycessS_MinMarks || item.eycessS_MinMarks === '') {
+                        if (item.eycessS_MinMarks === undefined || item.eycessS_MinMarks === null || item.eycessS_MinMarks === '') {
                             setValidationErrors((prev) => ({
                                 ...prev,
                                 [emsE_Id]: {
@@ -676,7 +676,7 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                 rowErrors.eycessS_MaxMarks = 'Max marks is required';
                 hasErrors = true;
             }
-            if (!row.eycessS_MinMarks || row.eycessS_MinMarks === '') {
+            if (row.eycessS_MinMarks === undefined || row.eycessS_MinMarks === null || row.eycessS_MinMarks === '') {
                 rowErrors.eycessS_MinMarks = 'Min marks is required';
                 hasErrors = true;
             }

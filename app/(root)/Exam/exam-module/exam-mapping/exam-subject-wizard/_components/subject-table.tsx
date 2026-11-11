@@ -75,16 +75,6 @@ export const BaseExamSubjectSchema = {
                 message: 'Min marks must be ≤ Max marks',
                 path: ['eyceS_MinMarks']
             }
-        )
-        .refine(
-            (data) =>
-                data.eyceS_MarksEntryMax === undefined ||
-                data.eyceS_MaxMarks === undefined ||
-                data.eyceS_MarksEntryMax <= data.eyceS_MaxMarks,
-            {
-                message: 'Marks entry max cannot exceed Max marks',
-                path: ['eyceS_MarksEntryMax']
-            }
         ),
 
     delete: z.object({
@@ -948,16 +938,6 @@ export default function SubjectTableWithValidation({
                 Number(row.eyceS_MinMarks) > Number(row.eyceS_MaxMarks)
             ) {
                 errorsForRow.eyceS_MinMarks = 'Min marks must be ≤ Max marks';
-            }
-
-            if (
-                row.eyceS_MarksEntryMax !== '' &&
-                row.eyceS_MaxMarks !== '' &&
-                row.eyceS_MarksEntryMax !== null &&
-                row.eyceS_MaxMarks !== null &&
-                Number(row.eyceS_MarksEntryMax) > Number(row.eyceS_MaxMarks)
-            ) {
-                errorsForRow.eyceS_MarksEntryMax = 'Max entry marks cannot exceed Max marks';
             }
 
             if (Object.keys(errorsForRow).length > 0) {
