@@ -24,18 +24,13 @@ interface SalaryCalculationColumnsProps {
     selectedEmployees: number[];
     onEmployeeSelect: (employeeId: number, selected: boolean) => void;
     onSelectAll: (selected: boolean) => void;
-    currentPage: number;
-    pageSize: number;
 }
 export function getSalaryCalculationColumns({
     employees,
     selectedEmployees,
     onEmployeeSelect,
-    onSelectAll,
-    currentPage,
-    pageSize
+    onSelectAll
 }: SalaryCalculationColumnsProps): ColumnDef<Employee>[] {
-    const pageOffset = (currentPage - 1) * pageSize;
     return [
         {
             id: 'select',
@@ -67,7 +62,7 @@ export function getSalaryCalculationColumns({
             header: ({ column }) => <DataTableColumnHeader column={column} title='SL.NO' />,
             cell: ({ row, table }) => {
                 const index = table.getSortedRowModel().rows.findIndex((r) => r.id === row.id);
-                return <div>{pageOffset + index + 1}</div>;
+                return <div>{index + 1}</div>;
             }
         },
         {

@@ -19,20 +19,36 @@ export default function UpdateMasterConfigurationForm({
     const [initialData, setInitialData] = useState<any>(null);
 
     useEffect(() => {
-        if (editData?.mstConfigList?.[0]) {
-            const config = editData.mstConfigList[0];
+        if (editData?.mstConfigList?.[0] || selectedRow) {
+            const config = editData?.mstConfigList?.[0] || selectedRow;
 
             // Map the selected category back for the UI
-            let amC_Id;
-            let amcoC_Id;
+            const catId =
+                config.amC_Id ??
+                (config as any).AMC_Id ??
+                (config as any).amc_Id ??
+                selectedRow.amC_Id ??
+                (selectedRow as any).AMC_Id;
 
-            if (editData.mI_SchoolCollegeFlag === 'S') {
-                const selectedCat = editData.studentlicategorylist?.find((c) => c.amC_Id === config.amC_Id);
-                amC_Id = selectedCat?.amC_Id;
-            } else {
-                const selectedCat = editData.studentlicategorylist?.find((c) => c.amcoC_Id === config.amcoC_Id);
-                amcoC_Id = selectedCat?.amcoC_Id;
-            }
+            const colCatId =
+                config.amcoC_Id ??
+                (config as any).AMCOC_Id ??
+                (config as any).amcoc_Id ??
+                selectedRow.amcoC_Id ??
+                (selectedRow as any).AMCOC_Id;
+
+            const flag =
+                editData?.mI_SchoolCollegeFlag ||
+                editData?.schoolCollegeFlag ||
+                (editData as any)?.SchoolCollegeFlag ||
+                response?.mI_SchoolCollegeFlag ||
+                response?.schoolCollegeFlag ||
+                (response as any)?.SchoolCollegeFlag ||
+                'S';
+            const isCollege = flag === 'U' || flag === 'C';
+
+            const amC_Id = !isCollege && catId ? Number(catId) : undefined;
+            const amcoC_Id = isCollege && colCatId ? Number(colCatId) : undefined;
 
             setInitialData({
                 ...config,
@@ -78,7 +94,7 @@ export default function UpdateMasterConfigurationForm({
                 ispaC_OfflineFee_Flag: config.ispaC_OfflineFee_Flag || 0
             });
         }
-    }, [editData]);
+    }, [editData, selectedRow, response]);
 
     if (isLoading || !initialData) {
         return (
@@ -92,12 +108,24 @@ export default function UpdateMasterConfigurationForm({
         return <div className='p-4 text-center text-red-500'>Failed to load configuration data.</div>;
     }
 
+    const flag =
+        editData?.mI_SchoolCollegeFlag ||
+        editData?.schoolCollegeFlag ||
+        (editData as any)?.SchoolCollegeFlag ||
+        response?.mI_SchoolCollegeFlag ||
+        response?.schoolCollegeFlag ||
+        (response as any)?.SchoolCollegeFlag ||
+        'S';
+
     // Merge response with edit data specifically for lists if necessary
     const mergedResponse = {
         ...response,
-        academicList: editData?.academicList || response?.academicList,
-        studentlicategorylist: editData?.studentlicategorylist || response?.studentlicategorylist,
-        mI_SchoolCollegeFlag: editData?.mI_SchoolCollegeFlag || response?.mI_SchoolCollegeFlag
+        academicList: editData?.academicList || response?.academicList || [],
+        studentlicategorylist: editData?.studentlicategorylist || response?.studentlicategorylist || [],
+        mI_SchoolCollegeFlag: flag,
+        schoolCollegeFlag: flag,
+        masterConfigList: response?.masterConfigList || [],
+        mstConfigList: editData?.mstConfigList || []
     } as IMasterConfigurationResponse;
 
     return <MasterConfigurationForm response={mergedResponse} onSuccess={onSuccess} initialData={initialData} />;
