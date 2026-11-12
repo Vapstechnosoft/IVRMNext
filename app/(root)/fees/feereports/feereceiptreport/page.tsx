@@ -959,14 +959,6 @@ export default function FeeReceiptReport() {
         setTimeout(() => {
             window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }, 100);
-
-        setShowReport(true);
-        setReportLoading(false);
-        toast.success('Report generated successfully');
-
-        setTimeout(() => {
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }, 100);
     };
 
     // const isAcademicYearSelected = !!filters.academicYearId;
