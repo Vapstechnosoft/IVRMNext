@@ -18,10 +18,10 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAcademicYearDropdown } from '@/hooks/admission/preadmission/useMasters';
 import { useAttendanceReport } from '@/hooks/admission/preadmission/useReports';
 import { cn } from '@/lib/utils';
-import { getExcelOverallAttendanceReport } from '@/server/admission/preadmission/reports/month_end_report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Controller, useForm } from 'react-hook-form';
+import * as XLSX from 'xlsx';
 import { z } from 'zod';
 
 // allow dates up to today (today or any previous day)
@@ -77,6 +77,7 @@ export default function StudyCertificateReportPage(props: {
     const searchParams = (React as any).use(props.searchParams);
     const [openPopover, setOpenPopover] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
     const [reportData, setReportData] = useState<OverallAttendanceRow[]>([]);
     const [showReport, setShowReport] = useState(false);
     const [tableSearch, setTableSearch] = useState('');
@@ -149,40 +150,48 @@ export default function StudyCertificateReportPage(props: {
     };
 
     const downloadExcel = async () => {
+        if (!asmaY_Id || !from_date || !frequency) {
+            toast.error('Please fill all required fields!');
+            return;
+        }
+
+        setIsExporting(true);
         try {
-            if (!asmaY_Id || !from_date || !frequency) {
-                toast.error('Please fill all required fields!');
+            const { data } = await refetch();
+            const records: OverallAttendanceRow[] = Array.isArray(data?.data)
+                ? (data.data as OverallAttendanceRow[])
+                : Array.isArray((data as any)?.studentAttendanceList)
+                  ? ((data as any).studentAttendanceList as OverallAttendanceRow[])
+                  : [];
+
+            if (records.length === 0) {
+                toast.error('No data found for the selected criteria');
                 return;
             }
 
-            const response = await getExcelOverallAttendanceReport(asmaY_Id, from_date, frequency, querySearchParams);
+            const worksheet = XLSX.utils.aoa_to_sheet([
+                ['Sl. No.', 'Class', 'Section', 'Strength', 'Present', 'Absent', 'Half Day'],
+                ...records.map((item, index) => [
+                    item.RowNo ?? index + 1,
+                    item.ASMCL_ClassName || '-',
+                    item.ASMC_SectionName || '-',
+                    item.TOTAL ?? 0,
+                    item.PRESENT ?? 0,
+                    item.ABSENT ?? 0,
+                    item.HALFDAY ?? 0
+                ])
+            ]);
+            worksheet['!cols'] = [{ wch: 10 }, { wch: 18 }, { wch: 18 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }];
 
-            // Ensure we have a Blob
-            const blob =
-                response instanceof Blob
-                    ? response
-                    : new Blob([new Uint8Array(response)], {
-                          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                      });
-
-            // Create download link
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'OverAllDaillyAttendance.xlsx';
-            document.body.appendChild(link);
-            link.click();
-
-            // Cleanup
-            setTimeout(() => {
-                link.remove();
-                window.URL.revokeObjectURL(url);
-            }, 100);
-
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Daily Attendance');
+            XLSX.writeFile(workbook, `OverallDailyAttendance_${from_date}.xlsx`);
             toast.success('Excel downloaded successfully');
         } catch (error) {
             console.error('Download error:', error);
             toast.error('Failed to download Excel');
+        } finally {
+            setIsExporting(false);
         }
     };
 
@@ -339,7 +348,12 @@ export default function StudyCertificateReportPage(props: {
                             <Save className='mr-2 h-4 w-4' />
                             Report
                         </Button>
-                        <Button type='button' onClick={downloadExcel} disabled={isLoading} className='w-fit'>
+                        <Button
+                            type='button'
+                            onClick={downloadExcel}
+                            disabled={isLoading || isExporting}
+                            isLoading={isExporting}
+                            className='w-fit'>
                             Export to Excel
                         </Button>
                     </div>
