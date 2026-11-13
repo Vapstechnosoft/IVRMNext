@@ -24,6 +24,8 @@ interface PayrollTabProps {
     employeeCode: string;
     MI_Id?: number;
     onSuccess?: () => void;
+    onSaveReady?: (save: (() => Promise<boolean>) | null) => void;
+    hideSaveButton?: boolean;
     earningList?: any[];
     detectionList?: any[];
     arrearList?: any[];
@@ -81,6 +83,8 @@ export function PayrollTab({
     employeeCode,
     MI_Id: propMI_Id,
     onSuccess,
+    onSaveReady,
+    hideSaveButton = false,
     earningList: propEarningList,
     detectionList: propDetectionList,
     arrearList: propArrearList,
@@ -1587,10 +1591,10 @@ export function PayrollTab({
 
     const saveEmployeeSalaryDetailsMutation = useSaveEmployeeSalaryDetails();
 
-    const handleSave = async () => {
+    const handleSave = async (): Promise<boolean> => {
         if (!employeeId) {
             toast.error('Employee ID is required');
-            return;
+            return false;
         }
 
         try {
@@ -1641,12 +1645,26 @@ export function PayrollTab({
                 if (isMountedRef.current && onSuccess) {
                     onSuccess();
                 }
+                return true;
             }
+            toast.error(result?.message || 'Failed to save salary details');
+            return false;
         } catch (error: any) {
             console.error('Save error:', error);
-            // Error handling is already in the hook but we catch here to prevent crash
+            toast.error(error?.response?.data?.message || error?.message || 'Failed to save salary details');
+            return false;
         }
     };
+    const handleSaveRef = useRef(handleSave);
+    handleSaveRef.current = handleSave;
+
+    useEffect(() => {
+        if (!onSaveReady) return;
+        const submitPayroll = () => handleSaveRef.current();
+        onSaveReady(submitPayroll);
+        return () => onSaveReady(null);
+    }, [onSaveReady]);
+
     const isSaving = saveEmployeeSalaryDetailsMutation.isPending;
     if (isLoading) {
         return <div className='rounded-md border p-6 text-center text-muted-foreground'>Loading payroll details...</div>;
@@ -2185,17 +2203,19 @@ export function PayrollTab({
                 </div>
             </div>
             {/* Action Buttons */}
-            <div className='flex w-full items-center justify-center gap-3 pt-4'>
-                {/* <Button variant='outline' type='button'>
-                    PREVIOUS
-                </Button> */}
-                <Button type='button' variant='default' onClick={handleSave} disabled={isSaving} className='w-fit'>
-                    {isSaving ? 'SAVING...' : 'SUBMIT SALARY INFO'}
-                </Button>
-                {/* <Button variant='outline' type='button'>
-                    CLEAR
-                </Button> */}
-            </div>
+            {!hideSaveButton && (
+                <div className='flex w-full items-center justify-center gap-3 pt-4'>
+                    {/* <Button variant='outline' type='button'>
+                        PREVIOUS
+                    </Button> */}
+                    <Button type='button' variant='default' onClick={handleSave} disabled={isSaving} className='w-fit'>
+                        {isSaving ? 'SAVING...' : 'SUBMIT SALARY INFO'}
+                    </Button>
+                    {/* <Button variant='outline' type='button'>
+                        CLEAR
+                    </Button> */}
+                </div>
+            )}
         </div>
     );
 }
