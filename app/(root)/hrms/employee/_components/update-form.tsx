@@ -7284,8 +7284,8 @@ export default function UpdateEmployeeForm({
               </div>
 
               {/* Navigation Footer */}
-              <div className="flex items-center justify-between border-t bg-gray-50 px-6 py-4 md:px-8">
-                <Button
+              <div className="flex items-center justify-end border-t bg-gray-50 px-6 py-4 md:px-8">
+                {/* <Button
                   type="button"
                   variant="outline"
                   onClick={() => {
@@ -7296,7 +7296,7 @@ export default function UpdateEmployeeForm({
                   className="w-fit transition-all duration-200 hover:scale-105"
                 >
                   Reset Form
-                </Button>
+                </Button> */}
 
                 <div className="flex gap-3">
                   {currentStep > 1 && (
