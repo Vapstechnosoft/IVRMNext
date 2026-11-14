@@ -125,7 +125,7 @@ export default function StudentPasswordCreationPage() {
                 toast.error((res as any).message || 'Failed to reset password');
             }
         } catch (error) {
-            toast.error('Failed to reset password');
+            toast.error(`Failed to reset password ${error}`);
         }
     };
 
@@ -140,7 +140,7 @@ export default function StudentPasswordCreationPage() {
                 toast.success((res as any).message || 'SMS Sent Successfully');
             else toast.error((res as any).message || 'Failed to send SMS');
         } catch (error) {
-            toast.error('Failed to send SMS');
+            toast.error(`Failed to send SMS ${error}`);
         }
     };
 
@@ -155,7 +155,7 @@ export default function StudentPasswordCreationPage() {
                 toast.success((res as any).message || 'Email Sent Successfully');
             else toast.error((res as any).message || 'Failed to send Email');
         } catch (error) {
-            toast.error('Failed to send Email');
+            toast.error(`Failed to send Email ${error}`);
         }
     };
 
@@ -170,7 +170,7 @@ export default function StudentPasswordCreationPage() {
                 toast.success((res as any).message || 'WhatsApp Sent Successfully');
             else toast.error((res as any).message || 'Failed to send WhatsApp');
         } catch (error) {
-            toast.error('Failed to send WhatsApp');
+            toast.error(`Failed to send WhatsApp ${error}`);
         }
     };
 
