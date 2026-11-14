@@ -182,7 +182,7 @@ export async function getAttendanceAbsentInitialDetails() {
 }
 export async function getAttendanceReport(ASMAY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
-    const flag = frequency === 'once' || frequency === 'twice' ? '0' : frequency || '0';
+    const flag = frequency === 'twice' ? '1' : frequency === 'once' ? '0' : frequency || '0';
     const url = `/OverallAttendance/GetOverallDailyAttendance?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${flag}`;
     return await api.post<any[]>('admission', url);
 }

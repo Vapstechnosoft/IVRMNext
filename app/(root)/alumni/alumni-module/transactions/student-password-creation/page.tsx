@@ -1,11 +1,11 @@
 'use client';
 
+import { GenericDataTableAllRows } from '@/app/(root)/alumni/alumni-module/transactions/student-password-creation/_components/generic-data-table-all-rows';
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { exportToExcel } from '@/lib/export-to-file';
 import { tableSearchVariables } from '@/lib/data-table.config';
-import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { exportToExcel } from '@/lib/export-to-file';
+
 import {
     getInitialData,
     getReportDetails,
@@ -16,11 +16,13 @@ import {
 } from '@/server/alumni/student-password-creation';
 import type { IClass, ICredentialStudent, ISection, IYear } from '@/types/alumni/student-password-creation';
 import { FileSpreadsheet, Loader2, Mail, MessageSquare, Phone, Printer } from 'lucide-react';
-import { useEffect, useState, useMemo } from 'react';
+import { parseAsString, useQueryState } from 'nuqs';
+import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { getStudentPasswordCreationColumns } from './_components/columns';
 import FilterForm from './_components/filter-form';
-import StudentCredentialsReport from './_components/student-credentials-report';
+import { printStudentCredentials } from './_components/print-student-credentials';
+// StudentCredentialsReport is no longer needed: printing is done by printStudentCredentials()
 
 export default function StudentPasswordCreationPage() {
     const [initialLoading, setInitialLoading] = useState(true);
@@ -52,26 +54,15 @@ export default function StudentPasswordCreationPage() {
         });
     }, [students, searchQuery]);
 
-    const [currentPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withDefault(1));
-    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withDefault(10));
-
-    const paginatedStudents = useMemo(() => {
-        const startIndex = (currentPage - 1) * pageSize;
-        return filteredStudents.slice(startIndex, startIndex + pageSize);
-    }, [filteredStudents, currentPage, pageSize]);
-
     useEffect(() => {
         const fetchInitial = async () => {
             try {
                 const res = await getInitialData();
-                // Assuming res is the body and has success property based on common API pattern
                 if (res && (res as any).success !== false) {
-                    // flexible check
                     setYears((res as any).yearList || (res as any).data?.yearList || []);
                     setClasses((res as any).classlist || (res as any).data?.classlist || []);
                     setSections((res as any).sectionlist || (res as any).data?.sectionlist || []);
                 } else {
-                    // Fallback if structure is different
                     if ((res as any).yearList) {
                         setYears((res as any).yearList);
                         setClasses((res as any).classlist || []);
@@ -91,6 +82,7 @@ export default function StudentPasswordCreationPage() {
 
     const handleReportDetails = async (values: any) => {
         setTableLoading(true);
+        setSelectedStudents([]);
         setFilterParams(values);
         try {
             const res = await getReportDetails({
@@ -100,16 +92,14 @@ export default function StudentPasswordCreationPage() {
                 filterdata: values.filterdata
             });
             if (res && (res as any).success !== false) {
-                // API usually returns success: true.
-                const data = (res as any).data || res; // Handle if data is directly returned or in .data
+                const data = (res as any).data || res;
                 if (Array.isArray(data)) {
                     setStudents(data);
                 } else if (data && Array.isArray(data.data)) {
                     setStudents(data.data);
                 } else {
                     setStudents([]);
-                    if ((res as any).message)
-                        toast.warning((res as any).message); // Use message from API if available
+                    if ((res as any).message) toast.warning((res as any).message);
                     else if (data && data.length === 0) toast.warning('No records found');
                 }
             } else {
@@ -130,13 +120,12 @@ export default function StudentPasswordCreationPage() {
             const res = await resetStudentPassword(student, selectedStudents);
             if ((res as any).message === 'Success' || (res as any).success) {
                 toast.success((res as any).message || 'Password Reset Successfully');
-                // Re-fetch report to update data
                 if (filterParams) handleReportDetails(filterParams);
             } else {
                 toast.error((res as any).message || 'Failed to reset password');
             }
         } catch (error) {
-            toast.error('Failed to reset password');
+            toast.error(`Failed to reset password ${error}`);
         }
     };
 
@@ -151,7 +140,7 @@ export default function StudentPasswordCreationPage() {
                 toast.success((res as any).message || 'SMS Sent Successfully');
             else toast.error((res as any).message || 'Failed to send SMS');
         } catch (error) {
-            toast.error('Failed to send SMS');
+            toast.error(`Failed to send SMS ${error}`);
         }
     };
 
@@ -166,7 +155,7 @@ export default function StudentPasswordCreationPage() {
                 toast.success((res as any).message || 'Email Sent Successfully');
             else toast.error((res as any).message || 'Failed to send Email');
         } catch (error) {
-            toast.error('Failed to send Email');
+            toast.error(`Failed to send Email ${error}`);
         }
     };
 
@@ -181,8 +170,16 @@ export default function StudentPasswordCreationPage() {
                 toast.success((res as any).message || 'WhatsApp Sent Successfully');
             else toast.error((res as any).message || 'Failed to send WhatsApp');
         } catch (error) {
-            toast.error('Failed to send WhatsApp');
+            toast.error(`Failed to send WhatsApp ${error}`);
         }
+    };
+
+    const handlePrint = () => {
+        if (selectedStudents.length === 0) {
+            toast.warning('Please select atleast one student');
+            return;
+        }
+        printStudentCredentials(selectedStudents);
     };
 
     const columns = getStudentPasswordCreationColumns(handleResetPassword);
@@ -222,40 +219,40 @@ export default function StudentPasswordCreationPage() {
                     <div className='space-y-4'>
                         {students.length > 0 ? (
                             <>
-                                <GenericDataTable<ICredentialStudent>
-                                    data={paginatedStudents}
+                                <GenericDataTableAllRows<ICredentialStudent>
+                                    data={students}
                                     columns={columns}
                                     isLoading={tableLoading}
                                     onRowSelectionChange={setSelectedStudents}
                                     totalItems={filteredStudents.length}
+                                    getRowId={(student) => String(student.amsT_Id)}
+                                    manualPagination={false}
+                                    manualFiltering={false}
                                 />
 
                                 <div className='flex flex-wrap items-center justify-center gap-4 border-t pt-6'>
                                     <Button
                                         onClick={handleSendSMS}
-                                        className="w-32 bg-blue-600 hover:bg-blue-700"
-                                        disabled={selectedStudents.length === 0}
-                                    >
-                                        <Phone className="mr-2 h-4 w-4" /> SMS
+                                        className='w-32 bg-blue-600 hover:bg-blue-700'
+                                        disabled={selectedStudents.length === 0}>
+                                        <Phone className='mr-2 h-4 w-4' /> SMS
                                     </Button>
                                     <Button
                                         onClick={handleSendEmail}
-                                        className="w-32 bg-cyan-600 hover:bg-cyan-700"
-                                        disabled={selectedStudents.length === 0}
-                                    >
-                                        <Mail className="mr-2 h-4 w-4" /> EMAIL
+                                        className='w-32 bg-cyan-600 hover:bg-cyan-700'
+                                        disabled={selectedStudents.length === 0}>
+                                        <Mail className='mr-2 h-4 w-4' /> EMAIL
                                     </Button>
                                     <Button
                                         onClick={handleSendWhatsApp}
-                                        className="w-32 bg-green-600 hover:bg-green-700"
-                                        disabled={selectedStudents.length === 0}
-                                    >
-                                        <MessageSquare className="mr-2 h-4 w-4" /> WHATSAPP
+                                        className='w-32 bg-green-600 hover:bg-green-700'
+                                        disabled={selectedStudents.length === 0}>
+                                        <MessageSquare className='mr-2 h-4 w-4' /> WHATSAPP
                                     </Button>
                                     <Button
                                         variant='outline'
                                         className='w-32'
-                                        onClick={() => window.print()}
+                                        onClick={handlePrint}
                                         disabled={selectedStudents.length === 0}>
                                         <Printer className='mr-2 h-4 w-4' /> PRINT
                                     </Button>
@@ -292,10 +289,6 @@ export default function StudentPasswordCreationPage() {
                     </div>
                 </CollapsibleSection>
             )}
-            {/* Printable Report Section */}
-            <div id='print-section'>
-                <StudentCredentialsReport students={selectedStudents} />
-            </div>
         </div>
     );
 }

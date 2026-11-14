@@ -3,8 +3,12 @@ export interface IMasterConfiguration {
     mO_Id: number;
     mI_Id: number;
     asmaY_Id: number;
-    amC_Id: number;
-    amcoC_Id: number;
+    amC_Id?: number;
+    AMC_Id?: number;
+    amcoC_Id?: number;
+    AMCOC_Id?: number;
+    amC_Name?: string;
+    amcoC_Name?: string;
 
     // Grid extra properties
     mO_Name?: string;
@@ -75,16 +79,25 @@ export interface IAcademicYear {
 export interface IStudentCategory {
     amC_Id?: number;
     amC_Name?: string;
+    amc_Id?: number;
+    amc_Name?: string;
+    AMC_Id?: number | boolean;
+    AMC_Name?: string;
     amcoC_Id?: number;
     amcoC_Name?: string;
-    AMC_Id?: boolean;
-    AMCOC_Id?: boolean;
+    amcoc_Id?: number;
+    amcoc_Name?: string;
+    AMCOC_Id?: number | boolean;
+    AMCOC_Name?: string;
 }
 
 export interface IMasterConfigurationResponse {
     academicList: IAcademicYear[];
     studentlicategorylist: IStudentCategory[];
-    mI_SchoolCollegeFlag: string;
+    mI_SchoolCollegeFlag?: string;
+    schoolCollegeFlag?: string;
+    SchoolCollegeFlag?: string;
+    MI_SchoolCollegeFlag?: string;
     masterConfigList: IMasterConfiguration[];
     mstConfigList: IMasterConfiguration[]; // Used for edit data
 }

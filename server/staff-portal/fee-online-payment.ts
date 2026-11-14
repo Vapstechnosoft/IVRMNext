@@ -22,6 +22,8 @@ export interface StudentInfo {
     amst_mobile: number;
     asmaY_Id: number;
     amaY_RollNo: string;
+    amsT_PerCity?: string;
+    amsT_Address?: string;
     mI_Id?: number;
     MI_Id?: number;
 }
@@ -372,7 +374,6 @@ export async function getPaymentCharges(): Promise<{
         };
     }
 }
-
 
 // Added the student view details by Durga
 

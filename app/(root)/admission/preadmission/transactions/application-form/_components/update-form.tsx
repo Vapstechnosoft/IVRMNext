@@ -200,7 +200,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
                 if (['pasR_ConState', 'pasR_PerState', 'asmcL_Id', 'caste_Id', 'religion_Id'].includes(key) && normalized !== undefined) {
                     // Check if the value is numeric before converting
-                    if (!isNaN(Number(normalized))) {
+                    if (!Number.isNaN(Number(normalized))) {
                         normalized = Number(normalized);
                     }
                 }
@@ -723,9 +723,10 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         }
 
         try {
-            const existingId = data.pasR_Id ?? rowData?.pasR_Id ?? rowData?.pasr_id ?? rowData?.pasRId ?? id ?? 0;
+            const existingId = Number(data.pasR_Id || rowData?.pasR_Id || rowData?.pasr_id || rowData?.pasRId || id || 0);
 
             const {
+                pasR_Id: _ignorePasRId,
                 pasR_DOB,
                 source_ids,
                 reference_ids,
@@ -756,12 +757,15 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             ]);
 
             const payload = {
-                pasR_Id: Number(existingId),
                 ...Object.fromEntries(
                     Object.entries(filteredData)
-                        .filter(([k]) => k !== 'createdDate' && k !== 'updatedDate' && k !== 'createdAt' && k !== 'updatedAt')
+                        .filter(([k]) => k !== 'createdDate' && k !== 'updatedDate' && k !== 'createdAt' && k !== 'updatedAt' && k !== 'pasR_Id' && k !== 'pasr_id')
                         .map(([k, v]) => [k, nullFields.has(k) ? toNull(v) : toNullOther(v)])
                 ),
+                pasR_Id: existingId,
+                asmcL_Id: Number(data.asmcL_Id || rowData?.asmcL_Id || rowData?.asmcL_id || 0),
+                religion_Id: Number(data.religion_Id || rowData?.religion_Id || 0),
+                caste_Id: Number(data.caste_Id || rowData?.caste_Id || 0),
                 pasR_DOB: pasR_DOB ? format(pasR_DOB, 'yyyy-MM-dd') : null,
                 pasR_Age: 0,
                 pasR_Student_Pic_Path: toNullOther(studentPhoto?.pasR_Student_Pic_Path),
@@ -824,7 +828,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                         amsmD_Id: doc.amsmD_Id,
                         document_Path: toNullOther(doc.document_Path)
                     })),
-                PASR_RegistrationNo: toNullOther((data as any).pasR_RegistrationNo),
+                PASR_RegistrationNo: toNullOther((data as any).pasR_RegistrationNo || rowData?.pasR_RegistrationNo || rowData?.pasr_registrationno),
                 pasA_WillingToContributeFlg: pasA_WillingToContributeFlg === 1
             };
 
