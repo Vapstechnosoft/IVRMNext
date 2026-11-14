@@ -185,7 +185,7 @@ export const masterGradeSchema = {
         .object({
             emgR_Id: z.number().optional(),
             mI_Id: z.number().optional(),
-            emgR_GradeName: createExamCustomStringSchema('Grade Name', 1, 100),
+            emgR_GradeName: z.string(),
             emgR_MarksPerFlag: z.enum(['M', 'P'], { required_error: 'Marks/Percentage flag is required' }),
             emgR_ActiveFlag: z.boolean().default(true),
             grade_list: z.array(gradeDetailsSchema).min(1, { message: 'At least one grade detail is required' })
