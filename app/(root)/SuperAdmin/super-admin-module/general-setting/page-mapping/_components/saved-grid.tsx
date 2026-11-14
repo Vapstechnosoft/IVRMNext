@@ -7,10 +7,11 @@ import { useDebounce } from '@/hooks/utils/use-debounce';
 import { deletePageMapping, getSavedMappings } from '@/server/super-admin/super-admin-module/general-setting/page-mapping';
 import type { ISavedMapping } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
-import { ChevronLeft, ChevronRight, Search, Trash2, X } from 'lucide-react';
+import { Search, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Swal from 'sweetalert2';
 import { usePageMapping } from './mapping-context';
+import { PageNumberPagination } from './page-number-pagination';
 
 export default function SavedGrid() {
     const { savedMappings } = usePageMapping();
@@ -185,27 +186,7 @@ export default function SavedGrid() {
                                 <option value={50}>50</option>
                             </select>
                         </div>
-                        <div className='flex items-center gap-1'>
-                            <Button
-                                variant='outline'
-                                size='icon'
-                                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className='h-8 w-8 rounded'>
-                                <ChevronLeft className='h-4 w-4' />
-                            </Button>
-                            <span className='px-2 font-medium text-xs'>
-                                Page {page} of {totalPages}
-                            </span>
-                            <Button
-                                variant='outline'
-                                size='icon'
-                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                                disabled={page >= totalPages}
-                                className='h-8 w-8 rounded'>
-                                <ChevronRight className='h-4 w-4' />
-                            </Button>
-                        </div>
+                        <PageNumberPagination page={page} totalPages={totalPages} onPageChange={setPage} />
                     </div>
                 </div>
             )}

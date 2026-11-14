@@ -149,6 +149,36 @@ export async function activateDeactivateMasterRoleType(id: number) {
     }
 }
 
+export async function deleteMasterRoleType(id: number) {
+    if (!Number.isSafeInteger(id) || id <= 0) {
+        return { success: false, message: 'A valid role type ID is required.' };
+    }
+
+    try {
+        const response = await api.delete<any>('sadmin', `MasterRoleTypeFacade/delete_master_role_type/${id}`);
+        const responseMessage = response.message || response.data?.message;
+        const deleteSucceeded =
+            response.success === true ||
+            (typeof responseMessage === 'string' && responseMessage.trim().toLowerCase() === 'record deleted successfully');
+
+        if (!deleteSucceeded) {
+            return {
+                success: false,
+                message: responseMessage || 'Failed to delete role type.'
+            };
+        }
+
+        revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-role-type');
+        return { success: true, message: responseMessage || 'Role type deleted successfully.' };
+    } catch (error) {
+        console.error('Error deleting master role type', error);
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : 'An unexpected error occurred while deleting the role type.'
+        };
+    }
+}
+
 export async function getRoleNameDropdown() {
     const url = `MasterRoleTypeFacade/get_onload_role_name_dropdown`;
     try {

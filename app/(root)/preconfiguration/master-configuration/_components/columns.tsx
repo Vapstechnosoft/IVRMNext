@@ -31,10 +31,15 @@ export const masterConfigurationColumns: ColumnDef<IMasterConfiguration>[] = [
         cell: ({ row }) => <div>{row.getValue('asmaY_Year')}</div>
     },
     {
+        accessorKey: 'amC_Name',
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Category' />,
+        cell: ({ row }) => <div>{row.original.amC_Name || row.original.amcoC_Name || '-'}</div>
+    },
+    {
         id: 'actions',
         header: 'Action',
         cell: ({ row }) => {
-            const { openEditForm, openDeleteForm } = useFormContext<IMasterConfiguration>();
+            const { openEditForm } = useFormContext<IMasterConfiguration>();
             return (
                 <ActionButtons
                     rowData={row.original}

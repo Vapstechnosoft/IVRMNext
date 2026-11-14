@@ -50,14 +50,17 @@ export default function ParentsDashboard({ className }: { className?: string } =
         if (showPdfModal && !pdfBase64 && appId > 0) {
             downloadDocument(appId, {
                 onSuccess: (data) => {
-                    const base64 =
-                        typeof data?.data === 'string'
-                            ? data.data
-                            : Array.isArray(data?.data)
-                              ? ((data.data[0] as unknown as string) ?? null)
-                              : null;
-                    setPdfBase64(base64);
-                },
+    const payload = data?.data;
+
+    const base64 =
+        typeof payload === 'string'
+            ? payload
+            : Array.isArray(payload)
+              ? ((payload[0] as unknown as string) ?? null)
+              : ((payload as unknown as { pdfbase64?: string } | undefined)?.pdfbase64 ?? null);
+
+    setPdfBase64(base64);
+},
                 onError: (error) => {
                     console.error('Failed to load document:', error);
                     toast.error('Failed to load document');

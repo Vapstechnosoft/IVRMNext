@@ -128,14 +128,9 @@ export default function MasterNewSectionPage(props: {
     }, [leftAcademicYear, leftClassAdmitted, rightClass, rightSection]);
 
     useEffect(() => {
-        if (rightSection && rightClass && leftAcademicYear > 0) {
-            setRightStudents([]);
-        } else {
-            setRightStudents([]);
-        }
         setRightSelectedStudents(new Set());
         setRightSelectAll(false);
-    }, [rightSection, rightClass, leftAcademicYear]);
+    }, [rightSection]);
 
     useEffect(() => {
         setLeftSelectAll(leftStudents.length > 0 && leftSelectedStudents.size === leftStudents.length);
