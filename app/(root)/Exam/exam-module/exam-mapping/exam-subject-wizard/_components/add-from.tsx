@@ -362,8 +362,8 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
         (async () => {
             try {
                 const altId = emcaId && emcaId !== catId ? emcaId : eycId && eycId !== catId ? eycId : undefined;
-                const [subjRes, detailsRes] = await Promise.all([
-                    getSubjectsByCategory(catId, altId),
+                const [ detailsRes] = await Promise.all([
+                    // getSubjectsByCategory(catId, altId), to get a all the subject details by passing a eyc_Id and changes made by suma patil
                     rowData?.eycE_Id ? getExamSubjectWizardDetails(Number(rowData.eycE_Id)) : Promise.resolve(null)
                 ]);
 
@@ -391,7 +391,7 @@ export default function AddExamSubjectWizard({ onSuccess, rowData }: { onSuccess
                     return [];
                 };
 
-                const subj = extractSubjectsList(subjRes);
+                const subj = extractSubjectsList(detailsRes);
                 const formattedSubjects = Array.isArray(subj)
                     ? subj
                           .map((s: any) => ({

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { useRef } from 'react';
 
-interface Props { data: any; }
+interface Props { data: any; year?: string; }
 
 function getArray(obj: any, keys: string[]): any[] {
     if (!obj) return [];
@@ -169,9 +169,9 @@ function getMarkCell(subj: any, grp: any, marks: any[]): string {
 
         const subjMatches = isSubjectMatch(mSubjId, mSubjName, subjId, subjName);
         const groupMatches = mDispName.trim().toLowerCase() === grpDisplayName.toLowerCase() ||
-                             mGroupName.trim().toLowerCase() === grpGroupName.toLowerCase() ||
-                             isGroupMatch(mDispName, grpDisplayName) ||
-                             isGroupMatch(mGroupName, grpDisplayName);
+            mGroupName.trim().toLowerCase() === grpGroupName.toLowerCase() ||
+            isGroupMatch(mDispName, grpDisplayName) ||
+            isGroupMatch(mGroupName, grpDisplayName);
         return subjMatches && groupMatches;
     });
 
@@ -264,7 +264,7 @@ const GRADE_SCALE = [
     { grade: 'E+', range: '20% Below' },
 ];
 
-export default function SamarthaProgressCardReportView({ data }: Props) {
+export default function SamarthaProgressCardReportView({ data, year }: Props) {
     const printRef = useRef<HTMLDivElement>(null);
 
     if (!data) return null;
@@ -353,11 +353,23 @@ export default function SamarthaProgressCardReportView({ data }: Props) {
             <div id='samartha-print-area' ref={printRef}>
                 {studentDetails.map((report: any, idx: number) => {
                     const studentAmstId = getField(report, 'AMST_Id', 'amsT_Id');
-                    const studentSubjects = allSubjectList.filter((s: any) => getField(s, 'AMST_Id', 'amsT_Id') === studentAmstId);
-                    const studentMarks    = allMarksList.filter((m: any) => getField(m, 'AMST_Id', 'amsT_Id') === studentAmstId);
+                    const studentSubjects = allSubjectList.filter((s: any) => { const sAmstId = getField(s, 'AMST_Id', 'amsT_Id'); return !sAmstId || String(sAmstId) === String(studentAmstId); });
+                    const studentMarks = allMarksList.filter((m: any) => { const mAmstId = getField(m, 'AMST_Id', 'amsT_Id'); return !mAmstId || String(mAmstId) === String(studentAmstId); });
+                    let finalStudentSubjects = studentSubjects;
+                    if (finalStudentSubjects.length === 0 && studentMarks.length > 0) {
+                        const subMap = new Map();
+                        studentMarks.forEach((m: any) => {
+                            const id = getField(m, 'ISMS_Id', 'ismS_Id');
+                            const name = getField(m, 'ISMS_SubjectName', 'subjectName');
+                            if (id && name && !subMap.has(String(id))) {
+                                subMap.set(String(id), { ISMS_Id: id, ISMS_SubjectName: name, EMPS_AppToResultFlg: true });
+                            }
+                        });
+                        finalStudentSubjects = Array.from(subMap.values());
+                    }
 
-                    const totalObj = studentMarks.find((m: any) => Number(getField(m, 'Flag')) === 900012 || Number(getField(m, 'Flag')) === 900004 || getField(m, 'EMPSG_DisplayName') === 'Total');
-                    const percentObj = studentMarks.find((m: any) => Number(getField(m, 'Flag')) === 900011 || getField(m, 'EMPSG_DisplayName') === 'Percent');
+                    const totalObj = studentMarks.find((m: any) => Number(getField(m, 'Flag')) === 900012 || Number(getField(m, 'Flag')) === 900004 || String(getField(m, 'EMPSG_DisplayName') ?? '').toLowerCase() === 'total');
+                    const percentObj = studentMarks.find((m: any) => Number(getField(m, 'Flag')) === 900011 || String(getField(m, 'EMPSG_DisplayName') ?? '').toLowerCase().includes('percent'));
 
                     const calculatedPct = percentObj?.ObtainedMarks ?? (totalObj?.ObtainedMarks ? Math.round((totalObj.ObtainedMarks / 500) * 100) : 85);
                     const calculatedGrade = totalObj?.ObtainedGrade || percentObj?.ObtainedGrade || calculateGrade(calculatedPct, null, 100);
@@ -389,7 +401,7 @@ export default function SamarthaProgressCardReportView({ data }: Props) {
                     const className = getField(report, 'classname', 'className', 'asmcL_ClassName', 'ASMCL_ClassName') || '-';
                     const sectionName = getField(report, 'sectionname', 'sectionName', 'asmC_SectionName', 'ASMC_SectionName') || '-';
                     const rollNo = getField(report, 'rollno', 'rollNo', 'amaY_RollNo', 'AMAY_RollNo', 'AMST_RollNo') || '-';
-                    
+
                     const rawPhoto = getField(report, 'AMST_Photoname', 'amsT_Photoname', 'photoname', 'studentPhoto', 'studentphoto', 'amsT_Photo', 'AMST_Photo', 'photo', 'filepath', 'amst_photo');
                     const defaultSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="140" viewBox="0 0 120 140"><rect width="120" height="140" fill="#f8fafc" rx="8" stroke="#475569" stroke-width="2"/><circle cx="60" cy="50" r="28" fill="#cbd5e1" stroke="#64748b" stroke-width="1.5"/><path d="M20 126c0-22 18-38 40-38s40 16 40 38z" fill="#cbd5e1" stroke="#64748b" stroke-width="1.5"/><text x="60" y="133" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#475569" text-anchor="middle">STUDENT</text></svg>`;
                     const defaultAvatar = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(defaultSvg)}`;
@@ -477,7 +489,7 @@ export default function SamarthaProgressCardReportView({ data }: Props) {
 
                             &nbsp;
                             <div style={{ textAlign: 'center', margin: '8px 0 12px' }}>
-                                <strong style={{ fontSize: 24 }}>Academic Year: {getField(report, 'asmaY_Year', 'ASMAY_Year') || '2025-2026'}</strong>
+                                <strong style={{ fontSize: 24 }}>Academic Year: {year || getField(report, 'asmaY_Year', 'ASMAY_Year') || getField(data, 'asmaY_Year', 'ASMAY_Year', 'year') || ''}</strong>
                             </div>
 
                             <table className='rpt-table' style={{ marginBottom: 12 }}>
@@ -520,7 +532,7 @@ export default function SamarthaProgressCardReportView({ data }: Props) {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {studentSubjects.filter((s: any) => getField(s, 'EMPS_AppToResultFlg') !== false).map((subj: any, sidx: number) => {
+                                    {finalStudentSubjects.filter((s: any) => getField(s, 'EMPS_AppToResultFlg') !== false).map((subj: any, sidx: number) => {
                                         const subjId = getField(subj, 'ISMS_Id', 'ismS_Id', 'subjectId') ?? sidx;
                                         const subjName = getField(subj, 'ISMS_SubjectName', 'ismS_SubjectName', 'subjectName') || '';
                                         return (
@@ -534,7 +546,7 @@ export default function SamarthaProgressCardReportView({ data }: Props) {
                                             </tr>
                                         );
                                     })}
-                                    {studentSubjects.filter((s: any) => getField(s, 'EMPS_AppToResultFlg') === false).map((subj: any, sidx: number) => {
+                                    {finalStudentSubjects.filter((s: any) => getField(s, 'EMPS_AppToResultFlg') === false).map((subj: any, sidx: number) => {
                                         const subjId = getField(subj, 'ISMS_Id', 'ismS_Id', 'subjectId') ?? sidx;
                                         const subjName = getField(subj, 'ISMS_SubjectName', 'ismS_SubjectName', 'subjectName') || '';
                                         return (
