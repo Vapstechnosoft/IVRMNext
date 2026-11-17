@@ -81,6 +81,7 @@ import type { z } from 'zod';
 import {
     employeeRegisterSteps,
     fileToBase64,
+    formatDateOnly,
     mapFormDataToApiFormat,
     mapFormDataToApiFormatWithoutAddress,
     mapFormDataToPascalCaseApiFormat,
@@ -853,7 +854,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     hrmE_MotherName: String(data.motherName || ''),
                     hrmE_Gender: String(data.gender || ''),
                     hrmE_DOB: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : null,
-                    hrmE_DOJ: data.dateOfJoining ? new Date(data.dateOfJoining).toISOString() : null,
+                    hrmE_DOJ: formatDateOnly(data.dateOfJoining),
                     hrmE_Id: savedEmployeeId || 0
                 }
             });
@@ -5594,7 +5595,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <PayrollTab
                                                 employeeId={savedEmployeeId}
                                                 employeeCode={watch('employeeCode')}
-                                                MI_Id={30}
+                                                MI_Id={HRMS_MI_ID || 30}
+                                                earningList={(onloadData as any)?.data?.earningList || (onloadData as any)?.data?.earninglist || (onloadData as any)?.earningList || (onloadData as any)?.earninglist}
+                                                detectionList={(onloadData as any)?.data?.detectionList || (onloadData as any)?.data?.deductionList || (onloadData as any)?.data?.detectionlist || (onloadData as any)?.data?.deductionlist || (onloadData as any)?.detectionList || (onloadData as any)?.deductionList}
+                                                arrearList={(onloadData as any)?.data?.arrearList || (onloadData as any)?.data?.arrearlist || (onloadData as any)?.arrearList || (onloadData as any)?.arrearlist}
+                                                grossList={(onloadData as any)?.data?.grossList || (onloadData as any)?.grossList}
                                             />
                                         ) : (
                                             <div className='rounded-md border p-6 text-center text-muted-foreground'>

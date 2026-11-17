@@ -42,6 +42,7 @@ import PhoneInput from 'react-phone-input-2';
 import { toast } from 'sonner';
 import type { z } from 'zod';
 import { IneligibleClassesDialog } from './InEligibleDialog';
+import { validateAgeForClass } from './application-form-helper';
 
 type FormFields = z.infer<typeof studentApplicationFormUpdateSchema.update>;
 
@@ -356,6 +357,20 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
 
     const { data: masterConfig } = useAcademicYearMasterConfiguration(activePreadmission?.data?.asmaY_Id ?? 0);
 
+    const configData = useMemo(() => {
+        return Array.isArray(masterConfig?.data)
+            ? masterConfig?.data[0]
+            : (masterConfig?.data as any)?.$values
+              ? (masterConfig?.data as any).$values[0]
+              : masterConfig?.data;
+    }, [masterConfig]);
+
+    const cutOffDate = useMemo(() => {
+        return configData?.ispaC_ApplCutOffDateFlag === 1 && configData?.asmaY_Cut_Of_Date
+            ? new Date(configData.asmaY_Cut_Of_Date)
+            : new Date();
+    }, [configData]);
+
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
 
     const conConuntryId = watch('pasR_ConCountry');
@@ -363,6 +378,14 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
     const { data: caste, isLoading: casteLoading, error: casteError, refetchAll: refetchCaste } = useCasteDropdown(watch('religion_Id'));
     const { data: gender, isLoading: genderLoading, error: genderError, refetchAll: refetchGender } = useGenderDropdown();
     const { data: preadmissionClass, refetchAll: refetchClass } = usePreadmissionClassDropdown();
+
+    const allClasses: IPreadmissionClassDropdown[] = useMemo(() => {
+        return Array.isArray(preadmissionClass?.data)
+            ? preadmissionClass?.data
+            : (preadmissionClass?.data as any)?.$values
+              ? (preadmissionClass?.data as any).$values
+              : preadmissionClass?.data || [];
+    }, [preadmissionClass]);
     const { data: country, isLoading: countryLoading, error: countryError, refetchAll: refetchCountry } = useCountryDropdown();
     const {
         data: conState,
@@ -444,6 +467,21 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         let fieldsToValidate: any[] = [];
 
         if (currentStep === 1) {
+            const dob = getValues('pasR_DOB');
+            const classId = Number(getValues('asmcL_Id') || 0);
+            if (dob && classId > 0) {
+                const targetClass = allClasses.find((c) => c.asmcL_Id === classId);
+                if (targetClass) {
+                    const validation = validateAgeForClass(dob, targetClass, configData);
+                    if (!validation.isValid) {
+                        setIneligibleClasses([targetClass]);
+                        setShowIneligibleDialog(true);
+                        setValue('asmcL_Id', 0);
+                        return;
+                    }
+                }
+            }
+
             fieldsToValidate = [
                 'pasR_FirstName',
                 'pasR_DOB',
@@ -1205,107 +1243,17 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
         return uploadedDocuments.find((doc) => doc.amsmD_Id === amsmD_Id);
     };
 
-    const validateAgeForClass = (dob: Date, classData: IPreadmissionClassDropdown, config: any): { isValid: boolean; reason?: string } => {
-        const cutOffDate = config.ispaC_ApplCutOffDateFlag === 1 ? new Date(config.asmaY_Cut_Of_Date) : new Date();
-
-        // Validate that DOB is not after cutoff date
-        if (dob > cutOffDate) {
-            return {
-                isValid: false,
-                reason: 'Date of birth cannot be after the application cutoff date'
-            };
-        }
-
-        // Additional validation to ensure DOB is valid and not in the future
-        if (!dob || Number.isNaN(dob.getTime())) {
-            return {
-                isValid: false,
-                reason: 'Invalid date of birth provided'
-            };
-        }
-
-        const age = calculateAge(dob, cutOffDate);
-
-        // Check minimum age if flag is enabled
-        if (config.ispaC_DOBMinAgeFlag === 1) {
-            const minAgeInMonths = classData.asmcL_MinAgeYear * 12 + classData.asmcL_MinAgeMonth;
-            const currentAgeInMonths = age.years * 12 + age.months;
-
-            if (currentAgeInMonths < minAgeInMonths) {
-                return {
-                    isValid: false,
-                    reason: `Minimum age required: ${classData.asmcL_MinAgeYear}y ${classData.asmcL_MinAgeMonth}m ${classData.asmcL_MinAgeDays}d`
-                };
-            }
-
-            if (currentAgeInMonths === minAgeInMonths && age.days < classData.asmcL_MinAgeDays) {
-                return {
-                    isValid: false,
-                    reason: `Minimum age required: ${classData.asmcL_MinAgeYear}y ${classData.asmcL_MinAgeMonth}m ${classData.asmcL_MinAgeDays}d`
-                };
-            }
-        }
-
-        // Check maximum age if flag is enabled
-        if (config.ispaC_DOBMaxAgeFlag === 1) {
-            const maxAgeInMonths = classData.asmcL_MaxAgeYear * 12 + classData.asmcL_MaxAgeMonth;
-            const currentAgeInMonths = age.years * 12 + age.months;
-
-            if (currentAgeInMonths > maxAgeInMonths) {
-                return {
-                    isValid: false,
-                    reason: `Maximum age allowed: ${classData.asmcL_MaxAgeYear}y ${classData.asmcL_MaxAgeMonth}m ${classData.asmcL_MaxAgeDays}d`
-                };
-            }
-
-            if (currentAgeInMonths === maxAgeInMonths && age.days > classData.asmcL_MaxAgeDays) {
-                return {
-                    isValid: false,
-                    reason: `Maximum age allowed: ${classData.asmcL_MaxAgeYear}y ${classData.asmcL_MaxAgeMonth}m ${classData.asmcL_MaxAgeDays}d`
-                };
-            }
-        }
-
-        return { isValid: true };
-    };
-
     const handleDOBChange = (date: Date | undefined) => {
-        const configData = Array.isArray(masterConfig?.data) 
-            ? masterConfig?.data[0] 
-            : (masterConfig?.data as any)?.$values 
-                ? (masterConfig?.data as any).$values[0] 
-                : masterConfig?.data;
-
         if (!date) {
-            setIsClassDisabled(true);
-            setFilteredClasses([]);
             setValue('asmcL_Id', 0);
+            setFilteredClasses([]);
+            setIsClassDisabled(true);
             return;
         }
 
-        // Validate the date
-        if (Number.isNaN(date.getTime())) {
-            setIsClassDisabled(true);
-            setFilteredClasses([]);
-            setValue('asmcL_Id', 0);
-            return;
-        }
+        const currentClassId = Number(getValues('asmcL_Id') || 0);
 
-        // Ensure date is not in the future
-        const today = new Date();
-        if (date > today) {
-            setIsClassDisabled(true);
-            setFilteredClasses([]);
-            setValue('asmcL_Id', 0);
-            return;
-        }
-
-        const allClasses = Array.isArray(preadmissionClass?.data)
-            ? preadmissionClass?.data
-            : (preadmissionClass?.data as any)?.$values
-                ? (preadmissionClass?.data as any).$values
-                : preadmissionClass?.data || [];
-
+        // Check eligibility across all classes
         const validClasses: IPreadmissionClassDropdown[] = [];
         const invalidClasses: IPreadmissionClassDropdown[] = [];
 
@@ -1318,24 +1266,23 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
             }
         });
 
-        setFilteredClasses(validClasses);
-
+        // If NO class is applicable for this age:
         if (validClasses.length === 0) {
-            setIneligibleClasses(invalidClasses);
+            setIneligibleClasses(invalidClasses.length > 0 ? invalidClasses : allClasses);
             setShowIneligibleDialog(true);
+            setFilteredClasses([]);
             setIsClassDisabled(true);
             setValue('asmcL_Id', 0);
         } else {
+            // Proper DOB selected that matches age criteria: enable class and show matching classes
+            setFilteredClasses(validClasses);
             setIsClassDisabled(false);
-            // Don't reset class selection in update form if current class is still valid
-            const currentClassId = getValues('asmcL_Id');
-            const initialClassId = rowData?.asmcL_Id || rowData?.asmcL_id;
-            const isCurrentClassValid = validClasses.some((c) => c.asmcL_Id === currentClassId);
-            if (!isCurrentClassValid && currentClassId !== initialClassId) {
+            if (currentClassId > 0 && !validClasses.some((c) => c.asmcL_Id === currentClassId)) {
                 setValue('asmcL_Id', 0);
             }
         }
     };
+
     // derive zip/pincode length allowed from selected country (useMemo to wait for data)
 
     const conCountryObj = useMemo(() => {
@@ -1761,7 +1708,6 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                                             if (date) {
                                                                                 field.onChange(date);
                                                                                 handleDOBChange(date);
-                                                                                setValue('asmcL_Id', 0);
                                                                             }
                                                                         }}
                                                                         disabled={(date: Date) =>
@@ -1967,8 +1913,9 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                                                             <Select
                                                                 key={`${field.value}-${filteredClasses.length}`}
                                                                 onValueChange={(value) => {
-                                                                    const selectedVal = Number(value);
-                                                                    field.onChange(selectedVal);
+                                                                    const classId = Number(value);
+                                                                    field.onChange(classId);
+                                                                    setValue('asmcL_Id', classId);
                                                                 }}
                                                                 value={
                                                                     field.value === null || field.value === 0
@@ -4586,13 +4533,7 @@ export default function UpdateStudentApplicationForm({ id, rowData, onSuccess, c
                             open={showIneligibleDialog}
                             onOpenChange={setShowIneligibleDialog}
                             classes={ineligibleClasses}
-                            cutOffDate={
-                                masterConfig?.data &&
-                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                masterConfig.data.asmaY_Cut_Of_Date
-                                    ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
-                                    : new Date()
-                            }
+                            cutOffDate={cutOffDate}
                         />
                     </div>
                 </div>

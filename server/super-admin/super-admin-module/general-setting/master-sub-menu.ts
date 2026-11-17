@@ -38,10 +38,15 @@ export async function getMasterSubMenuData(searchParams: any) {
                 const q = String(searchQuery).toLowerCase().trim();
                 const filtered = records.filter(
                     (item: any) =>
+                        // biome-ignore lint/complexity/useOptionalChain: <explanation>
                         (item.modulename && item.modulename.toLowerCase().includes(q)) ||
+                        // biome-ignore lint/complexity/useOptionalChain: <explanation>
                         (item.mainMenuName && item.mainMenuName.toLowerCase().includes(q)) ||
+                        // biome-ignore lint/complexity/useOptionalChain: <explanation>
                         (item.ivrmmM_MenuName && item.ivrmmM_MenuName.toLowerCase().includes(q)) ||
+                        // biome-ignore lint/complexity/useOptionalChain: <explanation>
                         (item.ivrmmS_SubMenuName && item.ivrmmS_SubMenuName.toLowerCase().includes(q)) ||
+                        // biome-ignore lint/complexity/useOptionalChain: <explanation>
                         (item.subMenuName && item.subMenuName.toLowerCase().includes(q))
                 );
                 if (filtered.length !== records.length) {
@@ -81,6 +86,7 @@ export async function saveMasterSubMenu(data: any) {
         };
     }
 
+    // biome-ignore lint/style/noUnusedTemplateLiteral: <explanation>
     const url = `/MasterSubMenuFacade`;
 
     // Map form data to API payload

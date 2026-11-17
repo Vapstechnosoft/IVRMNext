@@ -1,5 +1,11 @@
 import { COLLEGE_QUERY_KEYS } from '@/constants/query-keys';
-import { deactivateCollegeCasteCategory, getInitialData, saveCollegeCasteCategory, deleteCollegeCasteCategory, getCollegeCasteCategoryById } from '@/server/college/CollegeAdmission/Masters/college-caste-category';
+import {
+    deactivateCollegeCasteCategory,
+    deleteCollegeCasteCategory,
+    getCollegeCasteCategoryById,
+    getInitialData,
+    saveCollegeCasteCategory
+} from '@/server/college/CollegeAdmission/Masters/college-caste-category';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useCollegeCasteCategory = () => {
@@ -67,7 +73,71 @@ export const useDeleteCollegeCasteCategory = () => {
     });
 };
 
-import { deactivateCourseCategoryMap, getCourseCategoryMapInitialData, saveCourseCategoryMap } from '@/server/college/CollegeAdmission/Masters/clg-master-course-category-map';
+import {
+    deleteCollegeMasterCaste,
+    getCollegeMasterCasteById,
+    getCollegeMasterCasteInitialData,
+    saveCollegeMasterCaste
+} from '@/server/college/CollegeAdmission/Masters/college-master-caste';
+
+export const useCollegeMasterCaste = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [COLLEGE_QUERY_KEYS.MASTER_CASTE],
+            queryFn: async () => getCollegeMasterCasteInitialData(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [COLLEGE_QUERY_KEYS.MASTER_CASTE]
+            });
+        }
+    };
+};
+
+export const useCollegeMasterCasteById = (id: number | null) => {
+    return useQuery({
+        queryKey: [COLLEGE_QUERY_KEYS.MASTER_CASTE, id],
+        queryFn: async () => {
+            if (id === null) return null;
+            return getCollegeMasterCasteById(id);
+        },
+        enabled: id !== null,
+        staleTime: 0
+    });
+};
+
+export const useSaveCollegeMasterCaste = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: any) => saveCollegeMasterCaste(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [COLLEGE_QUERY_KEYS.MASTER_CASTE]
+            });
+        }
+    });
+};
+
+export const useDeleteCollegeMasterCaste = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (id: number) => deleteCollegeMasterCaste(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [COLLEGE_QUERY_KEYS.MASTER_CASTE]
+            });
+        }
+    });
+};
+
+import {
+    deactivateCourseCategoryMap,
+    getCourseCategoryMapInitialData,
+    saveCourseCategoryMap
+} from '@/server/college/CollegeAdmission/Masters/clg-master-course-category-map';
 
 export const useClgMasterCourseCategoryMap = () => {
     const queryClient = useQueryClient();
@@ -110,7 +180,14 @@ export const useDeactivateClgMasterCourseCategoryMap = () => {
     });
 };
 
-import { deactivateCourseBranchMap, deactivateSemesterCourseBranchMap, editCourseBranchMap, getCourseBranchMapInitialData, getCourseBranchMapModalDetails, saveCourseBranchMap } from '@/server/college/CollegeAdmission/Masters/clg-master-course-branch-map';
+import {
+    deactivateCourseBranchMap,
+    deactivateSemesterCourseBranchMap,
+    editCourseBranchMap,
+    getCourseBranchMapInitialData,
+    getCourseBranchMapModalDetails,
+    saveCourseBranchMap
+} from '@/server/college/CollegeAdmission/Masters/clg-master-course-branch-map';
 
 export const useClgMasterCourseBranchMap = () => {
     const queryClient = useQueryClient();
@@ -189,7 +266,12 @@ export const useClgMasterCourseBranchMapModalDetails = (amcobmId: number | null)
     });
 };
 
-import { deactivateClgMasterBatch, editClgMasterBatch, getClgMasterBatchInitialData, saveClgMasterBatch } from '@/server/college/CollegeAdmission/Masters/clg-master-batch';
+import {
+    deactivateClgMasterBatch,
+    editClgMasterBatch,
+    getClgMasterBatchInitialData,
+    saveClgMasterBatch
+} from '@/server/college/CollegeAdmission/Masters/clg-master-batch';
 
 export const useClgMasterBatch = () => {
     const queryClient = useQueryClient();
@@ -241,7 +323,13 @@ export const useDeactivateClgMasterBatch = () => {
     });
 };
 
-import { deactivateClgMasterBranch, editClgMasterBranch, getClgMasterBranchInitialData, saveClgMasterBranch, saveClgMasterBranchOrder } from '@/server/college/CollegeAdmission/Masters/clg-master-branch';
+import {
+    deactivateClgMasterBranch,
+    editClgMasterBranch,
+    getClgMasterBranchInitialData,
+    saveClgMasterBranch,
+    saveClgMasterBranchOrder
+} from '@/server/college/CollegeAdmission/Masters/clg-master-branch';
 
 export const useClgMasterBranch = () => {
     const queryClient = useQueryClient();
@@ -305,7 +393,11 @@ export const useSaveClgMasterBranchOrder = () => {
     });
 };
 
-import { deactivateClgMasterCategory, getClgMasterCategoryInitialData, saveClgMasterCategory } from '@/server/college/CollegeAdmission/Masters/clg-master-category';
+import {
+    deactivateClgMasterCategory,
+    getClgMasterCategoryInitialData,
+    saveClgMasterCategory
+} from '@/server/college/CollegeAdmission/Masters/clg-master-category';
 
 export const useClgMasterCategory = () => {
     const queryClient = useQueryClient();
@@ -348,7 +440,13 @@ export const useDeactivateClgMasterCategory = () => {
     });
 };
 
-import { deactivateMasterCourse, editMasterCourse, getMasterCourseInitialData, saveMasterCourse, saveMasterCourseOrder } from '@/server/college/CollegeAdmission/Masters/master-course';
+import {
+    deactivateMasterCourse,
+    editMasterCourse,
+    getMasterCourseInitialData,
+    saveMasterCourse,
+    saveMasterCourseOrder
+} from '@/server/college/CollegeAdmission/Masters/master-course';
 
 export const useMasterCourse = () => {
     const queryClient = useQueryClient();
@@ -381,7 +479,7 @@ export const useSaveMasterCourse = () => {
 
 export const useEditMasterCourse = () => {
     return useMutation({
-        mutationFn: async (data: any) => editMasterCourse(data),
+        mutationFn: async (data: any) => editMasterCourse(data)
     });
 };
 
@@ -410,14 +508,14 @@ export const useSaveMasterCourseOrder = () => {
 };
 
 import {
+    editMasterQuota,
+    editMasterQuotaCategory,
     getClgMasterQuotaInitialData,
     saveMasterQuota,
-    editMasterQuota,
-    toggleMasterQuota,
     saveMasterQuotaCategory,
-    editMasterQuotaCategory,
-    toggleMasterQuotaCategory,
     saveMasterQuotaCategoryMapping,
+    toggleMasterQuota,
+    toggleMasterQuotaCategory,
     toggleMasterQuotaCategoryMapping
 } from '@/server/college/CollegeAdmission/Masters/clg-master-quota';
 
@@ -452,7 +550,7 @@ export const useSaveMasterQuota = () => {
 
 export const useEditMasterQuota = () => {
     return useMutation({
-        mutationFn: async (data: any) => editMasterQuota(data),
+        mutationFn: async (data: any) => editMasterQuota(data)
     });
 };
 
@@ -482,7 +580,7 @@ export const useSaveMasterQuotaCategory = () => {
 
 export const useEditMasterQuotaCategory = () => {
     return useMutation({
-        mutationFn: async (data: any) => editMasterQuotaCategory(data),
+        mutationFn: async (data: any) => editMasterQuotaCategory(data)
     });
 };
 
@@ -523,15 +621,15 @@ export const useToggleMasterQuotaCategoryMapping = () => {
 };
 
 import {
-    getSchemeTypes,
-    saveSchemeType,
-    toggleSchemeType,
-    getSchemeNames,
-    saveSchemeName,
-    toggleSchemeName,
     getCombinations,
+    getSchemeNames,
+    getSchemeTypes,
     saveCombination,
-    toggleCombination
+    saveSchemeName,
+    saveSchemeType,
+    toggleCombination,
+    toggleSchemeName,
+    toggleSchemeType
 } from '@/server/college/CollegeAdmission/Masters/clg-scheme-type';
 
 export const useClgSchemeTypes = () => {
@@ -658,11 +756,11 @@ export const useToggleCombination = () => {
 };
 
 import {
+    editSection,
     getSections,
     saveSection,
-    editSection,
-    toggleSection,
-    saveSectionOrder
+    saveSectionOrder,
+    toggleSection
 } from '@/server/college/CollegeAdmission/Masters/clg-master-section';
 
 export const useClgMasterSections = () => {
@@ -696,7 +794,7 @@ export const useSaveMasterSection = () => {
 
 export const useEditMasterSection = () => {
     return useMutation({
-        mutationFn: async (id: number) => editSection(id),
+        mutationFn: async (id: number) => editSection(id)
     });
 };
 
@@ -725,11 +823,11 @@ export const useSaveMasterSectionOrder = () => {
 };
 
 import {
+    editSemester,
     getSemesters,
     saveSemester,
-    editSemester,
-    toggleSemester,
-    saveSemesterOrder
+    saveSemesterOrder,
+    toggleSemester
 } from '@/server/college/CollegeAdmission/Masters/clg-master-semester';
 
 export const useClgMasterSemesters = () => {
@@ -763,7 +861,7 @@ export const useSaveMasterSemester = () => {
 
 export const useEditMasterSemester = () => {
     return useMutation({
-        mutationFn: async (id: number) => editSemester(id),
+        mutationFn: async (id: number) => editSemester(id)
     });
 };
 
@@ -791,3 +889,83 @@ export const useSaveMasterSemesterOrder = () => {
     });
 };
 
+import {
+    deactivateBranchChange,
+    getBranchChangeBranches,
+    getBranchChangeCourses,
+    getBranchChangeInitialData,
+    getBranchChangeSemesters,
+    getBranchChangeStudents,
+    saveBranchChange
+} from '@/server/college/CollegeAdmission/Masters/clg-branch-change';
+
+export const useBranchChange = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [COLLEGE_QUERY_KEYS.BRANCH_CHANGE],
+            queryFn: async () => getBranchChangeInitialData(),
+            staleTime: 0
+        }),
+        refetchAll: () => {
+            return queryClient.invalidateQueries({
+                queryKey: [COLLEGE_QUERY_KEYS.BRANCH_CHANGE]
+            });
+        }
+    };
+};
+
+export const useGetBranchChangeCourses = () => {
+    return useMutation({
+        mutationFn: async (data: { ASMAY_Id: number }) => getBranchChangeCourses(data)
+    });
+};
+
+export const useGetBranchChangeBranches = () => {
+    return useMutation({
+        mutationFn: async (data: { ASMAY_Id: number; AMCO_Id: number }) => getBranchChangeBranches(data)
+    });
+};
+
+export const useGetBranchChangeSemesters = () => {
+    return useMutation({
+        mutationFn: async (data: { ASMAY_Id: number; AMCO_Id: number; AMB_Id: number }) => getBranchChangeSemesters(data)
+    });
+};
+
+export const useGetBranchChangeStudents = () => {
+    return useMutation({
+        mutationFn: async (data: {
+            ASMAY_Id: number;
+            AMCO_Id: number;
+            AMB_Id: number;
+            AMSE_Id: number;
+            ACMS_Id_Old: number;
+        }) => getBranchChangeStudents(data)
+    });
+};
+
+export const useSaveBranchChange = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: any) => saveBranchChange(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [COLLEGE_QUERY_KEYS.BRANCH_CHANGE]
+            });
+        }
+    });
+};
+
+export const useDeactivateBranchChange = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (data: any) => deactivateBranchChange(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: [COLLEGE_QUERY_KEYS.BRANCH_CHANGE]
+            });
+        }
+    });
+};

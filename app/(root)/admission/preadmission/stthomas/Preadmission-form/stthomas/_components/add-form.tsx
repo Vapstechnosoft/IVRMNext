@@ -191,12 +191,35 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     const { data: masterConfig } = useAcademicYearMasterConfiguration(asmayId);
 
+    const configData = useMemo(() => {
+        return Array.isArray(masterConfig?.data)
+            ? masterConfig?.data[0]
+            : (masterConfig?.data as any)?.$values
+              ? (masterConfig?.data as any).$values[0]
+              : masterConfig?.data;
+    }, [masterConfig]);
+
+    const cutOffDate = useMemo(() => {
+        return configData?.ispaC_ApplCutOffDateFlag === 1 && configData?.asmaY_Cut_Of_Date
+            ? new Date(configData.asmaY_Cut_Of_Date)
+            : new Date();
+    }, [configData]);
+
+
     const { data: religion, isLoading: religionLoading, error: religionError, refetchAll: refetchReligion } = useReligionDropdown();
     const conConuntryId = watch('pasR_ConCountry');
     const perConuntryId = watch('pasR_PerCountry');
     const { data: caste, isLoading: casteLoading, error: casteError, refetchAll: refetchCaste } = useCasteDropdown(watch('religion_Id'));
     const { data: gender, isLoading: genderLoading, error: genderError, refetchAll: refetchGender } = useGenderDropdown();
     const { data: preadmissionClass, refetchAll: refetchClass } = usePreadmissionClassDropdown();
+
+    const allClasses: IPreadmissionClassDropdown[] = useMemo(() => {
+        return Array.isArray(preadmissionClass?.data)
+            ? preadmissionClass?.data
+            : (preadmissionClass?.data as any)?.$values
+              ? (preadmissionClass?.data as any).$values
+              : preadmissionClass?.data || [];
+    }, [preadmissionClass]);
     const { data: country, isLoading: countryLoading, error: countryError, refetchAll: refetchCountry } = useCountryDropdown();
 
     const {
@@ -273,6 +296,21 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
         let fieldsToValidate: any[] = [];
 
         if (currentStep === 1) {
+            const dob = getValues('pasR_DOB');
+            const classId = Number(getValues('asmcL_Id') || 0);
+            if (dob && classId > 0) {
+                const targetClass = allClasses.find((c) => c.asmcL_Id === classId);
+                if (targetClass) {
+                    const validation = validateAgeForClass(dob, targetClass, configData);
+                    if (!validation.isValid) {
+                        setIneligibleClasses([targetClass]);
+                        setShowIneligibleDialog(true);
+                        setValue('asmcL_Id', 0);
+                        return;
+                    }
+                }
+            }
+
             fieldsToValidate = [
                 'pasR_FirstName',
                 'pasR_DOB',
@@ -927,32 +965,21 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
 
     // Add this handler where other form handlers are defined
     const handleDOBChange = (date: Date | undefined) => {
-        console.log('handleDOBChange');
-        const configData = Array.isArray(masterConfig?.data) 
-            ? masterConfig?.data[0] 
-            : (masterConfig?.data as any)?.$values 
-                ? (masterConfig?.data as any).$values[0] 
-                : masterConfig?.data;
-
         if (!date) {
-            setIsClassDisabled(true);
-            setFilteredClasses([]);
             setValue('asmcL_Id', 0);
+            setFilteredClasses([]);
+            setIsClassDisabled(true);
             return;
         }
 
-        const allClasses = Array.isArray(preadmissionClass?.data)
-            ? preadmissionClass?.data
-            : (preadmissionClass?.data as any)?.$values
-                ? (preadmissionClass?.data as any).$values
-                : preadmissionClass?.data || [];
+        const currentClassId = Number(getValues('asmcL_Id') || 0);
 
+        // Check eligibility across all classes
         const validClasses: IPreadmissionClassDropdown[] = [];
         const invalidClasses: IPreadmissionClassDropdown[] = [];
 
         allClasses.forEach((classItem: IPreadmissionClassDropdown) => {
             const validation = validateAgeForClass(date, classItem, configData);
-
             if (validation.isValid) {
                 validClasses.push(classItem);
             } else {
@@ -960,30 +987,22 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
             }
         });
 
-        setFilteredClasses(validClasses);
-
+        // If NO class is applicable for this age:
         if (validClasses.length === 0) {
-            setIneligibleClasses(invalidClasses);
+            setIneligibleClasses(invalidClasses.length > 0 ? invalidClasses : allClasses);
             setShowIneligibleDialog(true);
+            setFilteredClasses([]);
             setIsClassDisabled(true);
             setValue('asmcL_Id', 0);
         } else {
+            // Proper DOB selected that matches age criteria: enable class and show matching classes
+            setFilteredClasses(validClasses);
             setIsClassDisabled(false);
-            setValue('asmcL_Id', 0);
+            if (currentClassId > 0 && !validClasses.some((c) => c.asmcL_Id === currentClassId)) {
+                setValue('asmcL_Id', 0);
+            }
         }
     };
-
-    // Reactively validate classes when DOB or config/master data changes
-    useEffect(() => {
-        console.log('inside useeffect');
-        const dob = getValues('pasR_DOB');
-        console.log('dob', dob);
-        if (dob) {
-            handleDOBChange(dob);
-            console.log('handleDOBChange');
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [watch('pasR_DOB'), masterConfig, preadmissionClass]);
 
     const handleFatherPhotoUpload = async (file: File) => {
         try {
@@ -1516,6 +1535,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         if (date) {
                                                                             field.onChange(date);
                                                                             setOpenPopover(null);
+                                                                            handleDOBChange(date);
                                                                         }
                                                                     }}
                                                                     disabled={(date: Date) =>
@@ -1716,8 +1736,12 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                     render={({ field, fieldState: { error } }) => (
                                                         <div className='flex flex-col space-y-2'>
                                                             <Select
-                                                                value={field.value?.toString() || ''}
-                                                                onValueChange={(value) => field.onChange(Number(value))}
+                                                                value={field.value && field.value > 0 ? field.value.toString() : ''}
+                                                                onValueChange={(value) => {
+                                                                    const classId = Number(value);
+                                                                    field.onChange(classId);
+                                                                    setValue('asmcL_Id', classId);
+                                                                }}
                                                                 disabled={isClassDisabled}>
                                                                 <SelectTrigger className={cn('w-full', error && 'border-red-500')}>
                                                                     <SelectValue
@@ -2647,7 +2671,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                                                                         inputProps={{
                                                                             id: 'pasR_FatherMobleNo',
                                                                             name: 'pasR_FatherMobleNo',
-                                                                            maxLength: 25,
+                                                                            maxLength:15,
                                                                             required: false,
                                                                             style: {
                                                                                 width: '87%',
@@ -4249,13 +4273,7 @@ export default function AddStudentApplicationForm({ onSuccess, className = '' }:
                             open={showIneligibleDialog}
                             onOpenChange={setShowIneligibleDialog}
                             classes={ineligibleClasses}
-                            cutOffDate={
-                                masterConfig?.data &&
-                                masterConfig.data.ispaC_ApplCutOffDateFlag === 1 &&
-                                masterConfig.data.asmaY_Cut_Of_Date
-                                    ? new Date(masterConfig.data.asmaY_Cut_Of_Date)
-                                    : new Date()
-                            }
+                            cutOffDate={cutOffDate}
                         />
                     </div>
                 </div>

@@ -3,6 +3,11 @@ export interface IBookCirculationReportInitialData {
         lmaL_Id: number;
         lmaL_LibraryName: string;
     }>;
+    library_list?: any[];
+    libList?: any[];
+    libraryList?: any[];
+    msterliblist?: any[];
+    msterliblist1?: any[];
     classList?: Array<{
         asmcL_Id: number;
         asmcL_ClassName: string;

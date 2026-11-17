@@ -165,8 +165,10 @@ export default function AddEmployeeMonthlyReportForm({
             const response = await getEmployeeMonthlyReport(payload, searchParams);
             console.log('API response:', response);
 
-            if (response.success) {
-                toast.success(response.message || 'Report generated successfully');
+            const isSuccess = response?.success ?? (Array.isArray(response) ? response.length > 0 : !!response?.data);
+
+            if (isSuccess) {
+                toast.success(response?.message || 'Report generated successfully');
 
                 const nextSearchParams: Record<string, string | string[]> = {
                     fromDate: data.fromDate,
@@ -186,21 +188,21 @@ export default function AddEmployeeMonthlyReportForm({
                 if (data.designation.length === 1) nextSearchParams.designation = data.designation[0];
                 else if (data.designation.length > 1) nextSearchParams.designation = data.designation;
 
-                if (data.reportOptions && data.reportOptions.length === 1) nextSearchParams.reportOptions = data.reportOptions[0];
-                else if (data.reportOptions && data.reportOptions.length > 1) nextSearchParams.reportOptions = data.reportOptions;
+                nextSearchParams.reportOptions = data.reportOptions || [];
 
                 // Update local search params instead of updating the browser URL
                 onSearchParamsChange?.(nextSearchParams);
 
                 // Update cache with the new reportOptions so the next hook read is cached
-                queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT, nextSearchParams], {
-                    ...response,
-                    reportOptions: data.reportOptions || []
-                });
+                const cacheData = Array.isArray(response)
+                    ? { data: response, success: true, reportOptions: data.reportOptions || [] }
+                    : { ...response, reportOptions: data.reportOptions || [] };
+
+                queryClient.setQueryData([HRMS_QUERY_KEYS.EMPLOYEE_MONTHLY_REPORT, nextSearchParams], cacheData);
 
                 onSuccess?.();
             } else {
-                toast.error(response.message || 'Failed to generate report');
+                toast.error(response?.message || 'Failed to generate report');
             }
         } catch (error: any) {
             toast.error(error.message || 'Failed to generate report');
@@ -464,7 +466,13 @@ export default function AddEmployeeMonthlyReportForm({
                                                 { label: 'Date Of Joining', value: 'Date Of Joining' },
                                                 { label: 'Total Absent Days', value: 'Total Absent Days' }
                                             ]}
-                                            onValueChange={(values) => field.onChange(values)}
+                                            onValueChange={(values) => {
+                                                field.onChange(values);
+                                                onSearchParamsChange?.({
+                                                    ...searchParams,
+                                                    reportOptions: values
+                                                });
+                                            }}
                                             defaultValue={field.value || []}
                                             placeholder='Select Report Options'
                                             className='w-full'

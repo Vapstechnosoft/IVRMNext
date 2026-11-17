@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     getClgSectionAllotmentInitialData,
     getClgSectionAllotmentAcademicCourses,
+    getClgSectionAllotmentStudentDetailsByYear,
     getClgSectionAllotmentBranches,
     getClgSectionAllotmentSemesters,
     getClgSectionAllotmentStudents,
@@ -15,7 +16,9 @@ import {
     getClgSectionAllotmentYearLossSem,
     getClgSectionAllotmentYearLossStudents,
     getClgSectionAllotmentStudentsByURN,
-    saveClgSectionAllotmentRollNo
+    saveClgSectionAllotmentRollNo,
+    getClgSectionAllotmentCBSStudents,
+    saveClgSectionAllotmentCourseBranch
 } from '@/server/college/CollegeAdmission/Transactions/clgsectionallotment';
 import { COLLEGE_QUERY_KEYS } from '@/constants/query-keys';
 
@@ -39,6 +42,12 @@ export const useClgSectionAllotmentInitialData = () => {
 export const useGetClgSectionAllotmentAcademicCourses = () => {
     return useMutation({
         mutationFn: async (data: { ASMAY_Id: number }) => getClgSectionAllotmentAcademicCourses(data)
+    });
+};
+
+export const useGetClgSectionAllotmentStudentDetailsByYear = () => {
+    return useMutation({
+        mutationFn: async (data: { ASMAY_Id: number }) => getClgSectionAllotmentStudentDetailsByYear(data)
     });
 };
 
@@ -129,3 +138,22 @@ export const useSaveClgSectionAllotmentRollNo = () => {
         mutationFn: async (data: any) => saveClgSectionAllotmentRollNo(data)
     });
 };
+
+// Change Course & Branch hooks
+export const useGetClgSectionAllotmentCBSStudents = () => {
+    return useMutation({
+        mutationFn: async (data: {
+            ASMAY_Id: number;
+            AMCO_Id: number;
+            AMB_Id: number;
+            AMSE_Id: number;
+        }) => getClgSectionAllotmentCBSStudents(data)
+    });
+};
+
+export const useSaveClgSectionAllotmentCourseBranch = () => {
+    return useMutation({
+        mutationFn: async (data: any) => saveClgSectionAllotmentCourseBranch(data)
+    });
+};
+

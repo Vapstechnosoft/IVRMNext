@@ -1,13 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
 
 export default function NDAReportCardView({ data }: { data: any }) {
-    const handlePrint = () => {
-        window.print();
-    };
-
     // Extract students from API data or use a dummy student if no data is present
     let report_list: any[] = [];
     const studentSource = data?.examwisedetailsnew || data?.student_list || data?.examwisedetails || [];
@@ -258,12 +253,6 @@ export default function NDAReportCardView({ data }: { data: any }) {
                     font-size: 11px;
                 }
             `}</style>
-
-            <div className='no-print flex justify-end pt-4 pr-4 pb-4'>
-                <Button onClick={handlePrint} size='sm' className='flex items-center gap-2'>
-                    <Printer className='h-4 w-4' /> Print
-                </Button>
-            </div>
 
             <div id='nda-print-area'>
                 {report_list.map((report, index) => {

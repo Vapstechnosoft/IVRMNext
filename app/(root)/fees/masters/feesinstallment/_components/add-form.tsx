@@ -29,6 +29,7 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
         handleSubmit,
         watch,
         reset,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm<MasterInstallmentFormSchema>({
         resolver: zodResolver(masterInstallmentSchema.addOrUpdate),
@@ -39,21 +40,24 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
     const _count = watch('fmI_No_Of_Installments');
 
     const INSTALLMENT_TYPES = [
-        { value: 'general', label: 'General', count: 0 },
-        { value: 'monthly', label: 'Monthly', count: 12 },
-        { value: 'quarterly', label: 'Quarterly', count: 4 },
-        { value: 'halfyearly', label: 'Half Yearly', count: 2 },
-        { value: 'yearly', label: 'Yearly', count: 1 },
-        { value: 'bimonthly', label: 'Bi-Monthly', count: 24 },
-        { value: 'anytime', label: 'Anytime', count: 1 }
+        { value: '1', label: 'General', count: 0 },
+        { value: '2', label: 'Once In a Carrier', count: 1 },
+        { value: '3', label: 'Monthly', count: 12 },
+        { value: '4', label: 'Quarterly', count: 4 },
+        { value: '5', label: 'Yearly', count: 1 },
+        { value: '6', label: 'Half Yearly', count: 2 },
+        { value: '7', label: 'Bi Monthly', count: 6 },
+        { value: '8', label: 'Anytime', count: 1 }
     ];
 
     const handleTypeChange = (value: string) => {
         const selected = INSTALLMENT_TYPES.find((t) => t.value === value);
-        if (value !== 'general') {
+        if (value !== '1') {
             const count = selected?.count || 0;
+            setValue('fmI_No_Of_Installments', count);
             setInstallments(Array.from({ length: count }, (_, i) => ({ sno: i + 1, ftI_Name: '' })));
         } else {
+            setValue('fmI_No_Of_Installments', undefined);
             setInstallments([]);
         }
     };
@@ -87,7 +91,7 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
                 // mI_Id: (data as any).mI_Id ?? 30,
                 fmI_Name: data.fmI_Name,
                 fmI_No_Of_Installments: noOfInstallments,
-                fmI_Installment_Type: data.fmI_Installment_Type,
+                fmI_Installment_Type: String(data.fmI_Installment_Type),
                 fydto: installments.map((row) => ({
                     ftI_Name: row.ftI_Name || `Installment ${row.sno}`
                 }))
@@ -224,7 +228,7 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
                             control={control}
                             render={({ field }) => (
                                 <Select
-                                    value={field.value ?? ''}
+                                    value={field.value ? String(field.value) : undefined}
                                     onValueChange={(val) => {
                                         field.onChange(val);
                                         handleTypeChange(val);
@@ -247,7 +251,7 @@ export default function AddMasterInstallmentForm({ onSuccess }: { onSuccess?: ()
                 </div>
 
                 {/* General Type - No. of Installments */}
-                {installmentType === 'general' && (
+                {installmentType === '1' && (
                     <div className='grid grid-cols-1 sm:grid-cols-2'>
                         <div className='flex flex-col gap-1.5'>
                             <Label htmlFor='fmI_No_Of_Installments'>

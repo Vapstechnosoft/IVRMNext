@@ -6,9 +6,17 @@ import type { IDropdown, IUserAccessibleModules, UserNotification } from '@/type
 // Helper to convert API icon names to Lucide React component names
 function mapIcon(icon: string | null): string {
     if (!icon) return 'Settings';
+    const clean = icon.trim().toLowerCase();
 
     // Specific mappings for icons that don't follow the kebab-case → PascalCase rule
     const specialMappings: Record<string, string> = {
+        desktop: 'Monitor',
+        'soccer-ball-o': 'Trophy',
+        comments: 'MessageSquare',
+        'credit-card-alt': 'CreditCard',
+        envelope: 'Mail',
+        'birthday-cake': 'Cake',
+        'calendar-plus-o': 'CalendarPlus',
         money: 'BadgeIndianRupee',
         dollar: 'DollarSign',
         rupee: 'IndianRupee',
@@ -449,12 +457,12 @@ function mapIcon(icon: string | null): string {
         kalamansi: 'Kalamansi'
     };
 
-    if (specialMappings[icon]) {
-        return specialMappings[icon];
+    if (specialMappings[clean]) {
+        return specialMappings[clean];
     }
 
     // Convert kebab-case to PascalCase (e.g., "user-plus" → "UserPlus")
-    return icon
+    return clean
         .split('-')
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join('');
@@ -751,28 +759,37 @@ export async function getUserAccessibleModules() {
             ]
         };
 
-        const isSuperAdmin =
-            session?.role?.toUpperCase() === 'SUPER ADMIN' ||
-            session?.role?.toUpperCase() === 'SUPERADMIN';
+        const rawRole = (session?.role || (session as any)?.roleName || (session as any)?.user?.role || '').trim().toUpperCase();
+        const roleType = (
+            session?.role ||
+            session?.role ||
+            (session as any)?.user?.roleType ||
+            (session as any)?.user?.roletype ||
+            (session as any)?.ivrmrT_Role ||
+            ''
+        )
+            .trim()
+            .toUpperCase();
 
-        // Super Admin gets ONLY Super Admin and AI Edge (no school modules)
+        const isSuperAdmin =
+            rawRole === 'SUPER ADMIN' || rawRole === 'SUPERADMIN' || roleType === 'SUPER ADMIN' || roleType === 'SUPERADMIN';
+
+        // Super Admin gets ONLY Super Admin and AI Edge (never school operational modules like Fees, Admission, etc.)
         if (isSuperAdmin) {
             return {
                 success: true,
                 message: 'Data fetched successfully!!',
-                data: [
-                    superAdminModule as any,
-                    aiEdgeModule as any
-                ]
+                data: [superAdminModule as any, aiEdgeModule as any]
             } as any;
         }
 
-        // Fetch data from backend APIs for School Admin / other user roles
-        const [mainModulesRes, subModulesRes, pageListRes, pageMappingsRes] = await Promise.all([
+        const isAdmin = rawRole === 'ADMIN' || rawRole.includes('ADMIN') || roleType === 'ADMIN' || roleType.includes('ADMIN');
+
+        // Fetch data from backend APIs
+        const [mainModulesRes, subModulesRes, pageListRes] = await Promise.all([
             api.get<any>('preadmission', '/configuration/get_main_module_list'),
             api.get<any>('preadmission', '/configuration/get_submodule_list'),
-            api.get<any>('preadmission', '/configuration/get_page_list'),
-            api.get<any>('sadmin', 'MasterPageModuleMappingFacade/get_all_details_grid_page_mapping?page=1&page_size=1000').catch(() => null)
+            api.get<any>('preadmission', '/configuration/get_page_list')
         ]);
 
         // Safe extraction helper to handle raw arrays, wrapped objects, or $values metadata
@@ -792,6 +809,10 @@ export async function getUserAccessibleModules() {
             if (res.data && Array.isArray(res.data.savedMappings)) return res.data.savedMappings;
             if (Array.isArray(res.records)) return res.records;
             if (res.data && Array.isArray(res.data.records)) return res.data.records;
+            if (Array.isArray(res.gridDetails)) return res.gridDetails;
+            if (res.data && Array.isArray(res.data.gridDetails)) return res.data.gridDetails;
+            if (Array.isArray(res.pagesdata)) return res.pagesdata;
+            if (res.data && Array.isArray(res.data.pagesdata)) return res.data.pagesdata;
 
             if (res.data && typeof res.data === 'object') {
                 for (const key of Object.keys(res.data)) {
@@ -809,7 +830,6 @@ export async function getUserAccessibleModules() {
         const pages = extractArray(pageListRes);
         const mainModules = extractArray(mainModulesRes);
         const subModules = extractArray(subModulesRes);
-        const pageMappings = pageMappingsRes ? extractArray(pageMappingsRes) : [];
 
         // Dynamic Title Case helper
         const toTitleCase = (str: string): string => {
@@ -823,12 +843,17 @@ export async function getUserAccessibleModules() {
                 .join(' ');
         };
 
+        const cleanMenuTitle = (text: string): string => {
+            if (!text) return '';
+            return text.replace(/\bbaldwin\b\s*/gi, '').trim();
+        };
+
         // Dynamic URL normalizer
         const normalizeUrl = (rawUrl: string, pageName: string): string => {
             if (rawUrl && typeof rawUrl === 'string') {
                 let u = rawUrl.trim();
                 if (u.startsWith('app.')) u = u.replace(/^app\./, '/');
-                if (!u.startsWith('/') && u !== '#' && u !== '' && u !== 'null') u = '/' + u;
+                if (!u.startsWith('/') && u !== '#' && u !== '' && u !== 'null') u = `/${u}`;
                 if (u !== '#' && u !== '' && u !== 'null') return u;
             }
             const slug = (pageName || '')
@@ -864,252 +889,228 @@ export async function getUserAccessibleModules() {
             );
         };
 
-        // 1. Build lookup tables
-        const mappingByPageId = new Map<number, string>();
-        const mappingByPageName = new Map<string, string>();
-        pageMappings.forEach((m: any) => {
-            const modName = (m.ivrmM_ModuleName || '').trim();
-            const pId = Number(m.ivrmP_Id || 0);
-            const pName = (m.ivrmmP_PageName || '').trim().toLowerCase();
-            if (modName) {
-                if (pId > 0) mappingByPageId.set(pId, modName);
-                if (pName) mappingByPageName.set(pName, modName);
-            }
-        });
-
-        const subByMenuId = new Map<number, any>();
-        subModules.forEach((s: any) => {
-            const id = Number(s.menuId ?? s.ivrmmM_Id ?? s.subModuleId ?? 0);
-            if (id > 0) subByMenuId.set(id, s);
-        });
-
-        const modById = new Map<number, any>();
-        mainModules.forEach((m: any) => {
-            const mId = Number(m.moduleId ?? m.ivrmM_Id ?? 0);
-            const menuId = Number(m.menuId ?? 0);
-            if (mId > 0) modById.set(mId, m);
-            if (menuId > 0) modById.set(menuId, m);
-        });
-
-        // 2. Initialize Module Map
-        const moduleMap = new Map<string, any>();
-
-        const getOrCreateModule = (name: string, icon?: string): any => {
-            const cleanName = toTitleCase(name) || 'General';
-            const key = cleanName.toLowerCase();
-            if (!moduleMap.has(key)) {
-                const modId = Math.abs(cleanName.split('').reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0)) % 100000 + 1;
-                moduleMap.set(key, {
-                    id: modId,
-                    name: cleanName,
-                    icon: mapIcon(icon || 'Boxes'),
-                    menu: [
-                        {
-                            id: 1,
-                            name: cleanName,
-                            icon: mapIcon(icon || 'Boxes'),
-                            sub_menu: []
-                        }
-                    ]
-                });
-            }
-            return moduleMap.get(key);
+        // --------------------------------------------------
+        // Composite key: moduleId + menuId
+        // --------------------------------------------------
+        const getMenuKey = (moduleId: number, menuId: number): string => {
+            return `${moduleId}_${menuId}`;
         };
 
-        const getOrCreateSubMenu = (modObj: any, subMenuName: string, icon?: string): any => {
-            const cleanSubName = toTitleCase(subMenuName) || 'General';
-            let subMenu = modObj.menu[0].sub_menu.find(
-                (s: any) => s.name.toLowerCase() === cleanSubName.toLowerCase()
-            );
-            if (!subMenu) {
-                const subId = Math.abs((modObj.name + cleanSubName).split('').reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0)) % 100000 + 1;
-                subMenu = {
-                    id: subId,
-                    name: cleanSubName,
-                    icon: mapIcon(icon || 'Settings'),
-                    pages: []
-                };
-                modObj.menu[0].sub_menu.push(subMenu);
-            }
-            return subMenu;
+        // Admin-specific module ordering
+        const getAdminModuleRank = (rawName: string): number => {
+            if (!rawName) return 999;
+            const clean = rawName.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+            // 1. Pre configuration
+            if (clean === 'preconfiguration' || clean.includes('preconfig')) return 1;
+
+            if (clean === 'sms' || clean.includes('email')) return 1.1;
+            // 2. Pre admission
+            if (clean === 'preadmission' || clean === 'preadmissions') return 2;
+            // 3. Admission
+            if (clean === 'admission' || clean === 'admissions') return 3;
+            // 4. Fees
+            if (clean === 'fees' || clean === 'fee') return 4;
+            // 5. Exam
+            if (clean === 'exam' || clean === 'exams' || clean === 'examination') return 5;
+            // 6. HRMS
+            if (clean === 'hrms') return 6;
+            // 7. Front office
+            if (clean === 'frontoffice') return 7;
+            // 8. Leave management
+            if (clean === 'leavemanagement' || clean.includes('leave')) return 8;
+            // 9. Upload Notice Board (matches Upload Notice Board, Upload, or Notice Board)
+            if (clean === 'uploadnoticeboard') return 9;
+            if (clean === 'upload') return 9.1;
+            if (clean === 'noticeboard') return 9.2;
+            // 10. Time table
+            if (clean === 'timetable') return 10;
+            // 11. Coe
+            if (clean === 'coe') return 11;
+            // 12. Birthday
+            if (clean === 'birthday' || clean === 'birthdays') return 12;
+            // 13. Inventory
+            if (clean === 'inventory') return 13;
+
+            return 999;
         };
 
-        // Pre-populate modules from mainModules and their subModules
-        mainModules.forEach((m: any) => {
-            const mName = toTitleCase(m.ivrmM_ModuleName || m.name);
-            if (mName && mName.toLowerCase() !== 'super admin') {
-                const modObj = getOrCreateModule(mName, m.ivrmmmI_Icon || m.icon);
-                const mId = Number(m.moduleId ?? m.ivrmM_Id ?? 0);
-                const menuId = Number(m.menuId ?? 0);
+        const sortAdminModules = (a: any, b: any) => {
+            const nameA = a.ivrmM_ModuleName || a.name || '';
+            const nameB = b.ivrmM_ModuleName || b.name || '';
+            const rankA = getAdminModuleRank(nameA);
+            const rankB = getAdminModuleRank(nameB);
 
-                subModules.forEach((s: any) => {
-                    const sParent = Number(s.parentId ?? 0);
-                    const sMod = Number(s.moduleId ?? 0);
-                    if ((menuId > 0 && sParent === menuId) || (mId > 0 && sMod === mId)) {
-                        const sName = toTitleCase(s.ivrmM_ModuleName || s.name);
-                        if (sName) {
-                            getOrCreateSubMenu(modObj, sName, s.ivrmmmI_Icon || s.icon);
-                        }
-                    }
-                });
+            if (rankA !== rankB) {
+                return rankA - rankB;
+            }
+            return (a.order || 0) - (b.order || 0);
+        };
+
+        // Sort helper
+        const sortByOrder = (a: any, b: any) => (a.order || 0) - (b.order || 0);
+
+        if (isAdmin) {
+            mainModules.sort(sortAdminModules);
+        }
+
+        // Pre-index subModules by composite key (moduleId_parentId) and fallback parentId
+        const subByParentKey = new Map<string, any[]>();
+        const subByParentId = new Map<number, any[]>();
+
+        subModules.forEach((sub: any) => {
+            const moduleId = Number(sub.moduleId ?? sub.ivrmM_Id ?? 0);
+            const parentId = Number(sub.parentId ?? sub.ivrmmM_Id ?? 0);
+
+            const compKey = getMenuKey(moduleId, parentId);
+            if (!subByParentKey.has(compKey)) {
+                subByParentKey.set(compKey, []);
+            }
+            subByParentKey.get(compKey)!.push(sub);
+
+            if (parentId > 0) {
+                if (!subByParentId.has(parentId)) {
+                    subByParentId.set(parentId, []);
+                }
+                subByParentId.get(parentId)!.push(sub);
             }
         });
 
-        // Also pre-populate any modules from Super Admin pageMappings
-        pageMappings.forEach((m: any) => {
-            const modName = (m.ivrmM_ModuleName || '').trim();
-            if (modName && modName.toLowerCase() !== 'super admin' && modName.toLowerCase() !== 'pre-configuration') {
-                getOrCreateModule(modName);
-            }
-        });
+        // Pre-index pages by composite key (moduleId_menuId) and fallback menuId
+        const pagesByMenuKey = new Map<string, any[]>();
+        const pagesByMenuId = new Map<number, any[]>();
 
-        // 3. Map all pages from get_page_list dynamically
-        pages.forEach((p: any) => {
-            const pageId = Number(p.pageId ?? p.ivrmP_Id ?? p.id ?? Math.floor(Math.random() * 1000000) + 1);
-            const rawName = p.ivrmmP_PageName || p.ivrmP_PageDisplayName || p.name || '';
-            const pageName = toTitleCase(rawName) || 'Untitled Page';
-            const rawUrl = p.ivrmP_PageURL || p.url || '';
-            const resolvedUrl = normalizeUrl(rawUrl, pageName);
-            const nameLower = pageName.toLowerCase();
-            const urlLower = (rawUrl || '').toLowerCase();
+        pages.forEach((page: any) => {
+            const moduleId = Number(page.moduleId ?? page.ivrmM_Id ?? 0);
+            const menuId = Number(page.menuId ?? page.ivrmmM_Id ?? 0);
+            const rawName = page.ivrmmP_PageName || page.ivrmP_PageDisplayName || page.name || '';
+            const cleanedName = toTitleCase(cleanMenuTitle(rawName));
+            const rawUrl = page.ivrmP_PageURL || page.url || '';
+            const resolvedUrl = normalizeUrl(rawUrl, cleanedName);
 
-            // Skip super admin hardcoded pages in regular school portal
-            if (isSuperAdminPage(nameLower, urlLower)) {
+            if (isSuperAdminPage(cleanedName.toLowerCase(), (rawUrl || '').toLowerCase())) {
                 return;
             }
 
-            let targetModuleName = '';
-            let targetSubMenuName = '';
-
-            // Priority 1: SuperAdmin Page Mapping (explicit configuration saved by Super Admin)
-            if (!targetModuleName && mappingByPageId.has(pageId)) {
-                targetModuleName = mappingByPageId.get(pageId)!;
-            }
-            if (!targetModuleName && mappingByPageName.has(rawName.trim().toLowerCase())) {
-                targetModuleName = mappingByPageName.get(rawName.trim().toLowerCase())!;
-            }
-
-            // Priority 2: Direct menuId or moduleId from API
-            const menuId = Number(p.menuId ?? p.ivrmmM_Id ?? 0);
-            if (!targetModuleName && menuId > 0 && subByMenuId.has(menuId)) {
-                const sub = subByMenuId.get(menuId);
-                targetSubMenuName = sub.ivrmM_ModuleName || sub.name;
-                const parentModId = Number(sub.moduleId ?? sub.parentId ?? 0);
-                if (modById.has(parentModId)) {
-                    targetModuleName = modById.get(parentModId).ivrmM_ModuleName;
-                }
-            }
-
-            const moduleId = Number(p.moduleId ?? p.ivrmM_Id ?? 0);
-            if (!targetModuleName && moduleId > 0 && modById.has(moduleId)) {
-                targetModuleName = modById.get(moduleId).ivrmM_ModuleName;
-            }
-
-            // Priority 3: URL Path Segments
-            const cleanUrl = resolvedUrl.replace(/^\/+/, '');
-            const segments = cleanUrl.split('/').filter(Boolean);
-
-            if (segments.length >= 1) {
-                const seg0 = segments[0].toLowerCase();
-                const seg1 = segments.length > 1 ? segments[1].toLowerCase() : '';
-                const seg2 = segments.length > 2 ? segments[2].toLowerCase() : '';
-
-                if (!targetModuleName) {
-                    if (seg0 === 'admission' && seg1 === 'preadmission') {
-                        targetModuleName = 'Pre Admission';
-                        if (seg2 && !seg2.includes('.')) targetSubMenuName = toTitleCase(seg2);
-                    } else if (seg0 === 'admission') {
-                        targetModuleName = 'Admission';
-                        if (seg1 && !seg1.includes('.')) targetSubMenuName = toTitleCase(seg1);
-                    } else if (seg0 === 'fees' || seg0 === 'fee') {
-                        targetModuleName = 'Fee';
-                        if (seg1 && !seg1.includes('.')) targetSubMenuName = toTitleCase(seg1);
-                    } else if (seg0 === 'exam') {
-                        targetModuleName = 'Exam';
-                        if (seg1 && !seg1.includes('.')) targetSubMenuName = toTitleCase(seg1);
-                    } else if (seg0 === 'library') {
-                        targetModuleName = 'Library';
-                        if (seg1 && !seg1.includes('.')) targetSubMenuName = toTitleCase(seg1);
-                    } else if (seg0 === 'hrms') {
-                        targetModuleName = 'HRMS';
-                        if (seg1 && !seg1.includes('.')) targetSubMenuName = toTitleCase(seg1);
-                    } else if (seg0 === 'timetable') {
-                        targetModuleName = 'Time Table';
-                        if (seg1 && !seg1.includes('.')) targetSubMenuName = toTitleCase(seg1);
-                    } else if (seg0 === 'transport') {
-                        targetModuleName = 'Transport';
-                        if (seg1 && !seg1.includes('.')) targetSubMenuName = toTitleCase(seg1);
-                    }
-                } else if (!targetSubMenuName) {
-                    if (seg0 === 'admission' && seg1 === 'preadmission' && seg2 && !seg2.includes('.')) {
-                        targetSubMenuName = toTitleCase(seg2);
-                    } else if (segments.length > 1 && !seg1.includes('.')) {
-                        targetSubMenuName = toTitleCase(seg1);
-                    }
-                }
-            }
-
-            // Priority 4: Keyword matching to existing official modules
-            if (!targetModuleName) {
-                if (nameLower.includes('fee') || nameLower.includes('challan') || nameLower.includes('receipt') || urlLower.includes('fee')) {
-                    targetModuleName = 'Fee';
-                } else if (nameLower.includes('exam') || nameLower.includes('marks') || nameLower.includes('grade') || urlLower.includes('exam')) {
-                    targetModuleName = 'Exam';
-                } else if (nameLower.includes('book') || nameLower.includes('library') || nameLower.includes('author') || urlLower.includes('library')) {
-                    targetModuleName = 'Library';
-                } else if (nameLower.includes('timetable') || nameLower.includes('time table') || urlLower.includes('timetable')) {
-                    targetModuleName = 'Time Table';
-                } else if (nameLower.includes('staff') || nameLower.includes('salary') || nameLower.includes('employee') || nameLower.includes('payroll') || urlLower.includes('hrms')) {
-                    targetModuleName = 'HRMS';
-                } else if (nameLower.includes('bus') || nameLower.includes('route') || nameLower.includes('driver') || urlLower.includes('transport') || urlLower.includes('bus')) {
-                    targetModuleName = 'Transport';
-                } else if (nameLower.includes('oral') || nameLower.includes('written') || nameLower.includes('prospectus') || nameLower.includes('seatblock') || nameLower.includes('preadmission')) {
-                    targetModuleName = 'Pre Admission';
-                } else if (nameLower.includes('student') || nameLower.includes('attendance') || nameLower.includes('admission') || nameLower.includes('transfer')) {
-                    targetModuleName = 'Admission';
-                } else {
-                    targetModuleName = 'Pre Admission';
-                }
-            }
-
-            // Submenu assignment
-            if (!targetSubMenuName) {
-                if (nameLower.includes('report') || nameLower.includes('card') || nameLower.includes('details') || nameLower.includes('summary') || nameLower.includes('register') || nameLower.includes('list')) {
-                    targetSubMenuName = 'Reports';
-                } else if (nameLower.includes('master') || nameLower.includes('entry') || nameLower.includes('category') || nameLower.includes('class') || nameLower.includes('section')) {
-                    targetSubMenuName = 'Masters';
-                } else if (nameLower.includes('transaction') || nameLower.includes('schedule') || nameLower.includes('apply') || nameLower.includes('process')) {
-                    targetSubMenuName = 'Transactions';
-                } else {
-                    targetSubMenuName = 'General';
-                }
-            }
-
-            const modObj = getOrCreateModule(targetModuleName);
-            const subMenuObj = getOrCreateSubMenu(modObj, targetSubMenuName);
-
-            subMenuObj.pages.push({
-                id: pageId,
-                name: pageName,
-                title: pageName,
+            const pageItem = {
+                id: Number(page.pageId ?? page.ivrmP_Id ?? page.id ?? 0) || Math.floor(Math.random() * 1000000) + 1,
+                name: cleanedName,
+                title: cleanedName,
                 url: resolvedUrl,
-                icon: mapIcon(p.ivrmmmI_Icon || p.icon || 'FileText'),
-                description: pageName,
-                order: Number(p.order ?? p.ivrmimP_PageOrder ?? 0)
-            });
+                icon: mapIcon(page.ivrmmmI_Icon || page.icon || 'FileText'),
+                description: cleanedName,
+                order: Number(page.order ?? page.ivrmimP_PageOrder ?? 0)
+            };
+
+            const compKey = getMenuKey(moduleId, menuId);
+            if (!pagesByMenuKey.has(compKey)) {
+                pagesByMenuKey.set(compKey, []);
+            }
+            pagesByMenuKey.get(compKey)!.push(pageItem);
+
+            if (menuId > 0) {
+                if (!pagesByMenuId.has(menuId)) {
+                    pagesByMenuId.set(menuId, []);
+                }
+                pagesByMenuId.get(menuId)!.push(pageItem);
+            }
         });
 
-        // Filter and sort modules and submenus
-        const topModules = Array.from(moduleMap.values())
-            .map((mod) => {
-                const validSubMenus = mod.menu[0].sub_menu.filter((s: any) => s.pages.length > 0);
-                validSubMenus.forEach((s: any) =>
-                    s.pages.sort((a: any, b: any) => (a.order || 0) - (b.order || 0))
-                );
-                mod.menu[0].sub_menu = validSubMenus;
-                return mod;
+        // Recursive submenu builder
+        function buildSubMenu(moduleId: number, menuId: number): any[] {
+            const compKey = getMenuKey(moduleId, menuId);
+            let children = subByParentKey.get(compKey);
+            if (!children || children.length === 0) {
+                children = subByParentId.get(menuId) || [];
+            }
+            children = [...children].sort(sortByOrder);
+
+            const validChildren: any[] = [];
+            for (const sub of children) {
+                const subModuleId = Number(sub.moduleId ?? sub.ivrmM_Id ?? moduleId);
+                const subMenuId = Number(sub.menuId ?? sub.ivrmmM_Id ?? 0);
+
+                const subCompKey = getMenuKey(subModuleId, subMenuId);
+                let itemPages = pagesByMenuKey.get(subCompKey);
+                if (!itemPages || itemPages.length === 0) {
+                    itemPages = pagesByMenuId.get(subMenuId) || [];
+                }
+
+                // Check child submenu recursively
+                const childSubCompKey = getMenuKey(subModuleId, subMenuId);
+                const hasGrandChildren =
+                    (subByParentKey.get(childSubCompKey)?.length || 0) > 0 || (subByParentId.get(subMenuId)?.length || 0) > 0;
+
+                let subMenuItems: any[] = [];
+                if (hasGrandChildren) {
+                    subMenuItems = buildSubMenu(subModuleId, subMenuId);
+                }
+
+                if (itemPages.length > 0 || subMenuItems.length > 0) {
+                    const subName = toTitleCase(cleanMenuTitle(sub.ivrmM_ModuleName || sub.name || ''));
+                    validChildren.push({
+                        id: subMenuId,
+                        name: subName,
+                        icon: mapIcon(sub.ivrmmmI_Icon || sub.icon || 'Settings'),
+                        sub_menu: subMenuItems,
+                        pages: hasGrandChildren ? [] : [...itemPages].sort(sortByOrder)
+                    });
+                }
+            }
+            return validChildren;
+        }
+
+        // Build top-level modules strictly from mainModules (the 21 records from /configuration/get_main_module_list)
+        const topModules = mainModules
+            .filter((m: any) => Number(m.parentId ?? 0) === 0)
+            .sort(isAdmin ? sortAdminModules : sortByOrder)
+            .map((m: any) => {
+                const moduleId = Number(m.moduleId ?? m.ivrmM_Id ?? 0);
+                const menuId = Number(m.menuId ?? 0);
+
+                let subMenuStructure = buildSubMenu(moduleId, menuId);
+
+                // If no submenus were found by parentId, check if direct pages exist under this menu
+                if (subMenuStructure.length === 0) {
+                    const compKey = getMenuKey(moduleId, menuId);
+                    let directPages = pagesByMenuKey.get(compKey);
+                    if (!directPages || directPages.length === 0) {
+                        directPages = pagesByMenuId.get(menuId) || [];
+                    }
+                    if (directPages.length > 0) {
+                        subMenuStructure = [
+                            {
+                                id: menuId || moduleId,
+                                name: 'General',
+                                icon: mapIcon(m.ivrmmmI_Icon || 'Settings'),
+                                sub_menu: [],
+                                pages: [...directPages].sort(sortByOrder)
+                            }
+                        ];
+                    }
+                }
+
+                if (subMenuStructure.length === 0) {
+                    return null;
+                }
+
+                const cleanedModuleName = toTitleCase(cleanMenuTitle(m.ivrmM_ModuleName || m.name || ''));
+
+                return {
+                    id: menuId || moduleId,
+                    name: cleanedModuleName,
+                    icon: mapIcon(m.ivrmmmI_Icon || m.icon || 'Boxes'),
+                    menu: [
+                        {
+                            id: 1,
+                            name: cleanedModuleName,
+                            icon: mapIcon(m.ivrmmmI_Icon || m.icon || 'Boxes'),
+                            sub_menu: subMenuStructure
+                        }
+                    ]
+                };
             })
-            .filter((mod) => mod.menu[0].sub_menu.length > 0);
+            .filter((module: any) => module !== null);
 
         topModules.push(aiEdgeModule as any);
 

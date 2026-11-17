@@ -111,7 +111,7 @@ export async function saveFixingPeriodStaff(data: FixingPeriodStaffSchema) {
 
 //EDIT
 export async function getFixingPeriodStaffDetails(id: number | string) {
-    const url = `/RestrictionFacade/PeriodStaffEdit/${id}`;
+    const url = `/FixingFacade/PeriodStaffEdit/${id}`;
     console.info('Fetching Period Staff details:', url);
     return await api.get<any>('timetable', url);
 }

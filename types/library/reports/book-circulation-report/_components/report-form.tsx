@@ -13,9 +13,8 @@ import { cn } from '@/lib/utils';
 import type { IBookCirculationReportRequest } from '@/types/library/reports/book-circulation-report';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { Loader2, Search, X } from 'lucide-react';
-import { CalendarIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { CalendarIcon, Loader2, Search, X } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -86,6 +85,42 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     // Local state for multi-select
     const [selectedClasses, setSelectedClasses] = useState<number[]>([]);
     const [selectedSections, setSelectedSections] = useState<number[]>([]);
+    const [resetKey, setResetKey] = useState(0);
+    const isInitializedRef = React.useRef(false);
+
+    const libList: any[] = useMemo(() => {
+        const data = initialData as any;
+        const raw =
+            initialData?.lib_list ??
+            data?.msterliblist1 ??
+            data?.msterliblist ??
+            data?.libraryList ??
+            data?.libList ??
+            data?.library_list ??
+            [];
+        const list = Array.isArray(raw) ? raw : (raw?.data || raw?.$values || []);
+        return (Array.isArray(list) ? list : [])
+            .map((lib: any) => {
+                const id = Number(lib?.lmaL_Id ?? lib?.LMAL_Id ?? lib?.lmal_Id ?? lib?.lmal_id ?? lib?.id ?? 0);
+                const name = String(
+                    lib?.lmaL_LibraryName ??
+                        lib?.LMAL_LibraryName ??
+                        lib?.lmal_LibraryName ??
+                        lib?.libraryName ??
+                        lib?.libraryname ??
+                        lib?.name ??
+                        ''
+                );
+                return {
+                    ...lib,
+                    lmaL_Id: id,
+                    lmaL_LibraryName: name || `Library ${id}`
+                };
+            })
+            .filter((l: any) => l.lmaL_Id > 0);
+    }, [initialData]);
+
+    const defaultLibId = libList.length > 0 ? libList[0].lmaL_Id : undefined;
 
     const {
         handleSubmit,
@@ -93,10 +128,11 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
         control,
         reset,
         watch,
-        formState: { errors }
+        formState: { errors, isSubmitted }
     } = useForm<ReportFormValues>({
         resolver: zodResolver(reportFormSchema),
         defaultValues: {
+            LMAL_Id: defaultLibId,
             AGType: 'Student',
             Type: 'all',
             TrnType: 'all',
@@ -113,22 +149,28 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     const issueFromDate = useWatch({ control, name: 'IssueFromDate' });
     const dueFromDate = useWatch({ control, name: 'DueFromdate' });
 
-    // Initialize/Update checkboxes when initial data loads
+    // Initialize library, checkboxes on initial load
     useEffect(() => {
-        if (initialData?.classList) {
-            const allClassIds = Array.isArray(initialData.classList) ? initialData.classList.map((c) => c.asmcL_Id) : [];
-            setSelectedClasses(allClassIds);
-            setValue('selectedClasslist', Array.isArray(allClassIds) ? allClassIds.map((id) => ({ asmcL_Id: id })) : []);
+        if (!isInitializedRef.current && (libList.length > 0 || initialData?.classList?.length || initialData?.sectionList?.length)) {
+            if (libList.length > 0) {
+                setValue('LMAL_Id', libList[0].lmaL_Id, { shouldValidate: false });
+            }
+            if (initialData?.classList) {
+                const allClassIds = Array.isArray(initialData.classList) ? initialData.classList.map((c) => c.asmcL_Id) : [];
+                setSelectedClasses(allClassIds);
+                setValue('selectedClasslist', Array.isArray(allClassIds) ? allClassIds.map((id) => ({ asmcL_Id: id })) : []);
+            }
+            if (initialData?.sectionList) {
+                const allSectionIds = Array.isArray(initialData.sectionList) ? initialData.sectionList.map((s) => s.asmS_Id) : [];
+                setSelectedSections(allSectionIds);
+                setValue(
+                    'selectedSectionlist',
+                    allSectionIds.map((id) => ({ asmS_Id: id }))
+                );
+            }
+            isInitializedRef.current = true;
         }
-        if (initialData?.sectionList) {
-            const allSectionIds = Array.isArray(initialData.sectionList) ? initialData.sectionList.map((s) => s.asmS_Id) : [];
-            setSelectedSections(allSectionIds);
-            setValue(
-                'selectedSectionlist',
-                allSectionIds.map((id) => ({ asmS_Id: id }))
-            );
-        }
-    }, [initialData, setValue]);
+    }, [initialData, libList, setValue]);
 
     const handleClassToggle = (id: number) => {
         let newSelected = [...selectedClasses];
@@ -213,20 +255,22 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                             <Label>
                                 Library Name <span className='text-red-500'>*</span>
                             </Label>
-                            <Select onValueChange={(v) => setValue('LMAL_Id', Number(v))}>
+                            <Select
+                                key={`lib-select-${resetKey}`}
+                                value={watch('LMAL_Id') ? String(watch('LMAL_Id')) : ''}
+                                onValueChange={(v) => setValue('LMAL_Id', v ? Number(v) : (undefined as any), { shouldValidate: true })}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Library' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {Array.isArray(initialData?.lib_list) &&
-                                        initialData?.lib_list?.map((lib) => (
-                                            <SelectItem key={lib.lmaL_Id} value={lib.lmaL_Id.toString()}>
-                                                {lib.lmaL_LibraryName}
-                                            </SelectItem>
-                                        ))}
+                                    {libList.map((lib) => (
+                                        <SelectItem key={String(lib.lmaL_Id)} value={String(lib.lmaL_Id)}>
+                                            {lib.lmaL_LibraryName}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
-                            {errors.LMAL_Id && <p className='text-red-500 text-sm'>{errors.LMAL_Id.message}</p>}
+                            {isSubmitted && errors.LMAL_Id && <p className='text-red-500 text-sm'>{errors.LMAL_Id.message}</p>}
                         </div>
 
                         {/* Member Type */}
@@ -457,7 +501,28 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                     {isLoading ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Search className='mr-2 h-4 w-4' />}
                     Report
                 </Button>
-                <Button type='button' variant='destructive' onClick={() => reset()}>
+                <Button
+                    type='button'
+                    variant='destructive'
+                    onClick={() => {
+                        reset({
+                            LMAL_Id: undefined,
+                            AGType: 'Student',
+                            Type: 'all',
+                            TrnType: 'all',
+                            Issuecount: false,
+                            IssueFromDate: undefined,
+                            IssueToDate: undefined,
+                            Duecount: false,
+                            DueFromdate: undefined,
+                            DueTodate: undefined,
+                            selectedClasslist: [],
+                            selectedSectionlist: []
+                        });
+                        setSelectedClasses([]);
+                        setSelectedSections([]);
+                        setResetKey((prev) => prev + 1);
+                    }}>
                     <X className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>

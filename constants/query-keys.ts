@@ -136,6 +136,7 @@ export const FEES_QUERY_KEYS = {
     FEE_CHALLAN_REPORT: 'fee_challan_report',
     FEE_HEADS: 'fee_head',
     FEE_MODEOFPAYMENT: 'fee_modeofpayment',
+    FEE_BANK_DETAILS: 'fee_bank_details',
     MASTER_CLASS_CATEGORY: 'master_class_category',
     ACADEMIC_DROPDOWN: 'academic_dropdown',
     FEE_PAYMENTGATEWAY_DETAILS: 'paymentGatewayDetails',
@@ -631,7 +632,8 @@ export const STAFF_PORTAL_QUERY_KEYS = {
     FEE_RAZORPAY_PAYMENT: 'fee_razorpay_payment',
     FEE_PAYMENT_CHARGES: 'fee_payment_charges',
     FEE_ONLINE_PAYMENT_STUDENT_INFO: 'fee_online_student_info',
-    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list'
+    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list',
+    FEE_STUDENT_VIEW: 'fee_student_view'
 };
 
 export const COE_QUERY_KEYS = {
@@ -685,6 +687,8 @@ export const PRE_LIVE_MEETING_SCHEDULE = { DETAILS: () => ['PRE_LIVE_MEETING_SCH
 
 export const COLLEGE_QUERY_KEYS = {
     MASTER_CASTE_CATEGORY: 'college_master_caste_category',
+    MASTER_CASTE: 'college_master_caste',
+    BRANCH_CHANGE: 'college_branch_change',
     MASTER_COURSE_CATEGORY_MAP: 'college_master_course_category_map',
     MASTER_COURSE_BRANCH_MAP: 'college_master_course_branch_map',
     MASTER_BATCH: 'college_master_batch',
@@ -740,7 +744,9 @@ export const COLLEGE_QUERY_KEYS = {
     COLLEGE_FEE_OPENING_BALANCE_GROUPS: 'college_fee_opening_balance_groups',
     COLLEGE_FEE_OPENING_BALANCE_HEADS: 'college_fee_opening_balance_heads',
     COLLEGE_FEE_OPENING_BALANCE_INSTALLMENTS: 'college_fee_opening_balance_installments',
-    COLLEGE_FEE_OPENING_BALANCE_STUDENTS: 'college_fee_opening_balance_students'
+    COLLEGE_FEE_OPENING_BALANCE_STUDENTS: 'college_fee_opening_balance_students',
+    DCPS_BONAFIDE_CERTIFICATE: 'college_dcps_bonafide_certificate',
+    COLLEGE_OVERALL_DAILY_ATTENDANCE_REPORT: 'college_overall_daily_attendance_report'
 };
 export const ONLINE_EXAM_QUERY_KEYS = {
     MASTER_QUESTION: 'online_exam_master_question',

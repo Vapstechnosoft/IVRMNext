@@ -2,7 +2,6 @@ import { z } from 'zod';
 import {
     createEmailSchema,
     createNumberOnlyStringSchema,
-    createStringOnlyOptionalSchema,
     createStringOnlySchema,
     createStringSchema,
     createStringSchemaAllowNumbers,
@@ -45,6 +44,29 @@ export const masterModeOfPaymentSchema = {
         ivrmmoD_Id: deleteIdSchema('ivrmmoD_Id')
     })
 };
+
+export const masterBankDetailsSchema = {
+    addOrUpdate: z.object({
+        fmbanK_Id: z.number().int({ message: 'fmbanK_Id is required' }).optional(),
+        fmbanK_BankName: z
+            .string({ message: 'Bank Name is required' })
+            .trim()
+            .min(2, { message: 'Bank Name must be at least 2 characters' })
+            .max(100, { message: 'Bank Name must not exceed 100 characters' })
+            .regex(/^[A-Za-z0-9\s.\-&,]+$/, {
+                message: 'Bank Name can only contain letters, numbers, spaces, dots, hyphens, and &'
+            }),
+        fmbanK_BankDescription: z
+            .string({ message: 'Bank Details is required' })
+            .trim()
+            .min(2, { message: 'Bank Details must be at least 2 characters' })
+            .max(250, { message: 'Bank Details must not exceed 250 characters' })
+    }),
+    delete: z.object({
+        fmbanK_Id: deleteIdSchema('fmbanK_Id')
+    })
+};
+
 export const paymentgatewaydetailsSchema = {
     addOrUpdate: z.object({
         institution_Name: z.string().optional(),
@@ -234,13 +256,15 @@ export const masterGroupsGroupingSchema = {
 export const masterInstallmentSchema = {
     addOrUpdate: z
         .object({
+            fmI_Id: z.union([z.number(), z.string()]).optional(),
             fmI_Name: createStringOnlySchema('Master Installment Name', 1, 100),
-            fmI_Installment_Type: createStringOnlyOptionalSchema('Installment Type', 1, 30),
+            fmI_Installment_Type: z.string().min(1, { message: 'Installment Type is required' }),
             fmI_No_Of_Installments: z.number().max(365, { message: 'Maximum number of installments is 365' }).optional(),
             installments: z
                 .array(
                     z.object({
-                        sno: z.number(),
+                        sno: z.number().optional(),
+                        ftI_Id: z.union([z.number(), z.string()]).optional(),
                         ftI_Name: createStringSchema('Installment Name', 1, 100)
                     })
                 )
@@ -249,7 +273,7 @@ export const masterInstallmentSchema = {
         .refine(
             (data) => {
                 // Custom validation for Installment Type
-                if (!data.fmI_Installment_Type || data.fmI_Installment_Type.trim().length === 0) {
+                if (!data.fmI_Installment_Type || String(data.fmI_Installment_Type).trim().length === 0) {
                     return false;
                 }
                 return true;

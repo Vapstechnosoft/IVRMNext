@@ -21,10 +21,24 @@ export default function StudentApplicationPage(props: {
     searchParams: SearchParams;
 }) {
     const searchParams = (React as any).use(props.searchParams);
-    const { data: activePreadmission } = useGetAllAdmissionLists();
-    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(searchParams);
+    const [selectedAsmayId, setSelectedAsmayId] = useState<number | null>(null);
+    // const { data: activePreadmission } = useGetAllAdmissionLists();
+    const { data: academicYearData, isLoading: loadingYears } = useFeeDefaulterReport();
+    const [selectedAcademicYear, setSelectedAcademicYear] = useState('');
+    const { data: response, isLoading, error, refetch } = useGetAllAdmissionLists(Number(selectedAsmayId),searchParams);
     const { data: masterConfig } = useAcademicYearMasterConfiguration(0);
-
+    useEffect(() => {
+        if (!loadingYears && academicYearData?.data && academicYearData.data.length > 0) {
+            const firstId = academicYearData.data[0].asmaY_Id;
+            if (selectedAsmayId && academicYearData?.data) {
+                const selectedItem = academicYearData.data.find((item) => item.asmaY_Id === selectedAsmayId);
+                if (selectedItem) {
+                    setSelectedAcademicYear(selectedItem.asmaY_Year);
+                }
+            }
+            setSelectedAsmayId((prev) => prev ?? firstId);
+        }
+    }, [loadingYears, academicYearData]);
     return (
         <FormProvider<IadmissionStudentApplicationList>>
             <StudentApplicationPageContent
@@ -33,6 +47,12 @@ export default function StudentApplicationPage(props: {
                 error={error}
                 refetch={refetch}
                 masterConfig={masterConfig}
+                selectedAsmayId={selectedAsmayId}
+                setSelectedAsmayId={setSelectedAsmayId}
+                setSelectedAcademicYear={setSelectedAcademicYear}
+                academicYearData={academicYearData}
+                loadingYears={loadingYears}
+                selectedasmayYear={selectedAcademicYear}
             />
         </FormProvider>
     );
@@ -42,13 +62,25 @@ function StudentApplicationPageContent({
     response,
     isLoading,
     error,
-    refetch
+    refetch,
+    selectedAsmayId,
+    selectedasmayYear,
+    setSelectedAsmayId,
+    setSelectedAcademicYear,
+    loadingYears,
+    academicYearData
 }: {
     response: any;
     isLoading: boolean;
     error: any;
     refetch: () => void;
     masterConfig: any;
+        selectedasmayYear: string;
+    selectedAsmayId: number | null;
+    setSelectedAsmayId: (id: number | null) => void;
+    setSelectedAcademicYear: (year: string) => void;
+    loadingYears: boolean;
+    academicYearData: any;
 }) {
     const { openAddForm } = useFormContext();
     const tableProps = useDataTableProps(
@@ -77,15 +109,28 @@ function StudentApplicationPageContent({
             <div className='container space-y-4 p-1'>
                 {/* Header */}
                 <div className='flex items-center justify-between'>
-                    <div className='w-64'>
-                        <Select value={selectedYear} onValueChange={setSelectedYear}>
-                            <SelectTrigger className='w-full bg-background'>
+                    <div className='flex items-center gap-6 rounded-lg border bg-white px-5 py-4 shadow-sm'>
+                        <Label className='whitespace-nowrap text-right'>
+                            Academic Year <span className='text-red-500'>*</span>
+                        </Label>
+                        <Select
+                            value={selectedAsmayId?.toString() || ''}
+                            onValueChange={(v) => {
+                                setSelectedAsmayId(Number(v));
+                                const selectedItem = academicYearData?.data?.find(
+                                    (item: IFeeAcademicYearDropdownList) => item.asmaY_Id === Number(v)
+                                );
+                                setSelectedAcademicYear(selectedItem.asmaY_Year);
+                            }}
+                            disabled={loadingYears}>
+                            <SelectTrigger className='w-64'>
                                 <SelectValue placeholder='Select Academic Year' />
                             </SelectTrigger>
+
                             <SelectContent>
-                                {response?.data?.academicyear?.map((year: any) => (
-                                    <SelectItem key={year.yearid} value={year.yearid.toString()}>
-                                        {year.year}
+                                {academicYearData?.data?.map((item: any) => (
+                                    <SelectItem key={item.asmaY_Id} value={String(item.asmaY_Id)}>
+                                        {item.asmaY_Year}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -149,6 +194,9 @@ function StudentApplicationPageContent({
 import { useGetAllAdmissionLists } from '@/hooks/admission/admissionForm';
 import { useAcademicYearMasterConfiguration } from '@/hooks/admission/preadmission/useConfigurations';
 import UpdateStudentAdmissionForm from './_components/update-form';
+import { useFeeDefaulterReport } from '@/hooks/fees/useReports';
+import { Label } from '@/components/ui/label';
+import { IFeeAcademicYearDropdownList } from '@/types/fees/reports/reports';
 
 function FormSections({
     setSuccess,

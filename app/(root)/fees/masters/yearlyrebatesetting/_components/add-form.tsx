@@ -13,6 +13,7 @@ import { addOrUpdateMasterYearlyRebateSettingsFacade } from '@/server/fees/maste
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Calendar, Save } from 'lucide-react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -21,6 +22,7 @@ type FormFields = z.infer<typeof YearlyRebateSettingsSchema.addOrUpdate>;
 
 export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?: () => void } = {}) {
     const { data: academicYearOptions } = useAcademicYearDropdown();
+    const [isDateOpen, setIsDateOpen] = useState(false);
 
     const { refetchAll } = useMasterFeeYearlyRebateSettingFacade();
 
@@ -248,7 +250,7 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
                                 <label htmlFor='rebateDate' className='mb-1 font-medium text-gray-700 text-sm'>
                                     Rebate Date <span className='text-red-500'>*</span>
                                 </label>
-                                <Popover>
+                                <Popover open={isDateOpen} onOpenChange={setIsDateOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             type='button'
@@ -266,7 +268,10 @@ export default function AddMasterYearlyRebateSetting({ onSuccess }: { onSuccess?
                                         <CalendarPicker
                                             mode='single'
                                             selected={selectedDate}
-                                            onSelect={(d) => field.onChange(d ? format(d as Date, 'yyyy-MM-dd') : '')}
+                                            onSelect={(d) => {
+                                                field.onChange(d ? format(d as Date, 'yyyy-MM-dd') : '');
+                                                setIsDateOpen(false);
+                                            }}
                                             initialFocus
                                         />
                                     </PopoverContent>
