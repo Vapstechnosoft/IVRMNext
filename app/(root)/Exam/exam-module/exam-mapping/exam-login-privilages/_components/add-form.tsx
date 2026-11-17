@@ -226,7 +226,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     classSectionMap.forEach((group, key) => {
                         detailRows.push({
                             id: makeUniqueId(),
-                            yearid: 231,
+                            yearid:  editList[0]?.asmaY_Id || 0,
                             user_id: userId,
                             year: yearInfo?.asmaY_Year || '',
                             emp_name: employeeName,
