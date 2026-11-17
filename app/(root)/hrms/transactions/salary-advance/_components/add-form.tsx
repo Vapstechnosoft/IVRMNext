@@ -31,22 +31,14 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
     const { refetchAll } = useSalaryAdvance();
     const { mutate: saveAdvance, isPending } = useSaveSalaryAdvance();
     const { data: empData } = useSalaryAdvanceEmployeeDropdown();
-
+    console.log('empData', empData);
     // Fetch other dropdowns from masters
     const { data: leaveYearsData } = useLeaveYearDropdown();
     const { data: monthsData } = useMonthDropdown();
 
     // Mode of payments list
-    const modeOfPayments = useMemo(
-        () => [
-            { id: 'Cash', name: 'Cash' },
-            { id: 'Bank Transfer', name: 'Bank Transfer' },
-            { id: 'Cheque', name: 'Cheque' }
-        ],
-        []
-    );
-
-    const employees = useMemo(() => employeeDropdown || empData || [], [employeeDropdown, empData]);
+    const employees = useMemo(() => employeeDropdown || empData?.employees || [], [employeeDropdown, empData]);
+    const modeOfPayments = useMemo(() => empData?.modeOfPaymentdropdown || [], [empData]);
     const leaveYears = useMemo(() => (leaveYearsData as any)?.data || [], [leaveYearsData]);
     const months = useMemo(() => (monthsData as any)?.data || [], [monthsData]);
 
@@ -83,6 +75,8 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
         HRESA_Id: 0,
         HRESA_EntryDate: watchedEntryDate ? `${watchedEntryDate}T00:00:00` : new Date().toISOString()
     });
+
+    console.log('advanceDetails', advanceDetails);
 
     // Update gross salary when details are fetched
     useEffect(() => {
@@ -311,8 +305,8 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                                     </SelectTrigger>
                                     <SelectContent>
                                         {modeOfPayments.map((mode) => (
-                                            <SelectItem key={mode.id} value={mode.id}>
-                                                {mode.name}
+                                            <SelectItem key={mode.ivrmmoD_Id} value={mode.ivrmmoD_ModeOfPayment}>
+                                                {mode.ivrmmoD_ModeOfPayment}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
