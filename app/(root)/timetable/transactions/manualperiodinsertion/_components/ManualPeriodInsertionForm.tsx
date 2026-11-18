@@ -4,7 +4,7 @@ import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSectionDropdownBifurcationConstraints } from '@/hooks/timetable/useMasters';
-import { useManualPeriodMasters, useManualSectionsByClass } from '@/hooks/timetable/useTransactions';
+import { useManualPeriodMasters } from '@/hooks/timetable/useTransactions';
 import { ManualPeriodInsertionSchema, type ManualPeriodInsertionValues } from '@/schemas/timetable/transactions';
 import { getClassDetailsByacademicyrandcategoty } from '@/server/timetable/transactions/manualperiodinsertion';
 import type { ClassDropdownDatamanualPeriodInsertion } from '@/types/timetable/Transaction/manualperiodinsertion';
@@ -46,7 +46,7 @@ export default function ManualPeriodInsertionForm({ onFetch }: ManualPeriodInser
     });
 
     const watchClass = watch('asmcL_Id');
-    const { data: sections, isLoading: sectionsLoading } = useManualSectionsByClass(Number(watchClass));
+    // const { data: sections, isLoading: sectionsLoading } = useManualSectionsByClass(Number(watchClass));
 
     const watchedAcademicYear = watch('asmaY_Id');
     const watchedCategory = watch('ttmC_Id');
@@ -193,7 +193,7 @@ export default function ManualPeriodInsertionForm({ onFetch }: ManualPeriodInser
                                         }}
                                         value={field.value?.toString() || undefined}>
                                         <SelectTrigger className='h-11 border-purple-100 transition-all hover:border-purple-200 focus:ring-purple-500'>
-                                            <SelectValue placeholder={sectionsLoading ? 'Loading...' : '-- Select Section --'} />
+                                            <SelectValue placeholder={sectiondataloading ? 'Loading...' : '-- Select Section --'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {sectiondataloading ? (
