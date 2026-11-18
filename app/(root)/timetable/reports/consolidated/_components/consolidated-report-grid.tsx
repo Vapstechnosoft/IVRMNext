@@ -2,6 +2,8 @@
 
 import { Button } from '@/components/ui/button';
 import { Download, Printer } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import * as XLSX from 'xlsx';
 
@@ -11,6 +13,7 @@ interface ConsolidatedReportGridProps {
     onPrint: () => void;
     reportType: string;
     initialData: any;
+    academicYearName?: string;
 }
 
 export default function ConsolidatedReportGrid({
@@ -18,8 +21,98 @@ export default function ConsolidatedReportGrid({
     fullResponse,
     onPrint,
     reportType,
-    initialData
+    initialData,
+    academicYearName
 }: ConsolidatedReportGridProps) {
+    const { data: session } = useSession();
+    const [schoolLogo, setSchoolLogo] = useState<string>('');
+    const [schoolName, setSchoolName] = useState<string>('');
+    const [userName, setUserName] = useState<string>('');
+
+    useEffect(() => {
+        let logo = '';
+        let name = '';
+        let user = '';
+
+        // 1. From NextAuth Session
+        if (session) {
+            const sess = session as any;
+            logo = sess.mi_logo || sess.user?.mi_logo || '';
+            name = sess.mi_name || sess.user?.mi_name || '';
+            user = sess.name || sess.username || sess.user?.name || '';
+        }
+
+        // 2. From localStorage
+        if (typeof window !== 'undefined') {
+            try {
+                // admfigsettings (Standard IVRM branding storage)
+                const admfigStr = localStorage.getItem('admfigsettings');
+                if (admfigStr) {
+                    const admfig = JSON.parse(admfigStr);
+                    if (Array.isArray(admfig) && admfig.length > 0) {
+                        if (!logo) {
+                            logo = admfig[0].asC_Logo_Path || admfig[0].ASC_Logo_Path || admfig[0].logo || '';
+                        }
+                        if (!name) {
+                            name = admfig[0].mI_Name || admfig[0].MI_Name || admfig[0].companyname || admfig[0].institution_name || '';
+                        }
+                    }
+                }
+
+                // ivrmgeneralconfiglist
+                const configStr = localStorage.getItem('ivrmgeneralconfiglist');
+                if (configStr) {
+                    const config = JSON.parse(configStr);
+                    if (Array.isArray(config) && config.length > 0) {
+                        if (!logo) {
+                            logo = config[0].asC_Logo_Path || config[0].mI_Logo || '';
+                        }
+                        if (!name) {
+                            name = config[0].mI_Name || '';
+                        }
+                    }
+                }
+
+                // username
+                if (!user) {
+                    user = localStorage.getItem('username') || '';
+                }
+            } catch (err) {
+                console.error('Error loading branding details from localStorage:', err);
+            }
+        }
+
+        // 3. From fullResponse / initialData
+        if (!logo) {
+            logo =
+                fullResponse?.imgname ||
+                fullResponse?.asC_Logo_Path ||
+                fullResponse?.ASC_Logo_Path ||
+                fullResponse?.mI_Logo ||
+                fullResponse?.logo ||
+                initialData?.imgname ||
+                initialData?.asC_Logo_Path ||
+                initialData?.mI_Logo ||
+                initialData?.masterCompany?.[0]?.mI_Logo ||
+                '';
+        }
+
+        if (!name) {
+            name =
+                fullResponse?.mI_Name ||
+                fullResponse?.institution_name ||
+                initialData?.mI_Name ||
+                initialData?.masterCompany?.[0]?.mI_Name ||
+                '';
+        }
+
+        setSchoolLogo(logo);
+        setSchoolName(name);
+        setUserName(user);
+    }, [session, fullResponse, initialData]);
+
+    const resolvedAcademicYear =
+        academicYearName || fullResponse?.asmaY_Year || fullResponse?.ASMAY_Year || fullResponse?.academicYear || '';
     // Shared formatting and matching helpers
     const getClassSectionLabel = (cs: any) => {
         const cls = cs?.asmcL_ClassName || cs?.ASMCL_ClassName || cs?.className || '';
@@ -1115,9 +1208,34 @@ export default function ConsolidatedReportGrid({
 
     return (
         <div className='space-y-6'>
-            <div className='hidden text-center print:mb-4 print:block'>
-                <h1 className='font-bold text-lg text-purple-900 uppercase'>{reportType.replace(/_/g, ' ')} CONSOLIDATED REPORT</h1>
-                <p className='text-gray-500 text-xs'>Generated on: {new Date().toLocaleString()}</p>
+            <div className='print-header mb-4 text-center'>
+                {schoolLogo ? (
+                    <div className='baldwin print-logo-container mb-3 flex justify-center text-center'>
+                        <img
+                            src={schoolLogo}
+                            alt={schoolName || 'Institution Logo'}
+                            className='mx-auto max-h-24 max-w-[80%] object-contain'
+                            onError={(e) => {
+                                (e.currentTarget as HTMLElement).style.display = 'none';
+                            }}
+                        />
+                    </div>
+                ) : schoolName ? (
+                    <h2 className='mb-2 text-center font-bold text-gray-900 text-xl uppercase'>{schoolName}</h2>
+                ) : null}
+
+                <h1 className='font-bold text-lg text-purple-900 uppercase tracking-wide'>
+                    {reportType.replace(/_/g, ' ')} CONSOLIDATED REPORT
+                </h1>
+
+                {resolvedAcademicYear && (
+                    <p className='mt-1 font-semibold text-gray-700 text-xs uppercase'>Academic Year: {resolvedAcademicYear}</p>
+                )}
+
+                <p className='mt-0.5 text-gray-500 text-xs'>
+                    Generated on: {new Date().toLocaleString()}
+                    {userName ? ` | Generated by: ${userName}` : ''}
+                </p>
             </div>
 
             <div className='no-print flex items-center justify-between border-b bg-white px-4 py-3 shadow-sm'>

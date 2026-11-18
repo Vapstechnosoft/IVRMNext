@@ -35,10 +35,10 @@ import type {
 import {
     getManualPeriodInsertionMasters,
     getManualPeriodInsertionReportData,
-    getSectionsByClass as getSectionsByClassManual,
+    // getSectionsByClass as getSectionsByClassManual,
     saveManualPeriodInsertion
 } from '@/server/timetable/transactions/manualperiodinsertion';
-import type { ManualPeriodInsertionMasters, Section as ManualSection } from '@/types/timetable/Transaction/manualperiodinsertion';
+import type { ManualPeriodInsertionMasters } from '@/types/timetable/Transaction/manualperiodinsertion';
 
 // staff-replacement-existing-to-new
 import {
@@ -254,16 +254,16 @@ export const useManualPeriodMasters = () => {
         queryFn: async () => await getManualPeriodInsertionMasters()
     });
 };
-export const useManualSectionsByClass = (asmcL_Id: number) => {
-    return useQuery<ManualSection[]>({
-        queryKey: ['MANUAL_PERIOD_SECTIONS', asmcL_Id],
-        queryFn: async () => {
-            const res = await getSectionsByClassManual(asmcL_Id);
-            return res.data || [];
-        },
-        enabled: !!asmcL_Id
-    });
-};
+// export const useManualSectionsByClass = (asmcL_Id: number) => {
+//     return useQuery<ManualSection[]>({
+//         queryKey: ['MANUAL_PERIOD_SECTIONS', asmcL_Id],
+//         queryFn: async () => {
+//             const res = await getSectionsByClassManual(asmcL_Id);
+//             return res.data || [];
+//         },
+//         enabled: !!asmcL_Id
+//     });
+// };
 export const useManualPeriodInsertionReport = (payload: any) => {
     return useQuery({
         queryKey: ['manualPeriodInsertionReport', payload],
