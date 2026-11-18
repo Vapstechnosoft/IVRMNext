@@ -14,6 +14,7 @@ import {
     getStudentsDropDownByAcademicYearandClassandSectionlist
 } from '@/server/exam/exam-module/reports/cumulative-report';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Printer } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Controller, FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -30,9 +31,13 @@ const ndaReportCardSchema = z.object({
 type NDAReportCardSchema = z.infer<typeof ndaReportCardSchema>;
 
 export default function NDAReportCardForm({
-    onSuccess
+    onSuccess,
+    onClear,
+    isReportVisible
 }: {
     onSuccess?: (payload: any) => Promise<void> | void;
+    onClear: () => void;
+    isReportVisible: boolean;
 }) {
     const methods = useForm<NDAReportCardSchema>({
         resolver: zodResolver(ndaReportCardSchema),
@@ -434,7 +439,7 @@ export default function NDAReportCardForm({
 
                         <hr className='my-6 border-gray-300' />
 
-                        <div className='flex justify-center gap-3'>
+                        <div className='grid grid-cols-4 gap-3'>
                             <Button
                                 type='submit'
                                 isLoading={isSubmitting}
@@ -474,9 +479,21 @@ export default function NDAReportCardForm({
                                     }
                                 }}
                                 className='min-w-[100px]'>
-                                Dummy
+                                Update
                             </Button>
-                            <Button type='button' variant='outline' onClick={() => reset()} className='min-w-[100px]'>
+                            {isReportVisible && (
+                                <Button type='button' onClick={() => window.print()} className='no-print flex items-center gap-2'>
+                                    <Printer className='h-4 w-4' /> Print
+                                </Button>
+                            )}
+                            <Button
+                                type='button'
+                                variant='outline'
+                                onClick={() => {
+                                    reset();
+                                    onClear();
+                                }}
+                                className='min-w-[100px]'>
                                 Clear
                             </Button>
                         </div>
