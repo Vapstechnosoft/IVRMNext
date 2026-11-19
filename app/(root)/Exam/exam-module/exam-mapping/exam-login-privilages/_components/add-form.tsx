@@ -140,11 +140,14 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     console.info(employee);
                     // Determine entry type based on elP_Flg
                     let entryType = 'BY_CLASS_TEACHER';
+                    let entryFlag = 'ct';
                     if (editList[0].elP_Flg === 'st') {
                         entryType = 'BY_SUBJECT_TEACHER';
+                        entryFlag = 'st';
                         setActiveTab(1);
                     } else if (editList[0].elP_Flg === 'others') {
                         entryType = 'BY_OTHERS';
+                        entryFlag = 'others';
                         setActiveTab(2);
                     } else {
                         setActiveTab(0);
@@ -231,7 +234,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             year: yearInfo?.asmaY_Year || '',
                             emp_name: employeeName,
                             emp_Id: employee?.hrmE_Id || editList[0]?.hrmE_Id || 0,
-                            elpflg: entryType,
+                            elpflg: entryFlag,
                             clas: group.class,
                             secs: group.section,
                             sub: Array.from(group.subjects),
