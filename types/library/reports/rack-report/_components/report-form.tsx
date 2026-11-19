@@ -13,7 +13,7 @@ import { z } from 'zod';
 
 const reportFormSchema = z.object({
     LMAL_Id: z.coerce.number().min(1, 'Library is required'),
-    LMRA_RackName: z.string().min(1, 'Rack Name is required')
+    LMRA_Id: z.string().min(1, 'Rack Name is required')
 });
 
 type ReportFormValues = z.infer<typeof reportFormSchema>;
@@ -34,7 +34,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
     } = useForm<ReportFormValues>({
         resolver: zodResolver(reportFormSchema),
         defaultValues: {
-            LMRA_RackName: ''
+            LMRA_Id: ''
         }
     });
 
@@ -76,7 +76,7 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                             <Label>
                                 Rack Name <span className='text-red-500'>*</span>
                             </Label>
-                            <Select onValueChange={(v) => setValue('LMRA_RackName', v)}>
+                            <Select onValueChange={(v) => setValue('LMRA_Id', v)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder='Select Rack Name' />
                                 </SelectTrigger>
@@ -84,13 +84,13 @@ export const ReportForm = ({ onSearch, isLoading }: ReportFormProps) => {
                                     <SelectItem value='ALL'>ALL</SelectItem>
                                     {Array.isArray(initialData?.racklist) &&
                                         initialData?.racklist?.map((rack) => (
-                                            <SelectItem key={rack.lmrA_Id} value={rack.lmrA_RackName}>
+                                            <SelectItem key={rack.lmrA_Id} value={String(rack.lmrA_Id)}>
                                                 {rack.lmrA_RackName}
                                             </SelectItem>
                                         ))}
                                 </SelectContent>
                             </Select>
-                            {errors.LMRA_RackName && <p className='text-red-500 text-sm'>{errors.LMRA_RackName.message}</p>}
+                            {errors.LMRA_Id && <p className='text-red-500 text-sm'>{errors.LMRA_Id.message}</p>}
                         </div>
                     </CardContent>
                 </Card>
