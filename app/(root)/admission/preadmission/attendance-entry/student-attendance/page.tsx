@@ -156,7 +156,7 @@ export default function StudentAttendancePage() {
                     if (data) {
                         const type = data.asA_Att_EntryType || data.ASA_Att_EntryType;
                         if (type === 'D') setAttendanceType('Dailyonce');
-                        else if (type === 'H') setAttendanceType('Dailytwice');
+                        else if (type === 'H'||type === 'DT') setAttendanceType('Dailytwice');
                         else if (type === 'M') setAttendanceType('monthly');
                         else if (type === 'P') setAttendanceType('period');
 

@@ -17,7 +17,7 @@ import { getAdmissionRegister } from '@/server/admission/preadmission/reports/st
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CheckSquare, FileSpreadsheet, FileText, Printer, RotateCcw, Search, Square, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { use, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useReactToPrint } from 'react-to-print';
 import { toast } from 'sonner';
@@ -102,7 +102,8 @@ const FIELD_OPTIONS = [
 export default function AdmissionReportPage(props: {
     searchParams: SearchParams;
 }) {
-    const searchParams = (React as any).use(props.searchParams);
+    // const searchParams = (React as any).use(props.searchParams);
+    const searchParams = use(props.searchParams);
     const router = useRouter();
     const currentSearchParams = useSearchParams();
     const tableRef = useRef<DataTableRef>(null);
@@ -156,13 +157,13 @@ export default function AdmissionReportPage(props: {
         isLoading,
         error,
         refetch: refetchReport
-    } = useAdmissionRegister(academicYearValue, statusValue, requestPayload);
+    } = useAdmissionRegister(academicYearValue, statusValue, requestPayload,searchParams ?? {} );
 
     useEffect(() => {
         if (showReport && requestPayload && refetchReport) {
             refetchReport();
         }
-    }, [requestPayload, showReport]);
+    }, [requestPayload, showReport,searchParams, refetchReport  ]);
 
     const filteredClasses = useMemo(() => {
         return classOptions.filter((cls: any) => cls.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase()));
