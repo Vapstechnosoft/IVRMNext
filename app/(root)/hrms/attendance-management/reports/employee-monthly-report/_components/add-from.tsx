@@ -168,6 +168,12 @@ export default function AddEmployeeMonthlyReportForm({
             const isSuccess = response?.success ?? (Array.isArray(response) ? response.length > 0 : !!response?.data);
 
             if (isSuccess) {
+                const reportItem = response?.data?.[0] || response?.[0];
+                const parsedData = reportItem ? JSON.parse(reportItem?.report_data) : null;
+                if(parsedData.length === 0) {
+                    toast.warning('No data found for the selected criteria');
+                    return;
+                }
                 toast.success(response?.message || 'Report generated successfully');
 
                 const nextSearchParams: Record<string, string | string[]> = {

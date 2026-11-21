@@ -105,6 +105,7 @@ function MasterModulePageContent() {
                             columns={columns}
                             isLoading={isLoading}
                             isPaginationRequired={true}
+                            manualFiltering={true}
                             totalItems={totalItems}
                         />
                     </div>

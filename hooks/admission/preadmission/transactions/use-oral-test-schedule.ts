@@ -20,13 +20,13 @@ export function useOralTestScheduleDetails() {
         queryKey: [PREADMISSION_QUERY_KEYS.ORAL_TEST_SCHEDULE_DETAILS],
         queryFn: () => getOralTestScheduleDetails(),
         select: (data: any) => {
-            let scheduleArray = data?.oralTestSchedule;
+            let scheduleArray = data?.oralTestSchedule || data?.OralTestSchedule;
             if (scheduleArray && !Array.isArray(scheduleArray) && scheduleArray.$values) {
                 scheduleArray = scheduleArray.$values;
             }
             if (!Array.isArray(scheduleArray)) scheduleArray = [];
 
-            let studentList1Array = data?.studentList1;
+            let studentList1Array = data?.studentList1 || data?.StudentList1;
             if (studentList1Array && !Array.isArray(studentList1Array) && studentList1Array.$values) {
                 studentList1Array = studentList1Array.$values;
             }
@@ -34,10 +34,15 @@ export function useOralTestScheduleDetails() {
 
             const mappedSchedule = scheduleArray.map((schedule: any) => {
                 const countMatch = studentList1Array.find(
-                    (s: any) => s.PAOTS_Id === schedule.paotS_Id || s.paotS_Id === schedule.paotS_Id
+                    (s: any) => (s.PAOTS_Id ?? s.paotS_Id) === (schedule.paotS_Id ?? schedule.PAOTS_Id)
                 );
                 return {
                     ...schedule,
+                    paotS_Id: schedule.paotS_Id ?? schedule.PAOTS_Id,
+                    paotS_ScheduleName: schedule.paotS_ScheduleName ?? schedule.PAOTS_ScheduleName,
+                    paotS_ScheduleDate: schedule.paotS_ScheduleDate ?? schedule.PAOTS_ScheduleDate,
+                    paotS_ScheduleTime: schedule.paotS_ScheduleTime ?? schedule.PAOTS_ScheduleTime,
+                    paotS_ScheduleTimeTo: schedule.paotS_ScheduleTimeTo ?? schedule.PAOTS_ScheduleTimeTo,
                     ocount: countMatch?.ocount || 0
                 };
             });

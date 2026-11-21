@@ -14,10 +14,15 @@ export default function NDAReportCardPage() {
         setIsReportVisible(true);
     };
 
+    const handleClear = () => {
+        setReportData(null);
+        setIsReportVisible(false);
+    };
+
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <CollapsibleSection title='NDA Report Card' defaultOpen>
-                <NDAReportCardForm onSuccess={handleReportSuccess} />
+                <NDAReportCardForm onSuccess={handleReportSuccess} onClear={handleClear} isReportVisible={isReportVisible} />
             </CollapsibleSection>
 
             {isReportVisible && (

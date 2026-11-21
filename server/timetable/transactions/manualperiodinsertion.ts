@@ -6,12 +6,9 @@ import type {
     Category,
     Class,
     ClassDropdownDatamanualPeriodInsertion,
-    Section,
     Staff,
     Subject
 } from '@/types/timetable/Transaction/manualperiodinsertion';
-
-import { auth } from '@/lib/auth';
 
 export async function getAcademicYearData() {
     const url = '/TimeTableCommon/GetAcademicYearData';
@@ -61,19 +58,17 @@ export async function getManualPeriodInsertionMasters() {
     };
 }
 
-export async function getSectionsByClass(asmcL_Id: number) {
-    const url = `/TimeTableCommon/GetSectionData/${asmcL_Id}`;
-    console.info('TimeTableCommon', url);
-    return await api.get<Section[]>('timetable', url);
-}
+// export async function getSectionsByClass(asmcL_Id: number) {
+//     const url = `/TimeTableCommon/GetSectionData/${asmcL_Id}`;
+//     console.info('TimeTableCommon', url);
+//     return await api.get<Section[]>('timetable', url);
+// }
 
 export async function getClassDetailsByacademicyrandcategoty(asmay_id: number, TTMC_Id: number) {
     const url = `/MasterDayFacade/ClassDataByAcademicyrandCategory/${asmay_id}/${TTMC_Id}`;
     console.info('MasterDayFacade', url);
     return await api.get<ClassDropdownDatamanualPeriodInsertion[]>('timetable', url);
 }
-
-
 
 export async function getManualPeriodInsertionReportData(payload: any) {
     const url = '/ManualperiodinsertionFacade/ManualPeriodInsertionReportdata';

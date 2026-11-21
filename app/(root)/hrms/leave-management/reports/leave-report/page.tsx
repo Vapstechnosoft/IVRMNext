@@ -16,6 +16,7 @@ import { useMemo, useState } from 'react';
 import * as XLSX from 'xlsx';
 import { type LeaveReportRow, leaveReportColumns } from './_components/columns';
 import { type LeaveReportFilters as FiltersType, LeaveReportFilters } from './_components/filters';
+import { toast } from 'sonner';
 
 export default function LeaveReportPage() {
     const [rows, setRows] = useState<LeaveReportRow[]>([]);
@@ -207,22 +208,29 @@ export default function LeaveReportPage() {
         leaveReportMutation.mutate(payload, {
             onSuccess: (response) => {
                 setIsGenerating(false);
-                if (response?.success && response?.data) {
+                if (response?.success && response?.data  ) {
+                    if(response?.data?.leaveReport?.length === 0){
+                        toast.warning('⚠️ No records found for the selected filters');
+                        return;
+                    }
                     console.log('🔍 [DEBUG] Raw response data:', response.data);
-
-                    const mappedRows = response.data?.LeaveReport?.map((item: any, index: number) => ({
+                    toast.success(response.message || 'Report generated successfully');
+                    const mappedRows = response.data?.leaveReport?.map((item: any, index: number) => ({
                         slNo: index + 1,
-                        employeeCode: item.hrmE_EmployeeCode || item.employeeCode || '',
-                        employeeName: item.hrmE_EmployeeFirstName || item.employeeName || '',
-                        leaveName: item.hrmL_LeaveName || item.leaveName || '',
-                        fromDate: item.hreltD_FromDate || item.fromDate || '',
-                        toDate: item.hrelT_ToDate || item.toDate || '',
-                        appliedDays: item.hreltD_TotDays || item.appliedDays || 0,
-                        leaveStatus: item.hreltD_LeaveStatus || item.leaveStatus || 'Pending',
-                        leaveBalance: item.leaveBalance || 0
+                        employeeCode: item.hrmE_EmployeeCode || item.employeeCode || item.hrmE_EmployeeCode || '',
+                        employeeName: item.hrmE_EmployeeFirstName || item.employeeName || item.hrmE_EmployeeFirstName || item.ename || '',
+                        leaveName: item.hrmL_LeaveName || item.leaveName || item.hrmL_LeaveName || item.hrmL_LeaveName || '',
+                        fromDate: item.hreltD_FromDate || item.fromDate || item.hreltD_FromDate || item.hrelT_FromDate || '',
+                        toDate: item.hrelT_ToDate || item.toDate || item.hrelT_ToDate || item.hrelT_ToDate || '',
+                        appliedDays: item.hreltD_TotDays || item.appliedDays || item.hrelT_TotDays ||0,
+                        leaveStatus: item.hreltD_LeaveStatus || item.leaveStatus || item.hrelT_Status ||'Pending',
+                        leaveBalance: item.leaveBalance || item.runningBalLeaves || 0
                     }));
+                    console.log('✅ [DEBUG] Mapped rows for table:', mappedRows);
                     setRows(mappedRows);
+                    
                 } else {
+                    toast.error(response?.message || 'Failed to fetch report');
                     setRows([]);
                 }
             },
@@ -232,7 +240,7 @@ export default function LeaveReportPage() {
             }
         });
     };
-
+    
     const handleClear = () => {
         setFilters({
             selectedTypes: [],
@@ -295,7 +303,7 @@ export default function LeaveReportPage() {
                     onReport={handleReport}
                     onCancel={handleClear}
                 />
-                {rows.length > 0 && (
+                {rows?.length > 0 && (
                     <CollapsibleSection
                         rightElement={
                             <div className='flex gap-2'>
@@ -323,25 +331,25 @@ export default function LeaveReportPage() {
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl '>
-                        <div className='print:hidden'>
+                        {/* <div className='print:hidden'>
                             <GenericDataTable data={rows} columns={leaveReportColumns} totalItems={rows.length} isLoading={false} />
-                        </div>
+                        </div> */}
 
                         {/* Print View Table */}
-                        <div className='printable-content hidden p-8 print:block'>
+                        <div className='printable-content  p-8 print:block'>
                             <h2 className='mb-6 text-center font-bold text-2xl'>Leave Report</h2>
                             <table className='w-full border-collapse border border-gray-300 text-sm'>
                                 <thead>
-                                    <tr className='bg-gray-100 italic'>
+                                    <tr className='bg-violet-400 '>
                                         <th className='border border-gray-300 p-2 text-xs'>SL.No.</th>
                                         <th className='border border-gray-300 p-2 text-left text-xs'>Employee Code</th>
                                         <th className='border border-gray-300 p-2 text-left text-xs'>Employee Name</th>
                                         <th className='border border-gray-300 p-2 text-left text-xs'>Leave Name</th>
                                         <th className='border border-gray-300 p-2 text-xs'>From Date</th>
                                         <th className='border border-gray-300 p-2 text-xs'>To Date</th>
-                                        <th className='border border-gray-300 p-2 text-right text-xs'>Applied Days</th>
+                                        <th className='border border-gray-300 p-2 text-center text-xs'>Applied Days</th>
                                         <th className='border border-gray-300 p-2 text-left text-xs'>Leave Status</th>
-                                        <th className='border border-gray-300 p-2 text-right text-xs'>Leave Balance</th>
+                                        <th className='border border-gray-300 p-2 text-center text-xs'>Leave Balance</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -357,9 +365,9 @@ export default function LeaveReportPage() {
                                             <td className='border border-gray-300 p-2 text-center text-xs'>
                                                 {item.toDate ? format(new Date(item.toDate), 'dd/MM/yyyy') : '-'}
                                             </td>
-                                            <td className='border border-gray-300 p-2 text-right text-xs'>{item.appliedDays}</td>
+                                            <td className='border border-gray-300 p-2 text-center text-xs'>{item.appliedDays}</td>
                                             <td className='border border-gray-300 p-2 text-xs'>{item.leaveStatus}</td>
-                                            <td className='border border-gray-300 p-2 text-right text-xs'>{item.leaveBalance}</td>
+                                            <td className='border border-gray-300 p-2 text-center text-xs'>{item.leaveBalance}</td>
                                         </tr>
                                     ))}
                                 </tbody>

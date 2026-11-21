@@ -675,7 +675,7 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
                                             { name: 'IVRMGC_PagePagination', label: 'Page Pagination', required: true },
                                             { name: 'IVRMGC_ReportPagination', label: 'Report Pagination', required: true },
                                             { name: 'IVRMGC_ReminderDays', label: 'Reminder Days For Email', required: true },
-                                            { name: 'IVRMGC_ClassCapacity', label: 'Class Capacity', required: false },
+                                            { name: 'IVRMGC_ClassCapacity', label: 'Class Capacity', required: true },
                                             { name: 'IVRMGC_SectionCapacity', label: 'Section Capacity', required: true }
                                         ].map((field) => (
                                             <div key={field.name} className='grid grid-cols-3 items-center gap-4'>
@@ -684,8 +684,7 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
                                                     {field.required && <span className='text-destructive'>*</span>}
                                                 </Label>
                                                 <div className='col-span-2 space-y-1'>
-                                                    <Input {...register(field.name as any)} type='number' min='1' max='15000' />
-
+                                                    <Input {...register(field.name as any)} type='number' min='1' max='200' />
                                                     {errors[field.name as keyof GenConfigFormValues] && (
                                                         <p className='text-destructive text-xs'>
                                                             {errors[field.name as keyof GenConfigFormValues]?.message as string}
@@ -712,14 +711,8 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
                                         <div className='grid grid-cols-3 items-center gap-4'>
                                             <Label className='text-right'>FP Locking Period:</Label>
                                             <div className='col-span-2'>
-
-                                                
-
-                                                <Input {...register('IVRMGC_FPLockingPeriod')} type='number' min='1' max='200' />
-                                                
-
+                                                <Input {...register('IVRMGC_FPLockingPeriod')} type='number' min='0' max='200' />
                                             </div>
-                                            
                                         </div>
                                         <div className='grid grid-cols-3 items-center gap-4'>
                                             <Label className='text-right'>Print Footer:</Label>

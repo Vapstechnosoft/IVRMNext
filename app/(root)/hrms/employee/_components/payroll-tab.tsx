@@ -24,6 +24,8 @@ interface PayrollTabProps {
     employeeCode: string;
     MI_Id?: number;
     onSuccess?: () => void;
+    onSaveReady?: (save: (() => Promise<boolean>) | null) => void;
+    hideSaveButton?: boolean;
     earningList?: any[];
     detectionList?: any[];
     arrearList?: any[];
@@ -81,6 +83,8 @@ export function PayrollTab({
     employeeCode,
     MI_Id: propMI_Id,
     onSuccess,
+    onSaveReady,
+    hideSaveButton = false,
     earningList: propEarningList,
     detectionList: propDetectionList,
     arrearList: propArrearList,
@@ -445,6 +449,7 @@ export function PayrollTab({
         const flagStr = String(rawFlag || '')
             .trim()
             .toLowerCase();
+        if (flagStr === 'amount') return false;
         return flagStr === 'percentage' || perc > 0;
     };
 
@@ -675,8 +680,9 @@ export function PayrollTab({
                     return sdHrmedId > 0 && sdHrmedId === hrmedId;
                 });
 
-                // Match with master catalog item to get full definition (name, formula, flags)
-                const masterHead = masterHeadsMap.get(hrmedId) || item;
+                // Prefer the current master API record over cached onload data.
+                const currentMasterHead = masterListFromApi.find((head: any) => getHeadId(head) === hrmedId);
+                const masterHead = currentMasterHead || masterHeadsMap.get(hrmedId) || item;
 
                 const headName =
                     getHeadName(item) ||
@@ -685,12 +691,14 @@ export function PayrollTab({
                     '';
 
                 const rawFlag =
+                    currentMasterHead?.HRMED_AmountPercentFlag ??
+                    currentMasterHead?.hrmeD_AmountPercentFlag ??
+                    existingItem?.HRMED_AmountPercentFlag ??
+                    existingItem?.hrmeD_AmountPercentFlag ??
                     item.HRMED_AmountPercentFlag ??
                     item.hrmeD_AmountPercentFlag ??
                     item.hrmed_amountpercentflag ??
                     item.AmountPercentFlag ??
-                    existingItem?.HRMED_AmountPercentFlag ??
-                    existingItem?.hrmeD_AmountPercentFlag ??
                     existingItem?.AmountPercentFlag ??
                     masterHead?.HRMED_AmountPercentFlag ??
                     masterHead?.hrmeD_AmountPercentFlag;
@@ -699,15 +707,17 @@ export function PayrollTab({
 
                 // Master percentage value
                 const masterPercVal =
+                    currentMasterHead?.hrmeD_AmountPercent ??
+                    currentMasterHead?.HRMED_AmountPercent ??
+                    existingItem?.hrmeD_Percent ??
+                    existingItem?.HRMED_AmountPercent ??
+                    existingItem?.hrmeD_AmountPercent ??
                     item.hrmeD_Percent ??
                     item.hrmeD_AmountPercent ??
                     item.HRMED_AmountPercent ??
                     item.hrmed_amountpercent ??
                     item.HRMED_Percentage ??
                     item.hrmeD_Percentage ??
-                    existingItem?.hrmeD_Percent ??
-                    existingItem?.HRMED_AmountPercent ??
-                    existingItem?.hrmeD_AmountPercent ??
                     masterHead?.hrmeD_Percent ??
                     masterHead?.HRMED_AmountPercent ??
                     masterHead?.hrmeD_AmountPercent ??
@@ -716,25 +726,25 @@ export function PayrollTab({
 
                 // Master Details formula (e.g. "50% of BASIC PAY")
                 const percentOff =
+                    existingItem?.percentOff ||
                     item.percentOff ||
                     item.percentoff ||
                     item.HRMED_PercentOff ||
                     item.hrmeD_PercentOff ||
-                    existingItem?.percentOff ||
                     masterHead?.percentOff ||
                     masterHead?.percentoff ||
                     masterHead?.HRMED_PercentOff ||
                     masterHead?.hrmeD_PercentOff ||
                     '';
                 const detailsText =
-                    item.hrmeD_Details ||
-                    item.HRMED_Details ||
-                    existingItem?.hrmeD_Details ||
-                    masterHead?.hrmeD_Details ||
-                    masterHead?.HRMED_Details ||
-                    (isPercentage
-                        ? (percentOff ? `${masterPercStr}% of ${percentOff}` : (Number(masterPercStr) > 0 ? `${masterPercStr}%` : ''))
-                        : '');
+                    isPercentage
+                        ? existingItem?.hrmeD_Details ||
+                          item.hrmeD_Details ||
+                          item.HRMED_Details ||
+                          masterHead?.hrmeD_Details ||
+                          masterHead?.HRMED_Details ||
+                          (percentOff ? `${masterPercStr}% of ${percentOff}` : Number(masterPercStr) > 0 ? `${masterPercStr}%` : '')
+                        : '';
 
                 const savedId = existingItem?.HREED_Id ?? existingItem?.hreeD_Id ?? item?.HREED_Id ?? item?.hreeD_Id ?? 0;
                 const hasSavedRecord = Number(savedId) > 0;
@@ -746,26 +756,31 @@ export function PayrollTab({
 
                 if (hasSavedRecord) {
                     const rawSavedPerc = existingItem?.HREED_Percentage ?? existingItem?.hreeD_Percentage ?? item?.HREED_Percentage ?? item?.hreeD_Percentage;
-                    percentage =
-                        rawSavedPerc !== undefined &&
-                        rawSavedPerc !== null &&
-                        String(rawSavedPerc) !== '' &&
-                        String(rawSavedPerc) !== '0' &&
-                        String(rawSavedPerc) !== '0.00'
-                            ? String(rawSavedPerc)
-                            : masterPercStr;
-
                     const rawSavedAppPerc = existingItem?.HREED_ApplicablePercentage ?? existingItem?.hreeD_ApplicablePercentage ?? item?.HREED_ApplicablePercentage ?? item?.hreeD_ApplicablePercentage;
-                    appPercentage =
-                        rawSavedAppPerc !== undefined &&
-                        rawSavedAppPerc !== null &&
-                        String(rawSavedAppPerc) !== '' &&
-                        String(rawSavedAppPerc) !== '0' &&
-                        String(rawSavedAppPerc) !== '0.00'
-                            ? String(rawSavedAppPerc)
-                            : percentage;
+                    if (isPercentage) {
+                        percentage =
+                            rawSavedPerc !== undefined &&
+                            rawSavedPerc !== null &&
+                            String(rawSavedPerc) !== '' &&
+                            String(rawSavedPerc) !== '0' &&
+                            String(rawSavedPerc) !== '0.00'
+                                ? String(rawSavedPerc)
+                                : masterPercStr;
+                        appPercentage =
+                            rawSavedAppPerc !== undefined &&
+                            rawSavedAppPerc !== null &&
+                            String(rawSavedAppPerc) !== '' &&
+                            String(rawSavedAppPerc) !== '0' &&
+                            String(rawSavedAppPerc) !== '0.00'
+                                ? String(rawSavedAppPerc)
+                                : percentage;
+                    } else {
+                        percentage = '0';
+                        appPercentage = '0';
+                    }
 
-                    amount = Number(existingItem?.HREED_Amount ?? existingItem?.hreeD_Amount ?? item?.HREED_Amount ?? item?.hreeD_Amount ?? 0);
+                    const savedAmount = Number(existingItem?.HREED_Amount ?? existingItem?.hreeD_Amount ?? item?.HREED_Amount ?? item?.hreeD_Amount ?? 0);
+                    amount = !isPercentage && Number(rawSavedPerc) > 0 ? Number(masterPercVal) || 0 : savedAmount;
                     active = Boolean(existingItem?.HREED_ActiveFlag ?? existingItem?.hreeD_ActiveFlag ?? item?.HREED_ActiveFlag ?? item?.hreeD_ActiveFlag ?? true);
                 } else {
                     // New employee defaults (exact match to Old IVRM employeeRegistration.js:1580-1605)
@@ -1048,17 +1063,37 @@ export function PayrollTab({
                     const existingItem = [...currentEarnings, ...currentDeductions, ...currentArrears, ...(currentGross ? [currentGross] : [])].find(
                         (e) => getHeadId(e) === hrmedId
                     );
+                    const currentMasterHead = masterListFromApi.find((head: any) => getHeadId(head) === hrmedId);
 
                     // Get name from salary details only (API driven)
                     const name = getHeadName(item) || getHeadName(existingItem) || getHeadName(masterHeadsMap.get(hrmedId)) || '';
-                    const rawFlag = item.HRMED_AmountPercentFlag;
+                    const rawFlag =
+                        currentMasterHead?.HRMED_AmountPercentFlag ??
+                        currentMasterHead?.hrmeD_AmountPercentFlag ??
+                        existingItem?.HRMED_AmountPercentFlag ??
+                        existingItem?.hrmeD_AmountPercentFlag ??
+                        item.HRMED_AmountPercentFlag;
                     const amountPercentFlag = rawFlag?.toString().trim()
                         ? rawFlag.toString().trim()
-                        : item.hrmeD_AmountPercentFlag || existingItem?.HRMED_AmountPercentFlag || 'Amount';
+                        : 'Amount';
 
-                    const calcAmount = Number(item.HREED_Amount ?? item.hreeD_Amount ?? existingItem?.localAmount ?? 0);
-                    const calcPerc = String(item.HREED_Percentage ?? item.hreeD_Percentage ?? existingItem?.localPercentage ?? '0');
-                    const calcAppPerc = String(item.HREED_ApplicablePercentage ?? item.hreeD_ApplicablePercentage ?? item.HREED_Percentage ?? existingItem?.localApplicablePercentage ?? '0');
+                    const isPercentage = amountPercentFlag.trim().toLowerCase() === 'percentage';
+                    const savedPercentage = item.HREED_Percentage ?? item.hreeD_Percentage ?? existingItem?.localPercentage ?? '0';
+                    const calcPerc = isPercentage ? String(savedPercentage) : '0';
+                    const calcAppPerc = isPercentage
+                        ? String(item.HREED_ApplicablePercentage ?? item.hreeD_ApplicablePercentage ?? savedPercentage)
+                        : '0';
+                    const masterAmount =
+                        currentMasterHead?.hrmeD_AmountPercent ??
+                        currentMasterHead?.HRMED_AmountPercent ??
+                        item.hrmeD_Percent ??
+                        item.HRMED_AmountPercent ??
+                        existingItem?.hrmeD_Percent ??
+                        0;
+                    const calcAmount =
+                        !isPercentage && Number(savedPercentage) > 0
+                            ? Number(masterAmount) || 0
+                            : Number(item.HREED_Amount ?? item.hreeD_Amount ?? existingItem?.localAmount ?? 0);
                     const calcMax = Number(item.HREED_ApplicableMaxValue ?? item.hreeD_ApplicableMaxValue ?? existingItem?.localMaxAmount ?? 0);
 
                     const editableItem: EditablePayrollItem = {
@@ -1556,10 +1591,10 @@ export function PayrollTab({
 
     const saveEmployeeSalaryDetailsMutation = useSaveEmployeeSalaryDetails();
 
-    const handleSave = async () => {
+    const handleSave = async (): Promise<boolean> => {
         if (!employeeId) {
             toast.error('Employee ID is required');
-            return;
+            return false;
         }
 
         try {
@@ -1610,12 +1645,26 @@ export function PayrollTab({
                 if (isMountedRef.current && onSuccess) {
                     onSuccess();
                 }
+                return true;
             }
+            toast.error(result?.message || 'Failed to save salary details');
+            return false;
         } catch (error: any) {
             console.error('Save error:', error);
-            // Error handling is already in the hook but we catch here to prevent crash
+            toast.error(error?.response?.data?.message || error?.message || 'Failed to save salary details');
+            return false;
         }
     };
+    const handleSaveRef = useRef(handleSave);
+    handleSaveRef.current = handleSave;
+
+    useEffect(() => {
+        if (!onSaveReady) return;
+        const submitPayroll = () => handleSaveRef.current();
+        onSaveReady(submitPayroll);
+        return () => onSaveReady(null);
+    }, [onSaveReady]);
+
     const isSaving = saveEmployeeSalaryDetailsMutation.isPending;
     if (isLoading) {
         return <div className='rounded-md border p-6 text-center text-muted-foreground'>Loading payroll details...</div>;
@@ -1682,8 +1731,9 @@ export function PayrollTab({
                                     // Normalize the AmountPercentFlag value - handle null, undefined, empty string, and case variations
                                     const rawFlag = item.HRMED_AmountPercentFlag;
                                     const normalizedFlag = rawFlag ? String(rawFlag).trim().toLowerCase() : 'amount';
+                                    const isAmountType = normalizedFlag === 'amount';
                                     const headPerc = getHeadPercentage(item);
-                                    const isPercentageType = normalizedFlag === 'percentage' || headPerc > 0;
+                                    const isPercentageType = !isAmountType && (normalizedFlag === 'percentage' || headPerc > 0);
                                     return (
                                         <TableRow
                                             key={item.HREED_Id || index}
@@ -1709,7 +1759,8 @@ export function PayrollTab({
                                                     type='text'
                                                     readOnly
                                                     className='h-8 w-20 text-center mx-auto bg-muted/40 cursor-default font-medium'
-                                                    value={item.hrmeD_Percent || item.localPercentage || item.HREED_Percentage || '0'}
+                                                    value={isAmountType ? '0' : item.hrmeD_Percent || item.localPercentage || item.HREED_Percentage || '0'}
+                                                    disabled={isAmountType}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-center'>
@@ -1717,10 +1768,12 @@ export function PayrollTab({
                                                     type='number'
                                                     className='h-8 w-20 text-center mx-auto'
                                                     value={
-                                                        item.localApplicablePercentage ??
-                                                        item.HREED_ApplicablePercentage ??
-                                                        item.HREED_Percentage ??
-                                                        '0'
+                                                        isAmountType
+                                                            ? '0'
+                                                            : (item.localApplicablePercentage ??
+                                                              item.HREED_ApplicablePercentage ??
+                                                              item.HREED_Percentage ??
+                                                              '0')
                                                     }
                                                     onChange={(e) => updateEarning(index, 'localApplicablePercentage', e.target.value)}
                                                     onBlur={(e) => {
@@ -1730,7 +1783,7 @@ export function PayrollTab({
                                                     min={0}
                                                     max={100}
                                                     step={0.01}
-                                                    disabled={!item.HREED_ActiveFlag || !isPercentageType}
+                                                    disabled={!item.HREED_ActiveFlag || isAmountType || !isPercentageType}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-center'>
@@ -1812,9 +1865,9 @@ export function PayrollTab({
                                     // Normalize the AmountPercentFlag value - handle null, undefined, empty string, and case variations
                                     const rawFlag = item.HRMED_AmountPercentFlag;
                                     const normalizedFlag = rawFlag ? String(rawFlag).trim().toLowerCase() : 'amount';
-                                    const _isAmountType = normalizedFlag === 'amount';
+                                    const isAmountType = normalizedFlag === 'amount';
                                     const headPerc = getHeadPercentage(item);
-                                    const isPercentageType = normalizedFlag === 'percentage' || headPerc > 0;
+                                    const isPercentageType = !isAmountType && (normalizedFlag === 'percentage' || headPerc > 0);
                                     return (
                                         <TableRow
                                             key={item.HREED_Id || index}
@@ -1840,7 +1893,8 @@ export function PayrollTab({
                                                     type='text'
                                                     readOnly
                                                     className='h-8 w-20 text-center mx-auto bg-muted/40 cursor-default font-medium'
-                                                    value={item.hrmeD_Percent || item.localPercentage || item.HREED_Percentage || '0'}
+                                                    value={isAmountType ? '0' : item.hrmeD_Percent || item.localPercentage || item.HREED_Percentage || '0'}
+                                                    disabled={isAmountType}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-center'>
@@ -1848,10 +1902,12 @@ export function PayrollTab({
                                                     type='number'
                                                     className='h-8 w-20 text-center mx-auto'
                                                     value={
-                                                        item.localApplicablePercentage ??
-                                                        item.HREED_ApplicablePercentage ??
-                                                        item.HREED_Percentage ??
-                                                        '0'
+                                                        isAmountType
+                                                            ? '0'
+                                                            : (item.localApplicablePercentage ??
+                                                              item.HREED_ApplicablePercentage ??
+                                                              item.HREED_Percentage ??
+                                                              '0')
                                                     }
                                                     onChange={(e) => updateDeduction(index, 'localApplicablePercentage', e.target.value)}
                                                     onBlur={(e) => {
@@ -1861,7 +1917,7 @@ export function PayrollTab({
                                                     min={0}
                                                     max={100}
                                                     step={0.01}
-                                                    disabled={!item.HREED_ActiveFlag || !isPercentageType}
+                                                    disabled={!item.HREED_ActiveFlag || isAmountType || !isPercentageType}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-center'>
@@ -1877,7 +1933,7 @@ export function PayrollTab({
                                                     min={0}
                                                     max={999999999999999}
                                                     step={0.01}
-                                                    disabled={!item.HREED_ActiveFlag || isPercentageType}
+                                                    // disabled={!item.HREED_ActiveFlag || isPercentageType}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-center'>
@@ -2038,8 +2094,9 @@ export function PayrollTab({
                                 {arrears.map((item, index) => {
                                     const rawFlag = item.HRMED_AmountPercentFlag;
                                     const normalizedFlag = rawFlag ? String(rawFlag).trim().toLowerCase() : 'amount';
+                                    const isAmountType = normalizedFlag === 'amount';
                                     const headPerc = getHeadPercentage(item);
-                                    const isPercentageType = normalizedFlag === 'percentage' || headPerc > 0;
+                                    const isPercentageType = !isAmountType && (normalizedFlag === 'percentage' || headPerc > 0);
                                     return (
                                         <TableRow
                                             key={item.HREED_Id || index}
@@ -2065,7 +2122,7 @@ export function PayrollTab({
                                                     type='text'
                                                     readOnly
                                                     className='h-8 w-20 text-center mx-auto bg-muted/40 cursor-default font-medium'
-                                                    value={item.hrmeD_Percent || item.localPercentage || item.HREED_Percentage || '0'}
+                                                    value={isAmountType ? '0' : item.hrmeD_Percent || item.localPercentage || item.HREED_Percentage || '0'}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-center'>
@@ -2073,10 +2130,12 @@ export function PayrollTab({
                                                     type='number'
                                                     className='h-8 w-20 text-center mx-auto'
                                                     value={
-                                                        item.localApplicablePercentage ??
-                                                        item.HREED_ApplicablePercentage ??
-                                                        item.HREED_Percentage ??
-                                                        '0'
+                                                        isAmountType
+                                                            ? '0'
+                                                            : (item.localApplicablePercentage ??
+                                                              item.HREED_ApplicablePercentage ??
+                                                              item.HREED_Percentage ??
+                                                              '0')
                                                     }
                                                     onChange={(e) => updateArrear(index, 'localApplicablePercentage', e.target.value)}
                                                     onBlur={(e) => {
@@ -2086,7 +2145,7 @@ export function PayrollTab({
                                                     min={0}
                                                     max={100}
                                                     step={0.01}
-                                                    disabled={!item.HREED_ActiveFlag || !isPercentageType}
+                                                    disabled={!item.HREED_ActiveFlag || isAmountType || !isPercentageType}
                                                 />
                                             </TableCell>
                                             <TableCell className='text-center'>
@@ -2144,17 +2203,19 @@ export function PayrollTab({
                 </div>
             </div>
             {/* Action Buttons */}
-            <div className='flex w-full items-center justify-center gap-3 pt-4'>
-                {/* <Button variant='outline' type='button'>
-                    PREVIOUS
-                </Button> */}
-                <Button type='button' variant='default' onClick={handleSave} disabled={isSaving} className='w-fit'>
-                    {isSaving ? 'SAVING...' : 'SUBMIT SALARY INFO'}
-                </Button>
-                {/* <Button variant='outline' type='button'>
-                    CLEAR
-                </Button> */}
-            </div>
+            {!hideSaveButton && (
+                <div className='flex w-full items-center justify-center gap-3 pt-4'>
+                    {/* <Button variant='outline' type='button'>
+                        PREVIOUS
+                    </Button> */}
+                    <Button type='button' variant='default' onClick={handleSave} disabled={isSaving} className='w-fit'>
+                        {isSaving ? 'SAVING...' : 'SUBMIT SALARY INFO'}
+                    </Button>
+                    {/* <Button variant='outline' type='button'>
+                        CLEAR
+                    </Button> */}
+                </div>
+            )}
         </div>
     );
 }

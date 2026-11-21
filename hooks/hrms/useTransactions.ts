@@ -78,7 +78,7 @@ import type {
 import type {
     EmployeeSalaryAdvanceDetails,
     SalaryAdvanceDetailsRequest,
-    SalaryAdvanceEmployeeDropdownItem,
+    SalaryAdvanceEmployeeDropdownData,
     SalaryAdvanceGridItem,
     SalaryAdvanceSaveRequest
 } from '@/types/hrms/salary-advance';
@@ -277,7 +277,7 @@ export function useActivateDeactivateEmployeeLoan() {
 
 export function useSalaryAdvance(searchParams?: ApiSearchparams) {
     const queryClient = useQueryClient();
-
+debugger;
     return {
         ...useQuery({
             queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, searchParams ?? {}],
@@ -315,14 +315,17 @@ export function useSalaryAdvanceGrid(pageSizeOrSearchParams?: number | ApiSearch
 }
 
 export function useSalaryAdvanceEmployeeDropdown() {
-    return useQuery<SalaryAdvanceEmployeeDropdownItem[], Error>({
+    return useQuery<SalaryAdvanceEmployeeDropdownData, Error>({
         queryKey: [HRMS_QUERY_KEYS.SALARY_ADVANCE_LIST, 'employee-dropdown'],
         queryFn: () =>
-            getSalaryAdvanceEmployeeDropdown().then((res: any) => {
-                const data = res?.data || res; // Handle both wrapped and unwrapped
-                if (Array.isArray(data)) return data;
-                if (data?.data && Array.isArray(data.data)) return data.data;
-                return [];
+            getSalaryAdvanceEmployeeDropdown().then((res) => {
+                if (!res.success) {
+                    throw new Error(res.message || 'Failed to fetch employee dropdown');
+                }
+                if (!res.data) {
+                    throw new Error('Employee dropdown data was not returned');
+                }
+                return res.data;
             }),
         staleTime: 1000 * 60 * 10
     });

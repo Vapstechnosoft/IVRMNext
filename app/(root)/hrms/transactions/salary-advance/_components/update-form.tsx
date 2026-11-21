@@ -43,17 +43,8 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
     const { data: leaveYearsData } = useLeaveYearDropdown();
     const { data: monthsData } = useMonthDropdown();
 
-    // Mode of payments list
-    const modeOfPayments = useMemo(
-        () => [
-            { id: 'Cash', name: 'Cash' },
-            { id: 'Bank Transfer', name: 'Bank Transfer' },
-            { id: 'Cheque', name: 'Cheque' }
-        ],
-        []
-    );
-
-    const employees = useMemo(() => employeeDropdown || empData || [], [employeeDropdown, empData]);
+    const employees = useMemo(() => employeeDropdown || empData?.employees || [], [employeeDropdown, empData]);
+    const modeOfPayments = useMemo(() => empData?.modeOfPaymentdropdown || [], [empData]);
     const leaveYears = useMemo(() => (leaveYearsData as any)?.data || [], [leaveYearsData]);
     const months = useMemo(() => (monthsData as any)?.data || [], [monthsData]);
 
@@ -82,8 +73,8 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
         }
 
         const paymentMode = selectedRow.hresA_ModeOfPayment || '';
-        const matchingMode = modeOfPayments.find((m) => m.id.toLowerCase() === paymentMode.toLowerCase());
-        const normalizedPaymentMode = matchingMode ? matchingMode.id : paymentMode;
+        const matchingMode = modeOfPayments.find((mode) => mode.ivrmmoD_ModeOfPayment.toLowerCase() === paymentMode.toLowerCase());
+        const normalizedPaymentMode = matchingMode ? matchingMode.ivrmmoD_ModeOfPayment : paymentMode;
 
         return {
             employeeId: String(selectedRow.hrmE_Id ?? ''),
@@ -310,8 +301,8 @@ export default function UpdateSalaryAdvanceForm({ selectedRow, employeeDropdown,
                                     </SelectTrigger>
                                     <SelectContent>
                                         {modeOfPayments.map((mode) => (
-                                            <SelectItem key={mode.id} value={mode.id}>
-                                                {mode.name}
+                                            <SelectItem key={mode.ivrmmoD_Id} value={mode.ivrmmoD_ModeOfPayment}>
+                                                {mode.ivrmmoD_ModeOfPayment}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>

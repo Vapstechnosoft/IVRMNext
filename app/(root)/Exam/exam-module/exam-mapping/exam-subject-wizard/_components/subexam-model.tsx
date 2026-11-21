@@ -475,52 +475,8 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
                     break;
                 }
 
-                case 'emgR_Id':
-                    if (item.checkedvalue && (!value || value === '')) {
-                        error = 'Grade is required';
-                    }
-                    break;
-
                 case 'checkedvalue':
-                    if (value) {
-                        // If checked, validate required fields
-                        if (!item.eycessS_MaxMarks || item.eycessS_MaxMarks === '') {
-                            setValidationErrors((prev) => ({
-                                ...prev,
-                                [emsE_Id]: {
-                                    ...prev[emsE_Id],
-                                    eycessS_MaxMarks: 'Max marks is required'
-                                }
-                            }));
-                        }
-                        if (!item.eycessS_MinMarks || item.eycessS_MinMarks === '') {
-                            setValidationErrors((prev) => ({
-                                ...prev,
-                                [emsE_Id]: {
-                                    ...prev[emsE_Id],
-                                    eycessS_MinMarks: 'Min marks is required'
-                                }
-                            }));
-                        }
-                        if (!item.eycessS_MarksEntryMax || item.eycessS_MarksEntryMax === '') {
-                            setValidationErrors((prev) => ({
-                                ...prev,
-                                [emsE_Id]: {
-                                    ...prev[emsE_Id],
-                                    eycessS_MarksEntryMax: 'Marks entry max is required'
-                                }
-                            }));
-                        }
-                        if (!item.emgR_Id || item.emgR_Id === '') {
-                            setValidationErrors((prev) => ({
-                                ...prev,
-                                [emsE_Id]: {
-                                    ...prev[emsE_Id],
-                                    emgR_Id: 'Grade is required'
-                                }
-                            }));
-                        }
-                    } else {
+                    if (!value) {
                         // If unchecked, clear errors for this row
                         setValidationErrors((prev) => {
                             const newErrors = { ...prev };
@@ -670,24 +626,6 @@ export default function SubExamModal({ open, subject, onClose, onSave, schema, g
             const max = Number(row.eycessS_MaxMarks) || 0;
             const min = Number(row.eycessS_MinMarks) || 0;
             const entry = Number(row.eycessS_MarksEntryMax) || 0;
-
-            // Required fields
-            if (!row.eycessS_MaxMarks || row.eycessS_MaxMarks === '') {
-                rowErrors.eycessS_MaxMarks = 'Max marks is required';
-                hasErrors = true;
-            }
-            if (!row.eycessS_MinMarks || row.eycessS_MinMarks === '') {
-                rowErrors.eycessS_MinMarks = 'Min marks is required';
-                hasErrors = true;
-            }
-            if (!row.eycessS_MarksEntryMax || row.eycessS_MarksEntryMax === '') {
-                rowErrors.eycessS_MarksEntryMax = 'Marks entry max is required';
-                hasErrors = true;
-            }
-            if (!row.emgR_Id || row.emgR_Id === '') {
-                rowErrors.emgR_Id = 'Grade is required';
-                hasErrors = true;
-            }
 
             // Numeric validation
             if (max > parentMaxMarks) {

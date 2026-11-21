@@ -5,10 +5,11 @@ import { GenericDataTable } from '@/components/ui/data-table/generic-data-table'
 import { Input } from '@/components/ui/input';
 import type { IPageMappingData } from '@/types/super-admin/super-admin-module/general-setting/page-mapping';
 import type { ColumnDef } from '@tanstack/react-table';
-import { ChevronLeft, ChevronRight, SaveIcon, Search, Trash2, X, XIcon } from 'lucide-react';
+import { SaveIcon, Search, Trash2, X, XIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
 import { usePageMapping } from './mapping-context';
+import { PageNumberPagination } from './page-number-pagination';
 
 export default function SuperAdminGrid() {
     const { selectedModuleId, cartPages, removeFromCart, saveCart, clearCart } = usePageMapping();
@@ -153,27 +154,7 @@ export default function SuperAdminGrid() {
                                 <option value={50}>50</option>
                             </select>
                         </div>
-                        <div className='flex items-center gap-1'>
-                            <Button
-                                variant='outline'
-                                size='icon'
-                                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className='h-8 w-8 rounded'>
-                                <ChevronLeft className='h-4 w-4' />
-                            </Button>
-                            <span className='px-2 font-medium text-xs'>
-                                Page {page} of {totalPages}
-                            </span>
-                            <Button
-                                variant='outline'
-                                size='icon'
-                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                                disabled={page >= totalPages}
-                                className='h-8 w-8 rounded'>
-                                <ChevronRight className='h-4 w-4' />
-                            </Button>
-                        </div>
+                        <PageNumberPagination page={page} totalPages={totalPages} onPageChange={setPage} />
                     </div>
                 </div>
             )}

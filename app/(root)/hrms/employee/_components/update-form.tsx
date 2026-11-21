@@ -102,7 +102,7 @@ import {
   X,
 } from "lucide-react";
 import type React from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import type { z } from "zod";
@@ -641,6 +641,14 @@ export default function UpdateEmployeeForm({
   const [savedEmployeeId, setSavedEmployeeId] = useState<number | null>(
     selectedRow?.hrmE_Id || null,
   );
+  const payrollSubmitRef = useRef<(() => Promise<boolean>) | null>(null);
+  const [isSubmittingPayroll, setIsSubmittingPayroll] = useState(false);
+  const registerPayrollSubmit = useCallback(
+    (submit: (() => Promise<boolean>) | null) => {
+      payrollSubmitRef.current = submit;
+    },
+    [],
+  );
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
   // Helper to extract retirement date from selectedRow
@@ -730,7 +738,8 @@ export default function UpdateEmployeeForm({
     isSavingMedical ||
     isSavingBank ||
     isSavingOther ||
-    isSavingSalaryDetails;
+    isSavingSalaryDetails ||
+    isSubmittingPayroll;
 
   // Get MI_Id from selectedRow or assume it's available (fallback to 0 which might fail if API is strict)
   const MI_Id = selectedRow?.mI_Id || 0;
@@ -2543,7 +2552,16 @@ export default function UpdateEmployeeForm({
 
     try {
       if (currentStepId === 8) {
-        // Payroll tab - handled by PayrollTab component
+        const submitPayroll = payrollSubmitRef.current;
+        if (!submitPayroll) {
+          toast.error("Payroll is still loading. Please try again.");
+          return;
+        }
+
+        setIsSubmittingPayroll(true);
+        const salarySaved = await submitPayroll();
+        if (!salarySaved) return;
+
         toast.success("Employee update completed successfully!");
         if (onSuccess) {
           onSuccess();
@@ -2551,6 +2569,8 @@ export default function UpdateEmployeeForm({
       }
     } catch (error: any) {
       toast.error(error.message || "An error occurred during update");
+    } finally {
+      setIsSubmittingPayroll(false);
     }
   };
 
@@ -7268,6 +7288,8 @@ export default function UpdateEmployeeForm({
                         employeeId={savedEmployeeId}
                         employeeCode={watch("employeeCode")}
                         MI_Id={selectedRow?.mI_Id || 30}
+                        onSaveReady={registerPayrollSubmit}
+                        hideSaveButton
                         earningList={options.earningList}
                         detectionList={options.detectionList}
                         arrearList={options.arrearList}
@@ -7284,8 +7306,8 @@ export default function UpdateEmployeeForm({
               </div>
 
               {/* Navigation Footer */}
-              <div className="flex items-center justify-between border-t bg-gray-50 px-6 py-4 md:px-8">
-                <Button
+              <div className="flex items-center justify-end border-t bg-gray-50 px-6 py-4 md:px-8">
+                {/* <Button
                   type="button"
                   variant="outline"
                   onClick={() => {
@@ -7296,7 +7318,7 @@ export default function UpdateEmployeeForm({
                   className="w-fit transition-all duration-200 hover:scale-105"
                 >
                   Reset Form
-                </Button>
+                </Button> */}
 
                 <div className="flex gap-3">
                   {currentStep > 1 && (

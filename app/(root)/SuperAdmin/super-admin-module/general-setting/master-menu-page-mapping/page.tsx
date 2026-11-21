@@ -46,7 +46,7 @@ function MasterMenuPageMappingPageContent() {
     const [totalItems, setTotalItems] = useState(0);
 
     // NUQS Hooks for URL State Management
-    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
+    const [page, setPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
     const [pageSize] = useQueryState(
         tableSearchVariables.page_size,
         parseAsInteger.withOptions({ shallow: false, history: 'push' }).withDefault(10)
@@ -109,6 +109,15 @@ function MasterMenuPageMappingPageContent() {
         fetchData();
     };
 
+    const refreshAfterDelete = async () => {
+        const lastPageAfterDelete = Math.max(1, Math.ceil((totalItems - 1) / pageSize));
+        if (page > lastPageAfterDelete) {
+            await setPage(lastPageAfterDelete);
+            return;
+        }
+        fetchData();
+    };
+
     return (
         <div className='container space-y-4 p-1'>
             {/* Header with Add Button */}
@@ -128,12 +137,22 @@ function MasterMenuPageMappingPageContent() {
                 </div>
             </CollapsibleSection>
 
-            <FormSections onRefresh={refreshData} modules={modules} allPages={pages} />
+            <FormSections onRefresh={refreshData} onDeleteSuccess={refreshAfterDelete} modules={modules} allPages={pages} />
         </div>
     );
 }
 
-function FormSections({ onRefresh, modules, allPages }: { onRefresh: () => void; modules: any[]; allPages: any[] }) {
+function FormSections({
+    onRefresh,
+    onDeleteSuccess,
+    modules,
+    allPages
+}: {
+    onRefresh: () => void;
+    onDeleteSuccess: () => Promise<void>;
+    modules: any[];
+    allPages: any[];
+}) {
     const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } =
         useFormContext<IMasterMenuPageMappingDTO>();
 
@@ -150,14 +169,15 @@ function FormSections({ onRefresh, modules, allPages }: { onRefresh: () => void;
         try {
             const res = await deleteMasterMenuPageMapping(selectedRow.ivrmmmpM_Id);
             if (res.success) {
-                toast.success('Record deleted successfully');
+                toast.success(res.message || 'Record deleted successfully');
                 closeDeleteForm();
-                onRefresh();
+                await onDeleteSuccess();
             } else {
                 toast.error(res.message || 'Failed to delete record');
             }
         } catch (error) {
-            toast.error('An error occurred');
+            console.error('Failed to delete master menu page mapping:', error);
+            toast.error(error instanceof Error ? error.message : 'An error occurred while deleting the record.');
         } finally {
             setIsDeleting(false);
         }

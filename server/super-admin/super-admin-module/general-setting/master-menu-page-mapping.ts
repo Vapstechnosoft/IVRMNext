@@ -1,6 +1,7 @@
 'use server';
 
 import { api, getSearchParamsUrl } from '@/lib/apiService';
+import { revalidatePath } from 'next/cache';
 
 const FACADE_URL = '/MasterMenuPageMappingFacade';
 
@@ -78,24 +79,41 @@ export async function getOnLoadData(searchParams: any) {
     }
 }
 
-export async function deleteMasterMenuPageMapping(id: number) {
+export async function deleteMasterMenuPageMapping(id: number): Promise<{ success: boolean; message: string }> {
+    if (!Number.isSafeInteger(id) || id <= 0) {
+        return { success: false, message: 'A valid mapping record ID is required.' };
+    }
+
     try {
-        const response = await api.post('sadmin', `${FACADE_URL}/delete_master_menu/${id}`, {});
-        if (response?.returnval === true) {
-            return {
-                success: true,
-                message: 'Deleted Successfully'
-            };
-        } else {
+        const response = await api.delete<any>('sadmin', `${FACADE_URL}/delete_master_menu/${id}`);
+
+        const returnValue = response.returnval ?? response.data?.returnval;
+        const normalizedReturnValue = typeof returnValue === 'string' ? returnValue.trim().toLowerCase() : returnValue;
+        const hasReturnValue = returnValue !== undefined && returnValue !== null;
+        const returnValueConfirmsDelete =
+            normalizedReturnValue === true ||
+            normalizedReturnValue === 'true' ||
+            normalizedReturnValue === 1 ||
+            normalizedReturnValue === '1' ||
+            normalizedReturnValue === 'delete' ||
+            normalizedReturnValue === 'deleted' ||
+            normalizedReturnValue === 'deleted successfully';
+        const deleteSucceeded = hasReturnValue ? returnValueConfirmsDelete : response.success === true;
+
+        if (!deleteSucceeded) {
             return {
                 success: false,
-                message: 'Record Already Mapped'
+                message: response.message || (returnValue ? String(returnValue) : 'The record could not be deleted.')
             };
         }
+
+        revalidatePath('/SuperAdmin/super-admin-module/general-setting/master-menu-page-mapping');
+        return { success: true, message: response.message || 'Deleted successfully.' };
     } catch (error) {
+        console.error('Failed to delete master menu page mapping:', error);
         return {
             success: false,
-            message: 'Failed to delete data'
+            message: error instanceof Error ? error.message : 'Failed to delete the record.'
         };
     }
 }

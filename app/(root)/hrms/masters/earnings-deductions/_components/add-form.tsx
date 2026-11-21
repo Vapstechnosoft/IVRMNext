@@ -137,7 +137,10 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
         trigger,
         formState: { errors, isSubmitting }
     } = useForm<MasterEarningsDeductionsInput>({
-        mode: 'onChange'
+        mode: 'onChange',
+        defaultValues: {
+            HRMED_EDTypeFlag: ''
+        }
     });
     const calculationType = useWatch({
         control,
@@ -209,8 +212,8 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                 HRMED_Id: 0,
                 hrmeD_Name: data.HRMED_Name?.trim() || '',
                 HRMED_Name: data.HRMED_Name?.trim() || '',
-                hrmeD_EDTypeFlag: data.HRMED_EDTypeFlag || '',
-                HRMED_EDTypeFlag: data.HRMED_EDTypeFlag || '',
+                hrmeD_EDTypeFlag: data.HRMED_EDTypeFlag?.trim() || '',
+                HRMED_EDTypeFlag: data.HRMED_EDTypeFlag?.trim() || '',
                 hrmeD_EarnDedFlag: data.HRMED_EarnDedFlag,
                 HRMED_EarnDedFlag: data.HRMED_EarnDedFlag,
                 hrmeD_AmountPercentFlag: data.HRMED_AmountPercentFlag,
@@ -284,9 +287,12 @@ export default function AddEarningsDeductionsForm({ onSuccess, className = '' }:
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value || undefined}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder='Select Type' />
+                                        <SelectValue placeholder='Select' />
                                     </SelectTrigger>
                                     <SelectContent>
+                                        <SelectItem value=' '>
+                                                --select--
+                                        </SelectItem>
                                         {isLoadingEarningsDeductionsTypes ? (
                                             <SelectItem value='loading' disabled>
                                                 Loading...

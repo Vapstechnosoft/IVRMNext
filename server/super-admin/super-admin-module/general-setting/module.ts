@@ -46,9 +46,11 @@ export async function saveMasterModule(data: any) {
 
 export async function getMasterModules(searchParams: any) {
     try {
+        const searchQuery = String(searchParams?.search_query ?? '').trim();
         const params = {
             ...searchParams,
-            search_column: searchParams.search_column || searchParams.search_columns || (searchParams.search_query ? 'ivrmM_ModuleName' : '')
+            search_query: searchQuery,
+            search_column: searchParams.search_column || searchParams.search_columns || (searchQuery ? 'ivrmM_ModuleName' : '')
         };
         const query = getSearchParamsUrl(params);
         const url = `/MastersModuleFacade/get_master_module_onload_grid?${query}`;
@@ -58,8 +60,8 @@ export async function getMasterModules(searchParams: any) {
         if (response.success && response.data?.masterModulesname) {
             let dataList = response.data.masterModulesname as IMasterModule[];
 
-            if (searchParams.search_query) {
-                const q = String(searchParams.search_query).toLowerCase().trim();
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
                 const filtered = dataList.filter(
                     (item) =>
                         (item.ivrmM_ModuleName && item.ivrmM_ModuleName.toLowerCase().includes(q)) ||
@@ -74,7 +76,7 @@ export async function getMasterModules(searchParams: any) {
                 success: true,
                 data: dataList,
                 message: response.message,
-                total: searchParams.search_query ? dataList.length : (response.data.total ?? response.total ?? dataList.length),
+                total: searchQuery ? dataList.length : (response.data.total ?? response.total ?? dataList.length),
                 page: response.data.page ?? response.page,
                 page_size: response.data.page_size ?? response.page_Size
             };
