@@ -409,12 +409,13 @@ export const useAdmissionRegister = (ASMAY_Id: number, AttendanceType: number, p
             enabled: !!ASMAY_Id && !!AttendanceType && !!payload
         }),
         refetchAll: () => {
-            return queryClient.invalidateQueries({
+             queryClient.invalidateQueries({
                 queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER]
             });
         }
     };
 };
+
 export const ClasswiseStudentDetails = (
     asmaY_Id: number,
     studentScope: number,
