@@ -18,6 +18,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function SalaryAdvancePage(props: { searchParams: SearchParams }) {
     const searchParams = use(props.searchParams);
     const { data: response, isLoading, error } = useSalaryAdvance(searchParams);
+    console.log('Salary Advance Page - Response:', response);
     
     return (
         <FormProvider<SalaryAdvanceGridItem>>

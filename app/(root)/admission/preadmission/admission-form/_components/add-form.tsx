@@ -722,10 +722,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             const trimmedRegNo = regNo.trim();
             const currentAmsTId = Number(getValues('amsT_Id' as any)) || savedAmsTId || 0;
 
-            const response = await getAllAdmissionLists({
-                search_query: trimmedRegNo,
-                search_columns: 'registrationNo'
-            });
+            const response = await getAllAdmissionLists(0);
 
             interface AdmissionData {
                 registrationNo?: string;
@@ -773,10 +770,7 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
             const trimmedAdmissionNo = admissionNo.trim();
             const currentAmsTId = Number(getValues('amsT_Id' as any)) || savedAmsTId || 0;
 
-            const response = await getAllAdmissionLists({
-                search_query: trimmedAdmissionNo,
-                search_columns: 'admissionNo'
-            });
+            const response = await getAllAdmissionLists(0);
 
             interface AdmissionData {
                 admissionNo?: string;
@@ -1181,10 +1175,38 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         } catch (e) {
             console.error('nextStep logging failed', e);
         }
-        // Pre-validate student photo for Step 1 so user sees immediate warning
+        // Step 1: enforce the exact mobile-number length before any schema
+        // validation or API call. react-hook-form's schema validation can clear
+        // a manual setError(), so this check must be performed directly here.
         if (currentStep === 1) {
+            const mobileValue = String(
+                getValues('amsT_MobileNo') ?? phoneValues.amsT_MobileNo ?? ''
+            );
+            const mobileInfo = phoneExpectedInfo.amsT_MobileNo;
+            const dialCode = String(mobileInfo?.dial ?? '91').replace(/\\D/g, '');
+            const expectedLength = mobileInfo?.expected ?? 10;
+
+            let mobileDigits = mobileValue.replace(/\\D/g, '');
+            if (dialCode && mobileDigits.startsWith(dialCode)) {
+                mobileDigits = mobileDigits.slice(dialCode.length);
+            }
+
+            if (mobileDigits.length !== expectedLength) {
+                const countryName = mobileInfo?.name ?? 'India';
+                const message = `Mobile number must be exactly ${expectedLength} digits for ${countryName}`;
+
+                setError('amsT_MobileNo', {
+                    type: 'manual',
+                    message
+                });
+                toast.error(message);
+                setIsSavingStep(false);
+                return;
+            }
+
             if (!studentPhoto?.amsT_Photoname) {
                 toast.error('Please upload student photo');
+                setIsSavingStep(false);
                 return;
             }
         }

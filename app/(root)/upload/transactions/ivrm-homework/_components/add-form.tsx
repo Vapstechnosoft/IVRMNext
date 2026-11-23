@@ -43,6 +43,7 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [showUrlSection, setShowUrlSection] = useState(false);
     const [hrmeId, setHrmeId] = useState<number>(0);
+    const [dateOpen, setDateOpen] = useState(false);
     const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
     const methods = useForm<IHomeWorkForm>({
@@ -353,7 +354,7 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                             <Label>
                                 H.W Date <span className='text-red-500'>*</span>
                             </Label>
-                            <Popover>
+                            <Popover open={dateOpen} onOpenChange={setDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant='outline'
@@ -366,7 +367,10 @@ export default function AddHomeWorkForm({ onSuccess }: AddHomeWorkFormProps) {
                                     <Calendar
                                         mode='single'
                                         selected={field.value}
-                                        onSelect={field.onChange}
+                                        onSelect={(date) => {
+                            field.onChange(date);
+                            setDateOpen(false);
+                        }}
                                         initialFocus
                                         disabled={(date) => {
                                             const today = new Date();

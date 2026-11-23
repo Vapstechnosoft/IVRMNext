@@ -1,8 +1,7 @@
 'use client';
 
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
-import { getSubjectWiseDetails } from '@/server/timetable/reports/subjectwisett';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import SubjectWiseForm from './_components/subjectwise-form';
 import SubjectWiseReportGrid from './_components/subjectwise-report-grid';
@@ -14,25 +13,25 @@ export default function SubjectWiseReportPage() {
     const [isReportVisible, setIsReportVisible] = useState(false);
     const printRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        const fetchDetails = async () => {
-            try {
-                const data = await getSubjectWiseDetails({});
-                if (data) {
-                    setInitialData({
-                        acaYear: data.year,
-                        classDrp: data.clsdrp,
-                        subjectDrp: data.subdrp
-                    });
-                } else {
-                    toast.error('No details received from server.');
-                }
-            } catch (error: any) {
-                toast.error(error.message || 'Failed to fetch initial details.');
-            }
-        };
-        fetchDetails();
-    }, []);
+    // useEffect(() => {
+    //     const fetchDetails = async () => {
+    //         try {
+    //             const data = await getSubjectWiseDetails({});
+    //             if (data) {
+    //                 setInitialData({
+    //                     acaYear: data.year,
+    //                     classDrp: data.clsdrp,
+    //                     subjectDrp: data.subdrp
+    //                 });
+    //             } else {
+    //                 toast.error('No details received from server.');
+    //             }
+    //         } catch (error: any) {
+    //             toast.error(error.message || 'Failed to fetch initial details.');
+    //         }
+    //     };
+    //     fetchDetails();
+    // }, []);
 
     const handleReportGenerated = (response: any, payload: any) => {
         const data = response.data || response;

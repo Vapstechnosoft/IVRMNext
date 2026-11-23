@@ -36,6 +36,19 @@ export interface SalaryAdvanceEmployeeDropdownItem {
     employeeName: string;
 }
 
+export interface SalaryAdvanceModeOfPaymentDropdownItem {
+    ivrmmoD_Id: number;
+    ivrmmoD_ModeOfPayment: string;
+    ivrmmoD_ActiveFlag: boolean;
+    ivrmmoD_Flag: string;
+    ivrmmoD_ModeOfPayment_Code: string;
+}
+
+export interface SalaryAdvanceEmployeeDropdownData {
+    employees: SalaryAdvanceEmployeeDropdownItem[];
+    modeOfPaymentdropdown: SalaryAdvanceModeOfPaymentDropdownItem[];
+}
+
 // Save Request Type
 export interface SalaryAdvanceSaveRequest {
     HRESA_Id: number;

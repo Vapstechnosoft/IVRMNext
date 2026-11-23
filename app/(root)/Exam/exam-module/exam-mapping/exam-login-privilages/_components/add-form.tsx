@@ -458,19 +458,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             return;
         }
 
-        const existingPairs = new Set(details.map((d) => `${d.clas?.asmcL_Id}_${d.secs?.asmS_Id}_${d.yearid}_${d.user_id}_${d.emp_Id}`));
-        const filtered = rowsToAdd.filter(
-            (r) => !existingPairs.has(`${r.clas?.asmcL_Id}_${r.secs?.asmS_Id}_${r.yearid}_${r.user_id}_${r.emp_Id}`)
-        );
-
-        if (filtered.length === 0) {
-            toast.error('Selected Class-Section combination(s) already added');
-            return;
-        }
-
-        setDetails((prev) => [...prev, ...filtered]);
+        setDetails((prev) => [...prev, ...rowsToAdd]);
         reset();
-        toast.info(`${filtered.length} Login Privileges added`);
+        toast.info(`${rowsToAdd.length} Login Privileges added`);
     }
 
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
