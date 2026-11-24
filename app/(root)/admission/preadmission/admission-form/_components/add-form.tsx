@@ -14,7 +14,7 @@ import { MultiSelect } from '@/components/ui/multi-select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { useConcessionDropdown, useMasterDocument, useStudentCategoryByClass } from '@/hooks/admission/preadmission/useMasters';
+import { useConcessionDropdown, useStudentCategoryByClass } from '@/hooks/admission/preadmission/useMasters';
 
 import { useAdmissionFormDetails, useGetCasteByCasteCategory, useOnChangeStream } from '@/hooks/admission/admissionForm';
 import { useDistrictDropdown } from '@/hooks/admission/preadmission/useTransactions';
@@ -1179,14 +1179,12 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
         // validation or API call. react-hook-form's schema validation can clear
         // a manual setError(), so this check must be performed directly here.
         if (currentStep === 1) {
-            const mobileValue = String(
-                getValues('amsT_MobileNo') ?? phoneValues.amsT_MobileNo ?? ''
-            );
+            const mobileValue = String(getValues('amsT_MobileNo') ?? phoneValues.amsT_MobileNo ?? '');
             const mobileInfo = phoneExpectedInfo.amsT_MobileNo;
-            const dialCode = String(mobileInfo?.dial ?? '91').replace(/\\D/g, '');
+            const dialCode = String(mobileInfo?.dial ?? '91').replace(/\D/g, '');
             const expectedLength = mobileInfo?.expected ?? 10;
 
-            let mobileDigits = mobileValue.replace(/\\D/g, '');
+            let mobileDigits = mobileValue.replace(/\D/g, '');
             if (dialCode && mobileDigits.startsWith(dialCode)) {
                 mobileDigits = mobileDigits.slice(dialCode.length);
             }
@@ -1604,8 +1602,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
                     }
                 }
 
-
-
                 try {
                     const formData = getValues();
                     const res = await saveFirstTab({
@@ -1678,7 +1674,6 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
 
             // If validation passed for Step 2, persist Step 2 to server (ensure schema validated)
             if (isValid && Number(currentStep) === 2) {
-
                 try {
                     const values = getValues();
 
@@ -2144,18 +2139,23 @@ export default function AddStudentAdmissionForm({ onSuccess, className = '' }: A
     const getExpectedPhoneLength = (countryData: any): number | undefined => {
         if (!countryData) return undefined;
         const format = countryData?.format;
+        const dialCode = String(countryData?.dialCode ?? '').replace(/\D/g, '');
+        const dialCodeLength = dialCode.length;
+
         if (format && typeof format === 'string') {
             const placeholders = (format.match(/[0-9xX\.\#9]/g) || []).length;
-            if (placeholders > 0) return placeholders;
+            if (placeholders > 0) {
+                return placeholders > dialCodeLength ? placeholders - dialCodeLength : placeholders;
+            }
         }
-        const dial = String(countryData?.dialCode ?? '').replace(/\D/g, '');
+
         const fallback: Record<string, number> = {
             '91': 10,
             '1': 10,
             '44': 10,
             '61': 9
         };
-        return fallback[dial] ?? undefined;
+        return fallback[dialCode] ?? undefined;
     };
     const handlePhoneChange = (phone: string, countryData: any, fieldName: string) => {
         if (!phone || phone === countryData?.dialCode) {
