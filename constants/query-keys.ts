@@ -136,6 +136,7 @@ export const FEES_QUERY_KEYS = {
     FEE_CHALLAN_REPORT: 'fee_challan_report',
     FEE_HEADS: 'fee_head',
     FEE_MODEOFPAYMENT: 'fee_modeofpayment',
+    FEE_BANK_DETAILS: 'fee_bank_details',
     MASTER_CLASS_CATEGORY: 'master_class_category',
     ACADEMIC_DROPDOWN: 'academic_dropdown',
     FEE_PAYMENTGATEWAY_DETAILS: 'paymentGatewayDetails',
@@ -631,7 +632,8 @@ export const STAFF_PORTAL_QUERY_KEYS = {
     FEE_RAZORPAY_PAYMENT: 'fee_razorpay_payment',
     FEE_PAYMENT_CHARGES: 'fee_payment_charges',
     FEE_ONLINE_PAYMENT_STUDENT_INFO: 'fee_online_student_info',
-    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list'
+    FEE_ONLINE_PAYMENT_GROUP_LIST: 'fee_online_payment_group_list',
+    FEE_STUDENT_VIEW: 'fee_student_view'
 };
 
 export const COE_QUERY_KEYS = {

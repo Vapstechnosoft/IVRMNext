@@ -14,6 +14,7 @@ export default function ConsolidatedReportPage() {
     const [fullReportResponse, setFullReportResponse] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const [reportType, setReportType] = useState<string>('');
+    const [selectedYearId, setSelectedYearId] = useState<string>('');
     const componentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -54,6 +55,31 @@ export default function ConsolidatedReportPage() {
                 .no-print {
                     display: none !important;
                 }
+                .print-header {
+                    display: block !important;
+                    visibility: visible !important;
+                    text-align: center !important;
+                    margin-bottom: 12px !important;
+                }
+                .print-logo-container,
+                .baldwin {
+                    display: flex !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                    text-align: center !important;
+                    margin: 0 auto 10px auto !important;
+                    width: 100% !important;
+                }
+                .print-logo-container img,
+                .baldwin img {
+                    max-height: 80px !important;
+                    max-width: 80% !important;
+                    display: block !important;
+                    margin: 0 auto !important;
+                    object-fit: contain !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
                 .overflow-x-auto {
                     overflow: visible !important;
                 }
@@ -93,11 +119,13 @@ export default function ConsolidatedReportPage() {
         if (payload.CLEAR) {
             setReportData([]);
             setFullReportResponse(null);
+            setSelectedYearId('');
             return;
         }
 
         setLoading(true);
         setReportType(payload.TYPE);
+        setSelectedYearId(payload.ASMAY_Id ? String(payload.ASMAY_Id) : '');
 
         try {
             const response: any = await getConsolidatedReport(payload);
@@ -127,6 +155,11 @@ export default function ConsolidatedReportPage() {
             setLoading(false);
         }
     };
+
+    const academicList = initialData?.acayear || initialData?.academiclist || [];
+    const selectedYearObj = academicList.find((y: any) => String(y.asmaY_Id || y.ASMAY_Id) === String(selectedYearId));
+    const academicYearName = selectedYearObj?.asmaY_Year || selectedYearObj?.ASMAY_Year || '';
+
     return (
         <div className='container mx-auto space-y-6 p-4'>
             <CollapsibleSection title='Consolidated Report' defaultOpen={true}>
@@ -149,6 +182,7 @@ export default function ConsolidatedReportPage() {
                             onPrint={handlePrint}
                             reportType={reportType}
                             initialData={initialData}
+                            academicYearName={academicYearName}
                         />
                     </div>
                 </CollapsibleSection>

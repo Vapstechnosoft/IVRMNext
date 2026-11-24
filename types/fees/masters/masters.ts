@@ -839,3 +839,15 @@ export interface FeeInstallmentNameList {
     ftI_Id: number;
     ftI_Name: string;
 }
+
+export interface IFeeBankDetailsList {
+    fmbanK_Id: number;
+    mI_Id?: number;
+    fmbanK_BankName: string;
+    fmbanK_BankDescription: string;
+    fmbanK_ActiveFlg: boolean;
+    fmbanK_CreatedDate?: string;
+    fmbanK_UpdatedDate?: string;
+    fmbanK_CreatedBy?: number;
+    fmbanK_UpdatedBy?: number;
+}

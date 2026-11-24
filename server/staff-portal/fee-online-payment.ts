@@ -22,6 +22,8 @@ export interface StudentInfo {
     amst_mobile: number;
     asmaY_Id: number;
     amaY_RollNo: string;
+    amsT_PerCity?: string;
+    amsT_Address?: string;
     mI_Id?: number;
     MI_Id?: number;
 }
@@ -370,5 +372,18 @@ export async function getPaymentCharges(): Promise<{
             razorpay: {},
             paytm: {}
         };
+    }
+}
+
+// Added the student view details by Durga
+
+export async function getStudentViewDetails() {
+    try {
+        const url = '/OnlinePayment/viewStudentAllDetails';
+        const response = await api.get<any>('portal', url);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching student view details:', error);
+        throw new Error('Failed to fetch student view details');
     }
 }

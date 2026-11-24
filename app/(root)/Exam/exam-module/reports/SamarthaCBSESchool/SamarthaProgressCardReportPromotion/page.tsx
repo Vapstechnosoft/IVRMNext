@@ -6,6 +6,14 @@ import ReportList from './_components/report-list';
 
 export default function SamarthaProgressCardReportPromotionPage() {
     const [reportData, setReportData] = useState<any>(null);
+    const [selectedYear, setSelectedYear] = useState<string>('');
+
+    const handleReportSuccess = (data: any, year?: string) => {
+        setReportData(data);
+        if (year) {
+            setSelectedYear(year);
+        }
+    };
 
     return (
         <div className='flex flex-col gap-4 p-4'>
@@ -14,11 +22,11 @@ export default function SamarthaProgressCardReportPromotionPage() {
                 <p className='text-muted-foreground'>Generate and view student promotion progress cards.</p>
             </div>
 
-            <ReportForm onSuccess={(data) => setReportData(data)} />
+            <ReportForm onSuccess={handleReportSuccess} />
 
             {reportData && (
                 <div className='mt-6'>
-                    <ReportList data={reportData} />
+                    <ReportList data={reportData} year={selectedYear} />
                 </div>
             )}
         </div>

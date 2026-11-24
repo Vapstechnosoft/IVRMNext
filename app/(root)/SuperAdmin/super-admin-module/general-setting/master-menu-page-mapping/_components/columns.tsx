@@ -17,14 +17,19 @@ export const columns: ColumnDef<IMasterMenuPageMappingDTO>[] = [
         },
         enableSorting: false
     },
+     {
+        accessorKey: 'modulename',
+        header: ({ column }) => <ColumnHeader column={column} title='Module Name' />
+    },
+    {
+        accessorKey: 'menuname',
+        header: ({ column }) => <ColumnHeader column={column} title='Main Menu Name' />
+    },
     {
         accessorKey: 'submenuname',
         header: ({ column }) => <ColumnHeader column={column} title='Sub Menu Name' />
     },
-    {
-        accessorKey: 'modulename',
-        header: ({ column }) => <ColumnHeader column={column} title='Module Name' />
-    },
+   
     {
         accessorKey: 'pagename',
         header: ({ column }) => <ColumnHeader column={column} title='Page Name' />

@@ -7,22 +7,22 @@ import { format } from 'date-fns';
 const formatDate = (date?: Date | null) => (date ? format(date, 'yyyy-MM-dd') : undefined);
 export async function getStudentTcReport(data: any, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, '');
-    
+
     // Strip search_query from URL to prevent backend from filtering/crashing
     const cleanUrlParams = new URLSearchParams(urlParams);
     cleanUrlParams.delete('search_query');
     cleanUrlParams.delete('search_column');
-    
+
     const url = `/StudentTcReport/GetAdmissionTcReport?${cleanUrlParams.toString()}`;
-    
+
     // Strip pagination and search from body payload
     const payload = {
         ...data,
-        ...searchParams,
+        ...searchParams
     };
     delete payload.search_query;
     delete payload.search_column;
-    
+
     return await api.post<any>('admission', url, payload);
 }
 export async function getMonthEndReport(data: any) {
@@ -182,7 +182,8 @@ export async function getAttendanceAbsentInitialDetails() {
 }
 export async function getAttendanceReport(ASMAY_Id: number, from_date: string, frequency: string, searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
-    const url = `/OverallAttendance/GetOverallDailyAttendance?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${frequency}`;
+    const flag = frequency === 'twice' ? '1' : frequency === 'once' ? '0' : frequency || '0';
+    const url = `/OverallAttendance/GetOverallDailyAttendance?${urlParams}&ASMAY_Id=${ASMAY_Id}&FromDate=${from_date}&Flag=${flag}`;
     return await api.post<any[]>('admission', url);
 }
 export async function getStudentAttendanceReport(

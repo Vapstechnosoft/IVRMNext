@@ -8,7 +8,7 @@ import { tableSearchVariables } from '@/lib/data-table.config';
 import { getMasterModules } from '@/server/super-admin/super-admin-module/general-setting/module';
 import type { IMasterModule } from '@/types/super-admin/super-admin-module/general-setting/module';
 import { Plus, X } from 'lucide-react';
-import { parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import React, { useEffect, useState } from 'react';
 import AddMasterModuleForm from './_components/add-form';
 import { columns } from './_components/columns';
@@ -31,31 +31,56 @@ function MasterModulePageContent() {
     // Pagination State synced with URL
     const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
     const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withOptions({ shallow: false }).withDefault(''));
+    const [sortDirection] = useQueryState(
+        tableSearchVariables.sort_direction,
+        parseAsString.withOptions({ shallow: false }).withDefault('')
+    );
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
     const [totalItems, setTotalItems] = useState(0);
 
-    const fetchData = React.useCallback(async () => {
-        setIsLoading(true);
-        const searchParams = {
-            page: page,
-            page_size: pageSize
-        };
+    // const fetchData = React.useCallback(async () => {
+    //     setIsLoading(true);
+    //     const searchParams = {
+    //         page: page,
+    //         page_size: pageSize,
+    //         sort_column: sortBy,
+    //         sort_direction: sortDirection,
+    //         search_query: searchQuery
+    //     };
 
-        try {
-            const res = await getMasterModules(searchParams);
+    //     try {
+    //         const res = await getMasterModules(searchParams);
+    //         if (res.success) {
+    //             setData(res.data || []);
+    //             setTotalItems(res.total || 0);
+    //         }
+    //     } catch (error) {
+    //         console.error('Failed to fetch master modules', error);
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // }, [page, pageSize]);
+    const fetchData = () => {
+        setIsLoading(true);
+        getMasterModules({
+            page,
+            page_size: pageSize,
+            sort_column: sortBy,
+            sort_direction: sortDirection,
+            search_query: searchQuery
+        }).then((res) => {
             if (res.success) {
                 setData(res.data || []);
                 setTotalItems(res.total || 0);
             }
-        } catch (error) {
-            console.error('Failed to fetch master modules', error);
-        } finally {
             setIsLoading(false);
-        }
-    }, [page, pageSize]);
+        });
+    };
 
     useEffect(() => {
         fetchData();
-    }, [fetchData]);
+    }, [page, pageSize, sortBy, sortDirection, searchQuery]);
 
     // Handlers for pagination
 
@@ -80,6 +105,7 @@ function MasterModulePageContent() {
                             columns={columns}
                             isLoading={isLoading}
                             isPaginationRequired={true}
+                            manualFiltering={true}
                             totalItems={totalItems}
                         />
                     </div>

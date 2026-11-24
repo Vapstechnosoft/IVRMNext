@@ -140,7 +140,7 @@ export default function AddMasterSubjectForm({ onSuccess, className = '' }: AddM
                                                         Error loading Parent Subjects
                                                     </SelectItem>
                                                 ) : (
-                                                    category?.data?.map((item) => (
+                                                    category?.data?.map((item:any) => (
                                                         <SelectItem key={item.ismS_Id} value={item.ismS_Id.toString()}>
                                                             {item.ismS_SubjectName}
                                                         </SelectItem>

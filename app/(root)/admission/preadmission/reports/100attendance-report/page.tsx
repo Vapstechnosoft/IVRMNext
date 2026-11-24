@@ -79,6 +79,7 @@ interface SectionData {
 interface ReportData {
     studentAttendanceList?: any[];
     AMC_logo?: { amC_FilePath: string }[];
+    [key: string]: any;
 }
 
 interface ApiResponse<T> {
@@ -155,6 +156,9 @@ export default function AttendanceReport100Page() {
     } = useAttendance100Report(filterPayload, showGrid) as { data: ApiResponse<ReportData> | undefined; isLoading: boolean; refetch: any };
 
     const reportData = reportResponse?.data;
+    const studentList: any[] = Array.isArray(reportData)
+        ? reportData
+        : (reportData?.studentAttendanceList || []);
 
     const printRef = useRef<HTMLDivElement>(null);
     const handlePrint = useReactToPrint({
@@ -184,7 +188,7 @@ export default function AttendanceReport100Page() {
     };
 
     const handleExportExcel = () => {
-        const dataToExport = selectedRows.length > 0 ? selectedRows : reportData?.studentAttendanceList || [];
+        const dataToExport = selectedRows.length > 0 ? selectedRows : studentList;
         if (dataToExport.length === 0) {
             toast.error('No records to export');
             return;
@@ -210,7 +214,7 @@ export default function AttendanceReport100Page() {
     };
 
     const handlePrintClick = () => {
-        if (selectedRows.length === 0 && (!reportData?.studentAttendanceList || reportData.studentAttendanceList.length === 0)) {
+        if (selectedRows.length === 0 && studentList.length === 0) {
             toast.error('No records to print');
             return;
         }
@@ -422,33 +426,31 @@ export default function AttendanceReport100Page() {
                             </div>
                         </div>
 
-                        <div className='flex flex-wrap gap-4 border-t pt-6'>
-                            <Button type='submit' isLoading={isReportLoading} disabled={isInitialLoading}>
-                                <Search className='mr-2 h-4 w-4' />
+                        <div className='flex flex-wrap items-center justify-center gap-2 border-t pt-6'>
+                            <Button type='submit' size='sm' className='w-auto' isLoading={isReportLoading} disabled={isInitialLoading}>
+                                <Search className='mr-1.5 h-3.5 w-3.5' />
                                 Report
                             </Button>
                             <Button
                                 type='button'
+                                size='sm'
                                 variant='outline'
+                                className='w-auto'
                                 onClick={() => {
                                     reset();
                                     setShowGrid(false);
                                 }}>
-                                <X className='mr-2 h-4 w-4' />
+                                <X className='mr-1.5 h-3.5 w-3.5' />
                                 Cancel
                             </Button>
-                            <Button type='button' variant='warning' onClick={handleSendAlert} isLoading={isAlertSending}>
-                                <BellRing className='mr-2 h-4 w-4' />
-                                Shortage Alert
-                            </Button>
-                            {(reportData?.studentAttendanceList || []).length > 0 && (
+                            {studentList.length > 0 && (
                                 <>
-                                    <Button type='button' variant='success' onClick={handleExportExcel}>
-                                        <FileSpreadsheet className='mr-2 h-4 w-4' />
+                                    <Button type='button' size='sm' variant='success' className='w-auto' onClick={handleExportExcel}>
+                                        <FileSpreadsheet className='mr-1.5 h-3.5 w-3.5' />
                                         Excel
                                     </Button>
-                                    <Button type='button' variant='gradient' onClick={handlePrintClick}>
-                                        <Printer className='mr-2 h-4 w-4' />
+                                    <Button type='button' size='sm' variant='gradient' className='w-auto' onClick={handlePrintClick}>
+                                        <Printer className='mr-1.5 h-3.5 w-3.5' />
                                         Print
                                     </Button>
                                 </>
@@ -462,9 +464,9 @@ export default function AttendanceReport100Page() {
                 <CollapsibleSection title='Attendance Report Details' defaultOpen={true}>
                     <GenericDataTable
                         columns={attendance100Columns}
-                        data={reportData?.studentAttendanceList || []}
+                        data={studentList}
                         isLoading={isReportLoading}
-                        totalItems={reportData?.studentAttendanceList?.length || 0}
+                        totalItems={studentList.length}
                         onRowSelectionChange={(rows) => setSelectedRows(rows)}
                     />
                 </CollapsibleSection>
@@ -475,7 +477,7 @@ export default function AttendanceReport100Page() {
                     ref={printRef}
                     data={{
                         ...(reportData as any),
-                        studentAttendanceList: selectedRows.length > 0 ? selectedRows : reportData?.studentAttendanceList || []
+                        studentAttendanceList: selectedRows.length > 0 ? selectedRows : studentList
                     }}
                     yearName={selectedYearName}
                     userName={typeof window !== 'undefined' ? localStorage.getItem('username') || '' : ''}

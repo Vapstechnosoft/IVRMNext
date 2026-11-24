@@ -76,7 +76,10 @@ export const columns: ColumnDef<IMasterPage>[] = [
     {
         id: 'serialNumber',
         header: ({ column }) => <ColumnHeader column={column} title='SL.NO' />,
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const { pageIndex, pageSize } = table.getState().pagination;
+            return <div className='text-center'>{pageIndex * pageSize + row.index + 1}</div>;
+        },
         enableSorting: false
     },
     {

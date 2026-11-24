@@ -81,6 +81,7 @@ import type { z } from 'zod';
 import {
     employeeRegisterSteps,
     fileToBase64,
+    formatDateOnly,
     mapFormDataToApiFormat,
     mapFormDataToApiFormatWithoutAddress,
     mapFormDataToPascalCaseApiFormat,
@@ -708,6 +709,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const savePersonalDetails = saveEmployeeMutation;
     const _saveBankDetails = saveEmployeeMutation;
     const isSavingBank = isPending;
+    const payrollSubmitRef = useRef<(() => Promise<boolean>) | null>(null);
+    const [isSubmittingPayroll, setIsSubmittingPayroll] = useState(false);
+    const registerPayrollSubmit = useCallback((submit: (() => Promise<boolean>) | null) => {
+        payrollSubmitRef.current = submit;
+    }, []);
 
     const isSubmittingAny =
         isSubmitting ||
@@ -717,7 +723,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         isSavingDocument ||
         isSavingMedical ||
         isSavingOther ||
-        isSavingSalaryDetails;
+        isSavingSalaryDetails ||
+        isSubmittingPayroll;
 
     // Add form - no edit mode (removed isEditMode variable - not needed)
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -853,7 +860,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     hrmE_MotherName: String(data.motherName || ''),
                     hrmE_Gender: String(data.gender || ''),
                     hrmE_DOB: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : null,
-                    hrmE_DOJ: data.dateOfJoining ? new Date(data.dateOfJoining).toISOString() : null,
+                    hrmE_DOJ: formatDateOnly(data.dateOfJoining),
                     hrmE_Id: savedEmployeeId || 0
                 }
             });
@@ -1873,7 +1880,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
         try {
             if (currentStepId === 8) {
-                // Payroll tab - handled by PayrollTab component
+                const submitPayroll = payrollSubmitRef.current;
+                if (!submitPayroll) {
+                    toast.error('Payroll is still loading. Please try again.');
+                    return;
+                }
+
+                setIsSubmittingPayroll(true);
+                const salarySaved = await submitPayroll();
+                if (!salarySaved) return;
+
                 toast.success('Employee registration completed!');
                 if (onSuccess) {
                     onSuccess();
@@ -1881,6 +1897,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
+        } finally {
+            setIsSubmittingPayroll(false);
         }
     };
 
@@ -5595,6 +5613,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                 employeeId={savedEmployeeId}
                                                 employeeCode={watch('employeeCode')}
                                                 MI_Id={HRMS_MI_ID || 30}
+                                                onSaveReady={registerPayrollSubmit}
+                                                hideSaveButton
                                                 earningList={(onloadData as any)?.data?.earningList || (onloadData as any)?.data?.earninglist || (onloadData as any)?.earningList || (onloadData as any)?.earninglist}
                                                 detectionList={(onloadData as any)?.data?.detectionList || (onloadData as any)?.data?.deductionList || (onloadData as any)?.data?.detectionlist || (onloadData as any)?.data?.deductionlist || (onloadData as any)?.detectionList || (onloadData as any)?.deductionList}
                                                 arrearList={(onloadData as any)?.data?.arrearList || (onloadData as any)?.data?.arrearlist || (onloadData as any)?.arrearList || (onloadData as any)?.arrearlist}
@@ -5610,8 +5630,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             </div>
 
                             {/* Navigation Footer */}
-                            <div className='flex items-center justify-between border-t bg-gray-50 px-6 py-4 md:px-8'>
-                                <Button
+                            <div className='flex items-center justify-end border-t bg-gray-50 px-6 py-4 md:px-8'>
+                                {/* <Button
                                     type='button'
                                     variant='outline'
                                     onClick={() => {
@@ -5621,7 +5641,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                     disabled={isSubmittingAny}
                                     className='w-fit transition-all duration-200 hover:scale-105'>
                                     Reset Form
-                                </Button>
+                                </Button> */}
 
                                 <div className='flex gap-3'>
                                     {currentStep > 1 && (

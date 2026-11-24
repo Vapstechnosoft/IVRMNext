@@ -14,7 +14,13 @@ import { useSearchParams } from 'next/navigation';
 import Script from 'next/script';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { generateHashSequence, getAmountDetails, notifyPaymentResponseEasybuzz, verifyRazorpayPayment } from '../actions';
+import {
+    generateHashSequence,
+    getAmountDetails,
+    notifyPaymentResponseEasybuzz,
+    notifyPaymentResponseEdviron,
+    verifyRazorpayPayment
+} from '../actions';
 
 declare global {
     interface Window {
@@ -48,6 +54,7 @@ export default function FeeOnlinePaymentClient() {
     const [gateway, setGateway] = useState<string>('');
     const [isDetailsLoading, setIsDetailsLoading] = useState(false);
     const [isPaymentLoading, setIsPaymentLoading] = useState(false);
+    const [isRazorpayReady, setIsRazorpayReady] = useState(false);
     const [mI_Id, setMI_Id] = useState<number>(0);
     const [copiedTxn, setCopiedTxn] = useState(false);
     const hasProcessedPaymentRef = useRef(false);
@@ -94,6 +101,7 @@ export default function FeeOnlinePaymentClient() {
         if (hasProcessedPaymentRef.current) return;
 
         const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+
         const rawStatus = (
             searchParams?.get('status') ||
             urlParams?.get('status') ||
@@ -106,6 +114,19 @@ export default function FeeOnlinePaymentClient() {
             ''
         ).toLowerCase();
 
+        const edvironCollectRequestId =
+            searchParams?.get('EdvironCollectRequestId') ||
+            urlParams?.get('EdvironCollectRequestId') ||
+            searchParams?.get('edvironCollectRequestId') ||
+            urlParams?.get('edvironCollectRequestId') ||
+            searchParams?.get('collect_request_id') ||
+            urlParams?.get('collect_request_id') ||
+            searchParams?.get('collectRequestId') ||
+            urlParams?.get('collectRequestId') ||
+            searchParams?.get('requestId') ||
+            urlParams?.get('requestId') ||
+            '';
+
         const txnid =
             searchParams?.get('txnid') ||
             urlParams?.get('txnid') ||
@@ -117,6 +138,7 @@ export default function FeeOnlinePaymentClient() {
             urlParams?.get('easepayid') ||
             searchParams?.get('payment_id') ||
             urlParams?.get('payment_id') ||
+            edvironCollectRequestId ||
             '';
 
         const receiptno =
@@ -135,6 +157,8 @@ export default function FeeOnlinePaymentClient() {
             urlParams?.get('amount') ||
             searchParams?.get('topayamount') ||
             urlParams?.get('topayamount') ||
+            searchParams?.get('total_amount') ||
+            urlParams?.get('total_amount') ||
             '';
 
         const msg =
@@ -142,6 +166,8 @@ export default function FeeOnlinePaymentClient() {
             urlParams?.get('msg') ||
             searchParams?.get('message') ||
             urlParams?.get('message') ||
+            searchParams?.get('reason') ||
+            urlParams?.get('reason') ||
             searchParams?.get('error_Message') ||
             urlParams?.get('error_Message') ||
             searchParams?.get('error') ||
@@ -158,46 +184,167 @@ export default function FeeOnlinePaymentClient() {
             }
         }
 
-        const isSuccess = ['success', 'successful', 'succeeded', 'ok', 'captured', '1', 'true'].includes(rawStatus);
-        const isCancelled = ['cancel', 'cancelled', 'usercancelled', 'user_cancelled', 'abort', 'aborted', 'canceled'].includes(rawStatus);
+        let storedEdviron: any = null;
+        if (typeof window !== 'undefined') {
+            try {
+                const item = sessionStorage.getItem('edviron_callback_data');
+                if (item) storedEdviron = JSON.parse(item);
+            } catch (e) {
+                console.error('Error reading stored edviron info:', e);
+            }
+        }
+
+        let storedEasebuzz: any = null;
+        if (typeof window !== 'undefined') {
+            try {
+                const item = sessionStorage.getItem('easebuzz_callback_data');
+                if (item) storedEasebuzz = JSON.parse(item);
+            } catch (e) {
+                console.error('Error reading stored easebuzz info:', e);
+            }
+        }
+
+        const gwParam = (searchParams?.get('gateway') || urlParams?.get('gateway') || '').toUpperCase();
+
+        const isEdviron =
+            !!edvironCollectRequestId ||
+            txnid.toLowerCase().includes('edviron') ||
+            gwParam.includes('EDVIRON') ||
+            String(storedInfo?.gateway || gateway || '')
+                .trim()
+                .toUpperCase()
+                .includes('EDVIRON') ||
+            !!storedEdviron;
+
+        const isEasebuzz =
+            txnid.toLowerCase().includes('easebuzz') ||
+            !!searchParams?.get('easepayid') ||
+            !!urlParams?.get('easepayid') ||
+            gwParam.includes('EASEBUZZ') ||
+            String(storedInfo?.gateway || gateway || '')
+                .trim()
+                .toUpperCase()
+                .includes('EASEBUZZ') ||
+            !!storedEasebuzz;
+
+        const isSuccess = ['success', 'successful', 'succeeded', 'ok', 'captured', '1', 'true', 'paid', 'completed'].includes(rawStatus);
+
+        const isCancelled =
+            [
+                'cancel',
+                'cancelled',
+                'canceled',
+                'usercancelled',
+                'user_cancelled',
+                'user-cancelled',
+                'user_cancel',
+                'payment_cancelled',
+                'cancelled_by_user',
+                'abort',
+                'aborted',
+                'dropped-by-user',
+                'dropped_by_user'
+            ].includes(rawStatus) ||
+            (!isSuccess &&
+                (msg.toLowerCase().includes('cancel') || msg.toLowerCase().includes('abort') || msg.toLowerCase().includes('dropped')));
+
         const isFailure = ['fail', 'failed', 'failure', 'declined', 'error', '0', 'false'].includes(rawStatus);
 
-        if (isSuccess || isCancelled || isFailure || (rawStatus && rawStatus !== '')) {
+        const hasGatewayResponse =
+            isSuccess ||
+            isCancelled ||
+            isFailure ||
+            (rawStatus && rawStatus !== '') ||
+            !!edvironCollectRequestId ||
+            !!searchParams?.get('easepayid') ||
+            !!urlParams?.get('easepayid') ||
+            !!storedEdviron ||
+            !!storedEasebuzz;
+
+        if (hasGatewayResponse) {
             hasProcessedPaymentRef.current = true;
-            const finalStatus: 'success' | 'cancelled' | 'failed' = isSuccess ? 'success' : isCancelled ? 'cancelled' : 'failed';
+            const finalStatus: 'success' | 'cancelled' | 'failed' = isSuccess
+                ? 'success'
+                : isCancelled || (isEdviron && !isFailure)
+                  ? 'cancelled'
+                  : 'failed';
 
-            // Retrieve full Easebuzz callback payload from sessionStorage or URL parameters
-            let easebuzzPayload: Record<string, any> = {};
-            if (typeof window !== 'undefined') {
-                try {
-                    const storedEasebuzz = sessionStorage.getItem('easebuzz_callback_data');
-                    if (storedEasebuzz) {
-                        easebuzzPayload = JSON.parse(storedEasebuzz);
-                        sessionStorage.removeItem('easebuzz_callback_data');
-                    }
-                } catch (e) {
-                    console.error('Error parsing easebuzz_callback_data:', e);
+            // Retrieve full Edviron callback payload
+            if (isEdviron) {
+                let edvironPayload: Record<string, any> = storedEdviron || {};
+                if (typeof window !== 'undefined') {
+                    sessionStorage.removeItem('edviron_callback_data');
                 }
+
+                if (Object.keys(edvironPayload).length === 0 && urlParams) {
+                    edvironPayload = Object.fromEntries(urlParams.entries());
+                }
+
+                if (!edvironPayload.status) edvironPayload.status = rawStatus || (finalStatus === 'success' ? 'success' : 'cancelled');
+                if (!edvironPayload.EdvironCollectRequestId && edvironCollectRequestId) {
+                    edvironPayload.EdvironCollectRequestId = edvironCollectRequestId;
+                }
+                if (!edvironPayload.txnid && txnid) edvironPayload.txnid = txnid;
+                const formattedEdvironPayload = {
+                    collect_request_id: String(
+                        edvironPayload.collect_request_id ||
+                            edvironPayload.EdvironCollectRequestId ||
+                            edvironPayload.edvironCollectRequestId ||
+                            edvironCollectRequestId ||
+                            txnid ||
+                            ''
+                    ),
+                    collect_request_url: String(edvironPayload.collect_request_url || ''),
+                    sign: String(edvironPayload.sign || ''),
+                    status: String(edvironPayload.status || rawStatus || (finalStatus === 'success' ? 'success' : 'cancelled')),
+                    amount: String(edvironPayload.amount || rawAmount || storedInfo?.amount || totalAmt || '0'),
+                    mI_Id: Number(
+                        storedInfo?.mI_Id || mI_Id || (studentInfoDetails as any)?.mI_Id || (studentInfoDetails as any)?.MI_Id || 0
+                    ),
+                    additional_data: [
+                        {
+                            uid: String(edvironPayload.reason || msg || (finalStatus === 'cancelled' ? 'dropped-by-user' : '')),
+                            uid1: '',
+                            uid2: '',
+                            uid3: '',
+                            uid4: ''
+                        }
+                    ]
+                };
+
+                // Notify backend for Edviron using student's authenticated session
+                notifyPaymentResponseEdviron(formattedEdvironPayload).then((res) => {
+                    if (res?.data) {
+                        const newReceipt = res.data.fyP_Receipt_No || res.data.receiptno || res.data.fyp_receipt_no || res.data.receipt_no;
+                        if (newReceipt) {
+                            setPaymentModalState((prev) => ({
+                                ...prev,
+                                receiptNo: newReceipt
+                            }));
+                        }
+                    }
+                });
             }
 
-            if (Object.keys(easebuzzPayload).length === 0 && urlParams) {
-                easebuzzPayload = Object.fromEntries(urlParams.entries());
-            }
-
-            if (!easebuzzPayload.status) easebuzzPayload.status = rawStatus;
-            if (!easebuzzPayload.txnid && txnid) easebuzzPayload.txnid = txnid;
-            if (!easebuzzPayload.amount && rawAmount) easebuzzPayload.amount = rawAmount;
-            if (!easebuzzPayload.easepayid && (searchParams?.get('easepayid') || urlParams?.get('easepayid'))) {
-                easebuzzPayload.easepayid = searchParams?.get('easepayid') || urlParams?.get('easepayid');
-            }
-
-            // If transaction is from Easebuzz, notify backend using the student's authenticated session
-            const isEasebuzz =
-                txnid.toLowerCase().includes('easebuzz') ||
-                easebuzzPayload.payment_source?.toLowerCase?.() === 'easebuzz' ||
-                !!easebuzzPayload.easepayid;
-
+            // Retrieve full Easebuzz callback payload
             if (isEasebuzz) {
+                let easebuzzPayload: Record<string, any> = storedEasebuzz || {};
+                if (typeof window !== 'undefined') {
+                    sessionStorage.removeItem('easebuzz_callback_data');
+                }
+
+                if (Object.keys(easebuzzPayload).length === 0 && urlParams) {
+                    easebuzzPayload = Object.fromEntries(urlParams.entries());
+                }
+
+                if (!easebuzzPayload.status) easebuzzPayload.status = rawStatus;
+                if (!easebuzzPayload.txnid && txnid) easebuzzPayload.txnid = txnid;
+                if (!easebuzzPayload.amount && rawAmount) easebuzzPayload.amount = rawAmount;
+                if (!easebuzzPayload.easepayid && (searchParams?.get('easepayid') || urlParams?.get('easepayid'))) {
+                    easebuzzPayload.easepayid = searchParams?.get('easepayid') || urlParams?.get('easepayid');
+                }
+
+                // If transaction is from Easebuzz, notify backend using the student's authenticated session
                 notifyPaymentResponseEasybuzz(easebuzzPayload).then((res) => {
                     if (res?.data) {
                         const newReceipt = res.data.fyP_Receipt_No || res.data.receiptno || res.data.fyp_receipt_no || res.data.receipt_no;
@@ -217,12 +364,20 @@ export default function FeeOnlinePaymentClient() {
                 storedInfo?.studentName || (student ? `${student.amsT_FirstName || ''} ${student.amsT_LastName || ''}`.trim() : '');
             const admNo = storedInfo?.admNo || student?.amsT_AdmNo || student?.amsT_RegistrationNo || '';
             const amount = Number(rawAmount) || storedInfo?.amount || totalAmt || 0;
-            const gw = storedInfo?.gateway || gateway || 'Payment Gateway';
+            const gw = isEdviron ? 'EDVIRON' : isEasebuzz ? 'EASEBUZZ' : storedInfo?.gateway || gateway || 'Payment Gateway';
+
+            const cancellationMessage = isEdviron
+                ? 'You cancelled the Edviron payment. No payment confirmation was received. You can try again.'
+                : 'Payment was cancelled. No money was debited from your account.';
+
+            const successMessage = isEdviron
+                ? 'Your online fee payment via Edviron was completed successfully.'
+                : 'Your fee payment has been successfully processed.';
 
             setPaymentModalState({
                 isOpen: true,
                 status: finalStatus,
-                transactionId: txnid,
+                transactionId: txnid || edvironCollectRequestId,
                 receiptNo: receiptno,
                 amount,
                 date: new Date().toLocaleString('en-IN', {
@@ -239,9 +394,9 @@ export default function FeeOnlinePaymentClient() {
                 message:
                     msg ||
                     (finalStatus === 'success'
-                        ? 'Your fee payment has been successfully processed.'
+                        ? successMessage
                         : finalStatus === 'cancelled'
-                          ? 'Payment was cancelled. No money was debited from your account.'
+                          ? cancellationMessage
                           : 'Payment could not be processed. Please try again.')
             });
 
@@ -391,6 +546,12 @@ export default function FeeOnlinePaymentClient() {
             return;
         }
 
+        const gatewayUpper = String(gateway).trim().toUpperCase();
+        if (gatewayUpper === 'RAZORPAY' && (!isRazorpayReady || typeof window.Razorpay !== 'function')) {
+            toast.error('Razorpay is still loading. Please try again in a moment.');
+            return;
+        }
+
         const selected_list = groupTermList
             .filter((g) => g.grp.checkedgrplst)
             .map((g) => ({
@@ -448,6 +609,9 @@ export default function FeeOnlinePaymentClient() {
             (studentInfoDetails?.studentInfo as any)?.asmcl_id ||
             0;
 
+        const currentOrigin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+        const edvironCallbackUrl = `${currentOrigin}/api/FeeOnlinePayment/EdvironnResponse`;
+
         const payload = {
             MI_Id: miId,
             AMST_Id: amstId,
@@ -458,7 +622,15 @@ export default function FeeOnlinePaymentClient() {
             topayamount: totalAmt,
             selected_list,
             selectedlist_partialpayment: mappedFeeItems,
-            temarray: mappedFeeItems
+            temarray: mappedFeeItems,
+            surl: edvironCallbackUrl,
+            furl: edvironCallbackUrl,
+            return_url: edvironCallbackUrl,
+            returnurl: edvironCallbackUrl,
+            redirect_url: edvironCallbackUrl,
+            redirecturl: edvironCallbackUrl,
+            callback_url: edvironCallbackUrl,
+            callbackurl: edvironCallbackUrl
         };
 
         try {
@@ -476,7 +648,8 @@ export default function FeeOnlinePaymentClient() {
                         amount: totalAmt,
                         studentName,
                         admNo,
-                        gateway: gateway || 'Payment Gateway'
+                        gateway: gateway || 'Payment Gateway',
+                        mI_Id: miId
                     })
                 );
             }
@@ -490,6 +663,43 @@ export default function FeeOnlinePaymentClient() {
 
             const resData = paymentResponse.data;
             const pgData = resData?.paymentGatewayData || resData;
+
+            // Edviron returns a complete signed redirect URL in strdatanew.
+            if (gatewayUpper.includes('EDVIRON')) {
+                const rawRedirectUrl = pgData?.strdatanew || resData?.strdatanew || pgData?.redirect_url || resData?.redirect_url;
+
+                if (typeof rawRedirectUrl !== 'string' || !rawRedirectUrl.trim()) {
+                    toast.error('Edviron payment URL was not received from the API.');
+                    return;
+                }
+
+                try {
+                    // Replace any hardcoded unreachable localhost:57606 with the actual running origin
+                    const currentHost = window.location.host;
+                    const edvironRedirectUrl = rawRedirectUrl
+                        .replace(/https?:\/\/localhost:57606/gi, currentOrigin)
+                        .replace(/https?%3A%2F%2Flocalhost%3A57606/gi, encodeURIComponent(currentOrigin))
+                        .replace(/localhost:57606/gi, currentHost)
+                        .replace(/localhost%3A57606/gi, encodeURIComponent(currentHost));
+
+                    const parsedEdvironUrl = new URL(edvironRedirectUrl);
+
+                    if (
+                        parsedEdvironUrl.protocol !== 'https:' ||
+                        (!parsedEdvironUrl.hostname.includes('edviron') && !parsedEdvironUrl.hostname.endsWith('edviron.in'))
+                    ) {
+                        throw new Error('Invalid Edviron payment URL');
+                    }
+
+                    toast.success('Redirecting to Edviron Payment Gateway...');
+                    window.location.assign(edvironRedirectUrl);
+                    return;
+                } catch (error) {
+                    console.error('Edviron redirect error:', error);
+                    toast.error('Invalid Edviron payment URL received from the API.');
+                    return;
+                }
+            }
 
             // Angular equivalent:
             // var strdata = promise.strdatanew;
@@ -558,8 +768,6 @@ export default function FeeOnlinePaymentClient() {
                 }
             }
 
-            const gatewayUpper = (gateway || '').toUpperCase();
-
             // 2. Specific Easebuzz handling fallback
             if (gatewayUpper === 'EASEBUZZ') {
                 if (pgData?.url) {
@@ -597,16 +805,25 @@ export default function FeeOnlinePaymentClient() {
             }
 
             // 3. Razorpay checkout
-            if (gatewayUpper === 'RAZORPAY' || (resData.merchantkey && resData.trans_id)) {
-                const rzpData = resData;
+            if (gatewayUpper === 'RAZORPAY') {
+                const rzpData = { ...resData, ...pgData };
+                const razorpayKey = rzpData.merchantkey || rzpData.key || rzpData.key_id;
+                const razorpayOrderId = rzpData.trans_id || rzpData.order_id;
+                if (!razorpayKey || !razorpayOrderId) {
+                    toast.error('Razorpay credentials were not received. Please contact your administrator.');
+                    return;
+                }
+
+                const studentAddress = student?.amsT_Address || student?.amsT_PerCity || '';
+                const splitPayInformation = rzpData.splitpayinformation || '';
                 const options = {
-                    key: rzpData.merchantkey,
+                    key: razorpayKey,
                     amount: Number(rzpData.fmA_Amount || totalAmt) * 100,
                     currency: 'INR',
-                    name: 'Edumeeting School',
+                    name: rzpData.institutioname || rzpData.inT_NAME || 'Student Fee Payment',
                     description: 'Fee Payment',
-                    image: '/assets/images/logo.png',
-                    order_id: rzpData.trans_id,
+                    image: rzpData.institulogo || rzpData.institutioN_LOGO || '/assets/images/logo.png',
+                    order_id: razorpayOrderId,
                     handler: async (response: any) => {
                         toast.success(`Payment Successful: ${response.razorpay_payment_id}`);
                         try {
@@ -651,8 +868,22 @@ export default function FeeOnlinePaymentClient() {
                         email: student?.amst_email_id || '',
                         contact: student?.amst_mobile ? String(student.amst_mobile) : ''
                     },
+                    notes: {
+                        notes_1: studentName,
+                        notes_2: student?.amst_mobile ? String(student.amst_mobile) : '',
+                        notes_3: student?.amst_email_id || '',
+                        notes_4: studentAddress,
+                        notes_5: admNo,
+                        notes_6: splitPayInformation,
+                        notes_7: String(rzpData.mI_Id || miId),
+                        notes_8: String(rzpData.asmaY_Id || academicYear || ''),
+                        notes_9: String(rzpData.amst_Id || amstId)
+                    },
                     theme: {
-                        color: '#3399cc'
+                        color: '#F37254'
+                    },
+                    external: {
+                        wallets: ['paytm']
                     },
                     modal: {
                         ondismiss: () => {
@@ -730,7 +961,15 @@ export default function FeeOnlinePaymentClient() {
 
     return (
         <div className='space-y-6'>
-            <Script src='https://checkout.razorpay.com/v1/checkout.js' strategy='lazyOnload' />
+            <Script
+                src='https://checkout.razorpay.com/v1/checkout.js'
+                strategy='afterInteractive'
+                onReady={() => setIsRazorpayReady(true)}
+                onError={() => {
+                    setIsRazorpayReady(false);
+                    toast.error('Unable to load Razorpay. Please refresh the page and try again.');
+                }}
+            />
 
             <Card>
                 <CardHeader>

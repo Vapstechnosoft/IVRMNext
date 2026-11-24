@@ -92,6 +92,8 @@ export default function AddHolidayReportForm({ onSuccess, className = '', onRepo
 
     const onSubmit: SubmitHandler<FormFields> = async (data: FormFields) => {
         try {
+
+            console.log('Submitting form with data:', data);
             const response = await getHolidayReport(Number(data.hrmlY_Id), Number(data.fohwdT_Id));
 
             if (response.success) {
@@ -106,7 +108,7 @@ export default function AddHolidayReportForm({ onSuccess, className = '', onRepo
 
                 onReportData?.(dataArray);
                 toast.success(response.message || 'Report generated successfully');
-                reset();
+                // reset();
                 onSuccess?.();
             } else {
                 toast.error(response.message || 'Failed to generate report');

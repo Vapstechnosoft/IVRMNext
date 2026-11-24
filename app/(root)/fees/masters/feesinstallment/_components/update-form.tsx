@@ -30,6 +30,36 @@ interface UpdateMasterFeeInstallmentFormProps {
 export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow: row }: UpdateMasterFeeInstallmentFormProps) {
     const { refetchAll } = useMasterFeeInstallment();
 
+    const sanitizeId = (id: any): number | undefined => {
+        if (id === null || id === undefined) return undefined;
+        if (typeof id === 'string') {
+            const trimmed = id.trim();
+            const lower = trimmed.toLowerCase();
+            if (lower === '$undefined' || lower === 'undefined' || trimmed === '') {
+                return undefined;
+            }
+            const n = Number(trimmed);
+            if (!Number.isNaN(n) && n > 0 && Number.isInteger(n)) {
+                return n;
+            }
+            return undefined;
+        }
+        if (typeof id === 'number') {
+            return id > 0 && Number.isInteger(id) ? id : undefined;
+        }
+        return undefined;
+    };
+
+    const getRowId = (r: any): number | undefined => {
+        if (!r) return undefined;
+        return sanitizeId(r.fmI_Id) ?? sanitizeId(r.FMI_Id) ?? sanitizeId(r.fmIId) ?? sanitizeId(r.fmi_id) ?? sanitizeId(r.id);
+    };
+
+    const getInstId = (inst: any): number | undefined => {
+        if (!inst) return undefined;
+        return sanitizeId(inst.ftI_Id) ?? sanitizeId(inst.FTI_Id) ?? sanitizeId(inst.fti_id) ?? sanitizeId(inst.ftiId) ?? sanitizeId(inst.id);
+    };
+
     const sanitizedRef = useRef<{
         fmI_Id?: number | string;
         fmI_ActiveFlag?: any;
@@ -39,13 +69,13 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         if (!vals) return null;
         const copy: any = { ...vals };
 
-        copy.fmI_Id = sanitizeId(copy.fmI_Id);
+        copy.fmI_Id = getRowId(copy);
 
         if (Array.isArray(copy.installments)) {
             copy.installments = copy.installments.map((inst: any) => ({
                 sno: inst?.sno,
                 ftI_Name: inst?.ftI_Name ?? '',
-                ftI_Id: sanitizeId(inst?.ftI_Id ?? inst?.id)
+                ftI_Id: getInstId(inst)
             }));
         }
 
@@ -87,153 +117,159 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
     });
 
     const installmentType = watch('fmI_Installment_Type');
-    console.log('installmentType', installmentType);
-    // === 1. DEFINE INSTALLMENT_TYPES HERE ===
+
     const INSTALLMENT_TYPES = [
-        { value: 'general', label: 'General', count: 0 },
-        { value: 'monthly', label: 'Monthly', count: 12 },
-        { value: 'quarterly', label: 'Quarterly', count: 4 },
-        { value: 'halfyearly', label: 'Half Yearly', count: 2 },
-        { value: 'yearly', label: 'Yearly', count: 1 },
-        { value: 'bimonthly', label: 'Bi-Monthly', count: 24 },
-        { value: 'anytime', label: 'Anytime', count: 1 }
+        { value: '1', label: 'General', count: 0 },
+        { value: '2', label: 'Once In a Carrier', count: 1 },
+        { value: '3', label: 'Monthly', count: 12 },
+        { value: '4', label: 'Quarterly', count: 4 },
+        { value: '5', label: 'Yearly', count: 1 },
+        { value: '6', label: 'Half Yearly', count: 2 },
+        { value: '7', label: 'Bi Monthly', count: 6 },
+        { value: '8', label: 'Anytime', count: 1 }
     ] as const;
-    const initialLoadComplete = useRef(false);
 
-    // === 2. ADD THIS useEffect: React to Installment Type change ===
-    //     useEffect(() => {
-    //         if (!initialLoadComplete.current) return;
-
-    //         if (!installmentType || installmentType === 'general') {
-    //             return; // User manually controls count
-    //         }
-
-    //         const selected = INSTALLMENT_TYPES.find((t) => t.value === installmentType);
-    //         if (!selected || selected.count === 0) return;
-
-    //         const newCount = selected.count;
-
-    //         setValue('fmI_No_Of_Installments', newCount, { shouldValidate: true });
-
-    //     //     const installments =  getfeeInstallmentsByFmiId(row.fmI_Id);
-    //     //   console.log('installmentsnames', installments);
-
-    //     //     // Reset to fresh defaults when type changes
-    //     //     const newInstallments = Array.from({ length: newCount }, (_, i) => ({
-    //     //         sno: i + 1,
-    //     //         ftI_Name: `Installment ${i + 1}`,
-    //     //         ftI_Id: undefined // New installments → no old ID
-    //     //     }));
-
-    //  const installments = await getfeeInstallmentsByFmiId(row.fmI_Id);
-    // console.log('installmentsnames', installments);
-
-    // // Use API data if available, otherwise fallback to defaults
-    // const newInstallments = Array.isArray(installments) && installments.length > 0
-    //     ? installments.map((inst: any, index: number) => ({
-    //         sno: index + 1,
-    //         ftI_Name: inst.ftI_Name || `Installment ${index + 1}`,
-    //         ftI_Id: sanitizeId(inst.ftI_Id ?? inst.id)
-    //       }))
-    //     : Array.from({ length: newCount }, (_, i) => ({
-    //         sno: i + 1,
-    //         ftI_Name: `Installment ${i + 1}`,
-    //         ftI_Id: undefined
-    //       }));
-
-    //         setValue('installments', newInstallments, { shouldValidate: true });
-    //     }, [installmentType, setValue]);
-    const sanitizeId = (id: any): number | undefined => {
-        if (id === null || id === undefined) return undefined;
-        if (typeof id === 'string') {
-            const trimmed = id.trim();
-            const lower = trimmed.toLowerCase();
-            if (lower === '$undefined' || lower === 'undefined' || trimmed === '') {
-                return undefined;
-            }
-            const n = Number(trimmed);
-            if (!Number.isNaN(n) && n > 0 && Number.isInteger(n)) {
-                return n;
-            }
-            return undefined; // 🔴 NEVER return string
+    const normalizeInstallmentType = (type: any): string => {
+        if (type === null || type === undefined) return '';
+        const str = String(type).trim().toLowerCase();
+        switch (str) {
+            case '1':
+            case 'general':
+                return '1';
+            case '2':
+            case 'once in a carrier':
+            case 'once in a career':
+                return '2';
+            case '3':
+            case 'monthly':
+                return '3';
+            case '4':
+            case 'quarterly':
+                return '4';
+            case '5':
+            case 'yearly':
+                return '5';
+            case '6':
+            case 'half yearly':
+            case 'halfyearly':
+                return '6';
+            case '7':
+            case 'bi monthly':
+            case 'bimonthly':
+                return '7';
+            case '8':
+            case 'anytime':
+                return '8';
+            default:
+                return str;
         }
-        if (typeof id === 'number') {
-            return id > 0 && Number.isInteger(id) ? id : undefined;
-        }
-        return undefined;
     };
 
-    // Make the useEffect async
-    // Add this ref at the top with your other refs
-    const hasSetInitialInstallments = useRef(false);
+    const initialLoadComplete = useRef(false);
 
-    // Replace your entire installment type useEffect with this:
+   // Initial load effect
     useEffect(() => {
-        // Only run once on initial load
-        if (!initialLoadComplete.current) return;
+        if (!row) return;
 
-        // Prevent multiple executions
-        if (hasSetInitialInstallments.current) return;
+        let isMounted = true;
 
-        const setInitialInstallments = async () => {
-            if (!installmentType || installmentType === 'general') {
-                hasSetInitialInstallments.current = true;
-                return;
+        const loadData = async () => {
+            const normalizedType = normalizeInstallmentType(
+                row.fmI_Installment_Type ??
+                (row as any).FMI_Installment_Type ??
+                (row as any).fmi_installment_type ??
+                (row as any).installmenttype ??
+                (row as any).type
+            );
+
+            const fmIId = getRowId(row);
+
+            sanitizedRef.current = {
+                fmI_Id: fmIId,
+                fmI_ActiveFlag: row.fmI_ActiceFlag ?? (row as any).fmI_ActiveFlag ?? (row as any).FMI_ActiveFlag ?? true
+            };
+
+            let targetCount = Number(row.fmI_No_Of_Installments ?? (row as any).FMI_No_Of_Installments) || 1;
+            const preset = INSTALLMENT_TYPES.find((t) => t.value === normalizedType);
+            if (preset && preset.count > 0 && normalizedType !== '1') {
+                targetCount = preset.count;
             }
 
-            const selected = INSTALLMENT_TYPES.find((t) => t.value === installmentType);
-            if (!selected || selected.count === 0) {
-                hasSetInitialInstallments.current = true;
-                return;
+            let rowFydto =
+                (row as any).fydto ??
+                (row as any).installments ??
+                (row as any).installmentnameList ??
+                (row as any).installmentlist ??
+                (row as any).installmentvaluelist ??
+                (row as any).feeinstallmentList;
+
+            // If row has no installments yet and we have fmIId, fetch the installment list from API
+            if ((!Array.isArray(rowFydto) || rowFydto.length === 0) && fmIId) {
+                try {
+                    const fetched = await getfeeInstallmentsByFmiId(fmIId);
+                    if (Array.isArray(fetched) && fetched.length > 0) {
+                        rowFydto = fetched;
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch installments by fmi_id', e);
+                }
             }
 
-            const newCount = selected.count;
-            setValue('fmI_No_Of_Installments', newCount, { shouldValidate: true });
+            if (!isMounted) return;
 
-            // Only fetch if we have a valid ID
-            if (row?.fmI_Id) {
-                // Get installments from API
-                const installments = await getfeeInstallmentsByFmiId(row.fmI_Id);
-                console.log('installmentsnames', installments);
+            let installments: { sno: number; ftI_Name: string; ftI_Id?: number }[] = [];
 
-                // Use API data if available, otherwise fallback to defaults
-                const newInstallments =
-                    Array.isArray(installments) && installments.length > 0
-                        ? installments.map((inst: any, index: number) => ({
-                              sno: index + 1,
-                              ftI_Name: inst.ftI_Name || `Installment ${index + 1}`,
-                              ftI_Id: sanitizeId(inst.ftI_Id ?? inst.id)
-                          }))
-                        : Array.from({ length: newCount }, (_, i) => ({
-                              sno: i + 1,
-                              ftI_Name: `Installment ${i + 1}`,
-                              ftI_Id: undefined
-                          }));
-
-                setValue('installments', newInstallments, { shouldValidate: true });
-            } else {
-                // No ID, use defaults
-                const defaultInstallments = Array.from({ length: newCount }, (_, i) => ({
-                    sno: i + 1,
-                    ftI_Name: `Installment ${i + 1}`,
-                    ftI_Id: undefined
+            if (Array.isArray(rowFydto) && rowFydto.length > 0) {
+                targetCount = Math.max(targetCount, rowFydto.length);
+                installments = rowFydto.map((inst: any, index: number) => ({
+                    sno: index + 1,
+                    ftI_Name: inst.ftI_Name || inst.FTI_Name || `Installment ${index + 1}`,
+                    ftI_Id: getInstId(inst)
                 }));
-                setValue('installments', defaultInstallments, { shouldValidate: true });
+
+                while (installments.length < targetCount) {
+                    installments.push({
+                        sno: installments.length + 1,
+                        ftI_Name: `Installment ${installments.length + 1}`
+                    });
+                }
+            } else {
+                installments = Array.from({ length: targetCount }, (_, i) => ({
+                    sno: i + 1,
+                    ftI_Name: `Installment ${i + 1}`
+                }));
             }
 
-            // Mark as completed
-            hasSetInitialInstallments.current = true;
+            // Set the initial values ref
+            initialValuesRef.current = {
+                fmI_Id: fmIId,
+                fmI_Installment_Type: normalizedType,
+                fmI_Name: row.fmI_Name || (row as any).FMI_Name || '',
+                fmI_No_Of_Installments: targetCount,
+                installments
+            };
+
+          // Push the update to the next tick so the Select component is fully mounted and ready to receive it
+setTimeout(() => {
+    reset(sanitizeSnapshot(initialValuesRef.current) ?? undefined);
+}, 50);
+
+            initialLoadComplete.current = true;
         };
 
-        setInitialInstallments();
+        loadData();
 
-        // Remove dependency on installmentType - only run when row changes
-    }, [row, setValue]); // ✅ Removed installmentType from dependencies
+        return () => {
+            isMounted = false;
+            initialLoadComplete.current = false;
+        };
+    }, [row, reset]); 
 
-    // Keep your manual count change effect for General type
+    // Handle manual count change for General type
     useEffect(() => {
+        if (!initialLoadComplete.current) return;
         if (watchNoOfInstallments === undefined) return;
-        if (installmentType !== 'general') return; // Only run for General type
+        if (installmentType !== '1') return;
 
         const targetLength = Number(watchNoOfInstallments);
         const currentLength = fields.length;
@@ -249,126 +285,42 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
         }
     }, [watchNoOfInstallments, fields.length, append, remove, installmentType]);
 
-    // Reset the flag when row changes
-    useEffect(() => {
-        hasSetInitialInstallments.current = false;
-    }, [row]);
-
-    // === 3. Initial load effect (must come AFTER type change effect) ===
-    useEffect(() => {
-        if (!row) return;
-
-        let normalizedType = '';
-        if (row.fmI_Installment_Type) {
-            normalizedType = String(row.fmI_Installment_Type).toLowerCase().trim();
-        }
-
-        const fmIId = sanitizeId(row.fmI_Id ?? (row as any).id);
-        sanitizedRef.current = {
-            fmI_Id: fmIId,
-            fmI_ActiveFlag: row.fmI_ActiceFlag || row.fmI_ActiceFlag
-        };
-
-        let targetCount = row.fmI_No_Of_Installments || 1;
-        const preset = INSTALLMENT_TYPES.find((t) => t.value === normalizedType);
-        if (preset && preset.count > 0 && normalizedType !== 'general') {
-            targetCount = preset.count;
-        }
-
-        let installments: { sno: number; ftI_Name: string; ftI_Id?: number }[] = [];
-
-        if (Array.isArray((row as any).fydto) && (row as any).fydto.length > 0) {
-            installments = (row as any).fydto.map((inst: any, index: number) => ({
-                sno: index + 1,
-                ftI_Name: inst.ftI_Name || `Installment ${index + 1}`,
-                ftI_Id: sanitizeId(inst.ftI_Id ?? inst.id)
-            }));
-
-            while (installments.length < targetCount) {
-                installments.push({
-                    sno: installments.length + 1,
-                    ftI_Name: `Installment ${installments.length + 1}`
-                });
-            }
-        } else {
-            installments = Array.from({ length: targetCount }, (_, i) => ({
-                sno: i + 1,
-                ftI_Name: `Installment ${i + 1}`
-            }));
-        }
-
-        setValue('fmI_Installment_Type', normalizedType, { shouldValidate: true });
-        setValue('fmI_Name', row.fmI_Name || '', { shouldValidate: true });
-        setValue('fmI_No_Of_Installments', targetCount, { shouldValidate: true });
-        setValue('installments', installments, { shouldValidate: true });
-        setValue('fmI_Id', typeof fmIId === 'number' ? fmIId : undefined);
-
-        initialValuesRef.current = {
-            fmI_Id: typeof fmIId === 'number' ? fmIId : undefined,
-            fmI_Installment_Type: normalizedType,
-            fmI_Name: row.fmI_Name || '',
-            fmI_No_Of_Installments: targetCount,
-            installments
-        };
-
-        initialLoadComplete.current = true;
-
-        // Force a re-render to update the UI
-        setTimeout(() => {
-            setValue('fmI_Installment_Type', normalizedType, { shouldValidate: true });
-        }, 10);
-    }, [row, setValue]);
-    useEffect(() => {
-        return () => {
-            initialLoadComplete.current = false;
-        };
-    }, [row]);
-
-    // === 4. Handle manual count change for General ===
-    useEffect(() => {
-        if (watchNoOfInstallments === undefined) return;
-
-        const targetLength = Number(watchNoOfInstallments);
-        const currentLength = fields.length;
-
-        if (targetLength > currentLength) {
-            for (let i = currentLength; i < targetLength; i++) {
-                append({ sno: i + 1, ftI_Name: `Installment ${i + 1}` });
-            }
-        } else if (targetLength < currentLength) {
-            for (let i = currentLength - 1; i >= targetLength; i--) {
-                remove(i);
-            }
-        }
-    }, [watchNoOfInstallments, fields.length, append, remove]);
-
-    // === Rest of your code (onSubmit, handleReset, JSX) remains the same ===
-
     const onSubmit = async (data: FormFields) => {
         try {
             // Always get the most reliable fmI_Id
-            const idFromForm = sanitizeId((data as any)?.fmI_Id ?? data.fmI_Id);
+            const idFromForm = getRowId(data);
             const idFromRef = sanitizeId(sanitizedRef.current?.fmI_Id);
-            const idFromRow = sanitizeId(row.fmI_Id ?? (row as any).id);
-            // Prefer form, then ref, then row
-            const fmI_Id = idFromForm || idFromRef || idFromRow;
+            const idFromRow = getRowId(row);
+            const idFromInit = sanitizeId(initialValuesRef.current?.fmI_Id);
+            const fmI_Id = idFromForm ?? idFromRef ?? idFromRow ?? idFromInit;
 
-            const payload = {
-                // Always pass fmI_Id, even if undefined
+            if (!fmI_Id) {
+                toast.error('Installment ID is missing for update');
+                return;
+            }
+
+            const payload: any = {
                 fmI_Id,
-                mI_Id: row.mI_Id,
+                mI_Id: row.mI_Id ?? (row as any).MI_Id,
                 fmI_Name: data.fmI_Name,
-                fmI_Installment_Type: data.fmI_Installment_Type,
+                fmI_Installment_Type: String(data.fmI_Installment_Type),
                 fmI_No_Of_Installments: data.fmI_No_Of_Installments,
                 fydto: (data.installments || []).map((inst: any, idx: number) => {
-                    const originalInst = (row as any).fydto?.[idx] ?? {};
-                    const originalId = sanitizeId(originalInst.ftI_Id ?? originalInst.id);
-                    const idFromForm = sanitizeId(inst.ftI_Id);
-                    const ftI_Id = idFromForm || originalId;
-                    return {
-                        ftI_Id,
+                    const originalInst =
+                        (row as any).fydto?.[idx] ??
+                        initialValuesRef.current?.installments?.[idx] ??
+                        {};
+                    const originalId = getInstId(originalInst);
+                    const idFromForm = getInstId(inst);
+                    const ftI_Id = idFromForm ?? originalId;
+
+                    const item: any = {
                         ftI_Name: inst.ftI_Name
                     };
+                    if (ftI_Id) {
+                        item.ftI_Id = ftI_Id;
+                    }
+                    return item;
                 })
             };
 
@@ -395,6 +347,8 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
             };
 
             const clean = sanitizeOutgoing(payload);
+            clean.fmI_Id = fmI_Id;
+            clean.fmI_Installment_Type = String(data.fmI_Installment_Type);
 
             const response = await addOrUpdateInstallment(clean);
 
@@ -468,7 +422,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                         name='fmI_Installment_Type'
                         control={control}
                         render={({ field }) => (
-                            <Select disabled={true} onValueChange={field.onChange} value={field.value}>
+                           <Select key={field.value || 'empty'} disabled={true} onValueChange={field.onChange} value={field.value ? String(field.value) : undefined}>
                                 <SelectTrigger className='w-full'>
                                     <SelectValue placeholder='Select Installment Type' />
                                 </SelectTrigger>
@@ -485,7 +439,7 @@ export default function UpdateMasterFeeInstallmentForm({ onSuccess, selectedRow:
                     {errors.fmI_Installment_Type && <FormError>{errors.fmI_Installment_Type.message}</FormError>}
                 </div>
 
-                {installmentType?.toLowerCase() === 'general' && (
+                {installmentType === '1' && (
                     <div className='flex flex-col gap-1.5'>
                         <Label htmlFor='fmI_No_Of_Installments'>No. of Installments</Label>
                         <Controller

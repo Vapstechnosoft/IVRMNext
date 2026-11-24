@@ -231,15 +231,15 @@ export default function AddApplyLeaveForm({ onSuccess, className = '', defaultEm
 
                     <div className='overflow-x-auto rounded-lg border bg-muted/5'>
                         <table className='w-full border-collapse text-left text-sm'>
-                            <thead className='bg-primary/5 font-semibold text-primary-foreground'>
-                                <tr className='bg-muted/50'>
+                            <thead className=' font-semibold '>
+                                <tr className=''>
                                     <th className='w-[50px] border p-3 text-center'>Select</th>
-                                    <th className='w-[60px] border p-3 text-center'>Sl No</th>
+                                    <th className=' border p-3 text-center'>Sl No</th>
                                     <th className='border p-3'>Leave Type</th>
                                     <th className='border p-3 text-center'>Total</th>
                                     <th className='border p-3 text-center font-bold'>Balance</th>
-                                    <th className='min-w-[150px] border p-3'>From Date</th>
-                                    <th className='min-w-[150px] border p-3'>To Date</th>
+                                    <th className='min-w-[150px] border p-3 text-center'>From Date</th>
+                                    <th className='min-w-[150px] border p-3 text-center'>To Date</th>
                                     <th className='min-w-[120px] border p-3 text-center'>No. of Days</th>
                                 </tr>
                             </thead>
