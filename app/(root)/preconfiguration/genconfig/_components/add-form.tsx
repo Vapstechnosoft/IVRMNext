@@ -9,25 +9,71 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useGetGeneralConfigurationEdit, useSaveGeneralConfiguration } from '@/hooks/preconfiguration/useGeneralConfig';
-import type { IPageList, IUsernameArray } from '@/types/preconfiguration/general-config';
+import type { IGeneralConfiguration,IPageList, IUsernameArray } from '@/types/preconfiguration/general-config';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { useConfigStore } from './genconfig-store';
 import { type GenConfigFormValues, genConfigSchema } from './schema';
+import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 
 interface GenConfigAddFormProps {
     pagelist: IPageList[];
     usernamearray: IUsernameArray[];
 }
 
+const booleanFields = new Set([
+    'IVRMGC_MobileValOTPFlag',
+    'IVRMGC_emailValOTPFlag',
+    'IVRMGC_EnableQRCodeFlg',
+    'IVRMGC_EnableWhatsappFlg',
+    'IVRMGC_SMSActiveFlag',
+    'IVRMGC_EmailActiveFlag',
+    'IVRMGC_ComTrasaNoFlag',
+    'IVRMGC_SCActive',
+    'IVRMGC_FPActive',
+    'IVRMGC_OnlineFPActive',
+    'IVRMGC_FaceReaderActive',
+    'IVRMGC_DefaultStudentSelection',
+    'IVRMGC_TransportRequired',
+    'IVRMGC_AdmnoColumnDisplay',
+    'IVRMGC_CatLogoFlg',
+    'IVRMGC_SportsPointsDropdownFlg',
+    'IVRMGC_EnableSUBTSTUIntFlg',
+    'IVRMGC_EnableSTSUBTIntFlg',
+    'IVRMGC_EnableCTSTIntFlg',
+    'IVRMGC_EnableSTCTIntFlg',
+    'IVRMGC_EnableHODSTIntFlg',
+    'IVRMGC_EnableSTHODIntFlg',
+    'IVRMGC_EnablePrincipalSTIntFlg',
+    'IVRMGC_EnableSTPrincipalIntFlg',
+    'IVRMGC_EnableASSTIntFlg',
+    'IVRMGC_EnableSTASIntFlg',
+    'IVRMGC_EnableECSTIntFlg',
+    'IVRMGC_EnableSTECIntFlg',
+    'IVRMGC_GMRDTOALLFlg',
+    'IVRMGC_EnableStaffwiseIntFlg',
+    'IVRMGC_StudentDataChangeAlertFlg',
+    'IVRMGC_AttendanceShortageAlertFlg',
+    'IVRMGC_StudentLoginCred',
+    'IVRMGC_FatherLoginCred',
+    'IVRMGC_MotherLoginCred',
+    'IVRMGC_GuardianLoginCred',
+    'IVRMGC_AutoCreateStudentCredFlg'
+]);
+
+const toBoolean = (value: unknown) => value === true || value === 1 || value === '1' || value === 'true';
+
 export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigAddFormProps) {
     const { editId, setEditId } = useConfigStore();
     const saveMutation = useSaveGeneralConfiguration();
     const { data: editData } = useGetGeneralConfigurationEdit(editId as number);
+    console.log('editData', editData);
 
+    const { closeAddForm, closeEditForm } = useFormContext<IGeneralConfiguration>();
     const form = useForm<GenConfigFormValues>({
         resolver: zodResolver(genConfigSchema),
         defaultValues: {
@@ -99,8 +145,8 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
             IVRMGC_ReminderDays: '',
             IVRMGC_ClassCapacity: '',
             IVRMGC_SectionCapacity: '',
-            IVRMGC_SCLockingPeriod: '',
-            IVRMGC_FPLockingPeriod: '',
+            IVRMGC_SCLockingPeriod: 0,
+            IVRMGC_FPLockingPeriod: 0,
             IVRMGC_Disclaimer: '',
             IVRMGC_Classwise_Payment: '',
             IVRMGC_APIOrSMTPFlg: '',
@@ -140,7 +186,7 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
     });
 
     useEffect(() => {
-        if (editData && editData.mstConfigList && editData.mstConfigList.length > 0) {
+        if (editData?.mstConfigList && editData.mstConfigList.length > 0) {
             const config = editData.mstConfigList[0];
 
             const mappedConfig: any = {};
@@ -153,6 +199,14 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
                     mappedConfig[key] = configRecord[key];
                 }
             });
+            booleanFields.forEach((field) => {
+                if (field in mappedConfig) {
+                    mappedConfig[field] = toBoolean(mappedConfig[field]);
+                }
+            });
+            if (mappedConfig.IVRMGC_Classwise_Payment != null) {
+                mappedConfig.IVRMGC_Classwise_Payment = mappedConfig.IVRMGC_Classwise_Payment.toString();
+            }
 
             const otpMobileNo = config.ivrmgC_OTPMobileNo;
 
@@ -164,7 +218,6 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
                 IVRMGC_ReminderDays: config.ivrmgC_ReminderDays?.toString() || '',
                 IVRMGC_ClassCapacity: config.ivrmgC_ClassCapacity?.toString() || '',
                 IVRMGC_SectionCapacity: config.ivrmgC_SectionCapacity?.toString() || '',
-                IVRMGC_Classwise_Payment: config.ivrmgC_Classwise_Payment?.toString() || '',
                 IVRMGC_AdmNo_RegNo_RollNo_DefaultFlag: config.ivrmgC_AdmNo_RegNo_RollNo_DefaultFlag?.toString() || '',
                 IVRMGC_APIOrSMTPFlg: config.ivrmgC_APIOrSMTPFlg || '',
                 IVRMGC_PortNo: config.ivrmgC_PortNo?.toString() || '',
@@ -172,8 +225,8 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
                 IVRMGC_StudentDataChangeAlertDays: config.ivrmgC_StudentDataChangeAlertDays?.toString() || '',
                 IVRMGC_PasswordExpiryDuration: config.ivrmgC_PasswordExpiryDuration?.toString() || '',
                 IVRMGC_AttShortageAlertDays: config.ivrmgC_AttShortageAlertDays?.toString() || '',
-                regno: config.ivrmgC_RegnoColumnDisplay || false,
-                rolno: config.ivrmgC_RollnoColumnDisplay || false
+                regno: toBoolean(config.ivrmgC_RegnoColumnDisplay),
+                rolno: toBoolean(config.ivrmgC_RollnoColumnDisplay)
             } as any);
 
             if (editData.usernamearray && editData.usernamearray.length > 0) {
@@ -284,11 +337,11 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
             ivrmgC_AttendanceShortageAlertFlg: values.IVRMGC_AttendanceShortageAlertFlg,
             ivrmgC_AttShortageAlertDays: Number(values.IVRMGC_AttShortageAlertDays) || 0,
             ivrmgC_AttendanceShortagePercent: 75,
-            ivrmgC_StudentLoginCred: values.IVRMGC_StudentLoginCred ? 1 : 0,
-            ivrmgC_FatherLoginCred: values.IVRMGC_FatherLoginCred ? 1 : 0,
-            ivrmgC_MotherLoginCred: values.IVRMGC_MotherLoginCred ? 1 : 0,
-            ivrmgC_GuardianLoginCred: values.IVRMGC_GuardianLoginCred ? 1 : 0,
-            ivrmgC_AutoCreateStudentCredFlg: autoCreateCred ? 1 : 0,
+            ivrmgC_StudentLoginCred: values.IVRMGC_StudentLoginCred ? true : false,
+            ivrmgC_FatherLoginCred: values.IVRMGC_FatherLoginCred ? true : false,
+            ivrmgC_MotherLoginCred: values.IVRMGC_MotherLoginCred ? true : false,
+            ivrmgC_GuardianLoginCred: values.IVRMGC_GuardianLoginCred ? true : false,
+            ivrmgC_AutoCreateStudentCredFlg: autoCreateCred ? true : false,
             ivrmgC_UserNameOptionsFlg: values.IVRMGC_UserNameOptionsFlg || 'Custom',
             ivrmgC_EnableSUBTSTUIntFlg: values.IVRMGC_EnableSUBTSTUIntFlg,
             ivrmgC_EnableSTSUBTIntFlg: values.IVRMGC_EnableSTSUBTIntFlg,
@@ -320,7 +373,25 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
                       }))
                     : []
         };
-        saveMutation.mutate(payload);
+
+        console.log('Payload to be sent:', payload);
+        saveMutation.mutate(payload, {
+            onSuccess: () => {
+                setEditId(null);
+                if (editId) {
+                    closeEditForm();
+                } else {
+                    closeAddForm();
+                }
+            }
+        });
+    };
+
+    const onInvalid = (validationErrors: any) => {
+        const firstError = Object.values(validationErrors).find(
+            (error: any) => typeof error?.message === 'string'
+        ) as { message: string } | undefined;
+        toast.error(firstError?.message || 'Please complete all required fields before saving');
     };
 
     const handleClear = () => {
@@ -371,7 +442,7 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
             </CardHeader>
             <CardContent className='pt-6'>
                 <Form {...form}>
-                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-8'>
+                    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className='space-y-8'>
                         <div className='grid grid-cols-1 items-start gap-6 md:grid-cols-2'>
                             {/* Left Column */}
                             <div className='space-y-6'>
@@ -684,7 +755,7 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
                                                     {field.required && <span className='text-destructive'>*</span>}
                                                 </Label>
                                                 <div className='col-span-2 space-y-1'>
-                                                    <Input {...register(field.name as any)} type='number' min='1' max='200' />
+                                                    <Input {...register(field.name as any)} type='number' min='0' max='200' />
                                                     {errors[field.name as keyof GenConfigFormValues] && (
                                                         <p className='text-destructive text-xs'>
                                                             {errors[field.name as keyof GenConfigFormValues]?.message as string}
