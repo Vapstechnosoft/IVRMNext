@@ -275,7 +275,7 @@ export default function MasterConfigurationForm({
                                                             <div
                                                                 key={catId}
                                                                 className='flex cursor-pointer items-center space-x-2 rounded px-2 py-1.5 hover:bg-muted/40'
-                                                                onClick={() => field.onChange(isChecked ? undefined : catId)}>
+                                                                >
                                                                 <Checkbox
                                                                     id={`cat-${catId}`}
                                                                     checked={isChecked}
