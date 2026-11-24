@@ -550,6 +550,7 @@ export default function StudentAttendanceEntryPage() {
                                         ].map((item) => (
                                             <div key={item.value} className='flex items-center space-x-1.5'>
                                                 <RadioGroupItem
+                                                disabled
                                                     value={item.value}
                                                     id={item.value}
                                                     className='h-3 w-3 border-gray-400'

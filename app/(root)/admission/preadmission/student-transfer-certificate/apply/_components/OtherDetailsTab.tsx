@@ -120,7 +120,7 @@ export const OtherDetailsTab = ({ formData, setFormData, initialData, disabled }
                     {formData.Promotion_Flag === 'qualified' && (
                         <div className='grid grid-cols-[220px_1fr] items-center gap-4'>
                             <Label htmlFor='qual_class' className='text-right font-semibold text-indigo-900'>
-                                Qualified for which class : <span className='text-red-500'>*</span>
+                                Qualified for which class :
                             </Label>
                             <Select
                                 value={formData.qual_class || ''}

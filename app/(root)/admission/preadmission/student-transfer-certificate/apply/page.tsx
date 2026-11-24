@@ -594,10 +594,6 @@ export default function StudentTCApplyPage() {
                 toast.error('Conduct / Character is required');
                 return false;
             }
-            if (formData.Promotion_Flag === 'qualified' && !formData.qual_class) {
-                toast.error('Qualified for which class is required');
-                return false;
-            }
             return true;
         }
 
