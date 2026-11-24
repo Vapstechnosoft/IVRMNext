@@ -25,6 +25,7 @@ interface GenericDataTableProps<T> {
     showSorting?: boolean;
     showPagination?: boolean;
     columnPinning?: { left?: string[]; right?: string[] };
+    tableContainerClassName?: string;
 
     // Row selection
     maxSelectableRows?: number;
@@ -67,6 +68,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         showSorting = false,
         showPagination = false,
         columnPinning,
+        tableContainerClassName,
         maxSelectableRows = 0,
         defaultSelectedRowIds,
         onRowSelectionChange,
@@ -141,6 +143,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     showSearch={showSearch}
                     showSorting={showSorting}
                     onRowSelectionChange={onRowSelectionChange}
+                    tableContainerClassName={tableContainerClassName}
                 />
             </div>
         );
@@ -159,6 +162,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 showSorting={showSorting}
                 showPagination={showPagination}
                 columnPinning={columnPinning}
+                tableContainerClassName={tableContainerClassName}
                 maxSelectableRows={maxSelectableRows}
                 defaultSelectedRowIds={defaultSelectedRowIds}
                 getRowId={getRowId}
