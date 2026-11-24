@@ -21,6 +21,11 @@ import DeleteMasterClassForm from './toggle-form';
 
 const StudentProfileCell = ({ row }: { row: any }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const rowData = row.original as any;
+    const amstId = rowData?.amsT_Id || rowData?.AMST_Id || rowData?.amst_id || rowData?.id || 0;
+    const asmclId = rowData?.asmcL_Id || rowData?.ASMCL_Id || rowData?.asmcl_id || rowData?.classId || 0;
+    const asmsId = rowData?.asmS_Id || rowData?.ASMS_Id || rowData?.asms_id || rowData?.sectionId || 0;
+
     return (
         <>
             <div className='cursor-pointer font-medium text-blue-600 hover:underline' onClick={() => setIsOpen(true)}>
@@ -28,9 +33,10 @@ const StudentProfileCell = ({ row }: { row: any }) => {
             </div>
             {isOpen && (
                 <StudentProfileDialog
-                    amstId={row.original?.amsT_Id || row.original?.AMST_Id || row.original?.id}
-                    asmclId={row.original?.asmcL_Id || row.original?.ASMCL_Id || row.original?.classId || 0}
-                    asmsId={row.original?.asmS_Id || row.original?.ASMS_Id || row.original?.sectionId || 0}
+                    amstId={amstId}
+                    asmclId={asmclId}
+                    asmsId={asmsId}
+                    studentData={rowData}
                     isOpen={isOpen}
                     onClose={() => setIsOpen(false)}
                 />

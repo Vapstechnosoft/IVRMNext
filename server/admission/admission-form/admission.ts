@@ -102,9 +102,22 @@ export async function getStudentAdmissionFormById(id: number) {
     return await api.get<any>('admission', url);
 }
 
-export async function getStudentProfileView(amstId: number, asmclId: number, asmsId: number) {
+export async function getStudentProfileView(amstId: number, asmclId: number = 0, asmsId: number = 0) {
     const url = `/StudentAdmissionFacade/ViewStudentProfile?AMST_Id=${amstId}&ASMCL_Id=${asmclId}&ASMS_Id=${asmsId}`;
-    return await api.post<any>('admission', url);
+    const payload = {
+        AMST_Id: amstId,
+        ASMCL_Id: asmclId,
+        ASMS_Id: asmsId,
+        amsT_Id: amstId,
+        asmcL_Id: asmclId,
+        asmS_Id: asmsId
+    };
+    try {
+        return await api.post<any>('admission', url, payload);
+    } catch (err: any) {
+        console.error('[Server] getStudentProfileView error:', err);
+        return { success: false, message: err?.message || 'Failed to fetch student profile', data: null };
+    }
 }
 
 export async function deleteAdmissionForm(id: number) {
