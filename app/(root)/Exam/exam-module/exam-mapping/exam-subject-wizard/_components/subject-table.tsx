@@ -1237,15 +1237,7 @@ export default function SubjectTableWithValidation({
                         />
                     )}
                 </>
-            ) : (
-                <div className='rounded-lg border border-amber-200 bg-amber-50/60 p-6 text-center'>
-                    <p className='font-semibold text-amber-900 text-sm'>No Subjects Mapped to this Category</p>
-                    <p className='mt-1 text-amber-700 text-xs'>
-                        Please map subjects for this academic year and category in{' '}
-                        <span className='font-medium underline'>Yearly Category Subject Mapping</span> first.
-                    </p>
-                </div>
-            )}
+            ) : null}
         </div>
     );
 }
