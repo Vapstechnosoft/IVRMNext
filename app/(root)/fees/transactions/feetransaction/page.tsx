@@ -14,6 +14,7 @@ import { use, useEffect, useState } from 'react';
 import StudentFeeTransaction from './_components/add-form';
 import { feeTransactionColumns } from './_components/columns';
 import DeleteFeeTransactionForm from './_components/delete-form';
+import PaymentStatusModal from './_components/payment-status-modal';
 import ReceiptViewPage from './_components/receiptview';
 import UpdateStudentFeeTransaction from './_components/update-form';
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -158,7 +159,9 @@ function FormSections({ asmayId, asmayYear }: { asmayId: number; asmayYear: stri
         closeDeleteForm,
         isEditFormOpen,
         closeEditForm,
-        editFormRef
+        editFormRef,
+        isStatusOpen,
+        closeStatus
     } = useFormContext<Ifeetransaction>();
 
     return (
@@ -189,6 +192,13 @@ function FormSections({ asmayId, asmayYear }: { asmayId: number; asmayYear: stri
 
             {isDetailsViewOpen && selectedRow && (
                 <ReceiptViewPage rowData={selectedRow} onClose={closeDetailsView} asmayId={asmayId} asmayYear={asmayYear} />
+            )}
+            {isStatusOpen && selectedRow && (
+                <PaymentStatusModal
+                    rowData={selectedRow}
+                    asmayId={asmayId || Number(selectedRow.asmaY_ID || (selectedRow as any).asmaY_Id || 0)}
+                    onClose={closeStatus}
+                />
             )}
             {isDeleteFormOpen && selectedRow && (
                 <DeleteFeeTransactionForm

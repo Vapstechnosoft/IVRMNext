@@ -243,6 +243,7 @@ export const FEES_QUERY_KEYS = {
     FEE_COMPANY_GROUP_MAPPING_GROUP_DROPDOWN: 'fee_company_group_mapping_group_dropdown',
     FEE_COMPANY_GROUPMAPPING_GROUP_DROPDOWN: 'fee_company_groupmapping_group_dropdown',
     FEE_STUDENT_UPDATE_TRANSACTION: 'fee_student_update_transaction',
+    FEE_TRANSACTION_STATUS: 'fee_transaction_status',
     FEE_STUDENT_CURRENT_ACADEMIC_DETAILS: 'fee_student_current_academic_details',
     MASTER_SETTING_LIST: 'master_setting_list',
     FEE_PAYMENTGATEWAY_INSTITUTION_NAME: 'fee_paymentgateway_institution_name',

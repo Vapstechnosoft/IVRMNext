@@ -77,8 +77,9 @@ export const feeTransactionColumns: ColumnDef<Ifeetransaction>[] = [
     },
     {
         accessorKey: 'Status',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' />,
-        cell: ({ row }) => <div>{}</div>
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Status' className='text-center' />,
+        cell: ({ row }) => <StatusCell rowData={row.original} />,
+        enableSorting: false
     },
 
     {
@@ -89,6 +90,22 @@ export const feeTransactionColumns: ColumnDef<Ifeetransaction>[] = [
         cell: ({ row }) => <ActionButtonsCell rowData={row.original} />
     }
 ];
+
+function StatusCell({ rowData }: { rowData: Ifeetransaction }) {
+    const { openStatus } = useFormContext<Ifeetransaction>();
+
+    return (
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <button
+                type='button'
+                onClick={() => openStatus(rowData)}
+                className='group flex items-center justify-center rounded-md p-1.5 transition-all duration-150 hover:bg-blue-50 active:scale-95'
+                title='View Online Payment Status'>
+                <Eye className='h-4 w-4 text-blue-600 transition-transform group-hover:scale-110' />
+            </button>
+        </div>
+    );
+}
 
 function ActionButtonsCell({ rowData }: { rowData: Ifeetransaction }) {
     const { openEditForm, openDeleteForm, openDetailsView } = useFormContext<Ifeetransaction>();

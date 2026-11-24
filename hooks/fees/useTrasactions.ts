@@ -54,6 +54,7 @@ import {
 import { getFeeRefundableDetails } from '@/server/fees/trasactions/fee_refundable';
 import {
     getFeeStudentTransactionDetails,
+    getFeeTransactionStatus,
     masterconfiguration,
     updateFeeStudentCurrentAcademicDetails,
     updateFeeStudentTransactionDetails
@@ -1071,6 +1072,26 @@ export const useFeeStudentCurrentAcademicDetails = (amst_Id: number, asmay_Id: n
         refetchAll: () =>
             queryClient.invalidateQueries({
                 queryKey: [FEES_QUERY_KEYS.FEE_STUDENT_CURRENT_ACADEMIC_DETAILS]
+            })
+    };
+};
+
+export const useFeeTransactionStatus = (fyp_Id?: number, asmay_Id?: number, enabled = true) => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [FEES_QUERY_KEYS.FEE_TRANSACTION_STATUS, fyp_Id, asmay_Id],
+            queryFn: async () => {
+                if (!fyp_Id || !asmay_Id) return null;
+                return await getFeeTransactionStatus(fyp_Id, asmay_Id);
+            },
+            enabled: Boolean(enabled && fyp_Id && asmay_Id),
+            staleTime: 0
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [FEES_QUERY_KEYS.FEE_TRANSACTION_STATUS]
             })
     };
 };
