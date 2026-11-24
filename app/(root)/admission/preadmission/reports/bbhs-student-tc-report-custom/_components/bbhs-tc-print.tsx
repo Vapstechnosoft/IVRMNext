@@ -1,288 +1,233 @@
 'use client';
 
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { forwardRef } from 'react';
 
 interface TcPrintProps {
     data: any;
 }
 
+const getText = (...values: unknown[]) => {
+    const value = values.find((item) => item !== undefined && item !== null && String(item).trim() !== '');
+    return value === undefined ? '---' : String(value);
+};
+
+const formatDate = (...values: (string | Date | null | undefined)[]) => {
+    const value = values.find(Boolean);
+    if (!value) return '---';
+
+    const date = value instanceof Date ? value : new Date(value);
+    return isValid(date) ? format(date, 'dd/MM/yyyy') : '---';
+};
+
 export const BbhsTcPrint = forwardRef<HTMLDivElement, TcPrintProps>(({ data }, ref) => {
     if (!data) return null;
 
-    const {
-        studentTCList = [],
-        masterCompany = [],
-        academicList1 = [],
-        getdate = new Date(),
-        stuschoolname,
-        joinclass,
-        nextclass,
-        nextclassname,
-        stuDobwords,
-        frommonth1,
-        tomonth1,
-        fromyear,
-        toyear,
-        std1,
-        std
-    } = data;
-
-    const student = studentTCList[0] || {};
-    const company = masterCompany[0] || {};
-
-    const formatDate = (dateString: string | null) => {
-        if (!dateString) return '';
-        try {
-            return format(new Date(dateString), 'dd/MM/yyyy');
-        } catch (e) {
-            return dateString;
-        }
-    };
-
-    const studentFullName =
+    const student = data.studentTCList?.[0] || {};
+    const company = data.masterCompany?.[0] || {};
+    const fullName =
         data.studentFullName ||
         student.studentname ||
         `${student.amsT_FirstName || student.AMST_FirstName || ''} ${student.amsT_MiddleName || student.AMST_MiddleName || ''} ${student.amsT_LastName || student.AMST_LastName || ''}`.trim();
+    const lastClass = getText(
+        student.last_class_studied,
+        student.last_Class_Studied,
+        student.Last_Class_Studied,
+        student.asmcL_ClassName,
+        student.classname
+    );
+    const qualifiedClass = getText(student.qualificlass, data.nextclass, data.getnextclass?.[0]?.asmcL_ClassName);
+    const promotion = qualifiedClass !== '---' ? `Promoted To Std ${qualifiedClass}` : getText(student.astc_qual_promotionflag);
+    const casteCategory = getText(
+        data.studcastecategory,
+        (student.castecat || student.castecategory || '').toString().toUpperCase() === 'SC' ||
+            (student.castecat || student.castecategory || '').toString().toUpperCase() === 'ST'
+            ? 'YES'
+            : 'NO'
+    );
+    const leftValues = [
+        getText(student.amst_admno, student.amsT_AdmNo, student.AMST_AdmNo),
+        getText(student.govtno, student.amst_sol, student.AMST_SOL),
+        formatDate(student.amst_date, student.amsT_Date, student.AMST_Date, student.amst_admissiondate),
+        fullName.toUpperCase(),
+        getText(student.amst_sex, student.amsT_Sex, student.AMST_Sex).toUpperCase(),
+        getText(student.nationality, student.amst_nationality, student.AMST_Nationality, 'INDIAN').toUpperCase(),
+        `${getText(student.religion, student.AMST_Religion).toUpperCase()} / ${getText(student.caste, student.AMST_Caste).toUpperCase()}`,
+        getText(student.amst_fathername, student.amsT_FatherName, student.AMST_FatherName).toUpperCase(),
+        getText(student.amst_mothername, student.amsT_MotherName, student.AMST_MotherName).toUpperCase(),
+        casteCategory,
+        promotion,
+        formatDate(student.amst_dob, student.amsT_DOB, student.AMST_DOB),
+        getText(
+            student.amst_birthplace,
+            student.amsT_BirthPlace,
+            student.AMST_BirthPlace,
+            student.amst_percity,
+            student.amsT_PerCity
+        ).toUpperCase()
+    ];
+    const rightValues = [
+        lastClass,
+        [
+            `a) Languages Studied / ${getText(data.language_studied, student.subjectstudied).toUpperCase()}`,
+            `b) Elective Studied / ${getText(data.electivestudied, student.electivestudied).toUpperCase()}`
+        ].join('\n'),
+        '',
+        getText(
+            data.mediumofinstruction,
+            data.mediumOfInstruction,
+            student.mediumofinstruction,
+            student.mediumOfInstruction,
+            'ENGLISH'
+        ).toUpperCase(),
+        getText(student.astc_feepaid, student.ASTC_FeePaid).toUpperCase(),
+        getText(student.fee_concesion, student.fee_concession),
+        getText(student.astc_scholarship, student.ASTC_Scholarship),
+        getText(student.medicallyexamined, student.medicallyExamined, student.astc_medicallyexamined, 'YES').toUpperCase(),
+        formatDate(student.astc_lastattendeddate, student.astC_LastAttendedDate, student.ASTC_LastAttendedDate),
+        formatDate(student.astc_tcapplicationdate, student.astC_TCApplicationDate, student.ASTC_TCApplicationDate),
+        getText(student.noof_schooldays, student.noofSchoolDays),
+        getText(student.noof_daysattended, student.noOfDaysAttended),
+        getText(student.astc_conduct, student.astC_Conduct, student.ASTC_Conduct, 'GOOD').toUpperCase()
+    ];
 
-    const tcNo = student.astc_tcno || student.astC_TCNO || student.ASTC_TCNO || '---';
-    const admNo = student.amst_admno || student.amsT_AdmNo || student.AMST_AdmNo || '---';
-    const fatherName = student.amst_fathername || student.amsT_FatherName || student.AMST_FatherName || '---';
-    const motherName = student.amst_mothername || student.amsT_MotherName || student.AMST_MotherName || '---';
-    const dob = student.amst_dob || student.amsT_DOB || student.AMST_DOB || null;
-    const admissionDate = student.amst_date || student.amsT_Date || student.AMST_Date || student.amst_admissiondate || null;
-    const lastAttendedDate = student.astc_lastattendeddate || student.astC_LastAttendedDate || student.ASTC_LastAttendedDate || null;
-    const conduct = student.astc_conduct || student.astC_Conduct || student.ASTC_Conduct || '---';
-    const lastClassStudied = student.last_class_studied || student.last_Class_Studied || student.ASMCL_ClassName || '---';
-    const stsNo = data.govtno || student.amst_sol || student.AMST_SOL || '---';
+    const rows = [
+        { left: 'Admission No', right: 'Standard in which the student is studying at the time of leaving the School' },
+        { left: 'Cumulative Record No. / Enrollment No', right: 'Student opted Subject(s)', rightTall: true },
+        { left: 'Date of Admission to School', right: '' },
+        { left: 'Name of the Student full', right: 'Medium of Instruction' },
+        { left: 'Gender', right: 'Whether the Student has paid all the fees due to School' },
+        { left: 'Nationality', right: 'Fee Concession, if any (Nature and period to be specified)' },
+        { left: 'Religion / Caste', right: 'Scholarship if any (Nature and period to be specified)' },
+        { left: 'Name of the Father', right: 'Whether Medically Examined or not' },
+        { left: 'Name of the Mother', right: 'Month of student last attendance at the School' },
+        {
+            left: 'Whether the candidate belongs to Schedule Caste or Schedule Tribe',
+            right: 'Date on which the application for the Transfer Certificate was received'
+        },
+        {
+            left: 'Whether qualified for promotion to a Higher Standard',
+            right: 'Number of School Days to the date of leaving in academic year'
+        },
+        { left: 'Student Date of Birth', right: 'Number of Total Days the student attended in academic year' },
+        { left: 'Place', right: 'Character and Conduct' }
+    ];
+
+    const tcNo = getText(student.astc_tcno, student.astC_TCNO, student.ASTC_TCNO);
+    const academicYear =
+        data.fromyear && data.toyear ? `${data.fromyear}-${data.toyear}` : getText(student.academicyear, student.asmaY_Year);
+    const diseNo = getText(company.diseNo, company.dise_no, company.mI_DiseNo, '29200909303');
+    const issueDate = formatDate(student.astc_tcissuedate, student.astC_TCIssueDate, student.ASTC_TCIssueDate, data.getdate);
+    const institution = getText(student.institutionname, company.name, "Baldwin Boys' High School");
 
     return (
-        <div ref={ref} className='print-main-container'>
-            <style
-                dangerouslySetInnerHTML={{
-                    __html: `
-                @media print {
-                    @page { 
-                        size: A4 portrait; 
-                        margin: 0; 
-                    }
-                    body { 
-                        margin: 0 !important; 
-                        padding: 0 !important; 
-                        -webkit-print-color-adjust: exact !important; 
-                        print-color-adjust: exact !important; 
-                        background: white !important;
-                    }
-                    .print-main-container {
-                        visibility: visible !important;
-                        display: block !important;
-                        width: 210mm !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        background: white !important;
-                    }
-                    .print-page {
-                        visibility: visible !important;
-                        display: block !important;
-                        width: 210mm !important;
-                        min-height: 297mm !important;
-                        margin: 0 !important;
-                        padding: 15mm !important; /* Professional margin */
-                        position: relative !important;
-                        background: white !important;
-                        box-sizing: border-box !important;
-                    }
-                    .print-main-container * {
-                        visibility: visible !important;
-                    }
-                }
-                .print-page {
-                    width: 210mm;
-                    min-height: 297mm;
-                    margin: 0 auto;
-                    padding: 15mm;
-                    background: white;
-                    color: black;
-                    font-family: serif;
-                    box-sizing: border-box;
-                    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                }
-                @media screen {
-                    .print-page {
-                        box-shadow: 0 0 20px rgba(0,0,0,0.15);
-                        border: 1px solid #e2e8f0;
-                    }
-                }
-                .dotted-line {
-                    border-bottom: 2px dotted #000;
-                    padding: 0 8px;
-                    display: inline-block;
-                    font-weight: bold;
-                    font-style: italic;
-                }
-            `
-                }}
-            />
-
-            <div className='print-page'>
-                {/* Header / DISE NO Section */}
-                <div className='mt-4 space-y-8'>
-                    <div className='flex items-end justify-between border-b-0 pb-1'>
-                        <div className='flex items-baseline gap-2'>
-                            <span className='min-w-max font-medium text-[12pt] uppercase tracking-tight'>School DISE NO :</span>
-                            <span className='min-w-[120px] border-black border-b-2 px-2 text-center font-bold text-[13pt]'>
-                                29200909303
-                            </span>
-                        </div>
-                        <div className='flex max-w-xs flex-grow items-baseline justify-end gap-2'>
-                            <span className='min-w-max font-medium text-[12pt] uppercase tracking-tight'>STS.No :</span>
-                            <span className='dotted-line flex-grow text-center text-[13pt]'>{stsNo}</span>
-                        </div>
-                    </div>
-
-                    <div className='flex items-end justify-between border-b-0'>
-                        <div className='flex max-w-[280px] flex-grow items-baseline gap-2'>
-                            <span className='min-w-max font-medium text-[12pt] uppercase tracking-tight'>TC Serial No.:</span>
-                            <span className='dotted-line flex-grow text-center text-[13pt]'>{tcNo}</span>
-                        </div>
-                        <div className='flex max-w-[280px] flex-grow items-baseline justify-end gap-2'>
-                            <span className='min-w-max font-medium text-[12pt] uppercase tracking-tight'>Admission No :</span>
-                            <span className='dotted-line flex-grow text-center text-[13pt]'>{admNo}</span>
-                        </div>
-                    </div>
+        <div ref={ref} className='printable-content bbhs-tc-print'>
+            <style>{`
+                        .bbhs-tc-print {
+                            box-sizing: border-box;
+                            width: 210mm;
+                            min-height: 297mm;
+                            margin: 0 auto;
+                            padding: 8px 6px 12px;
+                            background: #fff;
+                            color: #173c69;
+                            font-family: Arial, sans-serif;
+                            font-size: 10px;
+                        }
+                        .bbhs-tc-print * { box-sizing: border-box; }
+                        .bbhs-tc-header {
+                            display: grid;
+                            grid-template-columns: 1fr 1fr 1fr;
+                            align-items: center;
+                            min-height: 24px;
+                            border: 1px solid #c8d6e5;
+                            padding: 4px 22px;
+                            white-space: nowrap;
+                        }
+                        .bbhs-tc-header > :nth-child(2) { text-align: center; }
+                        .bbhs-tc-header > :last-child { text-align: right; }
+                        .bbhs-tc-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            table-layout: fixed;
+                            line-height: 1.45;
+                        }
+                        .bbhs-tc-table td {
+                            width: 50%;
+                            border: 1px solid #c8d6e5;
+                            padding: 6px 9px;
+                            vertical-align: top;
+                        }
+                        .bbhs-tc-table td:first-child { border-right-color: #b8cce0; }
+                        .bbhs-tc-label { margin-right: 4px; }
+                        .bbhs-tc-value { font-weight: 700; }
+                        .bbhs-tc-subjects { white-space: pre-line; }
+                        .bbhs-tc-footer {
+                            display: flex;
+                            justify-content: space-between;
+                            margin: 66px 12px 0;
+                        }
+                        .bbhs-tc-principal {
+                            margin: 16px 18px 0 0;
+                            text-align: right;
+                            line-height: 1.5;
+                        }
+                        @media print {
+                            @page { size: A4 portrait; margin: 0; }
+                            body { margin: 0 !important; padding: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+                            .bbhs-tc-print { width: 210mm !important; min-height: 297mm !important; margin: 0 !important; padding: 8px 6px 12px !important; }
+                        }
+                    `}</style>
+            <div className='bbhs-tc-header'>
+                <div>
+                    School Dise No : <b>{diseNo}</b>
                 </div>
-
-                {/* Formal Body Text */}
-                <div className='mt-10 space-y-5 text-[14pt] leading-[1.6]'>
-                    <div className='flex items-baseline gap-3'>
-                        <span className='min-w-max whitespace-nowrap'>This is to certify that</span>
-                        <div className='dotted-line flex-grow text-center text-[16pt] uppercase not-italic'>{studentFullName}</div>
-                    </div>
-
-                    <div className='flex items-baseline gap-3'>
-                        <span className='min-w-max whitespace-nowrap'>son of</span>
-                        <div className='dotted-line flex-grow text-center text-[13pt]'>
-                            (Father) &nbsp; <span className='font-bold uppercase not-italic'>{fatherName}</span> &nbsp;&nbsp;&nbsp; (Mother)
-                            &nbsp; <span className='font-bold uppercase not-italic'>{motherName}</span>
-                        </div>
-                    </div>
-
-                    <div className='flex items-baseline gap-3'>
-                        <span className='min-w-max whitespace-nowrap'>was admitted into this school on the</span>
-                        <div className='dotted-line flex-grow text-center text-[13pt]'>
-                            <span className='font-bold not-italic'>{formatDate(admissionDate)}</span> For{' '}
-                            <span className='font-bold not-italic'>{joinclass}</span>
-                        </div>
-                    </div>
-
-                    <div className='flex items-baseline gap-3'>
-                        <span className='min-w-max whitespace-nowrap'>on a transfer certificate from</span>
-                        <div className='dotted-line flex-grow text-center text-[13pt]'>{stuschoolname || '---'}</div>
-                        <span className='min-w-max whitespace-nowrap'>School</span>
-                    </div>
-
-                    <div className='flex flex-wrap items-baseline gap-x-3 gap-y-4'>
-                        <span className='whitespace-nowrap'>and left on the</span>
-                        <div className='dotted-line min-w-[160px] text-center text-[13pt]'>{formatDate(lastAttendedDate)}</div>
-                        <span className='whitespace-nowrap px-2'>with a</span>
-                        <div className='dotted-line min-w-[140px] text-center text-[13pt] uppercase'>{conduct}</div>
-                        <span className='whitespace-nowrap'>character.</span>
-                    </div>
-
-                    <div className='flex flex-wrap items-baseline gap-x-2 gap-y-4'>
-                        <span className='whitespace-nowrap'>He belongs to the</span>
-                        <div className='dotted-line min-w-[120px] text-center text-[13pt]'>
-                            {student.religion || student.AMST_Religion || '---'}
-                        </div>
-                        <span className='whitespace-nowrap px-1'>religion</span>
-                        <div className='dotted-line min-w-[120px] text-center text-[13pt]'>
-                            {student.caste || student.AMST_Caste || '---'}
-                        </div>
-                        <span className='flex-grow whitespace-nowrap text-right'>caste as per the school records.</span>
-                    </div>
-
-                    <div className='flex flex-wrap items-baseline gap-x-2 gap-y-4'>
-                        <span className='whitespace-nowrap'>He was then studying in</span>
-                        <div className='dotted-line min-w-[160px] text-center text-[14pt] uppercase'>
-                            {std1} {lastClassStudied}
-                        </div>
-                        <span className='whitespace-nowrap px-4 font-normal italic opacity-80'>of the</span>
-                        <div className='dotted-line min-w-[120px] text-center text-[13pt] not-italic tracking-[0.2em]'>ICSE</div>
-                        <span className='whitespace-nowrap'>stream,</span>
-                    </div>
-
-                    <div className='flex items-baseline gap-3'>
-                        <span className='min-w-max whitespace-nowrap'>the school year being from</span>
-                        <div className='dotted-line flex-grow text-center text-[13pt] uppercase tracking-wider'>
-                            JUNE {fromyear} TO APRIL {toyear}
-                        </div>
-                    </div>
+                <div>
+                    TC No : <b>{tcNo}</b>
                 </div>
-
-                {/* Sums Due Section */}
-                <div className='mt-8 mb-6'>
-                    <div className='flex items-start gap-12'>
-                        <div className='w-[45%] font-semibold text-[11pt] uppercase leading-snug tracking-tight'>
-                            All sums due to this School
-                            <br />
-                            On his account have been
-                        </div>
-
-                        <div className='mt-[-10px] origin-top scale-y-[1.8] transform select-none font-thin text-[40pt] text-slate-400 italic leading-[0.5]'>
-                            {'}'}
-                        </div>
-
-                        <div className='w-[45%] space-y-1 font-bold text-[11pt] text-slate-800 italic'>
-                            <div className='flex items-center gap-2'>
-                                <span className='text-[14pt] leading-none'>-</span> PAID
-                            </div>
-                            <div className='flex items-center gap-2'>
-                                <span className='text-[14pt] leading-none'>-</span> REMITTED
-                            </div>
-                            <div className='flex items-center gap-2 whitespace-nowrap'>
-                                <span className='text-[14pt] leading-none'>-</span> SATISFACTORILY ARRANGED FOR
-                            </div>
-                        </div>
-                    </div>
+                <div>
+                    Academic Year : <b>{academicYear}</b>
                 </div>
-
-                {/* DOB Section */}
-                <div className='mt-8 space-y-6 text-[13pt]'>
-                    <div className='flex items-baseline gap-3'>
-                        <span className='whitespace-nowrap'>His date of birth, according to the Admission Register, is (in figures)</span>
-                        <div className='dotted-line flex-grow text-center text-[14pt]'>{formatDate(dob)}</div>
-                    </div>
-
-                    <div className='flex items-baseline gap-3'>
-                        <span className='min-w-max whitespace-nowrap px-4 text-slate-600 italic'>(in words)</span>
-                        <div className='dotted-line flex-grow text-center text-[12pt] uppercase tracking-tight'>{stuDobwords || '---'}</div>
-                    </div>
-
-                    <div className='flex items-baseline gap-3 border-t-0 pt-2'>
-                        <span className='min-w-max whitespace-nowrap'>Promotion</span>
-                        <div className='dotted-line flex-grow text-center text-[13pt] uppercase'>
-                            {std} {nextclass} &nbsp;&nbsp; {nextclassname}
-                        </div>
-                    </div>
+            </div>
+            <table className='bbhs-tc-table'>
+                <tbody>
+                    {rows.map((row, index) => {
+                        const leftNumber = index + 1;
+                        const rightNumber = index + 14 - (index >= 3 ? 1 : 0);
+                        return (
+                            <tr key={leftNumber}>
+                                <td>
+                                    <span className='bbhs-tc-label'>{leftNumber}.</span>
+                                    {row.left} : <span className='bbhs-tc-value'>{leftValues[index]}</span>
+                                </td>
+                                <td rowSpan={row.rightTall ? 2 : undefined}>
+                                    {row.right && (
+                                        <>
+                                            <span className='bbhs-tc-label'>{rightNumber}.</span>
+                                            {row.right} :{' '}
+                                            <span className={`bbhs-tc-value ${rightNumber === 15 ? 'bbhs-tc-subjects' : ''}`}>
+                                                {rightValues[index]}
+                                            </span>
+                                        </>
+                                    )}
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
+            <div className='bbhs-tc-footer'>
+                <div>
+                    Date of Issue: <u>{issueDate}</u>
                 </div>
-
-                {/* Signatures Section */}
-                <div className='mt-16 flex items-end justify-between pb-4'>
-                    <div className='flex items-baseline gap-2'>
-                        <span className='font-semibold text-[12pt] uppercase'>Date :</span>
-                        <div className='dotted-line min-w-[200px] text-center text-[13pt]'>{formatDate(getdate)}</div>
-                    </div>
-
-                    <div className='px-4 text-center'>
-                        <div className='border-black border-t-2 px-8 pt-2 font-bold text-[14pt] uppercase tracking-widest'>
-                            ( Principal )
-                        </div>
-                    </div>
+                <div>Principal Sign: ....................................</div>
+            </div>
+            <div className='bbhs-tc-principal'>
+                <div>
+                    <b>PRINCIPAL</b>
                 </div>
-
-                <div className='absolute right-0 bottom-6 left-0 mx-12 border-t pt-3 text-center font-medium text-[10pt] text-slate-500 uppercase tracking-tighter'>
-                    [Final Class Standard X - Indian Certificate of Secondary Education (ICSE)]
-                </div>
+                <div>{institution}</div>
+                <div>{getText(company.city, 'BANGALORE')}</div>
             </div>
         </div>
     );
