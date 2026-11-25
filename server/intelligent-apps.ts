@@ -43,7 +43,7 @@ export interface TranslatorDTO {
 }
 
 export async function chatGPT(data: ChatgptDTO): Promise<ChatgptDTO> {
-    const apiKey = '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';
+    const apiKey = process.env.chatgpt_groq_api_key || process.env.chat_Groq_api_key || process.env.GROQ_API_KEY || '';
     const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
     const maxTokens = 500;
     const temperature = 0.5;
