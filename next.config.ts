@@ -1,6 +1,18 @@
 import type { NextConfig } from 'next';
 
+// Automatically ensure Groq keys have the gsk_ prefix at runtime
+const groqEnv: Record<string, string> = {};
+for (const [key, value] of Object.entries(process.env)) {
+    if (key.toLowerCase().includes('groq') && typeof value === 'string' && value.trim().length > 0) {
+        const trimmed = value.trim().replace(/^["']|["']$/g, '');
+        const formatted = trimmed.startsWith('gsk_') ? trimmed : `gsk_${trimmed}`;
+        process.env[key] = formatted;
+        groqEnv[key] = formatted;
+    }
+}
+
 const nextConfig: NextConfig = {
+    env: groqEnv,
     output: 'standalone',
 
     reactStrictMode: false,
