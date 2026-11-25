@@ -65,8 +65,8 @@ export default function OralReSchedulePage() {
             if (sortBy === 'paotS_ScheduleDate') {
                 const aTime = new Date(aVal).getTime();
                 const bTime = new Date(bVal).getTime();
-                if (isNaN(aTime)) return 1;
-                if (isNaN(bTime)) return -1;
+                if (Number.isNaN(aTime)) return 1;
+                if (Number.isNaN(bTime)) return -1;
                 return order === 'asc' ? aTime - bTime : bTime - aTime;
             }
 

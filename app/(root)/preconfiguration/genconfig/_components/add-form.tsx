@@ -477,7 +477,16 @@ export default function GenConfigAddForm({ pagelist, usernamearray }: GenConfigA
                                                 <Label>
                                                     Mobile No. For OTP <span className='text-destructive'>*</span>
                                                 </Label>
-                                                <Input {...register('IVRMGC_OTPMobileNo')} maxLength={10} />
+                                                <Input
+                                                    {...register('IVRMGC_OTPMobileNo', {
+                                                        onChange: (e) => {
+                                                            e.target.value = e.target.value.replace(/\D/g, '');
+                                                        },
+                                                    })}
+                                                    maxLength={10}
+                                                    inputMode='numeric'
+                                                    pattern='[0-9]*'
+                                                />
                                                 {errors.IVRMGC_OTPMobileNo && (
                                                     <p className='text-destructive text-sm'>{errors.IVRMGC_OTPMobileNo.message}</p>
                                                 )}
