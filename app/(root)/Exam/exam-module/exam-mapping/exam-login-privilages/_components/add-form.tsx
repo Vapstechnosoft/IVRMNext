@@ -140,11 +140,14 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     console.info(employee);
                     // Determine entry type based on elP_Flg
                     let entryType = 'BY_CLASS_TEACHER';
+                    let entryFlag = 'ct';
                     if (editList[0].elP_Flg === 'st') {
                         entryType = 'BY_SUBJECT_TEACHER';
+                        entryFlag = 'st';
                         setActiveTab(1);
                     } else if (editList[0].elP_Flg === 'others') {
                         entryType = 'BY_OTHERS';
+                        entryFlag = 'others';
                         setActiveTab(2);
                     } else {
                         setActiveTab(0);
@@ -231,7 +234,7 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                             year: yearInfo?.asmaY_Year || '',
                             emp_name: employeeName,
                             emp_Id: employee?.hrmE_Id || editList[0]?.hrmE_Id || 0,
-                            elpflg: entryType,
+                            elpflg: entryFlag,
                             clas: group.class,
                             secs: group.section,
                             sub: Array.from(group.subjects),
@@ -455,19 +458,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             return;
         }
 
-        const existingPairs = new Set(details.map((d) => `${d.clas?.asmcL_Id}_${d.secs?.asmS_Id}_${d.yearid}_${d.user_id}_${d.emp_Id}`));
-        const filtered = rowsToAdd.filter(
-            (r) => !existingPairs.has(`${r.clas?.asmcL_Id}_${r.secs?.asmS_Id}_${r.yearid}_${r.user_id}_${r.emp_Id}`)
-        );
-
-        if (filtered.length === 0) {
-            toast.error('Selected Class-Section combination(s) already added');
-            return;
-        }
-
-        setDetails((prev) => [...prev, ...filtered]);
+        setDetails((prev) => [...prev, ...rowsToAdd]);
         reset();
-        toast.info(`${filtered.length} Login Privileges added`);
+        toast.info(`${rowsToAdd.length} Login Privileges added`);
     }
 
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>

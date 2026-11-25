@@ -94,6 +94,16 @@ export function normalizeContactType(flag?: string | null): string {
     return 'Default';
 }
 
+function areAddressValuesEqual(communication: readonly unknown[], permanent: readonly unknown[]): boolean {
+    const normalize = (value: unknown) => String(value ?? '').trim();
+    const communicationValues = communication.map(normalize);
+    const permanentValues = permanent.map(normalize);
+
+    return communicationValues.some(Boolean) &&
+        communicationValues.length === permanentValues.length &&
+        communicationValues.every((value, index) => value === permanentValues[index]);
+}
+
 /**
  * Map form data to API format for SavePersonalDetails
  * Uses lowercase field names and sends null for empty strings
@@ -1159,7 +1169,24 @@ export function mapApiResponseToFormFields(apiData: any, targetId?: number): Par
         permanentState: numToString(v('hrmE_PerStateId')),
         permanentCountry: numToString(v('hrmE_PerCountryId')),
         permanentPincode: numToString(v('hrmE_PerPincode')),
-        sameAsCommunicationAddress: false, // Will be set based on comparison
+        sameAsCommunicationAddress: areAddressValuesEqual(
+            [
+                v('hrmE_LocStreet') || '',
+                v('hrmE_LocArea') || '',
+                numToString(v('hrmE_LocCountryId')),
+                numToString(v('hrmE_LocStateId')),
+                v('hrmE_LocCity') || '',
+                numToString(v('hrmE_LocPincode'))
+            ],
+            [
+                v('hrmE_PerStreet') || '',
+                v('hrmE_PerArea') || '',
+                numToString(v('hrmE_PerCountryId')),
+                numToString(v('hrmE_PerStateId')),
+                v('hrmE_PerCity') || '',
+                numToString(v('hrmE_PerPincode'))
+            ]
+        ),
         // PF Details
         pfApplicable: v('hrmE_PFApplicableFlag') || false,
         pfMaxAmount: v('hrmE_PFMaxFlag') || false,
@@ -1584,7 +1611,24 @@ export function mapApiResponseToTab2Fields(apiData: any): Partial<FormFields> {
         permanentState: numToString(v('hrmE_PerStateId')),
         permanentCountry: numToString(v('hrmE_PerCountryId')),
         permanentPincode: numToString(v('hrmE_PerPincode')),
-        sameAsCommunicationAddress: false // Will be set based on comparison
+        sameAsCommunicationAddress: areAddressValuesEqual(
+            [
+                v('hrmE_LocStreet') || '',
+                v('hrmE_LocArea') || '',
+                numToString(v('hrmE_LocCountryId')),
+                numToString(v('hrmE_LocStateId')),
+                v('hrmE_LocCity') || '',
+                numToString(v('hrmE_LocPincode'))
+            ],
+            [
+                v('hrmE_PerStreet') || '',
+                v('hrmE_PerArea') || '',
+                numToString(v('hrmE_PerCountryId')),
+                numToString(v('hrmE_PerStateId')),
+                v('hrmE_PerCity') || '',
+                numToString(v('hrmE_PerPincode'))
+            ]
+        )
     };
 }
 

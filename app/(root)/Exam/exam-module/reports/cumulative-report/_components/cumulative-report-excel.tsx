@@ -58,10 +58,12 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
             .reduce((acc, s) => acc + (Number(s.estmpS_MaxMarks) || 0), 0);
         if (subjectsMax > 0) return subjectsMax;
 
-        return (student.estmP_TotalMaxMarks != null && student.estmP_TotalMaxMarks !== 0 && student.estmP_TotalMaxMarks !== '0')
+       
+        return (student.estmP_TotalMaxMarks != null && student.estmP_TotalMaxMarks !== 0)
             ? student.estmP_TotalMaxMarks
             : '-';
     };
+
 
     const getTotalObtMarks = (student: ICumulativeReport) => {
         if (student.estmP_Result === 'AB') return '';
@@ -79,8 +81,12 @@ export default function CumulativeReportExcel({ reportData, subjects, headerInfo
             return acc;
         }, 0) ?? 0;
         if (hasMarks) return validObt;
-        return (student.estmP_TotalObtMarks != null && student.estmP_TotalObtMarks !== 0 && student.estmP_TotalObtMarks !== '0') ? student.estmP_TotalObtMarks : '-';
+        
+        return (student.estmP_TotalMaxMarks != null && student.estmP_TotalMaxMarks !== 0)
+            ? student.estmP_TotalMaxMarks
+            : '-';
     };
+
 
     const exportToExcel = () => {
         if (!reportData.length) return;

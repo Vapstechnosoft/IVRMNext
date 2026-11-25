@@ -36,6 +36,7 @@ interface DataTableProps<TData, TValue> {
     showSearch?: boolean;
     showSorting?: boolean;
     columnPinning?: ColumnPinningState | undefined;
+    tableContainerClassName?: string;
     onSearchQueryChange?: (value: ApiSearchparams) => void;
     maxSelectableRows?: number;
     defaultSelectedRowIds?: string[];
@@ -61,6 +62,7 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
         showSearch,
         showSorting = false,
         columnPinning,
+        tableContainerClassName,
         maxSelectableRows = 0,
         defaultSelectedRowIds,
         onRowSelectionChange,
@@ -254,7 +256,7 @@ function DataTableInner<TData, TValue>(props: DataTableProps<TData, TValue>, ref
                 <>
                     {/* ---------- FIXED TABLE STRUCTURE ---------- */}
                     <div className='overflow-hidden rounded-md border'>
-                        <div className='relative max-h-[520px] overflow-auto'>
+                        <div className={cn('relative max-h-[520px] overflow-auto', tableContainerClassName)}>
                             {' '}
                             {/* SINGLE SCROLL CONTAINER */}
                             <Table className='min-w-full table-fixed border-separate border-spacing-0'>

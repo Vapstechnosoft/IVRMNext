@@ -104,6 +104,7 @@ function ExamSubjectWizardDetailsPageContent({
                     errorTitle='Error Loading Details'
                     showViewOptions={false}
                     columnPinning={{ right: ['mapping', 'actions'] }}
+                    tableContainerClassName='max-h-[200px] overflow-x-auto overflow-y-auto'
                 />
 
                 <FormSections />
