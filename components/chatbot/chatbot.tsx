@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUserAccessibleModules } from '@/hooks/common';
+import { blobToFile, enhanceAndConvertToWav } from '@/lib/audio-utils';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bot, Maximize2, MessageSquare, Minimize2, Minus, Send, Sparkles, X } from 'lucide-react';
+import { Bot, Maximize2, Mic, Minimize2, Minus, Send, Sparkles, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 interface Message {
     id: string;
@@ -45,7 +47,7 @@ export const Chatbot = () => {
     const [messages, setMessages] = useState<Message[]>([
         {
             id: '1',
-            text: `Hello! I am your AI VRM Help Desk. Select an option below or type your query once enabled.`,
+            text: 'Hello! I am your AI VRM Help Desk. Select an option below or type your query once enabled.',
             role: 'assistant',
             timestamp: new Date()
         }
@@ -68,6 +70,140 @@ export const Chatbot = () => {
     const [menuState, setMenuState] = useState<MenuState>('ROOT');
     const scrollRef = useRef<HTMLDivElement>(null);
 
+    // Speech-to-Text Integration
+    const [isRecording, setIsRecording] = useState(false);
+    const [isTranscribing, setIsTranscribing] = useState(false);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const chunksRef = useRef<BlobPart[]>([]);
+    const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    const startRecording = async () => {
+        try {
+            if (!isChatEnabled) {
+                setIsChatEnabled(true);
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(stream);
+            chunksRef.current = [];
+
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunksRef.current.push(e.data);
+            };
+
+            recorder.onstop = async () => {
+                const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+                stream.getTracks().forEach((t) => t.stop());
+
+                if (blob.size < 1000) {
+                    toast.error('No audio detected. Please speak louder.');
+                    setIsTranscribing(false);
+                    return;
+                }
+
+                setIsTranscribing(true);
+
+                try {
+                    const wavBlob = await enhanceAndConvertToWav(blob);
+                    const file = blobToFile(wavBlob, 'helpdesk-voice.wav');
+
+                    const apiFormData = new FormData();
+                    apiFormData.append('audio', file);
+
+                    let transcript = '';
+
+                    // 1. Primary: Direct call to external STT API as requested
+                    try {
+                        const externalRes = await fetch('https://stt-mobile.onrender.com/transcribe', {
+                            method: 'POST',
+                            body: apiFormData
+                        });
+
+                        if (externalRes.ok) {
+                            const resData = await externalRes.json();
+                            if (resData) {
+                                if (typeof resData === 'string') {
+                                    transcript = resData;
+                                } else {
+                                    transcript =
+                                        resData.text ||
+                                        resData.transcript ||
+                                        resData.transcription ||
+                                        resData.transcribedText ||
+                                        resData.data?.text ||
+                                        resData.data?.transcript ||
+                                        '';
+                                }
+                            }
+                        }
+                    } catch (directErr) {
+                        console.warn(
+                            '[HelpDesk Voice] Direct external fetch failed (CORS/network), falling back to /api/header-voice:',
+                            directErr
+                        );
+                    }
+
+                    // 2. Fallback: Internal Next.js proxy route /api/header-voice
+                    if (!transcript?.trim()) {
+                        const res = await fetch('/api/header-voice', {
+                            method: 'POST',
+                            body: apiFormData
+                        });
+
+                        if (res.ok) {
+                            const result = await res.json();
+                            if (result.text?.trim()) {
+                                transcript = result.text.trim();
+                            }
+                        }
+                    }
+
+                    if (transcript?.trim()) {
+                        const recognizedText = transcript.trim();
+                        setInput((prev) => (prev ? `${prev} ${recognizedText}` : recognizedText));
+                        toast.success('Voice recognized!');
+                    } else {
+                        toast.error('Speech not recognized. Please try again.');
+                    }
+                } catch (err: any) {
+                    console.error('Transcription error:', err);
+                    toast.error(`Transcription failed: ${err.message}`);
+                } finally {
+                    setIsTranscribing(false);
+                }
+            };
+
+            recorder.start();
+            mediaRecorderRef.current = recorder;
+            setIsRecording(true);
+
+            // Longer timeout for speech input (10 seconds)
+            recordingTimeoutRef.current = setTimeout(() => {
+                if (mediaRecorderRef.current?.state === 'recording') {
+                    stopRecording();
+                }
+            }, 10000);
+        } catch (err: any) {
+            console.error('Microphone error:', err);
+            toast.error(`Microphone access denied: ${err.message}`);
+        }
+    };
+
+    const stopRecording = () => {
+        if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+        if (mediaRecorderRef.current?.state === 'recording') {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+        }
+    };
+
+    // Clean up recording on unmount
+    useEffect(() => {
+        return () => {
+            if (recordingTimeoutRef.current) clearTimeout(recordingTimeoutRef.current);
+        };
+    }, []);
+
     // Initial Mount
     useEffect(() => {
         setMounted(true);
@@ -79,7 +215,7 @@ export const Chatbot = () => {
             setMessages([
                 {
                     id: '1',
-                    text: `Hello! I am your AI VRM Help Desk. How can I assist you today?`,
+                    text: 'Hello! I am your AI VRM Help Desk. How can I assist you today?',
                     role: 'assistant',
                     timestamp: new Date()
                 }
@@ -698,18 +834,21 @@ export const Chatbot = () => {
                             </div>
                             <div className='flex items-center gap-1'>
                                 <button
+                                    type='button'
                                     onClick={() => setIsMinimized(true)}
                                     className='rounded-md p-1.5 transition-colors hover:bg-white/10'
                                     title='Minimize'>
                                     <Minus className='h-4 w-4' />
                                 </button>
                                 <button
+                                    type='button'
                                     onClick={() => setIsMaximized(!isMaximized)}
                                     className='rounded-md p-1.5 transition-colors hover:bg-white/10'
                                     title={isMaximized ? 'Restore' : 'Maximize'}>
                                     {isMaximized ? <Minimize2 className='h-4 w-4' /> : <Maximize2 className='h-4 w-4' />}
                                 </button>
                                 <button
+                                    type='button'
                                     onClick={() => setIsOpen(false)}
                                     className='rounded-md p-1.5 transition-colors hover:bg-white/10'
                                     title='Close'>
@@ -762,6 +901,7 @@ export const Chatbot = () => {
                                             <div className='flex flex-wrap gap-2'>
                                                 {ACTIVE_MENU_STRUCTURE[menuState]?.map((opt: any, i: number) => (
                                                     <button
+                                                        type='button'
                                                         key={i}
                                                         onClick={() => handleOptionClick(opt)}
                                                         className='flex items-center gap-2 rounded-full border border-border/60 bg-white px-3 py-2 text-left text-foreground/80 text-xs shadow-sm transition-all hover:bg-slate-100 dark:bg-zinc-800 dark:hover:bg-zinc-700'>
@@ -774,6 +914,7 @@ export const Chatbot = () => {
                                             {/* Back Button for Sub-menus */}
                                             {menuState !== 'ROOT' && (
                                                 <button
+                                                    type='button'
                                                     onClick={() => setMenuState('ROOT')}
                                                     className='mt-2 flex items-center gap-1 self-start px-2 text-[10px] text-muted-foreground transition-colors hover:text-primary'>
                                                     ← Back to Main Menu
@@ -806,11 +947,44 @@ export const Chatbot = () => {
                                         value={input}
                                         onChange={(e) => setInput(e.target.value)}
                                         onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                                        placeholder={isChatEnabled ? 'Type your query precisely...' : "Click 'My query not listed' to type"}
-                                        className='h-11 rounded-xl border-none bg-slate-100 pr-10 shadow-inner focus-visible:ring-2 focus-visible:ring-primary/20 disabled:opacity-50 dark:bg-zinc-800'
-                                        disabled={isLoading || !isChatEnabled}
+                                        placeholder={
+                                            isRecording
+                                                ? 'Listening... Speak now'
+                                                : isTranscribing
+                                                  ? 'Transcribing audio...'
+                                                  : isChatEnabled
+                                                    ? 'Type your query precisely...'
+                                                    : "Click 'My query not listed' or mic to speak"
+                                        }
+                                        className={cn(
+                                            'h-11 rounded-xl border-none bg-slate-100 pr-12 shadow-inner transition-all focus-visible:ring-2 focus-visible:ring-primary/20 disabled:opacity-50 dark:bg-zinc-800',
+                                            isRecording && 'bg-purple-50/50 ring-2 ring-purple-500 dark:bg-purple-950/20'
+                                        )}
+                                        disabled={isLoading || (!isChatEnabled && !isRecording)}
                                     />
-                                    <MessageSquare className='-translate-y-1/2 absolute top-1/2 right-3 h-4 w-4 text-muted-foreground/40' />
+                                    <button
+                                        type='button'
+                                        onClick={isRecording ? stopRecording : startRecording}
+                                        disabled={isLoading || isTranscribing}
+                                        className={cn(
+                                            '-translate-y-1/2 absolute top-1/2 right-2 flex h-8 w-8 items-center justify-center rounded-lg transition-all duration-300',
+                                            isRecording
+                                                ? 'z-10 scale-110 animate-bounce bg-purple-600 text-white shadow-[0_0_15px_rgba(139,92,246,0.6)]'
+                                                : 'text-muted-foreground/60 hover:bg-purple-50 hover:text-purple-600 dark:hover:bg-zinc-700 dark:hover:text-purple-400'
+                                        )}
+                                        title={isRecording ? 'Stop recording' : 'Voice input (Speech to Text)'}>
+                                        {isTranscribing ? (
+                                            <div className='flex items-center justify-center gap-1'>
+                                                <div className='h-1.5 w-1.5 animate-bounce rounded-full bg-purple-400 [animation-delay:-0.3s]' />
+                                                <div className='h-1.5 w-1.5 animate-bounce rounded-full bg-purple-500 [animation-delay:-0.15s]' />
+                                                <div className='h-1.5 w-1.5 animate-bounce rounded-full bg-purple-600' />
+                                            </div>
+                                        ) : isRecording ? (
+                                            <Mic className='h-4 w-4 animate-pulse text-white' />
+                                        ) : (
+                                            <Mic className='h-4 w-4 text-purple-600 transition-colors' />
+                                        )}
+                                    </button>
                                 </div>
                                 <Button
                                     size='icon'
