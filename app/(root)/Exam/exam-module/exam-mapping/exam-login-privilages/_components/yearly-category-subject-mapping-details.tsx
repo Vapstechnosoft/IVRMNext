@@ -78,6 +78,7 @@ export default function LoginPrivilegesDetailsPage({ rowData, onClose }: LoginPr
                         noDataDescription='No privilege mapping available for this user.'
                         errorTitle='Error Loading Privileges'
                         showViewOptions={false}
+                        tableContainerClassName='h-[110px] overflow-x-scroll overflow-y-scroll [&>table]:min-w-[1100px]'
                     />
 
                     <FormSections elpId={rowData.elP_Id} asmclId={rowData.asmcL_Id} asmsId={rowData.asmS_Id} />

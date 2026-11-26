@@ -102,7 +102,7 @@ export default function CumulativeReportPrintView({
             .reduce((acc, s) => acc + (Number(s.estmpS_MaxMarks) || 0), 0);
         if (subjectsMax > 0) return subjectsMax;
 
-        return (student.estmP_TotalMaxMarks != null && student.estmP_TotalMaxMarks !== 0 && student.estmP_TotalMaxMarks !== '0')
+        return (student.estmP_TotalMaxMarks != null && student.estmP_TotalMaxMarks !== 0)
             ? student.estmP_TotalMaxMarks
             : '-';
     };
@@ -123,7 +123,9 @@ export default function CumulativeReportPrintView({
             return acc;
         }, 0) ?? 0;
         if (hasMarks) return validObt;
-        return (student.estmP_TotalObtMarks != null && student.estmP_TotalObtMarks !== 0 && student.estmP_TotalObtMarks !== '0') ? student.estmP_TotalObtMarks : '-';
+         return (student.estmP_TotalMaxMarks != null && student.estmP_TotalMaxMarks !== 0)
+            ? student.estmP_TotalMaxMarks
+            : '-';
     };
 
     const schoolName = headerInfo.mI_Name || institution?.mI_Name || "BALDWIN BOYS' HIGH SCHOOL";
