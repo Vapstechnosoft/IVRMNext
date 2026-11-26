@@ -3,10 +3,16 @@ import { type ApiResponse, api } from '@/lib/apiService';
 export const server = {
     getInitialData: async (orgId: number, instId: number): Promise<ApiResponse<any>> => {
         try {
-            return await api.post('preadmission', '/student_application_form/academicyear_dropdown', { Organization: orgId, Institute: instId });
+            return await api.post('preadmission', '/student_application_form/academicyear_dropdown', {
+                Organization: orgId,
+                Institute: instId
+            });
         } catch {
             try {
-                return await api.post('preadmission', '/student_application_form/country', { Organization: orgId, Institute: instId });
+                return await api.post('preadmission', '/student_application_form/country_drop_down_list', {
+                    Organization: orgId,
+                    Institute: instId
+                });
             } catch {
                 return await api.post('preadmission', '/StudentApplication/getdpforreg', { Organization: orgId, Institute: instId });
             }
@@ -38,7 +44,7 @@ export const server = {
     },
 
     getStates: async (IVRMMC_Id: number): Promise<ApiResponse<any>> => {
-        return api.get('preadmission', '/student_application_form/getdpstate', { params: { IVRMMC_Id } });
+        return api.getArray<any>('preadmission', `/student_application_form/state_drop_down_list?country_id=${IVRMMC_Id}`);
     },
 
     getDistricts: async (stateId: number): Promise<ApiResponse<any>> => {
@@ -109,8 +115,8 @@ export const server = {
         return api.post('preadmission', '/student_application_form/paynow', payload);
     },
 
-    getCountry: async (): Promise<ApiResponse<any>> => {
-        return api.post('preadmission', '/student_application_form/country', {});
+    getCountry: async (): Promise<ApiResponse<any[]>> => {
+        return api.getArray<any>('preadmission', '/student_application_form/country_drop_down_list');
     },
 
     saveHealthCertificateDetail: async (payload: any): Promise<ApiResponse<any>> => {
