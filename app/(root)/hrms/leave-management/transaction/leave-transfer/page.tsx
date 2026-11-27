@@ -120,6 +120,7 @@ function FormSections() {
     const deleteLeaveStatus = useDeleteLeaveStatusById();
     const [activeTab, setActiveTab] = useState('Leave Updation');
 
+
     // --- State for Filters in Form ---
     const [selectedTypeIds, setSelectedTypeIds] = useState<number[]>([]);
     const [selectedDeptIds, setSelectedDeptIds] = useState<number[]>([]);
@@ -127,7 +128,7 @@ function FormSections() {
 
     // --- Master Data Hooks ---
     const { data: groupTypesData, isLoading: isLoadingTypes } = useReportGroupTypes();
-
+    console.log('groupTypesData', groupTypesData);
     const groupTypeIdsStr = selectedTypeIds.join(',');
     const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIdsStr);
 
@@ -161,6 +162,7 @@ function FormSections() {
     }, [leavesData]);
 
     console.log("leavesData", leaveNames);
+    console.log("editform", selectedRow);
 
     // --- Mapped Data ---
     const types = useMemo(() => {
@@ -336,6 +338,7 @@ function FormSections() {
                                         activeTab='Leave Updation'
                                         onSubmit={handleFormSubmit}
                                         onCancel={closeEditForm}
+                                        selectedRecord={selectedRow}
                                         defaultValues={{
                                             leaveYear: String(selectedRow.hrmlY_Id),
                                             leaveName: String(selectedRow.hrmL_Id)

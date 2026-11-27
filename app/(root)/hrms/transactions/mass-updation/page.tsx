@@ -218,7 +218,7 @@ export default function MassUpdationPage() {
 
     const onSave = () => {
         const formData = getValues();
-
+        console.log('Form Data:', formData);
         if (selectedEmployeeIds.length === 0) {
             toast.error('Please select at least one employee from the list');
             return;

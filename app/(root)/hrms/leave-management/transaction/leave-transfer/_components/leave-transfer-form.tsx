@@ -10,8 +10,9 @@ import {
     useLeaveCreditAndBalanceGrid,
     useUpdateLeaveStatusTab
 } from '@/hooks/hrms/leave-management/useTransactions';
+import type { LeaveCreditBalanceGridItem } from '@/types/hrms/leave-management/leave-transfer-new';
 import { Save, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 export interface LeaveTransferFormData {
@@ -26,6 +27,7 @@ interface LeaveTransferFormProps {
     onSubmit: (data: LeaveTransferFormData) => void;
     onCancel: () => void;
     defaultValues?: Partial<LeaveTransferFormData>;
+    selectedRecord?: LeaveCreditBalanceGridItem | null;
     // New Cascading Props
     types: Array<{ id: number; name: string }>;
     departments: Array<{ id: number; name: string }>;
@@ -58,6 +60,7 @@ export function LeaveTransferForm({
     onSubmit,
     onCancel,
     defaultValues,
+    selectedRecord,
     types,
     departments,
     designations,
@@ -85,12 +88,12 @@ export function LeaveTransferForm({
         setValue,
         formState: { errors }
     } = useForm<LeaveTransferFormData>({
-        defaultValues: defaultValues || {
-            type: [],
-            department: [],
-            designation: [],
-            leaveYear: '',
-            leaveName: ''
+        defaultValues: {
+            type: defaultValues?.type ?? [],
+            department: defaultValues?.department ?? [],
+            designation: defaultValues?.designation ?? [],
+            leaveYear: defaultValues?.leaveYear ?? '',
+            leaveName: defaultValues?.leaveName ?? ''
         }
     });
 
@@ -111,7 +114,12 @@ export function LeaveTransferForm({
     const [newCredits, setNewCredits] = useState<Record<number, number>>({});
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [editableBalance, setEditableBalance] = useState(String(selectedRecord?.hrelS_CBLeaves ?? ''));
     const pageSize = 10;
+
+    useEffect(() => {
+        setEditableBalance(String(selectedRecord?.hrelS_CBLeaves ?? ''));
+    }, [selectedRecord?.hrelS_Id, selectedRecord?.hrelS_CBLeaves]);
 
     // Filtered Grid Data (Derived from Employees list instead of Balance grid)
     const filteredGridData = useMemo(() => {
@@ -184,7 +192,36 @@ export function LeaveTransferForm({
         }));
     };
 
+    const handleSaveBalance = () => {
+        if (!selectedRecord) return;
+
+        const leaveBalance = Number(editableBalance);
+        if (!editableBalance.trim() || !Number.isFinite(leaveBalance) || leaveBalance < 0) {
+            toast.error('Enter a valid leave balance');
+            return;
+        }
+
+        const payload = {
+            HRME_SubstituteFlag: '',
+            HRELAP_Id: 0,
+            HRML_Id: selectedRecord.hrmL_Id,
+            HRMLY_Id: selectedRecord.hrmlY_Id,
+            monthid: 0,
+            HRELS_Id: selectedRecord.hrelS_Id,
+            HRME_Id: selectedRecord.hrmE_Id,
+            HRELS_CBLeaves: leaveBalance,
+            emplist: []
+        };
+
+        updateLeaveStatus.mutate(payload, { onSuccess: onCancel });
+    };
+
     const onSubmitForm: SubmitHandler<LeaveTransferFormData> = (data) => {
+        if (activeTab === 'Leave Updation' && selectedRecord) {
+            handleSaveBalance();
+            return;
+        }
+
         // Collect selected employees
         const employeesToProcess = filteredGridData.filter((item) => selectedRows.has(item.hrmE_Id));
 
@@ -202,14 +239,10 @@ export function LeaveTransferForm({
                 monthid: 0,
                 emplist: employeesToProcess.map((emp) => ({
                     HRME_Id: emp.hrmE_Id,
-                    HRELS_CreditedLeaves: newCredits[emp.hrmE_Id] ?? 0 // Default or existing?
+                    HRELS_CreditedLeaves: newCredits[emp.hrmE_Id] ?? 0
                 }))
             };
-            updateLeaveStatus.mutate(payload, {
-                onSuccess: () => {
-                    onCancel();
-                }
-            });
+            updateLeaveStatus.mutate(payload, { onSuccess: onCancel });
         } else if (activeTab === 'Leave Addition') {
             const payload = {
                 HRML_Id: Number(data.leaveName),
@@ -507,16 +540,80 @@ export function LeaveTransferForm({
             )}
 
             {/* Action Buttons */}
-            <div className='flex justify-center gap-2 pt-4'>
-                <Button type='submit' variant='default' className='min-w-[120px]'>
-                    <Save className='mr-2 h-4 w-4' />
-                    SAVE
-                </Button>
-                <Button type='button' variant='outline' onClick={onCancel} className='min-w-[120px]'>
-                    <X className='mr-2 h-4 w-4' />
-                    CANCEL
-                </Button>
-            </div>
+            {!selectedRecord && (
+                <div className='flex justify-center gap-2 pt-4'>
+                    <Button
+                        type='submit'
+                        variant='default'
+                        className='min-w-[120px]'
+                        disabled={activeTab === 'Leave Updation' && updateLeaveStatus.isPending}>
+                        <Save className='mr-2 h-4 w-4' />
+                        {activeTab === 'Leave Updation' && updateLeaveStatus.isPending ? 'SAVING...' : 'SAVE'}
+                    </Button>
+                    <Button type='button' variant='outline' onClick={onCancel} className='min-w-[120px]'>
+                        <X className='mr-2 h-4 w-4' />
+                        CANCEL
+                    </Button>
+                </div>
+            )}
+
+            {activeTab === 'Leave Updation' && selectedRecord && (
+                <section className='mt-8 space-y-3 border-t pt-6'>
+                    <h3 className='font-semibold text-violet-600 text-sm uppercase'>Leave Update</h3>
+                    <div className='overflow-hidden rounded-md border border-blue-200'>
+                        <table className='w-full text-sm'>
+                            <thead className='bg-violet-700 text-white'>
+                                <tr>
+                                    <th className='border-white/30 border-r px-3 py-2 text-center'>Sno</th>
+                                    <th className='border-white/30 border-r px-3 py-2 text-center'>Leave Year</th>
+                                    <th className='border-white/30 border-r px-3 py-2 text-center'>Employee Name</th>
+                                    <th className='border-white/30 border-r px-3 py-2 text-center'>Leave Name</th>
+                                    <th className='border-white/30 border-r px-3 py-2 text-center'>Leave Credit</th>
+                                    <th className='px-3 py-2 text-center'>Leave Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr className='bg-white'>
+                                    <td className='border-blue-100 border-r px-3 py-2 text-center'>1</td>
+                                    <td className='border-blue-100 border-r px-3 py-2 text-center'>{selectedRecord.hrmlY_LeaveYear}</td>
+                                    <td className='border-blue-100 border-r px-3 py-2 text-center'>
+                                        {selectedRecord.hrmE_EmployeeName || '-'}
+                                    </td>
+                                    <td className='border-blue-100 border-r px-3 py-2 text-center'>{selectedRecord.hrmL_LeaveName}</td>
+                                    <td className='border-blue-100 border-r px-3 py-2 text-center'>
+                                        {selectedRecord.hrelS_TotalLeaves}
+                                    </td>
+                                    <td className='px-2 py-1'>
+                                        <input
+                                            type='number'
+                                            min='0'
+                                            step='any'
+                                            aria-label='Leave balance'
+                                            value={editableBalance}
+                                            onChange={(event) => setEditableBalance(event.target.value)}
+                                            className='w-full rounded border border-blue-300 px-2 py-1.5 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500'
+                                        />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className='flex justify-center gap-2'>
+                        <Button
+                            type='button'
+                            className='w-fit'
+                            onClick={handleSaveBalance}
+                            disabled={updateLeaveStatus.isPending}>
+                            <Save className='mr-2 h-4 w-4' />
+                            {updateLeaveStatus.isPending ? 'SAVING...' : 'SAVE'}
+                        </Button>
+                        <Button type='button' variant='outline' onClick={onCancel} className='w-fit'>
+                            <X className='mr-2 h-4 w-4' />
+                            CANCEL
+                        </Button>
+                    </div>
+                </section>
+            )}
         </form>
     );
 }

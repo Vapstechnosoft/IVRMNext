@@ -25,6 +25,14 @@ export interface UpdateLeaveStatusTabPayload {
     HRML_Id: number;
     HRMLY_Id: number;
     monthid: number;
+    HRELS_Id?: number;
+    HRME_Id?: number;
+    HRELS_OBLeaves?: number;
+    HRELS_CreditedLeaves?: number;
+    HRELS_TotalLeaves?: number;
+    HRELS_TransLeaves?: number;
+    HRELS_EncashedLeaves?: number;
+    HRELS_CBLeaves?: number;
     emplist: {
         HRME_Id: number;
         HRELS_CreditedLeaves: number;

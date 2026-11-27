@@ -458,9 +458,12 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value || undefined}>
                                         <SelectTrigger>
-                                            <SelectValue placeholder='Select Type' />
+                                            <SelectValue placeholder='Select' />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value=' '>
+                                                --select--
+                                            </SelectItem>
                                             {isLoadingEarningsDeductionsTypes ? (
                                                 <SelectItem value='loading' disabled>
                                                     Loading...

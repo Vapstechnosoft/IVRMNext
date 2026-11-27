@@ -143,9 +143,9 @@ export const getLeaveTransferColumns = ({ onEdit, onDelete }: LeaveTransferColum
             const entity = row.original;
             return (
                 <div className='flex gap-2'>
-                    {/* <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
+                    <Button variant='outline' size='sm' onClick={() => onEdit(entity)}>
                         <Edit className='h-4 w-4' />
-                    </Button> */}
+                    </Button>
                     <Button variant='outline' size='sm' onClick={() => onDelete(entity.hrelS_Id)}>
                         <Trash2 className='h-4 w-4' />
                     </Button>

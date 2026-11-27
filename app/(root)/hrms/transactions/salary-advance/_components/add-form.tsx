@@ -1,19 +1,16 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import { DatePicker } from '@/components/ui/date-picker';
 import { FormError, Label } from '@/components/ui/extension/field';
 import { InputText } from '@/components/ui/extension/input-text';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveYearDropdown, useMonthDropdown } from '@/hooks/hrms/useMasters';
 import { useEmployeeSalaryAdvanceDetails, useSalaryAdvance, useSalaryAdvanceEmployeeDropdown, useSaveSalaryAdvance } from '@/hooks/hrms/useTransactions';
-import { cn } from '@/lib/utils';
 import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { SalaryAdvanceEmployeeDropdownItem } from '@/types/hrms/salary-advance';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
-import { CalendarIcon, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -68,12 +65,13 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
 
     const watchedEmployeeId = watch('employeeId');
     const watchedEntryDate = watch('entryDate');
+    const fallbackEntryDate = useMemo(() => new Date().toISOString(), []);
 
     // Fetch employee gross salary and other details
     const { data: advanceDetails } = useEmployeeSalaryAdvanceDetails({
         HRME_Id: Number(watchedEmployeeId),
         HRESA_Id: 0,
-        HRESA_EntryDate: watchedEntryDate ? `${watchedEntryDate}T00:00:00` : new Date().toISOString()
+        HRESA_EntryDate: watchedEntryDate ? `${watchedEntryDate}T00:00:00` : fallbackEntryDate
     });
 
     console.log('advanceDetails', advanceDetails);
@@ -186,27 +184,21 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                             name='entryDate'
                             control={control}
                             render={({ field }) => (
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant='outline'
-                                            className={cn(
-                                                'w-full justify-start text-left font-normal',
-                                                !field.value && 'text-muted-foreground'
-                                            )}>
-                                            <CalendarIcon className='mr-2 h-4 w-4' />
-                                            {field.value ? format(new Date(field.value), 'dd/MM/yyyy') : 'Select date'}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className='w-auto p-0'>
-                                        <Calendar
-                                            mode='single'
-                                            selected={field.value ? new Date(field.value) : undefined}
-                                            onSelect={(date: Date | undefined) => field.onChange(date ? format(date, 'yyyy-MM-dd') : '')}
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
+                                <DatePicker
+                                    date={field.value ? new Date(field.value) : undefined}
+                                    setDate={(date) => {
+                                        if (date) {
+                                            const year = date.getFullYear();
+                                            const month = String(date.getMonth() + 1).padStart(2, '0');
+                                            const day = String(date.getDate()).padStart(2, '0');
+                                            field.onChange(`${year}-${month}-${day}`);
+                                        } else {
+                                            field.onChange('');
+                                        }
+                                    }}
+                                    placeholder='Select date'
+                                    className={errors.entryDate ? 'border-red-500' : ''}
+                                />
                             )}
                         />
                         {errors.entryDate && <FormError>{errors.entryDate.message}</FormError>}

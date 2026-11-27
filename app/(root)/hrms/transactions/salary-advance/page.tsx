@@ -5,21 +5,40 @@ import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { FormProvider, useFormContext } from '@/components/ui/form/form-provider';
 import { useSalaryAdvance } from '@/hooks/hrms/useTransactions';
+import type { ApiSearchparams } from '@/types';
 import type { SalaryAdvanceGridItem } from '@/types/hrms/salary-advance';
+import { useSearchParams } from 'next/navigation';
 import { Plus, X } from 'lucide-react';
-import { use } from 'react';
+import { Suspense } from 'react';
 import AddSalaryAdvanceForm from './_components/add-form';
 import { columns } from './_components/columns';
 import ToggleSalaryAdvanceForm from './_components/toggle-form';
 import UpdateSalaryAdvanceForm from './_components/update-form';
 
-type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export default function SalaryAdvancePage() {
+    return (
+        <Suspense fallback={null}>
+            <SalaryAdvancePageWithSearchParams />
+        </Suspense>
+    );
+}
 
-export default function SalaryAdvancePage(props: { searchParams: SearchParams }) {
-    const searchParams = use(props.searchParams);
+function SalaryAdvancePageWithSearchParams() {
+    const urlSearchParams = useSearchParams();
+    const searchParams: ApiSearchparams = {};
+    urlSearchParams.forEach((value, key) => {
+        const existingValue = searchParams[key];
+        searchParams[key] =
+            existingValue === undefined
+                ? value
+                : Array.isArray(existingValue)
+                  ? [...existingValue, value]
+                  : [existingValue, value];
+    });
+
     const { data: response, isLoading, error } = useSalaryAdvance(searchParams);
     console.log('Salary Advance Page - Response:', response);
-    
+
     return (
         <FormProvider<SalaryAdvanceGridItem>>
             <SalaryAdvancePageContent response={response} isLoading={isLoading} error={error} />

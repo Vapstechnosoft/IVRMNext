@@ -369,9 +369,13 @@ export async function updateLeaveStatusTab(data: UpdateLeaveStatusTabPayload): P
     const url = '/api/LeaveTransfer/update_leave_status_tab';
     try {
         const response = await api.post<null>('hmslms', url, data);
+        if (!response.success) {
+            throw new Error(response.message || 'Failed to update leave status');
+        }
+
         return {
             success: true,
-            message: (response as any)?.message || 'Leave status added successfully.',
+            message: response.message || 'Leave status updated successfully.',
             data: null
         };
     } catch (error: any) {
