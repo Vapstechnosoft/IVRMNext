@@ -80,8 +80,12 @@ export async function getStudentSearch(
     return await api.post<any[]>('admission', url);
 }
 
+const ADMISSION_REGISTER_SEARCH_COLUMNS =
+    'AMST_FirstName,amst_firstname,AMST_MiddleName,amst_middlename,AMST_LastName,amst_lastname,AMST_AdmNo,amst_admno,AMST_RegistrationNo,amst_registrationno,AMST_Date,amst_date,AMST_DOB,amst_dob,AMST_FatherName,amst_fathername,AMST_MotherName,amst_mothername,AMST_MobileNo,amst_mobileno,AMST_emailId,amst_emailid,AMST_AadharNo,amst_aadharno,IVRMMR_Name,ivrmmr_name,ASMCL_ClassName,asmcl_classname,ASMC_SectionName,asmc_sectionname,AMST_Sex,amst_sex,AMST_BloodGroup,amst_bloodgroup,AMST_Nationality,amst_nationality,AMST_MotherTongue,amst_mothertongue,StudentsName,studentsname';
+
 export async function getAdmissionRegister(ASMAY_Id: number, AttendanceType: number, payload?: any, searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(searchParams ?? {}, 'AMST_FirstName');
+    const searchCols = searchParams?.search_columns || searchParams?.search_column || ADMISSION_REGISTER_SEARCH_COLUMNS;
+    const urlParams = getSearchParamsUrl(searchParams ?? {}, searchCols);
     const url = `/AdmissionRegister/GetAdmissionReport?${urlParams}&ASMAY_Id=${ASMAY_Id}&AttendanceType=${AttendanceType}`;
 
     return await api.post<any[]>('admission', url, payload);

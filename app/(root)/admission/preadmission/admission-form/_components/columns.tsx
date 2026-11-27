@@ -360,14 +360,81 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                         pamR_Id: String(r?.pamR_Id),
                                         pamR_ReferenceName: r.pamR_ReferenceName || r.name || ''
                                     })),
-                                selectedDocuments: (src.student_documents || src.selectedDocuments || combined.selectedDocuments || [])
-                                    .filter(Boolean)
-                                    .map((d: any) => ({
-                                        pasrD_Id: d?.pasrD_Id,
-                                        pasR_Id: d?.pasR_Id,
-                                        amsmD_Id: d?.amsmD_Id,
-                                        document_Path: d?.document_Path
-                                    })),
+                                selectedDocuments: (() => {
+                                    const rawList =
+                                        src.documentList ||
+                                        src.DocumentList ||
+                                        src.student_Documents ||
+                                        src.Student_Documents ||
+                                        src.student_documents ||
+                                        src.studentDocuments ||
+                                        src.selectedDocuments ||
+                                        combined.documentList ||
+                                        combined.DocumentList ||
+                                        combined.student_Documents ||
+                                        combined.Student_Documents ||
+                                        combined.student_documents ||
+                                        combined.selectedDocuments ||
+                                        resp.documentList ||
+                                        resp.DocumentList ||
+                                        resp.student_Documents ||
+                                        resp.Student_Documents ||
+                                        resp.student_documents ||
+                                        [];
+                                    return (Array.isArray(rawList) ? rawList : [])
+                                        .filter(Boolean)
+                                        .map((d: any) => ({
+                                            pasrD_Id: d?.pasrD_Id ?? d?.amstD_Id ?? d?.AMSTD_Id ?? 0,
+                                            pasR_Id: d?.pasR_Id ?? d?.amsT_Id ?? d?.AMST_Id ?? 0,
+                                            amsmD_Id: Number(d?.amsmD_Id ?? d?.AMSMD_Id ?? d?.id ?? 0),
+                                            document_Path:
+                                                d?.document_Path ??
+                                                d?.Document_Path ??
+                                                d?.amstD_DOC_Path ??
+                                                d?.AMSTD_DOC_Path ??
+                                                d?.documentPath ??
+                                                d?.path ??
+                                                '',
+                                            documentName:
+                                                d?.documentName ??
+                                                d?.AMSMD_DocumentName ??
+                                                d?.amsmD_DocumentName ??
+                                                d?.amstD_DOC_Name ??
+                                                d?.AMSTD_DOC_Name ??
+                                                ''
+                                        }));
+                                })(),
+                                documentList: (() => {
+                                    const rawList =
+                                        src.documentList ||
+                                        src.DocumentList ||
+                                        src.student_Documents ||
+                                        src.Student_Documents ||
+                                        src.student_documents ||
+                                        resp.documentList ||
+                                        resp.DocumentList ||
+                                        [];
+                                    return (Array.isArray(rawList) ? rawList : [])
+                                        .filter(Boolean)
+                                        .map((d: any) => ({
+                                            amsmD_Id: Number(d?.amsmD_Id ?? d?.AMSMD_Id ?? d?.id ?? 0),
+                                            document_Path:
+                                                d?.document_Path ??
+                                                d?.Document_Path ??
+                                                d?.amstD_DOC_Path ??
+                                                d?.AMSTD_DOC_Path ??
+                                                d?.documentPath ??
+                                                d?.path ??
+                                                '',
+                                            documentName:
+                                                d?.documentName ??
+                                                d?.AMSMD_DocumentName ??
+                                                d?.amsmD_DocumentName ??
+                                                d?.amstD_DOC_Name ??
+                                                d?.AMSTD_DOC_Name ??
+                                                ''
+                                        }));
+                                })(),
                                 activities: (src.fourthTab?.activities || src.activities || combined.activities || []).map((a: any) => ({
                                     activityId: a?.activityId,
                                     isSelected: a?.isSelected ?? true
@@ -382,6 +449,37 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                         } else {
                             // fallback to aggressive mapping for flat shapes
                             const student = resp?.student_details || resp || {};
+                            const rawDocs =
+                                resp?.documentList ||
+                                resp?.DocumentList ||
+                                resp?.student_Documents ||
+                                resp?.Student_Documents ||
+                                resp?.student_documents ||
+                                student?.documentList ||
+                                student?.DocumentList ||
+                                [];
+                            const mappedDocs = (Array.isArray(rawDocs) ? rawDocs : [])
+                                .filter(Boolean)
+                                .map((d: any) => ({
+                                    pasrD_Id: d?.pasrD_Id ?? d?.amstD_Id ?? d?.AMSTD_Id ?? 0,
+                                    pasR_Id: d?.pasR_Id ?? d?.amsT_Id ?? d?.AMST_Id ?? 0,
+                                    amsmD_Id: Number(d?.amsmD_Id ?? d?.AMSMD_Id ?? d?.id ?? 0),
+                                    document_Path:
+                                        d?.document_Path ??
+                                        d?.Document_Path ??
+                                        d?.amstD_DOC_Path ??
+                                        d?.AMSTD_DOC_Path ??
+                                        d?.documentPath ??
+                                        d?.path ??
+                                        '',
+                                    documentName:
+                                        d?.documentName ??
+                                        d?.AMSMD_DocumentName ??
+                                        d?.amsmD_DocumentName ??
+                                        d?.amstD_DOC_Name ??
+                                        d?.AMSTD_DOC_Name ??
+                                        ''
+                                }));
                             payload = {
                                 ...student,
                                 amsT_MobileNo: student.amsT_MobileNo ?? student.mobileNo ?? student.mobile_No ?? '',
@@ -395,7 +493,9 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                     (student.amsT_emailId ? [{ amsT_emailId: student.amsT_emailId }] : []),
                                 mobileNos:
                                     resp?.mobileNos ||
-                                    (student.amsT_MobileNo ? [{ amsT_MobileNo: student.amsT_MobileNo, amstsmS_CountryCode: '91' }] : [])
+                                    (student.amsT_MobileNo ? [{ amsT_MobileNo: student.amsT_MobileNo, amstsmS_CountryCode: '91' }] : []),
+                                selectedDocuments: mappedDocs,
+                                documentList: mappedDocs
                             };
                         }
 

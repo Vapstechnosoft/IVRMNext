@@ -15,7 +15,7 @@ export async function getStudentDashboardNoticeBoard(data: any) {
         Type: 'Student'
     };
     const url = '/StudentDashboardFacade/onclick_notice';
-
+    ch
     // Note: In PortalHub backend, onclick_notice has [Route(onclick_notice)] without [HttpPost],
     // so ASP.NET Core accepts GET (with JSON body) and returns 405 on POST.
     // We send GET first, with fallback to POST.
