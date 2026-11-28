@@ -1,7 +1,7 @@
 'use server';
 
 import { api } from '@/lib/apiService';
-import type { IstaffLoadDataTTStaffReport } from '@/types/timetable/TTreports';
+import type { IStaffDropdownList } from '@/types/timetable/masters/masters';
 
 // Staff Wise TimeTable Report
 export const getStaffWiseDetails = async (data: any) => {
@@ -17,6 +17,6 @@ export const getStaffWiseReportUsingFacade = async (data: any) => {
 };
 
 export async function getstaffdropdowndatattstaffreport() {
-    const url = '/StaffWiseTTFacade/GetStaffDropDown';
-    return await api.get<IstaffLoadDataTTStaffReport[]>('timetable', url);
+    const url = '/TimeTableCommon/GetStaffDetails';
+    return await api.get<IStaffDropdownList[]>('timetable', url);
 }

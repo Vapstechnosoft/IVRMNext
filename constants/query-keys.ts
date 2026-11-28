@@ -623,6 +623,8 @@ export const STAFF_PORTAL_QUERY_KEYS = {
     STAFF_NOTICE_ATTACHMENTS: 'staff_notice_attachments',
     STAFF_ATTENDANCE_ENTRY: 'staff_attendance_entry',
     STAFF_ATTENDANCE_ENTRY_INITIAL: 'staff_attendance_entry_initial',
+    EMPLOYEE_TIMETABLE: 'employee_timetable',
+    EMPLOYEE_DAILY_TIMETABLE: 'employee_daily_timetable',
 
     FEE_ACADEMIC_YEARS: 'fee_academic_years',
     FEE_STUDENT_INFORMATION: 'fee_student_information',
