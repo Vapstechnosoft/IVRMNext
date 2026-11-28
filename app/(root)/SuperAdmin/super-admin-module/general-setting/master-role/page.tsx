@@ -8,7 +8,7 @@ import { tableSearchVariables } from '@/lib/data-table.config';
 import { getMasterRoles } from '@/server/super-admin/super-admin-module/general-setting/master-role';
 import type { IMasterRole } from '@/types/super-admin/super-admin-module/general-setting/master-role';
 import { Plus, X } from 'lucide-react';
-import { parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import React, { useEffect, useState } from 'react';
 import AddMasterRoleForm from './_components/add-form';
 import { masterRoleColumns } from './_components/columns';
@@ -30,13 +30,15 @@ function MasterRolePageContent() {
     // Pagination State
     const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
     const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withOptions({ shallow: false }).withDefault(10));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withOptions({ shallow: false }).withDefault(''));
     const [totalItems, setTotalItems] = useState(0);
 
     const fetchData = React.useCallback(async () => {
         setIsLoading(true);
         const searchParams = {
             page: page,
-            page_size: pageSize
+            page_size: pageSize,
+            search_query: searchQuery
         };
 
         try {
@@ -50,7 +52,7 @@ function MasterRolePageContent() {
         } finally {
             setIsLoading(false);
         }
-    }, [page, pageSize]);
+    }, [page, pageSize, searchQuery]);
 
     useEffect(() => {
         fetchData();

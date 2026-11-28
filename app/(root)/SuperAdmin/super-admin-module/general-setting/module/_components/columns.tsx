@@ -16,7 +16,7 @@ import { useFormContext } from '@/components/ui/form/form-provider';
 import { activateDeactivateMasterModule } from '@/server/super-admin/super-admin-module/general-setting/module';
 import type { IMasterModule } from '@/types/super-admin/super-admin-module/general-setting/module';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Pencil } from 'lucide-react';
+import { Edit } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useModuleContext } from './module-context';
@@ -45,13 +45,13 @@ const ActionCell = ({ row }: { row: any }) => {
         <>
             <div className='flex items-center justify-center gap-2'>
                 <Button variant='ghost' size='icon' className='h-8 w-8 text-primary' onClick={() => openEditForm(row.original)}>
-                    <Pencil className='h-4 w-4' />
+                    <Edit className='h-4 w-4' />
                 </Button>
-                <span className='text-gray-300'>|</span>
+
                 <Button
                     variant='ghost'
                     size='sm'
-                    className={isActive ? 'text-destructive hover:text-destructive' : 'text-green-600 hover:text-green-700'}
+                    className={isActive ? 'text-destructive hover:text-destructive' : 'text-green-600 hover:text-green-700 '}
                     onClick={() => setOpen(true)}>
                     {action}
                 </Button>
@@ -81,7 +81,10 @@ export const columns: ColumnDef<IMasterModule>[] = [
     {
         id: 'serialNumber',
         header: ({ column }) => <ColumnHeader column={column} title='SL.NO' />,
-        cell: ({ row }) => <div className='text-center'>{row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const { pageIndex, pageSize } = table.getState().pagination;
+            return <div className='text-center'>{pageIndex * pageSize + row.index + 1}</div>;
+        },
         enableSorting: false
     },
     {

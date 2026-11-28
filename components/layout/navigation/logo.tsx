@@ -6,7 +6,6 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-
 interface LogoProps {
     className?: string;
     size?: 'icon' | 'text' | 'full';
@@ -44,7 +43,8 @@ export default function Logo({ className = '', herf = '', size = 'text', src: cu
 
     const sessionLogo = session?.mi_logo;
 
-    let rawLogo = (customSrc || sessionLogo || apiLogo || '').trim();
+    const logoValue = customSrc || sessionLogo || apiLogo || '';
+    let rawLogo = typeof logoValue === 'string' ? logoValue.trim() : '';
 
     // Handle relative path returned by backend API
     if (rawLogo && !rawLogo.startsWith('http://') && !rawLogo.startsWith('https://') && !rawLogo.startsWith('data:')) {

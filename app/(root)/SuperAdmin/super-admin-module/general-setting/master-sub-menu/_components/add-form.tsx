@@ -19,7 +19,7 @@ import type {
 } from '@/types/super-admin/super-admin-module/general-setting/master-sub-menu';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -30,8 +30,12 @@ interface AddMasterSubMenuFormProps {
 
 export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMasterSubMenuFormProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [isEditDataLoading, setIsEditDataLoading] = useState(Boolean(initialData?.ivrmmS_Id));
+    const [isMainMenuLoading, setIsMainMenuLoading] = useState(false);
     const [modules, setModules] = useState<IModuleDropdownItem[]>([]);
     const [mainMenus, setMainMenus] = useState<IMainMenuDropdownItem[]>([]);
+    const loadedModuleIdRef = useRef<number | null>(null);
+    console.log('initialData in AddMasterSubMenuForm:', initialData); // Debugging log
 
     const {
         control,
@@ -44,90 +48,122 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
         resolver: zodResolver(masterSubMenuSchema),
         defaultValues: {
             ivrmmS_Id: initialData?.ivrmmS_Id,
-            ivrmM_Id: initialData?.ivrmM_Id || 0,
-            ivrmmM_Id: initialData?.ivrmmM_Id || 0,
-            ivrmmS_SubMenuName: initialData?.ivrmmS_SubMenuName || '',
-            ivrmmS_Order: initialData?.ivrmmS_Order || 0
+            ivrmM_Id: 0,
+            ivrmmM_Id: 0,
+            ivrmmS_SubMenuName: '',
+            ivrmmS_Order: 0
         }
     });
 
     const selectedModuleId = watch('ivrmM_Id');
 
-    // Fetch modules on mount
+    // Load dropdown and edit data before showing an edit form.
     useEffect(() => {
-        getModuleDropdown().then((res) => {
-            if (res.success && res.data) {
-                setModules(res.data);
-            }
-        });
-    }, []);
+        let isCurrent = true;
+        const editId = initialData?.ivrmmS_Id;
 
-    // Fetch main menus when module changes
+        const loadFormData = async () => {
+            if (!editId) {
+                try {
+                    const moduleRes = await getModuleDropdown();
+                    if (!isCurrent) return;
+                    if (moduleRes.success && moduleRes.data) {
+                        setModules(moduleRes.data);
+                    } else {
+                        toast.error(moduleRes.message || 'Failed to fetch module dropdown');
+                    }
+                } catch {
+                    if (isCurrent) toast.error('Failed to fetch module dropdown');
+                }
+                return;
+            }
+
+            setIsEditDataLoading(true);
+            try {
+                const [moduleRes, detailRes] = await Promise.all([getModuleDropdown(), getMasterSubMenuDetails(editId)]);
+                if (!moduleRes.success || !moduleRes.data) {
+                    throw new Error(moduleRes.message || 'Failed to fetch module dropdown');
+                }
+                if (!detailRes.success) {
+                    throw new Error(detailRes.message || 'Failed to fetch sub-menu details');
+                }
+
+                const response = detailRes as any;
+                const data = response.edit_s_menu?.[0] || response.data?.[0] || response.data || response;
+                if (!data) {
+                    throw new Error('Sub-menu details were not returned');
+                }
+
+                const moduleId = Number(data.ivrmM_Id ?? data.IVRMM_Id ?? data.ivrmm_Id ?? initialData.ivrmM_Id ?? 0);
+                const mainMenuId = Number(data.IVRMMM_Id_select ?? data.ivrmmm_Id_select ?? data.ivrmmM_Id ?? initialData.ivrmmM_Id ?? 0);
+                if (!moduleId) {
+                    throw new Error('Module ID was not returned for this sub-menu');
+                }
+                const menuRes = await getMainMenuDropdown(moduleId);
+                if (!menuRes.success || !menuRes.data) {
+                    throw new Error(menuRes.message || 'Failed to fetch main menu dropdown');
+                }
+                if (!isCurrent) return;
+
+                setModules(moduleRes.data);
+                setMainMenus(menuRes.data);
+                loadedModuleIdRef.current = moduleId;
+                reset({
+                    ivrmmS_Id: Number(data.ivrmmS_Id ?? data.IVRMMM_Id ?? editId),
+                    ivrmM_Id: moduleId,
+                    ivrmmM_Id: mainMenuId,
+                    ivrmmS_SubMenuName: data.ivrmmS_SubMenuName ?? data.SubMenuName ?? data.subMenuName ?? '',
+                    ivrmmS_Order: Number(data.ivrmmS_Order ?? data.IVRMMM_MenuOrder ?? data.ivrmmm_MenuOrder ?? 0)
+                });
+            } catch (error) {
+                if (isCurrent) {
+                    toast.error(error instanceof Error ? error.message : 'Failed to load edit data');
+                }
+            } finally {
+                if (isCurrent) setIsEditDataLoading(false);
+            }
+        };
+
+        loadFormData();
+        return () => {
+            isCurrent = false;
+        };
+    }, [initialData, reset]);
+
+    // Load main menus when the module changes after initial edit data is ready.
     useEffect(() => {
-        if (selectedModuleId) {
-            // Avoid clearing if it's the initial load with data
-            if (!initialData || initialData.ivrmM_Id !== selectedModuleId) {
-                // If user changes module manually, we might want to clear main menu?
-                // But for now let's just fetch.
-            }
+        const moduleId = Number(selectedModuleId);
+        if (!moduleId) {
+            setMainMenus([]);
+            loadedModuleIdRef.current = null;
+            setIsMainMenuLoading(false);
+            return;
+        }
+        if (loadedModuleIdRef.current === moduleId) return;
 
-            getMainMenuDropdown(selectedModuleId).then((res) => {
+        let isCurrent = true;
+        setIsMainMenuLoading(true);
+        getMainMenuDropdown(moduleId)
+            .then((res) => {
+                if (!isCurrent) return;
                 if (res.success && res.data) {
                     setMainMenus(res.data);
+                    loadedModuleIdRef.current = moduleId;
                 } else {
                     setMainMenus([]);
+                    toast.error(res.message || 'Failed to fetch main menu dropdown');
                 }
+            })
+            .catch(() => {
+                if (isCurrent) toast.error('Failed to fetch main menu dropdown');
+            })
+            .finally(() => {
+                if (isCurrent) setIsMainMenuLoading(false);
             });
-        } else {
-            setMainMenus([]);
-        }
-    }, [selectedModuleId, initialData]);
-
-    // Fetch details on edit
-    useEffect(() => {
-        if (initialData && initialData.ivrmmS_Id) {
-            setIsLoading(true);
-            getMasterSubMenuDetails(initialData.ivrmmS_Id)
-                .then(async (res) => {
-                    setIsLoading(false);
-                    if (res.success) {
-                        const response = res as any;
-                        const data = response.edit_s_menu?.[0] || response.data?.[0] || response.data || response;
-
-                        if (data) {
-                            // Ensure module dropdown is loaded (it is by initial useEffect),
-                            // and trigger main menu load by setting module ID first?
-                            // setValue triggers watch, which triggers generic useEffect.
-
-                            // We might need to manually fetch main menus here if the dependency logic is race-condition prone,
-                            // but useEffect [selectedModuleId] should handle it.
-
-                            reset({
-                                ivrmmS_Id: data.ivrmmS_Id,
-                                ivrmM_Id: data.ivrmM_Id,
-                                ivrmmM_Id: data.ivrmmM_Id,
-                                ivrmmS_SubMenuName: data.ivrmmS_SubMenuName,
-                                ivrmmS_Order: data.ivrmmS_Order
-                            });
-
-                            // Explicitly fetch main menus for this module to ensure dropdown is populated
-                            if (data.ivrmM_Id) {
-                                const menuRes = await getMainMenuDropdown(data.ivrmM_Id);
-                                if (menuRes.success && menuRes.data) {
-                                    setMainMenus(menuRes.data);
-                                }
-                            }
-                        }
-                    } else {
-                        toast.error('Failed to fetch details');
-                    }
-                })
-                .catch(() => {
-                    setIsLoading(false);
-                    toast.error('Error fetching details');
-                });
-        }
-    }, [initialData, reset]);
+        return () => {
+            isCurrent = false;
+        };
+    }, [selectedModuleId]);
 
     const onSubmit = async (data: MasterSubMenuSchema) => {
         setIsLoading(true);
@@ -146,6 +182,15 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
             setIsLoading(false);
         }
     };
+
+    if (isEditDataLoading) {
+        return (
+            <div className='flex min-h-40 flex-col items-center justify-center gap-3 text-muted-foreground'>
+                <LoadingSpinner />
+                <span>Loading sub-menu details...</span>
+            </div>
+        );
+    }
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
@@ -195,10 +240,16 @@ export default function AddMasterSubMenuForm({ onSuccess, initialData }: AddMast
                                     <Select
                                         value={field.value ? field.value.toString() : ''}
                                         onValueChange={(value) => field.onChange(Number(value))}
-                                        disabled={!selectedModuleId} // Disable if no module selected
-                                    >
+                                        disabled={!selectedModuleId || isMainMenuLoading}>
                                         <SelectTrigger className='w-full'>
-                                            <SelectValue placeholder='Select Main Menu' />
+                                            {isMainMenuLoading ? (
+                                                <span className='flex items-center gap-2 text-muted-foreground'>
+                                                    <LoadingSpinner />
+                                                    Loading main menus...
+                                                </span>
+                                            ) : (
+                                                <SelectValue placeholder='Select Main Menu' />
+                                            )}
                                         </SelectTrigger>
                                         <SelectContent>
                                             {mainMenus.map((menu, index) => (
