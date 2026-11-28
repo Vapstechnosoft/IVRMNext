@@ -133,7 +133,7 @@ export async function getAmountentrydetails(asmay_id: number, fmcC_id: number, f
 }
 
 export async function getPrintdetails(fyp_id: number, asmay_id: number, filterinitialdata: string, pasr_id: number) {
-    const url = `FeePreadmission/print_receipt?fyp_id=${fyp_id}&asmay_id=${asmay_id}&filterinitialdata=${filterinitialdata}&pasr_id=${pasr_id}`;
+    const url = `/FeePreadmission/print_receipt?fyp_id=${fyp_id}&asmay_id=${asmay_id}&filterinitialdata=${filterinitialdata}&pasr_id=${pasr_id}`;
     return await api.get<IFeePreAdmissionTransactionDetails[]>('fees', url);
 }
 

@@ -2,8 +2,10 @@ import { Button } from '@/components/ui/button';
 import type { IMasterInstitution } from '@/types/exam/exam-module/report';
 import { Printer } from 'lucide-react'; // Adjust path as needed
 
+
+
 // PrintReceiptButton Component
-const PrintReceiptButton = ({ htmlContent, institution }: { htmlContent: string; institution: IMasterInstitution | null }) => {
+export const PrintReceiptButton = ({ htmlContent, institution }: { htmlContent: string; institution: IMasterInstitution | null }) => {
     const handlePrint = () => {
         const printWindow = window.open('', '_blank', 'width=900,height=900,toolbar=yes,scrollbars=yes');
         if (!printWindow) {
@@ -11,8 +13,8 @@ const PrintReceiptButton = ({ htmlContent, institution }: { htmlContent: string;
             return;
         }
 
-        const hasLogo = institution?.mI_Logo && institution.mI_Logo.trim() !== '';
-        const logoUrl = institution?.mI_Logo || '';
+        const logoUrl = institution?.mI_Logo ;
+        const hasLogo = Boolean(logoUrl && logoUrl.trim() !== '');
         const instituteName = institution?.mI_Name || '';
 
         const documentHtml = `

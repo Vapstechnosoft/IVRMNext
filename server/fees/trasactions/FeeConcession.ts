@@ -79,7 +79,7 @@ export async function getConcessionStudentConcessionGrid(
         searchParams ?? {},
         'studentName,amsT_AdmNo,asmcL_ClassName,fmG_GroupName,fmH_FeeName,ftI_Name,fmcC_ConcessionName,fsC_ConcessionAmount'
     );
-    const url = `FeeConcessionFacade/getstudentconcessions?AsmayId=${asmaY_Id || 0}&AsmclId=${asmcL_Id || 0}&${urlParams}`;
+    const url = `/FeeConcessionFacade/getstudentconcessions?AsmayId=${asmaY_Id || 0}&AsmclId=${asmcL_Id || 0}&${urlParams}`;
     return await api.get<IFeeConcessionStudentConcessionGrid[]>('fees', url);
 }
 export async function saveFeeHead(data: any) {

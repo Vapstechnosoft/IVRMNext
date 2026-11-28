@@ -100,6 +100,7 @@ export default function StudentAttendancePage() {
     const [periodList, setPeriodList] = useState<any[]>([]);
 
     const [searched, setSearched] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
     const [students, setStudents] = useState<StudentAttendanceStudent[]>([]);
     const [filteredStudents, setFilteredStudents] = useState<StudentAttendanceStudent[]>([]);
     const [noDataMessage, setNoDataMessage] = useState<string>('');
@@ -190,6 +191,7 @@ export default function StudentAttendancePage() {
                 return;
             }
             // Period Wise Search
+            setIsSearching(true);
             getStdListPeriod.mutate(
                 {
                     asmay_Id: Number(selectedYear),
@@ -203,13 +205,15 @@ export default function StudentAttendancePage() {
                     asasB_Id: Number(selectedBatch) || 0
                 },
                 {
-                    onSuccess: handleStudentResponse
+                    onSuccess: handleStudentResponse,
+                    onSettled: () => setIsSearching(false)
                 }
             );
             return;
         }
 
         // Default Search for Daily/Monthly
+        setIsSearching(true);
         getStudentData.mutate(
             {
                 asmaY_Id: Number(selectedYear),
@@ -225,19 +229,34 @@ export default function StudentAttendancePage() {
                 ttmP_Id: 0
             },
             {
-                onSuccess: handleStudentResponse
+                onSuccess: handleStudentResponse,
+                onSettled: () => setIsSearching(false)
             }
         );
     };
 
     const handleStudentResponse = (res: any) => {
-        if (res?.data?.studentList?.length > 0) {
-            let processedStudents = res.data.studentList;
+        const data = res?.data?.data || res?.data || res;
+        const attendanceEntryFlag =
+            data?.attendanceentryflag ??
+            data?.attendanceEntryFlag ??
+            data?.asC_Att_DefaultEntry_Type ??
+            data?.standardConfig?.[0]?.asC_Att_DefaultEntry_Type ??
+            data?.admissionStandard?.[0]?.asC_Att_DefaultEntry_Type ??
+            initialData?.attendance_entrytype?.[0]?.asC_Att_DefaultEntry_Type;
+        const isAbsentDefault = String(attendanceEntryFlag ?? '')
+            .trim()
+            .toUpperCase() === 'A';
+        const studentList = data?.studentList || data?.data?.studentList;
+
+        if (studentList?.length > 0) {
+            let processedStudents = studentList;
 
             // Format data based on response
             const type = attendanceType?.toLowerCase() || '';
             if (type === 'dailytwice') {
                 processedStudents = processedStudents.map((s: any) => {
+                    // biome-ignore lint/style/useSingleVarDeclarator: <explanation>
                     let first = false,
                         second = false;
                     if (s.pdays === 0.5) {
@@ -247,7 +266,7 @@ export default function StudentAttendancePage() {
                         first = true;
                         second = true;
                     }
-                    if (res.data.attendanceentryflag === 'A') {
+                    if (isAbsentDefault) {
                         // Absent mapping
                         if (s.pdays === 0) {
                             first = true;
@@ -270,7 +289,7 @@ export default function StudentAttendancePage() {
             } else if (type === 'dailyonce' || type === 'period') {
                 processedStudents = processedStudents.map((s: any) => ({
                     ...s,
-                    selected: res.data.attendanceentryflag === 'A' ? s.pdays === 0 : s.pdays > 0
+                    selected: isAbsentDefault ? s.pdays === 0 : s.pdays > 0
                 }));
             }
 
@@ -278,7 +297,7 @@ export default function StudentAttendancePage() {
             setFilteredStudents(processedStudents);
             setSearched(true);
 
-            const flagMsg = res.data.attendanceentryflag === 'A' ? 'Attendance Entry Type Is Absent' : 'Attendance Entry Type Is Present';
+            const flagMsg = isAbsentDefault ? 'Attendance Entry Type Is Absent' : 'Attendance Entry Type Is Present';
             setAttendanceEntryMsg(flagMsg);
             setNoDataMessage('');
         } else {
@@ -756,8 +775,18 @@ export default function StudentAttendancePage() {
                                     </div>
 
                                     <div className='flex justify-end pt-4'>
-                                        <Button onClick={handleSearch} className='bg-orange-600 text-white hover:bg-orange-700'>
-                                            <Search className='mr-2 h-4 w-4' /> Search
+                                        <Button
+                                            onClick={handleSearch}
+                                            isLoading={isSearching}
+                                            loadingText='Searching...'
+                                            className='bg-orange-600 text-white hover:bg-orange-700'>
+                                            {isSearching ? (
+                                                'Search'
+                                            ) : (
+                                                <>
+                                                    <Search className='mr-2 h-4 w-4' /> Search
+                                                </>
+                                            )}
                                         </Button>
                                     </div>
                                 </div>

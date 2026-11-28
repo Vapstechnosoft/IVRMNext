@@ -30,12 +30,9 @@ const mockLoadData: FeeDetailsLoadData = {
 // ];
 
 export async function getFeeDetailsLoadData() {
-    // const url = `/CumulativeFeeAnalysis/studentfeedetails?ASMAY_Id=${asmaY_Id}&AMST_Id=${asmcL_Id}`
-    // return await api.get<any[]>('portal', url);
-
-    const url = 'api/CumulativeFeeAnalysis/studentfeedetails?ASMAY_Id=176&AMST_Id=17108';
+    const url = '/FeeDetailsFacade/getloaddata';
     try {
-        const response = await api.get<FeeDetailsLoadData>('portal', url, {});
+        const response = await api.post<FeeDetailsLoadData>('fees', url, {});
         if (response.data) return response.data;
         return response as unknown as FeeDetailsLoadData;
     } catch (e) {
@@ -45,11 +42,9 @@ export async function getFeeDetailsLoadData() {
 }
 
 export async function getFeeDetails(data: FeeDetailsRequest) {
-    const url = `/FeeDetails/Getdetails`;
+    const url = '/FeeDetailsFacade/Getdetails';
     try {
-        const response = await api.get<FeeDetailsResponse>('portal', url, {});
-
-        console.log('bbbbbbbbb', response);
+        const response = await api.post<FeeDetailsResponse>('fees', url, data);
         if (response.data) return response.data;
         return response as unknown as FeeDetailsResponse;
     } catch (e) {
