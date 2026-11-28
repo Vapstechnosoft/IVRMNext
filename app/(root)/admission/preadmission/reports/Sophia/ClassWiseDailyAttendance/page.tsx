@@ -12,7 +12,7 @@ import * as XLSX from 'xlsx';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { DataTable } from '@/components/ui/data-table/data-table';
 import { DatePicker } from '@/components/ui/date-picker';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { Label } from '@/components/ui/label';
@@ -128,15 +128,27 @@ export default function ClassWiseDailyAttendancePage() {
     const username = initialData?.data?.data?.usrname || initialData?.data?.usrname;
     const disclaimer = initialData?.data?.data?.coptyright || initialData?.data?.coptyright;
 
-    const summary = useMemo(() => {
-        if (!reportData || !reportData.length) return null;
-        return {
-            total: reportData.length,
-            present: reportData.filter((r: any) => r.asa_class_attended === 1 || r.ASA_Class_Attended === 1).length,
-            absent: reportData.filter((r: any) => r.asa_class_attended === 0 || r.ASA_Class_Attended === 0).length,
-            halfDay: reportData.filter((r: any) => r.asa_class_attended === 0.5 || r.ASA_Class_Attended === 0.5).length
-        };
-    }, [reportData]);
+const summary = useMemo(() => {
+    if (!reportData || !reportData.length) return null;
+
+    let present = 0;
+    let absent = 0;
+    let halfDay = 0;
+
+    for (const r of reportData as any[]) {
+        const val = Number(r.ASA_Class_Attended);
+        if (val === 1) present++;
+        else if (val === 0.5) halfDay++;
+        else if (val === 0) absent++;
+    }
+
+    return {
+        total: reportData.length,
+        present,
+        absent,
+        halfDay,
+    };
+}, [reportData]);
 
     /* ---------------- Effects ---------------- */
 
@@ -429,9 +441,16 @@ export default function ClassWiseDailyAttendancePage() {
                             </div>
                         )}
 
-                        <GenericDataTable
-                            data={reportData}
-                            columns={[
+                        {isReportLoading ? (
+                            <div className='flex flex-col items-center justify-center space-y-4 py-12'>
+                                <RotateCcw className='h-8 w-8 animate-spin text-secondary' />
+                                <p className='text-muted-foreground text-sm'>Fetching classwise daily attendance...</p>
+                            </div>
+                        ) : (
+                            <DataTable
+                                key={reportData.length}
+                                data={reportData}
+                                columns={[
                                 {
                                     id: 'select',
                                     header: ({ table }: any) => (
@@ -490,38 +509,42 @@ export default function ClassWiseDailyAttendancePage() {
                                     size: 100
                                 },
                                 {
-                                    header: 'Status',
-                                    accessorKey: 'asa_class_attended',
-                                    size: 130,
-                                    cell: (info: any) => {
-                                        const val = info.getValue() ?? info.row.original.ASA_Class_Attended;
-                                        if (val === 1)
-                                            return (
-                                                <Badge variant='outline' className='border-blue-200 text-blue-600'>
-                                                    Present
-                                                </Badge>
-                                            );
-                                        if (val === 0.5)
-                                            return (
-                                                <Badge variant='outline' className='border-yellow-200 text-yellow-600'>
-                                                    Half Day
-                                                </Badge>
-                                            );
-                                        return (
-                                            <Badge variant='outline' className='border-red-200 text-red-600'>
-                                                Absent
-                                            </Badge>
-                                        );
-                                    }
-                                }
+    header: 'Status',
+    accessorKey: 'ASA_Class_Attended',
+    size: 130,
+    cell: (info: any) => {
+        const val = Number(info.getValue());
+
+        if (val === 1)
+            return (
+                <Badge variant='outline' className='border-blue-200 text-blue-600'>
+                    Present
+                </Badge>
+            );
+        if (val === 0.5)
+            return (
+                <Badge variant='outline' className='border-yellow-200 text-yellow-600'>
+                    Half Day
+                </Badge>
+            );
+        return (
+            <Badge variant='outline' className='border-red-200 text-red-600'>
+                Absent
+            </Badge>
+        );
+    },
+}
                             ]}
-                            isLoading={isReportLoading}
-                            maxSelectableRows={9999}
-                            onRowSelectionChange={setSelectedStudents}
-                            showExportOptions={false}
-                            noDataTitle='Attendance records not found for selected criteria'
-                            loadingMessage='Fetching classwise daily attendance...'
-                        />
+                                isLoading={false}
+                                totalItems={reportData.length}
+                                defaultPageSize={Math.max(reportData.length, 1)}
+                                manualPagination={false}
+                                isPaginationRequired={false}
+                                maxSelectableRows={9999}
+                                onRowSelectionChange={setSelectedStudents}
+                                showExportOptions={false}
+                            />
+                        )}
                     </div>
                 </CollapsibleSection>
             )}

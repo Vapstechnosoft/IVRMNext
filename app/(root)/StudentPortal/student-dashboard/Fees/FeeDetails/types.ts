@@ -1,8 +1,12 @@
 export interface AcademicYear {
-    ASMAY_Id: number;
-    ASMAY_Year: string;
+    ASMAY_Id?: number;
+    ASMAY_Year?: string;
     ASMCL_ClassName?: string;
     ASMC_SectionName?: string;
+    asmaY_Id?: number;
+    asmaY_Year?: string;
+    asmcL_ClassName?: string;
+    asmC_SectionName?: string;
 }
 
 export interface FeeHeadData {

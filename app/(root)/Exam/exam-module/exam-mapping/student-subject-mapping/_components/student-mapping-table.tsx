@@ -153,7 +153,7 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
             userId,
             left_Flag,
             deactive_Flag,
-            maxApplicableSubjects = 2
+            maxApplicableSubjects = 1
         },
         ref
     ) => {
@@ -169,6 +169,7 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
         const [disabledStudents, setDisabledStudents] = useState<Set<number>>(new Set());
         const [studentToDelete, setStudentToDelete] = useState<{ id: number; name: string } | null>(null);
         const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+        const [showMaxSubjectsDialog, setShowMaxSubjectsDialog] = useState(false);
 
         /** Create a single subject mapping object for payload */
         const createSubjectMapping = useCallback(
@@ -366,28 +367,28 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
         /** Handle individual checkbox change */
         const handleIndividualChange = useCallback(
             (studentId: number, subjectId: number, checked: boolean) => {
-                if (disabledStudents.has(studentId)) return;
+                if (disabledStudents.has(studentId) || !selectedStudents.has(studentId)) return;
 
-                const next = { ...checkedState, [`${studentId}_${subjectId}`]: checked };
+                const subjectKey = `${studentId}_${subjectId}`;
+                const isCurrentlyChecked = Boolean(checkedState[subjectKey]);
+                if (
+                    checked &&
+                    !isCurrentlyChecked &&
+                    maxApplicableSubjects > 0 &&
+                    subjects.filter((subject) => checkedState[`${studentId}_${subject.id}`]).length >= maxApplicableSubjects
+                ) {
+                    setShowMaxSubjectsDialog(true);
+                    return;
+                }
+
+                const next = { ...checkedState, [subjectKey]: checked };
                 setCheckedState(next);
-
-                // Auto-update row selection if at least one subject is checked
-                setSelectedStudents((prev) => {
-                    const newSet = new Set(prev);
-                    const hasAny = subjects.some((s) => (s.id === subjectId ? checked : Boolean(next[`${studentId}_${s.id}`])));
-                    if (hasAny) {
-                        newSet.add(studentId);
-                    } else {
-                        newSet.delete(studentId);
-                    }
-                    return newSet;
-                });
 
                 if (onUpdateMapping) {
                     onUpdateMapping(buildPayload(next, initialState, disabledStudents));
                 }
             },
-            [checkedState, disabledStudents, subjects, onUpdateMapping, buildPayload, initialState]
+            [checkedState, disabledStudents, selectedStudents, maxApplicableSubjects, subjects, onUpdateMapping, buildPayload, initialState]
         );
 
         /** Handle student row selection checkbox change */
@@ -396,9 +397,11 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                 if (disabledStudents.has(studentId)) return;
 
                 const next = { ...checkedState };
-                subjects.forEach((s) => {
-                    next[`${studentId}_${s.id}`] = checked;
-                });
+                if (!checked) {
+                    subjects.forEach((subject) => {
+                        next[`${studentId}_${subject.id}`] = false;
+                    });
+                }
 
                 setCheckedState(next);
 
@@ -423,51 +426,60 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
         const toggleSubjectAll = useCallback(
             (subjectId: number, checked: boolean) => {
                 const next = { ...checkedState };
+                let exceededMax = false;
 
                 filteredStudents.forEach((student) => {
-                    if (!disabledStudents.has(student.amsT_Id)) {
-                        next[`${student.amsT_Id}_${subjectId}`] = checked;
+                    if (disabledStudents.has(student.amsT_Id) || !selectedStudents.has(student.amsT_Id)) return;
+
+                    const subjectKey = `${student.amsT_Id}_${subjectId}`;
+                    const isCurrentlyChecked = Boolean(next[subjectKey]);
+                    const checkedCount = subjects.filter((subject) => next[`${student.amsT_Id}_${subject.id}`]).length;
+                    if (
+                        checked &&
+                        !isCurrentlyChecked &&
+                        maxApplicableSubjects > 0 &&
+                        checkedCount >= maxApplicableSubjects
+                    ) {
+                        exceededMax = true;
+                        return;
                     }
+
+                    next[subjectKey] = checked;
                 });
 
                 setCheckedState(next);
-
-                // Update selectedStudents
-                setSelectedStudents((prev) => {
-                    const newSet = new Set(prev);
-                    filteredStudents.forEach((student) => {
-                        if (!disabledStudents.has(student.amsT_Id)) {
-                            const hasAny = subjects.some((s) =>
-                                s.id === subjectId ? checked : Boolean(next[`${student.amsT_Id}_${s.id}`])
-                            );
-                            if (hasAny) {
-                                newSet.add(student.amsT_Id);
-                            } else {
-                                newSet.delete(student.amsT_Id);
-                            }
-                        }
-                    });
-                    return newSet;
-                });
+                if (exceededMax) setShowMaxSubjectsDialog(true);
 
                 if (onUpdateMapping) {
                     onUpdateMapping(buildPayload(next, initialState, disabledStudents));
                 }
             },
-            [checkedState, filteredStudents, disabledStudents, subjects, onUpdateMapping, buildPayload, initialState]
+            [
+                checkedState,
+                filteredStudents,
+                disabledStudents,
+                selectedStudents,
+                subjects,
+                maxApplicableSubjects,
+                onUpdateMapping,
+                buildPayload,
+                initialState
+            ]
         );
 
         /** Check if all filtered active students have a specific subject checked */
         const isSubjectAllChecked = useCallback(
             (subjectId: number): boolean => {
-                const activeStudents = filteredStudents.filter((s) => !disabledStudents.has(s.amsT_Id));
+                const activeStudents = filteredStudents.filter(
+                    (student) => selectedStudents.has(student.amsT_Id) && !disabledStudents.has(student.amsT_Id)
+                );
                 if (activeStudents.length === 0) return false;
                 return activeStudents.every((s) => Boolean(checkedState[`${s.amsT_Id}_${subjectId}`]));
             },
-            [filteredStudents, disabledStudents, checkedState]
+            [filteredStudents, selectedStudents, disabledStudents, checkedState]
         );
 
-        /** Select or Deselect all students and all subjects */
+        /** Select or deselect all filtered students */
         const handleSelectAllStudents = useCallback(
             (checked: boolean) => {
                 const next = { ...checkedState };
@@ -475,13 +487,13 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
 
                 filteredStudents.forEach((student) => {
                     if (!disabledStudents.has(student.amsT_Id)) {
-                        subjects.forEach((s) => {
-                            next[`${student.amsT_Id}_${s.id}`] = checked;
-                        });
                         if (checked) {
                             newSelected.add(student.amsT_Id);
                         } else {
                             newSelected.delete(student.amsT_Id);
+                            subjects.forEach((subject) => {
+                                next[`${student.amsT_Id}_${subject.id}`] = false;
+                            });
                         }
                     }
                 });
@@ -610,6 +622,13 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                                             {/* TOGGLE ALL Column for this Subject */}
                                             <Checkbox
                                                 checked={isSubjectAllChecked(sub.id)}
+                                                disabled={
+                                                    !filteredStudents.some(
+                                                        (student) =>
+                                                            selectedStudents.has(student.amsT_Id) &&
+                                                            !disabledStudents.has(student.amsT_Id)
+                                                    )
+                                                }
                                                 onCheckedChange={(c) => toggleSubjectAll(sub.id, !!c)}
                                                 className='h-5 w-5 border-white bg-white data-[state=checked]:bg-white data-[state=checked]:text-primary data-[state=unchecked]:bg-white'
                                             />
@@ -682,7 +701,7 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                                                             onCheckedChange={(checked) =>
                                                                 handleIndividualChange(student.amsT_Id, subject.id, !!checked)
                                                             }
-                                                            disabled={isDisabled}
+                                                            disabled={isDisabled || !isSelected}
                                                         />
                                                     </div>
                                                 </TableCell>
@@ -715,6 +734,18 @@ const StudentSubjectMappingTable = forwardRef<StudentMappingTableHandle, Props>(
                             <AlertDialogAction onClick={confirmDeleteStudent} className='bg-red-500 text-white hover:bg-red-600'>
                                 Yes, Remove it!
                             </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <AlertDialog open={showMaxSubjectsDialog} onOpenChange={setShowMaxSubjectsDialog}>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                Beyond The Max.Applicable Subjects You can't Select
+                            </AlertDialogTitle>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogAction>OK</AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>

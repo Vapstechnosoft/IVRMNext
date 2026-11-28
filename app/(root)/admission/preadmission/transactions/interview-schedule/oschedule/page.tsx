@@ -271,15 +271,24 @@ function OralTestScheduleContent() {
 
                     <div ref={printRef} className='print:block print:w-full print:overflow-visible'>
                         <div className='no-print [&_tbody_tr:nth-child(even)]:bg-slate-50/50 [&_thead_tr_th:last-child]:border-r-0 [&_thead_tr_th]:border-slate-200 [&_thead_tr_th]:border-r [&_thead_tr_th]:py-3 [&_thead_tr_th]:font-bold [&_thead_tr_th]:text-black [&_thead_tr_th_button]:hover:bg-transparent [&_thead_tr_th_button]:hover:text-black'>
-                            <GenericDataTable<IOralTestSchedule>
-                                {...tableProps}
-                                columns={oralTestScheduleColumns}
-                                isLoading={isLoading}
-                                error={error}
-                                isSearchRequired={false}
-                                noDataTitle='No Schedules Found'
-                                noDataDescription='Create your first oral test schedule to see it here.'
-                            />
+                            {!isLoading && !error && filteredData.length === 0 ? (
+                                <div className='flex min-h-40 items-center justify-center rounded-md border bg-white text-center text-muted-foreground text-sm'>
+                                    {response?.oralTestSchedule?.length
+                                        ? 'No schedules match your search.'
+                                        : 'Data is not available.'}
+                                </div>
+                            ) : (
+                                <GenericDataTable<IOralTestSchedule>
+                                    {...tableProps}
+                                    columns={oralTestScheduleColumns}
+                                    isLoading={false}
+                                    
+                                    error={error}
+                                    isSearchRequired={false}
+                                    noDataTitle='No Schedules Found'
+                                    noDataDescription='Create your first oral test schedule to see it here.'
+                                />
+                            )}
                         </div>
                         
                         <div className='print-only hidden print:block overflow-x-auto'>

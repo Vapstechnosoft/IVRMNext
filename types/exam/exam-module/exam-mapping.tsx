@@ -64,8 +64,10 @@ export interface ILoginPrivilegeDetails {
     asmcL_ClassName: string;
     asmS_Id: number;
     asmC_SectionName: string;
-    activeFlg: boolean;
-    elpS_Id: number;
+    activeFlg?: boolean;
+    elps_ActiveFlg?: boolean;
+    elpS_Id?: number;
+    elps_Id?: number;
     elpsS_Id: number;
     elP_Id: number;
 }

@@ -94,43 +94,75 @@ export default function UpdateMasterAcademicYearForm({
 
     useEffect(() => {
         if (row) {
-            // Extract from and to years from asmaY_Year (e.g., "1199-1200")
-            const [fromYear = '', toYear = ''] = row.asmaY_Year?.split('-') || [];
+            const rawYear = row.asmaY_Year || (row as any).ASMAY_Year || (row as any).asmay_Year || '';
+            const [fromYear = '', toYear = ''] = rawYear.split('-') || [];
+
+            const extractTime = (dateStr?: string | null) => {
+                if (!dateStr) return null;
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return null;
+                const hours = String(d.getHours()).padStart(2, '0');
+                const minutes = String(d.getMinutes()).padStart(2, '0');
+                return `${hours}:${minutes}`;
+            };
+
+            const fDate = row.asmaY_PreAdm_F_Date || (row as any).ASMAY_PreAdm_F_Date || (row as any).asmay_PreAdm_F_Date;
+            const tDate = row.asmaY_PreAdm_T_Date || (row as any).ASMAY_PreAdm_T_Date || (row as any).asmay_PreAdm_T_Date;
+
+            const fTime =
+                row.asmaY_PreAdm_F_Time ||
+                (row as any).ASMAY_PreAdm_F_Time ||
+                (row as any).asmay_PreAdm_F_Time ||
+                extractTime(fDate) ||
+                '00:00';
+            const tTime =
+                row.asmaY_PreAdm_T_Time ||
+                (row as any).ASMAY_PreAdm_T_Time ||
+                (row as any).asmay_PreAdm_T_Time ||
+                extractTime(tDate) ||
+                '23:59';
 
             reset({
-                asmaY_Id: Number(row.asmaY_Id),
-                mI_Id: Number(row.mI_Id) || 0,
+                asmaY_Id: Number(row.asmaY_Id || (row as any).ASMAY_Id || (row as any).asmay_Id),
+                mI_Id: Number(row.mI_Id || (row as any).MI_Id || (row as any).mI_Id) || 0,
                 academicFromYear: fromYear,
                 academicToYear: toYear,
-                asmaY_Year: row.asmaY_Year,
-                asmaY_From_Date: row.asmaY_From_Date,
-                asmaY_To_Date: row.asmaY_To_Date,
-                asmaY_PreAdm_F_Date: row.asmaY_PreAdm_F_Date,
-                asmaY_PreAdm_T_Date: row.asmaY_PreAdm_T_Date,
-                asmaY_PreAdm_F_Time: row.asmaY_PreAdm_F_Time || (row as any).ASMAY_PreAdm_F_Time || '00:00',
-                asmaY_PreAdm_T_Time: row.asmaY_PreAdm_T_Time || (row as any).ASMAY_PreAdm_T_Time || '23:59',
-                asmaY_Order: Number(row.asmaY_Order),
-                asmaY_ActiveFlag: Number(row.asmaY_ActiveFlag),
-                asmaY_Cut_Of_Date: row.asmaY_Cut_Of_Date,
-                asmaY_Pre_ActiveFlag: Number(row.asmaY_Pre_ActiveFlag) === 1 || String(row.asmaY_Pre_ActiveFlag).toLowerCase() === 'true',
+                asmaY_Year: rawYear,
+                asmaY_From_Date: row.asmaY_From_Date || (row as any).ASMAY_From_Date || (row as any).asmay_From_Date,
+                asmaY_To_Date: row.asmaY_To_Date || (row as any).ASMAY_To_Date || (row as any).asmay_To_Date,
+                asmaY_PreAdm_F_Date: fDate,
+                asmaY_PreAdm_T_Date: tDate,
+                asmaY_PreAdm_F_Time: fTime,
+                asmaY_PreAdm_T_Time: tTime,
+                asmaY_Order: Number(row.asmaY_Order || (row as any).ASMAY_Order || (row as any).asmay_Order),
+                asmaY_ActiveFlag: Number(row.asmaY_ActiveFlag || (row as any).ASMAY_ActiveFlag || (row as any).asmay_ActiveFlag),
+                asmaY_Cut_Of_Date: row.asmaY_Cut_Of_Date || (row as any).ASMAY_Cut_Of_Date || (row as any).asmay_Cut_Of_Date,
+                asmaY_Pre_ActiveFlag:
+                    Number(row.asmaY_Pre_ActiveFlag ?? (row as any).ASMAY_Pre_ActiveFlag ?? (row as any).asmay_Pre_ActiveFlag) === 1 ||
+                    String(row.asmaY_Pre_ActiveFlag ?? (row as any).ASMAY_Pre_ActiveFlag ?? (row as any).asmay_Pre_ActiveFlag).toLowerCase() === 'true',
                 asmaY_ReggularFlg:
-                    Number(row.asmaY_ReggularFlg) === 1 ||
+                    Number(row.asmaY_ReggularFlg ?? (row as any).ASMAY_ReggularFlg ?? (row as any).asmay_ReggularFlg) === 1 ||
                     row.asmaY_ReggularFlg === true ||
-                    String(row.asmaY_ReggularFlg).toLowerCase() === 'true',
+                    (row as any).ASMAY_ReggularFlg === true ||
+                    String(row.asmaY_ReggularFlg ?? (row as any).ASMAY_ReggularFlg ?? (row as any).asmay_ReggularFlg).toLowerCase() === 'true',
                 asmaY_NewFlg:
-                    Number(row.asmaY_NewFlg) === 1 || row.asmaY_NewFlg === true || String(row.asmaY_NewFlg).toLowerCase() === 'true',
+                    Number(row.asmaY_NewFlg ?? (row as any).ASMAY_NewFlg ?? (row as any).asmay_NewFlg) === 1 ||
+                    row.asmaY_NewFlg === true ||
+                    (row as any).ASMAY_NewFlg === true ||
+                    String(row.asmaY_NewFlg ?? (row as any).ASMAY_NewFlg ?? (row as any).asmay_NewFlg).toLowerCase() === 'true',
                 asmaY_NewAdmissionFlg:
-                    Number(row.asmaY_NewAdmissionFlg) === 1 ||
+                    Number(row.asmaY_NewAdmissionFlg ?? (row as any).ASMAY_NewAdmissionFlg ?? (row as any).asmay_NewAdmissionFlg) === 1 ||
                     row.asmaY_NewAdmissionFlg === true ||
-                    String(row.asmaY_NewAdmissionFlg).toLowerCase() === 'true',
-                asmaY_TransportSDate: row.asmaY_TransportSDate || (row as any).ASMAY_TransportSDate || '',
-                asmaY_TransportEDate: row.asmaY_TransportEDate || (row as any).ASMAY_TransportEDate || '',
-                asmaY_ReferenceDate: row.asmaY_ReferenceDate || (row as any).ASMAY_ReferenceDate || '',
-                asmaY_AcademicYearCode: row.asmaY_AcademicYearCode,
-                asmaY_AdvanceFeeDate: row.asmaY_AdvanceFeeDate || (row as any).ASMAY_AdvanceFeeDate || '',
-                asmaY_RegularFeeFDate: row.asmaY_RegularFeeFDate || (row as any).ASMAY_RegularFeeFDate || '',
-                asmaY_RegularFeeTDate: row.asmaY_RegularFeeTDate || (row as any).ASMAY_RegularFeeTDate || '',
-                asmaY_ArrearFeeDate: row.asmaY_ArrearFeeDate || (row as any).ASMAY_ArrearFeeDate || ''
+                    (row as any).ASMAY_NewAdmissionFlg === true ||
+                    String(row.asmaY_NewAdmissionFlg ?? (row as any).ASMAY_NewAdmissionFlg ?? (row as any).asmay_NewAdmissionFlg).toLowerCase() === 'true',
+                asmaY_TransportSDate: row.asmaY_TransportSDate || (row as any).ASMAY_TransportSDate || (row as any).asmay_TransportSDate || '',
+                asmaY_TransportEDate: row.asmaY_TransportEDate || (row as any).ASMAY_TransportEDate || (row as any).asmay_TransportEDate || '',
+                asmaY_ReferenceDate: row.asmaY_ReferenceDate || (row as any).ASMAY_ReferenceDate || (row as any).asmay_ReferenceDate || '',
+                asmaY_AcademicYearCode: row.asmaY_AcademicYearCode || (row as any).ASMAY_AcademicYearCode || (row as any).asmay_AcademicYearCode,
+                asmaY_AdvanceFeeDate: row.asmaY_AdvanceFeeDate || (row as any).ASMAY_AdvanceFeeDate || (row as any).asmay_AdvanceFeeDate || '',
+                asmaY_RegularFeeFDate: row.asmaY_RegularFeeFDate || (row as any).ASMAY_RegularFeeFDate || (row as any).asmay_RegularFeeFDate || '',
+                asmaY_RegularFeeTDate: row.asmaY_RegularFeeTDate || (row as any).ASMAY_RegularFeeTDate || (row as any).asmay_RegularFeeTDate || '',
+                asmaY_ArrearFeeDate: row.asmaY_ArrearFeeDate || (row as any).ASMAY_ArrearFeeDate || (row as any).asmay_ArrearFeeDate || ''
             });
         }
     }, [row, reset]);
@@ -148,8 +180,8 @@ export default function UpdateMasterAcademicYearForm({
             };
 
             const payload = {
-                ASMAY_Id: Number(row.asmaY_Id),
-                MI_Id: Number(data.mI_Id),
+                ASMAY_Id: Number(data.asmaY_Id || row.asmaY_Id || (row as any).ASMAY_Id || (row as any).asmay_Id),
+                MI_Id: Number(data.mI_Id || row.mI_Id || (row as any).MI_Id || (row as any).mI_Id),
                 ASMAY_Year: data.asmaY_Year,
                 asmaY_From_Year: data.academicFromYear,
                 asmaY_To_Year: data.academicToYear,

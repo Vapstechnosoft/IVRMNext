@@ -6,11 +6,12 @@ import { ActionButtons } from '@/components/ui/form/action-buttons';
 import { useFormContext } from '@/components/ui/form/form-provider';
 import type { ColumnDef } from '@tanstack/react-table';
 
-import { getMasterInstitution } from '@/server/exam/exam-module/reports/vvehpc_exam-report-card';
+import { feeReceiptLogo } from '@/hooks/fees/useReports';
 import type { IMasterInstitution } from '@/types/exam/exam-module/report';
 import type { IMasterGroupWiseAutoReciptList } from '@/types/fees/masters/masters';
 import { Eye, Printer } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useCallback, useMemo, useState } from 'react';
 
 export const masterGroupWiseAutoReciptColumns: ColumnDef<IMasterGroupWiseAutoReciptList>[] = [
     {
@@ -228,9 +229,7 @@ const PLACEHOLDER_CONFIG = [
     { pattern: /\[GroupName\]/gi, value: (rowData: IMasterGroupWiseAutoReciptList) => rowData.fgaR_Name || '' },
     { pattern: /\[AcademicYear\]/gi, value: (rowData: IMasterGroupWiseAutoReciptList) => rowData.academicyear || '' },
     { pattern: /\[Date\]/gi, value: () => new Date().toLocaleDateString() },
-    { pattern: /\[Time\]/gi, value: () => new Date().toLocaleTimeString() },
-    // ADD THIS LINE TO REMOVE "baldwin"
-    { pattern: /baldwin/gi, value: () => '' }
+    { pattern: /\[Time\]/gi, value: () => new Date().toLocaleTimeString() }
 ];
 
 // Decode HTML entities
@@ -241,24 +240,52 @@ const decodeHtmlEntities = (html: string): string => {
 };
 
 // Replace placeholders
-const replacePlaceholders = (html: string, rowData: IMasterGroupWiseAutoReciptList, institute: IMasterInstitution | null): string => {
+const replacePlaceholders = (
+    html: string,
+    rowData: IMasterGroupWiseAutoReciptList,
+    institute: IMasterInstitution | null,
+    resolvedLogo: string,
+    instituteName: string
+): string => {
     let processedHtml = html;
 
     for (const { pattern, value } of PLACEHOLDER_CONFIG) {
         processedHtml = processedHtml.replace(pattern, value(rowData));
     }
 
-    // Replace specific angular tags first to preserve them
-    processedHtml = processedHtml.replace(/\{\{imgname\}\}/gi, institute?.mI_Logo || 'https://via.placeholder.com/800x120?text=Institute+Header');
+    const logoToUse = institute?.mI_Logo || resolvedLogo ;
+    const nameToUse = institute?.mI_Name || instituteName || '';
+
+    // Replace logo placeholders
+    processedHtml = processedHtml.replace(/\{\{imgname\}\}/gi, logoToUse);
+    processedHtml = processedHtml.replace(/\{\{logo\}\}/gi, logoToUse);
+    processedHtml = processedHtml.replace(/\{\{logoUrl\}\}/gi, logoToUse);
+    processedHtml = processedHtml.replace(/\{\{mI_Logo\}\}/gi, logoToUse);
+    processedHtml = processedHtml.replace(/\{\{mi_logo\}\}/gi, logoToUse);
+    processedHtml = processedHtml.replace(/\{\{institution_logo\}\}/gi, logoToUse);
+    processedHtml = processedHtml.replace(/\[InstituteLogo\]/gi, logoToUse);
+    processedHtml = processedHtml.replace(/\[Logo\]/gi, logoToUse);
+
+    // Replace placeholder images with resolved logo
+    processedHtml = processedHtml.replace(/https?:\/\/via\.placeholder\.com\/[^\s"'>]+/gi, logoToUse);
 
     // Add institute placeholders with null checks
-    processedHtml = processedHtml.replace(/\[InstituteLogo\]/gi, institute?.mI_Logo || '');
-    processedHtml = processedHtml.replace(/\[InstituteName\]/gi, institute?.mI_Name || '');
-    processedHtml = processedHtml.replace(/\[InstituteAddress\]/gi, institute?.mI_Name || '');
+    processedHtml = processedHtml.replace(/\[InstituteName\]/gi, nameToUse);
+    processedHtml = processedHtml.replace(/\[InstituteAddress\]/gi, nameToUse);
+    processedHtml = processedHtml.replace(/\{\{institute_name\}\}/gi, nameToUse);
+    processedHtml = processedHtml.replace(/\{\{mI_Name\}\}/gi, nameToUse);
 
-    // REMOVE "baldwin" and other hardcoded test values
-    processedHtml = processedHtml.replace(/baldwin/gi, '');
-    processedHtml = processedHtml.replace(/Baldwin/gi, '');
+    // Replace alt="baldwin" with institute name
+    processedHtml = processedHtml.replace(/alt=["']baldwin["']/gi, `alt="${nameToUse || 'Logo'}"`);
+
+    // Replace empty or dummy image src
+    processedHtml = processedHtml.replace(/<img([^>]*?)src=["'](["'])/gi, `<img$1src="${logoToUse}"`);
+    processedHtml = processedHtml.replace(/<img([^>]*?)src=["']#["']/gi, `<img$1src="${logoToUse}"`);
+
+    // If template has NO image tag at all, ensure header logo is placed at the top
+    if (!processedHtml.includes('<img')) {
+        processedHtml = `<div style="text-align: center; margin-bottom: 16px;"><img src="${logoToUse}" alt="${nameToUse || 'Logo'}" style="max-height: 100px; max-width: 100%; margin: 0 auto; display: block; object-fit: contain;" /></div>` + processedHtml;
+    }
 
     // Replace some known angular ng-if blocks that might clutter the preview
     // e.g., ng-if="receiptformat == 1" which hides "Total Charges"
@@ -361,11 +388,20 @@ const generateIframeContent = (html: string, institute: IMasterInstitution | nul
                         margin-bottom: 0;
                     }
 
-                    .printmodal img {
+                    .baldwin, .text-center {
+                        text-align: center;
+                    }
+
+                    .baldwin img,
+                    .printmodal img,
+                    .printmodal1 img,
+                    .preview-container img {
                         max-height: 120px;
                         width: auto;
-                        margin: 0 auto 20px auto;
+                        max-width: 100%;
+                        margin: 0 auto 15px auto;
                         display: block;
+                        object-fit: contain;
                     }
 
                     /* Fix alignment for Bootstrap 3 grid inside Bootstrap 5 */
@@ -462,27 +498,59 @@ const generateIframeContent = (html: string, institute: IMasterInstitution | nul
 
 export function TemplatePreviewCell({ templateHtml, rowData }: TemplatePreviewCellProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const [institution, setInstitution] = useState<IMasterInstitution | null>(null);
-    const [loading, setLoading] = useState(false);
+    const { data: session } = useSession();
+    const { data: logoData, isLoading: isLogoLoading } = feeReceiptLogo();
 
-    // Fetch institution details on component mount
-    useEffect(() => {
-        const fetchInstitution = async () => {
-            try {
-                setLoading(true);
-                const institutionRes = await getMasterInstitution();
-                const { data: institutionData } = institutionRes;
-                setInstitution(institutionData);
-            } catch (err) {
-                console.error('Failed to load institution details', err);
-                setInstitution(null);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const payload = (logoData as any)?.data !== undefined ? (logoData as any)?.data : logoData;
+    const rawList = Array.isArray(payload)
+        ? payload
+        : payload?.institutionlist || payload?.logoList || payload?.data || (payload ? [payload] : []);
 
-        fetchInstitution();
-    }, []); // Empty dependency array - fetch once when component mounts
+    const matchedItem =
+        Array.isArray(rawList) && rawList.length > 0
+            ? rawList.find((item: any) => Number(item.mI_Id || item.mi_id || item.MI_Id) === Number(session?.mi_id)) || rawList[0]
+            : null;
+
+    const apiLogo =
+        matchedItem?.mI_logo ||
+        matchedItem?.mI_Logo ||
+        matchedItem?.mi_logo ||
+        matchedItem?.mi_Logo ||
+        matchedItem?.MI_Logo ||
+        matchedItem?.logo ||
+        matchedItem?.logopath ||
+        matchedItem?.logoPath ||
+        matchedItem?.mI_LogoPath ||
+        matchedItem?.institution_logo;
+
+    const sessionLogo = session?.mi_logo;
+    let rawLogo = sessionLogo || apiLogo || '';
+
+    // Handle relative path returned by backend API
+    if (rawLogo && !rawLogo.startsWith('http://') && !rawLogo.startsWith('https://') && !rawLogo.startsWith('data:')) {
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+        try {
+            const origin = baseUrl ? new URL(baseUrl).origin : '';
+            rawLogo = `${origin}${rawLogo.startsWith('/') ? '' : '/'}${rawLogo}`;
+        } catch {
+            // Keep rawLogo as is
+        }
+    }
+
+    const resolvedLogo = rawLogo ;
+    const institutionName = session?.mi_name || matchedItem?.mI_Name || matchedItem?.institution_name || '';
+
+    const institution: IMasterInstitution = useMemo(
+        () => ({
+            mI_Id: Number(session?.mi_id || 0),
+            mI_Name: institutionName,
+            mI_Logo: resolvedLogo,
+            mI_Address: '',
+            mI_Affiliation: '',
+            mI_Pincode: ''
+        } as any),
+        [session?.mi_id, institutionName, resolvedLogo]
+    );
 
     // Process template HTML
     const { safeHtml, iframeContent } = useMemo(() => {
@@ -492,7 +560,7 @@ export function TemplatePreviewCell({ templateHtml, rowData }: TemplatePreviewCe
 
         // Decode and process HTML
         let processed = decodeHtmlEntities(templateHtml);
-        processed = replacePlaceholders(processed, rowData, institution);
+        processed = replacePlaceholders(processed, rowData, institution, resolvedLogo, institutionName);
 
         // Check if it's a full HTML document
         const isFullDocument = processed.toLowerCase().includes('<html') && processed.toLowerCase().includes('<body');
@@ -500,7 +568,7 @@ export function TemplatePreviewCell({ templateHtml, rowData }: TemplatePreviewCe
         const iframeContent = generateIframeContent(processed, institution, isFullDocument);
 
         return { safeHtml: processed, iframeContent };
-    }, [templateHtml, rowData, institution]);
+    }, [templateHtml, rowData, institution, resolvedLogo, institutionName]);
 
     const handleOpenChange = useCallback((open: boolean) => {
         setIsOpen(open);
@@ -524,7 +592,7 @@ export function TemplatePreviewCell({ templateHtml, rowData }: TemplatePreviewCe
                     <DialogHeader className='flex shrink-0 flex-row items-center justify-between border-b bg-gray-50 px-6 py-4'>
                         <DialogTitle className='font-semibold text-gray-800 text-xl'>
                             Receipt Template Preview
-                            {loading && <span className='ml-2 text-gray-500 text-sm'>(Loading institution details...)</span>}
+                            {isLogoLoading && <span className='ml-2 text-gray-500 text-sm'>(Loading institution details...)</span>}
                         </DialogTitle>
                         <DialogClose asChild>
                             <Button variant='outline' size='sm' className='w-fit'>
@@ -534,14 +602,7 @@ export function TemplatePreviewCell({ templateHtml, rowData }: TemplatePreviewCe
                     </DialogHeader>
 
                     <div className='w-full flex-1 overflow-auto bg-gray-100'>
-                        {loading ? (
-                            <div className='flex h-full items-center justify-center'>
-                                <div className='text-center'>
-                                    <div className='mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-blue-600 border-b-2' />
-                                    <p className='text-gray-500'>Loading preview...</p>
-                                </div>
-                            </div>
-                        ) : iframeContent ? (
+                        {iframeContent ? (
                             <iframe
                                 title='Template Preview'
                                 className='h-full w-full border-0'
@@ -569,6 +630,7 @@ export function TemplatePreviewCell({ templateHtml, rowData }: TemplatePreviewCe
         </>
     );
 }
+
 const PrintReceiptButton = ({ htmlContent, institution }: { htmlContent: string; institution: IMasterInstitution | null }) => {
     const handlePrint = () => {
         const printWindow = window.open('', '_blank', 'width=900,height=900,toolbar=yes,scrollbars=yes');
@@ -577,8 +639,8 @@ const PrintReceiptButton = ({ htmlContent, institution }: { htmlContent: string;
             return;
         }
 
-        const hasLogo = institution?.mI_Logo && institution.mI_Logo.trim() !== '';
-        const logoUrl = institution?.mI_Logo || '';
+        const logoUrl = institution?.mI_Logo 
+        const hasLogo = Boolean(logoUrl && logoUrl.trim() !== '');
         const instituteName = institution?.mI_Name || '';
 
         const documentHtml = `

@@ -155,8 +155,10 @@ export const useSophiaRegistrationXIPayNow = () => {
 };
 
 export const useSophiaRegistrationXICountry = () => {
-    return useMutation({
-        mutationFn: () => server.getCountry()
+    return useQuery({
+        queryKey: ['sophiaRegistrationXICountry'],
+        queryFn: () => server.getCountry(),
+        staleTime: Number.POSITIVE_INFINITY
     });
 };
 

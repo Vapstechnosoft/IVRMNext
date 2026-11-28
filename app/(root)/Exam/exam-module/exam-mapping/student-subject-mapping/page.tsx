@@ -109,6 +109,7 @@ function StudentSubjectMappingContent() {
     const watchedClass = watch('asmcL_Id');
     const watchedCategory = watch('emcA_Id');
     const _watchedExams = watch('eme_Id');
+    const watchedSubjectGroup = watch('subject_group_id');
 
     const { data: academicYear, isLoading: academicYearLoading, error: academicYearError } = useAcademicYearDropdown();
 
@@ -131,6 +132,14 @@ function StudentSubjectMappingContent() {
     const [isLoading, setIsLoading] = useState(false);
     const [userId] = useState<number>(1); // You should get this from auth context
     const tableRef = useRef<StudentMappingTableHandle>(null);
+    const selectedSubjectGroup = subjectGroups.find(
+        (group: any) => Number(group.emG_Id ?? group.EMG_Id) === watchedSubjectGroup
+    );
+    const configuredMaxApplicableSubjects = Number(
+        selectedSubjectGroup?.emG_MaxAplSubjects ?? selectedSubjectGroup?.EMG_MaxAplSubjects
+    );
+    const maxApplicableSubjects =
+        Number.isFinite(configuredMaxApplicableSubjects) && configuredMaxApplicableSubjects > 0 ? configuredMaxApplicableSubjects : 1;
 
     // const MI_Id = 30;
 
@@ -768,6 +777,7 @@ function StudentSubjectMappingContent() {
                                     asmcL_Id={getValues('asmcL_Id') || 0}
                                     asmS_Id={getValues('asmS_Id') || 0}
                                     emG_Id={getValues('subject_group_id') || 0}
+                                    maxApplicableSubjects={maxApplicableSubjects}
                                     emE_Id={getValues('eme_Id') || 0}
                                     userId={userId}
                                     left_Flag={getValues('Left_Flag') ?? true}

@@ -257,7 +257,22 @@ export const masterInstallmentSchema = {
     addOrUpdate: z
         .object({
             fmI_Id: z.union([z.number(), z.string()]).optional(),
-            fmI_Name: createStringOnlySchema('Master Installment Name', 1, 100),
+
+            // CHANGED: was createStringOnlySchema (letters only).
+            // Now allows letters, numbers, spaces and / ( ) -
+            // Must contain at least one letter (numbers/symbols only are rejected).
+            fmI_Name: z
+                .string({ message: 'Master Installment Name is required' })
+                .trim()
+                .min(1, { message: 'Master Installment Name is required' })
+                .max(100, { message: 'Master Installment Name must not exceed 100 characters' })
+                .regex(/^[A-Za-z0-9 /()-]+$/, {
+                    message: 'Master Installment Name can only contain letters, numbers, spaces and / ( ) -'
+                })
+                .regex(/[A-Za-z]/, {
+                    message: 'Master Installment Name must contain at least one letter'
+                }),
+
             fmI_Installment_Type: z.string().min(1, { message: 'Installment Type is required' }),
             fmI_No_Of_Installments: z.number().max(365, { message: 'Maximum number of installments is 365' }).optional(),
             installments: z

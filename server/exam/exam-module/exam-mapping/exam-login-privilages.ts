@@ -36,7 +36,7 @@ export async function addorUpdateExamLoginPrivileges(data: any) {
 
 export async function toggleExamLoginPrivilege(elpS_Id: number) {
     const url = `/exam_login_privileges/exm_login_privilege_activate_deactivate/${elpS_Id}`;
-    return await api.put('exam', url);
+    return await api.put<{ elps_ActiveFlg?: boolean }>('exam', url);
 }
 
 /* ===================== DROPDOWNS & DETAILS ===================== */

@@ -287,6 +287,37 @@ export interface Ifeetransaction {
     asmaY_Year: string;
 }
 
+export interface ITransLogResult {
+    payment_id?: string | null;
+    responsestatuslogs?: string | null;
+    error_description?: string | null;
+    order_id?: string | null;
+    fyP_Date?: string | null;
+    fmA_Amount?: number | null;
+    fyP_PayModeType?: string | null;
+    fmoT_PayGatewayType?: string | null;
+    [key: string]: any;
+}
+
+export interface IRazorpayTransactionLog {
+    id?: string | null;
+    payment_id?: string | null;
+    order_id?: string | null;
+    status?: string | null;
+    created_at?: string | null;
+    amount?: number | null;
+    [key: string]: any;
+}
+
+export interface IFeeTransactionStatusData {
+    gatewayLogs?: {
+        translogresults?: ITransLogResult[];
+        [key: string]: any;
+    } | null;
+    razorpaytransactionlogs?: IRazorpayTransactionLog[];
+    [key: string]: any;
+}
+
 export interface IStudentDropdown {
     amst_Id: number;
     studentName: string;

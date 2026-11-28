@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useStaffDashboard } from '@/hooks/staff-portal/useStaffDashboard';
 import { Bell, Book, Box, Calendar, Camera, Clock, FileText, ShoppingCart, User, Users } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { CalendarWidget } from './_components/calendar-widget';
 import {
@@ -20,6 +21,7 @@ import {
 import { StaffDashboardWidget } from './_components/staff-dashboard-widget';
 
 export default function StaffDashboardPage() {
+    const router = useRouter();
     const { data: dashboard, isLoading } = useStaffDashboard();
     const [modals, setModals] = useState({
         profile: false,
@@ -151,7 +153,7 @@ export default function StaffDashboardPage() {
                         icon={<Clock />}
                         colorClass='bg-gradient-to-br from-[#dd4b39] to-[#c23321]'
                         footerText='View Full Time Table'
-                        onViewClick={() => toggleModal('timetable', true)}>
+                        onViewClick={() => router.push('/StaffPortal/timetable')}>
                         <div className='flex items-baseline gap-2'>
                             <span>{dashboard?.tT_final_generation?.length || 0}</span>
                             <span className='font-medium text-slate-400 text-sm'>Sessions</span>

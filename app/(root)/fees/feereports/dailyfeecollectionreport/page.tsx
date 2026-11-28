@@ -1228,7 +1228,7 @@ export default function DailyFeeCollectionReportForm() {
                                     {tableRows.map((row, rowIndex) => (
                                         <tr key={rowIndex}>
                                             {tableColumns.map((col) => (
-                                                <td key={col} className='border px-3 py-2 text-right'>
+                                                <td key={col} className='border px-3 py-2 text-center'>
                                                     {row[col]}
                                                 </td>
                                             ))}
@@ -1239,7 +1239,7 @@ export default function DailyFeeCollectionReportForm() {
                                     {tableSumRow && (
                                         <tr className='bg-gray-100 font-semibold'>
                                             {tableColumns.map((col) => (
-                                                <td key={col} className='border px-3 py-2 text-right'>
+                                                <td key={col} className='border px-3 py-2 text-center'>
                                                     {col === 'SLNO'
                                                         ? ''
                                                         : col === 'Date' || col === 'PaymentMode'
