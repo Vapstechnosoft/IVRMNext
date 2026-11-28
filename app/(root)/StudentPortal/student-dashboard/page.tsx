@@ -23,6 +23,7 @@ import {
     Trophy,
     User
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import {
     type AchievementData,
@@ -95,8 +96,6 @@ const mockClasswork: AssignmentData[] = [
     }
 ];
 
-import { useRouter } from 'next/navigation';
-
 export default function StudentDashboardPage() {
     const router = useRouter();
     const [date, setDate] = useState<Date | undefined>(new Date());
@@ -115,6 +114,10 @@ export default function StudentDashboardPage() {
         studentInfoDetails?.asmY_Id ??
         (studentInfoDetails as any)?.ASMAY_Id ??
         academicYears?.data?.[0]?.asmaY_Id;
+    const miId =
+        studentInfoDetails?.mI_Id ??
+        studentInfoDetails?.mi_Id ??
+        (studentInfoDetails as any)?.MI_Id;
 
     const { data: feeInfo, isLoading: isFeeLoading } = useStudentInformation(asmayId ?? null, 'T', amstId ?? 0);
 
@@ -129,8 +132,8 @@ export default function StudentDashboardPage() {
                         Number(feeInfo.feeSummary.outstanding) > 0)))
     );
 
-    const { data: noticeBoardData, isLoading: isNoticeBoardLoading } = useNoticeBoard(amstId, asmayId);
-    const { data: classworkData, isLoading: isClassworkLoading } = useClasswork(amstId, asmayId);
+    const { data: noticeBoardData, isLoading: isNoticeBoardLoading } = useNoticeBoard(amstId, asmayId, miId);
+    const { data: classworkData, isLoading: isClassworkLoading } = useClasswork(amstId, asmayId, miId);
 
     console.log('studentInfoDetails', studentInfoDetails);
 
@@ -450,7 +453,7 @@ export default function StudentDashboardPage() {
                             <DialogTitle>Notice Board</DialogTitle>
                             <DialogDescription>Recent announcements and circulars</DialogDescription>
                         </DialogHeader>
-                        <GenericDataTable columns={noticeColumns} data={noticeBoardData || []} isLoading={isNoticeBoardLoading} />
+                        <GenericDataTable columns={noticeColumns} data={(noticeBoardData as NoticeBoardData[]) || []} isLoading={isNoticeBoardLoading} />
                     </DialogContent>
                 </Dialog>
 
@@ -486,7 +489,7 @@ export default function StudentDashboardPage() {
                         <DialogHeader>
                             <DialogTitle>Classwork</DialogTitle>
                         </DialogHeader>
-                        <GenericDataTable columns={classworkColumns} data={classworkData || []} isLoading={isClassworkLoading} />
+                        <GenericDataTable columns={classworkColumns} data={(classworkData as AssignmentData[]) || []} isLoading={isClassworkLoading} />
                     </DialogContent>
                 </Dialog>
             </div>

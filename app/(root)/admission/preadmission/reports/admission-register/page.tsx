@@ -114,6 +114,11 @@ export default function AdmissionReportPage(props: {
     const [fieldSearch, setFieldSearch] = useState('');
     const [showReport, setShowReport] = useState(false);
     const [requestPayload, setRequestPayload] = useState<any>(null);
+    const [submittedCriteria, setSubmittedCriteria] = useState<{
+        academicYear: number;
+        status: number;
+        payload: any;
+    } | null>(null);
     const [selectedStudents, setSelectedStudents] = useState<any[]>([]);
     const [isPrinting, setIsPrinting] = useState(false);
     const [printData, setPrintData] = useState<any[]>([]);
@@ -147,23 +152,41 @@ export default function AdmissionReportPage(props: {
     const academicYearValue = watch('academicYear');
     const statusValue = watch('status');
 
+    const apiSearchParams = useMemo(() => {
+        if (!currentSearchParams) return (searchParams as any) ?? {};
+        const entries: Record<string, string> = {};
+        currentSearchParams.forEach((value, key) => {
+            entries[key] = value;
+        });
+        return entries;
+    }, [currentSearchParams, searchParams]);
+
     const classOptions = useMemo(() => {
         if (!preadmissionClass?.data) return [];
         return preadmissionClass.data;
     }, [preadmissionClass]);
+
+    const activeYear = submittedCriteria?.academicYear ?? academicYearValue;
+    const activeStatus = submittedCriteria?.status ?? statusValue;
+    const activePayload = submittedCriteria?.payload ?? requestPayload;
 
     const {
         data: response,
         isLoading,
         error,
         refetch: refetchReport
-    } = useAdmissionRegister(academicYearValue, statusValue, requestPayload,searchParams ?? {} );
+    } = useAdmissionRegister(
+        activeYear,
+        activeStatus,
+        activePayload,
+        apiSearchParams
+    );
 
     useEffect(() => {
-        if (showReport && requestPayload && refetchReport) {
+        if (showReport && activePayload && refetchReport) {
             refetchReport();
         }
-    }, [requestPayload, showReport,searchParams, refetchReport  ]);
+    }, [activePayload, showReport, refetchReport]);
 
     const filteredClasses = useMemo(() => {
         return classOptions.filter((cls: any) => cls.asmcL_ClassName.toLowerCase().includes(classSearch.toLowerCase()));
@@ -180,15 +203,19 @@ export default function AdmissionReportPage(props: {
     const transformedResponse = useMemo(() => {
         if (!response) return response;
 
+        const rawData =
+            typeof response.data === 'object' && response.data !== null && 'searchstudentDetails' in response.data
+                ? (response.data as any).searchstudentDetails
+                : typeof response.data === 'object' && response.data !== null && 'SearchstudentDetails' in response.data
+                  ? (response.data as any).SearchstudentDetails
+                  : Array.isArray(response.data)
+                    ? response.data
+                    : [];
+
         return {
             ...response,
-            data:
-                typeof response.data === 'object' && response.data !== null && 'searchstudentDetails' in response.data
-                    ? response.data.searchstudentDetails
-                    : Array.isArray(response.data)
-                      ? response.data
-                      : [],
-            total: response.total,
+            data: rawData,
+            total: response.total ?? (response.data as any)?.total ?? rawData.length,
             page: response.page,
             page_size: response.page_size
         };
@@ -206,7 +233,7 @@ export default function AdmissionReportPage(props: {
                 page: 1
             };
 
-            const response: any = await getAdmissionRegister(academicYearValue, statusValue, requestPayload, printSearchParams);
+            const response: any = await getAdmissionRegister(activeYear, activeStatus, activePayload, printSearchParams);
 
             console.log(response);
             const allData =
@@ -304,6 +331,11 @@ export default function AdmissionReportPage(props: {
                 }))
             };
 
+            setSubmittedCriteria({
+                academicYear: formData.academicYear,
+                status: formData.status,
+                payload
+            });
             setRequestPayload(payload);
             setShowReport(true);
 
@@ -340,14 +372,16 @@ export default function AdmissionReportPage(props: {
                 page: 1
             };
 
-            const response: any = await getAdmissionRegister(academicYearValue, statusValue, requestPayload, printSearchParams);
+            const response: any = await getAdmissionRegister(activeYear, activeStatus, activePayload, printSearchParams);
 
             const allData =
                 response?.data && 'searchstudentDetails' in response.data
                     ? response.data.searchstudentDetails
-                    : Array.isArray(response?.data)
-                      ? response.data
-                      : [];
+                    : response?.data && 'SearchstudentDetails' in response.data
+                      ? response.data.SearchstudentDetails
+                      : Array.isArray(response?.data)
+                        ? response.data
+                        : [];
 
             if (!allData || allData.length === 0) {
                 toast.error('No data available to print');
@@ -629,9 +663,13 @@ export default function AdmissionReportPage(props: {
                                 </Button>
 
                                 {showReport &&
-                                    (response?.data as any)?.searchstudentDetails &&
-                                    Array.isArray((response?.data as any)?.searchstudentDetails) &&
-                                    (response?.data as any)?.searchstudentDetails.length > 0 && (
+                                    (((response?.data as any)?.searchstudentDetails &&
+                                        Array.isArray((response?.data as any)?.searchstudentDetails) &&
+                                        (response?.data as any)?.searchstudentDetails.length > 0) ||
+                                     ((response?.data as any)?.SearchstudentDetails &&
+                                        Array.isArray((response?.data as any)?.SearchstudentDetails) &&
+                                        (response?.data as any)?.SearchstudentDetails.length > 0) ||
+                                     (Array.isArray(transformedResponse?.data) && transformedResponse.data.length > 0)) && (
                                         <>
                                             <Button
                                                 variant='outline'

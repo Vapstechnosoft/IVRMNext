@@ -38,8 +38,11 @@ export function useSaveGeneralConfiguration() {
     return useMutation({
         mutationFn: (data: any) => saveGeneralConfiguration(data),
         onSuccess: (response: any) => {
-            if (response?.returnval) {
-                toast.success(response.returnval as string);
+            const result = response?.data || response;
+            if (result?.returnval) {
+                toast.success(result.returnval as string);
+            } else if (result?.message) {
+                toast.success(result.message as string);
             } else {
                 toast.success('Configuration saved successfully');
             }

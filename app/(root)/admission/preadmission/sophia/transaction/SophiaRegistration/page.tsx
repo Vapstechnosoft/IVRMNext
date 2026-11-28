@@ -32,6 +32,7 @@ import Swal from 'sweetalert2';
 import { useAdmissionFormDetails } from '@/hooks/admission/admissionForm';
 import {
     useSophiaRegistrationXICaste,
+    useSophiaRegistrationXICountry,
     useSophiaRegistrationXIDelete,
     useSophiaRegistrationXIInitialData,
     useSophiaRegistrationXISave,
@@ -45,7 +46,11 @@ import {
     useMasterCasteCategoryDropdown,
     useMasterReligion
 } from '@/hooks/admission/preadmission/useMasters';
-import { useActivePreadmissionDetails, useReligionDropdown } from '@/hooks/admission/preadmission/useTransactions';
+import {
+    useActivePreadmissionDetails,
+    usePreadmissionDocumentsDropdown,
+    useReligionDropdown
+} from '@/hooks/admission/preadmission/useTransactions';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -158,6 +163,7 @@ export default function SophiaRegistration() {
         PASA_WillingToContributeRemarks: '',
         PASR_UndertakingFlag: '1'
     });
+    const [permanentStates, setPermanentStates] = useState<any[]>([]);
 
     const [siblings, setSiblings] = useState<any[]>([
         {
@@ -187,6 +193,7 @@ export default function SophiaRegistration() {
 
     /* -------------------- Hooks & API -------------------- */
     const { data: initialData } = useSophiaRegistrationXIInitialData(0, 0);
+    const { data: countryData } = useSophiaRegistrationXICountry();
     const { data: admissionDetails } = useAdmissionFormDetails();
     const { data: activePreadmission } = useActivePreadmissionDetails();
     const { data: academicYearDropdown } = useAcademicYearDropdown();
@@ -194,9 +201,11 @@ export default function SophiaRegistration() {
     const { data: masterReligionData } = useMasterReligion();
     const { data: casteCategoryDropdownData } = useMasterCasteCategoryDropdown();
     const { data: masterCasteCategoryData } = useMasterCasteCategory();
+    const { data: documentDropdownData } = usePreadmissionDocumentsDropdown();
 
     const casteMutation = useSophiaRegistrationXICaste();
     const statesMutation = useSophiaRegistrationXIStates();
+    const permanentStatesMutation = useSophiaRegistrationXIStates();
     const saveMutation = useSophiaRegistrationXISave();
     const deleteMutation = useSophiaRegistrationXIDelete();
     const toggleStatusMutation = useSophiaRegistrationXIToggleStatus();
@@ -267,11 +276,17 @@ export default function SophiaRegistration() {
 
     const countries = useMemo(() => {
         const pData = (initialData?.data as any) || initialData;
-        const list = pData?.countrydrp || pData?.allCountry || pData?.arrlist || [];
+        const responseData = (countryData as any)?.data;
+        const list =
+            (Array.isArray(responseData) ? responseData : responseData?.$values) ||
+            pData?.countrydrp ||
+            pData?.allCountry ||
+            pData?.arrlist ||
+            [];
         return Array.isArray(list) ? list : [];
-    }, [initialData]);
+    }, [countryData, initialData]);
 
-    const states = useMemo(() => {
+    const residentialStates = useMemo(() => {
         const sData = (statesMutation.data as any)?.data || statesMutation.data;
         const list = Array.isArray(sData) ? sData : sData?.statedrp || sData?.arrStatelist || sData?.arrStatelist2 || [];
         return Array.isArray(list) ? list : [];
@@ -307,9 +322,11 @@ export default function SophiaRegistration() {
             });
 
             // Documents
-            const docs = pData?.documentList || pData?.DocumentList || [];
-            if (Array.isArray(docs)) {
-                setDocumentList(docs.map((d: any) => ({ ...d, document_Path: d.document_Path || '' })));
+            const initialDocuments = pData?.documentList || pData?.DocumentList;
+            const documents =
+                Array.isArray(initialDocuments) && initialDocuments.length > 0 ? initialDocuments : documentDropdownData?.data || [];
+            if (Array.isArray(documents)) {
+                setDocumentList(documents.map((d: any) => ({ ...d, document_Path: d.document_Path || '' })));
             }
 
             // Default Academic Year
@@ -318,7 +335,7 @@ export default function SophiaRegistration() {
                 setReg((prev: any) => ({ ...prev, ASMAY_Id: yr }));
             }
         }
-    }, [initialData]);
+    }, [initialData, documentDropdownData]);
 
     /* -------------------- Handlers -------------------- */
     const handleInputChange = (field: string, value: any) => {
@@ -337,28 +354,49 @@ export default function SophiaRegistration() {
 
     const handleCheckboxAddressChange = (checked: boolean) => {
         const flag = checked ? 1 : 0;
+        setPermanentStates(checked ? residentialStates : []);
         setReg((prev: any) => ({
             ...prev,
             chkbox_address: flag,
             ...(checked
                 ? {
-                    PASR_PerStreet: prev.PASR_ConStreet,
-                    PASR_PerArea: prev.PASR_ConArea,
-                    PASR_PerCountry: prev.PASR_ConCountry,
-                    PASR_PerState: prev.PASR_ConState,
-                    PASR_PerCity: prev.PASR_ConCity,
-                    PASR_PerPincode: prev.PASR_ConPincode
-                }
+                      PASR_PerStreet: prev.PASR_ConStreet,
+                      PASR_PerArea: prev.PASR_ConArea,
+                      PASR_PerCountry: prev.PASR_ConCountry,
+                      PASR_PerState: prev.PASR_ConState,
+                      PASR_PerCity: prev.PASR_ConCity,
+                      PASR_PerPincode: prev.PASR_ConPincode
+                  }
                 : {})
         }));
     };
 
     const handleCountryChange = async (type: 'Con' | 'Per', countryId: string) => {
         const id = Number(countryId);
-        handleInputChange(`PASR_${type}Country`, id);
+        const mutation = type === 'Per' ? permanentStatesMutation : statesMutation;
+        mutation.reset();
+        if (type === 'Per') {
+            setPermanentStates([]);
+        }
+        setReg((prev: any) => ({
+            ...prev,
+            [`PASR_${type}Country`]: id,
+            [`PASR_${type}State`]: 0,
+            ...(type === 'Con' && prev.chkbox_address === 1 ? { PASR_PerCountry: id, PASR_PerState: 0 } : {})
+        }));
         try {
-            await statesMutation.mutateAsync(id);
+            const response = await mutation.mutateAsync(id);
+            const stateData = (response as any)?.data;
+            const list = Array.isArray(stateData) ? stateData : [];
+            if (type === 'Per') {
+                setPermanentStates(list);
+            } else if (reg.chkbox_address === 1) {
+                setPermanentStates(list);
+            }
         } catch {
+            if (type === 'Per') {
+                setPermanentStates([]);
+            }
             toast.error('Failed to load states for selected country');
         }
     };
@@ -752,10 +790,11 @@ export default function SophiaRegistration() {
                                                     <div
                                                         key={gw}
                                                         onClick={() => setSelectedGateway(gw)}
-                                                        className={`cursor-pointer rounded-2xl border-2 p-4 transition-all ${selectedGateway === gw
+                                                        className={`cursor-pointer rounded-2xl border-2 p-4 transition-all ${
+                                                            selectedGateway === gw
                                                                 ? 'border-indigo-600 bg-indigo-50 shadow-md'
                                                                 : 'border-slate-100 hover:border-indigo-200'
-                                                            }`}>
+                                                        }`}>
                                                         <p className='font-bold text-slate-700 text-xs uppercase'>{gw}</p>
                                                     </div>
                                                 ))}
@@ -1020,7 +1059,7 @@ export default function SophiaRegistration() {
                                             </Label>
                                             <Select
                                                 value={reg.PASR_Nationality ? reg.PASR_Nationality.toString() : ''}
-                                                onValueChange={(v) => handleCountryChange('Con', v)}>
+                                                onValueChange={(v) => handleInputChange('PASR_Nationality', Number(v))}>
                                                 <SelectTrigger className='h-10'>
                                                     <SelectValue placeholder='Select Country' />
                                                 </SelectTrigger>
@@ -1171,7 +1210,7 @@ export default function SophiaRegistration() {
                                                         <SelectValue placeholder='Select State' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {states.map((s: any) => {
+                                                        {residentialStates.map((s: any) => {
                                                             const id = s.ivrmmS_Id ?? s.IVRMMS_Id;
                                                             const name = s.ivrmmS_Name ?? s.IVRMMS_Name;
                                                             return (
@@ -1285,7 +1324,7 @@ export default function SophiaRegistration() {
                                                         <SelectValue placeholder='Select State' />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {states.map((s: any) => {
+                                                        {permanentStates.map((s: any) => {
                                                             const id = s.ivrmmS_Id ?? s.IVRMMS_Id;
                                                             const name = s.ivrmmS_Name ?? s.IVRMMS_Name;
                                                             return (

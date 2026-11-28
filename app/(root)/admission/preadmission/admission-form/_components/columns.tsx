@@ -21,6 +21,11 @@ import DeleteMasterClassForm from './toggle-form';
 
 const StudentProfileCell = ({ row }: { row: any }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const rowData = row.original as any;
+    const amstId = rowData?.amsT_Id || rowData?.AMST_Id || rowData?.amst_id || rowData?.id || 0;
+    const asmclId = rowData?.asmcL_Id || rowData?.ASMCL_Id || rowData?.asmcl_id || rowData?.classId || 0;
+    const asmsId = rowData?.asmS_Id || rowData?.ASMS_Id || rowData?.asms_id || rowData?.sectionId || 0;
+
     return (
         <>
             <div className='cursor-pointer font-medium text-blue-600 hover:underline' onClick={() => setIsOpen(true)}>
@@ -28,9 +33,10 @@ const StudentProfileCell = ({ row }: { row: any }) => {
             </div>
             {isOpen && (
                 <StudentProfileDialog
-                    amstId={row.original?.amsT_Id || row.original?.AMST_Id || row.original?.id}
-                    asmclId={row.original?.asmcL_Id || row.original?.ASMCL_Id || row.original?.classId || 0}
-                    asmsId={row.original?.asmS_Id || row.original?.ASMS_Id || row.original?.sectionId || 0}
+                    amstId={amstId}
+                    asmclId={asmclId}
+                    asmsId={asmsId}
+                    studentData={rowData}
                     isOpen={isOpen}
                     onClose={() => setIsOpen(false)}
                 />
@@ -354,14 +360,81 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                         pamR_Id: String(r?.pamR_Id),
                                         pamR_ReferenceName: r.pamR_ReferenceName || r.name || ''
                                     })),
-                                selectedDocuments: (src.student_documents || src.selectedDocuments || combined.selectedDocuments || [])
-                                    .filter(Boolean)
-                                    .map((d: any) => ({
-                                        pasrD_Id: d?.pasrD_Id,
-                                        pasR_Id: d?.pasR_Id,
-                                        amsmD_Id: d?.amsmD_Id,
-                                        document_Path: d?.document_Path
-                                    })),
+                                selectedDocuments: (() => {
+                                    const rawList =
+                                        src.documentList ||
+                                        src.DocumentList ||
+                                        src.student_Documents ||
+                                        src.Student_Documents ||
+                                        src.student_documents ||
+                                        src.studentDocuments ||
+                                        src.selectedDocuments ||
+                                        combined.documentList ||
+                                        combined.DocumentList ||
+                                        combined.student_Documents ||
+                                        combined.Student_Documents ||
+                                        combined.student_documents ||
+                                        combined.selectedDocuments ||
+                                        resp.documentList ||
+                                        resp.DocumentList ||
+                                        resp.student_Documents ||
+                                        resp.Student_Documents ||
+                                        resp.student_documents ||
+                                        [];
+                                    return (Array.isArray(rawList) ? rawList : [])
+                                        .filter(Boolean)
+                                        .map((d: any) => ({
+                                            pasrD_Id: d?.pasrD_Id ?? d?.amstD_Id ?? d?.AMSTD_Id ?? 0,
+                                            pasR_Id: d?.pasR_Id ?? d?.amsT_Id ?? d?.AMST_Id ?? 0,
+                                            amsmD_Id: Number(d?.amsmD_Id ?? d?.AMSMD_Id ?? d?.id ?? 0),
+                                            document_Path:
+                                                d?.document_Path ??
+                                                d?.Document_Path ??
+                                                d?.amstD_DOC_Path ??
+                                                d?.AMSTD_DOC_Path ??
+                                                d?.documentPath ??
+                                                d?.path ??
+                                                '',
+                                            documentName:
+                                                d?.documentName ??
+                                                d?.AMSMD_DocumentName ??
+                                                d?.amsmD_DocumentName ??
+                                                d?.amstD_DOC_Name ??
+                                                d?.AMSTD_DOC_Name ??
+                                                ''
+                                        }));
+                                })(),
+                                documentList: (() => {
+                                    const rawList =
+                                        src.documentList ||
+                                        src.DocumentList ||
+                                        src.student_Documents ||
+                                        src.Student_Documents ||
+                                        src.student_documents ||
+                                        resp.documentList ||
+                                        resp.DocumentList ||
+                                        [];
+                                    return (Array.isArray(rawList) ? rawList : [])
+                                        .filter(Boolean)
+                                        .map((d: any) => ({
+                                            amsmD_Id: Number(d?.amsmD_Id ?? d?.AMSMD_Id ?? d?.id ?? 0),
+                                            document_Path:
+                                                d?.document_Path ??
+                                                d?.Document_Path ??
+                                                d?.amstD_DOC_Path ??
+                                                d?.AMSTD_DOC_Path ??
+                                                d?.documentPath ??
+                                                d?.path ??
+                                                '',
+                                            documentName:
+                                                d?.documentName ??
+                                                d?.AMSMD_DocumentName ??
+                                                d?.amsmD_DocumentName ??
+                                                d?.amstD_DOC_Name ??
+                                                d?.AMSTD_DOC_Name ??
+                                                ''
+                                        }));
+                                })(),
                                 activities: (src.fourthTab?.activities || src.activities || combined.activities || []).map((a: any) => ({
                                     activityId: a?.activityId,
                                     isSelected: a?.isSelected ?? true
@@ -376,6 +449,37 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                         } else {
                             // fallback to aggressive mapping for flat shapes
                             const student = resp?.student_details || resp || {};
+                            const rawDocs =
+                                resp?.documentList ||
+                                resp?.DocumentList ||
+                                resp?.student_Documents ||
+                                resp?.Student_Documents ||
+                                resp?.student_documents ||
+                                student?.documentList ||
+                                student?.DocumentList ||
+                                [];
+                            const mappedDocs = (Array.isArray(rawDocs) ? rawDocs : [])
+                                .filter(Boolean)
+                                .map((d: any) => ({
+                                    pasrD_Id: d?.pasrD_Id ?? d?.amstD_Id ?? d?.AMSTD_Id ?? 0,
+                                    pasR_Id: d?.pasR_Id ?? d?.amsT_Id ?? d?.AMST_Id ?? 0,
+                                    amsmD_Id: Number(d?.amsmD_Id ?? d?.AMSMD_Id ?? d?.id ?? 0),
+                                    document_Path:
+                                        d?.document_Path ??
+                                        d?.Document_Path ??
+                                        d?.amstD_DOC_Path ??
+                                        d?.AMSTD_DOC_Path ??
+                                        d?.documentPath ??
+                                        d?.path ??
+                                        '',
+                                    documentName:
+                                        d?.documentName ??
+                                        d?.AMSMD_DocumentName ??
+                                        d?.amsmD_DocumentName ??
+                                        d?.amstD_DOC_Name ??
+                                        d?.AMSTD_DOC_Name ??
+                                        ''
+                                }));
                             payload = {
                                 ...student,
                                 amsT_MobileNo: student.amsT_MobileNo ?? student.mobileNo ?? student.mobile_No ?? '',
@@ -389,7 +493,9 @@ export const studentApplicationColumns: ColumnDef<IadmissionStudentApplicationLi
                                     (student.amsT_emailId ? [{ amsT_emailId: student.amsT_emailId }] : []),
                                 mobileNos:
                                     resp?.mobileNos ||
-                                    (student.amsT_MobileNo ? [{ amsT_MobileNo: student.amsT_MobileNo, amstsmS_CountryCode: '91' }] : [])
+                                    (student.amsT_MobileNo ? [{ amsT_MobileNo: student.amsT_MobileNo, amstsmS_CountryCode: '91' }] : []),
+                                selectedDocuments: mappedDocs,
+                                documentList: mappedDocs
                             };
                         }
 

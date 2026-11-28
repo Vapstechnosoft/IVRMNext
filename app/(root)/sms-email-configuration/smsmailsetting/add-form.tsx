@@ -565,12 +565,12 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                             control={form.control}
                                             name='ISES_SMSMessage'
                                             render={({ field }) => (
-                                                <FormItem className='grid grid-cols-3 items-center gap-4'>
-                                                    <FormLabel className='text-right'>
+                                                <FormItem className='grid grid-cols-3 items-start gap-4'>
+                                                    <FormLabel className='mt-2 text-right'>
                                                         Message: <span className='text-red-500'>*</span>
                                                     </FormLabel>
                                                     <FormControl className='col-span-2'>
-                                                        <Textarea {...field} rows={3} />
+                                                        <Textarea {...field} rows={3} className='resize-y' />
                                                     </FormControl>
                                                     <FormMessage className='col-span-2 col-start-2' />
                                                 </FormItem>
@@ -721,10 +721,10 @@ export function AddForm({ initialData, editData, onClear, onCancel }: AddFormPro
                                             control={form.control}
                                             name='ISES_MailHTMLTemplate'
                                             render={({ field }) => (
-                                                <FormItem className='grid grid-cols-3 items-center gap-4'>
-                                                    <FormLabel className='text-right'>Mail Body / Message:</FormLabel>
+                                                <FormItem className='grid grid-cols-3 items-start gap-4'>
+                                                    <FormLabel className='mt-2 text-right'>Mail Body / Message:</FormLabel>
                                                     <FormControl className='col-span-2'>
-                                                        <Textarea {...field} rows={4} value={field.value || ''} />
+                                                        <Textarea {...field} rows={4} value={field.value || ''} className='resize-y' />
                                                     </FormControl>
                                                     <FormMessage className='col-span-2 col-start-2' />
                                                 </FormItem>
