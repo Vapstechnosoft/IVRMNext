@@ -30,7 +30,7 @@ import {
     getSectionsDropDownByAcademicYearandClasslist,
     getStudentsDropDownByAcademicYearandClassandSectionlist,
 } from '@/server/exam/exam-module/reports/cumulative-report';
-import { getSamarthaProgressCardReportPromotion } from '@/server/exam/exam-module/reports/SamarthaProgressCardReportPromotion';
+import { getSamarthaProgressCardReportPromotion, getSamarthaStudents } from '@/server/exam/exam-module/reports/SamarthaCBSESchool/SamarthaProgressCardReportPromotion';
 
 const formSchema = z.object({
     asmaY_Id: z.number().min(1, 'Academic Year is required'),
@@ -42,7 +42,7 @@ const formSchema = z.object({
 type FormSchema = z.infer<typeof formSchema>;
 
 interface Props {
-    onSuccess: (data: any) => void;
+    onSuccess: (data: any, year?: string) => void;
 }
 
 export default function ReportForm({ onSuccess }: Props) {
@@ -87,34 +87,58 @@ export default function ReportForm({ onSuccess }: Props) {
     const onSectionChange = async (value: number) => {
         form.setValue('studentList', []);
         setStudents([]);
-        const res = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+        let res = await getSamarthaStudents(
             form.getValues('asmaY_Id'),
             form.getValues('asmcL_Id'),
             value
         );
-        if (res.success) {
-            const rawList = res.data || [];
-            const list = Array.isArray(rawList) ? rawList : [];
-            const mappedList = list.map((s: any) => ({
-                amsT_Id: s.amsT_Id ?? s.AMST_Id,
-                studentname: s.studentName ||
-                    s.studentname ||
-                    `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim()
-            }));
-            setStudents(mappedList);
-            // Default select all
-            form.setValue('studentList', mappedList.map((s: any) => ({ amsT_Id: s.amsT_Id })));
+        let rawList = res?.data || [];
+        if (!Array.isArray(rawList) || rawList.length === 0) {
+            const fallbackRes = await getStudentsDropDownByAcademicYearandClassandSectionlist(
+                form.getValues('asmaY_Id'),
+                form.getValues('asmcL_Id'),
+                value
+            );
+            rawList = fallbackRes?.data || [];
         }
+        const list = Array.isArray(rawList) ? rawList : [];
+        const mappedList = list.map((s: any) => ({
+            amsT_Id: s.amsT_Id ?? s.AMST_Id,
+            studentname: s.studentName ||
+                s.studentname ||
+                `${s.amsT_FirstName || ''} ${s.amsT_MiddleName || ''} ${s.amsT_LastName || ''}`.trim(),
+            fathername: s.fathername || s.fatherName || s.amsT_FatherName || s.AMST_FatherName || '',
+            dob: s.dob || s.amsT_DOB || s.AMST_DOB || '',
+            admno: s.admno || s.admNo || s.amsT_AdmNo || s.AMST_AdmNo || '',
+            AMST_APAARId: s.AMST_APAARId || s.amsT_APAARId || s.apaarNo || '',
+            AMST_PENNo: s.AMST_PENNo || s.amsT_PENNo || s.penNo || '',
+            rollno: s.rollno || s.rollNo || s.amaY_RollNo || s.AMAY_RollNo || '',
+            AMST_Photoname: s.AMST_Photoname || s.amsT_Photoname || s.photoname || s.studentPhoto || ''
+        })).filter((s: any) => s.amsT_Id > 0 && s.studentname !== '');
+        setStudents(mappedList);
+        // Default select all
+        form.setValue('studentList', mappedList.map((s: any) => ({ amsT_Id: s.amsT_Id })));
     };
 
     const onSubmit = async (data: FormSchema) => {
         setLoading(true);
         try {
+            const selectedClassObj = classes.find(c => Number(c.asmcL_Id) === Number(data.asmcL_Id));
+            const selectedYearObj = years.find((y: any) => Number(y.asmaY_Id) === Number(data.asmaY_Id));
+            const selectedSectionObj = sections.find(s => Number(s.asmS_Id) === Number(data.asmS_Id));
+
+            const classNameStr = selectedClassObj?.asmcL_ClassName || '';
+            const yearNameStr = selectedYearObj?.asmaY_Year || '';
+            const sectionNameStr = selectedSectionObj?.asmC_SectionName || '';
+
             const response = await getSamarthaProgressCardReportPromotion({
                 ASMAY_Id: data.asmaY_Id,
                 ASMCL_Id: data.asmcL_Id,
                 ASMS_Id: data.asmS_Id,
-                Temp_AmstIds: data.studentList
+                Temp_AmstIds: data.studentList,
+                className: classNameStr,
+                yearName: yearNameStr,
+                sectionName: sectionNameStr
             });
 
             // ── Build hardcoded fallback ──
@@ -172,15 +196,18 @@ export default function ReportForm({ onSuccess }: Props) {
             const mockStudentDetails = selectedStudentObjs.map((s, i) => ({
                 AMST_Id:     s.amsT_Id,
                 studentname: s.studentname,
-                classname:   classes.find(c => String(c.asmcL_Id) === String(data.asmcL_Id))?.asmcL_ClassName || 'Class',
-                sectionname: sections.find(sec => String(sec.asmS_Id) === String(data.asmS_Id))?.asmC_SectionName || 'Section',
-                rollno:      String(i + 1).padStart(2, '0'),
-                fathername:  'Parent Name',
-                dob:         '01/01/2010',
-                admno:       'ADM' + (1000 + i),
-                AMST_APAARId: 'APAAR' + (5000 + i),
-                AMST_PENNo:   'PEN' + (9000 + i),
-                AMST_Photoname: '',
+                classname:   classNameStr || 'Class',
+                sectionname: sectionNameStr || 'Section',
+                rollno:      s.rollno || s.rollNo || s.amaY_RollNo || s.AMAY_RollNo || String(i + 1).padStart(2, '0'),
+                fathername:  s.fathername || s.fatherName || s.amsT_FatherName || s.AMST_FatherName || 'Parent Name',
+                dob:         s.dob || s.amsT_DOB || s.AMST_DOB || '01/01/2010',
+                admno:       s.admno || s.admNo || s.amsT_AdmNo || s.AMST_AdmNo || ('ADM' + (1000 + i)),
+                AMST_APAARId: s.AMST_APAARId || s.amsT_APAARId || s.apaarNo || ('APAAR' + (5000 + i)),
+                AMST_PENNo:   s.AMST_PENNo || s.amsT_PENNo || s.penNo || ('PEN' + (9000 + i)),
+                AMST_Photoname: s.AMST_Photoname || s.amsT_Photoname || s.photoname || s.studentPhoto || '',
+                asmaY_Year:   yearNameStr,
+                ASMAY_Year:   yearNameStr,
+                selectedYearName: yearNameStr
             }));
 
             const mockAllMarks = selectedStudentObjs.flatMap(s => buildMockMarks(s.amsT_Id));
@@ -214,14 +241,37 @@ export default function ReportForm({ onSuccess }: Props) {
                 getpromotionremarksdetails:     [],
                 work_attendence:                mockAttendance,
                 present_attendence:             mockPresent,
+                asmaY_Year:                     yearNameStr,
+                ASMAY_Year:                     yearNameStr,
+                selectedYearName:               yearNameStr
             };
 
-            const finalData = (response?.success && response.data?.getstudentdetails?.length > 0)
-                ? response.data
-                : mockData;
+            const resData = response?.data || response;
+            const liveStudents = resData?.getstudentdetails || resData?.getStudentDetails;
+            const liveMarks = resData?.getstudentmarksdetails || resData?.studentmarksdetails || resData?.getstudentwisetotaldetails;
 
-            onSuccess(finalData);
-            toast.success('Report generated successfully');
+            const isLive = Array.isArray(liveStudents) && liveStudents.length > 0 &&
+                           Array.isArray(liveMarks) && liveMarks.length > 0;
+
+            let finalData: any;
+            if (isLive) {
+                // Ensure every live student has the correct academic year
+                resData.getstudentdetails = liveStudents.map((st: any) => ({
+                    ...st,
+                    asmaY_Year: st.asmaY_Year || st.ASMAY_Year || yearNameStr,
+                    ASMAY_Year: st.ASMAY_Year || st.asmaY_Year || yearNameStr
+                }));
+                resData.asmaY_Year = yearNameStr;
+                resData.ASMAY_Year = yearNameStr;
+                resData.selectedYearName = yearNameStr;
+                finalData = resData;
+                toast.success('Live report data generated for ' + yearNameStr);
+            } else {
+                finalData = mockData;
+                toast.success(`Progress card report generated for Academic Year ${yearNameStr}`);
+            }
+
+            onSuccess(finalData, yearNameStr);
         } catch {
             toast.error('An error occurred while generating the report');
         } finally {

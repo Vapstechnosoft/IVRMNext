@@ -67,6 +67,14 @@ export const authConfig: NextAuthConfig = {
         jwt({ token, user, trigger, session }) {
             if (user) {
                 token.mi_id = user.mi_id;
+                token.user_id =
+                    (user as any).user_id ||
+                    (user as any).userId ||
+                    (user as any).UserId ||
+                    (user as any).id ||
+                    (user as any).IVRMUL_Id ||
+                    0;
+                token.userId = token.user_id;
                 const loginUsername = (user as any).login_username || '';
                 const rawName = user.name || (user as any).username || (user as any).userName || (user as any).user_name || (user as any).user || (user as any).fullName || '';
                 const isDefaultPlaceholder = !rawName || rawName.trim().toUpperCase() === 'DEFAULT USER' || rawName.trim().toUpperCase() === 'DEFAULTUSER';

@@ -379,9 +379,33 @@ export const feesModule: IUserAccessibleModules = {
                             id: 520,
                             name: 'College Fee Waived Off',
                             icon: 'BadgeIndianRupee',
-                            url: '/fees/college/transactions/clgfeewaivedoff',
+                            url: '/fees/college/transaction/clgfeewaivedoff',
                             title: 'College Fee Waived Off',
                             description: 'Manage College Fee Waived Off Details'
+                        },
+                        {
+                            id: 521,
+                            name: 'College Fee Refundable',
+                            icon: 'BadgeIndianRupee',
+                            url: '/fees/college/transaction/clgfeerefundable',
+                            title: 'College Fee Refundable',
+                            description: 'Manage College Fee Refundable Details'
+                        },
+                        {
+                            id: 522,
+                            name: 'College Fee Cheque Bounce',
+                            icon: 'BadgeIndianRupee',
+                            url: '/fees/college/transaction/clgfeechequebounce',
+                            title: 'College Fee Cheque Bounce',
+                            description: 'Manage College Fee Cheque Bounce Details'
+                        },
+                        {
+                            id: 523,
+                            name: 'College Fee Opening Balance',
+                            icon: 'BadgeIndianRupee',
+                            url: '/fees/college/transaction/clgfeeopeningbalance',
+                            title: 'College Fee Opening Balance',
+                            description: 'Manage College Fee Opening Balance Details'
                         }
                     ]
                 },

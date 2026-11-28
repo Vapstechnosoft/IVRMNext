@@ -5,9 +5,12 @@ import React from 'react';
 interface ClassTeacherReportPrintProps {
     data: IClassTeacherReportList[];
     reportType: string;
+    academicYearName?: string;
+    schoolName?: string;
+    logoUrl?: string;
 }
 
-export const ClassTeacherReportPrint = React.forwardRef<HTMLDivElement, ClassTeacherReportPrintProps>(({ data, reportType }, ref) => {
+export const ClassTeacherReportPrint = React.forwardRef<HTMLDivElement, ClassTeacherReportPrintProps>(({ data, reportType, academicYearName, schoolName, logoUrl }, ref) => {
     const currentDate = format(new Date(), 'dd/MM/yyyy');
 
     if (!data || data.length === 0) {
@@ -25,7 +28,7 @@ export const ClassTeacherReportPrint = React.forwardRef<HTMLDivElement, ClassTea
                 {`
                         @media print {
                             @page {
-                                margin: 10mm;
+                                margin: 0;
                                 size: A4 portrait;
                             }
                             body {
@@ -43,6 +46,8 @@ export const ClassTeacherReportPrint = React.forwardRef<HTMLDivElement, ClassTea
                                 background: white;
                                 z-index: 9999;
                                 color: black;
+                                padding: 10mm;
+                                box-sizing: border-box;
                             }
                             .print-preview-container * {
                                 visibility: visible !important;
@@ -90,9 +95,23 @@ export const ClassTeacherReportPrint = React.forwardRef<HTMLDivElement, ClassTea
                     <tr>
                         <td className='no-border'>
                             {/* Header */}
-                            <div className='header-section text-center'>
-                                <h2 className='font-bold text-lg uppercase'>Class Teacher Report</h2>
-                                <p className='text-gray-600 text-sm'>Date: {currentDate}</p>
+                            <div className='header-section'>
+                                <div className='mb-4 flex items-center justify-center gap-4'>
+                                    {logoUrl && (
+                                        <img
+                                            src={logoUrl}
+                                            alt={schoolName || 'Institution Logo'}
+                                            style={{ width: '100%', height: 'auto', objectFit: 'contain' }}
+                                            className='w-full max-h-32 object-contain'
+                                        />
+                                    )}
+                                </div>
+                                {schoolName && !logoUrl && (
+                                    <h2 className='font-bold text-lg uppercase mb-2'>{schoolName}</h2>
+                                )}
+                                <h3 className='font-bold text-sm uppercase'>
+                                    Class Teacher List For Year - {academicYearName || ''}
+                                </h3>
                             </div>
                         </td>
                     </tr>

@@ -20,6 +20,7 @@ export interface ICumulativeReport {
         estmpS_ObtainedMarks?: number | null;
         estmpS_ObtainedGrade?: string | null;
         estmpS_PassFailFlg?: string | null;
+        estmpS_MaxMarks?: number | null;
     }>;
     estmP_TotalMaxMarks?: number | null;
     estmP_TotalObtMarks?: number | null;

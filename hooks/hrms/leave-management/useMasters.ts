@@ -1013,27 +1013,54 @@ function mapApiDataToLeaveConfiguration(apiData: LeaveConfigurationData | null):
         return null;
     }
 
+    const lateLeave = apiData.hrlpC_LateLeaveFlag ?? apiData.HRLPC_LateLeaveFlag;
+    const lateLop = apiData.hrlpC_LateLOPFlag ?? apiData.HRLPC_LateLOPFlag;
+    const lateLeaveVal: 'leave' | 'lop' =
+        lateLeave === true || String(lateLeave) === 'true'
+            ? 'leave'
+            : lateLop === true || String(lateLop) === 'true'
+              ? 'lop'
+              : 'leave';
+
+    const absentLeave = apiData.hrlpC_AbsentLeaveFlag ?? apiData.HRLPC_AbsentLeaveFlag;
+    const absentLop = apiData.hrlpC_AbsentLOPFlag ?? apiData.HRLPC_AbsentLOPFlag;
+    const absentLeaveVal: 'leave' | 'lop' =
+        absentLeave === true || String(absentLeave) === 'true'
+            ? 'leave'
+            : absentLop === true || String(absentLop) === 'true'
+              ? 'lop'
+              : 'leave';
+
+    const toBool = (val: any, fallback = true): boolean => {
+        if (val === undefined || val === null) return fallback;
+        if (typeof val === 'boolean') return val;
+        if (typeof val === 'string') return val.toLowerCase() === 'true' || val === '1' || val.toLowerCase() === 'y';
+        return Boolean(val);
+    };
+
+    const spOrGen = apiData.hrlpC_SpOrGen ?? apiData.HRLPC_SpOrGen ?? 'GEN';
+    const spOrGenVal: 'SP' | 'GEN' = spOrGen === 'SP' ? 'SP' : 'GEN';
+
     return {
-        id: apiData.hrlpC_Id || 0,
-        spOrGenFlg: apiData.hrlpC_SpOrGenFlg || 'G',
-        punchGapTime: apiData.hrlpC_PunchGAPTime || '00:15',
-        absentFlag: apiData.hrlpC_AbsentFlag || 'Y',
-        lateInEarlyOutFlag: apiData.hrlpC_LateInEarlyOutFlag || 'Y',
-        lateInRelaxFlag: apiData.hrlpC_LateInRelaxFlag ?? false,
-        lateInEarlyOut: apiData.hrlpC_LateInEarlyOut || 'LateIn',
-        lateInTime: apiData.hrlpC_LateInTime || '00:10',
-        earlyOutRelaxFlag: apiData.hrlpC_EarlyOutRelaxFlag ?? false,
-        earlyOutTime: apiData.hrlpC_EarlyOutTime || '00:20',
-        cummulativeTimeFlag: apiData.hrlpC_CummulativeTimeFlag ?? false,
-        cummulativeTime: apiData.hrlpC_CummulativeTime || 60,
-        afterCummulativeTime: apiData.hrlpC_AfterCummulativeTime || 'HalfDay',
-        noOfLatesFlag: apiData.hrlpC_NoOfLatesFlag ?? false,
-        noofMonthlyLateInExempted: apiData.hrlpC_NoofMonthlyLateInExempted || 0,
-        noOfLates: apiData.hrlpC_NoOfLates || 0,
-        noOfLatesCFFlag: apiData.hrlpC_NoOfLatesCFFlag ?? false,
-        leavePrefixSuffixFlag: apiData.hrlpC_LeavePrefixSuffixFlag ?? false,
-        includeHolidayFlag: apiData.hrlpC_IncludeHolidayFlag ?? false,
-        activeFlag: apiData.hrlpC_ActiveFlag ?? true
+        id: apiData.hrlpC_Id ?? apiData.HRLPC_Id ?? 0,
+        policy_name: apiData.hrlpC_LeavePolicyName ?? apiData.HRLPC_LeavePolicyName ?? '',
+        proc_name: apiData.hrlpC_SPName ?? apiData.HRLPC_SPName ?? '',
+        servic_name: apiData.hrlpC_ServiceName ?? apiData.HRLPC_ServiceName ?? '',
+        late_flag: toBool(apiData.hrlpC_LateInFlag ?? apiData.HRLPC_LateInFlag),
+        Late_Time: String(apiData.hrlpC_LateInTime ?? apiData.HRLPC_LateInTime ?? ''),
+        numlate_flag: toBool(apiData.hrlpC_NoOfLatesFag ?? apiData.HRLPC_NoOfLatesFag ?? apiData.hrlpC_NoOfLatesFlag ?? apiData.HRLPC_NoOfLatesFlag),
+        Late_num: String(apiData.hrlpC_NoOfLates ?? apiData.HRLPC_NoOfLates ?? ''),
+        Early: toBool(apiData.hrlpC_EarlyOutFlag ?? apiData.HRLPC_EarlyOutFlag),
+        Early_Time: String(apiData.hrlpC_EarlyOutTime ?? apiData.HRLPC_EarlyOutTime ?? ''),
+        Time_flag: toBool(apiData.hrlpC_CummulativeTimeFlag ?? apiData.HRLPC_CummulativeTimeFlag),
+        cum_time: String(apiData.hrlpC_CummulativeTime ?? apiData.HRLPC_CummulativeTime ?? ''),
+        Aftr_cum_time: String(apiData.hrlpC_AfterCummulativeTime ?? apiData.HRLPC_AfterCummulativeTime ?? ''),
+        carry_flag: toBool(apiData.hrlpC_NoOfLatesCFFlag ?? apiData.HRLPC_NoOfLatesCFFlag),
+        sufix_flag: toBool(apiData.hrlpC_LeavePrefixSuffixFlag ?? apiData.HRLPC_LeavePrefixSuffixFlag),
+        holiday_inc_flag: toBool(apiData.hrlpC_IncludeHolidayFlag ?? apiData.HRLPC_IncludeHolidayFlag),
+        HRLPC_LateLeaveFlag: lateLeaveVal,
+        sporgen_flag: spOrGenVal,
+        HRLPC_AbsentLeaveFlag: absentLeaveVal
     };
 }
 
@@ -1041,30 +1068,32 @@ function mapApiDataToLeaveConfiguration(apiData: LeaveConfigurationData | null):
  * Map frontend LeaveConfigurationFormData to API request format
  */
 function mapLeaveConfigurationToApiData(data: LeaveConfigurationFormData): LeaveConfigurationSaveRequest {
+    const isLateLeave = data.HRLPC_LateLeaveFlag === 'leave';
+    const isAbsentLeave = data.HRLPC_AbsentLeaveFlag === 'leave';
+
     return {
-        hrlpC_Id: data.id || 0,
-        mI_Id: HRMS_MI_ID,
-        hrlpC_SpOrGenFlg: data.spOrGenFlg,
-        hrlpC_PunchGAPTime: data.punchGapTime || '00:15',
-        hrlpC_AbsentFlag: data.absentFlag,
-        hrlpC_LateInEarlyOutFlag: data.lateInEarlyOutFlag,
-        hrlpC_LateInRelaxFlag: data.lateInRelaxFlag,
-        hrlpC_LateInEarlyOut: data.lateInEarlyOut || 'LateIn',
-        hrlpC_LateInTime: data.lateInTime,
-        hrlpC_EarlyOutRelaxFlag: data.earlyOutRelaxFlag,
-        hrlpC_EarlyOutTime: data.earlyOutTime,
-        hrlpC_CummulativeTimeFlag: data.cummulativeTimeFlag,
-        hrlpC_CummulativeTime: Number(data.cummulativeTime),
-        hrlpC_AfterCummulativeTime: data.afterCummulativeTime,
-        hrlpC_NoOfLatesFlag: data.noOfLatesFlag,
-        hrlpC_NoofMonthlyLateInExempted: Number(data.noofMonthlyLateInExempted),
-        hrlpC_NoOfLates: Number(data.noOfLates),
-        hrlpC_NoOfLatesCFFlag: data.noOfLatesCFFlag,
-        hrlpC_LeavePrefixSuffixFlag: data.leavePrefixSuffixFlag,
-        hrlpC_IncludeHolidayFlag: data.includeHolidayFlag,
-        hrlpC_ActiveFlag: data.activeFlag,
-        hrlpC_CreatedBy: 0,
-        hrlpC_UpdatedBy: 0
+        HRLPC_Id: data.id || 0,
+        MI_Id: HRMS_MI_ID,
+        HRLPC_LeavePolicyName: data.policy_name,
+        HRLPC_SPName: data.proc_name ?? '',
+        HRLPC_ServiceName: data.servic_name,
+        HRLPC_LateInFlag: data.late_flag,
+        HRLPC_LateInTime: data.Late_Time,
+        HRLPC_EarlyOutFlag: data.Early,
+        HRLPC_EarlyOutTime: data.Early_Time,
+        HRLPC_CummulativeTimeFlag: data.Time_flag,
+        HRLPC_CummulativeTime: data.cum_time,
+        HRLPC_AfterCummulativeTime: data.Aftr_cum_time,
+        HRLPC_NoOfLatesCFFlag: data.carry_flag,
+        HRLPC_LeavePrefixSuffixFlag: data.sufix_flag,
+        HRLPC_IncludeHolidayFlag: data.holiday_inc_flag,
+        HRLPC_LateLeaveFlag: isLateLeave,
+        HRLPC_LateLOPFlag: !isLateLeave,
+        HRLPC_NoOfLatesFag: data.numlate_flag,
+        HRLPC_NoOfLates: Number(data.Late_num) || 0,
+        HRLPC_SpOrGen: data.sporgen_flag,
+        HRLPC_AbsentLOPFlag: !isAbsentLeave,
+        HRLPC_AbsentLeaveFlag: isAbsentLeave
     };
 }
 

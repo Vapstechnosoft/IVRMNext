@@ -54,7 +54,16 @@ function ExamSubjectWizardPageContent({
                     if (response.success && response.data) {
                         const subjects: IExamSubjectOrder[] = Array.isArray(response.data) ? response.data : [];
 
-                        const mappedData = subjects.map((d) => ({ ...d, id: d.ismS_Id }));
+                        const mappedData = subjects.map((d: any) => ({
+                            ...d,
+                            id: Number(d.ismS_Id ?? d.ISMS_Id ?? 0),
+                            ismS_Id: Number(d.ismS_Id ?? d.ISMS_Id ?? 0),
+                            eyceS_Id: Number(d.eyceS_Id ?? d.EYCES_Id ?? 0),
+                            eycE_Id: Number(d.eycE_Id ?? d.EYCE_Id ?? selectedRow.eycE_Id ?? 0),
+                            ismS_SubjectName: d.ismS_SubjectName ?? d.ISMS_SubjectName ?? '',
+                            ismS_SubjectCode: d.ismS_SubjectCode ?? d.ISMS_SubjectCode ?? '',
+                            eyceS_SubjectOrder: Number(d.eyceS_SubjectOrder ?? d.EYCES_SubjectOrder ?? 0)
+                        }));
                         setOrderData(mappedData);
                     } else {
                         toast.error(response.message || 'Failed to fetch subjects.');
@@ -74,14 +83,18 @@ function ExamSubjectWizardPageContent({
             setIsOrderSaving(true);
 
             // Transform data into required format
-            const temp_Subject_Order = updatedData.map((item, index) => ({
-                eyceS_Id: item.eyceS_Id,
-                eycE_Id: item.eycE_Id,
-                ismS_Id: item.ismS_Id,
-                eyceS_SubjectOrder: index + 1 // Assign order based on new index
+            const temp_Subject_Order = updatedData.map((item: any, index) => ({
+                eyceS_Id: Number(item.eyceS_Id || item.EYCES_Id || 0),
+                EYCES_Id: Number(item.eyceS_Id || item.EYCES_Id || 0),
+                eycE_Id: Number(item.eycE_Id || item.EYCE_Id || selectedRow?.eycE_Id || 0),
+                EYCE_Id: Number(item.eycE_Id || item.EYCE_Id || selectedRow?.eycE_Id || 0),
+                ismS_Id: Number(item.ismS_Id || item.ISMS_Id || item.id || 0),
+                ISMS_Id: Number(item.ismS_Id || item.ISMS_Id || item.id || 0),
+                eyceS_SubjectOrder: index + 1,
+                EYCES_SubjectOrder: index + 1
             }));
 
-            const payload = { temp_Subject_Order };
+            const payload = { temp_Subject_Order, Temp_Subject_Order: temp_Subject_Order };
             const response = await UpdateOrderedSubjectDetails(payload);
 
             if (response?.success) {
@@ -150,13 +163,13 @@ function ExamSubjectWizardPageContent({
                     />
                 )}
 
-                <FormSections />
+                <FormSections refetchAll={refetchAll} />
             </div>
         </div>
     );
 }
 
-function FormSections() {
+function FormSections({ refetchAll }: { refetchAll: () => void }) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -170,6 +183,21 @@ function FormSections() {
         editFormRef,
         closeDetailsView
     } = useFormContext<IExamSubjectWizard>();
+
+    const handleAddSuccess = () => {
+        closeAddForm();
+        refetchAll();
+    };
+
+    const handleEditSuccess = () => {
+        closeEditForm();
+        refetchAll();
+    };
+
+    const handleToggleClose = () => {
+        closeToggleForm();
+        refetchAll();
+    };
 
     return (
         <>
@@ -192,7 +220,7 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddExamSubjectWizard onSuccess={closeAddForm} />
+                            <AddExamSubjectWizard onSuccess={handleAddSuccess} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -216,14 +244,14 @@ function FormSections() {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddExamSubjectWizard rowData={selectedRow} onSuccess={closeEditForm} />
+                            <AddExamSubjectWizard rowData={selectedRow} onSuccess={handleEditSuccess} />
                         </div>
                     </CollapsibleSection>
                 </div>
             )}
 
             {/* Toggle Form */}
-            {isToggleFormOpen && selectedRow && <ToggleSubjectWizardForm rowData={selectedRow} onClose={closeToggleForm} />}
+            {isToggleFormOpen && selectedRow && <ToggleSubjectWizardForm rowData={selectedRow} onClose={handleToggleClose} />}
 
             {/* Details View */}
             {isDetailsViewOpen && selectedRow && <ExamSubjectWizardDetailsPage rowData={selectedRow} onClose={closeDetailsView} />}

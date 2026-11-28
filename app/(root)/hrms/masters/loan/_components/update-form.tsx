@@ -9,7 +9,7 @@ import { addOrUpdateMasterLoan } from '@/server/hrms/hrmsConfig/master/loan';
 import type { IMasterLoanList } from '@/types/hrms/hrms-config/master';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, type SubmitHandler, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -24,6 +24,7 @@ interface UpdateLoanFormProps {
 
 export default function UpdateLoanForm({ onSuccess, className = '', selectedRow: row }: UpdateLoanFormProps) {
     const { refetchAll } = useMasterLoan();
+    const [resetKey, setResetKey] = useState(0);
 
     const {
         register,
@@ -43,6 +44,7 @@ export default function UpdateLoanForm({ onSuccess, className = '', selectedRow:
                 hrmL_LoanType: row.hrmL_LoanType,
                 hrmL_Max: row.hrmL_Max
             });
+            setResetKey((prev) => prev + 1);
         }
     }, [row, reset]);
 
@@ -69,7 +71,17 @@ export default function UpdateLoanForm({ onSuccess, className = '', selectedRow:
     };
 
     const handleReset = () => {
-        reset();
+        if (row) {
+            reset({
+                hrmlN_Id: row.hrmlN_Id,
+                hrmL_LoanType: row.hrmL_LoanType,
+                hrmL_Max: row.hrmL_Max
+            });
+            setResetKey((prev) => prev + 1);
+        } else {
+            reset();
+            setResetKey((prev) => prev + 1);
+        }
     };
 
     return (
@@ -93,6 +105,7 @@ export default function UpdateLoanForm({ onSuccess, className = '', selectedRow:
                             control={control}
                             render={({ field }) => (
                                 <InputNumber
+                                    key={resetKey}
                                     label='Maximum Amount'
                                     required
                                     id='hrmL_Max'

@@ -11,13 +11,25 @@ import { Briefcase, Eye, FileImage, FileVideo, GraduationCap, Users } from 'luci
 import { useCallback } from 'react';
 import { ListViewDialog } from '../list-view-dialog';
 
+const formatDisplayDate = (date: string | null | undefined) => {
+    if (!date) return '-';
+    const match = typeof date === 'string' ? date.match(/^(\d{4})-(\d{2})-(\d{2})/) : null;
+    const d = match ? new Date(parseInt(match[1], 10), parseInt(match[2], 10) - 1, parseInt(match[3], 10)) : new Date(date);
+    return Number.isNaN(d.getTime()) ? '-' : d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
 export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
     {
         accessorKey: 'sno',
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title='SL. NO' className='justify-center text-center font-bold text-black uppercase' />
         ),
-        cell: (info) => <div className='text-center'>{info.row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='text-center'>{continuousIndex}</div>;
+        },
         size: 80
     },
     {
@@ -41,6 +53,24 @@ export const EventsMappingColumns: ColumnDef<IEventsMapping>[] = [
             />
         ),
         cell: (info) => <div className='text-center uppercase'>{info.getValue() as string}</div>
+    },
+    {
+        accessorKey: 'coeE_EStartDate',
+        header: ({ column }) => (
+            <DataTableColumnHeader
+                column={column}
+                title='Start Date'
+                className='justify-center text-center font-bold text-black uppercase'
+            />
+        ),
+        cell: (info) => <div className='text-center'>{formatDisplayDate(info.getValue() as string)}</div>
+    },
+    {
+        accessorKey: 'coeE_EEndDate',
+        header: ({ column }) => (
+            <DataTableColumnHeader column={column} title='End Date' className='justify-center text-center font-bold text-black uppercase' />
+        ),
+        cell: (info) => <div className='text-center'>{formatDisplayDate(info.getValue() as string)}</div>
     },
     {
         accessorKey: 'images',
@@ -221,7 +251,7 @@ function ActionButtonsCell({ rowData }: { rowData: IEventsMapping }) {
                 buttons={{ edit: true, toggle: true }}
                 onEdit={handleEdit}
                 onToggle={handleToggle}
-                toggleConditionKey='coeE_ActiveFlag'
+                toggleConditionKey={['coeE_ActiveFlag', 'COEE_ActiveFlag']}
             />
         </div>
     );

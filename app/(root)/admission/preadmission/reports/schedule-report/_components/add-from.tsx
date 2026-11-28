@@ -12,7 +12,7 @@ import { scheduleReportSchema } from '@/schemas/admission/preadmission/reports';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -57,8 +57,18 @@ export default function AddScheduleReportForm({ onFilterChange }: AddScheduleRep
             yearorbtwndates: watchYearwise,
             asmay_id: watchAsmayId || 0
         },
-        watchYearwise === 'yearwise' && !!watchAsmayId
+        watchYearwise === 'yearwise' ? !!watchAsmayId : true
     );
+
+    const schedulesList = useMemo(() => {
+        if (!scheduleList) return [];
+        if (Array.isArray(scheduleList)) return scheduleList;
+        if (Array.isArray((scheduleList as any).$values)) return (scheduleList as any).$values;
+        if (Array.isArray((scheduleList as any).writentestlist)) return (scheduleList as any).writentestlist;
+        if (Array.isArray((scheduleList as any).writentestlist?.$values)) return (scheduleList as any).writentestlist.$values;
+        if (Array.isArray((scheduleList as any).data)) return (scheduleList as any).data;
+        return [];
+    }, [scheduleList]);
 
     // Reset schedule selection when test type or year changes
     useEffect(() => {
@@ -85,8 +95,7 @@ export default function AddScheduleReportForm({ onFilterChange }: AddScheduleRep
             };
 
             if (onFilterChange) {
-                const displaySchedules = Array.isArray(scheduleList) ? scheduleList : scheduleList?.writentestlist || [];
-                const selectedSchedule = (displaySchedules || []).find((s: any) => s.disid.toString() === data.disid);
+                const selectedSchedule = (schedulesList || []).find((s: any) => s.disid.toString() === data.disid);
                 onFilterChange({
                     ...payload,
                     schedulename: selectedSchedule?.disname || ''
@@ -324,18 +333,16 @@ export default function AddScheduleReportForm({ onFilterChange }: AddScheduleRep
                                     <Select
                                         onValueChange={field.onChange}
                                         value={field.value || ''}
-                                        disabled={watchYearwise !== 'yearwise' || !watchAsmayId}>
+                                        disabled={watchYearwise === 'yearwise' && !watchAsmayId}>
                                         <SelectTrigger className='h-8 text-xs'>
                                             <SelectValue placeholder='Select' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {((Array.isArray(scheduleList) ? scheduleList : scheduleList?.writentestlist) || []).map(
-                                                (s: any) => (
-                                                    <SelectItem key={s.disid} value={s.disid.toString()} className='text-xs'>
-                                                        {s.disname}
-                                                    </SelectItem>
-                                                )
-                                            )}
+                                            {schedulesList.map((s: any) => (
+                                                <SelectItem key={s.disid} value={s.disid.toString()} className='text-xs'>
+                                                    {s.disname}
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                 )}

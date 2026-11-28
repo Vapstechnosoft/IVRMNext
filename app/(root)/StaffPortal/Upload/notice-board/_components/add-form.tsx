@@ -55,6 +55,9 @@ export default function AddNoticeBoardForm({
     const [subjects, setSubjects] = useState<any[]>([]);
     const [employees, setEmployees] = useState<any[]>([]);
     const [filteredDesgList, setFilteredDesgList] = useState<any[]>(desgList);
+    const [isStartDateOpen, setIsStartDateOpen] = useState(false);
+    const [isEndDateOpen, setIsEndDateOpen] = useState(false);
+    const [isDisplayDateOpen, setIsDisplayDateOpen] = useState(false);
     const fileInputRefs = useRef<{ [key: number]: HTMLInputElement | null }>({});
 
     const methods = useForm<INoticeBoard>({
@@ -262,12 +265,29 @@ export default function AddNoticeBoardForm({
             };
 
             const result = await saveNoticeBoardDetail(payload);
-            if (result?.success) {
-                toast.success(result.message || 'Notice sent successfully');
+            const isSuccess =
+                result?.success === true ||
+                result?.returnval === true ||
+                result?.returnval === 'true' ||
+                result?.returnVal === true ||
+                result?.returnVal === 'true' ||
+                result?.returnval === 'Save' ||
+                result?.returnval === 'Update' ||
+                result?.returnVal === 'Saved' ||
+                result?.returnVal === 'Saved successfully';
+
+            if (isSuccess) {
+                const successMsg =
+                    (typeof result?.message === 'string' && result.message) ||
+                    (typeof result?.returnVal === 'string' && result.returnVal) ||
+                    'Notice sent successfully';
+                toast.success(successMsg);
                 onSuccess();
                 reset();
+            } else if (result?.returnval === false || result?.dulicate === true || result?.duplicate === true) {
+                toast.error(typeof result?.message === 'string' ? result.message : 'Notice already exists or duplicate record found.');
             } else {
-                toast.error(result?.message || 'Failed to send notice');
+                toast.error(typeof result?.message === 'string' ? result.message : 'Failed to send notice');
             }
         } catch (error: any) {
             console.error('Save Error:', error);
@@ -275,9 +295,23 @@ export default function AddNoticeBoardForm({
         }
     };
 
+    const onError = (errors: any) => {
+        console.error('Validation errors:', errors);
+        const errorValues = Object.values(errors);
+        if (errorValues.length > 0) {
+            const firstError: any = errorValues[0];
+            const message =
+                firstError?.message ||
+                firstError?.root?.message ||
+                (Array.isArray(firstError) && firstError[0]?.message) ||
+                'Please fill all required fields correctly.';
+            toast.error(typeof message === 'string' ? message : 'Please fill all required fields correctly.');
+        }
+    };
+
     return (
         <div className='flex w-full flex-col gap-6'>
-            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
+            <form onSubmit={handleSubmit(onSubmit, onError)} className='flex flex-col gap-6 rounded-2xl bg-white p-6 shadow-md'>
                 {/* Selection Type Toggles */}
                 <div className='flex flex-wrap gap-6 border-b pb-4'>
                     <Controller
@@ -386,7 +420,7 @@ export default function AddNoticeBoardForm({
                                 <Label>
                                     Start Date <span className='text-red-500'>*</span>
                                 </Label>
-                                <Popover>
+                                <Popover open={isStartDateOpen} onOpenChange={setIsStartDateOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={'outline'}
@@ -396,7 +430,15 @@ export default function AddNoticeBoardForm({
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={(date) => {
+                                                field.onChange(date);
+                                                setIsStartDateOpen(false);
+                                            }}
+                                            initialFocus
+                                        />
                                     </PopoverContent>
                                 </Popover>
                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -413,7 +455,7 @@ export default function AddNoticeBoardForm({
                                 <Label>
                                     End Date <span className='text-red-500'>*</span>
                                 </Label>
-                                <Popover>
+                                <Popover open={isEndDateOpen} onOpenChange={setIsEndDateOpen}>
                                     <PopoverTrigger asChild>
                                         <Button
                                             variant={'outline'}
@@ -423,7 +465,15 @@ export default function AddNoticeBoardForm({
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent className='w-auto p-0' align='start'>
-                                        <Calendar mode='single' selected={field.value} onSelect={field.onChange} initialFocus />
+                                        <Calendar
+                                            mode='single'
+                                            selected={field.value}
+                                            onSelect={(date) => {
+                                                field.onChange(date);
+                                                setIsEndDateOpen(false);
+                                            }}
+                                            initialFocus
+                                        />
                                     </PopoverContent>
                                 </Popover>
                                 {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -457,7 +507,7 @@ export default function AddNoticeBoardForm({
                                     <Label>
                                         Display Date <span className='text-red-500'>*</span>
                                     </Label>
-                                    <Popover>
+                                    <Popover open={isDisplayDateOpen} onOpenChange={setIsDisplayDateOpen}>
                                         <PopoverTrigger asChild>
                                             <Button
                                                 variant={'outline'}
@@ -473,7 +523,10 @@ export default function AddNoticeBoardForm({
                                             <Calendar
                                                 mode='single'
                                                 selected={field.value || undefined}
-                                                onSelect={field.onChange}
+                                                onSelect={(date) => {
+                                                    field.onChange(date);
+                                                    setIsDisplayDateOpen(false);
+                                                }}
                                                 initialFocus
                                             />
                                         </PopoverContent>
@@ -695,37 +748,43 @@ export default function AddNoticeBoardForm({
                             <Controller
                                 control={control}
                                 name='asmcL_Id'
-                                render={({ field }) => (
-                                    <CustomMultiSelectBox
-                                        label='Classes'
-                                        isRequired
-                                        options={(classList || []).map((c: any) => ({
-                                            label: c.asmcL_ClassName || c.asmcl_classname || c.asmcL_className || '',
-                                            value: (c.asmcL_Id || c.asmcl_Id || c.asmcL_id || '').toString()
-                                        }))}
-                                        value={field.value?.map((v) => v.asmcL_Id?.toString()).filter((id): id is string => !!id) || []}
-                                        onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmcL_Id: Number(v) })))}
-                                        isSearchRequired
-                                    />
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-1'>
+                                        <CustomMultiSelectBox
+                                            label='Classes'
+                                            isRequired
+                                            options={(classList || []).map((c: any) => ({
+                                                label: c.asmcL_ClassName || c.asmcl_classname || c.asmcL_className || '',
+                                                value: (c.asmcL_Id || c.asmcl_Id || c.asmcL_id || '').toString()
+                                            }))}
+                                            value={field.value?.map((v) => v.asmcL_Id?.toString()).filter((id): id is string => !!id) || []}
+                                            onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmcL_Id: Number(v) })))}
+                                            isSearchRequired
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
                             <Controller
                                 control={control}
                                 name='asmS_Id'
-                                render={({ field }) => (
-                                    <CustomMultiSelectBox
-                                        label='Sections'
-                                        options={(sections || [])
-                                            .map((s: any) => ({
-                                                label: s.ASMC_SectionName || s.asmC_SectionName || s.asmc_sectionname || '',
-                                                value: (s.ASMS_Id || s.asmS_Id || s.asms_Id || '').toString()
-                                            }))
-                                            .filter((opt) => opt.value)}
-                                        value={field.value?.map((v) => v.asmS_Id?.toString()).filter((id): id is string => !!id) || []}
-                                        onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmS_Id: Number(v) })))}
-                                        isSearchRequired
-                                        disabled={!asmcL_Id?.length}
-                                    />
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-1'>
+                                        <CustomMultiSelectBox
+                                            label='Sections'
+                                            options={(sections || [])
+                                                .map((s: any) => ({
+                                                    label: s.ASMC_SectionName || s.asmC_SectionName || s.asmc_sectionname || '',
+                                                    value: (s.ASMS_Id || s.asmS_Id || s.asms_Id || '').toString()
+                                                }))
+                                                .filter((opt) => opt.value)}
+                                            value={field.value?.map((v) => v.asmS_Id?.toString()).filter((id): id is string => !!id) || []}
+                                            onChange={(vals) => field.onChange((vals || []).map((v) => ({ asmS_Id: Number(v) })))}
+                                            isSearchRequired
+                                            disabled={!asmcL_Id?.length}
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
                             {/* <Controller
@@ -748,29 +807,32 @@ export default function AddNoticeBoardForm({
                             <Controller
                                 control={control}
                                 name='amsT_Id'
-                                render={({ field }) => (
-                                    <CustomMultiSelectBox
-                                        label='Students'
-                                        options={Array.from(
-                                            new Map(
-                                                (students || []).map((s: any) => [
-                                                    (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString(),
-                                                    s
-                                                ])
-                                            ).values()
-                                        )
-                                            .map((s: any) => ({
-                                                label:
-                                                    `${s.studentname || s.AMST_FirstName || s.amsT_FirstName || s.amst_firstname || ''}${s.AMST_AdmNo || s.amst_admno ? ` (${s.AMST_AdmNo || s.amst_admno})` : ''}` ||
-                                                    '',
-                                                value: (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString()
-                                            }))
-                                            .filter((opt) => opt.value)}
-                                        value={field.value?.map((v) => v.amsT_Id?.toString()).filter((id): id is string => !!id) || []}
-                                        onChange={(vals) => field.onChange((vals || []).map((v) => ({ amsT_Id: Number(v) })))}
-                                        isSearchRequired
-                                        disabled={!asmS_Id?.length}
-                                    />
+                                render={({ field, fieldState }) => (
+                                    <div className='flex flex-col gap-1'>
+                                        <CustomMultiSelectBox
+                                            label='Students'
+                                            options={Array.from(
+                                                new Map(
+                                                    (students || []).map((s: any) => [
+                                                        (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString(),
+                                                        s
+                                                    ])
+                                                ).values()
+                                            )
+                                                .map((s: any) => ({
+                                                    label:
+                                                        `${s.studentname || s.AMST_FirstName || s.amsT_FirstName || s.amst_firstname || ''}${s.AMST_AdmNo || s.amst_admno ? ` (${s.AMST_AdmNo || s.amst_admno})` : ''}` ||
+                                                        '',
+                                                    value: (s.AMST_Id || s.amsT_Id || s.amst_Id || '').toString()
+                                                }))
+                                                .filter((opt) => opt.value)}
+                                            value={field.value?.map((v) => v.amsT_Id?.toString()).filter((id): id is string => !!id) || []}
+                                            onChange={(vals) => field.onChange((vals || []).map((v) => ({ amsT_Id: Number(v) })))}
+                                            isSearchRequired
+                                            disabled={!asmS_Id?.length}
+                                        />
+                                        {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
+                                    </div>
                                 )}
                             />
                         </div>

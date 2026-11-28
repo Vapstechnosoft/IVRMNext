@@ -6,7 +6,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MasterViewDetails } from '@/components/ui/set-order/generic-set-order';
 import type { IMasterGrade } from '@/types/exam/exam-module/masters';
+import { GitCompareArrows } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -24,19 +26,22 @@ export const BaseExamSubjectSchema = {
             ismS_SubjectCode: z.string().min(1, { message: 'Subject code is required' }),
 
             // -------- MARKS UPDATED HERE --------
-            // If val is '' or undefined or NaN or 0 → treat as undefined
+            // If val is '' or undefined or null or NaN → treat as undefined
             eyceS_MaxMarks: z.preprocess((val) => {
+                if (val === '' || val === undefined || val === null) return undefined;
                 const num = Number(val);
-                return !val || Number.isNaN(num) || num === 0 ? undefined : num;
-            }, z.number().min(1).max(100).optional()),
+                return Number.isNaN(num) ? undefined : num;
+            }, z.number().min(0).max(100).optional()),
             eyceS_MinMarks: z.preprocess((val) => {
+                if (val === '' || val === undefined || val === null) return undefined;
                 const num = Number(val);
-                return !val || Number.isNaN(num) || num === 0 ? undefined : num;
-            }, z.number().min(1).max(100).optional()),
+                return Number.isNaN(num) ? undefined : num;
+            }, z.number().min(0).max(100).optional()),
             eyceS_MarksEntryMax: z.preprocess((val) => {
+                if (val === '' || val === undefined || val === null) return undefined;
                 const num = Number(val);
-                return !val || Number.isNaN(num) || num === 0 ? undefined : num;
-            }, z.number().min(1).max(100).optional()),
+                return Number.isNaN(num) ? undefined : num;
+            }, z.number().min(0).max(100).optional()),
             // -------------------------------------
 
             eyceS_SubExamFlg: z.boolean().optional().default(false),
@@ -70,16 +75,6 @@ export const BaseExamSubjectSchema = {
                 message: 'Min marks must be ≤ Max marks',
                 path: ['eyceS_MinMarks']
             }
-        )
-        .refine(
-            (data) =>
-                data.eyceS_MarksEntryMax === undefined ||
-                data.eyceS_MaxMarks === undefined ||
-                data.eyceS_MarksEntryMax <= data.eyceS_MaxMarks,
-            {
-                message: 'Marks entry max cannot exceed Max marks',
-                path: ['eyceS_MarksEntryMax']
-            }
         ),
 
     delete: z.object({
@@ -102,6 +97,8 @@ type SubjectRowRaw = {
     eyceS_AplResultFlg?: boolean;
     eyceS_SubExamFlg?: boolean;
     eyceS_SubSubjectFlg?: boolean;
+    eyceS_SubjectOrder?: number | string;
+    eyceS_ActiveFlg?: boolean;
     // legacy keys
     ECYSES_MaxMarks?: number | string;
     ECYSES_MinMarks?: number | string;
@@ -112,6 +109,8 @@ type SubjectRowRaw = {
     ECYSES_AplResultFlg?: boolean;
     ECYSES_SubExamFlg?: boolean;
     ECYSES_SubSubjectFlg?: boolean;
+    EYCES_SubjectOrder?: number | string;
+    EYCES_ActiveFlg?: boolean;
 
     // checked flag variations
     checkedvalue?: boolean;
@@ -204,15 +203,9 @@ const SubjectTableRow = React.memo(
         validateRowWithZod
     }: SubjectTableRowProps) => {
         const isChecked = !!s.checkedvalue;
-        const hasMaxMarks =
-            s.eyceS_MaxMarks !== '' && s.eyceS_MaxMarks !== null && s.eyceS_MaxMarks !== undefined && s.eyceS_MaxMarks !== 0;
-        const hasMinMarks =
-            s.eyceS_MinMarks !== '' && s.eyceS_MinMarks !== null && s.eyceS_MinMarks !== undefined && s.eyceS_MinMarks !== 0;
-        const hasEntryMax =
-            s.eyceS_MarksEntryMax !== '' &&
-            s.eyceS_MarksEntryMax !== null &&
-            s.eyceS_MarksEntryMax !== undefined &&
-            s.eyceS_MarksEntryMax !== 0;
+        const hasMaxMarks = s.eyceS_MaxMarks !== '' && s.eyceS_MaxMarks !== null && s.eyceS_MaxMarks !== undefined;
+        const hasMinMarks = s.eyceS_MinMarks !== '' && s.eyceS_MinMarks !== null && s.eyceS_MinMarks !== undefined;
+        const hasEntryMax = s.eyceS_MarksEntryMax !== '' && s.eyceS_MarksEntryMax !== null && s.eyceS_MarksEntryMax !== undefined;
 
         const canToggleSubFlags = isChecked && hasMaxMarks && hasMinMarks && hasEntryMax;
 
@@ -242,7 +235,11 @@ const SubjectTableRow = React.memo(
                 <td className='w-28 border p-2 align-top'>
                     <Input
                         disabled={!isChecked}
-                        value={s.eyceS_MaxMarks === '' || s.eyceS_MaxMarks === 0 ? '' : String(s.eyceS_MaxMarks)}
+                        value={
+                            s.eyceS_MaxMarks === '' || s.eyceS_MaxMarks === null || s.eyceS_MaxMarks === undefined
+                                ? ''
+                                : String(s.eyceS_MaxMarks)
+                        }
                         onChange={(e) => {
                             const raw = e.target.value.replace(/\D/g, '');
                             updateSubjectField(s.ismS_Id, 'eyceS_MaxMarks', raw === '' ? '' : Number(raw));
@@ -274,7 +271,11 @@ const SubjectTableRow = React.memo(
                 <td className='w-24 border p-2 align-top'>
                     <Input
                         disabled={!isChecked}
-                        value={s.eyceS_MinMarks === '' || s.eyceS_MinMarks === 0 ? '' : String(s.eyceS_MinMarks)}
+                        value={
+                            s.eyceS_MinMarks === '' || s.eyceS_MinMarks === null || s.eyceS_MinMarks === undefined
+                                ? ''
+                                : String(s.eyceS_MinMarks)
+                        }
                         onChange={(e) => {
                             const raw = e.target.value.replace(/\D/g, '');
                             updateSubjectField(s.ismS_Id, 'eyceS_MinMarks', raw === '' ? '' : Number(raw));
@@ -305,7 +306,11 @@ const SubjectTableRow = React.memo(
                 <td className='w-28 border p-2 align-top'>
                     <Input
                         disabled={!isChecked}
-                        value={s.eyceS_MarksEntryMax === '' || s.eyceS_MarksEntryMax === 0 ? '' : String(s.eyceS_MarksEntryMax)}
+                        value={
+                            s.eyceS_MarksEntryMax === '' || s.eyceS_MarksEntryMax === null || s.eyceS_MarksEntryMax === undefined
+                                ? ''
+                                : String(s.eyceS_MarksEntryMax)
+                        }
                         onChange={(e) => {
                             const raw = e.target.value.replace(/\D/g, '');
                             updateSubjectField(s.ismS_Id, 'eyceS_MarksEntryMax', raw === '' ? '' : Number(raw));
@@ -497,6 +502,7 @@ export default function SubjectTableWithValidation({
     const [subjects, setSubjects] = useState<NormalizedSubject[]>([]);
     // errors: { [ismS_Id]: { fieldName: message } }
     const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
+    const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
     const isRemoteUpdate = useRef(false);
 
     // Global header state for checkboxes (Marks Display, Grade Display, Apply to Result)
@@ -562,7 +568,11 @@ export default function SubjectTableWithValidation({
             subExamConfig: raw.subExamConfig ?? [],
             subSubjectConfig: raw.subSubjectConfig ?? [],
             exam_Subject_PT_GradeList: raw.exam_Subject_PT_GradeList ?? [],
-            eyceS_SubjectOrder: idx + 1,
+            eyceS_SubjectOrder: raw.eyceS_SubjectOrder
+                ? Number(raw.eyceS_SubjectOrder)
+                : raw.EYCES_SubjectOrder
+                    ? Number(raw.EYCES_SubjectOrder)
+                    : idx + 1,
             eyceS_ActiveFlg: firstDefinedBoolean(true),
             eyceS_Id: raw.eyceS_Id ?? 0,
             eycE_Id: raw.eycE_Id ?? 0
@@ -576,6 +586,11 @@ export default function SubjectTableWithValidation({
             return;
         }
         const normalized = initialSubjects.map((r, i) => normalizeSubject(r, i));
+        normalized.sort((a, b) => {
+            const orderA = Number(a.eyceS_SubjectOrder || 9999);
+            const orderB = Number(b.eyceS_SubjectOrder || 9999);
+            return orderA - orderB;
+        });
 
         if (JSON.stringify(normalized) !== JSON.stringify(subjects)) {
             isRemoteUpdate.current = true;
@@ -629,13 +644,6 @@ export default function SubjectTableWithValidation({
         };
     }, [subjects, setParentSubjects]);
 
-    // propagate grade changes into subjects state
-    useEffect(() => {
-        if (selectedGrade) {
-            setSubjects((prev) => prev.map((s) => ({ ...s, emgR_Id: Number(selectedGrade) || s.emgR_Id })));
-        }
-    }, [selectedGrade]);
-
     // ---------- Derived header logic ----------
     const derivedHeader = useMemo(() => {
         if (subjects.length === 0) {
@@ -645,10 +653,7 @@ export default function SubjectTableWithValidation({
                 allSubSubject: false,
                 allMarksDisplay: false,
                 allGradeDisplay: false,
-                allApplyToResult: false,
-                headerMaxMarks: '',
-                headerMinMarks: '',
-                headerMaxEntry: ''
+                allApplyToResult: false
             };
         }
 
@@ -659,20 +664,13 @@ export default function SubjectTableWithValidation({
         const allGradeDisplay = subjects.every((s) => !!s.eyceS_GradeDisplayFlg);
         const allApplyToResult = subjects.every((s) => !!s.eyceS_AplResultFlg);
 
-        const allMaxMarksSame = subjects.every((s) => s.eyceS_MaxMarks === subjects[0].eyceS_MaxMarks);
-        const allMinMarksSame = subjects.every((s) => s.eyceS_MinMarks === subjects[0].eyceS_MinMarks);
-        const allMaxEntrySame = subjects.every((s) => s.eyceS_MarksEntryMax === subjects[0].eyceS_MarksEntryMax);
-
         return {
             allSelected,
             allSubExam,
             allSubSubject,
             allMarksDisplay,
             allGradeDisplay,
-            allApplyToResult,
-            headerMaxMarks: allMaxMarksSame ? String(subjects[0]?.eyceS_MaxMarks ?? '') : '',
-            headerMinMarks: allMinMarksSame ? String(subjects[0]?.eyceS_MinMarks ?? '') : '',
-            headerMaxEntry: allMaxEntrySame ? String(subjects[0]?.eyceS_MarksEntryMax ?? '') : ''
+            allApplyToResult
         };
     }, [subjects]);
 
@@ -684,10 +682,7 @@ export default function SubjectTableWithValidation({
             subSubject: derivedHeader.allSubSubject,
             marksDisplay: derivedHeader.allMarksDisplay,
             gradeDisplay: derivedHeader.allGradeDisplay,
-            applyToResult: derivedHeader.allApplyToResult,
-            maxMarks: derivedHeader.headerMaxMarks,
-            minMarks: derivedHeader.headerMinMarks,
-            maxEntry: derivedHeader.headerMaxEntry
+            applyToResult: derivedHeader.allApplyToResult
         }));
     }, [derivedHeader]);
 
@@ -806,14 +801,14 @@ export default function SubjectTableWithValidation({
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'maxMarks') {
             // Bulk update and validate checked rows
-            const numOrEmpty = value === '' ? '' : Number(value);
+            const numOrEmpty = toNumOrEmpty(value);
             setSubjects((prev) =>
                 prev.map((row) =>
                     row.checkedvalue
                         ? {
-                              ...row,
-                              eyceS_MaxMarks: toNumOrEmpty(value)
-                          }
+                            ...row,
+                            eyceS_MaxMarks: numOrEmpty
+                        }
                         : row
                 )
             );
@@ -842,10 +837,8 @@ export default function SubjectTableWithValidation({
             return;
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'minMarks') {
-            const numOrEmpty = value === '' ? '' : Number(value);
-            setSubjects((s) =>
-                s.map((row) => (row.checkedvalue ? { ...row, eyceS_MinMarks: numOrEmpty } : row))
-            );
+            const numOrEmpty = toNumOrEmpty(value);
+            setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_MinMarks: numOrEmpty } : row)));
 
             setTimeout(() => {
                 setErrors((prevErrs) => {
@@ -870,10 +863,8 @@ export default function SubjectTableWithValidation({
             return;
             // biome-ignore lint/style/noUselessElse: <explanation>
         } else if (field === 'maxEntry') {
-            const numOrEmpty = value === '' ? '' : Number(value);
-            setSubjects((s) =>
-                s.map((row) => (row.checkedvalue ? { ...row, eyceS_MarksEntryMax: numOrEmpty } : row))
-            );
+            const numOrEmpty = toNumOrEmpty(value);
+            setSubjects((s) => s.map((row) => (row.checkedvalue ? { ...row, eyceS_MarksEntryMax: numOrEmpty } : row)));
 
             setTimeout(() => {
                 setErrors((prevErrs) => {
@@ -911,25 +902,42 @@ export default function SubjectTableWithValidation({
             const errorsForRow: Record<string, string> = {};
 
             // ---- REQUIRED checks for selected rows ----
-            if (!row.eyceS_MaxMarks || Number(row.eyceS_MaxMarks) <= 0) {
+            if (
+                row.eyceS_MaxMarks === '' ||
+                row.eyceS_MaxMarks === null ||
+                row.eyceS_MaxMarks === undefined ||
+                Number(row.eyceS_MaxMarks) < 0
+            ) {
                 errorsForRow.eyceS_MaxMarks = 'Max marks is required';
             }
 
-            if (!row.eyceS_MinMarks || Number(row.eyceS_MinMarks) <= 0) {
+            if (
+                row.eyceS_MinMarks === '' ||
+                row.eyceS_MinMarks === null ||
+                row.eyceS_MinMarks === undefined ||
+                Number(row.eyceS_MinMarks) < 0
+            ) {
                 errorsForRow.eyceS_MinMarks = 'Min marks is required';
             }
 
-            if (!row.eyceS_MarksEntryMax || Number(row.eyceS_MarksEntryMax) <= 0) {
+            if (
+                row.eyceS_MarksEntryMax === '' ||
+                row.eyceS_MarksEntryMax === null ||
+                row.eyceS_MarksEntryMax === undefined ||
+                Number(row.eyceS_MarksEntryMax) < 0
+            ) {
                 errorsForRow.eyceS_MarksEntryMax = 'Max entry marks is required';
             }
 
             // ---- Cross-field validation (only if all present) ----
-            if (row.eyceS_MinMarks && row.eyceS_MaxMarks && Number(row.eyceS_MinMarks) > Number(row.eyceS_MaxMarks)) {
+            if (
+                row.eyceS_MinMarks !== '' &&
+                row.eyceS_MaxMarks !== '' &&
+                row.eyceS_MinMarks !== null &&
+                row.eyceS_MaxMarks !== null &&
+                Number(row.eyceS_MinMarks) > Number(row.eyceS_MaxMarks)
+            ) {
                 errorsForRow.eyceS_MinMarks = 'Min marks must be ≤ Max marks';
-            }
-
-            if (row.eyceS_MarksEntryMax && row.eyceS_MaxMarks && Number(row.eyceS_MarksEntryMax) > Number(row.eyceS_MaxMarks)) {
-                errorsForRow.eyceS_MarksEntryMax = 'Max entry marks cannot exceed Max marks';
             }
 
             if (Object.keys(errorsForRow).length > 0) {
@@ -962,14 +970,6 @@ export default function SubjectTableWithValidation({
         },
         [onOpenSubSubjectSubExamModal, showSubExamColumn, onOpenSubExamModal, showSubSubjectColumn, onOpenSubSubjectModal]
     );
-
-    // ---------- small UX helpers ----------
-    const renderFieldError = (rowId: number, field: string) => {
-        if (!errors[rowId]) return null;
-        const msg = errors[rowId][field];
-        if (!msg) return null;
-        return <div className='mt-1 text-red-500 text-xs'>{msg}</div>;
-    };
 
     useEffect(() => {
         onRegisterValidate?.(validateSelectedSubjects);
@@ -1007,10 +1007,39 @@ export default function SubjectTableWithValidation({
     //     setErrors(newErrors);
     // }, [subjects]);
 
+    const handleOpenOrderModal = () => {
+        if (subjects.length === 0) {
+            toast.info('No subjects to reorder');
+            return;
+        }
+        setIsOrderModalOpen(true);
+    };
+
+    const handleOrderSave = (reorderedList: any[]) => {
+        const orderMap = new Map<number, number>();
+        reorderedList.forEach((item, index) => {
+            orderMap.set(Number(item.ismS_Id ?? item.id), index + 1);
+        });
+
+        const updated = [...subjects]
+            .map((s) => {
+                const newOrder = orderMap.get(Number(s.ismS_Id)) ?? s.eyceS_SubjectOrder;
+                return {
+                    ...s,
+                    eyceS_SubjectOrder: newOrder
+                };
+            })
+            .sort((a, b) => Number(a.eyceS_SubjectOrder || 9999) - Number(b.eyceS_SubjectOrder || 9999));
+
+        setSubjects(updated);
+        setIsOrderModalOpen(false);
+        toast.success('Subject order updated');
+    };
+
     // ---------- table rendering ----------
     return (
         <div className='overflow-x-auto rounded-md bg-white p-2 shadow-sm'>
-            {subjects.length !== 0 && (
+            {subjects.length !== 0 ? (
                 <>
                     <div className='mb-3 flex items-center justify-between gap-4'>
                         <div>
@@ -1020,7 +1049,17 @@ export default function SubjectTableWithValidation({
                         <div className='flex items-center gap-2'>
                             <Button
                                 size='sm'
+                                variant='outline'
+                                type='button'
+                                onClick={handleOpenOrderModal}
+                                className='flex items-center gap-1.5'>
+                                <GitCompareArrows className='h-4 w-4' />
+                                Set Order
+                            </Button>
+                            <Button
+                                size='sm'
                                 variant='ghost'
+                                type='button'
                                 onClick={() => {
                                     const ok = validateSelectedSubjects();
                                     if (ok) toast.success('All rows are valid');
@@ -1049,11 +1088,7 @@ export default function SubjectTableWithValidation({
                                     <div className='flex flex-col items-center'>
                                         <div className='mb-1 text-[13px]'>Max. Marks</div>
                                         <Input
-                                            value={
-                                                globalHeader.maxMarks === '' || Number(globalHeader.maxMarks) === 0
-                                                    ? ''
-                                                    : globalHeader.maxMarks
-                                            }
+                                            value={globalHeader.maxMarks}
                                             onChange={(e) => {
                                                 const val = e.target.value;
                                                 if (/^\d*$/.test(val)) handleHeaderChange('maxMarks', val);
@@ -1069,11 +1104,7 @@ export default function SubjectTableWithValidation({
                                     <div className='flex flex-col items-center'>
                                         <div className='mb-1 text-[13px]'>Min. Marks</div>
                                         <Input
-                                            value={
-                                                globalHeader.minMarks === '' || Number(globalHeader.minMarks) === 0
-                                                    ? ''
-                                                    : globalHeader.minMarks
-                                            }
+                                            value={globalHeader.minMarks}
                                             onChange={(e) => {
                                                 const val = e.target.value;
                                                 if (/^\d*$/.test(val)) handleHeaderChange('minMarks', val);
@@ -1089,11 +1120,7 @@ export default function SubjectTableWithValidation({
                                     <div className='flex flex-col items-center'>
                                         <div className='mb-1 text-[13px]'>Max. Entry Marks</div>
                                         <Input
-                                            value={
-                                                globalHeader.maxEntry === '' || Number(globalHeader.maxEntry) === 0
-                                                    ? ''
-                                                    : globalHeader.maxEntry
-                                            }
+                                            value={globalHeader.maxEntry}
                                             onChange={(e) => {
                                                 const val = e.target.value;
                                                 if (/^\d*$/.test(val)) handleHeaderChange('maxEntry', val);
@@ -1186,8 +1213,31 @@ export default function SubjectTableWithValidation({
                             ))}
                         </tbody>
                     </table>
+
+                    {isOrderModalOpen && (
+                        <MasterViewDetails
+                            isOpen={isOrderModalOpen}
+                            onClose={() => setIsOrderModalOpen(false)}
+                            data={subjects.map((s) => ({
+                                ...s,
+                                id: s.ismS_Id,
+                                ismS_SubjectName: s.ismS_SubjectName,
+                                ismS_SubjectCode: s.ismS_SubjectCode ?? '',
+                                eyceS_SubjectOrder: s.eyceS_SubjectOrder
+                            }))}
+                            columns={[
+                                { key: 'id', label: 'SLNO', className: 'text-center w-12' },
+                                { key: 'ismS_SubjectName', label: 'Subject Name', className: 'text-left' },
+                                { key: 'ismS_SubjectCode', label: 'Subject Code', className: 'text-left' },
+                                { key: 'eyceS_SubjectOrder', label: 'Subject Order', className: 'text-center w-36' }
+                            ]}
+                            onSave={handleOrderSave}
+                            tableHeight='500px'
+                            title='SUBJECT ORDER SETTING'
+                        />
+                    )}
                 </>
-            )}
+            ) : null}
         </div>
     );
 }

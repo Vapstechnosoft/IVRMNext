@@ -15,7 +15,7 @@ import { useMonthEndReport } from '@/hooks/admission/preadmission/useReports';
 import AdmissionMonthEndReport from './_components/columns';
 export default function MonthendreportPage() {
     const [academicYearId, setAcademicYearId] = useState<number>(0);
-    const [categoryId, setCategoryId] = useState<number>(0);
+    const [categoryId, setCategoryId] = useState<string>('');
     const [selectedMonth, setSelectedMonth] = useState<string>('');
     const [selectedYear, setSelectedYear] = useState<number>(0);
     const [implementationName, setImplementationName] = useState('');
@@ -33,7 +33,7 @@ export default function MonthendreportPage() {
 
     const requestData = {
         ASMAY_Id: academicYearId,
-        AMC_Id: categoryId,
+        AMC_Id: Number(categoryId),
         month: selectedMonth,
         year: selectedYear
     };
@@ -51,8 +51,6 @@ export default function MonthendreportPage() {
         { id: 11, name: 'November' },
         { id: 12, name: 'December' }
     ];
-    const yearList = [2023, 2024, 2025, 2026, 2027];
-
     interface ReportItem {
         name: string;
         count?: number; // optional
@@ -67,10 +65,13 @@ export default function MonthendreportPage() {
     const { data: academicYearOptions, isLoading: academicYearLoading } = useAcademicYearDropdown();
     const { data: categoryOptions, isLoading: categoryLoading } = useMasterCategoryDropdown();
     const { refetch } = useMonthEndReport(requestData, false);
+
+    const selectedAcademicYear = academicYearOptions?.data?.find((item: any) => item.asmaY_Id === academicYearId);
+    const yearList = selectedAcademicYear ? selectedAcademicYear.asmaY_Year.split('-').map((y: string) => Number(y.trim())) : [];
     // Handle Reset
     const handleReset = () => {
         setAcademicYearId(0);
-        setCategoryId(0);
+        setCategoryId('');
         setSelectedMonth('');
         setSelectedYear(0);
         setImplementationName('');
@@ -82,7 +83,7 @@ export default function MonthendreportPage() {
     // Handle Report Generate
 
     const handleGenerateReport = async () => {
-        if (!academicYearId || !categoryId || !selectedMonth || !selectedYear) {
+        if (!academicYearId || categoryId === '' || !selectedMonth || !selectedYear) {
             toast.error('Please fill all required fields!');
             return;
         }
@@ -147,7 +148,7 @@ export default function MonthendreportPage() {
 
     const downloadExcel = () => {
         try {
-            if (!academicYearId || !categoryId || !selectedMonth || !selectedYear) {
+            if (!academicYearId || categoryId === '' || !selectedMonth || !selectedYear) {
                 toast.error('Please fill all required fields!');
                 return;
             }
@@ -222,7 +223,7 @@ export default function MonthendreportPage() {
                             Category <span className='text-red-500'>*</span>
                         </Label>
 
-                        <Select onValueChange={(value) => setCategoryId(Number(value))} value={categoryId ? String(categoryId) : undefined}>
+                        <Select onValueChange={(value) => setCategoryId(value)} value={categoryId !== '' ? categoryId : undefined}>
                             <SelectTrigger>
                                 <SelectValue placeholder='Select Category' />
                             </SelectTrigger>
@@ -233,6 +234,8 @@ export default function MonthendreportPage() {
                                         Loading...
                                     </SelectItem>
                                 )}
+
+                                <SelectItem value='0'>All</SelectItem>
 
                                 {categoryOptions?.data?.map((item) => (
                                     <SelectItem key={item.amC_Id} value={String(item.amC_Id)}>

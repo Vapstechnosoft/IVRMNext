@@ -10,12 +10,65 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { getPageDetailsMap, saveEventsMapData } from '@/server/coe/masters/master-coe';
 import { uploadDocument } from '@/server/document_upload';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Image as ImageIcon, Plus, RotateCcw, Save, Trash2, Video } from 'lucide-react';
+import { format } from 'date-fns';
+import { Eye, Image as ImageIcon, Plus, RotateCcw, Save, Trash2, Video } from 'lucide-react';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 import { type EventsMapFormValues, eventsMapSchema } from './schema';
+
+const formatDateOnly = (date: Date | string | undefined | null): string | null => {
+    if (!date) return null;
+    if (typeof date === 'string') {
+        const trimmed = date.trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+            return trimmed;
+        }
+        const d = new Date(trimmed);
+        if (!Number.isNaN(d.getTime())) {
+            return format(d, 'yyyy-MM-dd');
+        }
+        return null;
+    }
+    if (date instanceof Date && !Number.isNaN(date.getTime())) {
+        return format(date, 'yyyy-MM-dd');
+    }
+    return null;
+};
+
+const parseDateSafe = (dateStr: string | Date | undefined | null): Date | undefined => {
+    if (!dateStr) return undefined;
+    if (dateStr instanceof Date) return dateStr;
+    if (typeof dateStr === 'string') {
+        const trimmed = dateStr.trim();
+        const match = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (match) {
+            const year = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10) - 1;
+            const day = parseInt(match[3], 10);
+            return new Date(year, month, day);
+        }
+        const d = new Date(trimmed);
+        return Number.isNaN(d.getTime()) ? undefined : d;
+    }
+    return undefined;
+};
+
+const formatTimeOnly = (timeStr: string | undefined | null): string => {
+    if (!timeStr) return '';
+    const trimmed = timeStr.trim();
+    // If it's an ISO datetime string or contains 'T'
+    if (trimmed.includes('T')) {
+        const timePart = trimmed.split('T')[1]?.replace(/Z$/, '').split('.')[0];
+        if (timePart) return timePart;
+    }
+    // If it starts with date like "YYYY-MM-DD HH:mm..."
+    if (/^\d{4}-\d{2}-\d{2}\s+/.test(trimmed)) {
+        return trimmed.replace(/^\d{4}-\d{2}-\d{2}\s+/, '');
+    }
+    return trimmed;
+};
 
 interface EventsMappingFormProps {
     onSuccess?: () => void;
@@ -58,7 +111,8 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
     const {
         fields: imageFields,
         append: appendImage,
-        remove: removeImage
+        remove: removeImage,
+        replace: replaceImage
     } = useFieldArray({
         control: form.control,
         name: 'images_listCoe'
@@ -117,21 +171,12 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                             COEE_Id: mainData.coeE_Id || mainData.COEE_Id,
                             ASMAY_Id: (mainData.asmaY_Id || mainData.ASMAY_Id || '').toString(),
                             COEME_Id: (mainData.coemE_Id || mainData.COEME_Id || '').toString(),
-                            COEE_EStartDate:
-                                mainData.coeE_EStartDate || mainData.COEE_EStartDate
-                                    ? new Date(mainData.coeE_EStartDate || mainData.COEE_EStartDate)
-                                    : undefined,
-                            COEE_EEndDate:
-                                mainData.coeE_EEndDate || mainData.COEE_EEndDate
-                                    ? new Date(mainData.coeE_EEndDate || mainData.COEE_EEndDate)
-                                    : undefined,
-                            COEE_EStartTime: mainData.coeE_EStartTime || mainData.COEE_EStartTime || '',
-                            COEE_EEndTime: mainData.coeE_EEndTime || mainData.COEE_EEndTime || '',
+                            COEE_EStartDate: parseDateSafe(mainData.coeE_EStartDate || mainData.COEE_EStartDate),
+                            COEE_EEndDate: parseDateSafe(mainData.coeE_EEndDate || mainData.COEE_EEndDate),
+                            COEE_EStartTime: formatTimeOnly(mainData.coeE_EStartTime || mainData.COEE_EStartTime || ''),
+                            COEE_EEndTime: formatTimeOnly(mainData.coeE_EEndTime || mainData.COEE_EEndTime || ''),
                             COEE_ReminderDays: (mainData.coeE_ReminderDays || mainData.COEE_ReminderDays || '').toString(),
-                            COEE_ReminderDate:
-                                mainData.coeE_ReminderDate || mainData.COEE_ReminderDate
-                                    ? new Date(mainData.coeE_ReminderDate || mainData.COEE_ReminderDate)
-                                    : undefined,
+                            COEE_ReminderDate: parseDateSafe(mainData.coeE_ReminderDate || mainData.COEE_ReminderDate),
                             COEE_MailActiveFlag: mainData.coeE_MailActiveFlag ?? mainData.COEE_MailActiveFlag ?? false,
                             COEE_SMSActiveFlag: mainData.coeE_SMSActiveFlag ?? mainData.COEE_SMSActiveFlag ?? false,
                             COEE_RepeatFlag: mainData.coeE_RepeatFlag ?? mainData.COEE_RepeatFlag ?? false,
@@ -163,7 +208,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                         });
                     }
                 } catch (error) {
-                    toast.error('Failed to fetch mapping details');
+                    Swal.fire({ title: 'Error!', text: 'Failed to fetch mapping details', icon: 'error' });
                 }
             };
             fetchDetails();
@@ -176,9 +221,11 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                 ...values,
                 COEME_Id: Number(values.COEME_Id),
                 ASMAY_Id: Number(values.ASMAY_Id),
-                COEE_EStartDate: values.COEE_EStartDate ? values.COEE_EStartDate.toISOString() : null,
-                COEE_EEndDate: values.COEE_EEndDate ? values.COEE_EEndDate.toISOString() : null,
-                COEE_ReminderDate: values.COEE_ReminderDate ? values.COEE_ReminderDate.toISOString() : null,
+                COEE_EStartDate: formatDateOnly(values.COEE_EStartDate),
+                COEE_EEndDate: formatDateOnly(values.COEE_EEndDate),
+                COEE_EStartTime: formatTimeOnly(values.COEE_EStartTime),
+                COEE_EEndTime: formatTimeOnly(values.COEE_EEndTime),
+                COEE_ReminderDate: formatDateOnly(values.COEE_ReminderDate),
                 ASMAY_Id_o_s: values.ASMAY_Id_o_s ? Number(values.ASMAY_Id_o_s) : 0,
                 COEE_ReminderDays: values.COEE_ReminderDays ? Number(values.COEE_ReminderDays) : 0,
                 videos_list: values.videos_list.map((v) => v.COEEV_VideoURL)
@@ -186,14 +233,28 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
 
             const res = await saveEventsMapData(payload);
             if (res.success || res.returnval === true) {
-                toast.success(res.message || (editData ? 'Event mapping updated' : 'Event mapping saved'));
+                Swal.fire({
+                    title: 'Success!',
+                    text: res.message || (editData ? 'Event mapping updated' : 'Event mapping saved'),
+                    icon: 'success'
+                });
                 form.reset();
                 onSuccess?.();
+            } else if (res.message === 'Record Already Exist' || res.message === 'Duplicate') {
+                Swal.fire({ title: 'Warning!', text: res.message, icon: 'warning' });
             } else {
-                toast.error(res.message || 'Failed to save mapping');
+                Swal.fire({ title: 'Failed!', text: res.message || 'Failed to save mapping', icon: 'error' });
             }
-        } catch (error) {
-            toast.error('An error occurred');
+        } catch (error: any) {
+            if (typeof error === 'string' && (error === 'Record Already Exist' || error === 'Duplicate')) {
+                Swal.fire({ title: 'Warning!', text: error, icon: 'warning' });
+            } else {
+                Swal.fire({
+                    title: 'Error!',
+                    text: typeof error === 'string' ? error : error?.message || 'An error occurred while saving',
+                    icon: 'error'
+                });
+            }
         }
     };
 
@@ -224,14 +285,14 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
             }
 
             if (url) {
-                appendImage({ COEEI_Images: url });
-                toast.success('File uploaded successfully');
+                replaceImage([{ COEEI_Images: url }]);
+                Swal.fire({ title: 'Success!', text: 'File uploaded successfully', icon: 'success' });
             } else {
-                toast.error('Upload failed: Invalid response format');
+                Swal.fire({ title: 'Failed!', text: 'Upload failed: Invalid response format', icon: 'error' });
                 console.error('Upload response format unknown:', res);
             }
         } catch (error) {
-            toast.error('Upload failed');
+            Swal.fire({ title: 'Error!', text: 'Upload failed', icon: 'error' });
         }
     };
 
@@ -813,7 +874,7 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                                 mobileInput.value = '';
                                                 emailInput.value = '';
                                             } else {
-                                                toast.error('Please fill all fields before adding');
+                                                Swal.fire({ title: 'Error!', text: 'Please fill all fields before adding', icon: 'error' });
                                             }
                                         }}>
                                         <Plus className='mr-2 h-4 w-4' /> Add
@@ -866,6 +927,17 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                             variant='ghost'
                                             size='icon'
                                             className='h-6 w-6'
+                                            onClick={() => {
+                                                const url = form.watch(`images_listCoe.${idx}.COEEI_Images`);
+                                                if (url) window.open(url, '_blank');
+                                            }}>
+                                            <Eye className='h-3 w-3 text-blue-500' />
+                                        </Button>
+                                        <Button
+                                            type='button'
+                                            variant='ghost'
+                                            size='icon'
+                                            className='h-6 w-6'
                                             onClick={() => removeImage(idx)}>
                                             <Trash2 className='h-3 w-3 text-destructive' />
                                         </Button>
@@ -896,6 +968,16 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                             </FormItem>
                                         )}
                                     />
+                                    <Button
+                                        type='button'
+                                        variant='ghost'
+                                        size='icon'
+                                        onClick={() => {
+                                            const url = form.watch(`videos_list.${idx}.COEEV_VideoURL`);
+                                            if (url) window.open(url, '_blank');
+                                        }}>
+                                        <Eye className='h-4 w-4 text-blue-500' />
+                                    </Button>
                                     <Button type='button' variant='ghost' size='icon' onClick={() => removeVideo(idx)}>
                                         <Trash2 className='h-4 w-4 text-destructive' />
                                     </Button>
@@ -925,6 +1007,16 @@ export default function EventsMappingForm({ onSuccess, initialData, editData }: 
                                             </FormItem>
                                         )}
                                     />
+                                    <Button
+                                        type='button'
+                                        variant='ghost'
+                                        size='icon'
+                                        onClick={() => {
+                                            const url = form.watch(`urldocumentlist.${idx}.IHW_FilePath`);
+                                            if (url) window.open(url, '_blank');
+                                        }}>
+                                        <Eye className='h-4 w-4 text-blue-500' />
+                                    </Button>
                                     <Button type='button' variant='ghost' size='icon' onClick={() => removeUrl(idx)}>
                                         <Trash2 className='h-4 w-4 text-destructive' />
                                     </Button>

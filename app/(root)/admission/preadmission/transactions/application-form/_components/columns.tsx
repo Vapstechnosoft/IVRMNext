@@ -107,11 +107,12 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                     downloadDocument(appId, {
                         onSuccess: (data) => {
                             const base64 =
-                                typeof data?.data === 'string'
+                                (data?.data as any)?.pdfbase64 || (data?.data as any)?.pdfBase64 ||
+                                (typeof data?.data === 'string'
                                     ? data.data
                                     : Array.isArray(data?.data)
                                       ? ((data.data[0] as unknown as string) ?? null)
-                                      : null;
+                                      : null);
                             setPdfBase64(base64);
                         },
                         onError: (error) => {
@@ -224,7 +225,7 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
             useEffect(() => {
                 if (pasrId && applicationFormDetails?.data && !applicationFormDetailsLoading) {
                     try {
-                        const resp = applicationFormDetails.data;
+                        const resp = applicationFormDetails.data?.result || applicationFormDetails.data;
                         const student = resp?.student_details || resp || {};
                         const normalizeGender = (sex: string | undefined | null) => {
                             if (!sex) return undefined;
@@ -302,11 +303,12 @@ export const studentApplicationColumns: ColumnDef<IPreadmissionStudentApplicatio
                             })),
                             siblingsDetails: resp?.student_siblings || [],
                             previousSchoolDetails: resp?.previous_schools || [],
-                            selectedDocuments: (resp?.student_documents || []).map((d: any) => ({
-                                pasrD_Id: d.pasrD_Id,
-                                pasR_Id: d.pasR_Id,
+                            selectedDocuments: (resp?.student_documents || resp?.selectedDocuments || []).map((d: any) => ({
+                                pasrD_Id: d.pasrD_Id || 0,
+                                pasR_Id: d.pasR_Id || 0,
                                 amsmD_Id: d.amsmD_Id,
-                                document_Path: d.document_Path
+                                document_Path: d.document_Path,
+                                documentName: d.amsmD_DocumentName || d.documentName || ''
                             }))
                         };
                         openEditForm(payload);

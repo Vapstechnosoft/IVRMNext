@@ -65,10 +65,7 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
         amsC_Id: sectionId
     });
 
-    const { data: receiptData, isLoading: loadingReceipts } = useFeeChequeBounceReceipts({
-        ASMAY_Id: asmayId,
-        AMST_Id: studentId
-    });
+    const { data: receiptData, isLoading: loadingReceipts } = useFeeChequeBounceReceipts(studentId, asmayId);
 
     // Reset dependent fields when parents change
     useEffect(() => {
@@ -92,20 +89,20 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
                 ASMAY_ID: Number(data.asmaY_Id),
                 AMST_Id: Number(data.amst_Id),
                 FYP_ID: Number(data.FYP_ID),
-                FCB_DATE: data.FCB_DATE instanceof Date ? data.FCB_DATE.toDateString() : new Date(data.FCB_DATE).toDateString(),
+                FCB_DATE: data.FCB_DATE instanceof Date ? data.FCB_DATE.toISOString() : new Date(data.FCB_DATE).toISOString(),
                 FCB_Remarks: data.FCB_Remarks
             };
 
             const result = (await saveFeeChequeBounce(payload)) as any;
-            const validationValue = result?.validationvalue || result?.data?.validationvalue;
 
-            if (validationValue === 'Saved' || validationValue === 'Updated') {
-                toast.success(`Record ${validationValue} Successfully`);
+            if (result?.success) {
+                toast.success(result.message);
+
                 queryClient.invalidateQueries();
                 onSuccess();
                 reset();
             } else {
-                toast.error(String(validationValue || 'Failed to save record'));
+                toast.error(result?.message);
             }
         } catch (error) {
             toast.error('An error occurred while saving the record');
@@ -242,7 +239,7 @@ export default function AddFeeChequeBounceForm({ onSuccess }: { onSuccess: () =>
                                     <SelectValue placeholder={loadingReceipts ? 'Loading...' : 'Select Receipt No'} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {receiptData?.data?.fillreceipt?.map((rec: any) => (
+                                    {receiptData?.data?.map((rec: any) => (
                                         <SelectItem key={rec.fyP_ID} value={String(rec.fyP_ID)}>
                                             {rec.fyP_Receipt_No}
                                         </SelectItem>

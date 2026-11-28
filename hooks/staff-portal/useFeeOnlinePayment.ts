@@ -6,6 +6,7 @@ import {
     getPaymentCharges,
     getStudentInformation,
     getStudentPortalInformation,
+    getStudentViewDetails,
     processRazorpayPayment
 } from '@/server/staff-portal/fee-online-payment';
 import type {
@@ -34,7 +35,7 @@ export const useAcademicYears = () => {
     };
 };
 
-export const useStudentInformation = (academicYearId: number | null) => {
+export const useStudentInformation = (academicYearId: number | null, feeConfig: any, amst_Id: number) => {
     const queryClient = useQueryClient();
 
     return {
@@ -42,7 +43,7 @@ export const useStudentInformation = (academicYearId: number | null) => {
             queryKey: [STAFF_PORTAL_QUERY_KEYS.FEE_STUDENT_INFORMATION, academicYearId],
             queryFn: async () => {
                 if (!academicYearId) return null;
-                return getStudentInformation(academicYearId);
+                return getStudentInformation(academicYearId, feeConfig, amst_Id);
             },
             enabled: !!academicYearId
         }),
@@ -182,6 +183,24 @@ export const usePaymentCharges = () => {
         refetchAll: () =>
             queryClient.invalidateQueries({
                 queryKey: [STAFF_PORTAL_QUERY_KEYS.FEE_PAYMENT_CHARGES]
+            })
+    };
+};
+
+// Hook to fetch the studentview details
+
+export const useStudentViewDetails = () => {
+    const queryClient = useQueryClient();
+
+    return {
+        ...useQuery({
+            queryKey: [STAFF_PORTAL_QUERY_KEYS.FEE_STUDENT_VIEW],
+            queryFn: async () => getStudentViewDetails()
+        }),
+
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [STAFF_PORTAL_QUERY_KEYS.FEE_STUDENT_VIEW]
             })
     };
 };

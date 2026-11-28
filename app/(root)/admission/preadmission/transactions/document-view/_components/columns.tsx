@@ -80,7 +80,7 @@ function parseDocumentResponse(res: any): { type: 'pdf' | 'html' | 'url' | 'prin
         }
 
         // Check for Base64 PDF
-        const base64 = data.pdfData || data.base64 || data.pdfBase64 || data.bytes || data.pdf;
+        const base64 = data.pdfData || data.base64 || data.pdfBase64 || data.pdfbase64 || data.bytes || data.pdf;
         if (base64 && typeof base64 === 'string') {
             return { type: 'pdf', content: base64 };
         }
@@ -226,7 +226,7 @@ function resolvePrintData(printObj: any, fullRes: any) {
     return merged;
 }
 
-const ApplicationFormCell = ({ pasrId, rowData }: { pasrId: number; rowData: IPreadmissionDocumentView }) => {
+export const ApplicationFormCell = ({ pasrId, rowData }: { pasrId: number; rowData: IPreadmissionDocumentView }) => {
     const [showPdfModal, setShowPdfModal] = useState(false);
     const [docType, setDocType] = useState<'pdf' | 'html' | 'url' | 'printData' | null>(null);
     const [docSource, setDocSource] = useState<string | null>(null);
@@ -352,10 +352,10 @@ const ApplicationFormCell = ({ pasrId, rowData }: { pasrId: number; rowData: IPr
                                     {/* Header Section */}
                                     <div className='flex flex-col items-center border-slate-400 border-b pb-3 text-center'>
                                         <div className='mb-1 flex items-center justify-center gap-4'>
-                                            {(printData.logo_path || printData.logoPath || printData.mI_Logo) && (
+                                            {(printData.logo_path || printData.logoPath || printData.mI_Logo || printData.masterCompany?.[0]?.logo) && (
                                                 <div className='flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border border-slate-300 bg-slate-50 p-1'>
                                                     <img
-                                                        src={printData.logo_path || printData.logoPath || printData.mI_Logo}
+                                                        src={printData.logo_path || printData.logoPath || printData.mI_Logo || printData.masterCompany?.[0]?.logo}
                                                         alt='Logo'
                                                         className='h-full w-full object-contain'
                                                     />
@@ -366,6 +366,7 @@ const ApplicationFormCell = ({ pasrId, rowData }: { pasrId: number; rowData: IPr
                                                     {printData.mI_Name ||
                                                         printData.institute_name ||
                                                         printData.institution_name ||
+                                                        printData.masterCompany?.[0]?.companyname ||
                                                         'STUDENT APPLICATION FORM'}
                                                 </h1>
                                                 {(printData.mI_Address1 || printData.address) && (

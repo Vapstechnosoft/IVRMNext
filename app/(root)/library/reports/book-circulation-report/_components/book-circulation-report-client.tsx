@@ -3,6 +3,7 @@
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useBookCirculationReportSearch } from '@/hooks/library/reports/useBookCirculationReport';
+import { exportToExcel } from '@/lib/export-to-file';
 import type { IBookCirculationReportGridData, IBookCirculationReportRequest } from '@/types/library/reports/book-circulation-report';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -32,14 +33,15 @@ export function BookCirculationReportClient({ initialData }: BookCirculationRepo
                 if (Array.isArray(response)) {
                     list = response;
                 } else if (response && typeof response === 'object') {
-                    const possibleList =
-                        response.reportlist ||
-                        response.reportList ||
-                        response.gridList ||
-                        response.gridlist ||
-                        response.alldata ||
-                        response.data ||
-                        response;
+                    const possibleList = Array.isArray(response.data)
+                        ? response.data
+                        : response.reportlist ||
+                          response.reportList ||
+                          response.gridList ||
+                          response.gridlist ||
+                          response.alldata ||
+                          response.data ||
+                          response;
                     if (Array.isArray(possibleList)) {
                         list = possibleList;
                     } else if (possibleList && typeof possibleList === 'object' && '$values' in possibleList) {
@@ -49,6 +51,7 @@ export function BookCirculationReportClient({ initialData }: BookCirculationRepo
                 setReportData(list);
                 if (list.length > 0) {
                     setView('grid');
+                    toast.success(`Found ${list.length} records.`);
                 } else {
                     toast.info('No records found for the selected criteria');
                 }
@@ -64,7 +67,7 @@ export function BookCirculationReportClient({ initialData }: BookCirculationRepo
 
     const handleExport = () => {
         if (reportData.length > 0) {
-            console.log('Exporting to Excel...', reportData);
+            exportToExcel('Book_Circulation_Report', JSON.stringify([]), JSON.stringify(reportData));
         }
     };
 
@@ -83,31 +86,39 @@ export function BookCirculationReportClient({ initialData }: BookCirculationRepo
                     onExport={handleExport}
                     hasData={reportData.length > 0}
                     initialData={initialData}
+                    onCancel={() => {
+                        setReportData([]);
+                        setView('form');
+                    }}
                 />
             </CollapsibleSection>
 
             {reportData.length > 0 && (
-                <div className='mx-auto max-w-5xl overflow-hidden rounded-sm border bg-white shadow-sm'>
-                    {/* Header Bar - Standardized Branded Blue */}
-                    <div className='flex items-center justify-between bg-[#4255a7] px-4 py-2'>
-                        <h2 className='font-bold text-sm text-white uppercase tracking-wider'>Book Circulation Report</h2>
-                    </div>
-                    {/* Orange accent line */}
-                    <div className='h-1 bg-[#f47a1f]' />
-
-                    <div className='space-y-4 p-4'>
-                        {/* Records Count Row */}
-                        <div className='flex items-center justify-between'>
-                            <div className='flex items-center gap-2'>
-                                <span className='font-bold text-slate-700 text-xs'>Total Grid Records :</span>
-                                <span className='rounded-full bg-slate-500 px-2 py-0.5 font-bold text-[10px] text-white'>
-                                    {reportData.length}
-                                </span>
+                <div className='w-full print:m-0'>
+                    <CollapsibleSection
+                        title='Book Circulation Report'
+                        defaultOpen={true}
+                        className='bg-white shadow-sm print:border-none print:shadow-none'>
+                        <div className='space-y-4 p-4'>
+                            {/* Records Count Row */}
+                            <div className='flex items-center justify-between'>
+                                <div className='flex items-center gap-2'>
+                                    <span className='font-bold text-slate-700 text-xs'>Total Grid Records :</span>
+                                    <span className='rounded-full bg-slate-500 px-2 py-0.5 font-bold text-[10px] text-white'>
+                                        {reportData.length}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
 
-                        <GenericDataTable columns={getColumns(memberType)} data={reportData} isLoading={false} />
-                    </div>
+                            <GenericDataTable
+                                columns={getColumns(memberType)}
+                                data={reportData}
+                                totalItems={reportData.length}
+                                isPaginationRequired={true}
+                                isLoading={false}
+                            />
+                        </div>
+                    </CollapsibleSection>
                 </div>
             )}
         </div>

@@ -103,19 +103,19 @@ export const studentAdmissionFormSchema = {
         //ecs flag
         amsT_ECSFlag: z.number().int().optional(),
 
-        asecS_AccountNo: createNumberOnlyStringSchema('Bank Account Number', 1, 50).optional(),
-        asecS_BankName: createStringOnlySchema('Bank Name', 1, 100).optional(),
-        asecS_AccountHolderName: createStringOnlySchema('Account Holder Name', 1, 100).optional(),
-        asecS_AccountType: createStringOnlySchema('Account Type', 1, 50).optional(),
-        asecS_MICRNo: createNumberOnlyStringSchema('MICR Code', 1, 20).optional(),
+        asecS_AccountNo: createOptionalNumberOnlyStringSchema('Bank Account Number', 1, 50).optional().nullable(),
+        asecS_BankName: createOptionalStringSchema('Bank Name', 1, 100).optional().nullable(),
+        asecS_AccountHolderName: createOptionalStringSchema('Account Holder Name', 1, 100).optional().nullable(),
+        asecS_AccountType: createOptionalStringSchema('Account Type', 1, 50).optional().nullable(),
+        asecS_MICRNo: createOptionalNumberOnlyStringSchema('MICR Code', 1, 20).optional().nullable(),
 
         //normal bank details
-        amsT_BankAccountNo: createOptionalNumberOnlyStringSchema('Bank Account Number', 1, 50).optional(),
-        amsT_BankName: createStringOnlySchema('Bank Name', 1, 100).optional(),
-        amsT_BankIFSCCode: createAlphanumericSchema('IFSC Code', 1, 20).optional(),
-        amsT_BankBranch: createStringOnlySchema('Branch Name', 1, 100).optional(),
+        amsT_BankAccountNo: createOptionalNumberOnlyStringSchema('Bank Account Number', 1, 50).optional().nullable(),
+        amsT_BankName: createOptionalStringSchema('Bank Name', 1, 100).optional().nullable(),
+        amsT_BankIFSCCode: createOptionalAlphaNumericAllowBothSchema('IFSC Code', 1, 20).optional().nullable(),
+        amsT_BankBranch: createOptionalStringSchema('Branch Name', 1, 100).optional().nullable(),
 
-        asecS_Branch: createStringOnlySchema('Branch Name', 1, 100).optional(),
+        asecS_Branch: createOptionalStringSchema('Branch Name', 1, 100).optional().nullable(),
         amsT_MediumOfInstruction: createStringOnlyOptionalSchema('Medium Of Instruction', 1, 50).optional(),
 
         // EMIS flag
@@ -130,7 +130,23 @@ export const studentAdmissionFormSchema = {
         // NATIONALITY - STRING
         amsT_FatherNationality: z.number().int().optional(),
 
-        amsT_MobileNo: z.string({ required_error: 'Mobile Number is required' }).min(1, 'Mobile Number is required'),
+        amsT_MobileNo: z
+            .string({ required_error: 'Mobile Number is required' })
+            .min(1, 'Mobile Number is required')
+            .refine(
+                (val) => {
+                    if (!val) return false;
+                    // Strip country code (e.g. "+91 ") and spaces/dashes, keep only digits after dial code
+                    const digitsOnly = val.replace(/\D/g, '');
+                    // For India (+91) the national number is the last 10 digits
+                    // For other countries the number stored as "+(dialCode) (nationalNumber)"
+                    // We validate by checking national number part length is exactly 10
+                    const spaceIdx = val.indexOf(' ');
+                    const nationalPart = spaceIdx !== -1 ? val.slice(spaceIdx + 1).replace(/\D/g, '') : digitsOnly;
+                    return nationalPart.length === 10;
+                },
+                { message: 'Mobile number must be exactly 10 digits' }
+            ),
 
         amsT_BirthPlace: createStringOnlyOptionalSchema('Student Birth Place', 1, 100),
         asmS_Id: z.preprocess(
@@ -199,7 +215,8 @@ export const studentAdmissionFormSchema = {
             .optional()
             .nullable()
             .refine((val) => !val || /^\d{12}$/.test(val), { message: 'Aadhar number must be exactly 12 digits' }),
-        amsT_ApparNo: z.string().regex(/^\d*$/, 'APAAR ID must contain only numbers').optional().nullable(),
+        amsT_ApparNo: z.string().refine((val) => !val || /^\d{12}$/.test(val), { message: 'APAAR ID must be exactly 12 digits' }).optional().nullable(),
+        amsT_APAARId: z.preprocess((val) => (val === '' || val === null || val === undefined ? 0 : Number(val)), z.number().optional().nullable()),
         amsT_LanguageSpoken: z.string().optional().nullable(),
 
         reference_ids: z.array(z.string()).optional(),

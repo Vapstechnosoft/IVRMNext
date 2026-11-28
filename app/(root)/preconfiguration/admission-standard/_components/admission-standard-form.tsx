@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAdmissionStandard, useSaveAdmissionStandard } from '@/hooks/preconfiguration/useAdmissionStandard';
 import type { IAdmissionStandardPayload } from '@/types/preconfiguration/admission-standard';
@@ -13,6 +14,8 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { uploadDocument } from '@/server/fees/trasactions/waived_off';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const admissionStandardSchema = z.object({
     asC_Id: z.number().optional(),
@@ -80,6 +83,9 @@ export default function AdmissionStandardForm() {
     const { data: response, isLoading, refetchAll } = useAdmissionStandard();
     const saveMutation = useSaveAdmissionStandard();
     const [resetKey, setResetKey] = useState(0);
+    const [logoPreviewUrl, setLogoPreviewUrl] = useState<string | null>(null);
+    const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+    const [viewModalUrl, setViewModalUrl] = useState('');
 
     const form = useForm<FormValues>({
         resolver: zodResolver(admissionStandardSchema),
@@ -328,6 +334,75 @@ export default function AdmissionStandardForm() {
                                                             <FormLabel className='font-normal'>Absent</FormLabel>
                                                         </FormItem>
                                                     </RadioGroup>
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+
+                                <div className='rounded-md border bg-muted/20 p-4'>
+                                    <FormField
+                                        control={form.control}
+                                        name='ASC_Logo_Path'
+                                        render={({ field }) => (
+                                            <FormItem className='space-y-3'>
+                                                <FormLabel>Logo</FormLabel>
+                                                <FormControl>
+                                                    <div className='flex items-center space-x-2'>
+                                                        <Input
+                                                            type='file'
+                                                            accept='image/*'
+                                                            onChange={async (e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (file) {
+                                                                    try {
+                                                                        const formData = new FormData();
+                                                                        formData.append('file', file);
+                                                                        formData.append('FileName', file.name);
+                                                                        formData.append('ContentType', file.type);
+                                                                        formData.append('subContainerName', 'Logo');
+                                                                        
+                                                                        const response = await uploadDocument(formData);
+                                                                        if (response.success && response.data) {
+                                                                            field.onChange(response.data);
+                                                                            setLogoPreviewUrl(response.data);
+                                                                            toast.success('Logo uploaded successfully');
+                                                                        } else {
+                                                                            toast.error(response.message || 'Upload failed');
+                                                                            field.onChange(file.name); // fallback
+                                                                            setLogoPreviewUrl(URL.createObjectURL(file));
+                                                                        }
+                                                                    } catch (error) {
+                                                                        toast.error('Failed to upload Logo');
+                                                                        field.onChange(file.name); // fallback
+                                                                        setLogoPreviewUrl(URL.createObjectURL(file));
+                                                                    }
+                                                                }
+                                                            }}
+                                                        />
+                                                        {(logoPreviewUrl || field.value) && (
+                                                            <Button
+                                                                type='button'
+                                                                variant='outline'
+                                                                size='sm'
+                                                                className='font-semibold text-blue-600'
+                                                                onClick={() => {
+                                                                    let url = logoPreviewUrl || field.value;
+                                                                    if (url && !url.startsWith('http') && !url.startsWith('blob:') && !url.startsWith('/')) {
+                                                                        // If it's just a filename and doesn't have a path, it might be broken,
+                                                                        // but we can try to append a default path or just use it.
+                                                                    }
+                                                                    if (url) {
+                                                                        setViewModalUrl(url);
+                                                                        setIsViewModalOpen(true);
+                                                                    }
+                                                                }}
+                                                            >
+                                                                View
+                                                            </Button>
+                                                        )}
+                                                    </div>
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -614,6 +689,17 @@ export default function AdmissionStandardForm() {
                     </form>
                 </Form>
             </CardContent>
+
+            <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
+                <DialogContent className='max-w-3xl'>
+                    <DialogHeader>
+                        <DialogTitle>View Logo</DialogTitle>
+                    </DialogHeader>
+                    <div className='flex justify-center p-4'>
+                        {viewModalUrl && <img src={viewModalUrl} alt='Logo' className='max-h-[70vh] max-w-full object-contain' />}
+                    </div>
+                </DialogContent>
+            </Dialog>
         </Card>
     );
 }

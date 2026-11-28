@@ -27,14 +27,31 @@ export function OperationTools() {
 
     const filteredModules = React.useMemo(() => {
         if (!accessibleModules?.data) return [];
-        console.log('accessibleModules', accessibleModules);
-        return accessibleModules.data.filter((module: any) => module.name.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (!searchQuery.trim()) return accessibleModules.data;
+        const q = searchQuery.toLowerCase().trim();
+        return accessibleModules.data.filter((module: any) => {
+            if (module.name?.toLowerCase().includes(q)) return true;
+            return module.menu?.some((menu: any) => {
+                if (menu.name?.toLowerCase().includes(q)) return true;
+                return menu.sub_menu?.some((sub: any) => {
+                    if (sub.name?.toLowerCase().includes(q)) return true;
+                    if (sub.pages?.some((p: any) => (p.title || p.name || '')?.toLowerCase().includes(q))) return true;
+                    return sub.sub_menu?.some((childSub: any) => {
+                        if (childSub.name?.toLowerCase().includes(q)) return true;
+                        return childSub.pages?.some((p: any) => (p.title || p.name || '')?.toLowerCase().includes(q));
+                    });
+                });
+            });
+        });
     }, [accessibleModules, searchQuery]);
 
     // Set initial selected module when data loads or search changes
     React.useEffect(() => {
-        if (filteredModules.length > 0 && !selectedModuleId) {
-            setSelectedModuleId(filteredModules[0].id);
+        if (filteredModules.length > 0) {
+            const currentStillExists = filteredModules.some((m: any) => m.id === selectedModuleId);
+            if (!currentStillExists) {
+                setSelectedModuleId(filteredModules[0].id);
+            }
         }
     }, [filteredModules, selectedModuleId]);
 
@@ -156,7 +173,8 @@ export function OperationTools() {
                                             const Icon = getIconByName(module.icon) || Boxes;
                                             const isActive = selectedModuleId === module.id;
                                             return (
-                                                <button
+                                                // biome-ignore lint/a11y/useButtonType: <explanation>
+                                                   <button
                                                     key={module.id}
                                                     onMouseEnter={() => setSelectedModuleId(module.id)}
                                                     onClick={() => setSelectedModuleId(module.id)}
@@ -190,7 +208,7 @@ export function OperationTools() {
                                                             {module.name}
                                                         </p>
                                                         <p className='font-bold text-[10px] text-slate-400 uppercase tracking-wider'>
-                                                            {module.menu.length} Sections
+                                                            {module.menu.reduce((acc: number, curr: any) => acc + (curr.sub_menu?.length || 0), 0)} Sections
                                                         </p>
                                                     </div>
                                                     <ArrowRight
@@ -296,10 +314,20 @@ export function OperationTools() {
                                                                         return true;
                                                                     });
 
-                                                                    return uniquePages.map((page: any, pageIdx: number) => {
+                                                                    const q = searchQuery.toLowerCase().trim();
+                                                                    const displayPages = q
+                                                                        ? uniquePages.filter((page: any) =>
+                                                                              (page.title || page.name || page.url || '').toLowerCase().includes(q)
+                                                                          )
+                                                                        : uniquePages;
+
+                                                                    if (q && displayPages.length === 0) return null;
+
+                                                                    return displayPages.map((page: any, pageIdx: number) => {
                                                                         const PageIcon = getIconByName(page.icon) || Boxes;
                                                                         return (
-                                                                            <button
+                                                                            // biome-ignore lint/a11y/useButtonType: <explanation>
+                                                                                <button
                                                                                 key={page.id ? `page-${page.id}` : pageIdx}
                                                                                 onClick={() => handlePageClick(page, menu, subMenu)}
                                                                                 className='group/btn relative flex items-center justify-between overflow-hidden rounded-2xl px-3 py-2 text-left transition-all hover:bg-slate-50 hover:text-orange-600'>

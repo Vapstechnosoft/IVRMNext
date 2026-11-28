@@ -13,18 +13,51 @@ import { registrationNumberingColumns } from './columns';
 import UpdateTransactionNumberingForm from './update-form';
 
 export default function TransactionNumberingContent({ numberingType }: { numberingType: string }) {
-    const { data: response, isLoading, error } = useRegNumbering(numberingType);
+    const { data: response, isLoading, error, refetch, refetchAll } = useRegNumbering(numberingType);
     const { openAddForm, isAddFormOpen, isEditFormOpen, selectedRow, closeAddForm, closeEditForm, addFormRef, editFormRef } =
         useFormContext<IMasterTransactionNumberingList>();
 
-    const arrayKey =
-        numberingType === 'TC'
-            ? 'tcNumberingArraylist'
-            : numberingType === 'RollNumber'
-              ? 'rollNumberingArraylist'
-              : numberingType.charAt(0).toLowerCase() + numberingType.slice(1) + 'NumberingArraylist';
+    const handleSuccess = async () => {
+        closeAddForm();
+        closeEditForm();
+        await refetchAll();
+        refetch();
+    };
 
-    const tableData = response?.data?.[arrayKey] || [];
+    const getTableData = (res: any, type: string) => {
+        if (!res) return [];
+        const resData = res?.data ?? res;
+        if (type === 'RollNumber') {
+            return (
+                resData.rolenoNumbering ||
+                resData.RolenoNumbering ||
+                resData.rollNumberingArraylist ||
+                resData.RollNumberingArraylist ||
+                resData.rollnoNumbering ||
+                resData.RollnoNumbering ||
+                resData.rollNumbering ||
+                resData.RollNumbering ||
+                resData.rollNoNumbering ||
+                resData.RollNoNumbering ||
+                []
+            );
+        }
+        if (type === 'TC') {
+            return resData.tcNumberingArraylist || resData.TcNumberingArraylist || [];
+        }
+        const camel = `${type.charAt(0).toLowerCase() + type.slice(1)}NumberingArraylist`;
+        const pascal = `${type.charAt(0).toUpperCase() + type.slice(1)}NumberingArraylist`;
+        return resData[camel] || resData[pascal] || [];
+    };
+
+    const resData = response?.data ?? response;
+    const tableData = getTableData(resData, numberingType);
+    const rollConfig =
+        resData?.rolenoNumberingConfig ||
+        resData?.RolenoNumberingConfig ||
+        resData?.rollNumberingconfig ||
+        resData?.RollNumberingconfig ||
+        [];
     const tableProps = useDataTableProps({ ...response, data: tableData });
 
     return (
@@ -79,7 +112,7 @@ export default function TransactionNumberingContent({ numberingType }: { numberi
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddTransactionNumberingForm numberingType={numberingType} onSuccess={closeAddForm} />
+                            <AddTransactionNumberingForm numberingType={numberingType} onSuccess={handleSuccess} />
                         </div>
                     </CollapsibleSection>
                 </div>
@@ -104,8 +137,19 @@ export default function TransactionNumberingContent({ numberingType }: { numberi
                             </Button>
                             <UpdateTransactionNumberingForm
                                 numberingType={numberingType}
-                                selectedRow={selectedRow}
-                                onSuccess={closeEditForm}
+                                selectedRow={{
+                                    ...selectedRow,
+                                    rollNumberingconfig:
+                                        selectedRow?.rollNumberingconfig && selectedRow.rollNumberingconfig.length > 0
+                                            ? selectedRow.rollNumberingconfig
+                                            : selectedRow?.RollNumberingconfig && selectedRow.RollNumberingconfig.length > 0
+                                              ? selectedRow.RollNumberingconfig
+                                              : rollConfig
+                                }}
+                                initialData={{
+                                    rollNumberingconfig: rollConfig
+                                }}
+                                onSuccess={handleSuccess}
                             />
                         </div>
                     </CollapsibleSection>

@@ -12,7 +12,12 @@ export const MasterEventsColumns: ColumnDef<IMasterEvent>[] = [
         header: ({ column }) => (
             <DataTableColumnHeader column={column} title='Sl.No' className='justify-center text-center font-bold text-black' />
         ),
-        cell: (info) => <div className='text-center'>{info.row.index + 1}</div>,
+        cell: ({ row, table }) => {
+            const pageIndex = table.getState().pagination.pageIndex;
+            const pageSize = table.getState().pagination.pageSize;
+            const continuousIndex = pageIndex * pageSize + row.index + 1;
+            return <div className='text-center'>{continuousIndex}</div>;
+        },
         enableSorting: false
     },
     {
@@ -82,7 +87,7 @@ function ActionButtonsCell({ rowData }: { rowData: IMasterEvent }) {
                 onToggle={handleToggle}
                 onDelete={handleDelete}
                 onView={handleView}
-                toggleConditionKey='coemE_ActiveFlag'
+                toggleConditionKey={['coemE_ActiveFlag', 'COEME_ActiveFlag']}
             />
         </div>
     );

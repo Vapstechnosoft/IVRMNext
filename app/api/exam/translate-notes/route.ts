@@ -1,12 +1,14 @@
 import { standardizeNoteMarkdown } from '@/lib/notemaker-cleaner';
-import TextTranslationClient, { isUnexpected } from '@azure-rest/ai-translation-text';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const AZURE_TRANSLATOR_KEY = process.env.AZURE_TRANSLATOR_KEY || 'ae1549ade3594811b31d5b7eedf42758';
-const AZURE_TRANSLATOR_ENDPOINT = process.env.AZURE_TRANSLATOR_ENDPOINT || 'https://api.cognitive.microsofttranslator.com';
+const AZURE_TRANSLATOR_ENDPOINT = (process.env.AZURE_TRANSLATOR_ENDPOINT || 'https://api.cognitive.microsofttranslator.com').replace(
+    /\/+$/,
+    ''
+);
 const AZURE_TRANSLATOR_REGION = process.env.AZURE_TRANSLATOR_REGION || 'centralindia';
 
 // Map language display names and codes to Azure Translator BCP-47 codes
@@ -68,42 +70,40 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'No content provided for translation' }, { status: 400 });
         }
 
-        const client = TextTranslationClient(AZURE_TRANSLATOR_ENDPOINT, {
-            key: AZURE_TRANSLATOR_KEY,
-            region: AZURE_TRANSLATOR_REGION
-        });
-
         // Prepare translation payload
-        const itemsToTranslate: { text: string }[] = [];
+        const itemsToTranslate: { Text: string }[] = [];
         let summaryIndex = -1;
         let notesIndex = -1;
 
         if (summary?.trim()) {
             summaryIndex = itemsToTranslate.length;
-            itemsToTranslate.push({ text: summary.trim() });
+            itemsToTranslate.push({ Text: summary.trim() });
         }
 
         if (notes?.trim()) {
             notesIndex = itemsToTranslate.length;
-            itemsToTranslate.push({ text: notes.trim() });
+            itemsToTranslate.push({ Text: notes.trim() });
         }
 
-        const response = await client.path('/translate').post({
-            body: itemsToTranslate as any,
-            queryParameters: {
-                'api-version': '3.0',
-                to: toLang,
-                textType: 'plain'
-            }
+        const url = `${AZURE_TRANSLATOR_ENDPOINT}/translate?api-version=3.0&to=${encodeURIComponent(toLang)}&textType=plain`;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Ocp-Apim-Subscription-Key': AZURE_TRANSLATOR_KEY,
+                'Ocp-Apim-Subscription-Region': AZURE_TRANSLATOR_REGION,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(itemsToTranslate)
         });
 
-        if (isUnexpected(response)) {
-            console.error('Azure Translation Unexpected Error:', response.body);
-            const errDetails = (response.body as any)?.error?.message || 'Translation service error';
-            return NextResponse.json({ error: errDetails }, { status: 502 });
+        if (!response.ok) {
+            const errBody = await response.text();
+            console.error('Azure Translation Error Response:', errBody);
+            return NextResponse.json({ error: 'Translation service error' }, { status: response.status });
         }
 
-        const results = response.body as unknown as any[];
+        const results = await response.json();
         let translatedSummary = summary;
         let translatedNotes = notes;
 

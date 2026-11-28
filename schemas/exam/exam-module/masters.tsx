@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { createAlphaNumericSchema, createExamCustomStringSchema, createStringSchema, deleteIdSchema } from '../../validationSchemas';
+import {
+    createAlphaNumericSchema,
+    createExamCustomStringSchema,
+    createOptionalExamCustomStringSchema,
+    createStringSchema,
+    deleteIdSchema
+} from '../../validationSchemas';
 
 export const loginSchema = z.object({
     email: z.string({ message: 'Email is required' }),
@@ -11,8 +17,8 @@ export const masterSubjectSchema = {
         ismS_Id: z.number().int({ message: 'Subject Id is required' }).optional(),
         mI_Id: z.number().int().optional(),
         ismS_IVRSSubjectName: createExamCustomStringSchema('IVRS Subject Name', 1, 100),
-        ismS_SubjectCode: createExamCustomStringSchema('Subject Code', 1, 50),
-        ismS_SubjectNameNew: createExamCustomStringSchema('Subject Type / New Name', 1, 50),
+        ismS_SubjectCode: createExamCustomStringSchema('Subject Code', 1, 50, true),
+        ismS_SubjectNameNew: createOptionalExamCustomStringSchema('New Subject Name', 1, 50),
         ismS_SubjectName: createExamCustomStringSchema('Subject Name', 1, 50),
         ismS_PreadmFlag: z.number().int({ message: 'Pre-Admission Flag is required' }),
         ismS_AttendanceFlag: z.boolean({ required_error: 'Attendance Flag is required' }),
@@ -34,7 +40,7 @@ export const masterExamSchema = {
         emE_Id: z.number().optional(),
         mI_Id: z.number().optional(),
         emE_ExamName: createExamCustomStringSchema('Exam Name', 1, 100),
-        emE_ExamCode: createExamCustomStringSchema('Exam Code', 1, 50),
+        emE_ExamCode: createExamCustomStringSchema('Exam Code', 1, 50, true),
         emE_ExamDescription: createExamCustomStringSchema('Exam Description', 1, 100),
         emE_IVRSExamName: createExamCustomStringSchema('IVRS Exam Name', 1, 100),
         emE_FinalExamFlag: z.boolean({
@@ -81,7 +87,7 @@ export const masterSubSubjectSchema = {
         emsS_Id: z.number().int().optional(), // optional for new entries
         mI_Id: z.number().int().optional(),
         emsS_SubSubjectName: createExamCustomStringSchema('Sub Subject Name', 1, 100),
-        emsS_SubSubjectCode: createExamCustomStringSchema('Sub Subject Code', 1, 50),
+        emsS_SubSubjectCode: createExamCustomStringSchema('Sub Subject Code', 1, 50, true),
         emsS_Order: z.number().int().optional(), // backend can handle default
         emsS_ActiveFlag: z.boolean().optional() // not edited, will pass existing value
     }),
@@ -106,7 +112,7 @@ export const gradeDetailsSchema = z
             .refine((v) => v !== null && v !== undefined && String(v).trim() !== '', {
                 message: 'Enter valid Format[For Example 100.00,99.97,......]'
             })
-            .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
+            .refine((v) => /^\d+(\.\d+)?$/.test(String(v).trim()), {
                 message: 'Enter valid Format[For Example 100.00,99.97,......]'
             })
             .transform((v) => Number(v)),
@@ -116,7 +122,7 @@ export const gradeDetailsSchema = z
             .refine((v) => v !== null && v !== undefined && String(v).trim() !== '', {
                 message: 'Enter To[Range]'
             })
-            .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
+            .refine((v) => /^\d+(\.\d+)?$/.test(String(v).trim()), {
                 message: 'Enter valid Format[For Example 100.00,99.97,......]'
             })
             .transform((v) => Number(v)),
@@ -126,13 +132,13 @@ export const gradeDetailsSchema = z
             .refine((v) => v !== null && v !== undefined && String(v).trim() !== '', {
                 message: 'Enter Grade Points'
             })
-            .refine((v) => /^[0-9]{0,4}\.?[0-9]{1,}?$/.test(String(v).trim()), {
+            .refine((v) => /^\d+(\.\d+)?$/.test(String(v).trim()), {
                 message: 'Enter valid Format[For Example 100.00,99.97,......]'
             })
             .refine(
                 (v) => {
                     const num = Number(v);
-                    return !isNaN(num) && num >= 0 && num <= 10;
+                    return !Number.isNaN(num) && num >= 0 && num <= 10;
                 },
                 {
                     message: 'Grade points must be between 0 and 10'
@@ -152,13 +158,13 @@ export const gradeDetailsSchema = z
             if (v === null || v === undefined) return false;
             if (typeof v === 'string' && v.trim() === '') return false;
             const num = typeof v === 'number' ? v : Number(v);
-            return !isNaN(num) && isFinite(num);
+            return !Number.isNaN(num) && Number.isFinite(num);
         };
 
         if (isValidNumber(from) && isValidNumber(to)) {
             const numFrom = Number(from);
             const numTo = Number(to);
-            if (numFrom > numTo) {
+            if (numFrom >= numTo) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: "'From' value cannot be greater than 'To' value",
@@ -179,7 +185,7 @@ export const masterGradeSchema = {
         .object({
             emgR_Id: z.number().optional(),
             mI_Id: z.number().optional(),
-            emgR_GradeName: createExamCustomStringSchema('Grade Name', 1, 100),
+            emgR_GradeName: z.string(),
             emgR_MarksPerFlag: z.enum(['M', 'P'], { required_error: 'Marks/Percentage flag is required' }),
             emgR_ActiveFlag: z.boolean().default(true),
             grade_list: z.array(gradeDetailsSchema).min(1, { message: 'At least one grade detail is required' })
@@ -189,7 +195,7 @@ export const masterGradeSchema = {
                 if (v === null || v === undefined) return false;
                 if (typeof v === 'string' && v.trim() === '') return false;
                 const num = typeof v === 'number' ? v : Number(v);
-                return !isNaN(num) && isFinite(num);
+                return !Number.isNaN(num) && Number.isFinite(num);
             };
 
             if (data.emgR_MarksPerFlag === 'P') {
@@ -273,7 +279,7 @@ export const masterSubjectGroupSchema = {
                 });
             }
 
-            if (emG_BestOff > emG_MaxAplSubjects) {
+            if (emG_BestOff > 0 && emG_BestOff > emG_MaxAplSubjects) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: `Best Off cannot exceed Max Applicable Subjects (${emG_MaxAplSubjects})`,
@@ -281,7 +287,7 @@ export const masterSubjectGroupSchema = {
                 });
             }
 
-            if (emG_BestOff < emG_MinAplSubjects) {
+            if (emG_BestOff > 0 && emG_BestOff < emG_MinAplSubjects) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
                     message: `Best Off must be >= Min Applicable Subjects (${emG_MinAplSubjects})`,

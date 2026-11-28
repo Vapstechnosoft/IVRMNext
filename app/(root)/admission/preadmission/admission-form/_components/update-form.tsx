@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
-import { useAdmissionFormDetails, useGetCasteByCasteCategory } from '@/hooks/admission/admissionForm';
+import { useAdmissionFormDetails, useGetCasteByCasteCategory, useStudentAdmissionFormById } from '@/hooks/admission/admissionForm';
 import {
     useConcessionDropdown,
     useMasterDocument,
@@ -45,6 +45,7 @@ import { CalendarIcon, Check, ChevronLeft, ChevronRight, Eye, Save, Trash } from
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 import type { z } from 'zod';
 import { SubjectGroupTable } from './subject-group-table';
 
@@ -166,6 +167,16 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         error: categoryByClassError
     } = useStudentCategoryByClass(Number(classIdForCategory) || 0, Number(asmaYId) || 0, 'adm');
 
+    useEffect(() => {
+        if (categoryByClass && (categoryByClass as any).success === false) {
+            Swal.fire({
+                title: 'Warning',
+                text: (categoryByClass as any).message || 'To get Student Category.Please Map Selected Class to Some category',
+                icon: 'warning'
+            });
+        }
+    }, [categoryByClass]);
+
     // Dynamic State Dropdowns
     const studentCountryId = watch('amsT_Nationality');
     const residentialCountryId = watch('amsT_ConCountry');
@@ -257,8 +268,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         [admissionDetails]
     );
 
-    const { data: masterDocsData } = useMasterDocument();
-    const masterDocuments = (masterDocsData?.data || []).filter((doc: any) => doc.amsmD_ActiveFlag);
+    // Use documentList from admission details directly
+    const masterDocuments = admissionDetails?.documentList || [];
 
     // Missing variables for state and loading aliases
     const [conStateId, setConStateId] = useState<number | string>('');
@@ -598,8 +609,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         return true;
     }, [currentStep, watchedStep1, watchedStep2, watchedStep3, fatherAlive, motherAlive, sameAsResidential, watch]);
 
-    const getAmsTIdToUse = () => savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 0);
-
+    const getAmsTIdToUse = () => {
+        const id = savedAmsTId || Number(getValues('amsT_Id' as any)) || Number(rowData?.amsT_Id) || 0;
+        return id;
+    };
     const initializeFormData = useCallback(
         (sourceData: any) => {
             if (!sourceData) return;
@@ -666,7 +679,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         combined.amsT_Language_Spoken ??
                         '',
                     amsT_AadharNo: combined.amsT_AadharNo ?? combined.aadharNo ?? combined.aadhar_No ?? combined.amsT_Aadhar_No ?? '',
-                    amsT_ApparNo: combined.amsT_ApparNo ?? combined.apparNo ?? combined.appar_No ?? combined.amsT_Appar_No ?? '',
+                    amsT_ApparNo: combined.amsT_ApparNo ?? combined.apparNo ?? combined.appar_No ?? combined.amsT_Appar_No ?? (combined.amsT_APAARId ? String(combined.amsT_APAARId) : ''),
+                    amsT_APAARId: Number(combined.amsT_APAARId ?? combined.apaarId ?? combined.amsT_ApparNo ?? combined.apparNo ?? 0) || 0,
+                    amsT_PENNo: combined.amsT_PENNo ?? combined.penNo ?? combined.pen_No ?? combined.amsT_PEN_No ?? '',
 
                     // Caste and Religion mapping
                     imC_Id: combined.imC_Id ?? combined.iC_Id ?? combined.caste_Id ?? combined.casteId ?? combined.imC_CasteId ?? 0,
@@ -844,6 +859,14 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 payload.amsT_MobileNo =
                     payload.amsT_MobileNo ?? payload.mobileNo ?? payload.mobile_No ?? payload.amsT_Mobile_No ?? payload.mobileNumber ?? '';
                 payload.amsT_emailId = payload.amsT_emailId ?? payload.emailId ?? payload.email_Id ?? payload.amsT_Email_Id ?? '';
+                payload.amsT_AadharNo =
+                    payload.amsT_AadharNo ?? payload.aadharNo ?? payload.aadhar_No ?? payload.amsT_Aadhar_No ?? '';
+                payload.amsT_ApparNo =
+                    payload.amsT_ApparNo ?? payload.apparNo ?? payload.appar_No ?? payload.amsT_Appar_No ?? (payload.amsT_APAARId ? String(payload.amsT_APAARId) : '');
+                payload.amsT_APAARId =
+                    Number(payload.amsT_APAARId ?? payload.apaarId ?? payload.amsT_ApparNo ?? payload.apparNo ?? 0) || 0;
+                payload.amsT_PENNo =
+                    payload.amsT_PENNo ?? payload.penNo ?? payload.pen_No ?? payload.amsT_PEN_No ?? '';
                 payload.amsT_Nationality =
                     payload.amsT_StudentCountryId ??
                     payload.amsT_StudentCountry_Id ??
@@ -1308,7 +1331,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     //ignore
                 }
 
-                setSavedAmsTId(Number(payload.amsT_Id ?? payload.amsTId ?? null));
+                setSavedAmsTId(Number(payload.amsT_Id ?? payload.amsTId ?? sourceData?.amsT_Id ?? sourceData?.data?.amsT_Id) || null);
 
                 // Map fourthTab values into the form so the Fourth tab fields populate
                 try {
@@ -1777,8 +1800,15 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
 
                 // 9. BLOOD GROUP
-                const bloodGroup = data.amsT_BloodGroup ?? data.bloodGroup ?? data.blood_Group ?? payload.amsT_BloodGroup;
-                if (bloodGroup) setValue('amsT_BloodGroup', String(bloodGroup));
+                const rawBloodGroup = data.amsT_BloodGroup ?? data.bloodGroup ?? data.blood_Group ?? payload?.amsT_BloodGroup ?? payload?.bloodGroup ?? payload?.blood_Group;
+                if (rawBloodGroup) {
+                    let bg = String(rawBloodGroup).trim();
+                    // Some DBs store 'O+ve' instead of 'O+'
+                    if (bg.endsWith('ve')) {
+                        bg = bg.replace('ve', '');
+                    }
+                    setValue('amsT_BloodGroup', bg);
+                }
 
                 // 10. REFRESH DROPDOWNS & SYNC AUXILIARY STATE
                 try {
@@ -1835,13 +1865,23 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
     const _initializedIdRef = useRef<number | null>(null);
 
+    const amsTIdFromRow = rowData?.amsT_Id || rowData?.data?.amsT_Id || rowData?.firstTab?.amsT_Id;
+    const { data: fullFormData, isLoading: isFullFormLoading, isFetching: isFullFormFetching } = useStudentAdmissionFormById(Number(amsTIdFromRow) || 0);
+
     useEffect(() => {
-        const id = rowData?.amsT_Id || rowData?.data?.amsT_Id || rowData?.firstTab?.amsT_Id;
-        if (!id || id === _initializedIdRef.current) return;
+        const id = amsTIdFromRow;
+        if (!id || !fullFormData) return;
+
+        // Skip initialization if we are currently fetching fresh data from the server (avoids binding stale cached data)
+        if (isFullFormFetching) return;
+
+        if (id === _initializedIdRef.current) return;
 
         _initializedIdRef.current = id;
-        initializeFormData(rowData);
-    }, [rowData, initializeFormData]);
+        // Merge rowData and fullFormData just in case, but use fullFormData as primary
+        const dataToInitialize = { ...rowData, ...fullFormData };
+        initializeFormData(dataToInitialize);
+    }, [fullFormData, amsTIdFromRow, initializeFormData, rowData, isFullFormFetching]);
 
     const watchedCasteId = watch('imC_Id' as any);
 
@@ -2212,28 +2252,10 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
             }
 
-            // ECS conditional: check nested or flat fields
-            if (Number(formData.amsT_ECSFlag ?? getValues('amsT_ECSFlag') ?? 0) === 1) {
-                const ecs = formData.adm_M_Student_ECS ?? {};
-                const flat = formData;
-                const acctNo = String(ecs.asecS_AccountNo ?? flat.asecS_AccountNo ?? getValues('asecS_AccountNo') ?? '').trim();
-                const holder = String(
-                    ecs.asecS_AccountHolderName ?? flat.asecS_AccountHolderName ?? getValues('asecS_AccountHolderName') ?? ''
-                ).trim();
-                const bank = String(ecs.asecS_BankName ?? flat.asecS_BankName ?? getValues('asecS_BankName') ?? '').trim();
-                const type = String(ecs.asecS_AccountType ?? flat.asecS_AccountType ?? getValues('asecS_AccountType') ?? '').trim();
-                const micr = String(ecs.asecS_MICRNo ?? flat.asecS_MICRNo ?? getValues('asecS_MICRNo') ?? '').trim();
-                const branch = String(ecs.asecS_Branch ?? flat.asecS_Branch ?? getValues('asecS_Branch') ?? '').trim();
-                if (!acctNo || !holder || !bank || !type || !micr || !branch) {
-                    toast.error('Please fill all ECS account details');
-                    console.warn('[Admission] saveFirstTab aborted - missing ECS details');
-                    throw new Error('Validation failed: missing ECS details');
-                }
-            }
             // Build payload expected by server for first tab
 
             const payload = {
-                amsT_Id: Number(formData.amsT_Id ?? 0),
+                amsT_Id: getAmsTIdToUse(),
                 asmaY_Id: Number(formData.asmaY_Id ?? formData.asmaY_Year ?? 0),
                 asmcL_Id: Number(formData.asmcL_Id ?? 0),
                 asmS_Id: Number(formData.asmS_Id ?? 0),
@@ -2267,7 +2289,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
                 amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
                 amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
-                amsT_ApparNo: formData.amsT_ApparNo ?? '',
+                amsT_ApparNo: formData.amsT_ApparNo ?? (formData.amsT_APAARId ? String(formData.amsT_APAARId) : ''),
+                amsT_APAARId: Number(formData.amsT_APAARId || formData.amsT_ApparNo || 0) || 0,
+                amsT_PENNo: String(formData.amsT_PENNo ?? getValues('amsT_PENNo') ?? ''),
 
                 amsT_BiometricId: formData.amsT_BiometricId ?? '',
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
@@ -2350,7 +2374,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 amsT_Tpin: formData.amsT_Tpin ?? '',
                 amsT_GPSTrackingId: formData.amsT_GPSTrackingId ?? '',
                 amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
-                editFlag: !!formData.editFlag,
+                editFlag: (getAmsTIdToUse() ?? 0) > 0,
                 studentPhotoUrl: ''
             };
 
@@ -2374,7 +2398,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             if (!res?.success) {
                 throw new Error(res?.message || 'Failed to save step 1');
             }
-            toast.success('Step 1 saved');
             return res;
         } catch (error) {
             console.error('Error saving first tab:', error);
@@ -2518,6 +2541,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
     const nextStep = async () => {
         // Prevent multiple simultaneous calls
         if (isSavingStep) return;
+        setIsSavingStep(true);
 
         try {
             console.debug('[Admission] nextStep invoked, currentStep=', currentStep);
@@ -2661,28 +2685,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     }
                 }
 
-                // Check ECS bank details if ECS flag is checked
-                if (Number(getValues('amsT_ECSFlag') ?? 0) === 1) {
-                    const requiredEcsFields = [
-                        { field: 'asecS_AccountNo', label: 'Account Number' },
-                        { field: 'asecS_AccountHolderName', label: 'Account Holder Name' },
-                        { field: 'asecS_BankName', label: 'Bank Name' },
-                        { field: 'asecS_AccountType', label: 'Account Type' },
-                        { field: 'asecS_MICRNo', label: 'MICR No' },
-                        { field: 'asecS_Branch', label: 'Branch Name' }
-                    ];
-
-                    const missingEcsFields = requiredEcsFields.filter(({ field }) => !String(getValues(field as any) ?? '').trim());
-
-                    if (missingEcsFields.length > 0) {
-                        missingEcsFields.forEach(({ field, label }) => {
-                            setError(field as any, {
-                                type: 'manual',
-                                message: `${label} is required`
-                            });
-                        });
-                    }
-                }
             }
 
             // Check if there are any validation errors (schema AND custom setError)
@@ -2725,8 +2727,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 }
             }
 
-            // Set saving state to prevent multiple submissions
-            setIsSavingStep(true);
+            // Saving state is already set at the beginning of nextStep
 
             if (currentStep === 3) {
                 if (!isValid) {
@@ -2985,7 +2986,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                         initialStudentPhotoRef.current = studentPhoto?.amsT_Photoname ?? '';
 
-                        toast.success('Step 1 saved');
+                        toast.success('Step 1 saved successfully');
                         setCurrentStep((prev) => Math.min(prev + 1, steps.length));
                         setIsSavingStep(false);
                         return;
@@ -3004,27 +3005,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             }
 
             if (isValid && Number(currentStep) === 2) {
-                const conPincodeVal = String(watch('amsT_ConPincode') ?? '');
-                if (conZipLength && conPincodeVal !== '' && conPincodeVal.length !== conZipLength) {
-                    setError('amsT_ConPincode', {
-                        type: 'manual',
-                        message: `Pin code must be ${conZipLength} digits`
-                    });
-                    setIsSavingStep(false);
-                    return;
-                }
-
-                if (!sameAsResidential) {
-                    const perPincodeVal = String(watch('amsT_PerPincode') ?? '');
-                    if (perZipLength && perPincodeVal !== '' && perPincodeVal.length !== perZipLength) {
-                        setError('amsT_PerPincode', {
-                            type: 'manual',
-                            message: `Pin code must be ${perZipLength} digits`
-                        });
-                        setIsSavingStep(false);
-                        return;
-                    }
-                }
 
                 try {
                     const values = getValues();
@@ -3143,25 +3123,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                     return;
                 }
                 if (Number(currentStep) === 2) {
-                    const conPincodeVal = String(watch('amsT_ConPincode') ?? '');
-                    if (conZipLength && conPincodeVal !== '' && conPincodeVal.length !== conZipLength) {
-                        setError('amsT_ConPincode', {
-                            type: 'manual',
-                            message: `Pin code must be ${conZipLength} digits`
-                        });
-                        return;
-                    }
-
-                    if (!sameAsResidential) {
-                        const perPincodeVal = String(watch('amsT_PerPincode') ?? '');
-                        if (perZipLength && perPincodeVal !== '' && perPincodeVal.length !== perZipLength) {
-                            setError('amsT_PerPincode', {
-                                type: 'manual',
-                                message: `Pin code must be ${perZipLength} digits`
-                            });
-                            return;
-                        }
-                    }
                     try {
                         const values = getValues();
 
@@ -3422,6 +3383,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             amsT_BankBranch: '',
             amsT_AadharNo: '',
             amsT_ApparNo: '',
+            amsT_APAARId: 0,
+            amsT_PENNo: '',
             amsT_Sex: '',
             amsT_Date: null,
             amsT_Nationality: 0,
@@ -4456,6 +4419,20 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         if (submittingFinal) return;
         setSubmittingFinal(true);
         try {
+            // Ensure mandatory documents are uploaded
+            const missingMandatoryDocs = masterDocuments.filter(
+                (doc: any) =>
+                    doc.amsmD_FLAG &&
+                    !uploadedDocuments.some((uploaded: any) => uploaded.amsmD_Id === doc.amsmD_Id && uploaded.document_Path)
+            );
+
+            if (missingMandatoryDocs.length > 0) {
+                const missingNames = missingMandatoryDocs.map((d: any) => d.amsmD_DocumentName).join(', ');
+                toast.error(`Please upload the following mandatory documents: ${missingNames}`);
+                setSubmittingFinal(false);
+                return;
+            }
+
             const values = getValues();
 
             const findUploadedPath = (needle: string) => {
@@ -4465,7 +4442,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
             // Build FormData payload (server expects multipart/form-data)
             const fd = new FormData();
-            const amsTIdToUse = savedAmsTId ?? (Number(getValues('amsT_Id' as any) ?? 0) || 25533);
+            const amsTIdToUse = getAmsTIdToUse();
             fd.append('amsT_Id', String(amsTIdToUse));
             fd.append('hostelRequired', String(Boolean(values.hostelRequired)));
             fd.append('transportRequired', String(Boolean(values.transportRequired)));
@@ -5393,7 +5370,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
                                                                     value={field.value?.toString() || ''}>
                                                                     <SelectTrigger>
@@ -5416,7 +5392,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                             control={control}
                                                             render={({ field }) => (
                                                                 <Select
-                                                                    key={field.value || 'empty'}
                                                                     onValueChange={(value) => field.onChange(value)}
                                                                     value={field.value || ''}>
                                                                     <SelectTrigger>
@@ -5493,6 +5468,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                     onChange={(value) => field.onChange(value)}
                                                                     type='number'
                                                                     showSpinner={false}
+                                                                    maxLength={12}
                                                                 />
                                                             )}
                                                         />
@@ -5744,7 +5720,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                         <div className='flex flex-col gap-1.5'>
                                                             <Label htmlFor='amsT_ConStreet'>
-                                                                Street <span className='ml-1 text-red-500'>*</span>
+                                                                Street
                                                             </Label>
                                                             <InputText
                                                                 label=''
@@ -5756,7 +5732,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         </div>
                                                         <div className='flex flex-col gap-1.5'>
                                                             <Label htmlFor='amsT_ConArea'>
-                                                                Area <span className='ml-1 text-red-500'>*</span>
+                                                                Area
                                                             </Label>
                                                             <InputText
                                                                 label=''
@@ -5854,7 +5830,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
                                                         <InputText
                                                             label='City'
-                                                            required
                                                             id='amsT_ConCity'
                                                             placeholder='Enter city'
                                                             {...register('amsT_ConCity')}
@@ -5882,7 +5857,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                     <>
                                                                         <MobileNumberInput
                                                                             label='Pin Code/Zip Code'
-                                                                            required
                                                                             id='amsT_ConPincode'
                                                                             value={field.value}
                                                                             onChange={(valueOrEvent: any) => {
@@ -5952,7 +5926,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                     <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                                                         <div className='flex flex-col gap-1.5'>
                                                             <Label htmlFor='amsT_PerStreet'>
-                                                                Street {!sameAsResidential && <span className='ml-1 text-red-500'>*</span>}
+                                                                Street
                                                             </Label>
                                                             <InputText
                                                                 label=''
@@ -5965,7 +5939,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                         </div>
                                                         <div className='flex flex-col gap-1.5'>
                                                             <Label htmlFor='amsT_PerArea'>
-                                                                Area {!sameAsResidential && <span className='ml-1 text-red-500'>*</span>}
+                                                                Area
                                                             </Label>
                                                             <InputText
                                                                 label=''
@@ -9396,497 +9370,6 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 </table>
                                             </div>
 
-                                            {/* Parent photos & signatures (Step 6) - table style upload rows */}
-                                            <div className='overflow-hidden rounded-lg border'>
-                                                <table className='w-full table-fixed'>
-                                                    <thead>
-                                                        <tr className='bg-gray-50'>
-                                                            <th className='px-4 py-3 text-left text-gray-600 text-sm'>Document Name</th>
-                                                            <th className='px-4 py-3 text-left text-gray-600 text-sm'>Status</th>
-                                                            <th className='w-40 px-4 py-3 text-left text-gray-600 text-sm'>Upload</th>
-                                                            <th className='px-4 py-3 text-left text-gray-600 text-sm'>Actions</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {/* Father Photo */}
-                                                        <tr className={`border-t ${fatherPhoto?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
-                                                            <td className='px-4 py-4'>
-                                                                <div className='flex flex-col'>
-                                                                    <span className='font-medium'>Father Photo</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className='px-4 py-4'>
-                                                                {fatherPhoto?.isUploading ? (
-                                                                    <span className='flex items-center gap-2 text-gray-600 text-sm'>
-                                                                        <Spinner size='sm' />
-                                                                        Uploading...
-                                                                    </span>
-                                                                ) : fatherPhoto?.path ? (
-                                                                    <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
-                                                                        <svg
-                                                                            className='h-4 w-4 text-green-700'
-                                                                            viewBox='0 0 24 24'
-                                                                            fill='none'
-                                                                            stroke='currentColor'>
-                                                                            <path
-                                                                                d='M20 6L9 17l-5-5'
-                                                                                strokeWidth='2'
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                            />
-                                                                        </svg>
-                                                                        Uploaded
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                                )}
-                                                            </td>
-                                                            <td className='w-40 px-4 py-4'>
-                                                                {!fatherPhoto || fatherPhoto.isUploading ? (
-                                                                    <label
-                                                                        className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
-                                                                        <div className='flex flex-col items-center justify-center gap-1'>
-                                                                            <svg
-                                                                                className='h-6 w-6 text-purple-600'
-                                                                                viewBox='0 0 24 24'
-                                                                                fill='none'
-                                                                                stroke='currentColor'>
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M12 3v12m0 0l3-3m-3 3l-3-3'
-                                                                                />
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
-                                                                                />
-                                                                            </svg>
-                                                                            <span className='mt-1 text-gray-600 text-xs'>
-                                                                                Click to upload
-                                                                            </span>
-                                                                        </div>
-                                                                        <input
-                                                                            id='father_photo'
-                                                                            type='file'
-                                                                            className='hidden'
-                                                                            accept='image/jpeg,image/jpg,image/png'
-                                                                            disabled={fatherPhoto?.isUploading || isSubmitting}
-                                                                            onChange={(e) => {
-                                                                                const file = e.target.files?.[0];
-                                                                                if (file) {
-                                                                                    if (file.size > 5 * 1024 * 1024) {
-                                                                                        toast.error('File size must be less than 5MB');
-                                                                                        e.target.value = '';
-                                                                                        return;
-                                                                                    }
-                                                                                    handleFatherPhotoUpload(file);
-                                                                                    e.target.value = '';
-                                                                                }
-                                                                            }}
-                                                                        />
-                                                                    </label>
-                                                                ) : (
-                                                                    <div className='flex items-center gap-2'>
-                                                                        <div
-                                                                            className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
-                                                                            <img
-                                                                                src={fatherPhoto.path}
-                                                                                alt='Father'
-                                                                                className='max-h-full max-w-full object-contain'
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </td>
-                                                            <td className='px-4 py-4'>
-                                                                <div className='flex gap-2'>
-                                                                    {fatherPhoto?.path && (
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='ghost'
-                                                                            onClick={() => window.open(fatherPhoto.path, '_blank')}
-                                                                            aria-label='View father photo'>
-                                                                            <Eye className='h-4 w-4' />
-                                                                        </Button>
-                                                                    )}
-                                                                    {fatherPhoto?.path && (
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='destructive'
-                                                                            onClick={handleFatherPhotoDelete}
-                                                                            aria-label='Delete father photo'>
-                                                                            <Trash className='h-4 w-4' />
-                                                                        </Button>
-                                                                    )}
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-
-                                                        {/* Father Signature */}
-                                                        <tr className={`border-t ${fatherSignature?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
-                                                            <td className='px-4 py-4'>
-                                                                <div className='flex flex-col'>
-                                                                    <span className='font-medium'>Father Signature</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className='px-4 py-4'>
-                                                                {fatherSignature?.isUploading ? (
-                                                                    <span className='flex items-center gap-2 text-gray-600 text-sm'>
-                                                                        <Spinner size='sm' />
-                                                                        Uploading...
-                                                                    </span>
-                                                                ) : fatherSignature?.path ? (
-                                                                    <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
-                                                                        <svg
-                                                                            className='h-4 w-4 text-green-700'
-                                                                            viewBox='0 0 24 24'
-                                                                            fill='none'
-                                                                            stroke='currentColor'>
-                                                                            <path
-                                                                                d='M20 6L9 17l-5-5'
-                                                                                strokeWidth='2'
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                            />
-                                                                        </svg>
-                                                                        Uploaded
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                                )}
-                                                            </td>
-                                                            <td className='w-40 px-4 py-4'>
-                                                                {!fatherSignature || fatherSignature.isUploading ? (
-                                                                    <label
-                                                                        className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
-                                                                        <div className='flex flex-col items-center justify-center gap-1'>
-                                                                            <svg
-                                                                                className='h-6 w-6 text-purple-600'
-                                                                                viewBox='0 0 24 24'
-                                                                                fill='none'
-                                                                                stroke='currentColor'>
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M12 3v12m0 0l3-3m-3 3l-3-3'
-                                                                                />
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
-                                                                                />
-                                                                            </svg>
-                                                                            <span className='mt-1 text-gray-600 text-xs'>
-                                                                                Click to upload
-                                                                            </span>
-                                                                        </div>
-                                                                        <input
-                                                                            id='father_signature'
-                                                                            type='file'
-                                                                            className='hidden'
-                                                                            accept='image/jpeg,image/jpg,image/png'
-                                                                            disabled={fatherSignature?.isUploading || isSubmitting}
-                                                                            onChange={(e) => {
-                                                                                const file = e.target.files?.[0];
-                                                                                if (file) {
-                                                                                    if (file.size > 5 * 1024 * 1024) {
-                                                                                        toast.error('File size must be less than 5MB');
-                                                                                        e.target.value = '';
-                                                                                        return;
-                                                                                    }
-                                                                                    handleFatherSignatureUpload(file);
-                                                                                    e.target.value = '';
-                                                                                }
-                                                                            }}
-                                                                        />
-                                                                    </label>
-                                                                ) : (
-                                                                    <div className='flex items-center gap-2'>
-                                                                        <div
-                                                                            className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
-                                                                            <img
-                                                                                src={fatherSignature.path}
-                                                                                alt='Father signature'
-                                                                                className='max-h-full max-w-full object-contain'
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </td>
-                                                            <td className='px-4 py-4'>
-                                                                <div className='flex gap-2'>
-                                                                    {fatherSignature?.path && (
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='ghost'
-                                                                            onClick={() => window.open(fatherSignature.path, '_blank')}
-                                                                            aria-label='View father signature'>
-                                                                            <Eye className='h-4 w-4' />
-                                                                        </Button>
-                                                                    )}
-                                                                    {fatherSignature?.path && (
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='destructive'
-                                                                            onClick={handleFatherSignatureDelete}
-                                                                            aria-label='Delete father signature'>
-                                                                            <Trash className='h-4 w-4' />
-                                                                        </Button>
-                                                                    )}
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-
-                                                        {/* Mother Photo */}
-                                                        <tr className={`border-t ${motherPhoto?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
-                                                            <td className='px-4 py-4'>
-                                                                <div className='flex flex-col'>
-                                                                    <span className='font-medium'>Mother Photo</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className='px-4 py-4'>
-                                                                {motherPhoto?.isUploading ? (
-                                                                    <span className='flex items-center gap-2 text-gray-600 text-sm'>
-                                                                        <Spinner size='sm' />
-                                                                        Uploading...
-                                                                    </span>
-                                                                ) : motherPhoto?.path ? (
-                                                                    <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
-                                                                        <svg
-                                                                            className='h-4 w-4 text-green-700'
-                                                                            viewBox='0 0 24 24'
-                                                                            fill='none'
-                                                                            stroke='currentColor'>
-                                                                            <path
-                                                                                d='M20 6L9 17l-5-5'
-                                                                                strokeWidth='2'
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                            />
-                                                                        </svg>
-                                                                        Uploaded
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                                )}
-                                                            </td>
-                                                            <td className='w-40 px-4 py-4'>
-                                                                {!motherPhoto || motherPhoto.isUploading ? (
-                                                                    <label
-                                                                        className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
-                                                                        <div className='flex flex-col items-center justify-center gap-1'>
-                                                                            <svg
-                                                                                className='h-6 w-6 text-purple-600'
-                                                                                viewBox='0 0 24 24'
-                                                                                fill='none'
-                                                                                stroke='currentColor'>
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M12 3v12m0 0l3-3m-3 3l-3-3'
-                                                                                />
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
-                                                                                />
-                                                                            </svg>
-                                                                            <span className='mt-1 text-gray-600 text-xs'>
-                                                                                Click to upload
-                                                                            </span>
-                                                                        </div>
-                                                                        <input
-                                                                            id='mother_photo'
-                                                                            type='file'
-                                                                            className='hidden'
-                                                                            accept='image/jpeg,image/jpg,image/png'
-                                                                            disabled={motherPhoto?.isUploading || isSubmitting}
-                                                                            onChange={(e) => {
-                                                                                const file = e.target.files?.[0];
-                                                                                if (file) {
-                                                                                    if (file.size > 5 * 1024 * 1024) {
-                                                                                        toast.error('File size must be less than 5MB');
-                                                                                        e.target.value = '';
-                                                                                        return;
-                                                                                    }
-                                                                                    handleMotherPhotoUpload(file);
-                                                                                    e.target.value = '';
-                                                                                }
-                                                                            }}
-                                                                        />
-                                                                    </label>
-                                                                ) : (
-                                                                    <div className='flex items-center gap-2'>
-                                                                        <div
-                                                                            className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
-                                                                            <img
-                                                                                src={motherPhoto.path}
-                                                                                alt='Mother'
-                                                                                className='max-h-full max-w-full object-contain'
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </td>
-                                                            <td className='px-4 py-4'>
-                                                                <div className='flex gap-2'>
-                                                                    {motherPhoto?.path && (
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='ghost'
-                                                                            onClick={() => window.open(motherPhoto.path, '_blank')}
-                                                                            aria-label='View mother photo'>
-                                                                            <Eye className='h-4 w-4' />
-                                                                        </Button>
-                                                                    )}
-                                                                    {motherPhoto?.path && (
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='destructive'
-                                                                            onClick={handleMotherPhotoDelete}
-                                                                            aria-label='Delete mother photo'>
-                                                                            <Trash className='h-4 w-4' />
-                                                                        </Button>
-                                                                    )}
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-
-                                                        {/* Mother Signature */}
-                                                        <tr className={`border-t ${motherSignature?.path ? 'bg-green-50' : 'bg-amber-50'}`}>
-                                                            <td className='px-4 py-4'>
-                                                                <div className='flex flex-col'>
-                                                                    <span className='font-medium'>Mother Signature</span>
-                                                                </div>
-                                                            </td>
-                                                            <td className='px-4 py-4'>
-                                                                {motherSignature?.isUploading ? (
-                                                                    <span className='flex items-center gap-2 text-gray-600 text-sm'>
-                                                                        <Spinner size='sm' />
-                                                                        Uploading...
-                                                                    </span>
-                                                                ) : motherSignature?.path ? (
-                                                                    <span className='inline-flex items-center gap-2 text-green-700 text-sm'>
-                                                                        <svg
-                                                                            className='h-4 w-4 text-green-700'
-                                                                            viewBox='0 0 24 24'
-                                                                            fill='none'
-                                                                            stroke='currentColor'>
-                                                                            <path
-                                                                                d='M20 6L9 17l-5-5'
-                                                                                strokeWidth='2'
-                                                                                strokeLinecap='round'
-                                                                                strokeLinejoin='round'
-                                                                            />
-                                                                        </svg>
-                                                                        Uploaded
-                                                                    </span>
-                                                                ) : (
-                                                                    <span className='text-gray-500 text-sm'>Not Uploaded</span>
-                                                                )}
-                                                            </td>
-                                                            <td className='w-40 px-4 py-4'>
-                                                                {!motherSignature || motherSignature.isUploading ? (
-                                                                    <label
-                                                                        className={`flex ${UPLOAD_BOX} cursor-pointer flex-col items-center justify-center rounded-md border-2 border-gray-300 border-dashed bg-white hover:border-primary`}>
-                                                                        <div className='flex flex-col items-center justify-center gap-1'>
-                                                                            <svg
-                                                                                className='h-6 w-6 text-purple-600'
-                                                                                viewBox='0 0 24 24'
-                                                                                fill='none'
-                                                                                stroke='currentColor'>
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M12 3v12m0 0l3-3m-3 3l-3-3'
-                                                                                />
-                                                                                <path
-                                                                                    strokeLinecap='round'
-                                                                                    strokeLinejoin='round'
-                                                                                    strokeWidth={2}
-                                                                                    d='M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3'
-                                                                                />
-                                                                            </svg>
-                                                                            <span className='mt-1 text-gray-600 text-xs'>
-                                                                                Click to upload
-                                                                            </span>
-                                                                        </div>
-                                                                        <input
-                                                                            id='mother_signature'
-                                                                            type='file'
-                                                                            className='hidden'
-                                                                            accept='image/jpeg,image/jpg,image/png'
-                                                                            disabled={motherSignature?.isUploading || isSubmitting}
-                                                                            onChange={(e) => {
-                                                                                const file = e.target.files?.[0];
-                                                                                if (file) {
-                                                                                    if (file.size > 5 * 1024 * 1024) {
-                                                                                        toast.error('File size must be less than 5MB');
-                                                                                        e.target.value = '';
-                                                                                        return;
-                                                                                    }
-                                                                                    handleMotherSignatureUpload(file);
-                                                                                    e.target.value = '';
-                                                                                }
-                                                                            }}
-                                                                        />
-                                                                    </label>
-                                                                ) : (
-                                                                    <div className='flex items-center gap-2'>
-                                                                        <div
-                                                                            className={`flex ${UPLOAD_BOX} items-center justify-center rounded-md border bg-white`}>
-                                                                            <img
-                                                                                src={motherSignature.path}
-                                                                                alt='Mother signature'
-                                                                                className='max-h-full max-w-full object-contain'
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </td>
-                                                            <td className='px-4 py-4'>
-                                                                <div className='flex gap-2'>
-                                                                    {motherSignature?.path && (
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='ghost'
-                                                                            onClick={() => window.open(motherSignature.path, '_blank')}
-                                                                            aria-label='View mother signature'>
-                                                                            <Eye className='h-4 w-4' />
-                                                                        </Button>
-                                                                    )}
-                                                                    {motherSignature?.path && (
-                                                                        <Button
-                                                                            type='button'
-                                                                            size='sm'
-                                                                            variant='destructive'
-                                                                            onClick={handleMotherSignatureDelete}
-                                                                            aria-label='Delete mother signature'>
-                                                                            <Trash className='h-4 w-4' />
-                                                                        </Button>
-                                                                    )}
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-
                                             {/* Hostel / Transport checkboxes for final submission */}
                                             <div className='mt-4 flex flex-col gap-3'>
                                                 <div className='flex items-center space-x-6'>
@@ -9984,22 +9467,22 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                 type='button'
                                                 onClick={() => toast.error('Please save guardian details before proceeding.')}
                                                 className='cursor-not-allowed opacity-60'>
-                                                Next
+                                                Update
                                                 <ChevronRight className='ml-2 h-4 w-4' />
                                             </Button>
                                         ) : (
                                             <Button
                                                 type='button'
                                                 onClick={nextStep}
-                                                disabled={isSavingStep || isSubmitting || !isCurrentStepValid}>
+                                                disabled={isSavingStep || isSubmitting}>
                                                 {isSavingStep ? (
                                                     <>
                                                         <Spinner className='mr-2 h-4 w-4' size='sm' />
-                                                        Saving...
+                                                        Updating...
                                                     </>
                                                 ) : (
                                                     <>
-                                                        Next
+                                                        Update
                                                         <ChevronRight className='ml-2 h-4 w-4' />
                                                     </>
                                                 )}

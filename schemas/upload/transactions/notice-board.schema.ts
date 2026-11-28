@@ -33,7 +33,7 @@ export const noticeBoardSchema = z
             .array(
                 z.object({
                     intbfL_Id: z.number().optional(),
-                    intbfL_FilePath: z.string().min(1, 'URL is required'),
+                    intbfL_FilePath: z.string().optional(),
                     fileName: z.string().optional()
                 })
             )
@@ -127,19 +127,42 @@ export const noticeBoardSchema = z
         }
     )
     .superRefine((data, ctx) => {
+        if (!data.check_student && !data.check_staff) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: 'Please select at least Student or Staff',
+                path: ['check_student']
+            });
+        }
         if (data.check_student) {
             if (!data.asmcL_Id || data.asmcL_Id.length === 0) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
-                    message: 'Class name is required',
+                    message: 'Please select atleast one class check box',
                     path: ['asmcL_Id']
                 });
             }
             if (!data.asmS_Id || data.asmS_Id.length === 0) {
                 ctx.addIssue({
                     code: z.ZodIssueCode.custom,
-                    message: 'Section name is required',
+                    message: 'Please select atleast one section check box',
                     path: ['asmS_Id']
+                });
+            }
+            if (!data.amsT_Id || data.amsT_Id.length === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Please select atleast one student check box',
+                    path: ['amsT_Id']
+                });
+            }
+        }
+        if (data.check_staff) {
+            if (!data.hrmE_Id || data.hrmE_Id.length === 0) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: 'Please select atleast one employee check box',
+                    path: ['hrmE_Id']
                 });
             }
         }

@@ -45,17 +45,30 @@ export default function ExamMarksCalculationForm() {
     const [sections, setSections] = useState<any[]>([]);
     const [exams, setExams] = useState<any[]>([]);
 
-    const { data: academicData } = useAcademicYearDropdown();
+    const { data: academicData, isLoading: academicYearLoading } = useAcademicYearDropdown();
 
     useEffect(() => {
-        if (academicData?.data) {
-            setAcademicYears(academicData.data);
+        if (academicData) {
+            const raw = Array.isArray(academicData)
+                ? academicData
+                : Array.isArray(academicData.data)
+                ? academicData.data
+                : Array.isArray((academicData as any)?.data?.$values)
+                ? (academicData as any).data.$values
+                : Array.isArray((academicData as any)?.$values)
+                ? (academicData as any).$values
+                : Array.isArray((academicData as any)?.yearlist)
+                ? (academicData as any).yearlist
+                : Array.isArray((academicData as any)?.academicyearlist)
+                ? (academicData as any).academicyearlist
+                : [];
+            setAcademicYears(raw);
         }
     }, [academicData]);
 
     // Load Classes
     useEffect(() => {
-        if (!selectedYear || selectedYear === 0) {
+        if (!selectedYear || Number(selectedYear) === 0) {
             setClasses([]);
             setSections([]);
             setExams([]);
@@ -66,8 +79,9 @@ export default function ExamMarksCalculationForm() {
         }
         (async () => {
             try {
-                const { data } = await getClassDropDownByAcademicYearlist(selectedYear);
-                setClasses(Array.isArray(data) ? data : []);
+                const res = await getClassDropDownByAcademicYearlist(Number(selectedYear));
+                const raw = res?.data ?? res ?? [];
+                setClasses(Array.isArray(raw) ? raw : []);
                 setSections([]);
                 setExams([]);
                 setValue('asmcL_Id', 0);
@@ -82,7 +96,7 @@ export default function ExamMarksCalculationForm() {
 
     // Load Sections
     useEffect(() => {
-        if (!selectedYear || !selectedClass || selectedClass === 0) {
+        if (!selectedYear || !selectedClass || Number(selectedClass) === 0) {
             setSections([]);
             setExams([]);
             setValue('asmS_Id', 0);
@@ -91,8 +105,9 @@ export default function ExamMarksCalculationForm() {
         }
         (async () => {
             try {
-                const { data } = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
-                setSections(Array.isArray(data) ? data : []);
+                const res = await getSectionsDropDownByAcademicYearandClasslist(Number(selectedYear), Number(selectedClass));
+                const raw = res?.data ?? res ?? [];
+                setSections(Array.isArray(raw) ? raw : []);
                 setExams([]);
                 setValue('asmS_Id', 0);
                 setValue('emE_Id', 0);
@@ -105,15 +120,20 @@ export default function ExamMarksCalculationForm() {
 
     // Load Exams
     useEffect(() => {
-        if (!selectedYear || !selectedClass || !selectedSection || selectedSection === 0) {
+        if (!selectedYear || !selectedClass || !selectedSection || Number(selectedSection) === 0) {
             setExams([]);
             setValue('emE_Id', 0);
             return;
         }
         (async () => {
             try {
-                const { data } = await getExamsDropDownByAcademicYearandClassandSectionlist(selectedYear, selectedClass, selectedSection);
-                setExams(Array.isArray(data) ? data : []);
+                const res = await getExamsDropDownByAcademicYearandClassandSectionlist(
+                    Number(selectedYear),
+                    Number(selectedClass),
+                    Number(selectedSection)
+                );
+                const raw = res?.data ?? res ?? [];
+                setExams(Array.isArray(raw) ? raw : []);
             } catch {
                 toast.error('Failed to load exams');
                 setExams([]);
@@ -128,8 +148,6 @@ export default function ExamMarksCalculationForm() {
             // Handle API response based on C# implementation
             if (response.success) {
                 toast.success(response.message || 'Exam marks calculated successfully!');
-                // Optionally reset form after successful calculation
-                // reset();
             } else {
                 toast.error(response.message || 'Calculation failed');
             }
@@ -171,18 +189,21 @@ export default function ExamMarksCalculationForm() {
                                                 </Label>
                                                 <div className='flex-1'>
                                                     <Select
-                                                        key={field.value}
                                                         onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
+                                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                                         <SelectTrigger>
-                                                            <SelectValue placeholder='Select Academic Year' />
+                                                            <SelectValue placeholder={academicYearLoading ? 'Loading...' : 'Select Academic Year'} />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {academicYears.map((y) => (
-                                                                <SelectItem key={y.asmaY_Id} value={String(y.asmaY_Id)}>
-                                                                    {y.asmaY_Year}
-                                                                </SelectItem>
-                                                            ))}
+                                                            {academicYears.map((y) => {
+                                                                const id = y.asmaY_Id ?? y.ASMAY_Id ?? y.id ?? y.asmaY_ID;
+                                                                const yearName = y.asmaY_Year ?? y.ASMAY_Year ?? y.year ?? y.asmaY_YearName ?? String(id);
+                                                                return (
+                                                                    <SelectItem key={id} value={String(id)}>
+                                                                        {yearName}
+                                                                    </SelectItem>
+                                                                );
+                                                            })}
                                                         </SelectContent>
                                                     </Select>
                                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -202,19 +223,22 @@ export default function ExamMarksCalculationForm() {
                                                 </Label>
                                                 <div className='flex-1'>
                                                     <Select
-                                                        key={field.value}
                                                         disabled={!selectedYear || selectedYear === 0}
                                                         onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
+                                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Class' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {classes.map((c) => (
-                                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                                    {c.asmcL_ClassName}
-                                                                </SelectItem>
-                                                            ))}
+                                                            {classes.map((c) => {
+                                                                const id = c.asmcL_Id ?? c.ASMCL_Id ?? c.id ?? c.asmcL_ID;
+                                                                const className = c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.class_Name ?? c.name;
+                                                                return (
+                                                                    <SelectItem key={id} value={String(id)}>
+                                                                        {className}
+                                                                    </SelectItem>
+                                                                );
+                                                            })}
                                                         </SelectContent>
                                                     </Select>
                                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -234,19 +258,22 @@ export default function ExamMarksCalculationForm() {
                                                 </Label>
                                                 <div className='flex-1'>
                                                     <Select
-                                                        key={field.value}
                                                         disabled={!selectedClass || selectedClass === 0}
                                                         onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
+                                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Section' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {sections.map((s) => (
-                                                                <SelectItem key={s.asmS_Id} value={String(s.asmS_Id)}>
-                                                                    {s.asmC_SectionName}
-                                                                </SelectItem>
-                                                            ))}
+                                                            {sections.map((s) => {
+                                                                const id = s.asmS_Id ?? s.ASMS_Id ?? s.id ?? s.asmS_ID ?? s.asmC_Id;
+                                                                const sectionName = s.asmC_SectionName ?? s.ASMC_SectionName ?? s.asmS_SectionName ?? s.sectionName ?? s.section_Name ?? s.name;
+                                                                return (
+                                                                    <SelectItem key={id} value={String(id)}>
+                                                                        {sectionName}
+                                                                    </SelectItem>
+                                                                );
+                                                            })}
                                                         </SelectContent>
                                                     </Select>
                                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}
@@ -266,19 +293,22 @@ export default function ExamMarksCalculationForm() {
                                                 </Label>
                                                 <div className='flex-1'>
                                                     <Select
-                                                        key={field.value}
                                                         disabled={!selectedSection || selectedSection === 0}
                                                         onValueChange={(v) => field.onChange(Number(v))}
-                                                        value={field.value && field.value !== 0 ? String(field.value) : undefined}>
+                                                        value={field.value && field.value !== 0 ? String(field.value) : ''}>
                                                         <SelectTrigger>
                                                             <SelectValue placeholder='Select Exam Name' />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            {exams.map((e) => (
-                                                                <SelectItem key={e.emE_Id} value={String(e.emE_Id)}>
-                                                                    {e.emE_ExamName}
-                                                                </SelectItem>
-                                                            ))}
+                                                            {exams.map((e) => {
+                                                                const id = e.emE_Id ?? e.EME_Id ?? e.id ?? e.emE_ID;
+                                                                const examName = e.emE_ExamName ?? e.EME_ExamName ?? e.examName ?? e.exam_Name ?? e.emE_ExamCode ?? e.EME_ExamCode ?? e.name ?? String(id);
+                                                                return (
+                                                                    <SelectItem key={id} value={String(id)}>
+                                                                        {examName}
+                                                                    </SelectItem>
+                                                                );
+                                                            })}
                                                         </SelectContent>
                                                     </Select>
                                                     {fieldState.error && <FormError>{fieldState.error.message}</FormError>}

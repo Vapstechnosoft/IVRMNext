@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 
 import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
@@ -19,7 +20,7 @@ import * as XLSX from 'xlsx';
 import PreadmissionStatusCountReport from '../../transactions/application-form/_components/preadmission-status-count-report';
 import AddStudentCountReportForm from './_components/add-from';
 import AddressBookPrint from './_components/address-book-print';
-import { getStudentCountReportColumns } from './_components/columns';
+import { formatDate, getStudentCountReportColumns, getStudentName } from './_components/columns';
 import StudentCountReportPrint from './_components/report-print';
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -31,8 +32,8 @@ export default function StudentCountReportPage(props: {
     const [filterPayload, setFilterPayload] = useState<any>({
         report_type: 1,
         type: 'between',
-        from_date: new Date().toISOString(),
-        to_date: new Date().toISOString(),
+        from_date: format(new Date(), 'yyyy-MM-dd'),
+        to_date: format(new Date(), 'yyyy-MM-dd'),
         asmay_id: 0,
         asmcl_id: 0
     });
@@ -164,13 +165,12 @@ function StudentCountReportPageContent({
 
                 // Map data for clean excel output
                 const excelData = records.map((row: any, index: number) => {
-                    const fullName = [row.FirstName, row.MiddleName, row.LastName].filter(Boolean).join(' ');
                     return {
                         'SL.NO': index + 1,
-                        'STUDENT NAME': fullName || 'N/A',
+                        'STUDENT NAME': getStudentName(row),
                         'EMAIL-ID': row.EmailID || 'N/A',
                         'MOBILE NUMBER': row.Mobileno || 'N/A',
-                        'REG DATE': row.RegDate ? new Date(row.RegDate).toLocaleDateString('en-GB') : 'N/A'
+                        'REG DATE': formatDate(row.RegDate)
                     };
                 });
 
@@ -208,17 +208,37 @@ function StudentCountReportPageContent({
         // 1. Search Filter — uses reactive nuqs value so it updates on every keystroke
         const search = searchQuery?.toLowerCase();
         if (search) {
-            processedData = processedData.filter((item: any) =>
-                Object.values(item).some((val) => String(val).toLowerCase().includes(search))
-            );
+            processedData = processedData.filter((item: any) => {
+                const studentName = getStudentName(item);
+                const formattedDate = formatDate(item.RegDate);
+                const valuesToSearch = [...Object.values(item), studentName, formattedDate];
+                return valuesToSearch.some((val) => String(val).toLowerCase().includes(search));
+            });
         }
         tableProps.totalItems = processedData.length;
 
         // 2. Sort
         if (sortCol) {
             processedData.sort((a, b) => {
-                const aVal = a[sortCol] ?? '';
-                const bVal = b[sortCol] ?? '';
+                const getSortValue = (item: any, col: string) => {
+                    if (col === 'FirstName') {
+                        return getStudentName(item).toLowerCase();
+                    }
+                    if (col === 'RegDate') {
+                        const d = item.RegDate;
+                        if (!d) return 0;
+                        if (typeof d === 'string') {
+                            const match = d.trim().match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+                            if (match) {
+                                return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1])).getTime();
+                            }
+                        }
+                        return new Date(d).getTime() || 0;
+                    }
+                    return (item[col] ?? '').toString().toLowerCase();
+                };
+                const aVal = getSortValue(a, sortCol);
+                const bVal = getSortValue(b, sortCol);
                 if (aVal === bVal) return 0;
                 const comparison = aVal > bVal ? 1 : -1;
                 return sortDir === 'desc' ? -comparison : comparison;

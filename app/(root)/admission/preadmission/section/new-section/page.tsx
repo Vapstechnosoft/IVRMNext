@@ -128,14 +128,9 @@ export default function MasterNewSectionPage(props: {
     }, [leftAcademicYear, leftClassAdmitted, rightClass, rightSection]);
 
     useEffect(() => {
-        if (rightSection && rightClass && leftAcademicYear > 0) {
-            setRightStudents([]);
-        } else {
-            setRightStudents([]);
-        }
         setRightSelectedStudents(new Set());
         setRightSelectAll(false);
-    }, [rightSection, rightClass, leftAcademicYear]);
+    }, [rightSection]);
 
     useEffect(() => {
         setLeftSelectAll(leftStudents.length > 0 && leftSelectedStudents.size === leftStudents.length);
@@ -555,8 +550,8 @@ export default function MasterNewSectionPage(props: {
                                                     </td>
                                                 </tr>
                                             ) : (
-                                                leftStudents.map((student) => (
-                                                    <tr key={student.student_id ?? 0} className='hover:bg-gray-50'>
+                                                leftStudents.map((student, index) => (
+                                                    <tr key={`${student.student_id ?? 0}-${index}`} className='hover:bg-gray-50'>
                                                         <td className='p-3 text-sm'>{student.siNo}</td>
                                                         <td className='p-3'>
                                                             <Checkbox
@@ -623,8 +618,8 @@ export default function MasterNewSectionPage(props: {
                                                     </td>
                                                 </tr>
                                             ) : (
-                                                rightStudents.map((student) => (
-                                                    <tr key={student.student_id ?? 0} className='hover:bg-gray-50'>
+                                                rightStudents.map((student, index) => (
+                                                    <tr key={`${student.student_id ?? 0}-${index}`} className='hover:bg-gray-50'>
                                                         <td className='p-3 text-sm'>{student.siNo}</td>
                                                         <td className='p-3'>
                                                             <Checkbox

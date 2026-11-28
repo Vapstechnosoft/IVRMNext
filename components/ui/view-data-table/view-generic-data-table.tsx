@@ -25,6 +25,7 @@ interface GenericDataTableProps<T> {
     showSorting?: boolean;
     showPagination?: boolean;
     columnPinning?: { left?: string[]; right?: string[] };
+    tableContainerClassName?: string;
 
     // Row selection
     maxSelectableRows?: number;
@@ -67,6 +68,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
         showSorting = false,
         showPagination = false,
         columnPinning,
+        tableContainerClassName,
         maxSelectableRows = 0,
         defaultSelectedRowIds,
         onRowSelectionChange,
@@ -141,6 +143,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                     showSearch={showSearch}
                     showSorting={showSorting}
                     onRowSelectionChange={onRowSelectionChange}
+                    tableContainerClassName={tableContainerClassName}
                 />
             </div>
         );
@@ -159,6 +162,7 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
                 showSorting={showSorting}
                 showPagination={showPagination}
                 columnPinning={columnPinning}
+                tableContainerClassName={tableContainerClassName}
                 maxSelectableRows={maxSelectableRows}
                 defaultSelectedRowIds={defaultSelectedRowIds}
                 getRowId={getRowId}
@@ -178,6 +182,58 @@ export const GenericDataTable = forwardRef<DataTableRef, GenericDataTableProps<a
     );
 }) as <T>(props: GenericDataTableProps<T> & { ref?: React.Ref<DataTableRef> }) => React.ReactElement;
 
+function sortDataByAcademicYear(arr: any[]) {
+    if (!Array.isArray(arr) || arr.length <= 1) return arr;
+
+    const hasAcademicYear = arr.some((item) => {
+        if (!item || typeof item !== 'object') return false;
+        return (
+            item.asmaY_Year != null ||
+            item.ASMAY_Year != null ||
+            item.asmaY_Order != null ||
+            item.ASMAY_Order != null ||
+            item.asmaY_Id != null ||
+            item.ASMAY_Id != null ||
+            item.academicYear != null ||
+            item.ex_AcademicYear != null
+        );
+    });
+
+    if (!hasAcademicYear) return arr;
+
+    return [...arr].sort((a, b) => {
+        if (!a || !b) return 0;
+        const yearA =
+            a.asmaY_Year ??
+            a.ASMAY_Year ??
+            a.ex_AcademicYear ??
+            a.academicYear ??
+            a.asmaY_Order ??
+            a.ASMAY_Order ??
+            a.asmaY_Id ??
+            a.ASMAY_Id ??
+            '';
+        const yearB =
+            b.asmaY_Year ??
+            b.ASMAY_Year ??
+            b.ex_AcademicYear ??
+            b.academicYear ??
+            b.asmaY_Order ??
+            b.ASMAY_Order ??
+            b.asmaY_Id ??
+            b.ASMAY_Id ??
+            '';
+
+        if (yearA && yearB) {
+            if (typeof yearA === 'number' && typeof yearB === 'number') {
+                return yearB - yearA;
+            }
+            return String(yearB).localeCompare(String(yearA), undefined, { numeric: true, sensitivity: 'base' });
+        }
+        return 0;
+    });
+}
+
 // Hook for common API response pattern
 export function useDataTableProps(
     response: any,
@@ -186,14 +242,27 @@ export function useDataTableProps(
         totalKey?: string;
         successKey?: string;
         messageKey?: string;
+        sortByYearDesc?: boolean;
     }
 ) {
-    const { dataKey = 'data', totalKey = 'total', successKey = 'success', messageKey = 'message' } = options || {};
+    const { dataKey = 'data', totalKey = 'total', successKey = 'success', messageKey = 'message', sortByYearDesc = true } = options || {};
+
+    let extractedData: any[] = [];
+    if (Array.isArray(response)) {
+        extractedData = [...response];
+    } else {
+        const rawData = response?.[dataKey];
+        extractedData = Array.isArray(rawData) ? [...rawData] : Array.isArray(response) ? [...response] : [];
+    }
+
+    if (sortByYearDesc && Array.isArray(extractedData) && extractedData.length > 0) {
+        extractedData = sortDataByAcademicYear(extractedData);
+    }
 
     return {
-        data: response?.[dataKey] || [],
-        totalItems: response?.[totalKey] || 0,
-        success: response?.[successKey],
+        data: extractedData,
+        totalItems: response?.[totalKey] || extractedData.length || 0,
+        success: response?.[successKey] !== false,
         errorMessage: response?.[messageKey]
     };
 }

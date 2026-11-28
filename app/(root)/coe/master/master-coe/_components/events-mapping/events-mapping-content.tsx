@@ -1,13 +1,15 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
+import { GenericDataTable, useDataTableProps } from '@/components/ui/data-table/generic-data-table';
 import { CollapsibleSection } from '@/components/ui/form/collapsible-section';
 import { useFormContext } from '@/components/ui/form/form-provider';
+import { tableSearchVariables } from '@/lib/data-table.config';
 import { getCOEMappingDetails, getPageDetailsMap, getViewRecords } from '@/server/coe/masters/master-coe';
 import type { IEventsMapping } from '@/types/alumni/master-coe';
 import { Plus, X } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import ViewDetailsDialog from '../view-details-dialog';
 import EventsMappingForm from './add-update-form';
 import { EventsMappingColumns } from './columns';
@@ -15,10 +17,19 @@ import ToggleEventsMappingForm from './toggle-form';
 
 interface EventsMappingContentProps {
     initialData: any;
+    refreshData?: () => void;
     isLoading?: boolean;
+    error?: any;
+    searchParams?: any;
 }
 
-export default function EventsMappingContent({ initialData, isLoading = false }: EventsMappingContentProps) {
+export default function EventsMappingContent({
+    initialData,
+    refreshData,
+    isLoading = false,
+    error,
+    searchParams
+}: EventsMappingContentProps) {
     const {
         isAddFormOpen,
         isEditFormOpen,
@@ -26,6 +37,7 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
         isDetailsViewOpen,
         selectedRow,
         openAddForm,
+        openEditForm,
         closeAddForm,
         closeEditForm,
         closeToggleForm,
@@ -34,33 +46,64 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
         editFormRef
     } = useFormContext<IEventsMapping>();
 
-    const [mappingData, setMappingData] = useState<any[]>([]);
+    const extractMappings = useCallback((data: any) => {
+        const raw = data?.data || data;
+        const list = raw?.query?.length
+            ? raw.query
+            : raw?.mapped_eventlist?.length
+              ? raw.mapped_eventlist
+              : raw?.event_mapping_list?.length
+                ? raw.event_mapping_list
+                : raw?.completeddate?.length
+                  ? raw.completeddate
+                  : [];
+        return [...list].sort((a, b) => (a.coeE_Id || a.COEE_Id || 0) - (b.coeE_Id || b.COEE_Id || 0));
+    }, []);
+
+    const [mappingData, setMappingData] = useState<any[]>(() => extractMappings(initialData));
     const [loadingMappings, setLoadingMappings] = useState(false);
     const [viewLoading, setViewLoading] = useState(false);
     const [viewData, setViewData] = useState<any>(null);
+
+    // URL search, sort, and pagination state matching GenericDataTable
+    const [page] = useQueryState(tableSearchVariables.page, parseAsInteger.withDefault(1));
+    const [pageSize] = useQueryState(tableSearchVariables.page_size, parseAsInteger.withDefault(10));
+    const [searchQuery] = useQueryState(tableSearchVariables.search, parseAsString.withDefault(''));
+    const [sortBy] = useQueryState(tableSearchVariables.sort_column, parseAsString.withDefault(''));
+    const [sortDirection] = useQueryState(tableSearchVariables.sort_direction, parseAsString.withDefault('asc'));
 
     const fetchMappings = useCallback(async () => {
         setLoadingMappings(true);
         try {
             const res = await getCOEMappingDetails();
-            const data = (res as any).data || res;
-            setMappingData(data.event_mapping_list || data.mapped_eventlist || []);
-        } catch (error) {
+            const list = extractMappings(res);
+            setMappingData(list);
+        } catch (_error) {
             console.error('Failed to fetch mapping details');
         } finally {
             setLoadingMappings(false);
         }
-    }, []);
+    }, [extractMappings]);
 
     useEffect(() => {
-        const data = initialData?.data || initialData;
-        const initialMappings = data?.event_mapping_list || data?.mapped_eventlist || [];
-        if (initialMappings.length > 0) {
-            setMappingData(initialMappings);
-        } else {
+        const list = extractMappings(initialData);
+        if (list.length > 0) {
+            setMappingData(list);
+        } else if (!isLoading) {
             fetchMappings();
         }
-    }, [fetchMappings, initialData]);
+    }, [fetchMappings, initialData, extractMappings, isLoading]);
+
+    useEffect(() => {
+        if (!isLoading && mappingData.length > 0 && searchParams?.coee_id) {
+            const record = mappingData.find(
+                (r: IEventsMapping) => String(r.coeE_Id || (r as any).COEE_Id) === String(searchParams.coee_id)
+            );
+            if (record && !isEditFormOpen) {
+                openEditForm(record);
+            }
+        }
+    }, [isLoading, mappingData, searchParams, openEditForm]);
 
     const handleOpenDetails = useCallback(async (row: IEventsMapping) => {
         const coeeId = row.coeE_Id || (row as any).COEE_Id;
@@ -70,21 +113,64 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
             const res = await getViewRecords(coeeId);
             const details = res?.data || res || {};
             setViewData(details);
-        } catch (error) {
+        } catch (_error) {
             console.warn('getViewRecords failed, trying fallback to getPageDetailsMap');
             try {
-                // Fallback to legacy endpoint if the new one fails (e.g. backend circular ref)
                 const res = await getPageDetailsMap(coeeId);
                 const details = (res as any).event_mapping_list || (res as any).view_records || (res as any).data || [];
                 setViewData(details);
             } catch (fallbackError) {
                 console.error('Failed to fetch record details', fallbackError);
-                setViewData([]); // Clear data on failure
+                setViewData([]);
             }
         } finally {
             setViewLoading(false);
         }
     }, []);
+
+    // Filter and sort the complete dataset
+    const filteredAndSortedData = useMemo(() => {
+        let result = [...mappingData];
+
+        if (searchQuery && searchQuery.trim() !== '') {
+            const q = searchQuery.toLowerCase().trim();
+            result = result.filter((item) => {
+                const eventName = String(item.coemE_EventName || item.COEME_EventName || '').toLowerCase();
+                const year = String(item.asmaY_Year || item.ASMAY_Year || '').toLowerCase();
+                const startDate = String(item.coeE_EStartDate || item.COEE_EStartDate || '').toLowerCase();
+                const endDate = String(item.coeE_EEndDate || item.COEE_EEndDate || '').toLowerCase();
+                return eventName.includes(q) || year.includes(q) || startDate.includes(q) || endDate.includes(q);
+            });
+        }
+
+        if (sortBy) {
+            result.sort((a, b) => {
+                const valA = a[sortBy] ?? '';
+                const valB = b[sortBy] ?? '';
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return sortDirection === 'desc' ? valB - valA : valA - valB;
+                }
+                const comp = String(valA).localeCompare(String(valB), undefined, { numeric: true, sensitivity: 'base' });
+                return sortDirection === 'desc' ? -comp : comp;
+            });
+        }
+
+        return result;
+    }, [mappingData, searchQuery, sortBy, sortDirection]);
+
+    const totalCount = filteredAndSortedData.length;
+
+    // Slice for current page so GenericDataTable renders the exact items for this page
+    const pagedData = useMemo(() => {
+        const start = (page - 1) * pageSize;
+        return filteredAndSortedData.slice(start, start + pageSize);
+    }, [filteredAndSortedData, page, pageSize]);
+
+    const tableProps = useDataTableProps({
+        data: pagedData,
+        total: totalCount,
+        success: true
+    });
 
     return (
         <div className='space-y-6'>
@@ -108,6 +194,7 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
                             <EventsMappingForm
                                 initialData={initialData}
                                 onSuccess={() => {
+                                    refreshData?.();
                                     fetchMappings();
                                     closeAddForm();
                                 }}
@@ -132,6 +219,7 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
                                 initialData={initialData}
                                 editData={selectedRow}
                                 onSuccess={() => {
+                                    refreshData?.();
                                     fetchMappings();
                                     closeEditForm();
                                 }}
@@ -145,21 +233,29 @@ export default function EventsMappingContent({ initialData, isLoading = false }:
                 title='Mapped Events List'
                 defaultOpen={true}
                 className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                <GenericDataTable
+                <GenericDataTable<IEventsMapping>
+                    {...tableProps}
                     columns={EventsMappingColumns}
-                    data={mappingData}
                     isLoading={loadingMappings || isLoading}
-                    totalItems={mappingData.length}
-                    success={true}
+                    error={error}
+                    showViewOptions={false}
                     columnPinning={{ right: ['actions'] }}
                     loadingMessage='Loading mappings...'
                     noDataTitle='No Mapped Events Found'
                     noDataDescription='Map a master event to an academic year to see it here.'
+                    errorTitle='Error Loading Mappings'
                 />
             </CollapsibleSection>
 
             {isToggleFormOpen && selectedRow && (
-                <ToggleEventsMappingForm rowData={selectedRow} onClose={closeToggleForm} onSuccess={fetchMappings} />
+                <ToggleEventsMappingForm
+                    rowData={selectedRow}
+                    onClose={closeToggleForm}
+                    onSuccess={() => {
+                        refreshData?.();
+                        fetchMappings();
+                    }}
+                />
             )}
 
             <ViewDetailsDialog

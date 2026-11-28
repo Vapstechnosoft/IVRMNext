@@ -76,22 +76,22 @@ export const studentApplicationFormSchema = {
         pasR_TransportReqdFlag: z.number().int({ message: 'Transport Required Flag is required' }),
 
         // Residential Address
-        pasR_ConStreet: createOptionalAlphaNumericSchema('Street', 1, 100),
-        pasR_ConArea: createOptionalAlphaNumericSchema('Area', 1, 100),
+        pasR_ConStreet: createOptionalStringSchema('Street', 1, 100),
+        pasR_ConArea: createOptionalStringSchema('Area', 1, 100),
         pasR_ConCountry: z.string().optional(),
         pasR_ConState: z.number().int().optional(),
-        pasR_ConCity: createOptionalAlphaNumericSchema('City', 1, 100),
+        pasR_ConCity: createOptionalStringSchema('City', 1, 100),
         pasR_ConPincode: z
             .union([z.string(), z.number()])
             .optional()
             .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
 
         // Permanent Address
-        pasR_PerStreet: createOptionalAlphaNumericSchema('Street', 1, 100),
-        pasR_PerArea: createOptionalAlphaNumericSchema('Area', 1, 100),
+        pasR_PerStreet: createOptionalStringSchema('Street', 1, 100),
+        pasR_PerArea: createOptionalStringSchema('Area', 1, 100),
         pasR_PerCountry: z.string().optional(),
         pasR_PerState: z.number().int().optional(),
-        pasR_PerCity: createOptionalAlphaNumericSchema('City', 1, 100),
+        pasR_PerCity: createOptionalStringSchema('City', 1, 100),
         pasR_PerPincode: z
             .union([z.string(), z.number()])
             .optional()
@@ -235,8 +235,8 @@ export const studentApplicationFormUpdateSchema = {
 
         // Student Details
         pasR_FirstName: createStringOnlySchema('First Name', 1, 100),
-        pasR_MiddleName: createStringOnlySchema('Middle Name', 1, 100),
-        pasR_LastName: createStringOnlySchema('Last Name', 1, 100),
+        pasR_MiddleName: createStringOnlyOptionalSchema('Middle Name', 1, 100),
+        pasR_LastName: createStringOnlyOptionalSchema('Last Name', 1, 100),
 
         // NATIONALITY - STRING (to match API expectation)
         pasR_Nationality: z.string().min(1, 'Student nationality is required'),
@@ -273,22 +273,22 @@ export const studentApplicationFormUpdateSchema = {
         pasR_TransportReqdFlag: z.number().int({ message: 'Transport Required Flag is required' }),
 
         // Residential Address
-        pasR_ConStreet: createOptionalAlphaNumericSchema('Street', 1, 100),
-        pasR_ConArea: createOptionalAlphaNumericSchema('Area', 1, 100),
+        pasR_ConStreet: createOptionalStringSchema('Street', 1, 100),
+        pasR_ConArea: createOptionalStringSchema('Area', 1, 100),
         pasR_ConCountry: z.string().optional(),
         pasR_ConState: z.number().int().optional(),
-        pasR_ConCity: createOptionalAlphaNumericSchema('City', 1, 100),
+        pasR_ConCity: createOptionalStringSchema('City', 1, 100),
         pasR_ConPincode: z
             .union([z.string(), z.number()])
             .optional()
             .transform((val) => (val === undefined || val === null || val === '' ? undefined : String(val))),
 
         // Permanent Address
-        pasR_PerStreet: createOptionalAlphaNumericSchema('Street', 1, 100),
-        pasR_PerArea: createOptionalAlphaNumericSchema('Area', 1, 100),
+        pasR_PerStreet: createOptionalStringSchema('Street', 1, 100),
+        pasR_PerArea: createOptionalStringSchema('Area', 1, 100),
         pasR_PerCountry: z.string().optional(),
         pasR_PerState: z.number().int().optional(),
-        pasR_PerCity: createOptionalAlphaNumericSchema('City', 1, 100),
+        pasR_PerCity: createOptionalStringSchema('City', 1, 100),
         pasR_PerPincode: z
             .union([z.string(), z.number()])
             .optional()

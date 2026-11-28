@@ -65,7 +65,7 @@ export default function StudentTcReportPage(props: {
     const handleFilterChange = (filterType: 'class' | 'section' | 'academic_year' | 'category' | 'student', value: number) => {
         if (filterType === 'class') {
             setClassId(value);
-            setSectionId(0);
+            setSectionId(undefined);
         } else if (filterType === 'section') {
             setSectionId(value);
         } else if (filterType === 'academic_year') {
@@ -92,7 +92,7 @@ export default function StudentTcReportPage(props: {
     const [academicYearId, setAcademicYearId] = useState<number>(0);
     const [categoryId, setCategoryId] = useState<number>(0);
     const [classId, setClassId] = useState<number>(0);
-    const [sectionId, setSectionId] = useState<number>(0);
+    const [sectionId, setSectionId] = useState<number | undefined>(undefined);
     const [showTable, setShowTable] = useState(false);
     const [fieldSearch, setFieldSearch] = useState('');
     const [allReportData, setAllReportData] = useState<any[]>([]);
@@ -133,8 +133,8 @@ export default function StudentTcReportPage(props: {
         const payload = {
             ASMAY_Id: academicYearId || 0,
             AllOrInd: viewMode === 1 ? 'all' : 'indi',
-            ASMCL_Id: classId || 0,
-            ASMC_Id: sectionId || 0,
+            ASMCL_Id: viewMode === 1 ? 0 : classId || 0,
+            ASMC_Id: viewMode === 1 ? 0 : sectionId ?? 0,
             TempararyArrayheadList: selectedFields.map((item: any) => ({
                 columnID: item.columnID,
                 columnName: item.columnName || ''
@@ -188,7 +188,7 @@ export default function StudentTcReportPage(props: {
                     toast.error('Please select a class');
                     return;
                 }
-                if (!sectionId) {
+                if (sectionId === undefined) {
                     toast.error('Please select a section');
                     return;
                 }
@@ -346,7 +346,16 @@ export default function StudentTcReportPage(props: {
                         <Label className='mb-1 font-semibold'>View</Label>
                         <div className='flex items-center gap-4'>
                             <label className='flex items-center gap-2'>
-                                <input type='radio' name='viewMode' checked={viewMode === 1} onChange={() => setViewMode(1)} />
+                                <input
+                                    type='radio'
+                                    name='viewMode'
+                                    checked={viewMode === 1}
+                                    onChange={() => {
+                                        setViewMode(1);
+                                        setClassId(0);
+                                        setSectionId(undefined);
+                                    }}
+                                />
                                 <span>All</span>
                             </label>
                             <label className='flex items-center gap-2'>
@@ -430,9 +439,6 @@ export default function StudentTcReportPage(props: {
                                 <SelectValue placeholder='Select Class' />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem key={0} value={'0'}>
-                                    All
-                                </SelectItem>
                                 {preadmissionClassLoading ? (
                                     <SelectItem value='loading' disabled>
                                         Loading...
@@ -457,9 +463,10 @@ export default function StudentTcReportPage(props: {
                             Section
                         </Label>
                         <Select
-                            disabled={viewMode === 1}
+                            key={classId}
+                            disabled={viewMode === 1 || !classId}
                             onValueChange={(value) => handleFilterChange('section', Number(value))}
-                            value={sectionId !== 0 ? sectionId?.toString() : undefined}>
+                            value={sectionId !== undefined ? sectionId.toString() : undefined}>
                             <SelectTrigger id='section'>
                                 <SelectValue placeholder='Select Section' />
                             </SelectTrigger>
@@ -616,6 +623,9 @@ export default function StudentTcReportPage(props: {
                             noDataTitle='No Data Found'
                             noDataDescription='No records found for the selected criteria.'
                             errorTitle='Error Loading TC Report'
+                            manualSorting={false}
+                            manualFiltering={false}
+                            manualPagination={false}
                         />
                     </CollapsibleSection>
                 )}

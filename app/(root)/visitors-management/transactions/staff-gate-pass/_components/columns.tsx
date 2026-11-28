@@ -62,10 +62,7 @@ export const staffGatePassColumns: ColumnDef<StaffGatePassData>[] = [
                         size='icon'
                         className='text-blue-600 hover:bg-blue-50 hover:text-blue-800'
                         title='Print Gate Pass'
-                        onClick={() => {
-                            // TODO: Print Gate Pass logic
-                            console.log('Print Gate Pass', row.original);
-                        }}>
+                        onClick={() => {}}>
                         <Printer className='h-4 w-4' />
                     </Button>
                     <Button

@@ -8,9 +8,25 @@ import {
     getCollegeHeads,
     getCollegeSemesters,
     getCollegeStudents
-} from '@/server/fees/college/transactions/clgfeewaivedoff';
+} from '@/server/fees/college/transaction/clgfeewaivedoff';
 import type { ApiSearchparams } from '@/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { getCollegeFeePrivilegeAcademicYears } from '@/server/fees/college/masters/masterclgfeeprevilege';
+
+export const useCollegeAcademicYears = () => {
+    const queryClient = useQueryClient();
+    return {
+        ...useQuery({
+            queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_TRANSACTION, 'ACADEMIC_YEARS'],
+            queryFn: async () => getCollegeFeePrivilegeAcademicYears(),
+            staleTime: 1000 * 60 * 10
+        }),
+        refetchAll: () =>
+            queryClient.invalidateQueries({
+                queryKey: [COLLEGE_QUERY_KEYS.COLLEGE_FEE_TRANSACTION, 'ACADEMIC_YEARS']
+            })
+    };
+};
 
 // 1. Hook for Main Grid & All Details
 export const useCollegeFeeWaivedOffList = (searchParams?: ApiSearchparams) => {

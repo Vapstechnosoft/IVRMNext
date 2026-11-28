@@ -6,7 +6,7 @@ import type { InstitutionDTO, MasterMainMenuINSDTO, ModuleDTO } from '@/types/su
 const API_KEY = 'sadmin';
 
 // Reusing specific facade as per pattern
-const FACADE = 'MasterInstitutionRoleandModuleMappingFacade';
+const FACADE = '/MasterInstitutionRoleandModuleMappingFacade';
 
 export async function getInstitutionDropdown() {
     try {
@@ -93,16 +93,21 @@ export async function saveMainMenuINS(
     }
 }
 
-export async function getModuleMenuList() {
+export async function getModuleMenuList(institutionId: number, moduleId: number) {
     try {
+        let payload = {
+            MI_Id: institutionId,
+            IVRMM_Id: moduleId
+        }
         interface ModuleMenuResponse {
             records: import('@/types/super-admin/configuration-setting/master-main-menu-ins').MainMenuModuleDTO[];
         }
 
         console.log('Fetching Module Menu List...');
-        const response = await api.get<ModuleMenuResponse>(
+        const response = await api.post<ModuleMenuResponse>(
             API_KEY,
-            '/InstituteMainMenuFacade/get_onload_modules_menu_list?page_size=10000'
+            '/InstituteMainMenuFacade/get_onload_modules_menu_list?page_size=10000',
+            payload
         );
         console.log('Module Menu Response:', JSON.stringify(response, null, 2));
 

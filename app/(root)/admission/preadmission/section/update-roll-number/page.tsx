@@ -92,7 +92,27 @@ export default function MasterUpdateRollNumberPage(props: {
         isError: StudentsError
     } = useMasterChangeSectionTable(searchParams, academicYearId, classId, sectionId);
 
-    const tableProps = useDataTableProps(StudentsData);
+    const modifiedStudentsData = React.useMemo(() => {
+        if (!StudentsData?.data || !Array.isArray(StudentsData.data)) return StudentsData;
+
+        return {
+            ...StudentsData,
+            data: StudentsData.data.map((item: any) => {
+                const foundStudent = students.find((s) => s.student_id === item.student_id);
+                if (foundStudent) {
+                    return {
+                        ...item,
+                        // Override with the original roll numbers from the full list to prevent search from resetting it to row index
+                        amaY_RollNo: foundStudent.amaY_RollNo ?? foundStudent.roll_no,
+                        roll_no: foundStudent.roll_no ?? foundStudent.amaY_RollNo
+                    };
+                }
+                return item;
+            })
+        };
+    }, [StudentsData, students]);
+
+    const tableProps = useDataTableProps(modifiedStudentsData);
 
     useEffect(() => {
         if (UpdateStudentRolesData?.data && Array.isArray(UpdateStudentRolesData.data)) {

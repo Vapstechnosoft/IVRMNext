@@ -2,7 +2,6 @@
 
 import './signin-form.css';
 import PreadmissionRegistration from '@/app/(root)/admission/preadmission/transactions/preadmission-registration/page';
-import { useCheckPreadmissionLive } from '@/hooks/admission/preadmission/useConfigurations';
 import { loginSchema } from '@/schemas/admission/preadmission/masters';
 import { forgotUsernameAction, login } from '@/server/user';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -36,9 +35,7 @@ export default function SigninForm() {
     const searchParams = useSearchParams();
     const { sub_domain } = useParams();
 
-    const { data: _preadmissionLive } = useCheckPreadmissionLive(sub_domain?.toString() || '');
-
-    const callbackUrl = searchParams.get('callbackUrl') || '/school-admin';
+    const callbackUrl = searchParams.get('callbackUrl') || '/';
     const [error, setError] = useState<string | undefined>('');
     const [isPending, startTransition] = useTransition();
     const [mounted, setMounted] = useState(false);
@@ -359,7 +356,7 @@ export default function SigninForm() {
 
                             {/* Pre-Admission Registration Component */}
                             <div className='preadmission-box'>
-                                <PreadmissionRegistration />
+                                <PreadmissionRegistration sub_domain={sub_domain?.toString()} />
                             </div>
 
                             <div className='login-card-footer'>

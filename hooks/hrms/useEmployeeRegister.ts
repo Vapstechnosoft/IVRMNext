@@ -591,7 +591,7 @@ export function useSaveEmployee() {
         mutationFn: (data: IEmployeeSaveRequest) => saveEmployee(data),
         onSuccess: (response) => {
             if (response.success) {
-                toast.success(response.message || 'Employee saved successfully');
+                // toast.success(response.message || 'Employee saved successfully');
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
                 });
@@ -614,7 +614,7 @@ export function useSaveEmployeeQualification() {
         mutationFn: (data: any[]) => saveEmployeeQualification(data),
         onSuccess: (response) => {
             if (response?.success) {
-                toast.success(response.message || 'Qualification details saved successfully');
+                // toast.success(response.message || 'Qualification details saved successfully');
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
                 });
@@ -637,12 +637,12 @@ export function useSaveEmployeeExperience() {
         mutationFn: (data: any[]) => saveEmployeeExperience(data),
         onSuccess: (response) => {
             if (response?.success) {
-                toast.success(response.message || 'Experience details saved successfully');
+                // toast.success(response.message || 'Experience details saved successfully');
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
                 });
             } else if (response?.message) {
-                toast.info(response.message);
+                // toast.info(response.message);
             }
         },
         onError: (error: Error) => {
@@ -703,7 +703,7 @@ export function useSaveEmployeeDocument() {
         mutationFn: (data: any[]) => saveEmployeeDocument(data),
         onSuccess: (response) => {
             if (response?.success) {
-                toast.success(response.message || 'Document details saved successfully');
+                // toast.success(response.message || 'Document details saved successfully');
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
                 });
@@ -726,7 +726,7 @@ export function useSaveEmployeeMedical() {
         mutationFn: (data: any) => saveEmployeeMedical(data),
         onSuccess: (response) => {
             if (response?.success) {
-                toast.success(response.message || 'Medical details saved successfully');
+                // toast.success(response.message || 'Medical details saved successfully');
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
                 });
@@ -749,7 +749,7 @@ export function useSaveEmployeeOtherDetails() {
         mutationFn: (data: any) => saveEmployeeOtherDetails(data),
         onSuccess: (response) => {
             if (response?.success) {
-                toast.success(response.message || 'Other details saved successfully');
+                // toast.success(response.message || 'Other details saved successfully');
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
                 });
@@ -840,7 +840,7 @@ export function useSaveEmployeeArrears() {
         mutationFn: (data: any) => saveEmployeeArrears(data),
         onSuccess: (response) => {
             if (response?.success) {
-                toast.success(response.message || 'Arrear details saved successfully');
+                // toast.success(response.message || 'Arrear details saved successfully');
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
                 });
@@ -863,7 +863,7 @@ export function useSaveBankDetails() {
         mutationFn: (data: any) => saveBankDetails(data),
         onSuccess: (response) => {
             if (response?.success) {
-                toast.success(response.message || 'Bank details saved successfully');
+                // toast.success(response.message || 'Bank details saved successfully');
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
                 });
@@ -899,7 +899,7 @@ export function useUpdateEmployeeSalaryDetailsByHead(options?: { suppressSuccess
         onSuccess: (response) => {
             if (response?.success) {
                 if (!options?.suppressSuccessToast) {
-                    toast.success(response.message || 'Salary detail updated effectively');
+                    // toast.success(response.message || 'Salary detail updated effectively');
                 }
                 if (options?.invalidate) {
                     queryClient.invalidateQueries({
@@ -925,7 +925,7 @@ export function useSaveEmployeeSalaryDetails(options?: { suppressSuccessToast?: 
         onSuccess: (response) => {
             if (response?.success) {
                 if (!options?.suppressSuccessToast) {
-                    toast.success(response.message || 'Salary details saved successfully');
+                    // toast.success(response.message || 'Salary details saved successfully');
                 }
                 queryClient.invalidateQueries({
                     queryKey: [HRMS_QUERY_KEYS.EMPLOYEE]
@@ -943,10 +943,12 @@ export function useSaveEmployeeSalaryDetails(options?: { suppressSuccessToast?: 
 /**
  * Hook to fetch employee earnings and deductions
  */
-export function useEmployeeEarningsDeductions(hrme_id: number | null) {
+export function useEmployeeEarningsDeductions(hrme_id: number | null | undefined) {
+    const effectiveId = hrme_id !== null && hrme_id !== undefined ? Number(hrme_id) : 0;
     return useQuery({
-        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'earnings-deductions', hrme_id],
-        queryFn: () => getEmployeeEarningsDeductions(hrme_id!),
-        enabled: !!hrme_id && hrme_id > 0
+        queryKey: [HRMS_QUERY_KEYS.EMPLOYEE, 'earnings-deductions', effectiveId],
+        queryFn: () => getEmployeeEarningsDeductions(effectiveId),
+        enabled: true
     });
 }
+

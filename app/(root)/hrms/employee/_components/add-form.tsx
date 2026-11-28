@@ -17,8 +17,6 @@ import {
     useContactTypeDropdown,
     useCountryDropdown,
     useCourseDropdown,
-    useDepartmentDropdown,
-    useDesignationDropdown,
     useEmployeeRegisterOnload,
     useEmployeeTypeDropdown,
     useGenderDropdown,
@@ -41,6 +39,7 @@ import {
     useSpecializationDropdown,
     useTeachingTypeDropdown
 } from '@/hooks/hrms/useEmployeeRegister';
+import { useReportDepartments, useReportDesignations } from '@/hooks/hrms/useReports';
 import { useMasterPayrollStandard } from '@/hooks/hrms/useMasters';
 import { getIconByName } from '@/lib/lucide-icon-registry';
 import { cn } from '@/lib/utils';
@@ -82,6 +81,7 @@ import type { z } from 'zod';
 import {
     employeeRegisterSteps,
     fileToBase64,
+    formatDateOnly,
     mapFormDataToApiFormat,
     mapFormDataToApiFormatWithoutAddress,
     mapFormDataToPascalCaseApiFormat,
@@ -245,8 +245,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         formState // Expose formState directly
     } = useForm<FormFields>({
         resolver: zodResolver(employeeRegisterSchemas.add),
-        mode: 'onChange'
-        // defaultValues: formDefaultValues // We need to move defaultValues here or define them before useForm
+        mode: 'onSubmit',
+        reValidateMode: 'onChange'
     });
 
     const { errors, isSubmitting } = formState;
@@ -264,6 +264,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     // Watch for dependent dropdown values
     const selectedReligion = useWatch({ control, name: 'religion' });
     const selectedCasteCategory = useWatch({ control, name: 'casteCategory' });
+    const selectedEmployeeGroup = useWatch({ control, name: 'employeeGroup' });
+    const selectedDepartment = useWatch({ control, name: 'department' });
 
     // Fetch onload data for new employee (to get salary heads etc)
     const { data: onloadData } = useEmployeeRegisterOnload(HRMS_MI_ID, 0);
@@ -296,45 +298,88 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         ? institutionDropdownResponse
         : (institutionDropdownResponse as any)?.data || [];
 
-    // Designation dropdown - API: /api/MasterDropDown/GetDesignation
-    const { data: designationDropdownResponse, isLoading: isLoadingDesignations } = useDesignationDropdown();
-    // Extract data from response (handle ApiResponse wrapper if needed)
-    const designationDropdown: IDesignationDropdown[] = Array.isArray(designationDropdownResponse)
-        ? designationDropdownResponse
-        : (designationDropdownResponse as any)?.data || [];
+    // Cascading dropdowns: Group -> Department -> Designation (Reference: /hrms/transactions/salary-calculation)
+    const groupTypeIds = selectedEmployeeGroup ? String(selectedEmployeeGroup) : '';
+    const { data: departmentsData, isLoading: isLoadingDepartments } = useReportDepartments(groupTypeIds);
 
-    // Department dropdown - API: /api/MasterDropDown/GetDepartments
-    const { data: departmentDropdownResponse, isLoading: isLoadingDepartments } = useDepartmentDropdown();
+    const deptIds = selectedDepartment ? String(selectedDepartment) : '';
+    const { data: designationsData, isLoading: isLoadingDesignations } = useReportDesignations(groupTypeIds, deptIds);
+
     const departmentDropdown: IDepartmentDropdown[] = useMemo(() => {
-        const rawData = Array.isArray(departmentDropdownResponse)
-            ? departmentDropdownResponse
-            : (departmentDropdownResponse as any)?.data || [];
-        console.log('🔍 [DEBUG] Department Raw Data:', rawData);
+        const rawData = Array.isArray(departmentsData)
+            ? departmentsData
+            : (departmentsData as any)?.data || [];
         return rawData
             .map((item: any) => {
-                // Return item as is if it already matches interface (has key/value)
-                if (item.key !== undefined && item.value !== undefined) return item;
-                // Otherwise map from known API fields
-                // Fallback debug log for first item
-                if (rawData.indexOf(item) === 0) console.log('🔍 [DEBUG] First Department Item:', item);
+                const key = Number(item.key ?? item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? 0);
+                const value = String(
+                    item.value ??
+                    item.hrmD_DepartmentName ??
+                    item.HRMD_DepartmentName ??
+                    item.hrmD_Name ??
+                    item.HRMD_Name ??
+                    item.departmentName ??
+                    item.name ??
+                    ''
+                );
                 return {
-                    key: String(item.hrmD_Id ?? item.HRMD_Id ?? item.departmentId ?? item.key ?? ''),
-                    value: String(
-                        item.hrmD_DepartmentName ??
-                        item.HRMD_DepartmentName ??
-                        item.hrmD_Name ??
-                        item.HRMD_Name ??
-                        item.name ??
-                        item.departmentName ??
-                        item.HRMD_ProjectName ??
-                        item.value ??
-                        item.label ??
-                        ''
-                    )
+                    key,
+                    value,
+                    hrmD_Id: key,
+                    hrmD_DepartmentName: value
                 };
             })
-            .filter((item: any) => item.key != null && item.key !== undefined && item.key !== '' && item.key !== '0');
-    }, [departmentDropdownResponse]);
+            .filter((item: any) => item.key != null && item.key !== 0 && item.value);
+    }, [departmentsData]);
+
+    console.log("departmentsData",departmentDropdown)
+
+    const designationDropdown: IDesignationDropdown[] = useMemo(() => {
+        const rawData = Array.isArray(designationsData)
+            ? designationsData
+            : (designationsData as any)?.data || [];
+        return rawData
+            .map((item: any) => {
+                const key = Number(item.key ?? item.hrmdeS_Id ?? item.HRMDES_Id ?? item.designationId ?? 0);
+                const value = String(
+                    item.value ??
+                    item.hrmdeS_DesignationName ??
+                    item.HRMDES_DesignationName ??
+                    item.hrmdeS_Name ??
+                    item.HRMDES_Name ??
+                    item.designationName ??
+                    item.name ??
+                    ''
+                );
+                return {
+                    key,
+                    value
+                };
+            })
+            .filter((item: any) => item.key != null && item.key !== 0 && item.value);
+    }, [designationsData]);
+
+    // Clear dependent dropdowns when parent selection changes
+    const prevEmployeeGroupRef = useRef(selectedEmployeeGroup);
+    useEffect(() => {
+        if (prevEmployeeGroupRef.current !== undefined && prevEmployeeGroupRef.current !== selectedEmployeeGroup) {
+            prevEmployeeGroupRef.current = selectedEmployeeGroup;
+            setValue('department', '', { shouldValidate: false });
+            setValue('designation', '', { shouldValidate: false });
+        } else {
+            prevEmployeeGroupRef.current = selectedEmployeeGroup;
+        }
+    }, [selectedEmployeeGroup, setValue]);
+
+    const prevDepartmentRef = useRef(selectedDepartment);
+    useEffect(() => {
+        if (prevDepartmentRef.current !== undefined && prevDepartmentRef.current !== selectedDepartment) {
+            prevDepartmentRef.current = selectedDepartment;
+            setValue('designation', '', { shouldValidate: false });
+        } else {
+            prevDepartmentRef.current = selectedDepartment;
+        }
+    }, [selectedDepartment, setValue]);
 
     // Gender dropdown - API: /api/MasterDropDown/GetGenderList
     const { data: genderDropdownResponse, isLoading: isLoadingGenders } = useGenderDropdown();
@@ -566,6 +611,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         groupTypeDropdown,
         employeeTypeDropdown,
         institutionDropdown,
+        departmentDropdown,
         designationDropdown,
         genderDropdown,
         maritalStatusDropdown,
@@ -663,6 +709,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
     const savePersonalDetails = saveEmployeeMutation;
     const _saveBankDetails = saveEmployeeMutation;
     const isSavingBank = isPending;
+    const payrollSubmitRef = useRef<(() => Promise<boolean>) | null>(null);
+    const [isSubmittingPayroll, setIsSubmittingPayroll] = useState(false);
+    const registerPayrollSubmit = useCallback((submit: (() => Promise<boolean>) | null) => {
+        payrollSubmitRef.current = submit;
+    }, []);
 
     const isSubmittingAny =
         isSubmitting ||
@@ -672,7 +723,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         isSavingDocument ||
         isSavingMedical ||
         isSavingOther ||
-        isSavingSalaryDetails;
+        isSavingSalaryDetails ||
+        isSubmittingPayroll;
 
     // Add form - no edit mode (removed isEditMode variable - not needed)
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -808,7 +860,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     hrmE_MotherName: String(data.motherName || ''),
                     hrmE_Gender: String(data.gender || ''),
                     hrmE_DOB: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString() : null,
-                    hrmE_DOJ: data.dateOfJoining ? new Date(data.dateOfJoining).toISOString() : null,
+                    hrmE_DOJ: formatDateOnly(data.dateOfJoining),
                     hrmE_Id: savedEmployeeId || 0
                 }
             });
@@ -958,7 +1010,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         const employeeId =
                             response?.data?.hrmE_Id || response?.data?.HRME_Id || response?.hrmE_Id || response?.HRME_Id || 0;
                         console.log('🔍 [DEBUG] Tab 1 - Extracted Employee ID:', employeeId);
-
+                        toast.success(response?.message || 'Employee details saved successfully');
                         if (employeeId && employeeId > 0) {
                             setSavedEmployeeId(employeeId);
                             console.log('✅ [DEBUG] Tab 1 - Employee ID saved to state:', employeeId);
@@ -975,6 +1027,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 1 (Employee Information) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 1 - Error Details:', JSON.stringify(error, null, 2));
+                    toast.error(error?.response?.data?.message || error?.message || 'Failed to save employee details');
                 }
             });
         } else if (currentStepId === 2) {
@@ -1115,15 +1168,19 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     if (response?.success) {
                         if (addressMismatches.length > 0) {
                             toast.warning(`Address fields may not have been saved completely. Please verify.`);
+                        } else {
+                            toast.success(response?.message || 'Address details saved successfully');
                         }
                         setCurrentStep(3);
                     } else {
                         console.warn('⚠️ [DEBUG] Tab 2 - API returned success: false');
+                        toast.error(response?.message || 'Failed to save address details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 2 (Address Information) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 2 - Error Details:', JSON.stringify(error, null, 2));
+                    toast.error(error?.response?.data?.message || error?.message || 'Failed to save address details');
                 }
             });
         } else if (currentStepId === 3) {
@@ -1253,6 +1310,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                     if (response?.success === false && !response?.message) {
                         console.warn('⚠️ [DEBUG] Tab 3 - API returned success: false');
                         toast.warning('Qualification saved but API returned success: false. Please verify the data was saved.');
+                    } else {
+                        toast.success(response?.message || 'Qualification details saved successfully');
                     }
 
                     setCurrentStep(4);
@@ -1260,6 +1319,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 onError: (error: any) => {
                     console.error('❌ [DEBUG] Tab 3 (Qualification) - Save Error:', error);
                     console.error('❌ [DEBUG] Tab 3 - Error Details:', JSON.stringify(error, null, 2));
+                    toast.error(error?.response?.data?.message || error?.message || 'Failed to save qualification details');
                 }
             });
         } else if (currentStepId === 4) {
@@ -1283,33 +1343,53 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience List (Raw):', experienceList);
             console.log('🔍 [DEBUG] Tab 4 (Experience) - Experience Count:', experienceList.length);
 
-            if (experienceList.length === 0) {
-                console.error('❌ [DEBUG] Tab 4 - No experiences found');
-                setError('experienceDetails', {
-                    type: 'required',
-                    message: 'Please add at least one experience'
-                });
+            // Filter valid experiences that have at least some filled information
+            const validExperiences = experienceList.filter(
+                (exp: any) =>
+                    exp &&
+                    ((exp.organisationName && String(exp.organisationName).trim() !== '') ||
+                        (exp.department && String(exp.department).trim() !== '') ||
+                        (exp.designation && String(exp.designation).trim() !== '') ||
+                        exp.hrmeE_Id ||
+                        exp.HRMEE_Id)
+            );
+
+            if (validExperiences.length === 0) {
+                console.log('🔍 [DEBUG] Tab 4 - No experiences to save, skipping to next step');
+                setCurrentStep(5);
                 return;
             }
 
-            // Map experience data to API format (matching API request body format)
-            const experiencesPayload = experienceList.map((exp: any, index: number) => {
-                const id = exp.hrmeE_Id || exp.HRMEE_Id || 0;
+            // Map experience data to API format (matching MasterEmployeeExperienceRequest)
+            const experiencesPayload = validExperiences.map((exp: any, index: number) => {
+                const id = Number(exp.hrmeE_Id || exp.HRMEE_Id || 0);
                 const mapped = {
-                    hrmeE_Id: id, // Use existing ID if updating, 0 for new
+                    hrmeE_Id: id,
+                    HRMEE_Id: id,
                     hrmE_Id: savedEmployeeId,
-                    mI_Id: 30, // Default MI_Id
-                    MI_Id: 30, // PascalCase fallback
-                    hrmeE_OrganisationName: exp.organisationName || '',
-                    hrmeE_OrganisationAddress: exp.organisationAddress || '',
-                    hrmeE_Department: exp.department || '',
-                    hrmeE_Designation: exp.designation || '',
-                    hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : '',
-                    hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : '',
+                    HRME_Id: savedEmployeeId,
+                    mI_Id: HRMS_MI_ID || 30,
+                    MI_Id: HRMS_MI_ID || 30,
+                    hrmeE_OrganisationName: exp.organisationName || exp.hrmeE_OrganisationName || '',
+                    HRMEE_OrganisationName: exp.organisationName || exp.hrmeE_OrganisationName || '',
+                    hrmeE_OrganisationAddress: exp.organisationAddress || exp.hrmeE_OrganisationAddress || '',
+                    HRMEE_OrganisationAddress: exp.organisationAddress || exp.hrmeE_OrganisationAddress || '',
+                    hrmeE_Department: exp.department || exp.hrmeE_Department || '',
+                    HRMEE_Department: exp.department || exp.hrmeE_Department || '',
+                    hrmeE_Designation: exp.designation || exp.hrmeE_Designation || '',
+                    HRMEE_Designation: exp.designation || exp.hrmeE_Designation || '',
+                    hrmeE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : null,
+                    HRMEE_JoinDate: exp.joinDate ? new Date(exp.joinDate).toISOString() : null,
+                    hrmeE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : null,
+                    HRMEE_ExitDate: exp.exitDate ? new Date(exp.exitDate).toISOString() : null,
                     hrmeE_NoOfYears: Number(exp.noOfYears) || 0,
+                    HRMEE_NoOfYears: Number(exp.noOfYears) || 0,
                     hrmeE_NoOfMonths: Number(exp.noOfMonths) || 0,
+                    HRMEE_NoOfMonths: Number(exp.noOfMonths) || 0,
                     hrmeE_AnnualSalary: Number(exp.annualSalary) || 0,
-                    hrmeE_ReasonForLeaving: exp.reasonForLeaving || ''
+                    HRMEE_AnnualSalary: Number(exp.annualSalary) || 0,
+                    hrmeE_ReasonForLeaving: exp.reasonForLeaving || exp.hrmeE_ReasonForLeaving || '',
+                    HRMEE_ReasonForLeaving: exp.reasonForLeaving || exp.hrmeE_ReasonForLeaving || ''
                 };
                 console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Mapping:`, {
                     raw: exp,
@@ -1319,10 +1399,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             });
 
             console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload:', experiencesPayload);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - Payload (JSON):', JSON.stringify(experiencesPayload, null, 2));
             console.log('🔍 [DEBUG] Tab 4 (Experience) - Calling saveExperienceDetails...');
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function type:', typeof saveExperienceDetails);
-            console.log('🔍 [DEBUG] Tab 4 (Experience) - saveExperienceDetails function:', saveExperienceDetails);
 
             if (!saveExperienceDetails) {
                 console.error('❌ [DEBUG] Tab 4 - saveExperienceDetails is not defined!');
@@ -1334,70 +1411,18 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 saveExperienceDetails(experiencesPayload, {
                     onSuccess: (response: any) => {
                         console.log('✅ [DEBUG] Tab 4 (Experience) - Save Success:', response);
-                        console.log('🔍 [DEBUG] Tab 4 - Full API Response:', JSON.stringify(response, null, 2));
-                        console.log('🔍 [DEBUG] Tab 4 - Response Success:', response?.success);
-                        console.log('🔍 [DEBUG] Tab 4 - Response Message:', response?.message);
-                        console.log('🔍 [DEBUG] Tab 4 - Response Data:', response?.data);
-
-                        // Verify experience data was saved
-                        if (response?.data && Array.isArray(response.data)) {
-                            console.log('🔍 [DEBUG] Tab 4 - Response contains experience array, length:', response.data.length);
-                            console.log('🔍 [DEBUG] Tab 4 - Response Experiences:', response.data);
-
-                            // Compare sent vs received
-                            if (response.data.length === experiencesPayload.length) {
-                                console.log('✅ [DEBUG] Tab 4 - Experience count matches!');
-                                experiencesPayload.forEach((sent: any, index: number) => {
-                                    const received = response.data[index];
-                                    if (received) {
-                                        console.log(`🔍 [DEBUG] Tab 4 - Experience #${index + 1} Comparison:`, {
-                                            sent: sent,
-                                            received: received
-                                        });
-
-                                        // Check key fields
-                                        const keyFields = [
-                                            'hrmE_Id',
-                                            'hrmeE_OrganisationName',
-                                            'hrmeE_Department',
-                                            'hrmeE_Designation',
-                                            'hrmeE_NoOfYears'
-                                        ];
-                                        const mismatches: string[] = [];
-                                        keyFields.forEach((field) => {
-                                            if (sent[field as keyof typeof sent] !== received[field as keyof typeof received]) {
-                                                mismatches.push(
-                                                    `${field}: Sent="${sent[field as keyof typeof sent]}" vs Received="${received[field as keyof typeof received]}"`
-                                                );
-                                            }
-                                        });
-
-                                        if (mismatches.length > 0) {
-                                            console.warn(`⚠️ [DEBUG] Tab 4 - Experience #${index + 1} mismatches:`, mismatches);
-                                        } else {
-                                            console.log(`✅ [DEBUG] Tab 4 - Experience #${index + 1} key fields match!`);
-                                        }
-                                    }
-                                });
-                            } else {
-                                console.warn(
-                                    `⚠️ [DEBUG] Tab 4 - Experience count mismatch: Sent=${experiencesPayload.length}, Received=${response.data.length}`
-                                );
-                            }
+                        if (response?.success || response?.success === undefined) {
+                            toast.success(response?.message || 'Experience details saved successfully');
+                            setCurrentStep(5);
                         } else {
-                            console.warn('⚠️ [DEBUG] Tab 4 - Response data is not an array or is missing');
+                            console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false', response);
+                            toast.error(response?.message || 'Failed to save experience details');
                         }
-
-                        if (response?.success === false && !response?.message) {
-                            console.warn('⚠️ [DEBUG] Tab 4 - API returned success: false');
-                            toast.warning('Experience saved but API returned success: false. Please verify the data was saved.');
-                        }
-
-                        setCurrentStep(5);
                     },
                     onError: (error: any) => {
                         console.error('❌ [DEBUG] Tab 4 (Experience) - Save Error:', error);
-                        console.error('❌ [DEBUG] Tab 4 - Error Details:', JSON.stringify(error, null, 2));
+                        const errorMessage = error?.response?.data?.message || error?.message || 'Failed to save experience details';
+                        toast.error(errorMessage);
                     }
                 });
             } catch (error) {
@@ -1466,14 +1491,17 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                 (saveDocumentDetails as any)(documentsPayload, {
                     onSuccess: (response: any) => {
                         console.log('✅ [API DEBUG] Tab 5 (Document) - Save Success Response:', response);
-                        if (response?.success) {
+                        if (response?.success || response?.success === undefined) {
+                            toast.success(response?.message || 'Document details saved successfully');
                             setCurrentStep(6);
                         } else {
                             console.error('❌ [API DEBUG] Tab 5 (Document) - API returned success: false', response);
+                            toast.error(response?.message || 'Failed to save document details');
                         }
                     },
                     onError: (error: any) => {
                         console.error('❌ [API DEBUG] Tab 5 (Document) - API Error:', error);
+                        toast.error(error?.response?.data?.message || error?.message || 'Failed to save document details');
                     }
                 });
             } catch (err) {
@@ -1493,14 +1521,17 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             saveMedicalDetails(payload, {
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 6 (Medical) - Save Success Response:', response);
-                    if (response?.success) {
+                    if (response?.success || response?.success === undefined) {
+                        toast.success(response?.message || 'Medical details saved successfully');
                         setCurrentStep(7);
                     } else {
                         console.error('❌ [API DEBUG] Tab 6 (Medical) - API returned success: false', response);
+                        toast.error(response?.message || 'Failed to save medical details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [API DEBUG] Tab 6 (Medical) - API Error:', error);
+                    toast.error(error?.response?.data?.message || error?.message || 'Failed to save medical details');
                 }
             });
         } else if (currentStepId === 7) {
@@ -1515,7 +1546,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             saveOtherDetails(payload, {
                 onSuccess: (response: any) => {
                     console.log('✅ [API DEBUG] Tab 7 (Other) - Save Success Response:', response);
-                    if (response?.success) {
+                    if (response?.success || response?.success === undefined) {
+                        // toast.success(response?.message || 'Other details saved successfully');
                         // Call salary details save API as requested by user
                         if (savedEmployeeId) {
                             saveSalaryDetails(
@@ -1527,9 +1559,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                     },
                                     onError: (salaryError: any) => {
                                         console.error('❌ [API DEBUG] Tab 7 (Salary Save) - Error:', salaryError);
-                                        // Still move to next step but with a warning?
-                                        // User said "i want to call one api because i want to save salaary details"
-                                        // So it might be critical.
+                                        // Still move to next step
                                         setCurrentStep(8);
                                     }
                                 }
@@ -1539,10 +1569,12 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                         }
                     } else {
                         console.error('❌ [API DEBUG] Tab 7 (Other) - API returned success: false', response);
+                        toast.error(response?.message || 'Failed to save other details');
                     }
                 },
                 onError: (error: any) => {
                     console.error('❌ [API DEBUG] Tab 7 (Other) - API Error:', error);
+                    toast.error(error?.response?.data?.message || error?.message || 'Failed to save other details');
                 }
             });
         } else {
@@ -1804,6 +1836,11 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
         name: 'documentList'
     });
 
+    // Clear validation errors when switching tabs so new tab starts clean
+    useEffect(() => {
+        clearErrors();
+    }, [currentStep, clearErrors]);
+
     // Custom submit handler - now only handles the final step or redirects to nextStep
     const onFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1843,7 +1880,16 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
 
         try {
             if (currentStepId === 8) {
-                // Payroll tab - handled by PayrollTab component
+                const submitPayroll = payrollSubmitRef.current;
+                if (!submitPayroll) {
+                    toast.error('Payroll is still loading. Please try again.');
+                    return;
+                }
+
+                setIsSubmittingPayroll(true);
+                const salarySaved = await submitPayroll();
+                if (!salarySaved) return;
+
                 toast.success('Employee registration completed!');
                 if (onSuccess) {
                     onSuccess();
@@ -1851,6 +1897,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
             }
         } catch (error: any) {
             toast.error(error.message || 'An error occurred');
+        } finally {
+            setIsSubmittingPayroll(false);
         }
     };
 
@@ -2125,7 +2173,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 e.preventDefault();
                                                             }
                                                         }}
-                                                    // {...register('lastName')}
+                                                    {...register('lastName')}
                                                     // error={errors.lastName?.message as string | undefined}
                                                     />
                                                     <InputText
@@ -2368,7 +2416,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 <Label>
                                                                     Employee Group <span className='text-red-500'>*</span>
                                                                 </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                <Select
+                                                                    onValueChange={(val) => {
+                                                                        field.onChange(val);
+                                                                        setValue('department', '', { shouldValidate: false });
+                                                                        setValue('designation', '', { shouldValidate: false });
+                                                                    }}
+                                                                    value={field.value || ''}>
                                                                     <SelectTrigger
                                                                         className={cn(
                                                                             fieldState.error
@@ -2424,23 +2478,41 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 <Label>
                                                                     Department <span className='text-red-500'>*</span>
                                                                 </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                <Select
+                                                                    onValueChange={(val) => {
+                                                                        field.onChange(val);
+                                                                        setValue('designation', '', { shouldValidate: false });
+                                                                    }}
+                                                                    value={field.value || ''}
+                                                                    disabled={!selectedEmployeeGroup || dropdownLoadingStates.departments}>
                                                                     <SelectTrigger
                                                                         className={cn(
                                                                             fieldState.error
                                                                                 ? 'border-destructive focus-visible:ring-destructive'
                                                                                 : 'border-input focus-visible:ring-ring'
                                                                         )}>
-                                                                        <SelectValue placeholder='--Select--' />
+                                                                        <SelectValue
+                                                                            placeholder={
+                                                                                !selectedEmployeeGroup
+                                                                                    ? '--Select Group first--'
+                                                                                    : dropdownLoadingStates.departments
+                                                                                      ? 'Loading departments...'
+                                                                                      : '--Select--'
+                                                                            }
+                                                                        />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
                                                                         {dropdownLoadingStates.departments ? (
                                                                             <SelectItem value='__loading__' disabled>
                                                                                 Loading departments...
                                                                             </SelectItem>
+                                                                        ) : !selectedEmployeeGroup ? (
+                                                                            <SelectItem value='__no_group__' disabled>
+                                                                                Please select Employee Group first
+                                                                            </SelectItem>
                                                                         ) : (options?.departments || []).length === 0 ? (
                                                                             <SelectItem value='__no_options__' disabled>
-                                                                                No options available
+                                                                                No departments available Selected Group
                                                                             </SelectItem>
                                                                         ) : (
                                                                             (options?.departments || [])
@@ -2480,32 +2552,61 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                                                 <Label>
                                                                     Designation <span className='text-red-500'>*</span>
                                                                 </Label>
-                                                                <Select onValueChange={field.onChange} value={field.value}>
+                                                                <Select
+                                                                    onValueChange={field.onChange}
+                                                                    value={field.value || ''}
+                                                                    disabled={!selectedDepartment || dropdownLoadingStates.designations}>
                                                                     <SelectTrigger
                                                                         className={cn(
                                                                             fieldState.error
                                                                                 ? 'border-destructive focus-visible:ring-destructive'
                                                                                 : 'border-input focus-visible:ring-ring'
                                                                         )}>
-                                                                        <SelectValue placeholder='--Select--' />
+                                                                        <SelectValue
+                                                                            placeholder={
+                                                                                !selectedEmployeeGroup
+                                                                                    ? '--Select Group first--'
+                                                                                    : !selectedDepartment
+                                                                                      ? '--Select Department first--'
+                                                                                      : dropdownLoadingStates.designations
+                                                                                        ? 'Loading designations...'
+                                                                                        : '--Select--'
+                                                                            }
+                                                                        />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {(options?.designations || [])
-                                                                            .filter((dg: IDesignationDropdown) => {
-                                                                                return (
-                                                                                    dg.key != null && dg.key !== undefined && dg.key !== 0
-                                                                                );
-                                                                            })
-                                                                            .map((dg: IDesignationDropdown) => {
-                                                                                const val = getSafeValue(dg.key);
-                                                                                if (!val) return null;
-                                                                                return (
-                                                                                    <SelectItem key={dg.key} value={val}>
-                                                                                        {dg.value || String(dg.key)}
-                                                                                    </SelectItem>
-                                                                                );
-                                                                            })
-                                                                            .filter(Boolean)}
+                                                                        {dropdownLoadingStates.designations ? (
+                                                                            <SelectItem value='__loading__' disabled>
+                                                                                Loading designations...
+                                                                            </SelectItem>
+                                                                        ) : !selectedDepartment ? (
+                                                                            <SelectItem value='__no_dept__' disabled>
+                                                                                Please select Department first
+                                                                            </SelectItem>
+                                                                        ) : (options?.designations || []).length === 0 ? (
+                                                                            <SelectItem value='__no_options__' disabled>
+                                                                                No designations available for selected Department
+                                                                            </SelectItem>
+                                                                        ) : (
+                                                                            (options?.designations || [])
+                                                                                .filter((dg: IDesignationDropdown) => {
+                                                                                    return (
+                                                                                        dg.key != null &&
+                                                                                        dg.key !== undefined &&
+                                                                                        dg.key !== 0
+                                                                                    );
+                                                                                })
+                                                                                .map((dg: IDesignationDropdown) => {
+                                                                                    const val = getSafeValue(dg.key);
+                                                                                    if (!val) return null;
+                                                                                    return (
+                                                                                        <SelectItem key={dg.key} value={val}>
+                                                                                            {dg.value || String(dg.key)}
+                                                                                        </SelectItem>
+                                                                                    );
+                                                                                })
+                                                                                .filter(Boolean)
+                                                                        )}
                                                                     </SelectContent>
                                                                 </Select>
                                                                 {fieldState.error && (
@@ -5511,8 +5612,13 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                             <PayrollTab
                                                 employeeId={savedEmployeeId}
                                                 employeeCode={watch('employeeCode')}
-                                                MI_Id={30}
-                                                onSuccess={onSuccess}
+                                                MI_Id={HRMS_MI_ID || 30}
+                                                onSaveReady={registerPayrollSubmit}
+                                                hideSaveButton
+                                                earningList={(onloadData as any)?.data?.earningList || (onloadData as any)?.data?.earninglist || (onloadData as any)?.earningList || (onloadData as any)?.earninglist}
+                                                detectionList={(onloadData as any)?.data?.detectionList || (onloadData as any)?.data?.deductionList || (onloadData as any)?.data?.detectionlist || (onloadData as any)?.data?.deductionlist || (onloadData as any)?.detectionList || (onloadData as any)?.deductionList}
+                                                arrearList={(onloadData as any)?.data?.arrearList || (onloadData as any)?.data?.arrearlist || (onloadData as any)?.arrearList || (onloadData as any)?.arrearlist}
+                                                grossList={(onloadData as any)?.data?.grossList || (onloadData as any)?.grossList}
                                             />
                                         ) : (
                                             <div className='rounded-md border p-6 text-center text-muted-foreground'>
@@ -5524,8 +5630,8 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                             </div>
 
                             {/* Navigation Footer */}
-                            <div className='flex items-center justify-between border-t bg-gray-50 px-6 py-4 md:px-8'>
-                                <Button
+                            <div className='flex items-center justify-end border-t bg-gray-50 px-6 py-4 md:px-8'>
+                                {/* <Button
                                     type='button'
                                     variant='outline'
                                     onClick={() => {
@@ -5535,7 +5641,7 @@ export default function AddEmployeeForm({ onSuccess, className = '' }: AddEmploy
                                     disabled={isSubmittingAny}
                                     className='w-fit transition-all duration-200 hover:scale-105'>
                                     Reset Form
-                                </Button>
+                                </Button> */}
 
                                 <div className='flex gap-3'>
                                     {currentStep > 1 && (

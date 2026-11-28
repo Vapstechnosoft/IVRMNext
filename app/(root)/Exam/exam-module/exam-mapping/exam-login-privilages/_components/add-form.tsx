@@ -140,11 +140,14 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     console.info(employee);
                     // Determine entry type based on elP_Flg
                     let entryType = 'BY_CLASS_TEACHER';
+                    let entryFlag = 'ct';
                     if (editList[0].elP_Flg === 'st') {
                         entryType = 'BY_SUBJECT_TEACHER';
+                        entryFlag = 'st';
                         setActiveTab(1);
                     } else if (editList[0].elP_Flg === 'others') {
                         entryType = 'BY_OTHERS';
+                        entryFlag = 'others';
                         setActiveTab(2);
                     } else {
                         setActiveTab(0);
@@ -226,12 +229,12 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                     classSectionMap.forEach((group, key) => {
                         detailRows.push({
                             id: makeUniqueId(),
-                            yearid: 231,
+                            yearid:  editList[0]?.asmaY_Id || 0,
                             user_id: userId,
                             year: yearInfo?.asmaY_Year || '',
                             emp_name: employeeName,
                             emp_Id: employee?.hrmE_Id || editList[0]?.hrmE_Id || 0,
-                            elpflg: entryType,
+                            elpflg: entryFlag,
                             clas: group.class,
                             secs: group.section,
                             sub: Array.from(group.subjects),
@@ -365,6 +368,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         return parts.length > 1 ? parts[1].trim() : value;
     };
 
+    const getEmployeeName = (employeeName?: string) => employeeName?.trim().toLowerCase() ?? '';
+    const getEmployeeCode = (employeeName?: string) => (employeeName ? extractCode(employeeName).trim().toLowerCase() : '');
+
     const makeUniqueId = () => `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
     function computeDetailRowsForAdd(): DetailRow[] {
@@ -452,19 +458,9 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
             return;
         }
 
-        const existingPairs = new Set(details.map((d) => `${d.clas?.asmcL_Id}_${d.secs?.asmS_Id}_${d.yearid}_${d.user_id}_${d.emp_Id}`));
-        const filtered = rowsToAdd.filter(
-            (r) => !existingPairs.has(`${r.clas?.asmcL_Id}_${r.secs?.asmS_Id}_${r.yearid}_${r.user_id}_${r.emp_Id}`)
-        );
-
-        if (filtered.length === 0) {
-            toast.error('Selected Class-Section combination(s) already added');
-            return;
-        }
-
-        setDetails((prev) => [...prev, ...filtered]);
+        setDetails((prev) => [...prev, ...rowsToAdd]);
         reset();
-        toast.info(`${filtered.length} Login Privileges added`);
+        toast.info(`${rowsToAdd.length} Login Privileges added`);
     }
 
     // biome-ignore lint/correctness/noUnusedVariables: <explanation>
@@ -701,13 +697,10 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         const result: any[] = [];
         for (const item of dropdownData) {
             if (!item) continue;
-            const empCode = item.hrmE_EmployeeName ? extractCode(item.hrmE_EmployeeName).trim().toLowerCase() : '';
-            const key = empCode || (item.hrmE_EmployeeName ? item.hrmE_EmployeeName.trim().toLowerCase() : String(item.hrmE_Id));
-            if (!seen.has(key) && !seen.has(String(item.hrmE_Id))) {
-                seen.add(key);
-                seen.add(String(item.hrmE_Id));
-                result.push(item);
-            }
+            const key = item.hrmE_Id != null ? String(item.hrmE_Id) : getEmployeeName(item.hrmE_EmployeeName);
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            result.push(item);
         }
         return result;
     }, [dropdownData]);
@@ -718,13 +711,10 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
         const result: any[] = [];
         for (const item of userLogins) {
             if (!item) continue;
-            const empCode = item.hrmE_EmployeeName ? extractCode(item.hrmE_EmployeeName).trim().toLowerCase() : '';
-            const key = empCode || (item.hrmE_EmployeeName ? item.hrmE_EmployeeName.trim().toLowerCase() : String(item.ivrmulF_Id));
-            if (!seen.has(key) && !seen.has(String(item.ivrmulF_Id))) {
-                seen.add(key);
-                seen.add(String(item.ivrmulF_Id));
-                result.push(item);
-            }
+            const key = item.ivrmulF_Id != null ? String(item.ivrmulF_Id) : getEmployeeName(item.hrmE_EmployeeName);
+            if (!key || seen.has(key)) continue;
+            seen.add(key);
+            result.push(item);
         }
         return result;
     }, [userLogins]);
@@ -873,23 +863,26 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                                     field.onChange(selectedId);
 
                                                     const selectedEmployee =
-                                                        uniqueDropdownData?.find((e: any) => e.hrmE_Id === selectedId) ||
-                                                        dropdownData?.find((e: any) => e.hrmE_Id === selectedId);
+                                                        uniqueDropdownData?.find((e: any) => Number(e.hrmE_Id) === selectedId) ||
+                                                        dropdownData?.find((e: any) => Number(e.hrmE_Id) === selectedId);
 
                                                     if (!selectedEmployee?.hrmE_EmployeeName) {
                                                         setValue('ivrmulF_Id', 0);
                                                         return;
                                                     }
 
-                                                    const userCode = extractCode(selectedEmployee.hrmE_EmployeeName).trim().toLowerCase();
+                                                    const userCode = getEmployeeCode(selectedEmployee.hrmE_EmployeeName);
+                                                    const employeeName = getEmployeeName(selectedEmployee.hrmE_EmployeeName);
 
                                                     const user =
-                                                        uniqueUserLogins.find(
-                                                             (u: any) => extractCode(u.hrmE_EmployeeName).trim().toLowerCase() === userCode
-                                                        ) ||
-                                                        userLogins.find(
-                                                             (u: any) => extractCode(u.hrmE_EmployeeName).trim().toLowerCase() === userCode
-                                                        );
+                                                        userLogins.find((u: any) => getEmployeeName(u.hrmE_EmployeeName) === employeeName) ||
+                                                        userLogins.find((u: any) => Number(u.hrmE_Id) === selectedId) ||
+                                                        (userCode
+                                                            ? uniqueUserLogins.find(
+                                                                  (u: any) => getEmployeeCode(u.hrmE_EmployeeName) === userCode
+                                                              ) ||
+                                                              userLogins.find((u: any) => getEmployeeCode(u.hrmE_EmployeeName) === userCode)
+                                                            : undefined);
                                                     console.info('user', user);
 
                                                     setValue('ivrmulF_Id', user?.ivrmulF_Id ?? 0);
@@ -1000,7 +993,36 @@ export default function AddExamLoginPrivileges({ onSuccess, rowData }: { onSucce
                                             </Label>
                                             <Select
                                                 key={field.value}
-                                                onValueChange={(v) => field.onChange(Number(v))}
+                                                onValueChange={(v) => {
+                                                    const selectedUserId = Number(v);
+                                                    field.onChange(selectedUserId);
+
+                                                    const selectedUser =
+                                                        userLogins.find((u: any) => Number(u.ivrmulF_Id) === selectedUserId) ||
+                                                        uniqueUserLogins.find((u: any) => Number(u.ivrmulF_Id) === selectedUserId);
+
+                                                    if (!selectedUser) {
+                                                        setValue('hrmE_Id', 0);
+                                                        return;
+                                                    }
+
+                                                    const selectedEmployeeId = Number(selectedUser.hrmE_Id);
+                                                    const employeeName = getEmployeeName(selectedUser.hrmE_EmployeeName);
+                                                    const userCode = getEmployeeCode(selectedUser.hrmE_EmployeeName);
+                                                    const selectedEmployee =
+                                                        uniqueDropdownData.find(
+                                                            (e: any) => getEmployeeName(e.hrmE_EmployeeName) === employeeName
+                                                        ) ||
+                                                        dropdownData?.find((e: any) => getEmployeeName(e.hrmE_EmployeeName) === employeeName) ||
+                                                        uniqueDropdownData.find((e: any) => Number(e.hrmE_Id) === selectedEmployeeId) ||
+                                                        dropdownData?.find((e: any) => Number(e.hrmE_Id) === selectedEmployeeId) ||
+                                                        (userCode
+                                                            ? uniqueDropdownData.find((e: any) => getEmployeeCode(e.hrmE_EmployeeName) === userCode) ||
+                                                              dropdownData?.find((e: any) => getEmployeeCode(e.hrmE_EmployeeName) === userCode)
+                                                            : undefined);
+
+                                                    setValue('hrmE_Id', selectedEmployee?.hrmE_Id ?? 0);
+                                                }}
                                                 value={field.value ? String(field.value) : ''}>
                                                 <SelectTrigger>
                                                     <SelectValue placeholder='Select User' />

@@ -2258,7 +2258,9 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 amsT_BirthPlace: formData.amsT_BirthPlace ?? '',
                 amsT_BirthCertNO: formData.amsT_BirthCertNO ?? '',
                 amsT_AadharNo: Number(formData.amsT_AadharNo) || 0,
-                amsT_ApparNo: formData.amsT_ApparNo ?? '',
+                amsT_ApparNo: formData.amsT_ApparNo ?? (formData.amsT_APAARId ? String(formData.amsT_APAARId) : ''),
+                amsT_APAARId: Number(formData.amsT_APAARId || formData.amsT_ApparNo || 0) || 0,
+                amsT_PENNo: String(formData.amsT_PENNo ?? getValues('amsT_PENNo') ?? ''),
 
                 amsT_BiometricId: formData.amsT_BiometricId ?? '',
                 amsT_RFCardNo: formData.amsT_RFCardNo ?? '',
@@ -2336,7 +2338,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 amsT_Tpin: formData.amsT_Tpin ?? '',
                 amsT_GPSTrackingId: formData.amsT_GPSTrackingId ?? '',
                 amsT_MediumOfInstruction: formData.amsT_MediumOfInstruction ?? '',
-                editFlag: !!formData.editFlag,
+                editFlag: (getAmsTIdToUse() ?? 0) > 0,
                 studentPhotoUrl: ''
             };
 

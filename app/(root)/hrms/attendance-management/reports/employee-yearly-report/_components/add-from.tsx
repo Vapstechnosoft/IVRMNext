@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { GenericDataTable } from '@/components/ui/data-table/generic-data-table';
 import { DatePicker } from '@/components/ui/date-picker';
 import { FormError } from '@/components/ui/extension/field';
@@ -156,22 +157,33 @@ export default function AddEmployeeYearlyReportForm({ onSuccess, className = '',
             .filter(Boolean);
     }, [employeesData]);
 
+    const watchedMode = watch('mode');
     const modes = useMemo(() => {
+        if (Array.isArray(watchedMode) && watchedMode.length > 0) return watchedMode;
+        if (typeof watchedMode === 'string' && watchedMode) return [watchedMode];
         const m = searchParams?.mode;
         return Array.isArray(m) ? m : m ? [m] : [];
-    }, [searchParams?.mode]);
+    }, [watchedMode, searchParams?.mode]);
+
+    const handleToggleMode = (modeName: any) => {
+        const currentModes = Array.isArray(watchedMode) ? [...watchedMode] : [];
+        const newModes = currentModes.includes(modeName)
+            ? currentModes.filter((m) => m !== modeName)
+            : [...currentModes, modeName];
+        setValue('mode', newModes);
+    };
 
     // Transform report data for table
     const tableData: YearRow[] = useMemo(() => {
         return reportData.map((item: any, index: number) => {
             const row: YearRow = {
                 id: index + 1,
-                ecode: item.ecode || '',
-                ename: item.ename || '',
-                designation: item.designation || '',
-                doj: item.doj || '',
-                tpdays: item.tpdays || 0,
-                hwkdays: item.hwkdays || 0
+                ecode: item.ecode || item.HRME_EmployeeCode || '',
+                ename: item.ename || item.HRME_EmployeeFirstName || '',
+                designation: item.designation || item.HRMDES_DesignationName || '',
+                doj: item.doj || item.HRME_DOJ || '',
+                tpdays: item.tpdays ?? item.totalpresent ?? 0,
+                hwkdays: item.hwkdays ?? item.totalholidayworked ?? 0
             };
 
             // Add dynamic month columns
@@ -187,6 +199,7 @@ export default function AddEmployeeYearlyReportForm({ onSuccess, className = '',
         return {
             data: tableData,
             total: tableData.length,
+            totalItems: tableData.length,
             errorMessage: response?.message || null,
             success: response?.success !== false
         };
@@ -242,8 +255,8 @@ export default function AddEmployeeYearlyReportForm({ onSuccess, className = '',
         exportToExcel(
             exportData,
             `Employee_Yearly_Report_${
-                // biome-ignore lint/complexity/useDateNow: <explanation>
-                new Date().getTime()
+            // biome-ignore lint/complexity/useDateNow: <explanation>
+            new Date().getTime()
             }`
         );
     };
@@ -305,8 +318,8 @@ export default function AddEmployeeYearlyReportForm({ onSuccess, className = '',
                     </thead>
                     <tbody>
                         ${dataToPrint
-                            .map(
-                                (row: YearRow, index: number) => `
+                .map(
+                    (row: YearRow, index: number) => `
                             <tr>
                                 <td>${index + 1}</td>
                                 <td>${row.ecode || ''}</td>
@@ -318,8 +331,8 @@ export default function AddEmployeeYearlyReportForm({ onSuccess, className = '',
                                 ${modes.includes('Date Of Joining') ? `<td>${row.doj ? format(new Date(row.doj), 'dd-MM-yyyy') : ''}</td>` : ''}
                             </tr>
                         `
-                            )
-                            .join('')}
+                )
+                .join('')}
                     </tbody>
                 </table>
                 <div class="footer">
@@ -361,6 +374,7 @@ export default function AddEmployeeYearlyReportForm({ onSuccess, className = '',
             };
 
             const responseData = await getEmployeeYearlyReport(payload);
+            console.log('yearly report response', responseData)
             setResponse(responseData);
 
             if (responseData.success) {
@@ -691,16 +705,30 @@ export default function AddEmployeeYearlyReportForm({ onSuccess, className = '',
                         variant='default'
                         size='lg'
                         className='shadow-lg transition-shadow duration-300 hover:shadow-xl'>
-                        {/* Action Buttons */}
-                        <div className='mb-4 flex items-center gap-2 rounded-lg border bg-blue-50/30 p-3 shadow-sm'>
-                            <div className='flex flex-col gap-0.5'>
-                                <span className='font-semibold text-blue-900 text-sm'>Report Actions</span>
-                                <span className='text-[10px] text-blue-700 text-muted-foreground'>
-                                    {selectedRows.length > 0
-                                        ? `${selectedRows.length} of ${tableData.length} records selected`
-                                        : `${tableData.length} total records found`}
-                                </span>
-                            </div>
+                        {/* Action Buttons & Quick Mode Toggles */}
+                        <div className='mb-4 flex flex-wrap items-center justify-between gap-3 border-blue-100 bg-blue-50/40 p-3 shadow-sm'>
+                            {/* <div className='flex flex-wrap items-center gap-4'>
+                                <span className='font-semibold text-blue-900 text-xs uppercase tracking-wider'>Mode Options:</span>
+                                {[
+                                    { id: 'Total working Day', label: 'Total Working Day' },
+                                    { id: 'Show Holiday Punch', label: 'Holiday Punch' },
+                                    { id: 'Date Of Joining', label: 'Date of Joining' }
+                                ].map((item) => {
+                                    const isChecked = modes.includes(item.id);
+                                    return (
+                                        <label
+                                            key={item.id}
+                                            className='flex cursor-pointer items-center gap-1.5 text-xs text-slate-700 transition-colors hover:text-blue-600'>
+                                            <Checkbox
+                                                checked={isChecked}
+                                                onCheckedChange={() => handleToggleMode(item.id)}
+                                            />
+                                            <span className={isChecked ? 'font-medium text-blue-700' : ''}>{item.label}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div> */}
+
                             <div className='ml-auto flex items-center gap-2'>
                                 <Button
                                     type='button'
@@ -729,15 +757,13 @@ export default function AddEmployeeYearlyReportForm({ onSuccess, className = '',
                             isLoading={isLoading}
                             success={response?.success}
                             error={null}
-                            errorMessage={response?.message || null}
-                            showViewOptions={false}
-                            columnPinning={{ right: ['actions'] }}
-                            isPaginationRequired={true}
+                            isPaginationRequired={false}
+                            manualPagination={true}
+                            scrollable={true}
+                            maxHeight='600px'
+                            isSearchRequired={false}
                             onRowSelectionChange={handleRowSelectionChange}
-                            loadingMessage='Loading Employee Yearly Reports...'
-                            noDataTitle='No Employee Yearly Reports Found'
-                            noDataDescription='Get started by generating your first Employee Yearly Report'
-                            errorTitle='Error Loading Employee Yearly Reports'
+                            errorMessage={response?.message || null}
                         />
                     </CollapsibleSection>
                 </div>

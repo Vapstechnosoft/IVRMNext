@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CustomMultiSelectBox } from '@/components/ui/custom-multiselect';
 import { FormError } from '@/components/ui/extension/field';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMasterCategoryClassMapping } from '@/hooks/exam/exammodule/usemasters';
 import { categoryClassMappingSchema } from '@/schemas/exam/exam-module/masters';
 import {
     addOrUpdateCategoryClassMapping,
@@ -59,13 +60,12 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
     >([]);
     const [editIndex, setEditIndex] = useState<number | null>(null);
 
-    // const { refetchAll } = useMasterCategoryClassMapping(); // Not used directly here, but could be useful if we were using it for list
+    const { refetchAll } = useMasterCategoryClassMapping();
 
     const {
         control,
         handleSubmit,
         setValue,
-        reset,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(categoryClassMappingSchema.addOrUpdate),
@@ -134,8 +134,14 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
 
             try {
                 setLoadingClasses(true);
-                const res = await getUnmappedClasses(Number(watchedYear));
-                const classData = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+                const res: any = await getUnmappedClasses(Number(watchedYear));
+                const classData = Array.isArray(res?.data)
+                    ? res.data
+                    : Array.isArray(res)
+                      ? res
+                      : Array.isArray(res?.classlist)
+                        ? res.classlist
+                        : [];
                 setClasses(classData);
                 if (classData.length === 0) {
                     toast.info(res?.message || 'No unmapped classes found for selected year');
@@ -160,11 +166,16 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
 
             try {
                 setLoadingSections(true);
-                const res = await getUnMappedSections(Number(watchedYear), Number(watchedClass));
-                const sectionData = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : [];
+                const res: any = await getUnMappedSections(Number(watchedYear), Number(watchedClass));
+                const sectionData = Array.isArray(res?.data)
+                    ? res.data
+                    : Array.isArray(res)
+                      ? res
+                      : Array.isArray(res?.sectionlist)
+                        ? res.sectionlist
+                        : [];
 
                 setSections(sectionData);
-                // We typically don't show toast for "no sections" automatically as it might just be empty for valid reasons
                 if (sectionData.length === 0) {
                     // toast.info('No sections found for selected Year and Class');
                 }
@@ -363,6 +374,7 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
 
             if (res?.success) {
                 toast.success(res.message || 'Saved successfully');
+                refetchAll();
                 onSuccess?.();
             } else {
                 toast.error(res?.message || 'Failed to save mappings');
@@ -510,11 +522,16 @@ export default function AddCategoryClassForm({ onSuccess, initialData }: AddCate
                                                 No Classes
                                             </SelectItem>
                                         ) : (
-                                            classes.map((c) => (
-                                                <SelectItem key={c.asmcL_Id} value={String(c.asmcL_Id)}>
-                                                    {c.asmcL_ClassName}
-                                                </SelectItem>
-                                            ))
+                                            classes.map((c: any) => {
+                                                const id = c.asmcL_Id ?? c.ASMCL_Id ?? c.id ?? c.asmcL_ID;
+                                                const name =
+                                                    c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.class_Name ?? c.name;
+                                                return (
+                                                    <SelectItem key={id} value={String(id)}>
+                                                        {name}
+                                                    </SelectItem>
+                                                );
+                                            })
                                         )}
                                     </SelectContent>
                                 </Select>

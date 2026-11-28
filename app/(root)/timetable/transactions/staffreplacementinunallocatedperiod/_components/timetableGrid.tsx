@@ -134,7 +134,7 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
         setSelection2(null);
     };
 
-    const handleReplace = () => {
+  const handleReplace = () => {
         if (!selection1 || !selection2) return;
 
         const payload = {
@@ -152,25 +152,54 @@ export default function TimeTableGrid({ params }: TimeTableGridProps) {
 
         doReplace(payload, {
             onSuccess: (response: any) => {
-                if (response.data?.returnval_cls_notfree) {
-                    toast.error('Replacement Failed: Class is not free.');
-                    console.log('Class not free response', response.data);
-                } else if (response.data?.returnval === true) {
-                    toast.success('Staff replacement saved successfully!');
+                const resData = response?.data;
+
+                // Extract backend message
+                const backendMsg =
+                    resData?.message ||
+                    response?.message ||
+                    (typeof resData?.returnval_cls_notfree === 'string' && resData.returnval_cls_notfree !== 'false'
+                        ? resData.returnval_cls_notfree
+                        : null);
+
+                // Check boolean or string "true" for class conflict
+                const isClassNotFree =
+                    resData?.returnval_cls_notfree === true ||
+                    resData?.returnval_cls_notfree === 'true';
+
+                // Check boolean, string "true", 1, or message containing 'success'
+                const isSuccess =
+                    resData?.returnval === true ||
+                    resData?.returnval === 'true' ||
+                    resData?.returnval === 1 ||
+                    response?.success === true ||
+                    (backendMsg && backendMsg.toLowerCase().includes('success'));
+
+                if (isClassNotFree) {
+                    toast.error(backendMsg || 'Replacement Failed: Class is not free.');
+                    console.log('Class not free response', resData);
+                } else if (isSuccess) {
+                    toast.success(backendMsg || 'Staff replacement saved successfully!');
                     handleClear();
                     refetch();
                 } else {
-                    toast.error('Failed to save staff replacement.');
-                    console.log('Replacement error response', response.data);
+                    toast.error(backendMsg || 'Failed to save staff replacement.');
+                    console.log('Replacement error response', resData);
                 }
             },
             onError: (error: any) => {
-                toast.error('An error occurred while saving the replacement.');
+                const serverErrorMsg =
+                    error?.response?.data?.message ||
+                    error?.response?.data?.title ||
+                    (typeof error?.response?.data === 'string' ? error.response.data : null) ||
+                    error?.message ||
+                    'An error occurred while saving the replacement.';
+
+                toast.error(serverErrorMsg);
                 console.error('Replacement error', error);
             }
         });
     };
-
     if (isReportLoading) {
         return (
             <div className='flex items-center justify-center p-20'>

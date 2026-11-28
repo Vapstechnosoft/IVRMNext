@@ -27,12 +27,12 @@ export default function DeleteFeeChequeBounceForm({
     const mutation = useMutation({
         mutationFn: () => deleteFeeChequeBounce(rowData.fcB_Id),
         onSuccess: (data) => {
-            if (data.returnval) {
-                toast.success('Record Deleted Successfully');
+            if (data.success) {
+                toast.success(data.message);
                 queryClient.invalidateQueries();
                 onClose();
             } else {
-                toast.error('Record Not Deleted Successfully');
+                toast.error(data.message);
             }
         },
         onError: () => {
@@ -45,9 +45,7 @@ export default function DeleteFeeChequeBounceForm({
             <AlertDialogContent>
                 <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        Do You Want To Delete Record for Receipt No: {rowData.fyP_Receipt_No}? This action cannot be undone.
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>Do You Want To Delete Record for Receipt No: {rowData.fyP_Receipt_No}?</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>

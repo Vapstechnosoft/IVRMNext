@@ -5,7 +5,7 @@ import { AdaptiveBody, AdaptiveDialog, AdaptiveFooter } from '@/components/ui/ex
 import { deactivateEvent } from '@/server/coe/masters/master-coe';
 import type { IEventsMapping } from '@/types/alumni/master-coe';
 import type React from 'react';
-import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 
 interface ToggleEventsMappingFormProps {
     rowData: IEventsMapping;
@@ -26,14 +26,26 @@ export default function ToggleEventsMappingForm({ rowData, onClose, onSuccess }:
             const isSuccess = res.success === true || res.returnval === true || res.message?.toLowerCase().includes('successfully');
 
             if (isSuccess) {
-                toast.success(res.message || `Mapping ${isActive ? 'deactivated' : 'activated'} successfully`);
+                Swal.fire({
+                    title: 'Success!',
+                    text: res.message || `Mapping ${isActive ? 'deactivated' : 'activated'} successfully`,
+                    icon: 'success'
+                });
                 onSuccess?.();
                 onClose();
             } else {
-                toast.error(res.message || 'Failed to update mapping status');
+                Swal.fire({
+                    title: 'Failed!',
+                    text: res.message || 'Failed to update mapping status',
+                    icon: 'error'
+                });
             }
         } catch (error: any) {
-            toast.error(error.message || 'Failed to update mapping status');
+            Swal.fire({
+                title: 'Error!',
+                text: error.message || 'Failed to update mapping status',
+                icon: 'error'
+            });
         }
     };
 

@@ -1,5 +1,15 @@
 'use client';
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     deleteMainMenuINS,
@@ -10,7 +20,7 @@ import {
 import type { MainMenuModuleDTO, MasterMainMenuINSDTO } from '@/types/super-admin/configuration-setting/master-main-menu-ins';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import MainMenuGrid from './_components/main-menu-grid';
@@ -37,6 +47,16 @@ export default function MasterMainMenuINSPage() {
     const [gridData, setGridData] = useState<MasterMainMenuINSDTO[]>([]);
     const [moduleMenuData, setModuleMenuData] = useState<MainMenuModuleDTO[]>([]);
 
+    const institutionId = useWatch({
+        control: methods.control,
+        name: 'institution'
+    });
+
+    const moduleId = useWatch({
+        control: methods.control,
+        name: 'module'
+    });
+
     useEffect(() => {
         const fetchGridData = async () => {
             // Fetch Existing Grid Data
@@ -62,40 +82,76 @@ export default function MasterMainMenuINSPage() {
             } catch (error) {
                 console.error('Error in fetchGridData:', error);
             }
+        };
+        fetchGridData();
+    }, []);
 
-            // Fetch Module Menu List (New Grid)
+    useEffect(() => {
+        const fetchModuleMenuList = async () => {
+            if (!institutionId || !moduleId) {
+                setModuleMenuData([]);
+                return;
+            }
+
             try {
-                const modResponse = await getModuleMenuList();
-                if (modResponse.success && modResponse.data?.moduleList) {
-                    // Strict deduplication for Module List
+                const response = await getModuleMenuList(Number(institutionId), Number(moduleId));
+
+                if (response.success && response.data?.moduleList) {
                     const uniqueData = Array.from(
                         new Map(
-                            modResponse.data.moduleList
+                            response.data.moduleList
                                 .filter((item) => item && item.ivrmmM_Id != null)
                                 .map((item) => [String(item.ivrmmM_Id), item])
                         ).values()
                     );
 
-                    if (uniqueData.length !== modResponse.data.moduleList.length) {
-                        console.warn(
-                            `Removed ${modResponse.data.moduleList.length - uniqueData.length} duplicate records from Module Menu Grid`
-                        );
-                    }
                     setModuleMenuData(uniqueData);
+                } else {
+                    setModuleMenuData([]);
                 }
             } catch (error) {
-                console.error('Error in fetchModuleList:', error);
+                console.error('Error fetching Module Menu List:', error);
+
+                setModuleMenuData([]);
             }
         };
-        fetchGridData();
-    }, []);
 
-    const handleDelete = async (item: MasterMainMenuINSDTO) => {
-        if (confirm(`Are you sure you want to delete ${item.ivrmmmI_MenuName}?`)) {
-            const res = await deleteMainMenuINS(item);
+        fetchModuleMenuList();
+    }, [moduleId]);
+    const [deleteTarget, setDeleteTarget] = useState<MasterMainMenuINSDTO | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // const handleDelete = async (item: MasterMainMenuINSDTO) => {
+    //     if (confirm(`Are you sure you want to delete ${item.ivrmmmI_MenuName}?`)) {
+    //         const res = await deleteMainMenuINS(item);
+    //         if (res.success) {
+    //             toast.success('Deleted successfully');
+    //             // Refresh grid
+    //             const response = await getMainMenuListINS();
+    //             if (response.success && response.data?.gridDetails) {
+    //                 setGridData(response.data.gridDetails);
+    //             }
+    //         } else {
+    //             toast.error('Failed to delete: ' + res.message);
+    //         }
+    //     }
+    // };
+    // Opens the popup
+    const handleDelete = (item: MasterMainMenuINSDTO) => {
+        setDeleteTarget(item);
+    };
+
+    // Runs when the user confirms in the popup
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+
+        setIsDeleting(true);
+        try {
+            const res = await deleteMainMenuINS(deleteTarget);
+
             if (res.success) {
                 toast.success('Deleted successfully');
-                // Refresh grid
+
                 const response = await getMainMenuListINS();
                 if (response.success && response.data?.gridDetails) {
                     setGridData(response.data.gridDetails);
@@ -103,6 +159,11 @@ export default function MasterMainMenuINSPage() {
             } else {
                 toast.error('Failed to delete: ' + res.message);
             }
+        } catch (err) {
+            toast.error('Something went wrong while deleting');
+        } finally {
+            setIsDeleting(false);
+            setDeleteTarget(null);
         }
     };
 
@@ -154,7 +215,7 @@ export default function MasterMainMenuINSPage() {
             // Optionally clear selection or reload page
             // window.location.reload();
         } else if (failCount > 0) {
-            toast.error('Failed to save selected items.');
+            toast.error('Duplicate records are found /Failed to save selected items');
         }
     };
 
@@ -197,6 +258,34 @@ export default function MasterMainMenuINSPage() {
                     </FormProvider>
                 </CardContent>
             </Card>
+
+            <AlertDialog
+                open={!!deleteTarget}
+                onOpenChange={(open) => {
+                    if (!open && !isDeleting) setDeleteTarget(null);
+                }}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete menu?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete <span className='font-semibold'>{deleteTarget?.ivrmmmI_MenuName}</span>? This
+                            action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            disabled={isDeleting}
+                            onClick={(e) => {
+                                e.preventDefault(); // keep the dialog open until the request finishes
+                                confirmDelete();
+                            }}
+                            className='bg-red-600 hover:bg-red-700'>
+                            {isDeleting ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

@@ -3,11 +3,49 @@ import { api } from '@/lib/apiService';
 // biome-ignore lint/style/useImportType: <explanation>
 import { IMasterInstitution } from '@/types/exam/exam-module/report';
 
+import { auth } from '@/lib/auth';
+
 export async function getExamReportCard(data: any) {
+    const session = await auth();
+    const miId = data.mI_Id || data.MI_Id || (session as any)?.mi_id || session?.user?.mi_id || (session as any)?.user?.mI_Id || 30;
+
+    const studentArr = Array.isArray(data.studentList)
+        ? data.studentList.map((s: any) => ({
+              AMST_Id: Number(s.amsT_Id ?? s.AMST_Id ?? s),
+              amsT_Id: Number(s.amsT_Id ?? s.AMST_Id ?? s)
+          }))
+        : data.amsT_Ids
+          ? String(data.amsT_Ids)
+                .split(',')
+                .filter(Boolean)
+                .map((id: string) => ({
+                    AMST_Id: Number(id),
+                    amsT_Id: Number(id)
+                }))
+          : [];
+
+    const payload = {
+        ...data,
+        mI_Id: Number(miId),
+        MI_Id: Number(miId),
+        asmaY_Id: Number(data.asmaY_Id || data.ASMAY_Id || 0),
+        ASMAY_Id: Number(data.asmaY_Id || data.ASMAY_Id || 0),
+        asmcL_Id: Number(data.asmcL_Id || data.ASMCL_Id || 0),
+        ASMCL_Id: Number(data.asmcL_Id || data.ASMCL_Id || 0),
+        asmS_Id: Number(data.asmS_Id || data.ASMS_Id || 0),
+        ASMS_Id: Number(data.asmS_Id || data.ASMS_Id || 0),
+        emE_Id: Number(data.emE_Id || data.EME_Id || 0),
+        EME_Id: Number(data.emE_Id || data.EME_Id || 0),
+        temp_AmstIds: studentArr,
+        Temp_AmstIds: studentArr,
+        studentList: studentArr,
+        studentlist: studentArr
+    };
+
     const url = '/individual_exam_report_card/exam_report_card';
     console.info('url', url);
-    console.info('data', data);
-    return await api.post<any>('exam', url, data);
+    console.info('payload', payload);
+    return await api.post<any>('exam', url, payload);
 }
 
 //Elective Subject Report

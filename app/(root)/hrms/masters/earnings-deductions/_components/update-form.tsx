@@ -9,14 +9,16 @@ import {
     useEarningsDeductionsTypeDropdown,
     useMasterEarningsDeductions,
     useRoundingTypeDropdown,
-    useSalaryComponentTypeDropdown
+    useSalaryComponentTypeDropdown,
+    useEarningAndDeductionDropdown,
+    useMasterEarningsDeductionsById
 } from '@/hooks/hrms/useMasters';
 import { EARNING_DEDUCTION_VALIDATION } from '@/lib/validation/hrms-master-validation';
 import { saveMasterEarningsDeductions } from '@/server/hrms/hrmsConfig/master/earnings-deductions';
 import type { IMasterEarningsDeductionsList } from '@/types/hrms/hrms-config/master';
 import type { MasterEarningsDeductionsInput } from '@/types/hrms/master-earnings-deductions';
-import { Save } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2, Save } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -147,6 +149,105 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
         defaultValue: 'Amount'
     });
 
+    const isPercentage = calculationType === 'Percentage' || calculationType?.toLowerCase() === 'percentage';
+
+    const { data: earningAndDeductionDropdownResponse, isLoading: isLoadingEarningAndDeduction } =
+        useEarningAndDeductionDropdown({
+            enabled: isPercentage
+        });
+
+    const { data: recordDetailsResponse, isLoading: isLoadingDetails } = useMasterEarningsDeductionsById(row?.hrmeD_Id);
+
+    const [selectedPercentageIds, setSelectedPercentageIds] = useState<number[]>([]);
+    const initialSelectedPercentageIdsRef = useRef<number[]>([]);
+    const [percentagePage, setPercentagePage] = useState<number>(1);
+    const pageSize = 10;
+
+    useEffect(() => {
+        const res = recordDetailsResponse as any;
+        if (!res) return;
+
+        // Extract list from various possible response shapes
+        let rawSelected: any[] = [];
+        if (Array.isArray(res?.data?.selectedearningdetectionList)) {
+            rawSelected = res.data.selectedearningdetectionList;
+        } else if (Array.isArray(res?.data?.perc_OfDTO)) {
+            rawSelected = res.data.perc_OfDTO;
+        } else if (Array.isArray(res?.selectedearningdetectionList)) {
+            rawSelected = res.selectedearningdetectionList;
+        } else if (Array.isArray(res?.perc_OfDTO)) {
+            rawSelected = res.perc_OfDTO;
+        } else if (Array.isArray(res?.data)) {
+            res.data.forEach((d: any) => {
+                if (Array.isArray(d?.selectedearningdetectionList)) {
+                    rawSelected.push(...d.selectedearningdetectionList);
+                } else if (Array.isArray(d?.perc_OfDTO)) {
+                    rawSelected.push(...d.perc_OfDTO);
+                }
+            });
+        }
+
+        const ids: number[] = [];
+        rawSelected.forEach((s: any) => {
+            const targetId = s.hrmedP_HRMED_Id ?? s.HRMEDP_HRMED_Id ?? s.HRMEDP_Id;
+            if (targetId != null && Number(targetId) > 0 && !ids.includes(Number(targetId))) {
+                ids.push(Number(targetId));
+            } else if (s.hrmeD_Id != null && Number(s.hrmeD_Id) !== Number(row?.hrmeD_Id) && !ids.includes(Number(s.hrmeD_Id))) {
+                ids.push(Number(s.hrmeD_Id));
+            }
+        });
+
+        if (ids.length > 0) {
+            setSelectedPercentageIds(ids);
+            initialSelectedPercentageIdsRef.current = ids;
+        }
+    }, [recordDetailsResponse, row?.hrmeD_Id]);
+
+    const percentageOfList = useMemo(() => {
+        let rawData: any[] = [];
+        const res = earningAndDeductionDropdownResponse as any;
+        if (!res) return [];
+
+        if (Array.isArray(res)) {
+            rawData = res;
+        } else if (Array.isArray(res?.data?.earningdetectionList)) {
+            rawData = res.data.earningdetectionList;
+        } else if (Array.isArray(res?.data?.EarningdetectionList)) {
+            rawData = res.data.EarningdetectionList;
+        } else if (res?.data?.earningdetectionList?.$values && Array.isArray(res.data.earningdetectionList.$values)) {
+            rawData = res.data.earningdetectionList.$values;
+        } else if (Array.isArray(res?.earningdetectionList)) {
+            rawData = res.earningdetectionList;
+        } else if (Array.isArray(res?.data)) {
+            rawData = res.data;
+        }
+
+        return rawData.filter((item: any) => {
+            const itemId = item.hrmeD_Id ?? item.HRMED_Id;
+            return itemId !== row?.hrmeD_Id;
+        });
+    }, [earningAndDeductionDropdownResponse, row?.hrmeD_Id]);
+
+    const totalPercentagePages = Math.ceil(percentageOfList.length / pageSize) || 1;
+
+    const paginatedPercentageList = useMemo(() => {
+        const startIndex = (percentagePage - 1) * pageSize;
+        return percentageOfList.slice(startIndex, startIndex + pageSize);
+    }, [percentageOfList, percentagePage, pageSize]);
+
+    const togglePercentageSelection = (id: number) => {
+        setSelectedPercentageIds((prev) =>
+            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+        );
+    };
+
+    const isPercentageListDirty = useMemo(() => {
+        if (!isPercentage) return false;
+        const initial = initialSelectedPercentageIdsRef.current;
+        if (initial.length !== selectedPercentageIds.length) return true;
+        return selectedPercentageIds.some((id) => !initial.includes(id));
+    }, [isPercentage, selectedPercentageIds]);
+
     const findKey = (list: DropdownItem[], val: any) => {
         if (val === undefined || val === null) return undefined;
         const stringVal = String(val).trim();
@@ -211,20 +312,27 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
     };
 
     const [isBinding, setIsBinding] = useState(true);
+    const boundRowIdRef = useRef<number | null>(null);
 
-    // Wait until all dropdown APIs have completed their initial fetch
+    // Wait until all dropdown APIs have completed their initial fetch and populated
     const isReady =
-        !isLoadingEarningsDeductionsTypes && !isLoadingRoundingTypes && !isLoadingAmountOrPercentage && !isLoadingSalaryComponentType;
+        !isLoadingEarningsDeductionsTypes &&
+        !isLoadingRoundingTypes &&
+        !isLoadingAmountOrPercentage &&
+        !isLoadingSalaryComponentType &&
+        earningsDeductionsTypeDropdown.length > 0;
 
     useEffect(() => {
-        if (row && isReady) {
+        if (row && isReady && boundRowIdRef.current !== row.hrmeD_Id) {
+            const mappedType =
+                findValue(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag) ??
+                (row.hrmeD_EDTypeFlag != null ? String(row.hrmeD_EDTypeFlag) : undefined);
+
             reset({
                 HRMED_Id: row.hrmeD_Id,
                 MI_Id: row.mI_Id || 0,
                 HRMED_Name: row.hrmeD_Name || '',
-                HRMED_EDTypeFlag:
-                    findKey(earningsDeductionsTypeDropdown, row.hrmeD_EDTypeFlag) ??
-                    (row.hrmeD_EDTypeFlag != null ? String(row.hrmeD_EDTypeFlag) : undefined),
+                HRMED_EDTypeFlag: mappedType,
                 HRMED_EarnDedFlag:
                     findKey(salaryComponentTypeDropdown, row.hrmeD_EarnDedFlag) ??
                     (row.hrmeD_EarnDedFlag != null ? String(row.hrmeD_EarnDedFlag) : undefined),
@@ -239,26 +347,65 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                 HRMED_Order: row.hrmeD_Order,
                 HRMED_ReviseFlg: row.hrmeD_ReviseFlg
             });
+            boundRowIdRef.current = row.hrmeD_Id;
             setIsBinding(false);
         }
-        // Intentionally omitting dropdown arrays to prevent wiping user input during background refetches
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [row, reset, isReady]);
+    }, [
+        row,
+        reset,
+        isReady,
+        earningsDeductionsTypeDropdown,
+        salaryComponentTypeDropdown,
+        amountOrPercentageDropdown,
+        roundingTypeDropdown
+    ]);
+
     const onSubmit = async (data: MasterEarningsDeductionsInput) => {
         try {
-            // Build the request body - map to lowercase field names as per API
-            const payload = {
-                hrmeD_Id: data.HRMED_Id || 0,
+            // Build the request body - support both casing conventions required by ASP.NET backend
+            const hrmeD_Id = data.HRMED_Id || row?.hrmeD_Id || 0;
+            const mI_Id = data.MI_Id || row?.mI_Id || 0;
+            const edType = data.HRMED_EDTypeFlag || '';
+
+            const payload: any = {
+                hrmeD_Id: hrmeD_Id,
+                HRMED_Id: hrmeD_Id,
+                mI_Id: mI_Id,
+                MI_Id: mI_Id,
                 hrmeD_Name: data.HRMED_Name?.trim() || '',
-                hrmeD_EDTypeFlag: data.HRMED_EDTypeFlag,
+                HRMED_Name: data.HRMED_Name?.trim() || '',
+                hrmeD_EDTypeFlag: edType,
+                HRMED_EDTypeFlag: edType,
                 hrmeD_EarnDedFlag: data.HRMED_EarnDedFlag,
+                HRMED_EarnDedFlag: data.HRMED_EarnDedFlag,
                 hrmeD_AmountPercentFlag: data.HRMED_AmountPercentFlag,
+                HRMED_AmountPercentFlag: data.HRMED_AmountPercentFlag,
                 hrmeD_AmountPercent: data.HRMED_AmountPercent,
+                HRMED_AmountPercent: data.HRMED_AmountPercent,
                 hrmeD_RoundOffFlag: data.HRMED_RoundOffFlag,
+                HRMED_RoundOffFlag: data.HRMED_RoundOffFlag,
+                hrmeD_ActiveFlag: row?.hrmeD_ActiveFlag ?? true,
+                HRMED_ActiveFlag: row?.hrmeD_ActiveFlag ?? true,
                 hrmeD_ReviseFlg: data.HRMED_ReviseFlg ?? true,
-                hrmeD_Order: data.HRMED_Order || 0
+                HRMED_ReviseFlg: data.HRMED_ReviseFlg ?? true,
+                hrmeD_Order: data.HRMED_Order ?? row?.hrmeD_Order ?? 0,
+                HRMED_Order: data.HRMED_Order ?? row?.hrmeD_Order ?? 0,
+                perc_OfDTO: isPercentage
+                    ? selectedPercentageIds.map((id) => ({
+                          hrmeD_Id: hrmeD_Id,
+                          HRMED_Id: hrmeD_Id,
+                          mI_Id: mI_Id,
+                          MI_Id: mI_Id,
+                          hrmedP_HRMED_Id: id,
+                          HRMEDP_HRMED_Id: id
+                      }))
+                    : []
             };
+
+            console.log('Update payload:', payload);
             const response = await saveMasterEarningsDeductions(payload);
+            console.log('Update response:', response);
+
             if (response?.success) {
                 toast.success(response?.message || 'Earning/Deduction updated successfully');
                 refetchAll();
@@ -276,6 +423,8 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
     };
     const handleReset = () => {
         reset();
+        setPercentagePage(1);
+        setSelectedPercentageIds(initialSelectedPercentageIdsRef.current);
     };
     return (
         <div className={className}>
@@ -302,13 +451,10 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                             />
                         </div>
                         <div className='group flex flex-col gap-1.5'>
-                            <Label htmlFor='HRMED_EDTypeFlag'>
-                                Type <span className='text-destructive'>*</span>
-                            </Label>
+                            <Label htmlFor='HRMED_EDTypeFlag'>Type</Label>
                             <Controller
                                 name='HRMED_EDTypeFlag'
                                 control={control}
-                                rules={{ required: 'Type is required' }}
                                 render={({ field }) => (
                                     <Select onValueChange={field.onChange} value={field.value || undefined}>
                                         <SelectTrigger>
@@ -334,7 +480,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                                         const value = item.value || String(key);
                                                         if (!key || key === '') return null;
                                                         return (
-                                                            <SafeSelectItem key={key} value={key}>
+                                                            <SafeSelectItem key={key} value={value}>
                                                                 {value}
                                                             </SafeSelectItem>
                                                         );
@@ -345,7 +491,6 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                     </Select>
                                 )}
                             />
-                            {errors.HRMED_EDTypeFlag && <FormError>{errors.HRMED_EDTypeFlag.message}</FormError>}
                         </div>
                         <div className='group flex flex-col gap-1.5'>
                             <Label htmlFor='HRMED_RoundOffFlag'>
@@ -451,7 +596,9 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                     <Select
                                         onValueChange={(value) => {
                                             field.onChange(value);
-                                            trigger('HRMED_AmountPercent');
+                                            if (getValues('HRMED_AmountPercent')) {
+                                                trigger('HRMED_AmountPercent');
+                                            }
                                         }}
                                         value={field.value || undefined}>
                                         <SelectTrigger>
@@ -544,6 +691,169 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                 Revise
                             </Label>
                         </div>
+
+                        {/* Percentage Of Table */}
+                        {isPercentage && (
+                            <div className='col-span-1 md:col-span-2 flex flex-col md:flex-row gap-4 items-start pt-2'>
+                                <div className='w-36 shrink-0 pt-2'>
+                                    <Label className='text-sm font-semibold'>
+                                        Percentage Of:<span className='text-destructive'>*</span>
+                                    </Label>
+                                </div>
+                                <div className='flex-1 w-full max-w-4xl'>
+                                    <div className='border border-[#0056b3] rounded-sm overflow-hidden shadow-sm'>
+                                        <table className='w-full border-collapse text-sm'>
+                                            <thead>
+                                                <tr className='bg-violet-700 text-white text-sm font-bold'>
+                                                    <th className='py-2.5 px-4 text-center border-r border-blue-400/30 w-2/5'>Name</th>
+                                                    <th className='py-2.5 px-4 text-center border-r border-blue-400/30 w-1/4'>Type</th>
+                                                    <th className='py-2.5 px-4 text-center border-r border-blue-400/30 w-1/5'>Amt/Per</th>
+                                                    <th className='py-2.5 px-4 text-center w-1/6'>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className='divide-y divide-gray-200 bg-white'>
+                                                {isLoadingEarningAndDeduction ? (
+                                                    <tr>
+                                                        <td colSpan={4} className='py-6 text-center text-muted-foreground'>
+                                                            <div className='flex items-center justify-center gap-2'>
+                                                                <Loader2 className='h-4 w-4 animate-spin text-primary' />
+                                                                <span>Loading components...</span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ) : paginatedPercentageList.length === 0 ? (
+                                                    <tr>
+                                                        <td colSpan={4} className='py-6 text-center text-muted-foreground'>
+                                                            No percentage records available.
+                                                        </td>
+                                                    </tr>
+                                                ) : (
+                                                    paginatedPercentageList.map((item: any, index: number) => {
+                                                        const numId = Number(item.hrmeD_Id ?? item.HRMED_Id);
+                                                        const isChecked = selectedPercentageIds.includes(numId);
+                                                        const name = item.hrmeD_Name ?? item.HRMED_Name ?? '-';
+                                                        const type = item.hrmeD_EarnDedFlag ?? item.HRMED_EarnDedFlag ?? item.hrmeD_EDTypeFlag ?? '-';
+                                                        const amountPercent = item.hrmeD_AmountPercent ?? item.HRMED_AmountPercent ?? '0';
+                                                        const isItemPercentage =
+                                                            (item.hrmeD_AmountPercentFlag ?? item.HRMED_AmountPercentFlag ?? '').toLowerCase() === 'percentage';
+
+                                                        return (
+                                                            <tr
+                                                                key={numId || index}
+                                                                onClick={() => togglePercentageSelection(numId)}
+                                                                className={`transition-colors hover:bg-blue-50/50 cursor-pointer ${isChecked ? 'bg-blue-50/30' : ''}`}>
+                                                                <td className='py-2.5 px-4 text-center border-r border-gray-200 font-medium text-gray-800'>
+                                                                    {name}
+                                                                </td>
+                                                                <td className='py-2.5 px-4 text-center border-r border-gray-200 text-gray-700'>
+                                                                    {type}
+                                                                </td>
+                                                                <td className='py-2.5 px-4 text-center border-r border-gray-200 text-gray-700'>
+                                                                    {isItemPercentage ? `${amountPercent} %` : amountPercent}
+                                                                </td>
+                                                                <td className='py-2.5 px-4 text-center'>
+                                                                    <div
+                                                                        className='flex items-center justify-center'
+                                                                        onClick={(e) => e.stopPropagation()}>
+                                                                        <input
+                                                                            type='checkbox'
+                                                                            checked={isChecked}
+                                                                            onChange={() => togglePercentageSelection(numId)}
+                                                                            className='h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer'
+                                                                        />
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    {/* Pagination */}
+                                    {totalPercentagePages > 1 && (
+                                        <div className='flex flex-wrap items-center justify-between gap-3 mt-3 px-1'>
+                                            <span className='text-xs text-muted-foreground'>
+                                                Showing {((percentagePage - 1) * pageSize) + 1} to {Math.min(percentagePage * pageSize, percentageOfList.length)} of {percentageOfList.length} items
+                                            </span>
+                                            <div className='flex items-center gap-1 border border-border bg-background rounded-full p-1 shadow-xs'>
+                                                <button
+                                                    type='button'
+                                                    onClick={() => setPercentagePage(1)}
+                                                    disabled={percentagePage === 1}
+                                                    className='h-7 w-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition-colors'
+                                                    title='First Page'>
+                                                    <ChevronsLeft className='h-3.5 w-3.5' />
+                                                </button>
+                                                <button
+                                                    type='button'
+                                                    onClick={() => setPercentagePage((p) => Math.max(1, p - 1))}
+                                                    disabled={percentagePage === 1}
+                                                    className='h-7 w-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition-colors'
+                                                    title='Previous Page'>
+                                                    <ChevronLeft className='h-3.5 w-3.5' />
+                                                </button>
+                                                {Array.from({ length: totalPercentagePages }, (_, i) => i + 1)
+                                                    .filter((page) => {
+                                                        if (totalPercentagePages <= 5) return true;
+                                                        if (page === 1 || page === totalPercentagePages) return true;
+                                                        return Math.abs(page - percentagePage) <= 1;
+                                                    })
+                                                    .reduce<(number | string)[]>((acc, page, idx, arr) => {
+                                                        if (idx > 0 && typeof arr[idx - 1] === 'number' && (page as number) - (arr[idx - 1] as number) > 1) {
+                                                            acc.push('...');
+                                                        }
+                                                        acc.push(page);
+                                                        return acc;
+                                                    }, [])
+                                                    .map((page, index) =>
+                                                        page === '...' ? (
+                                                            <span
+                                                                key={`ellipsis-${index}`}
+                                                                className='h-7 w-6 flex items-center justify-center text-xs text-muted-foreground'>
+                                                                ...
+                                                            </span>
+                                                        ) : (
+                                                            <button
+                                                                key={`page-${page}`}
+                                                                type='button'
+                                                                onClick={() => setPercentagePage(Number(page))}
+                                                                className={`h-7 w-7 flex items-center justify-center text-xs font-semibold rounded-full transition-all ${
+                                                                    percentagePage === page
+                                                                        ? 'bg-destructive text-destructive-foreground shadow-xs font-bold'
+                                                                        : 'text-foreground/80 hover:text-foreground hover:bg-muted'
+                                                                }`}>
+                                                                {page}
+                                                            </button>
+                                                        )
+                                                    )}
+                                                <button
+                                                    type='button'
+                                                    onClick={() => setPercentagePage((p) => Math.min(totalPercentagePages, p + 1))}
+                                                    disabled={percentagePage === totalPercentagePages}
+                                                    className='h-7 w-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition-colors'
+                                                    title='Next Page'>
+                                                    <ChevronRight className='h-3.5 w-3.5' />
+                                                </button>
+                                                <button
+                                                    type='button'
+                                                    onClick={() => setPercentagePage(totalPercentagePages)}
+                                                    disabled={percentagePage === totalPercentagePages}
+                                                    className='h-7 w-7 flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition-colors'
+                                                    title='Last Page'>
+                                                    <ChevronsRight className='h-3.5 w-3.5' />
+                                                </button>
+                                                <div className='h-3.5 w-px bg-border mx-1' />
+                                                <span className='text-xs font-medium text-muted-foreground px-2 whitespace-nowrap'>
+                                                    Page {percentagePage} of {totalPercentagePages}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                     {/* Action Buttons */}
                     <div className='flex flex-col gap-3 border-t pt-4 sm:flex-row sm:justify-start'>
@@ -557,7 +867,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                         </Button>
                         <Button
                             type='submit'
-                            disabled={isSubmitting || !isDirty}
+                            disabled={isSubmitting || (!isDirty && !isPercentageListDirty)}
                             className='order-1 w-fit transition-all duration-200 hover:scale-105 sm:order-2'
                             isLoading={isSubmitting}
                             loadingText='Updating...'>
@@ -566,7 +876,7 @@ export default function UpdateEarningsDeductionsForm({ onSuccess, className = ''
                                 Update Earning/Deduction
                             </div>
                         </Button>
-                        {!isDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
+                        {!isDirty && !isPercentageListDirty && <span className='flex items-center text-muted-foreground text-sm'>No changes made</span>}
                     </div>
                 </form>
             )}

@@ -65,6 +65,14 @@ export async function getMasterQuestionList(searchParams?: ApiSearchparams) {
 }
 
 export async function saveMasterQuestion(data: any) {
+    try {
+        const res: any = await api.post('exam', '/LP_OnlineExam/SaveMasterQuestionDetails', data);
+        if (res && (res.message || res.returnval !== undefined || res.data)) {
+            return res.data || res;
+        }
+    } catch (e: any) {
+        console.warn('[saveMasterQuestion] fallback from LP_OnlineExam:', e?.message);
+    }
     return await api.post<any>('exam', '/OnlineExam_MasterQuestion/savedetails', data);
 }
 
@@ -77,6 +85,28 @@ export async function saveQuestionOptions(data: any) {
 }
 
 export async function getQuestionOptions(id: number) {
+    try {
+        const res: any = await api.post('exam', '/LP_OnlineExam/EditMasterQuestion', { LPMOEQ_Id: id });
+        const data = res?.data || res;
+        if (data?.getSavedOptions || data?.getViewSavedOptions) {
+            const saved = data.getSavedOptions || data.getViewSavedOptions || [];
+            const files = data.getViewSavedOptionsFiles || [];
+            return (saved || []).map((opt: any) => ({
+                LPMOEQOA_Id: opt.lpmoeqoA_Id || opt.LPMOEQOA_Id || 0,
+                lmsmoeqoA_Id: opt.lpmoeqoA_Id || opt.LPMOEQOA_Id || 0,
+                LPMOEQOA_Option: opt.lpmoeqoA_Option || opt.LPMOEQOA_Option || '',
+                lmsmoeqoA_Option: opt.lpmoeqoA_Option || opt.LPMOEQOA_Option || '',
+                LPMOEQOA_OptionCode: opt.lpmoeqoA_OptionCode || opt.LPMOEQOA_OptionCode || '',
+                lmsmoeqoA_OptionCode: opt.lpmoeqoA_OptionCode || opt.LPMOEQOA_OptionCode || '',
+                LPMOEQOA_AnswerFlag: Boolean(opt.lpmoeqoA_AnswerFlag ?? opt.LPMOEQOA_AnswerFlag),
+                lmsmoeqoA_AnswerFlag: Boolean(opt.lpmoeqoA_AnswerFlag ?? opt.LPMOEQOA_AnswerFlag),
+                files: (files || []).filter((f: any) => f.lpmoeqoA_Id === (opt.lpmoeqoA_Id || opt.LPMOEQOA_Id))
+            }));
+        }
+        if (data && Array.isArray(data)) return data;
+    } catch (e: any) {
+        console.warn('[getQuestionOptions] fallback from LP_OnlineExam:', e?.message);
+    }
     return await api.get<any>('exam', `/OnlineExam_MasterQuestion/editQuestion/${id}`);
 }
 

@@ -82,6 +82,14 @@ export default function MasterConfigurationForm({
 }) {
     const saveMutation = useSaveMasterConfiguration();
 
+    const flag =
+        response?.mI_SchoolCollegeFlag ||
+        response?.schoolCollegeFlag ||
+        (response as any)?.SchoolCollegeFlag ||
+        (response as any)?.MI_SchoolCollegeFlag ||
+        'S';
+    const isCollege = flag === 'U' || flag === 'C';
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: initialData || {
@@ -250,23 +258,44 @@ export default function MasterConfigurationForm({
                                 )}
                             />
 
-                            {response?.mI_SchoolCollegeFlag === 'S' && (
+                            {!isCollege && (
                                 <FormField
                                     control={form.control}
                                     name='amC_Id'
                                     render={({ field }) => (
                                         <FormItem className='mt-4'>
                                             <FormLabel>Category</FormLabel>
-                                            <div className='flex max-h-32 flex-col space-y-2 overflow-y-auto rounded-md border p-2'>
-                                                {response?.studentlicategorylist?.map((cat) => (
-                                                    <div key={cat.amC_Id} className='flex items-center space-x-2'>
-                                                        <Checkbox
-                                                            checked={field.value === cat.amC_Id}
-                                                            onCheckedChange={(checked) => field.onChange(checked ? cat.amC_Id : undefined)}
-                                                        />
-                                                        <label className='text-sm'>{cat.amC_Name}</label>
+                                            <div className='flex max-h-36 flex-col space-y-2 overflow-y-auto rounded-md border bg-muted/10 p-2'>
+                                                {response?.studentlicategorylist && response.studentlicategorylist.length > 0 ? (
+                                                    response.studentlicategorylist.map((cat: any) => {
+                                                        const catId = Number(cat.amC_Id ?? cat.amc_Id ?? cat.AMC_Id);
+                                                        const catName = cat.amC_Name ?? cat.amc_Name ?? cat.AMC_Name;
+                                                        const isChecked = field.value === catId;
+                                                        return (
+                                                            <div
+                                                                key={catId}
+                                                                className='flex cursor-pointer items-center space-x-2 rounded px-2 py-1.5 hover:bg-muted/40'
+                                                                >
+                                                                <Checkbox
+                                                                    id={`cat-${catId}`}
+                                                                    checked={isChecked}
+                                                                    onCheckedChange={(checked) =>
+                                                                        field.onChange(checked ? catId : undefined)
+                                                                    }
+                                                                />
+                                                                <label
+                                                                    htmlFor={`cat-${catId}`}
+                                                                    className='cursor-pointer select-none font-medium text-sm leading-none'>
+                                                                    {catName}
+                                                                </label>
+                                                            </div>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <div className='p-2 text-muted-foreground text-xs italic'>
+                                                        No categories found. Add categories in Master Category to see them here.
                                                     </div>
-                                                ))}
+                                                )}
                                             </div>
                                             <FormMessage />
                                         </FormItem>
@@ -274,25 +303,44 @@ export default function MasterConfigurationForm({
                                 />
                             )}
 
-                            {(response?.mI_SchoolCollegeFlag === 'U' || response?.mI_SchoolCollegeFlag === 'C') && (
+                            {isCollege && (
                                 <FormField
                                     control={form.control}
                                     name='amcoC_Id'
                                     render={({ field }) => (
                                         <FormItem className='mt-4'>
                                             <FormLabel>Category</FormLabel>
-                                            <div className='flex max-h-32 flex-col space-y-2 overflow-y-auto rounded-md border p-2'>
-                                                {response?.studentlicategorylist?.map((cat) => (
-                                                    <div key={cat.amcoC_Id} className='flex items-center space-x-2'>
-                                                        <Checkbox
-                                                            checked={field.value === cat.amcoC_Id}
-                                                            onCheckedChange={(checked) =>
-                                                                field.onChange(checked ? cat.amcoC_Id : undefined)
-                                                            }
-                                                        />
-                                                        <label className='text-sm'>{cat.amcoC_Name}</label>
+                                            <div className='flex max-h-36 flex-col space-y-2 overflow-y-auto rounded-md border bg-muted/10 p-2'>
+                                                {response?.studentlicategorylist && response.studentlicategorylist.length > 0 ? (
+                                                    response.studentlicategorylist.map((cat: any) => {
+                                                        const catId = Number(cat.amcoC_Id ?? cat.amcoc_Id ?? cat.AMCOC_Id);
+                                                        const catName = cat.amcoC_Name ?? cat.amcoc_Name ?? cat.AMCOC_Name;
+                                                        const isChecked = field.value === catId;
+                                                        return (
+                                                            <div
+                                                                key={catId}
+                                                                className='flex cursor-pointer items-center space-x-2 rounded px-2 py-1.5 hover:bg-muted/40'
+                                                                onClick={() => field.onChange(isChecked ? undefined : catId)}>
+                                                                <Checkbox
+                                                                    id={`col-cat-${catId}`}
+                                                                    checked={isChecked}
+                                                                    onCheckedChange={(checked) =>
+                                                                        field.onChange(checked ? catId : undefined)
+                                                                    }
+                                                                />
+                                                                <label
+                                                                    htmlFor={`col-cat-${catId}`}
+                                                                    className='cursor-pointer select-none font-medium text-sm leading-none'>
+                                                                    {catName}
+                                                                </label>
+                                                            </div>
+                                                        );
+                                                    })
+                                                ) : (
+                                                    <div className='p-2 text-muted-foreground text-xs italic'>
+                                                        No categories found. Add categories in Master Category to see them here.
                                                     </div>
-                                                ))}
+                                                )}
                                             </div>
                                             <FormMessage />
                                         </FormItem>

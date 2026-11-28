@@ -1,4 +1,5 @@
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { FormError, Label } from '@/components/ui/extension/field';
@@ -6,7 +7,7 @@ import { InputText } from '@/components/ui/extension/input-text';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useLeaveYearDropdown, useMonthDropdown } from '@/hooks/hrms/useMasters';
-import { useEmployeeSalaryAdvanceDetails, useSaveSalaryAdvance } from '@/hooks/hrms/useTransactions';
+import { useEmployeeSalaryAdvanceDetails, useSalaryAdvance, useSalaryAdvanceEmployeeDropdown, useSaveSalaryAdvance } from '@/hooks/hrms/useTransactions';
 import { cn } from '@/lib/utils';
 import { hrmsTransactionSchemas } from '@/schemas/hrms/transaction';
 import type { SalaryAdvanceEmployeeDropdownItem } from '@/types/hrms/salary-advance';
@@ -21,29 +22,23 @@ import type { z } from 'zod';
 type SalaryAdvanceForm = z.infer<typeof hrmsTransactionSchemas.salaryAdvance.form>;
 
 interface AddFormProps {
-    employeeDropdown: SalaryAdvanceEmployeeDropdownItem[] | undefined;
-    onSuccess: () => void;
+    employeeDropdown?: SalaryAdvanceEmployeeDropdownItem[] | undefined;
+    onSuccess?: () => void;
     className?: string;
 }
 
 export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, className = '' }: AddFormProps) {
+    const { refetchAll } = useSalaryAdvance();
     const { mutate: saveAdvance, isPending } = useSaveSalaryAdvance();
-
+    const { data: empData } = useSalaryAdvanceEmployeeDropdown();
+    console.log('empData', empData);
     // Fetch other dropdowns from masters
     const { data: leaveYearsData } = useLeaveYearDropdown();
     const { data: monthsData } = useMonthDropdown();
 
-    // Hardcoded mode of payments as they are standard and might not have a specific hook yet
-    const modeOfPayments = useMemo(
-        () => [
-            { id: 'Cash', name: 'Cash' },
-            { id: 'Bank Transfer', name: 'Bank Transfer' },
-            { id: 'Cheque', name: 'Cheque' }
-        ],
-        []
-    );
-
-    const employees = useMemo(() => employeeDropdown || [], [employeeDropdown]);
+    // Mode of payments list
+    const employees = useMemo(() => employeeDropdown || empData?.employees || [], [employeeDropdown, empData]);
+    const modeOfPayments = useMemo(() => empData?.modeOfPaymentdropdown || [], [empData]);
     const leaveYears = useMemo(() => (leaveYearsData as any)?.data || [], [leaveYearsData]);
     const months = useMemo(() => (monthsData as any)?.data || [], [monthsData]);
 
@@ -81,6 +76,8 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
         HRESA_EntryDate: watchedEntryDate ? `${watchedEntryDate}T00:00:00` : new Date().toISOString()
     });
 
+    console.log('advanceDetails', advanceDetails);
+
     // Update gross salary when details are fetched
     useEffect(() => {
         if (advanceDetails?.empGrossSalary) {
@@ -102,7 +99,7 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                     const matchingYear = (leaveYears as any[]).find(
                         (y: any) => String(y.hrmlY_LeaveYear) === String(year) || String(y.HRMLY_LeaveYear) === String(year)
                     );
-                    const yearVal = matchingYear.hrmlY_LeaveYear || matchingYear.HRMLY_LeaveYear;
+                    const yearVal = matchingYear?.hrmlY_LeaveYear || matchingYear?.HRMLY_LeaveYear;
                     if (yearVal !== undefined && yearVal !== null) {
                         setValue('advanceYear', String(yearVal));
                     }
@@ -138,12 +135,17 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
             onSuccess: () => {
                 toast.success('Salary advance created successfully!');
                 reset();
-                onSuccess();
+                refetchAll();
+                onSuccess?.();
             },
             onError: (error: any) => {
                 toast.error(error.message || 'Failed to create salary advance');
             }
         });
+    };
+
+    const handleReset = () => {
+        reset();
     };
 
     return (
@@ -303,8 +305,8 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                                     </SelectTrigger>
                                     <SelectContent>
                                         {modeOfPayments.map((mode) => (
-                                            <SelectItem key={mode.id} value={mode.id}>
-                                                {mode.name}
+                                            <SelectItem key={mode.ivrmmoD_Id} value={mode.ivrmmoD_ModeOfPayment}>
+                                                {mode.ivrmmoD_ModeOfPayment}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
@@ -328,7 +330,7 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                     <Button
                         type='button'
                         variant='outline'
-                        onClick={() => reset()}
+                        onClick={handleReset}
                         disabled={isSubmitting || isPending}
                         className='order-2 w-fit transition-all duration-200 hover:scale-105 sm:order-1'>
                         Reset
@@ -341,7 +343,7 @@ export default function AddSalaryAdvanceForm({ employeeDropdown, onSuccess, clas
                         loadingText='Saving...'>
                         <div className='flex items-center'>
                             <Save className='mr-2 h-4 w-4' />
-                            Add Salary Advance
+                            Save Salary Advance
                         </div>
                     </Button>
                 </div>

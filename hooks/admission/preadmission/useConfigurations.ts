@@ -150,8 +150,8 @@ export const useRegNumbering = (numberingType: any) => {
             staleTime: 0,
             enabled: !!numberingType
         }),
-        refetchAll: () => {
-            return queryClient.invalidateQueries({
+        refetchAll: async () => {
+            return await queryClient.invalidateQueries({
                 queryKey: [PREADMISSION_QUERY_KEYS.REGISTRATION_NUMBERING]
             });
         }

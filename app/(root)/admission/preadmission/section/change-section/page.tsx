@@ -81,6 +81,7 @@ export default function MasterChangeSectionPage(props: {
     const leftAcademicYear = watch('leftAcademicYear');
     const leftClassAdmitted = watch('leftClassAdmitted');
     const leftSection = watch('leftSection');
+    const rightAcademicYear = watch('rightAcademicYear');
     const rightClass = watch('rightClass');
     const rightSection = watch('rightSection');
 
@@ -95,22 +96,43 @@ export default function MasterChangeSectionPage(props: {
     const {
         data: leftStudentsData,
         isLoading: leftStudentsLoading,
-        isError: leftStudentsError
+        isError: leftStudentsError,
+        refetch: refetchLeftStudents,
+        refetchAll: refetchAllLeft
     } = useMasterStudents(Number(leftAcademicYear), Number(leftClassAdmitted), Number(leftSection));
 
     const {
         data: rightStudentsData,
         isLoading: rightStudentsLoading,
-        isError: rightStudentsError
+        isError: rightStudentsError,
+        refetch: refetchRightStudents,
+        refetchAll: refetchAllRight
     } = useMasterChangeSectionTable(searchParams, Number(leftAcademicYear), Number(rightClass), Number(rightSection));
 
     const tableProps = useDataTableProps(rightStudentsData);
 
+    const getStudentId = (student: any): number => {
+        if (!student) return 0;
+        return Number(
+            student.student_id ??
+            student.amsT_Id ??
+            student.amst_Id ??
+            student.amST_Id ??
+            student.asysT_Id ??
+            0
+        );
+    };
+
     const recalculateSiNo = (students: Student[]): Student[] => {
-        return students.map((student, index) => ({
-            ...student,
-            amaY_RollNo: index + 1
-        }));
+        return students.map((student, index) => {
+            const id = getStudentId(student);
+            return {
+                ...student,
+                student_id: id,
+                amsT_Id: id,
+                amaY_RollNo: index + 1
+            };
+        });
     };
 
     useEffect(() => {
@@ -150,10 +172,6 @@ export default function MasterChangeSectionPage(props: {
     useEffect(() => {
         setRightSelectAll(rightStudents.length > 0 && rightSelectedStudents.size === rightStudents.length);
     }, [rightSelectedStudents, rightStudents]);
-
-    useEffect(() => {
-        setLeftSelectAll(leftStudents.length > 0 && leftSelectedStudents.size === leftStudents.length);
-    }, [leftSelectedStudents, leftStudents]);
 
     const handleLeftAcademicYearChange = (value: string) => {
         const numValue = Number(value);
@@ -195,7 +213,7 @@ export default function MasterChangeSectionPage(props: {
 
     const handleLeftSectionChange = (value: string) => {
         setValue('leftSection', value);
-        if (value === rightSection) {
+        if (value === rightSection && leftClassAdmitted === rightClass && leftAcademicYear === rightAcademicYear) {
             setRightStudents([]);
             setRightSelectedStudents(new Set());
             setRightSelectAll(false);
@@ -221,7 +239,7 @@ export default function MasterChangeSectionPage(props: {
     };
 
     const handleRightSectionChange = (value: string) => {
-        if (value === leftSection) {
+        if (value === leftSection && leftClassAdmitted === rightClass && leftAcademicYear === rightAcademicYear) {
             toast.error('Selected Section Is Already Assigned. Please Select Different One!');
             return;
         }
@@ -300,22 +318,26 @@ export default function MasterChangeSectionPage(props: {
     };
 
     const moveToLeft = () => {
-        if (rightSelectedStudents.size === 0) {
-            toast.error('Please select students to move');
+        const studentsToMoveSet = rightSelectedStudents.size > 0
+            ? rightStudents.filter((s) => rightSelectedStudents.has(s.student_id))
+            : rightStudents;
+
+        if (studentsToMoveSet.length === 0) {
+            toast.error('No students to move back');
             return;
         }
 
         const originalSectionName = leftSectionData?.data?.find((s: any) => s.asmS_Id === Number(leftSection))?.asmC_SectionName;
 
-        const studentsToMove = rightStudents
-            .filter((s) => rightSelectedStudents.has(s.student_id))
-            .map((student) => ({
-                ...student,
-                asmS_Id: Number(leftSection),
-                asmC_SectionName: originalSectionName || student.asmC_SectionName
-            }));
+        const movedIds = new Set(studentsToMoveSet.map((s) => s.student_id));
 
-        const remainingRight = rightStudents.filter((s) => !rightSelectedStudents.has(s.student_id));
+        const studentsToMove = studentsToMoveSet.map((student) => ({
+            ...student,
+            asmS_Id: Number(leftSection),
+            asmC_SectionName: originalSectionName || student.asmC_SectionName
+        }));
+
+        const remainingRight = rightStudents.filter((s) => !movedIds.has(s.student_id));
 
         setLeftStudents(recalculateSiNo([...leftStudents, ...studentsToMove]));
         setRightStudents(recalculateSiNo(remainingRight));
@@ -330,25 +352,54 @@ export default function MasterChangeSectionPage(props: {
 
     const onSubmit = async (data: FormFields) => {
         try {
+            let studentsToTransfer = [...rightStudents];
+
+            if (studentsToTransfer.length === 0 && leftSelectedStudents.size > 0) {
+                studentsToTransfer = leftStudents.filter((s) => leftSelectedStudents.has(s.student_id));
+            }
+
+            if (studentsToTransfer.length === 0) {
+                toast.error('Please select at least one student to change section');
+                return;
+            }
+
+            const payloadStudents = studentsToTransfer
+                .map((student) => ({
+                    amsT_Id: getStudentId(student)
+                }))
+                .filter((s) => s.amsT_Id > 0);
+
+            if (payloadStudents.length === 0) {
+                toast.error('Selected student IDs are invalid.');
+                return;
+            }
+
             const payload = {
                 asmaY_Id: data.leftAcademicYear,
                 asmcL_Id: Number(data.leftClassAdmitted),
                 olD_ASMS_Id: Number(data.leftSection),
                 neW_ASMS_Id: Number(data.rightSection),
-                students: rightStudents.map((student) => ({
-                    amsT_Id: student.student_id
-                }))
+                students: payloadStudents
             };
 
             const response = await addOrUpdateMasterChangeSection(payload);
             if (response.success) {
-                toast.success(response.message || 'Section transfer completed successfully!');
-                reset();
+                toast.success(response.message || 'Change Section Allotment saved successfully!');
+                setRightStudents([]);
+                setRightSelectedStudents(new Set());
+                setLeftSelectedStudents(new Set());
+                setLeftSelectAll(false);
+                setRightSelectAll(false);
+
+                refetchLeftStudents();
+                refetchRightStudents();
+                refetchAllLeft();
+                refetchAllRight();
             } else {
-                toast.error(response.message);
+                toast.error(response.message || 'Failed to save section transfer.');
             }
         } catch (_error: any) {
-            // Igonre
+            toast.error('An unexpected error occurred while saving.');
         }
     };
 
@@ -692,7 +743,7 @@ export default function MasterChangeSectionPage(props: {
                                 <Button
                                     type='button'
                                     onClick={moveToLeft}
-                                    disabled={rightSelectedStudents.size === 0}
+                                    disabled={rightStudents.length === 0}
                                     className='w-full lg:w-auto'
                                     variant='outline'
                                     title='Move selected students back to source section'>
@@ -707,14 +758,6 @@ export default function MasterChangeSectionPage(props: {
                                         <thead className='border-b bg-gray-50'>
                                             <tr>
                                                 <th className='p-3 text-left font-semibold text-sm'>Roll No</th>
-                                                <th className='w-12 p-3 text-left font-semibold text-sm'>
-                                                    <Checkbox
-                                                        checked={rightSelectAll}
-                                                        onCheckedChange={handleRightSelectAll}
-                                                        disabled={rightStudents.length === 0}
-                                                        className='h-4 w-4 cursor-pointer rounded border-gray-300'
-                                                    />
-                                                </th>
                                                 <th className='p-3 text-left font-semibold text-sm'>Student Name</th>
                                                 <th className='p-3 text-left font-semibold text-sm'>Class</th>
                                                 <th className='p-3 text-left font-semibold text-sm'>Section</th>
@@ -724,7 +767,7 @@ export default function MasterChangeSectionPage(props: {
                                         <tbody className='divide-y'>
                                             {rightStudents.length === 0 ? (
                                                 <tr>
-                                                    <td colSpan={6} className='p-8 text-center text-gray-500'>
+                                                    <td colSpan={5} className='p-8 text-center text-gray-500'>
                                                         No students moved yet
                                                     </td>
                                                 </tr>
@@ -732,15 +775,6 @@ export default function MasterChangeSectionPage(props: {
                                                 rightStudents.map((student) => (
                                                     <tr key={student.student_id} className='hover:bg-gray-50'>
                                                         <td className='p-3 text-sm'>{student.amaY_RollNo}</td>
-                                                        <td className='p-3'>
-                                                            <Checkbox
-                                                                checked={rightSelectedStudents.has(student.student_id)}
-                                                                onCheckedChange={(checked: boolean) =>
-                                                                    handleRightSelectStudent(student.student_id, checked)
-                                                                }
-                                                                className='h-4 w-4 cursor-pointer rounded border-gray-300'
-                                                            />
-                                                        </td>
                                                         <td className='p-3 font-medium text-sm'>{student.student_name}</td>
                                                         <td className='p-3 text-sm'>{student.asmcL_ClassName}</td>
                                                         <td className='p-3 text-sm'>{student.asmC_SectionName}</td>

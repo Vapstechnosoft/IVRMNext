@@ -10,32 +10,33 @@ import type { IBookArrivalReportRequest } from '@/types/library/reports/book-arr
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { Download, FileText, Loader2, Search, X } from 'lucide-react';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 const reportFormSchema = z
     .object({
-        p_lmal_id: z.preprocess(
+        LMAL_Id: z.preprocess(
             (val) => (val === undefined || val === '' ? undefined : Number(val)),
             z.number({ required_error: 'Select Library', invalid_type_error: 'Select Library' }).min(1, 'Select Library')
         ),
-        p_type: z.string().min(1, 'Book Type is required'),
-        p_type2: z.string().min(1, 'Source Type is required'),
-        p_lmd_id: z.coerce.string().default('0'), // 0 = ALL
+        Type: z.string().min(1, 'Book Type is required'),
+        Type2: z.string().min(1, 'Source Type is required'),
+        LMD_Id: z.string({ required_error: 'Select Department', invalid_type_error: 'Select Department' }).min(1, 'Select Department'),
         datewised: z.boolean().default(false),
-        p_fromdate: z.date().optional(),
-        p_todate: z.date().optional()
+        Fromdate: z.date().optional(),
+        ToDate: z.date().optional()
     })
     .refine(
         (data) => {
             if (data.datewised) {
-                return !!data.p_fromdate && !!data.p_todate;
+                return !!data.Fromdate && !!data.ToDate;
             }
             return true;
         },
         {
             message: 'Both dates are required when date filter is enabled',
-            path: ['p_fromdate']
+            path: ['Fromdate']
         }
     );
 
@@ -47,10 +48,19 @@ interface ReportFormProps {
     hasData: boolean;
     onPrint?: () => void;
     onExport?: () => void;
+    onCancel?: () => void;
     initialData: any;
 }
 
-export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, initialData: initialDataProp }: ReportFormProps) => {
+export const ReportForm = ({
+    onSearch,
+    isLoading,
+    hasData,
+    onPrint,
+    onExport,
+    onCancel,
+    initialData: initialDataProp
+}: ReportFormProps) => {
     const initialData = (initialDataProp as any)?.data || initialDataProp;
 
     const {
@@ -58,27 +68,61 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, in
         handleSubmit,
         watch,
         reset,
+        setValue,
         formState: { errors }
     } = useForm<ReportFormValues>({
         resolver: zodResolver(reportFormSchema),
         defaultValues: {
-            p_type: 'ALL',
-            p_type2: 'ALL',
+            Type: 'ALL',
+            Type2: 'ALL',
             datewised: false,
-            p_lmd_id: '0'
+            LMD_Id: undefined
         }
     });
 
     const watchDatewised = watch('datewised');
+    const watchLmalId = watch('LMAL_Id');
+
+    useEffect(() => {
+        if (Array.isArray(initialData?.lib_list) && initialData.lib_list.length === 1 && !watchLmalId) {
+            const firstLib = initialData.lib_list[0];
+            const firstLibId = Number(firstLib?.lmaL_Id ?? firstLib?.LMAL_Id ?? firstLib?.lmal_Id ?? 0);
+            if (firstLibId) {
+                setValue('LMAL_Id', firstLibId);
+            }
+        }
+    }, [initialData, watchLmalId, setValue]);
+
+    const handleReset = () => {
+        reset({
+            Type: 'ALL',
+            Type2: 'ALL',
+            datewised: false,
+            LMD_Id: undefined,
+            LMAL_Id: undefined,
+            Fromdate: undefined,
+            ToDate: undefined
+        });
+        if (onCancel) {
+            onCancel();
+        }
+    };
 
     const onSubmit = (data: ReportFormValues) => {
+        const lmdId = data.LMD_Id === '0' || !data.LMD_Id || data.LMD_Id === 'ALL' ? 'ALL' : String(data.LMD_Id);
         const payload: IBookArrivalReportRequest = {
-            p_lmal_id: data.p_lmal_id,
-            p_type: data.p_type,
-            p_type2: data.p_type2,
-            p_lmd_id: data.p_lmd_id,
-            p_fromdate: data.datewised && data.p_fromdate ? format(data.p_fromdate, 'yyyy-MM-dd') : undefined,
-            p_todate: data.datewised && data.p_todate ? format(data.p_todate, 'yyyy-MM-dd') : undefined,
+            Type: data.Type || 'ALL',
+            Type2: data.Type2 || 'ALL',
+            LMD_Id: lmdId,
+            LMAL_Id: Number(data.LMAL_Id),
+            Fromdate: data.datewised && data.Fromdate ? format(data.Fromdate, 'yyyy-MM-dd') : undefined,
+            ToDate: data.datewised && data.ToDate ? format(data.ToDate, 'yyyy-MM-dd') : undefined,
+            p_type: data.Type || 'ALL',
+            p_type2: data.Type2 || 'ALL',
+            p_lmd_id: lmdId,
+            p_lmal_id: Number(data.LMAL_Id),
+            p_fromdate: data.datewised && data.Fromdate ? format(data.Fromdate, 'yyyy-MM-dd') : undefined,
+            p_todate: data.datewised && data.ToDate ? format(data.ToDate, 'yyyy-MM-dd') : undefined,
             subjectsthomos: false,
             stthomosSubject: []
         };
@@ -96,7 +140,7 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, in
                     <div className='flex-1'>
                         <Controller
                             control={control}
-                            name='p_lmal_id'
+                            name='LMAL_Id'
                             render={({ field }) => (
                                 <Select onValueChange={(v) => field.onChange(Number(v))} value={field.value?.toString()}>
                                     <SelectTrigger className='w-full border-muted-foreground/30'>
@@ -104,16 +148,25 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, in
                                     </SelectTrigger>
                                     <SelectContent>
                                         {Array.isArray(initialData?.lib_list) &&
-                                            initialData?.lib_list?.map((lib: any) => (
-                                                <SelectItem key={lib.lmaL_Id} value={lib.lmaL_Id.toString()}>
-                                                    {lib.lmaL_LibraryName}
-                                                </SelectItem>
-                                            ))}
+                                            initialData?.lib_list?.map((lib: any) => {
+                                                const id = lib.lmaL_Id ?? lib.LMAL_Id ?? lib.lmal_Id;
+                                                const name =
+                                                    lib.lmaL_LibraryName ??
+                                                    lib.LMAL_LibraryName ??
+                                                    lib.lmal_LibraryName ??
+                                                    lib.libraryName ??
+                                                    lib.name;
+                                                return (
+                                                    <SelectItem key={String(id)} value={String(id)}>
+                                                        {name}
+                                                    </SelectItem>
+                                                );
+                                            })}
                                     </SelectContent>
                                 </Select>
                             )}
                         />
-                        {errors.p_lmal_id && <p className='mt-1 text-destructive text-xs'>{errors.p_lmal_id.message}</p>}
+                        {errors.LMAL_Id?.message && <p className='mt-1 text-destructive text-xs'>{errors.LMAL_Id.message}</p>}
                     </div>
                 </div>
             </div>
@@ -126,7 +179,7 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, in
                 <div className='rounded-md border bg-gray-50/30 p-4'>
                     <Controller
                         control={control}
-                        name='p_type'
+                        name='Type'
                         render={({ field }) => (
                             <RadioGroup
                                 onValueChange={field.onChange}
@@ -188,7 +241,7 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, in
                 <div className='rounded-md border bg-gray-50/30 p-4'>
                     <Controller
                         control={control}
-                        name='p_type2'
+                        name='Type2'
                         render={({ field }) => (
                             <RadioGroup onValueChange={field.onChange} value={field.value} className='flex justify-center gap-12'>
                                 <div className='flex items-center space-x-2'>
@@ -224,27 +277,36 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, in
                     <div className='flex-1'>
                         <Controller
                             control={control}
-                            name='p_lmd_id'
+                            name='LMD_Id'
                             render={({ field }) => (
                                 <Select onValueChange={field.onChange} value={field.value?.toString()}>
                                     <SelectTrigger className='w-full border-muted-foreground/30'>
                                         <SelectValue placeholder='Select' />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value='0'>ALL</SelectItem>
+                                        <SelectItem value='ALL'>ALL</SelectItem>
                                         {(Array.isArray(initialData?.deptlist)
                                             ? initialData.deptlist
                                             : (initialData?.deptlist as any)?.$values || []
-                                        ).map((dept: any) => (
-                                            <SelectItem key={dept.lmD_Id} value={dept.lmD_Id.toString()}>
-                                                {dept.lmD_DepartmentName}
-                                            </SelectItem>
-                                        ))}
+                                        ).map((dept: any) => {
+                                            const id = dept.lmD_Id ?? dept.LMD_Id ?? dept.lmd_Id;
+                                            const name =
+                                                dept.lmD_DepartmentName ??
+                                                dept.LMD_DepartmentName ??
+                                                dept.lmd_DepartmentName ??
+                                                dept.departmentName ??
+                                                dept.name;
+                                            return (
+                                                <SelectItem key={String(id)} value={String(id)}>
+                                                    {name}
+                                                </SelectItem>
+                                            );
+                                        })}
                                     </SelectContent>
                                 </Select>
                             )}
                         />
-                        {errors.p_lmd_id && <p className='mt-1 text-destructive text-xs'>{errors.p_lmd_id.message}</p>}
+                        {errors.LMD_Id?.message && <p className='mt-1 text-destructive text-xs'>{errors.LMD_Id.message}</p>}
                     </div>
                 </div>
             </div>
@@ -277,7 +339,7 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, in
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='p_fromdate'
+                                name='Fromdate'
                                 render={({ field }) => (
                                     <DatePicker
                                         date={field.value}
@@ -293,7 +355,7 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, in
                         <div className='flex-1'>
                             <Controller
                                 control={control}
-                                name='p_todate'
+                                name='ToDate'
                                 render={({ field }) => (
                                     <DatePicker
                                         date={field.value}
@@ -308,9 +370,9 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, in
                     </div>
                 </div>
             </div>
-            {errors.p_fromdate && (
+            {errors.Fromdate && (
                 <div className='flex justify-center'>
-                    <p className='text-destructive text-xs'>{errors.p_fromdate.message}</p>
+                    <p className='text-destructive text-xs'>{errors.Fromdate.message}</p>
                 </div>
             )}
 
@@ -326,7 +388,7 @@ export const ReportForm = ({ onSearch, isLoading, hasData, onPrint, onExport, in
                 <Button
                     type='button'
                     className='h-8 min-w-[100px] rounded-sm bg-[#ff5a30] px-4 py-1 text-white text-xs shadow-sm hover:bg-[#e64d26]'
-                    onClick={() => reset()}
+                    onClick={handleReset}
                     disabled={isLoading}>
                     <X className='mr-1.5 h-3.5 w-3.5' />
                     CANCEL

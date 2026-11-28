@@ -29,6 +29,7 @@ export default function AddMasterGradeForm({
         handleSubmit,
         reset,
         watch,
+        trigger,
         formState: { errors, isSubmitting }
     } = useForm<FormFields>({
         resolver: zodResolver(masterGradeSchema.addOrUpdate),
@@ -63,7 +64,7 @@ export default function AddMasterGradeForm({
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
     const gradeName = watch('emgR_GradeName');
-    const marksPerFlag = watch('emgR_MarksPerFlag');
+    const _marksPerFlag = watch('emgR_MarksPerFlag');
 
     useEffect(() => {
         setIsDetailsOpen(!!gradeName?.trim());
@@ -135,15 +136,19 @@ export default function AddMasterGradeForm({
                 emgR_Id: 0,
                 emgR_GradeName: data.emgR_GradeName,
                 emgR_MarksPerFlag: data.emgR_MarksPerFlag,
-                grade_list: data.grade_list.map(({ emgD_Id, ...row }) => ({
+                emgR_ActiveFlag: true,
+                grade_list: data.grade_list.map((row) => ({
+                    emgD_Id: 0,
+                    emgR_Id: 0,
                     emgD_Name: row.emgD_Name,
                     emgD_From: row.emgD_From === null ? null : Number(row.emgD_From),
                     emgD_To: row.emgD_To === null ? null : Number(row.emgD_To),
                     emgD_GradePoints: row.emgD_GradePoints === null ? null : Number(row.emgD_GradePoints),
-                    emgD_Remarks: row.emgD_Remarks,
-                    emgD_ActiveFlag: row.emgD_ActiveFlag
+                    emgD_Remarks: row.emgD_Remarks || '',
+                    emgD_ActiveFlag: row.emgD_ActiveFlag ?? true
                 }))
             };
+            console.log('master_grade_payload', payload);
             const response = await addOrUpdateMasterGrade(payload);
             if (response.success) {
                 toast.success(response.message);
@@ -190,7 +195,13 @@ export default function AddMasterGradeForm({
                         name='emgR_MarksPerFlag'
                         control={control}
                         render={({ field }) => (
-                            <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
+                            <RadioGroup
+                                value={field.value}
+                                onValueChange={(val) => {
+                                    field.onChange(val);
+                                    trigger();
+                                }}
+                                className='flex gap-4'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='M' id='marks' />
                                     <Label htmlFor='marks'>Marks</Label>
@@ -247,6 +258,8 @@ export default function AddMasterGradeForm({
                                                         if (value && !/^\d*\.?\d*$/.test(value)) {
                                                             e.target.value = value.replace(/[^\d.]/g, '');
                                                         }
+                                                        trigger(`grade_list.${index}.emgD_To`);
+                                                        trigger(`grade_list.${index}.emgD_From`);
                                                     }
                                                 })}
                                                 placeholder='Enter From'
@@ -279,6 +292,8 @@ export default function AddMasterGradeForm({
                                                         if (value && !/^\d*\.?\d*$/.test(value)) {
                                                             e.target.value = value.replace(/[^\d.]/g, '');
                                                         }
+                                                        trigger(`grade_list.${index}.emgD_From`);
+                                                        trigger(`grade_list.${index}.emgD_To`);
                                                     }
                                                 })}
                                                 placeholder='Enter To'

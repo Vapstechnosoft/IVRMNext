@@ -1,9 +1,9 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
+import type { IFeeAcademicYearDropdownList } from '@/types/fees/reports/reports';
 import type {
-    IFeeChequeBounceDropdowns,
-    IFeeChequeBounceReceipt,
     IFeeChequeBounceSavePayload,
     IFeeChequeBounceSearchPayload,
     IFeeChequeBounceSection,
@@ -14,15 +14,16 @@ import type {
  * Initial load data
  * GET: FeeChequeBounce/getalldetails/{pageId}
  */
-export async function getFeeChequeBounceInitialData() {
-    const url = `FeeChequeBounceFacade/getalldetails`;
+export async function getFeeChequeBounceInitialData(searchParams?: ApiSearchparams, asmay_Id?: number) {
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = `/FeeChequeBounceFacade/getalldetails/${asmay_Id}?${urlParams}`;
     return await api.get<any>('fees', url);
 }
 
 //Get academic year for dropdown
 export async function getFeeChequeBounceAcademicYear() {
-    const url = `FeeChequeBounce/getacademicyear`;
-    return await api.get<IFeeChequeBounceDropdowns>('fees', url);
+    const url = '/FeesCommon/academic-year-list';
+    return await api.get<IFeeAcademicYearDropdownList>('fees', url);
 }
 
 //class drop down
@@ -65,9 +66,11 @@ export async function getFeeChequeBounceStudents() {
  * Get receipt list on student change
  * POST: FeeChequeBounce/get_receipts
  */
-export async function getFeeChequeBounceReceipts(data: any) {
-    const url = 'FeeChequeBounce/get_receipts';
-    return await api.post<{ fillreceipt: IFeeChequeBounceReceipt[] }>('fees', url, data);
+export async function getFeeChequeBounceReceipts(amst_id: number, asmay_id: number) {
+    const url = '/FeeChequeBounceFacade/getreceiptdetails/{asmay_id}/{amst_id}'
+        .replace('{asmay_id}', asmay_id.toString())
+        .replace('{amst_id}', amst_id.toString());
+    return await api.get<any>('fees', url);
 }
 
 /**
@@ -75,7 +78,7 @@ export async function getFeeChequeBounceReceipts(data: any) {
  * POST: FeeChequeBounce/
  */
 export async function saveFeeChequeBounce(data: IFeeChequeBounceSavePayload) {
-    const url = 'FeeChequeBounce/';
+    const url = '/FeeChequeBounceFacade/savedata';
     return await api.post<any>('fees', url, data);
 }
 
@@ -84,7 +87,7 @@ export async function saveFeeChequeBounce(data: IFeeChequeBounceSavePayload) {
  * DELETE: FeeChequeBounce/Deletedetails/{fcB_Id}
  */
 export async function deleteFeeChequeBounce(fcB_Id: number) {
-    const url = `FeeChequeBounce/Deletedetails/${fcB_Id}`;
+    const url = `/FeeChequeBounceFacade/Deletedetails/${fcB_Id}`;
     return await api.delete<{ returnval: boolean }>('fees', url);
 }
 
@@ -93,6 +96,6 @@ export async function deleteFeeChequeBounce(fcB_Id: number) {
  * POST: FeeChequeBounce/searching
  */
 export async function searchFeeChequeBounce(data: IFeeChequeBounceSearchPayload) {
-    const url = 'FeeChequeBounce/searching';
+    const url = '/FeeChequeBounceFacade/searching';
     return await api.post<any>('fees', url, data);
 }

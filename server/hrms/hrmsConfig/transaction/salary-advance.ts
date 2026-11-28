@@ -1,11 +1,12 @@
 'use server';
 
-import { api } from '@/lib/apiService';
+import { api, getSearchParamsUrl } from '@/lib/apiService';
+import type { ApiSearchparams } from '@/types';
 import type {
     ApiResponse,
     EmployeeSalaryAdvanceDetails,
     SalaryAdvanceDetailsRequest,
-    SalaryAdvanceEmployeeDropdownItem,
+    SalaryAdvanceEmployeeDropdownData,
     SalaryAdvanceGridItem,
     SalaryAdvanceSaveRequest
 } from '@/types/hrms/salary-advance';
@@ -14,15 +15,21 @@ import type {
  * Get salary advance grid data
  * GET /api/TransHREmpSalaryAdvance/get_salary_advance_grid
  */
-export async function getSalaryAdvanceGrid(pageSize = 100) {
-    const url = `/api/TransHREmpSalaryAdvance/get_salary_advance_grid?page_size=${pageSize}`;
+export async function getSalaryAdvanceGrid(searchParams?: ApiSearchparams | number) {
+    const params = typeof searchParams === 'number' ? { page_size: searchParams } : (searchParams ?? {});
+    const urlParams = getSearchParamsUrl(
+        params as ApiSearchparams,
+        'hrmE_Id,hrmE_EmpName,hresA_AdvYear,hresA_AdvMonth,hresA_ReferenceNo,hresA_AppliedAmount,hresA_Remarks,hresA_AdvStatus'
+    );
+    const url = `/api/TransHREmpSalaryAdvance/get_salary_advance_grid?${urlParams}`;
     try {
-        return await api.get<ApiResponse<SalaryAdvanceGridItem[]>>('hrms', url);
+        return await api.get<any>('hrms', url);
     } catch (error: any) {
         return {
             success: false,
             message: error?.message || 'Failed to fetch salary advance grid',
-            data: []
+            data: [],
+            total: 0
         };
     }
 }
@@ -34,12 +41,12 @@ export async function getSalaryAdvanceGrid(pageSize = 100) {
 export async function getSalaryAdvanceEmployeeDropdown() {
     const url = '/api/TransHREmpSalaryAdvance/get_salary_advance_employee_dropdown';
     try {
-        return await api.get<ApiResponse<SalaryAdvanceEmployeeDropdownItem[]>>('hrms', url);
+        return await api.get<SalaryAdvanceEmployeeDropdownData>('hrms', url);
     } catch (error: any) {
         return {
             success: false,
             message: error?.message || 'Failed to fetch employee dropdown',
-            data: []
+            data: null
         };
     }
 }
@@ -80,22 +87,12 @@ export async function toggleSalaryAdvance(hresa_id: number) {
 
 /**
  * Get employee salary advance details
- * GET /api/TransHREmpSalaryAdvance/get_employee_salary_advance_details
- * Note: User provided a body for this GET request.
+ * POST /api/TransHREmpSalaryAdvance/get_employee_salary_advance_details
  */
-export async function getEmployeeSalaryAdvanceDetails(params: SalaryAdvanceDetailsRequest) {
+export async function getEmployeeSalaryAdvanceDetails(data: SalaryAdvanceDetailsRequest) {
     const url = '/api/TransHREmpSalaryAdvance/get_employee_salary_advance_details';
     try {
-        // Many APIs use query params for GET even if user provided JSON example
-        // But if it truly requires a body, api.get might handle it or we might need to convert to query params
-        // Checking if we should use GET with body or query params
-        const queryParams = new URLSearchParams();
-        queryParams.append('HRME_Id', params.HRME_Id.toString());
-        queryParams.append('HRESA_Id', params.HRESA_Id.toString());
-        queryParams.append('HRESA_EntryDate', params.HRESA_EntryDate);
-
-        const finalUrl = `${url}?${queryParams.toString()}`;
-        return await api.get<ApiResponse<EmployeeSalaryAdvanceDetails>>('hrms', finalUrl);
+        return await api.post<ApiResponse<EmployeeSalaryAdvanceDetails>>('hrms', url, data);
     } catch (error: any) {
         return {
             success: false,

@@ -348,139 +348,164 @@ export default function SubSubjectModal({
     }, [parentMaxMarks, parentMinMarks, parentMarksEntryMax]);
 
     // ----------------------------------
+    // Populate initial list
+    // ----------------------------------
+    useEffect(() => {
+        if (!open) return;
+
+        if (!subject) {
+            reset({ subsubject_list: [] });
+            dataRef.current.clear();
+            setValidationErrors({});
+            validationErrorsRef.current = {};
+            setIsLoading(false);
+            return;
+        }
+
+        setIsLoading(true);
+
+        setTimeout(() => {
+            const rawList = subject.list ?? [];
+
+            const list = rawList.map((l: any) => ({
+                ...l,
+                emsS_Id: l.emsS_Id ?? l.EMSS_Id,
+                emsS_SubSubjectName: l.emsS_SubSubjectName ?? l.EMSS_SubSubjectName ?? '',
+                emsS_SubSubjectCode: l.emsS_SubSubjectCode ?? l.EMSS_SubSubjectCode ?? '',
+                checkedvalue: Boolean(l.checkedvalue),
+                eycessS_MaxMarks: l.eycessS_MaxMarks ?? '',
+                eycessS_MinMarks: l.eycessS_MinMarks ?? '',
+                emgR_Id: l.emgR_Id ?? '',
+                eycessS_ExemptedFlg: !!l.eycessS_ExemptedFlg,
+                eycessS_ExemptedPer: l.eycessS_ExemptedPer ?? '',
+                eycessS_MarksDisplayFlg: !!l.eycessS_MarksDisplayFlg,
+                eycessS_GradeDisplayFlg: !!l.eycessS_GradeDisplayFlg,
+                eycessS_AplResultFlg: !!l.eycessS_AplResultFlg,
+                eycessS_MarksEntryMax: l.eycessS_MarksEntryMax ?? '',
+                eycessS_SubSubjectOrder: l.eycessS_SubSubjectOrder ?? l.emsS_SubSubjectOrder ?? 0
+            }));
+
+            const sortedList = [...list].sort((a, b) => (a.eycessS_SubSubjectOrder ?? 0) - (b.eycessS_SubSubjectOrder ?? 0));
+
+            dataRef.current = new Map(sortedList.map((item) => [item.emsS_Id, item]));
+
+            reset({ subsubject_list: sortedList });
+            setValidationErrors({});
+            validationErrorsRef.current = {};
+            setIsLoading(false);
+        }, 100);
+    }, [open, subject, reset]);
+
+    // Filtered data (memoized)
+    const filteredData = useMemo(() => {
+        const allData = formData || [];
+        const term = searchTerm.trim().toLowerCase();
+        if (!term) return allData;
+        return allData.filter((item) => {
+            return (
+                (item.emsS_SubSubjectName ?? '').toString().toLowerCase().includes(term) ||
+                (item.emsS_SubSubjectCode ?? '').toString().toLowerCase().includes(term)
+            );
+        });
+    }, [formData, searchTerm]);
+
+    const totalPages = Math.max(1, Math.ceil(filteredData.length / ITEMS_PER_PAGE));
+
+    useEffect(() => {
+        setCurrentPage((p) => Math.min(Math.max(1, p), totalPages));
+    }, [totalPages]);
+
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredData.length);
+    const paginatedData = useMemo(() => filteredData.slice(startIndex, endIndex), [filteredData, startIndex, endIndex]);
+
+    // ----------------------------------
     // Validation Functions
     // ----------------------------------
-    const validateField = useCallback(
-        (emsS_Id: number, field: keyof SubSubject, value: any) => {
-            const item = dataRef.current.get(emsS_Id);
-            if (!item) return;
+    const validateField = useCallback((emsS_Id: number, field: keyof SubSubject, value: any) => {
+        const item = dataRef.current.get(emsS_Id);
+        if (!item) return;
 
-            const { max: currParentMax, entry: currParentEntry } = parentMarksRef.current;
-            let error = '';
-            const numValue = value === '' ? undefined : Number(value);
+        const { max: currParentMax, entry: currParentEntry } = parentMarksRef.current;
+        let error = '';
+        const numValue = value === '' ? undefined : Number(value);
 
-            // Validation based on field
-            switch (field) {
-                case 'eycessS_MaxMarks': {
-                    if (numValue !== undefined && numValue > currParentMax) {
-                        error = `Max marks cannot exceed parent subject max (${currParentMax})`;
-                    }
-                    // Validate against min marks
-                    const minVal = item.eycessS_MinMarks === '' ? undefined : Number(item.eycessS_MinMarks);
-                    if (minVal !== undefined && numValue !== undefined && minVal > numValue) {
-                        error = 'Max marks cannot be less than Min marks';
-                    }
-                    break;
+        // Validation based on field
+        switch (field) {
+            case 'eycessS_MaxMarks': {
+                if (numValue !== undefined && numValue > currParentMax) {
+                    error = `Max marks cannot exceed parent subject max (${currParentMax})`;
                 }
-
-                case 'eycessS_MinMarks': {
-                    if (numValue !== undefined && numValue > currParentMax) {
-                        error = `Min marks cannot exceed parent subject max (${currParentMax})`;
-                    }
-                    // Validate against max marks
-                    const maxVal = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
-                    if (maxVal !== undefined && numValue !== undefined && numValue > maxVal) {
-                        error = 'Min marks cannot be greater than Max marks';
-                    }
-                    break;
+                // Validate against min marks
+                const minVal = item.eycessS_MinMarks === '' ? undefined : Number(item.eycessS_MinMarks);
+                if (minVal !== undefined && numValue !== undefined && minVal > numValue) {
+                    error = 'Max marks cannot be less than Min marks';
                 }
-
-                case 'eycessS_MarksEntryMax': {
-                    if (numValue !== undefined && numValue > currParentEntry) {
-                        error = `Marks entry max cannot exceed parent subject max (${currParentEntry})`;
-                    }
-                    // Validate against max marks
-                    const maxVal2 = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
-                    if (maxVal2 !== undefined && numValue !== undefined && numValue > maxVal2) {
-                        error = 'Marks entry max cannot be greater than Max marks';
-                    }
-                    break;
-                }
-
-                case 'emgR_Id':
-                    if (item.checkedvalue && (!value || value === '')) {
-                        error = 'Grade is required';
-                    }
-                    break;
-
-                case 'checkedvalue':
-                    if (value) {
-                        // If checked, validate required fields
-                        if (!item.eycessS_MaxMarks) {
-                            setValidationErrors((prev) => ({
-                                ...prev,
-                                [emsS_Id]: {
-                                    ...prev[emsS_Id],
-                                    eycessS_MaxMarks: 'Max marks is required'
-                                }
-                            }));
-                        }
-                        if (!item.eycessS_MinMarks) {
-                            setValidationErrors((prev) => ({
-                                ...prev,
-                                [emsS_Id]: {
-                                    ...prev[emsS_Id],
-                                    eycessS_MinMarks: 'Min marks is required'
-                                }
-                            }));
-                        }
-                        if (!item.eycessS_MarksEntryMax) {
-                            setValidationErrors((prev) => ({
-                                ...prev,
-                                [emsS_Id]: {
-                                    ...prev[emsS_Id],
-                                    eycessS_MarksEntryMax: 'Marks entry max is required'
-                                }
-                            }));
-                        }
-                        if (!item.emgR_Id || item.emgR_Id === '') {
-                            setValidationErrors((prev) => ({
-                                ...prev,
-                                [emsS_Id]: {
-                                    ...prev[emsS_Id],
-                                    emgR_Id: 'Grade is required'
-                                }
-                            }));
-                        }
-                    } else {
-                        // If unchecked, clear errors for this row
-                        setValidationErrors((prev) => {
-                            const newErrors = { ...prev };
-                            delete newErrors[emsS_Id];
-                            return newErrors;
-                        });
-                    }
-                    break;
+                break;
             }
 
-            // Update validation errors
-            if (error) {
-                setValidationErrors((prev) => ({
+            case 'eycessS_MinMarks': {
+                if (numValue !== undefined && numValue > currParentMax) {
+                    error = `Min marks cannot exceed parent subject max (${currParentMax})`;
+                }
+                // Validate against max marks
+                const maxVal = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
+                if (maxVal !== undefined && numValue !== undefined && numValue > maxVal) {
+                    error = 'Min marks cannot be greater than Max marks';
+                }
+                break;
+            }
+
+            case 'eycessS_MarksEntryMax': {
+                if (numValue !== undefined && numValue > currParentEntry) {
+                    error = `Marks entry max cannot exceed parent subject max (${currParentEntry})`;
+                }
+                // Validate against max marks
+                const maxVal2 = item.eycessS_MaxMarks === '' ? undefined : Number(item.eycessS_MaxMarks);
+                if (maxVal2 !== undefined && numValue !== undefined && numValue > maxVal2) {
+                    error = 'Marks entry max cannot be greater than Max marks';
+                }
+                break;
+            }
+
+            case 'checkedvalue':
+                if (!value) {
+                    // If unchecked, clear errors for this row
+                    setValidationErrors((prev) => {
+                        const newErrors = { ...prev };
+                        delete newErrors[emsS_Id];
+                        return newErrors;
+                    });
+                }
+                break;
+        }
+
+        // Update validation errors
+        if (error) {
+            setValidationErrors((prev) => ({
+                ...prev,
+                [emsS_Id]: {
+                    ...prev[emsS_Id],
+                    [field]: error
+                }
+            }));
+        } else {
+            setValidationErrors((prev) => {
+                if (!prev[emsS_Id]) return prev;
+                const newErrors = { ...prev[emsS_Id] };
+                delete newErrors[field];
+                if (Object.keys(newErrors).length === 0) {
+                    const newState = { ...prev };
+                    delete newState[emsS_Id];
+                    return newState;
+                }
+                return {
                     ...prev,
-                    [emsS_Id]: {
-                        ...prev[emsS_Id],
-                        [field]: error
-                    }
-                }));
-            } else {
-                setValidationErrors((prev) => {
-                    if (!prev[emsS_Id]) return prev;
-                    const newErrors = { ...prev[emsS_Id] };
-                    delete newErrors[field];
-                    if (Object.keys(newErrors).length === 0) {
-                        const newState = { ...prev };
-                        delete newState[emsS_Id];
-                        return newState;
-                    }
-                    return {
-                        ...prev,
-                        [emsS_Id]: newErrors
-                    };
-                });
-            }
-        },
-        []
-    );
+                    [emsS_Id]: newErrors
+                };
+            });
+        }
+    }, []);
 
     // ----------------------------------
     // Optimized Update Function using emsS_Id
@@ -592,24 +617,6 @@ export default function SubSubjectModal({
             const max = Number(row.eycessS_MaxMarks) || 0;
             const min = Number(row.eycessS_MinMarks) || 0;
             const entry = Number(row.eycessS_MarksEntryMax) || 0;
-
-            // Required fields
-            if (!row.eycessS_MaxMarks) {
-                rowErrors.eycessS_MaxMarks = 'Max marks is required';
-                hasErrors = true;
-            }
-            if (!row.eycessS_MinMarks) {
-                rowErrors.eycessS_MinMarks = 'Min marks is required';
-                hasErrors = true;
-            }
-            if (!row.eycessS_MarksEntryMax) {
-                rowErrors.eycessS_MarksEntryMax = 'Marks entry max is required';
-                hasErrors = true;
-            }
-            if (!row.emgR_Id || row.emgR_Id === '') {
-                rowErrors.emgR_Id = 'Grade is required';
-                hasErrors = true;
-            }
 
             // Numeric validation
             if (max > parentMaxMarks) {
@@ -727,7 +734,7 @@ export default function SubSubjectModal({
             <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
                 <DialogContent className='max-h-[80vh] w-full min-w-[80vw] overflow-hidden pt-0'>
                     <DialogHeader className='bg-white pt-4'>
-                        <DialogTitle>{`Map Sub-Subjects — ${subject?.ISMS_SubjectName}`}</DialogTitle>
+                        <DialogTitle>{`Map Sub-Subjects — ${subject?.ismS_SubjectName ?? subject?.ISMS_SubjectName ?? ''}`}</DialogTitle>
                         <div className='text-muted-foreground text-sm'>Loading sub-subject details...</div>
                     </DialogHeader>
                     <div className='max-h-[55vh] overflow-auto'>{renderSkeletonTable()}</div>
@@ -757,7 +764,7 @@ export default function SubSubjectModal({
         <Dialog open={open} onOpenChange={(val) => !val && onClose()}>
             <DialogContent className='flex h-[90vh] w-full min-w-[80vw] flex-col overflow-hidden pt-0'>
                 <DialogHeader className='shrink-0 border-b bg-white pt-4 pb-2'>
-                    <DialogTitle>{`Map Sub-Subjects — ${subject.ismS_SubjectName}`}</DialogTitle>
+                    <DialogTitle>{`Map Sub-Subjects — ${subject?.ismS_SubjectName ?? subject?.ISMS_SubjectName ?? ''}`}</DialogTitle>
                     <div className='text-muted-foreground text-sm'>
                         Parent Subject: Max={parentMaxMarks}, Min={parentMinMarks}
                     </div>

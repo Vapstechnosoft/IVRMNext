@@ -52,7 +52,7 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
         control,
         name: 'grade_list'
     });
-    const marksPerFlag = watch('emgR_MarksPerFlag');
+    const _marksPerFlag = watch('emgR_MarksPerFlag');
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [deleteIndex, setDeleteIndex] = useState<number | null>(null);
 
@@ -182,13 +182,19 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
 
         try {
             const payload = {
-                ...data,
+                emgR_Id: Number(data.emgR_Id),
+                emgR_GradeName: data.emgR_GradeName,
+                emgR_MarksPerFlag: data.emgR_MarksPerFlag,
+                emgR_ActiveFlag: data.emgR_ActiveFlag ?? true,
                 grade_list: data.grade_list.map((row) => ({
-                    ...row,
                     emgD_Id: Number(row.emgD_Id ?? 0),
+                    emgR_Id: Number(data.emgR_Id),
+                    emgD_Name: row.emgD_Name,
                     emgD_From: Number(row.emgD_From),
                     emgD_To: Number(row.emgD_To),
-                    emgD_GradePoints: Number(row.emgD_GradePoints)
+                    emgD_GradePoints: Number(row.emgD_GradePoints),
+                    emgD_Remarks: row.emgD_Remarks || '',
+                    emgD_ActiveFlag: row.emgD_ActiveFlag ?? true
                 }))
             };
 
@@ -286,7 +292,13 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                         name='emgR_MarksPerFlag'
                         control={control}
                         render={({ field }) => (
-                            <RadioGroup value={field.value} onValueChange={field.onChange} className='flex gap-4'>
+                            <RadioGroup
+                                value={field.value}
+                                onValueChange={(val) => {
+                                    field.onChange(val);
+                                    trigger();
+                                }}
+                                className='flex gap-4'>
                                 <div className='flex items-center space-x-2'>
                                     <RadioGroupItem value='M' id='marks' />
                                     <Label htmlFor='marks'>Marks</Label>
@@ -341,6 +353,8 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     if (value && !/^\d*\.?\d*$/.test(value)) {
                                                         e.target.value = value.replace(/[^\d.]/g, '');
                                                     }
+                                                    trigger(`grade_list.${index}.emgD_To`);
+                                                    trigger(`grade_list.${index}.emgD_From`);
                                                 }
                                             })}
                                             placeholder='Enter From'
@@ -370,6 +384,8 @@ export default function UpdateMasterGradeForm({ gradeData, onSuccess, className 
                                                     if (value && !/^\d*\.?\d*$/.test(value)) {
                                                         e.target.value = value.replace(/[^\d.]/g, '');
                                                     }
+                                                    trigger(`grade_list.${index}.emgD_From`);
+                                                    trigger(`grade_list.${index}.emgD_To`);
                                                 }
                                             })}
                                             placeholder='Enter To'

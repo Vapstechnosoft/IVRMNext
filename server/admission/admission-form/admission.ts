@@ -82,15 +82,13 @@ export async function saveFinalTabApi(data: any) {
     return await api.post<any>('admission', url, data);
 }
 
-export async function getAllAdmissionLists(searchParams?: ApiSearchparams) {
-    const urlParams = getSearchParamsUrl(
-        searchParams ?? {},
-        'studentName,amst_Id,className,sectionName,admissionDate,gender,registrationNo,admissionNo,emailId,mobileNo'
-    );
-
-    const asmayId = searchParams?.asmay_id || 0;
-    const url = `/StudentAdmissionFacade/get-student-list${urlParams ? `?${urlParams}&MI_Id=0&ASMAY_Id=${asmayId}` : `?MI_Id=0&ASMAY_Id=${asmayId}`}`;
-
+export async function getAllAdmissionLists(asmaY_Id: number,searchParams?: ApiSearchparams) {
+    // const asmayId = searchParams?.asmay_id || 0;
+    // Append pagination query params if they exist
+    const page = searchParams?.page || 1;
+    const pageSize = searchParams?.page_size || 10;
+    const urlParams = getSearchParamsUrl(searchParams ?? {});
+    const url = `/StudentAdmissionFacade/get-student-list?MI_Id=0&ASMAY_Id=${asmaY_Id}&${urlParams}`;
     return await api.get<[IadmissionStudentApplicationList]>('admission', url);
 }
 

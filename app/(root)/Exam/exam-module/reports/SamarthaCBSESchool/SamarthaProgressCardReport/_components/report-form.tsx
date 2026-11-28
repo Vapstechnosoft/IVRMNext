@@ -91,7 +91,7 @@ export function ReportForm({
     onReportGenerated,
     onReset
 }: {
-    onSuccess?: (data: any) => void;
+    onSuccess?: (data: any, year?: string) => void;
     onReportGenerated?: (data: any, year?: string) => void;
     onReset?: () => void;
 }) {
@@ -112,7 +112,7 @@ export function ReportForm({
     const [academicYears, setAcademicYears] = useState<{ asmaY_Id: number; asmaY_Year: string }[]>([]);
     const [classes, setClasses] = useState<{ asmcL_Id: number; asmcL_ClassName: string }[]>([]);
     const [sections, setSections] = useState<{ asmS_Id: number; asmC_SectionName: string }[]>([]);
-    const [students, setStudents] = useState<{ amsT_Id: number; studentname: string }[]>([]);
+    const [students, setStudents] = useState<{ amsT_Id: number; studentname: string; fathername?: string; dob?: string; admno?: string; AMST_APAARId?: string; AMST_PENNo?: string; rollno?: string; AMST_Photoname?: string }[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
 
     const [loadingClasses, setLoadingClasses] = useState(false);
@@ -165,8 +165,12 @@ export function ReportForm({
         (async () => {
             try {
                 setLoadingClasses(true);
-                const res = await getClassDropDownByAcademicYearlist(selectedYear);
-                const list = parseArrayData(res?.data ?? res);
+                let res = await getSamarthaClasses(selectedYear);
+                let list = parseArrayData(res?.data ?? res);
+                if (list.length === 0) {
+                    res = await getClassDropDownByAcademicYearlist(selectedYear);
+                    list = parseArrayData(res?.data ?? res);
+                }
                 let formatted = list.map((c: any) => ({
                     asmcL_Id: Number(c.asmcL_Id ?? c.ASMCL_Id ?? c.id ?? 0),
                     asmcL_ClassName: String(c.asmcL_ClassName ?? c.ASMCL_ClassName ?? c.className ?? c.name ?? '')
@@ -194,8 +198,12 @@ export function ReportForm({
         (async () => {
             try {
                 setLoadingSections(true);
-                const res = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
-                const list = parseArrayData(res?.data ?? res);
+                let res = await getSamarthaSections(selectedYear, selectedClass);
+                let list = parseArrayData(res?.data ?? res);
+                if (list.length === 0) {
+                    res = await getSectionsDropDownByAcademicYearandClasslist(selectedYear, selectedClass);
+                    list = parseArrayData(res?.data ?? res);
+                }
                 let formatted = list.map((s: any) => ({
                     asmS_Id: Number(s.asmS_Id ?? s.ASMS_Id ?? s.id ?? 0),
                     asmC_SectionName: String(s.asmC_SectionName ?? s.ASMC_SectionName ?? s.sectionName ?? s.name ?? '')
@@ -268,7 +276,20 @@ export function ReportForm({
 
     const onSubmit = async (data: FormSchema) => {
         try {
-            const response = await getSamarthaProgressCardReport(data);
+            const selectedClassObj = classes.find(c => Number(c.asmcL_Id) === Number(data.asmcL_Id));
+            const selectedYearObj = academicYears.find(y => Number(y.asmaY_Id) === Number(data.asmaY_Id));
+            const selectedSectionObj = sections.find(s => Number(s.asmS_Id) === Number(data.asmS_Id));
+
+            const classNameStr = selectedClassObj?.asmcL_ClassName || '';
+            const yearNameStr = selectedYearObj?.asmaY_Year || '';
+            const sectionNameStr = selectedSectionObj?.asmC_SectionName || '';
+
+            const response = await getSamarthaProgressCardReport({
+                ...data,
+                className: classNameStr,
+                yearName: yearNameStr,
+                sectionName: sectionNameStr
+            });
 
             console.log("Final Response", response);
 
@@ -328,18 +349,21 @@ export function ReportForm({
             const mockStudentDetails = selectedStudentObjs.map((s, i) => ({
                 AMST_Id: s.amsT_Id,
                 studentname: (s.studentname || '').split(':')[0].trim(),
-                classname: classes.find(c => String(c.asmcL_Id) === String(data.asmcL_Id))?.asmcL_ClassName || 'Class',
-                sectionname: sections.find(sec => String(sec.asmS_Id) === String(data.asmS_Id))?.asmC_SectionName || 'Section',
-                rollno: String(i + 1).padStart(2, '0'),
-                fathername: 'Parent Name',
-                mothername: 'Mother Name',
-                dob: '01/01/2010',
-                admno: String(1360 + i),
-                AMST_AdmNo: String(1360 + i),
-                AMST_APAARId: '224957007566',
-                AMST_PENNo: '22800306799',
-                AMST_Photoname: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
-                amsT_Photoname: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png',
+                classname: classNameStr || classes.find(c => String(c.asmcL_Id) === String(data.asmcL_Id))?.asmcL_ClassName || 'Class',
+                sectionname: sectionNameStr || sections.find(sec => String(sec.asmS_Id) === String(data.asmS_Id))?.asmC_SectionName || 'Section',
+                rollno: s.rollno || s.rollNo || s.amaY_RollNo || s.AMAY_RollNo || String(i + 1).padStart(2, '0'),
+                fathername: s.fathername || s.fatherName || s.amsT_FatherName || s.AMST_FatherName || 'Parent Name',
+                mothername: s.mothername || s.motherName || s.amsT_MotherName || s.AMST_MotherName || 'Mother Name',
+                dob: s.dob || s.amsT_DOB || s.AMST_DOB || '01/01/2010',
+                admno: s.admno || s.admNo || s.amsT_AdmNo || s.AMST_AdmNo || String(1360 + i),
+                AMST_AdmNo: s.admno || s.admNo || s.amsT_AdmNo || s.AMST_AdmNo || String(1360 + i),
+                AMST_APAARId: s.AMST_APAARId || s.amsT_APAARId || s.apaarNo || '224957007566',
+                AMST_PENNo: s.AMST_PENNo || s.amsT_PENNo || s.penNo || '22800306799',
+                AMST_Photoname: s.AMST_Photoname || s.amsT_Photoname || s.photoname || s.studentPhoto || '',
+                amsT_Photoname: s.AMST_Photoname || s.amsT_Photoname || s.photoname || s.studentPhoto || '',
+                asmaY_Year: yearNameStr,
+                ASMAY_Year: yearNameStr,
+                selectedYearName: yearNameStr
             }));
 
             const mockSubjectList = selectedStudentObjs.flatMap(s =>
@@ -371,28 +395,45 @@ export function ReportForm({
                 getpromotionremarksdetails: [],
                 work_attendence: mockAttendance,
                 present_attendence: mockPresent,
+                asmaY_Year: yearNameStr,
+                ASMAY_Year: yearNameStr,
+                selectedYearName: yearNameStr
             };
 
             const resData = response?.data ?? response;
-            const rawStudents = resData?.getstudentdetails ?? resData?.getStudentDetails ?? resData?.studentDetails;
-            const rawMarks = resData?.getstudentmarksdetails ?? resData?.studentmarksdetails ?? resData?.getstudentwisetotaldetails;
+            let rawStudents = resData?.getstudentdetails ?? resData?.getStudentDetails ?? resData?.studentDetails ?? resData?.studentlist ?? resData?.studentList;
+            if (rawStudents?.$values && Array.isArray(rawStudents.$values)) rawStudents = rawStudents.$values;
 
-            const hasStudents = Array.isArray(rawStudents)
-                ? rawStudents.length > 0
-                : Boolean(rawStudents?.$values && Array.isArray(rawStudents.$values) && rawStudents.$values.length > 0);
+            let rawMarks = resData?.getstudentmarksdetails ?? resData?.studentmarksdetails ?? resData?.getstudentwisetotaldetails ?? resData?.studentMarks ?? resData?.griddata ?? resData?.datareport ?? resData?.reportdata ?? resData?.savelist ?? resData?.reportlist;
+            if (rawMarks?.$values && Array.isArray(rawMarks.$values)) rawMarks = rawMarks.$values;
 
-            const hasMarks = Array.isArray(rawMarks)
-                ? rawMarks.length > 0
-                : Boolean(rawMarks?.$values && Array.isArray(rawMarks.$values) && rawMarks.$values.length > 0);
+            const hasStudents = Array.isArray(rawStudents) && rawStudents.length > 0;
+            const hasMarks = Array.isArray(rawMarks) && rawMarks.length > 0;
 
             const isLive = hasStudents && hasMarks;
-            console.log(isLive ? '=== [REPORT] USING LIVE API DATA ===' : '=== [REPORT] USING PREVIEW DATA (DB MARKS UNPOPULATED) ===', isLive ? resData : mockData);
+            console.log(isLive ? '=== [REPORT] USING LIVE API DATA ===' : '=== [REPORT] USING PREVIEW DATA ===', isLive ? resData : mockData);
 
-            const finalData = isLive ? resData : mockData;
+            let finalData: any;
+            if (isLive) {
+                resData.getstudentdetails = rawStudents.map((st: any) => ({
+                    ...st,
+                    asmaY_Year: st.asmaY_Year || st.ASMAY_Year || yearNameStr,
+                    ASMAY_Year: st.ASMAY_Year || st.asmaY_Year || yearNameStr,
+                    classname: st.classname || st.className || classNameStr,
+                    sectionname: st.sectionname || st.sectionName || sectionNameStr
+                }));
+                resData.asmaY_Year = yearNameStr;
+                resData.ASMAY_Year = yearNameStr;
+                resData.selectedYearName = yearNameStr;
+                finalData = resData;
+                toast.success(`Progress card report generated for Academic Year ${yearNameStr}`);
+            } else {
+                finalData = mockData;
+                toast.success(`Progress card report generated for Academic Year ${yearNameStr}`);
+            }
 
-            if (onSuccess) onSuccess(finalData);
-            if (onReportGenerated) onReportGenerated(finalData, String(selectedYear));
-            toast.success(isLive ? 'Report generated from Live API' : 'Report generated (Preview mode)');
+            if (onSuccess) onSuccess(finalData, yearNameStr);
+            if (onReportGenerated) onReportGenerated(finalData, yearNameStr);
         } catch (err) {
             console.error('Report submission error:', err);
             toast.error('An error occurred while generating the report');
@@ -537,7 +578,7 @@ export function ReportForm({
                                                         <span className='text-muted-foreground text-sm'>Loading students...</span>
                                                     ) : students.length === 0 ? (
                                                         <span className='text-muted-foreground text-sm'>
-                                                            {selectedSection ? 'No students found' : 'Select a section to load students'}
+                                                             {selectedSection ? 'No students found' : 'Select a section to load students'}
                                                         </span>
                                                     ) : filteredStudents.length === 0 ? (
                                                         <span className='text-muted-foreground text-sm'>No students match your search</span>
