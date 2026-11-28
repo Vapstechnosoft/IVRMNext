@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import type { PageDTO } from '@/types/super-admin/configuration-setting/institution-module-page';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Minus, Save, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2, Minus, Save, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface PrivilegeGridProps {
     data: PageDTO[];
     onUpdate: (data: PageDTO[]) => void;
-    onSave: (data: PageDTO[]) => void;
+    onSave: (data: PageDTO[]) => Promise<void>;
     onCancel: () => void;
 }
 
@@ -18,7 +18,8 @@ export default function PrivilegeGrid({ data: initialData, onUpdate, onSave, onC
     const [data, setData] = useState<PageDTO[]>(initialData);
     const [isOpen, setIsOpen] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Global toggle states
     const [addAll, setAddAll] = useState(false);
@@ -61,6 +62,15 @@ export default function PrivilegeGrid({ data: initialData, onUpdate, onSave, onC
     const totalPages = Math.ceil(data.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const paginatedData = data.slice(startIndex, startIndex + itemsPerPage);
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            await onSave(data);
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     return (
         <div className='box box-primary mt-4 rounded-md border shadow-sm'>
@@ -199,10 +209,15 @@ export default function PrivilegeGrid({ data: initialData, onUpdate, onSave, onC
 
                         {/* Actions */}
                         <div className='flex justify-center gap-4'>
-                            <Button className='bg-blue-600 text-white hover:bg-blue-700' onClick={() => onSave(data)}>
-                                <Save className='mr-2 h-4 w-4' /> Save
+                            <Button
+                                type='button'
+                                className='bg-blue-600 text-white hover:bg-blue-700'
+                                onClick={handleSave}
+                                disabled={isSaving}>
+                                {isSaving ? <Loader2 className='mr-2 h-4 w-4 animate-spin' /> : <Save className='mr-2 h-4 w-4' />}
+                                {isSaving ? 'Saving...' : 'Save'}
                             </Button>
-                            <Button variant='destructive' onClick={onCancel}>
+                            <Button type='button' variant='destructive' onClick={onCancel} disabled={isSaving}>
                                 <X className='mr-2 h-4 w-4' /> Cancel
                             </Button>
                         </div>

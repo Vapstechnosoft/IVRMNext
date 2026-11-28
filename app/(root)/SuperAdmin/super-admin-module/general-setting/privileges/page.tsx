@@ -1,5 +1,15 @@
 'use client';
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -20,7 +30,7 @@ import type {
     IPrivilegeRole,
     IRolePrivilegeMapping
 } from '@/types/super-admin/super-admin-module/general-setting/privileges';
-import { RefreshCcw, Save, Search, X } from 'lucide-react';
+import { Loader2, RefreshCcw, Save, Search, X } from 'lucide-react';
 import { parseAsInteger, parseAsString, useQueryState } from 'nuqs';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -46,6 +56,8 @@ export default function PrivilegesPage() {
 
     const [isLoading, setIsLoading] = useState(false);
     const [isListLoading, setIsListLoading] = useState(false);
+    const [privilegeToDelete, setPrivilegeToDelete] = useState<IRolePrivilegeMapping | null>(null);
+    const [isDeletingPrivilege, setIsDeletingPrivilege] = useState(false);
 
     // Pagination for Grid 4
     const [page, setPage] = useQueryState(tableSearchVariables.page, parseAsInteger.withOptions({ shallow: false }).withDefault(1));
@@ -194,9 +206,7 @@ export default function PrivilegesPage() {
             const res = await savePrivileges(payload);
             if (res.success) {
                 toast.success(res.message);
-                setCartPrivileges([]);
-                handleSearch();
-                fetchRolePrivilegesList(); // Refresh bottom grid
+                window.setTimeout(() => window.location.reload(), 1000);
             } else {
                 toast.error(res.message);
             }
@@ -207,13 +217,14 @@ export default function PrivilegesPage() {
         }
     };
 
-    const handleDeletePrivilege = async (item: IRolePrivilegeMapping) => {
-        if (!confirm('Are you sure you want to delete this privilege?')) return;
-
+    const handleDeletePrivilege = async () => {
+        if (!privilegeToDelete) return;
+        setIsDeletingPrivilege(true);
         try {
-            const res = await deletePrivilege(item.ivrmrP_Id);
+            const res = await deletePrivilege(privilegeToDelete.ivrmrP_Id);
             if (res.success) {
                 toast.success(res.message);
+                setPrivilegeToDelete(null);
                 fetchRolePrivilegesList();
                 if (selectedRoleId && selectedModuleIds.length > 0) {
                     handleSearch();
@@ -223,6 +234,8 @@ export default function PrivilegesPage() {
             }
         } catch (error) {
             toast.error('Delete failed');
+        } finally {
+            setIsDeletingPrivilege(false);
         }
     };
 
@@ -331,7 +344,7 @@ export default function PrivilegesPage() {
             {/* Grid 4: Role Privileges List (OnLoad Grid) */}
             <RolePrivilegesList
                 data={rolePrivilegesList}
-                onDelete={handleDeletePrivilege}
+                onDelete={setPrivilegeToDelete}
                 isLoading={isListLoading}
                 totalItems={totalPrivilegesList}
                 pagination={{
@@ -346,6 +359,36 @@ export default function PrivilegesPage() {
                     setPage(1);
                 }}
             />
+
+            <AlertDialog
+                open={privilegeToDelete !== null}
+                onOpenChange={(open) => {
+                    if (!open && !isDeletingPrivilege) {
+                        setPrivilegeToDelete(null);
+                    }
+                }}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete this privilege?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete this privilege? This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isDeletingPrivilege}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={async (event) => {
+                                event.preventDefault();
+                                await handleDeletePrivilege();
+                            }}
+                            disabled={isDeletingPrivilege}
+                            className='bg-destructive text-destructive-foreground hover:bg-destructive/90'>
+                            {isDeletingPrivilege && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                            {isDeletingPrivilege ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

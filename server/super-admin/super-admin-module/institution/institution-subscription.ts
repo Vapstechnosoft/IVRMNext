@@ -7,7 +7,7 @@ import type { IInstitutionSubscription } from '@/types/super-admin/super-admin-m
 import type { z } from 'zod';
 
 export async function addOrUpdateInstitutionSubscription(data: z.infer<typeof institutionSubscriptionSchema.addOrUpdate>) {
-    const url = 'InstitutionFacade';
+    const url = 'Institution';
 
     // Map existing types to match API payload if necessary, or ensure schema matches.
     // Based on request, payload matches schema mostly.

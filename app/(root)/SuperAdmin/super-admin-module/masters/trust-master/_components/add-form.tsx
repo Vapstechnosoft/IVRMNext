@@ -183,7 +183,7 @@ export default function AddTrustMasterForm({ onSuccess, onRefresh, className = '
                             {...register('mO_Address3')}
                             error={errors.mO_Address3?.message}
                         />
-                        <InputText label='Landmark' {...register('mO_Landmark')} error={errors.mO_Landmark?.message} />
+                        <InputText label='Landmark' {...register('mO_Landmark')} required error={errors.mO_Landmark?.message} />
 
                         <div className='flex flex-col gap-1.5'>
                             <Label>

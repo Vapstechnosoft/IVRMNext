@@ -6,56 +6,36 @@ import type { ApiSearchparams } from '@/types';
 export async function getMasterInstitutionData(searchParams?: ApiSearchparams) {
     const urlParams = getSearchParamsUrl(searchParams ?? {});
     const url = `/Institution/get_onload_grid_master_trust?${urlParams}`;
-    try {
         const response = await api.get<any>('sadmin', url);
         return response;
-    } catch (error) {
-        throw error;
-    }
 }
 
 export async function getCountryDropdown() {
-    const url = `/Institution/get_country_dropdown`;
-    try {
+    const url = '/Institution/get_country_dropdown';
         const response = await api.get<any>('sadmin', url);
         return response;
-    } catch (error) {
-        throw error;
-    }
 }
 
 export async function getStateDropdown(ivrmmC_Id: number) {
     const url = `/Institution/get_state_dropdown_onchnageof_country/${ivrmmC_Id}`;
-    try {
         const response = await api.get<any>('sadmin', url);
         return response;
-    } catch (error) {
-        throw error;
-    }
 }
 
 export async function getInstitutionDropdown() {
-    const url = `/MasterInstitutionRoleandModuleMappingFacade/get_institution_drop_down`;
-    try {
+    const url = '/MasterInstitutionRoleandModuleMappingFacade/get_institution_drop_down';
         const response = await api.get<any>('sadmin', url);
         return response;
-    } catch (error) {
-        throw error;
-    }
 }
 
 export async function getTrustNameDropdown() {
-    const url = `/OrganisationFacade/get_on_load_details`;
-    try {
+    const url = 'StaffLogin/get_trust_drop_down';
         const response = await api.get<any>('sadmin', url);
         return response;
-    } catch (error) {
-        throw error;
-    }
 }
 
 export async function saveMasterInstitution(data: any) {
-    const url = `/Institution/savedata`;
+    const url = '/Institution/add_or_update_master_trust';
     try {
         const response = await api.post<any>('sadmin', url, data);
         return response;
@@ -84,4 +64,3 @@ export async function activateDeactivateMasterInstitution(id: number) {
         }
     }
 }
-

@@ -25,6 +25,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import AddMasterSchoolTypeForm from './_components/add-form';
 import { columns } from './_components/columns';
+import UpdateMasterSchoolTypeForm from './_components/update-form';
 
 export default function MasterSchoolTypePage() {
     return (
@@ -35,7 +36,7 @@ export default function MasterSchoolTypePage() {
 }
 
 function MasterSchoolTypePageContent() {
-    const { openAddForm, isAddFormOpen } = useFormContext<IMasterSchoolType>();
+    const { openAddForm, isAddFormOpen, isEditFormOpen } = useFormContext<IMasterSchoolType>();
     const [data, setData] = useState<IMasterSchoolType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -62,7 +63,7 @@ function MasterSchoolTypePageContent() {
     return (
         <div className='container space-y-4 p-1'>
             {/* Header with Add Button - Only show if form is NOT open */}
-            {!isAddFormOpen && (
+            {!isAddFormOpen && !isEditFormOpen && (
                 <div className='flex gap-4 sm:flex-row sm:items-center sm:justify-self-end'>
                     <Button
                         type='button'
@@ -86,40 +87,59 @@ function MasterSchoolTypePageContent() {
 }
 
 function FormSections({ onRefresh }: { onRefresh: () => void }) {
-    const { isAddFormOpen, isDeleteFormOpen, selectedRow, closeAddForm, closeDeleteForm, addFormRef } = useFormContext<IMasterSchoolType>();
+    const {
+        isAddFormOpen,
+        isEditFormOpen,
+        isDeleteFormOpen,
+        selectedRow,
+        closeAddForm,
+        closeEditForm,
+        closeDeleteForm,
+        addFormRef,
+        editFormRef
+    } = useFormContext<IMasterSchoolType>();
 
     const [isDeleting, setIsDeleting] = useState(false);
 
-    const handleSuccess = () => {
+    const handleAddSuccess = () => {
         closeAddForm();
         onRefresh();
     };
 
-    const handleDelete = async () => {
-        if (!selectedRow) return;
-        setIsDeleting(true);
-        try {
-            const res = await deleteMasterSchoolType(selectedRow.ivrmmtyP_Id);
-            // if (res.success || res.returnval === true) {
-            //     toast.success('Record deleted successfully');
-            //     closeDeleteForm();
-            //     onRefresh();
-            // } else {
-            //     toast.error(res.message || 'Failed to delete record');
-            // }
-        } catch (error) {
-            toast.error('An error occurred');
-        } finally {
-            setIsDeleting(false);
-        }
+    const handleEditSuccess = () => {
+        closeEditForm();
+        onRefresh();
     };
+
+    const handleDelete = async () => {
+    if (!selectedRow) return;
+    setIsDeleting(true);
+    try {
+        const res = await deleteMasterSchoolType(selectedRow.ivrmmtyP_Id);
+        if (res.success) {
+            toast.success('Record deleted successfully');
+            closeDeleteForm();
+            onRefresh();
+        } else {
+            toast.error(res.message || 'Failed to delete record');
+        }
+    } catch (error: any) {
+        const message =
+            error?.response?.data?.message ||   // axios error with a server message
+            error?.message ||                   // generic Error
+            'An error occurred';
+        toast.error(message);
+    } finally {
+        setIsDeleting(false);
+    }
+};
 
     return (
         <>
             {isAddFormOpen && (
                 <div ref={addFormRef}>
                     <CollapsibleSection
-                        title={selectedRow ? 'Edit Master School Type' : 'Add Master School Type'}
+                        title='Add Master School Type'
                         defaultOpen={true}
                         variant='outline'
                         size='lg'
@@ -133,7 +153,30 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
                                 className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
                                 <X className='h-4 w-4 text-destructive' /> Close
                             </Button>
-                            <AddMasterSchoolTypeForm onSuccess={handleSuccess} />
+                            <AddMasterSchoolTypeForm onSuccess={handleAddSuccess} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
+            )}
+
+            {isEditFormOpen && selectedRow && (
+                <div ref={editFormRef}>
+                    <CollapsibleSection
+                        title='Edit Master School Type'
+                        defaultOpen={true}
+                        variant='outline'
+                        size='lg'
+                        className='slide-in-from-top-2 animate-in shadow-lg'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeEditForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <UpdateMasterSchoolTypeForm selectedRow={selectedRow} onSuccess={handleEditSuccess} />
                         </div>
                     </CollapsibleSection>
                 </div>

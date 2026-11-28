@@ -10,14 +10,11 @@ import {
     type MasterSchoolTypeSchema,
     masterSchoolTypeSchema
 } from '@/schemas/super-admin/super-admin-module/general-setting/master-school-type';
-import {
-    getMasterSchoolTypeDetails,
-    saveMasterSchoolType
-} from '@/server/super-admin/super-admin-module/general-setting/master-school-type';
+import { saveMasterSchoolType } from '@/server/super-admin/super-admin-module/general-setting/master-school-type';
 import type { IMasterSchoolType } from '@/types/super-admin/super-admin-module/general-setting/master-school-type';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Save, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -27,14 +24,12 @@ interface AddMasterSchoolTypeFormProps {
 
 export default function AddMasterSchoolTypeForm({ onSuccess }: AddMasterSchoolTypeFormProps) {
     const [isLoading, setIsLoading] = useState(false);
-    const { closeAddForm, selectedRow } = useFormContext<IMasterSchoolType>();
-
+    const { closeAddForm } = useFormContext<IMasterSchoolType>();
     const {
         register,
         handleSubmit,
         reset,
-        formState: { errors },
-        setValue
+        formState: { errors }
     } = useForm<MasterSchoolTypeSchema>({
         resolver: zodResolver(masterSchoolTypeSchema),
         defaultValues: {
@@ -43,30 +38,6 @@ export default function AddMasterSchoolTypeForm({ onSuccess }: AddMasterSchoolTy
             ivrmmtyP_Description: ''
         }
     });
-
-    useEffect(() => {
-        if (selectedRow) {
-            // Set initial values from selectedRow immediately using reset (better for form re-initialization)
-            reset({
-                ivrmmtyP_Id: selectedRow.ivrmmtyP_Id,
-                ivrmmtyP_Type: selectedRow.ivrmmtyP_Type,
-                ivrmmtyP_Description: selectedRow.ivrmmtyP_Description
-            });
-
-            setIsLoading(true);
-            getMasterSchoolTypeDetails(selectedRow.ivrmmtyP_Id).then((res) => {
-                if (res.success && res.data) {
-                    // Update with fresh data
-                    reset({
-                        ivrmmtyP_Id: res.data.ivrmmtyP_Id,
-                        ivrmmtyP_Type: res.data.ivrmmtyP_Type,
-                        ivrmmtyP_Description: res.data.ivrmmtyP_Description
-                    });
-                }
-                setIsLoading(false);
-            });
-        }
-    }, [selectedRow, reset]);
 
     const onSubmit = async (data: MasterSchoolTypeSchema) => {
         setIsLoading(true);
@@ -79,7 +50,7 @@ export default function AddMasterSchoolTypeForm({ onSuccess }: AddMasterSchoolTy
             } else {
                 toast.error(result.message || 'Failed to save data');
             }
-        } catch (error) {
+        } catch {
             toast.error('An unexpected error occurred');
         } finally {
             setIsLoading(false);

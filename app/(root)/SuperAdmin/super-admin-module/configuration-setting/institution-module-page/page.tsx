@@ -9,15 +9,15 @@ import {
 } from '@/server/super-admin/configuration-setting/institution-module-page';
 import type { InstitutionRolePrivilegeDTO, PageDTO } from '@/types/super-admin/configuration-setting/institution-module-page';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z } from 'zod';
 import DeleteGrid from './_components/delete-grid';
 import PageListGrid from './_components/page-list-grid';
 import PrivilegeGrid from './_components/privilege-grid';
 import SavedGrid from './_components/saved-grid';
 import SelectionForm from './_components/selection-form';
-import { toast } from 'sonner';
 
 const formSchema = z.object({
     institution: z.string().min(1, 'Select institute'),
@@ -38,10 +38,27 @@ export default function InstitutionModulePage() {
     });
 
     const [gridData, setGridData] = useState<InstitutionRolePrivilegeDTO[]>([]);
+    const [isGridLoading, setIsGridLoading] = useState(true);
     const [pageListData, setPageListData] = useState<PageDTO[]>([]);
     const [cartData, setCartData] = useState<PageDTO[]>([]);
     const [deleteCartData, setDeleteCartData] = useState<InstitutionRolePrivilegeDTO[]>([]);
     const selectedModule = methods.watch('module');
+
+    const refreshSavedGrid = useCallback(async (failureMessage = 'Failed to refresh saved pages') => {
+        setIsGridLoading(true);
+        try {
+            const response = await getInstitutionRolePrivileges();
+            if (response.success && response.data?.institutionRolePrivilegesList) {
+                setGridData(response.data.institutionRolePrivilegesList);
+            } else {
+                toast.error(response.message || failureMessage);
+            }
+        } catch {
+            toast.error(failureMessage);
+        } finally {
+            setIsGridLoading(false);
+        }
+    }, []);
 
     // ... (existing handleAddToCart, etc)
 
@@ -64,11 +81,7 @@ export default function InstitutionModulePage() {
             toast.success(result.message);
             // Clear delete cart
             setDeleteCartData([]);
-            // Refresh grid
-            const response = await getInstitutionRolePrivileges();
-            if (response.success && response.data?.institutionRolePrivilegesList) {
-                setGridData(response.data.institutionRolePrivilegesList);
-            }
+            await refreshSavedGrid();
         } else {
             toast.error(result.message);
         }
@@ -135,10 +148,7 @@ export default function InstitutionModulePage() {
         const result = await saveInstitutionRolePrivileges(payload);
         if (result.success) {
             toast.success(result.message);
-            setCartData([]);
-            // Optionally refresh grid
-            // const response = await getInstitutionRolePrivileges();
-            // if(response.success && response.data?.institutionRolePrivilegesList) setGridData(response.data.institutionRolePrivilegesList);
+            window.location.reload();
         } else {
             toast.error(result.message);
         }
@@ -149,16 +159,8 @@ export default function InstitutionModulePage() {
     };
 
     useEffect(() => {
-        const fetchGridData = async () => {
-            console.log('Fetching grid data...');
-            const response = await getInstitutionRolePrivileges();
-            console.log('Grid Data Response:', response);
-            if (response.success && response.data?.institutionRolePrivilegesList) {
-                setGridData(response.data.institutionRolePrivilegesList);
-            }
-        };
-        fetchGridData();
-    }, []);
+        refreshSavedGrid('Failed to load saved pages');
+    }, [refreshSavedGrid]);
 
     useEffect(() => {
         const fetchPageList = async () => {
@@ -213,11 +215,12 @@ export default function InstitutionModulePage() {
                             </div>
 
                             {/* Delete Grid (appears when items are selected in SavedGrid) */}
+
+                            <SavedGrid data={gridData} isLoading={isGridLoading} onSelectionChange={handleSavedGridSelection} />
+
                             {deleteCartData.length > 0 && (
                                 <DeleteGrid data={deleteCartData} onDelete={handleDelete} onCancel={handleCancelDelete} />
                             )}
-
-                            <SavedGrid data={gridData} onSelectionChange={handleSavedGridSelection} />
                         </form>
                     </FormProvider>
                 </CardContent>

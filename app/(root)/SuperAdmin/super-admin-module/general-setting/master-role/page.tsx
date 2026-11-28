@@ -88,7 +88,7 @@ function MasterRolePageContent() {
 }
 
 function FormSections({ onRefresh }: { onRefresh: () => void }) {
-    const { isAddFormOpen, isEditFormOpen, closeAddForm, closeEditForm } = useFormContext<IMasterRole>();
+    const { isAddFormOpen, isEditFormOpen, closeAddForm, closeEditForm, addFormRef, editFormRef } = useFormContext<IMasterRole>();
 
     const closeForm = isEditFormOpen ? closeEditForm : closeAddForm;
     const title = isEditFormOpen ? 'Edit Master Role' : 'Add Master Role';
@@ -102,24 +102,26 @@ function FormSections({ onRefresh }: { onRefresh: () => void }) {
     return (
         <>
             {isOpen && (
-                <CollapsibleSection
-                    title={title}
-                    defaultOpen={true}
-                    variant='outline'
-                    size='lg'
-                    className='slide-in-from-top-2 animate-in shadow-lg'>
-                    <div className='relative'>
-                        <Button
-                            type='button'
-                            onClick={closeForm}
-                            variant='ghost'
-                            size='sm'
-                            className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
-                            <X className='h-4 w-4 text-destructive' /> Close
-                        </Button>
-                        <AddMasterRoleForm onSuccess={handleSuccess} />
-                    </div>
-                </CollapsibleSection>
+                <div ref={isEditFormOpen ? editFormRef : addFormRef}>
+                    <CollapsibleSection
+                        title={title}
+                        defaultOpen={true}
+                        variant='outline'
+                        size='lg'
+                        className='slide-in-from-top-2 animate-in shadow-lg'>
+                        <div className='relative'>
+                            <Button
+                                type='button'
+                                onClick={closeForm}
+                                variant='ghost'
+                                size='sm'
+                                className='-top-[3.5rem] absolute right-12 w-fit border p-2 shadow-md hover:bg-destructive/10'>
+                                <X className='h-4 w-4 text-destructive' /> Close
+                            </Button>
+                            <AddMasterRoleForm onSuccess={handleSuccess} />
+                        </div>
+                    </CollapsibleSection>
+                </div>
             )}
         </>
     );

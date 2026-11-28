@@ -19,6 +19,7 @@ interface PageMappingContextType {
     cartPages: IPageMappingData[];
     savedMappings: ISavedMapping[];
     isLoading: boolean;
+    isSaving: boolean;
     setSelectedModuleId: (id: number) => void;
     addToCart: (pages: IPageMappingData[]) => void;
     removeFromCart: (pageIds: number[]) => void;
@@ -36,6 +37,7 @@ export function PageMappingProvider({ children }: { children: React.ReactNode })
     const [cartPages, setCartPages] = useState<IPageMappingData[]>([]);
     const [savedMappings, setSavedMappings] = useState<ISavedMapping[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
     // Load available pages when Module changes
     useEffect(() => {
@@ -106,25 +108,29 @@ export function PageMappingProvider({ children }: { children: React.ReactNode })
             return;
         }
 
-        setIsLoading(true);
+        setIsSaving(true);
         const payload = {
             ivrmM_Id: selectedModuleId,
             pages: cartPages
         };
-        console.log('mapping page to module payload', payload);
-        const res = await savePageMapping(payload);
-        if (res.success) {
-            toast.success(res.message);
-            setCartPages([]);
-            // Refresh saved mappings
-            const savedRes = await getSavedMappings(0);
-            if (savedRes.success && savedRes.data) {
-                setSavedMappings(savedRes.data);
+        try {
+            const res = await savePageMapping(payload);
+            if (res.success) {
+                toast.success(res.message);
+                setCartPages([]);
+                const savedRes = await getSavedMappings(0);
+                if (savedRes.success && savedRes.data) {
+                    setSavedMappings(savedRes.data);
+                }
+            } else {
+                toast.error(res.message);
             }
-        } else {
-            toast.error(res.message);
+        } catch (error) {
+            console.error('Failed to save page mapping', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to save page mapping');
+        } finally {
+            setIsSaving(false);
         }
-        setIsLoading(false);
     };
 
     const deleteMapping = async (id: number) => {
@@ -153,6 +159,7 @@ export function PageMappingProvider({ children }: { children: React.ReactNode })
                 cartPages,
                 savedMappings,
                 isLoading,
+                isSaving,
                 setSelectedModuleId,
                 addToCart,
                 removeFromCart,

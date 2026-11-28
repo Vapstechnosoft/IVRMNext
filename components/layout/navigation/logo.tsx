@@ -44,7 +44,7 @@ export default function Logo({ className = '', herf = '', size = 'text', src: cu
 
     const sessionLogo = session?.mi_logo;
 
-    let rawLogo = customSrc || sessionLogo || apiLogo || '';
+    let rawLogo = (customSrc || sessionLogo || apiLogo || '').trim();
 
     // Handle relative path returned by backend API
     if (rawLogo && !rawLogo.startsWith('http://') && !rawLogo.startsWith('https://') && !rawLogo.startsWith('data:')) {

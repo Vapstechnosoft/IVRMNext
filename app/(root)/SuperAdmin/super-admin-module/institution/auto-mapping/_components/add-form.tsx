@@ -145,11 +145,19 @@ export default function AddAutoMappingForm({ onSuccess }: AddAutoMappingFormProp
                 />
 
                 <div className='flex justify-center gap-3 pt-4'>
-                    <Button type='submit' disabled={isSubmitting} className='w-fit transition-all duration-200 hover:scale-105'>
-                        <div className='flex items-center'>
-                            <Save className='mr-2 h-4 w-4' />
-                            Save
-                        </div>
+                    <Button
+                        type='submit'
+                        disabled={isSubmitting}
+                        isLoading={isSubmitting}
+                        className='w-fit transition-all duration-200 hover:scale-105'>
+                        {isSubmitting ? (
+                            'Saving...'
+                        ) : (
+                            <div className='flex items-center'>
+                                <Save className='mr-2 h-4 w-4' />
+                                Save
+                            </div>
+                        )}
                     </Button>
                     <Button
                         type='button'

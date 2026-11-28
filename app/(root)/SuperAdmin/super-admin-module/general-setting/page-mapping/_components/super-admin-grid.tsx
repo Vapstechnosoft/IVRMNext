@@ -12,7 +12,7 @@ import { usePageMapping } from './mapping-context';
 import { PageNumberPagination } from './page-number-pagination';
 
 export default function SuperAdminGrid() {
-    const { selectedModuleId, cartPages, removeFromCart, saveCart, clearCart } = usePageMapping();
+    const { selectedModuleId, cartPages, removeFromCart, saveCart, clearCart, isSaving } = usePageMapping();
 
     const [searchTerm, setSearchTerm] = useState('');
     const [page, setPage] = useState(1);
@@ -160,11 +160,21 @@ export default function SuperAdminGrid() {
             )}
 
             <div className='flex justify-center gap-4 border-t bg-gray-50 p-4'>
-                <Button onClick={saveCart} disabled={cartPages.length === 0} className='bg-blue-600 hover:bg-blue-700'>
-                    <SaveIcon className='mr-2 h-4 w-4' />
-                    Save
+                <Button
+                    onClick={saveCart}
+                    disabled={cartPages.length === 0 || isSaving}
+                    isLoading={isSaving}
+                    className='bg-blue-600 hover:bg-blue-700'>
+                    {isSaving ? (
+                        'Saving...'
+                    ) : (
+                        <>
+                            <SaveIcon className='mr-2 h-4 w-4' />
+                            Save
+                        </>
+                    )}
                 </Button>
-                <Button variant='destructive' onClick={clearCart} disabled={cartPages.length === 0}>
+                <Button variant='destructive' onClick={clearCart} disabled={cartPages.length === 0 || isSaving}>
                     <XIcon className='mr-2 h-4 w-4' />
                     Cancel
                 </Button>

@@ -5,7 +5,7 @@ import type { autoMappingSchema } from '@/schemas/super-admin/super-admin-module
 import type { z } from 'zod';
 
 export async function saveAutoMapping(data: z.infer<typeof autoMappingSchema.addOrUpdate>) {
-    const url = 'InstitutionFacade/add_or_update_auto_mapping';
+    const url = '/Institution/add_or_update_auto_mapping';
     const payload = {
         pervious_MI_Id: data.Pervious_MI_Id,
         current_MI_Id: data.Current_MI_Id,

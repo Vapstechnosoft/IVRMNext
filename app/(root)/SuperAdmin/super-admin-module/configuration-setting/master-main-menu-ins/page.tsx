@@ -1,5 +1,15 @@
 'use client';
 
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     deleteMainMenuINS,
@@ -9,24 +19,14 @@ import {
 } from '@/server/super-admin/configuration-setting/master-main-menu-ins';
 import type { MainMenuModuleDTO, MasterMainMenuINSDTO } from '@/types/super-admin/configuration-setting/master-main-menu-ins';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { FormProvider, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import MainMenuGrid from './_components/main-menu-grid';
 import ModuleMenuGrid from './_components/module-menu-grid';
 import SelectionForm from './_components/selection-form';
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-
 const formSchema = z.object({
     institution: z.string().min(1, 'Institution is required'),
     module: z.string().min(1, 'Module is required'),
@@ -46,6 +46,16 @@ export default function MasterMainMenuINSPage() {
 
     const [gridData, setGridData] = useState<MasterMainMenuINSDTO[]>([]);
     const [moduleMenuData, setModuleMenuData] = useState<MainMenuModuleDTO[]>([]);
+    const [activeRequests, setActiveRequests] = useState(0);
+
+    const withLoading = useCallback(async <T,>(request: () => Promise<T>): Promise<T> => {
+        setActiveRequests((count) => count + 1);
+        try {
+            return await request();
+        } finally {
+            setActiveRequests((count) => count - 1);
+        }
+    }, []);
 
     const institutionId = useWatch({
         control: methods.control,
@@ -61,7 +71,7 @@ export default function MasterMainMenuINSPage() {
         const fetchGridData = async () => {
             // Fetch Existing Grid Data
             try {
-                const response = await getMainMenuListINS();
+                const response = await withLoading(() => getMainMenuListINS());
                 if (response.success && response.data?.gridDetails) {
                     // Strict deduplication using String(id) to handle mixed types (3 vs "3")
                     const uniqueData = Array.from(
@@ -78,15 +88,18 @@ export default function MasterMainMenuINSPage() {
                         );
                     }
                     setGridData(uniqueData);
+                } else {
+                    toast.error(response.message || 'Failed to load main menu list');
                 }
             } catch (error) {
                 console.error('Error in fetchGridData:', error);
+                toast.error('Failed to load main menu list');
             }
 
            
         };
         fetchGridData();
-    }, []);
+    }, [withLoading]);
 
     useEffect(() => {
     const fetchModuleMenuList = async () => {
@@ -96,9 +109,8 @@ export default function MasterMainMenuINSPage() {
         }
 
         try {
-            const response = await getModuleMenuList(
-                Number(institutionId),
-                Number(moduleId)
+            const response = await withLoading(() =>
+                getModuleMenuList(Number(institutionId), Number(moduleId))
             );
 
             if (response.success && response.data?.moduleList) {
@@ -120,6 +132,7 @@ export default function MasterMainMenuINSPage() {
                 setModuleMenuData(uniqueData);
             } else {
                 setModuleMenuData([]);
+                toast.error(response.message || 'Failed to load module menu list');
             }
         } catch (error) {
             console.error(
@@ -132,7 +145,7 @@ export default function MasterMainMenuINSPage() {
     };
 
     fetchModuleMenuList();
-}, [moduleId]);
+}, [institutionId, moduleId, withLoading]);
 const [deleteTarget, setDeleteTarget] = useState<MasterMainMenuINSDTO | null>(null);
 const [isDeleting, setIsDeleting] = useState(false);
 
@@ -162,19 +175,23 @@ const confirmDelete = async () => {
 
     setIsDeleting(true);
     try {
-        const res = await deleteMainMenuINS(deleteTarget);
+        await withLoading(async () => {
+            const res = await deleteMainMenuINS(deleteTarget);
 
-        if (res.success) {
-            toast.success('Deleted successfully');
+            if (res.success) {
+                toast.success('Deleted successfully');
 
-            const response = await getMainMenuListINS();
-            if (response.success && response.data?.gridDetails) {
-                setGridData(response.data.gridDetails);
+                const response = await getMainMenuListINS();
+                if (response.success && response.data?.gridDetails) {
+                    setGridData(response.data.gridDetails);
+                } else {
+                    toast.error(response.message || 'Failed to refresh main menu list');
+                }
+            } else {
+                toast.error('Failed to delete: ' + res.message);
             }
-        } else {
-            toast.error('Failed to delete: ' + res.message);
-        }
-    } catch (err) {
+        });
+    } catch {
         toast.error('Something went wrong while deleting');
     } finally {
         setIsDeleting(false);
@@ -194,41 +211,45 @@ const confirmDelete = async () => {
         let successCount = 0;
         let failCount = 0;
 
-        // Iterate and save each item individually as the API structure seems to imply per-item config
-        for (const item of items) {
-            const payload = {
-                ivrmmmI_Id: 0,
-                ivrmM_Id: Number.parseInt(moduleId),
-                mI_Id: Number.parseInt(institutionId),
-                ivrmmmI_MenuName: item.customMenuName || item.modulename, // Use custom or default
-                ivrmmmI_Icon: item.selectedIcon || '',
-                ivrmmmI_Color: item.selectedColor || '',
-                selectedMasterMenuDetails: [
-                    {
-                        ivrmmM_Id: item.ivrmmM_Id,
-                        ivrmmmI_MenuName: item.customMenuName || item.modulename
-                    }
-                ]
-            };
+        await withLoading(async () => {
+            // Save each item individually because the API expects one menu mapping per request.
+            for (const item of items) {
+                const payload = {
+                    ivrmmmI_Id: 0,
+                    ivrmM_Id: Number.parseInt(moduleId),
+                    mI_Id: Number.parseInt(institutionId),
+                    ivrmmmI_MenuName: item.customMenuName || item.modulename,
+                    ivrmmmI_Icon: item.selectedIcon || '',
+                    ivrmmmI_Color: item.selectedColor || '',
+                    selectedMasterMenuDetails: [
+                        {
+                            ivrmmM_Id: item.ivrmmM_Id,
+                            ivrmmmI_MenuName: item.customMenuName || item.modulename
+                        }
+                    ]
+                };
 
-            const res = await saveMainMenuINS(payload);
-            if (res.success) {
-                successCount++;
-            } else {
-                failCount++;
-                console.error(`Failed to save ${item.modulename}:`, res.message);
+                const res = await saveMainMenuINS(payload);
+                if (res.success) {
+                    successCount++;
+                } else {
+                    failCount++;
+                    console.error(`Failed to save ${item.modulename}:`, res.message);
+                }
             }
-        }
+
+            if (successCount > 0) {
+                const response = await getMainMenuListINS();
+                if (response.success && response.data?.gridDetails) {
+                    setGridData(response.data.gridDetails);
+                } else {
+                    toast.error(response.message || 'Failed to refresh main menu list');
+                }
+            }
+        });
 
         if (successCount > 0) {
             toast.success(`Saved ${successCount} items successfully.${failCount > 0 ? ` Failed: ${failCount}` : ''}`);
-            // Refresh grid
-            const response = await getMainMenuListINS();
-            if (response.success && response.data?.gridDetails) {
-                setGridData(response.data.gridDetails);
-            }
-            // Optionally clear selection or reload page
-            // window.location.reload();
         } else if (failCount > 0) {
             toast.error('Failed to save selected items.');
         }
@@ -259,7 +280,7 @@ const confirmDelete = async () => {
                 <CardContent>
                     <FormProvider {...methods}>
                         <form onSubmit={methods.handleSubmit(onSubmit)} className='space-y-6'>
-                            <SelectionForm />
+                            <SelectionForm withLoading={withLoading} />
 
                             {/* New Module Menu Grid (Selection) */}
                             <ModuleMenuGrid data={moduleMenuData} onSave={handleSaveModules} onCancel={handleClear} />
@@ -274,6 +295,16 @@ const confirmDelete = async () => {
                 </CardContent>
             </Card>
 
+            {activeRequests > 0 && (
+                <output
+                    className='fixed inset-0 z-[100] flex items-center justify-center bg-background/50'
+                    aria-live='polite'>
+                    <span className='flex items-center gap-3 rounded-md border bg-background px-5 py-4 shadow-lg'>
+                        <Loader2 className='h-6 w-6 animate-spin text-primary' />
+                        <span className='font-medium'>Loading...</span>
+                    </span>
+                </output>
+            )}
 
 <AlertDialog
     open={!!deleteTarget}
@@ -308,4 +339,3 @@ const confirmDelete = async () => {
         </div>
     );
 }
-

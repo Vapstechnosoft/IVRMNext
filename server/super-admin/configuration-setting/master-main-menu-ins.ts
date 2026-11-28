@@ -42,7 +42,7 @@ export async function getMainMenuListINS() {
 
         console.log('Fetching Grid Data for MasterMainMenuINS...');
         // Requesting a large page size to get all records for client-side pagination
-        const response = await api.get<GridResponse>(API_KEY, '/InstituteMainMenuFacade/get_onload_institution_menu_list?page_size=10000');
+        const response = await api.get<GridResponse>(API_KEY, '/InstituteMainMenuFacade/get_onload_institution_menu_list?page_size=100000000');
         console.log('MasterMainMenuINS API Response:', JSON.stringify(response, null, 2));
 
         if (response.success && response.data?.records) {

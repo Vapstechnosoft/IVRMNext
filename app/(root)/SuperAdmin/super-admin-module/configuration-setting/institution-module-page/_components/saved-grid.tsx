@@ -5,20 +5,21 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
 import type { InstitutionRolePrivilegeDTO } from '@/types/super-admin/configuration-setting/institution-module-page';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Minus, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Loader2, Minus, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface SavedGridProps {
     data: InstitutionRolePrivilegeDTO[];
+    isLoading: boolean;
     onSelectionChange?: (selectedItems: InstitutionRolePrivilegeDTO[]) => void;
 }
 
-export default function SavedGrid({ data: initialData, onSelectionChange }: SavedGridProps) {
+export default function SavedGrid({ data: initialData, isLoading, onSelectionChange }: SavedGridProps) {
     const [data, setData] = useState<InstitutionRolePrivilegeDTO[]>(initialData);
     const [isOpen, setIsOpen] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5); // Removed itemsPerPage from state init to avoid complexity if constant
+    const [itemsPerPage, setItemsPerPage] = useState(10); // Removed itemsPerPage from state init to avoid complexity if constant
     const [selectAll, setSelectAll] = useState(false);
 
     useEffect(() => {
@@ -163,32 +164,53 @@ export default function SavedGrid({ data: initialData, onSelectionChange }: Save
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {paginatedData.map((item, index) => (
-                                        <tr key={item.ivrmirP_Id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                            <td className='border p-2 text-center'>
-                                                <Checkbox
-                                                    checked={item.checked || false}
-                                                    onCheckedChange={(checked) => toggleItem(item.ivrmirP_Id, checked as boolean)}
-                                                    data-toggle='tooltip'
-                                                    title='Add Cart'
-                                                />
+                                    {isLoading ? (
+                                        <tr>
+                                            <td colSpan={12} className='p-8 text-center'>
+                                                <span aria-live='polite' className='inline-flex items-center gap-2 text-muted-foreground'>
+                                                    <Loader2 className='h-5 w-5 animate-spin' />
+                                                    Loading saved pages...
+                                                </span>
                                             </td>
-                                            <td className='border p-2 text-center'>{startIndex + index + 1}</td>
-                                            <td className='border p-2 text-center'>{item.mI_Name}</td>
-                                            <td className='border p-2 text-center'>{item.ivrmM_ModuleName}</td>
-                                            <td className='border p-2 text-center'>{item.ivrmmP_PageName}</td>
-                                            <td className='border p-2 text-center'>{item.ivrmrT_Role}</td>
-                                            <td className='border p-2 text-center text-green-600'>{item.ivrmirP_AddFlag ? '✔' : '✖'}</td>
-                                            <td className='border p-2 text-center text-green-600'>{item.ivrmirP_DeleteFlag ? '✔' : '✖'}</td>
-                                            <td className='border p-2 text-center text-green-600'>{item.ivrmirP_UpdateFlag ? '✔' : '✖'}</td>
-                                            <td className='border p-2 text-center text-green-600'>
-                                                {item.ivrmirP_ProcessFlag ? '✔' : '✖'}
-                                            </td>
-                                            <td className='border p-2 text-center text-green-600'>{item.ivrmirP_ReportFlag ? '✔' : '✖'}</td>
-                                            <td className='border p-2 text-center text-green-600'>{item.ivrmirP_SearchFlag ? '✔' : '✖'}</td>
                                         </tr>
-                                    ))}
-                                    {paginatedData.length === 0 && (
+                                    ) : (
+                                        paginatedData.map((item, index) => (
+                                            <tr key={item.ivrmirP_Id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                                                <td className='border p-2 text-center'>
+                                                    <Checkbox
+                                                        checked={item.checked || false}
+                                                        onCheckedChange={(checked) => toggleItem(item.ivrmirP_Id, checked as boolean)}
+                                                        data-toggle='tooltip'
+                                                        title='Add Cart'
+                                                    />
+                                                </td>
+                                                <td className='border p-2 text-center'>{startIndex + index + 1}</td>
+                                                <td className='border p-2 text-center'>{item.mI_Name}</td>
+                                                <td className='border p-2 text-center'>{item.ivrmM_ModuleName}</td>
+                                                <td className='border p-2 text-center'>{item.ivrmmP_PageName}</td>
+                                                <td className='border p-2 text-center'>{item.ivrmrT_Role}</td>
+                                                <td className='border p-2 text-center text-green-600'>
+                                                    {item.ivrmirP_AddFlag ? '✔' : '✖'}
+                                                </td>
+                                                <td className='border p-2 text-center text-green-600'>
+                                                    {item.ivrmirP_DeleteFlag ? '✔' : '✖'}
+                                                </td>
+                                                <td className='border p-2 text-center text-green-600'>
+                                                    {item.ivrmirP_UpdateFlag ? '✔' : '✖'}
+                                                </td>
+                                                <td className='border p-2 text-center text-green-600'>
+                                                    {item.ivrmirP_ProcessFlag ? '✔' : '✖'}
+                                                </td>
+                                                <td className='border p-2 text-center text-green-600'>
+                                                    {item.ivrmirP_ReportFlag ? '✔' : '✖'}
+                                                </td>
+                                                <td className='border p-2 text-center text-green-600'>
+                                                    {item.ivrmirP_SearchFlag ? '✔' : '✖'}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                    {!isLoading && paginatedData.length === 0 && (
                                         <tr>
                                             <td colSpan={12} className='p-4 text-center'>
                                                 No Data Found

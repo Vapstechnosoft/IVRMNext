@@ -7,8 +7,13 @@ import { getInstitutionDropdown, getModuleDropdown } from '@/server/super-admin/
 import type { InstitutionDTO, ModuleDTO } from '@/types/super-admin/configuration-setting/master-main-menu-ins';
 import { useEffect, useState } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
+import { toast } from 'sonner';
 
-export default function SelectionForm() {
+interface SelectionFormProps {
+    withLoading: <T>(request: () => Promise<T>) => Promise<T>;
+}
+
+export default function SelectionForm({ withLoading }: SelectionFormProps) {
     const {
         control,
         formState: { errors }
@@ -19,7 +24,11 @@ export default function SelectionForm() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const instData = await getInstitutionDropdown();
+                const [instData, modData] = await withLoading(async () => {
+                    const institutionResponse = await getInstitutionDropdown();
+                    const moduleResponse = await getModuleDropdown();
+                    return [institutionResponse, moduleResponse] as const;
+                });
                 if (instData.success && instData.data?.institutionList) {
                     const uniqueDeep = Array.from(
                         new Map(
@@ -33,9 +42,10 @@ export default function SelectionForm() {
                         console.warn(`Removed ${instData.data.institutionList.length - uniqueDeep.length} duplicate institutions`);
                     }
                     setInstitutions(uniqueDeep);
+                } else {
+                    toast.error(instData.message || 'Failed to load institutions');
                 }
 
-                const modData = await getModuleDropdown();
                 if (modData.success && modData.data?.moduleList) {
                     const uniqueDeep = Array.from(
                         new Map(
@@ -49,13 +59,16 @@ export default function SelectionForm() {
                         console.warn(`Removed ${modData.data.moduleList.length - uniqueDeep.length} duplicate modules`);
                     }
                     setModules(uniqueDeep);
+                } else {
+                    toast.error(modData.message || 'Failed to load modules');
                 }
             } catch (e) {
                 console.error('Error fetching dropdowns', e);
+                toast.error('Failed to load institution and module dropdowns');
             }
         };
         fetchData();
-    }, []);
+    }, [withLoading]);
 
     return (
         <Card className='mb-6 rounded-lg border bg-white p-0 shadow-md'>

@@ -8,6 +8,7 @@ import { InputTextarea } from '@/components/ui/extension/input-textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCountryDropdown, useStateDropdown, useTrustNameDropdown } from '@/hooks/super-admin/super-admin-module/use-master-institution';
 import { institutionMasterSchema } from '@/schemas/super-admin/super-admin-module/institution/master-institution';
+import { saveMasterInstitution } from '@/server/super-admin/super-admin-module/institution/master-institution';
 import type { ICountryDropdown, IStateDropdown, IMasterInstitution } from '@/types/super-admin/super-admin-module/institution/master-institution';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Save, Trash2, X } from 'lucide-react';
@@ -209,14 +210,20 @@ export default function AddMasterInstitutionForm({
 
     const onSubmit = async (data: FormFields) => {
         try {
-            console.log('Form Data:', data);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            toast.success(initialData ? 'Institution Master updated successfully' : 'Institution Master added successfully');
+            const response = await saveMasterInstitution(data);
+            if (!response.success) {
+                toast.error(response.message || (initialData ? 'Failed to update institution' : 'Failed to add institution'));
+                return;
+            }
+
+            toast.success(
+                response.message || (initialData ? 'Institution Master updated successfully' : 'Institution Master added successfully')
+            );
             reset();
             onRefresh?.();
             onSuccess?.();
-        } catch (error: any) {
-            toast.error(error.message || 'Something went wrong');
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : 'Something went wrong');
         }
     };
 
