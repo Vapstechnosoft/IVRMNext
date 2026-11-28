@@ -19,6 +19,20 @@ interface FeeDetailsClientProps {
 
 const COLORS = ['#3498DB', '#76D7C4', '#808B96', '#80DEEA', '#C5E1A5', '#AAB7B8'];
 
+const getYearId = (year: AcademicYear): string => {
+    const id = year.asmaY_Id ?? year.ASMAY_Id;
+    return id !== undefined && id !== null ? String(id) : '';
+};
+
+const getYearLabel = (year: AcademicYear): string => {
+    const yearName = year.asmaY_Year ?? year.ASMAY_Year ?? '';
+    const className = year.asmcL_ClassName ?? year.ASMCL_ClassName ?? '';
+    const sectionName = year.asmC_SectionName ?? year.ASMC_SectionName ?? '';
+    if (className && sectionName) return `${yearName} - ${className} : ${sectionName}`;
+    if (className) return `${yearName} - ${className}`;
+    return yearName;
+};
+
 export default function FeeDetailsClient({ initialData }: FeeDetailsClientProps) {
     const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
     const [selectedYear, setSelectedYear] = useState<string>('');
@@ -38,18 +52,21 @@ export default function FeeDetailsClient({ initialData }: FeeDetailsClientProps)
             setAcademicYears(initialData.yearclsList);
             // Auto-select current year if available
             if (initialData.feecurrentyear && initialData.feecurrentyear.length > 0) {
-                const currentYearId = initialData.feecurrentyear[0].ASMAY_Id.toString();
+                const currentYearId = getYearId(initialData.feecurrentyear[0]);
                 // Check if this year exists in the full list
-                if (initialData.yearclsList.some((y) => y.ASMAY_Id.toString() === currentYearId)) {
+                if (currentYearId && initialData.yearclsList.some((y) => getYearId(y) === currentYearId)) {
                     setSelectedYear(currentYearId);
-                    // Optionally auto-load data here if desired, but let's wait for user interaction or trigger it
                     fetchFees(currentYearId, viewMode);
+                    return;
                 }
-            } else if (initialData.yearclsList.length > 0) {
+            }
+            if (initialData.yearclsList.length > 0) {
                 // Fallback to first in list
-                const firstYearId = initialData.yearclsList[0].ASMAY_Id.toString();
-                setSelectedYear(firstYearId);
-                fetchFees(firstYearId, viewMode);
+                const firstYearId = getYearId(initialData.yearclsList[0]);
+                if (firstYearId) {
+                    setSelectedYear(firstYearId);
+                    fetchFees(firstYearId, viewMode);
+                }
             }
         }
     }, [initialData]);
@@ -161,11 +178,15 @@ export default function FeeDetailsClient({ initialData }: FeeDetailsClientProps)
                                     <SelectValue placeholder='Select Year' />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {academicYears.map((year) => (
-                                        <SelectItem key={year.ASMAY_Id} value={year.ASMAY_Id.toString()}>
-                                            {year.ASMAY_Year} - {year.ASMCL_ClassName} : {year.ASMC_SectionName}
-                                        </SelectItem>
-                                    ))}
+                                    {academicYears.map((year, index) => {
+                                        const yearId = getYearId(year);
+                                        if (!yearId) return null;
+                                        return (
+                                            <SelectItem key={`${yearId}-${index}`} value={yearId}>
+                                                {getYearLabel(year)}
+                                            </SelectItem>
+                                        );
+                                    })}
                                 </SelectContent>
                             </Select>
                         </div>
