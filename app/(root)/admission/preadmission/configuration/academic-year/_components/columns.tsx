@@ -116,8 +116,13 @@ function ActionButtonsCell({
         async (data: IMasterAcademicYearMasterList) => {
             try {
                 const response = (await getPreAdmissionYearEditData(data.asmaY_Id)) as any;
-                if (response.success && response.data?.geteditdetails?.length > 0) {
-                    openEditForm(response.data.geteditdetails[0]);
+                const editData =
+                    response.data?.AcademicList?.[0] ||
+                    response.data?.academicList?.[0] ||
+                    response.data?.geteditdetails?.[0] ||
+                    data;
+                if (response.success && editData) {
+                    openEditForm(editData);
                 } else if (response.success === false && response.message) {
                     toast.error(response.message);
                 } else {

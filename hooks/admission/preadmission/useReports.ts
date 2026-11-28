@@ -406,7 +406,7 @@ export const useAdmissionRegister = (ASMAY_Id: number, AttendanceType: number, p
             queryKey: [ADMISSION_QUERY_KEYS.ADMISSION_REGISTER, ASMAY_Id, AttendanceType, payload, searchParams ?? {}],
             queryFn: async () => getAdmissionRegister(ASMAY_Id, AttendanceType, payload, searchParams),
             staleTime: 0,
-            enabled: !!ASMAY_Id && !!AttendanceType && !!payload
+            enabled: Boolean(ASMAY_Id && AttendanceType !== undefined && AttendanceType !== null && payload)
         }),
         refetchAll: () => {
              queryClient.invalidateQueries({

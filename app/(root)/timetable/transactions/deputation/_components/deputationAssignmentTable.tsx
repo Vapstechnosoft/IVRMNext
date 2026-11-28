@@ -71,12 +71,12 @@ export default function DeputationAssignmentTable({ periodsData, selection, onSa
         Array.isArray(periodsPayload?.time_Table) && periodsPayload.time_Table.length > 0
             ? periodsPayload.time_Table
             : Array.isArray(periodsPayload?.periodslst) && periodsPayload.periodslst.length > 0
-            ? periodsPayload.periodslst
-            : Array.isArray(periodsPayload?.period_list) && periodsPayload.period_list.length > 0
-            ? periodsPayload.period_list
-            : Array.isArray(periodsPayload)
-            ? periodsPayload
-            : [];
+              ? periodsPayload.periodslst
+              : Array.isArray(periodsPayload?.period_list) && periodsPayload.period_list.length > 0
+                ? periodsPayload.period_list
+                : Array.isArray(periodsPayload)
+                  ? periodsPayload
+                  : [];
 
     // Load period table and fetch free staff for each period (cell_click logic from legacy AngularJS)
     useEffect(() => {
@@ -99,7 +99,7 @@ export default function DeputationAssignmentTable({ periodsData, selection, onSa
                 ttmD_Id,
                 ttmP_Id,
                 ttmD_DayName: user.ttmD_DayName || selection.dayName,
-                ttmP_PeriodName: user.ttmP_PeriodName || (user.ttmP_Id ? `Period ${user.ttmP_Id}` : `Period`),
+                ttmP_PeriodName: user.ttmP_PeriodName || (user.ttmP_Id ? `Period ${user.ttmP_Id}` : 'Period'),
                 hrmE_Id,
                 asmaY_Id,
                 asmcL_Id: Number(user.asmcL_Id || 0),
@@ -139,35 +139,57 @@ export default function DeputationAssignmentTable({ periodsData, selection, onSa
                                 TTSD_Date: selection.dateStr
                             });
 
-                            const resPayload = freeStaffRes?.data !== undefined ? freeStaffRes.data : freeStaffRes;
-                            const freeList: any[] = resPayload?.time_Table_substitute || resPayload?.stafflist || [];
-                            const dpcount: any[] = resPayload?.dpcount || [];
-                            const absentstfcnt: any[] = resPayload?.absentstfcnt || [];
-                            const weeklycntlist: any[] = resPayload?.weeklycntlist || [];
+                            const resPayload =
+                                freeStaffRes?.data && typeof freeStaffRes.data === 'object' ? freeStaffRes.data : freeStaffRes;
+                            const freeList: any[] =
+                                resPayload?.time_Table_substitute ||
+                                resPayload?.Time_Table_substitute ||
+                                resPayload?.time_table_substitute ||
+                                resPayload?.time_Table ||
+                                resPayload?.Time_Table ||
+                                resPayload?.stafflist ||
+                                resPayload?.staffList ||
+                                resPayload?.staff_list ||
+                                [];
+                            const dpcount: any[] = resPayload?.dpcount || resPayload?.Dpcount || [];
+                            const absentstfcnt: any[] = resPayload?.absentstfcnt || resPayload?.Absentstfcnt || [];
+                            const weeklycntlist: any[] = resPayload?.weeklycntlist || resPayload?.Weeklycntlist || [];
                             const freeWeeklyCount = Array.isArray(resPayload?.freeperiodweekly) ? resPayload.freeperiodweekly.length : 0;
                             const freeDailyCount = Array.isArray(resPayload?.freeperioddaily) ? resPayload.freeperioddaily.length : 0;
                             const periodslst: any[] =
                                 Array.isArray(resPayload?.periodslst) && resPayload.periodslst.length > 0
                                     ? resPayload.periodslst
                                     : Array.isArray(periodsPayload?.periodslst)
-                                    ? periodsPayload.periodslst
-                                    : [];
+                                      ? periodsPayload.periodslst
+                                      : [];
 
                             // Build unique mainstafflist
                             const staffMap = new Map<number, ISubstituteStaffOption>();
 
                             for (const eps of freeList) {
-                                const staffId = Number(eps.hrmE_Id);
+                                const staffId = Number(eps.hrmE_Id ?? eps.HRME_Id ?? eps.hrme_Id ?? eps.hrme_id ?? 0);
+                                if (!staffId || Number.isNaN(staffId)) continue;
                                 if (!staffMap.has(staffId)) {
+                                    const staffName =
+                                        eps.staffName ||
+                                        eps.StaffName ||
+                                        eps.STAFF ||
+                                        eps.employeeName ||
+                                        eps.ENAME ||
+                                        [eps.hrmE_EmployeeFirstName, eps.hrmE_EmployeeMiddleName, eps.hrmE_EmployeeLastName]
+                                            .filter(Boolean)
+                                            .join(' ') ||
+                                        `Staff #${staffId}`;
+
                                     staffMap.set(staffId, {
                                         HRME_Id: staffId,
-                                        STAFF: eps.staffName || `Staff #${staffId}`,
-                                        EMPCODE: eps.hrmE_EmployeeCode || '',
-                                        DCNT: eps.DCNT,
-                                        WCNT: eps.WCNT,
-                                        MCNT: eps.MCNT,
-                                        YCNT: eps.YCNT,
-                                        asmaY_Id: eps.asmaY_Id,
+                                        STAFF: staffName,
+                                        EMPCODE: eps.hrmE_EmployeeCode ?? eps.HRME_EmployeeCode ?? '',
+                                        DCNT: eps.DCNT ?? eps.dcnT,
+                                        WCNT: eps.WCNT ?? eps.wcnT,
+                                        MCNT: eps.MCNT ?? eps.mcnT,
+                                        YCNT: eps.YCNT ?? eps.ycnT,
+                                        asmaY_Id: eps.asmaY_Id ?? eps.ASMAY_Id,
                                         deviceid: eps.deviceid,
                                         freeperioddaily: freeDailyCount,
                                         freeperiodweekly: freeWeeklyCount,
@@ -188,25 +210,37 @@ export default function DeputationAssignmentTable({ periodsData, selection, onSa
 
                             // Attach counts from dpcount, absentstfcnt, weeklycntlist
                             staffMap.forEach((staffObj) => {
-                                const dp = dpcount.find((xx) => Number(xx.HRME_Id) === staffObj.HRME_Id);
+                                const dp = dpcount.find((xx) => Number(xx.HRME_Id ?? xx.hrmE_Id ?? xx.hrme_id) === staffObj.HRME_Id);
                                 if (dp) {
-                                    staffObj.weekcnt = Number(dp.WeekStaffcount || 0);
-                                    staffObj.mntcnt = Number(dp.MonthStaffcount || 0);
-                                    staffObj.totalcnt = Number(dp.YearStaffcount || 0);
-                                    staffObj.daycnt = Number(dp.TodayStaffcount || 0);
+                                    staffObj.weekcnt = Number(dp.WeekStaffcount ?? dp.weekStaffcount ?? dp.weekstaffcount ?? 0);
+                                    staffObj.mntcnt = Number(dp.MonthStaffcount ?? dp.monthStaffcount ?? dp.monthstaffcount ?? 0);
+                                    staffObj.totalcnt = Number(dp.YearStaffcount ?? dp.yearStaffcount ?? dp.yearstaffcount ?? 0);
+                                    staffObj.daycnt = Number(dp.TodayStaffcount ?? dp.todayStaffcount ?? dp.todaystaffcount ?? 0);
                                 }
 
-                                const absCount = absentstfcnt.find((xx) => Number(xx.HRME_Id) === staffObj.HRME_Id);
+                                const absCount = absentstfcnt.find(
+                                    (xx) => Number(xx.HRME_Id ?? xx.hrmE_Id ?? xx.hrme_id) === staffObj.HRME_Id
+                                );
                                 if (absCount) {
-                                    staffObj.weekcnt1 = Number(absCount.WeekStaffcount || 0);
-                                    staffObj.mntcnt1 = Number(absCount.MonthStaffcount || 0);
-                                    staffObj.totalcnt1 = Number(absCount.YearStaffcount || 0);
-                                    staffObj.daycnt1 = Number(absCount.TodayStaffcount || 0);
+                                    staffObj.weekcnt1 = Number(
+                                        absCount.WeekStaffcount ?? absCount.weekStaffcount ?? absCount.weekstaffcount ?? 0
+                                    );
+                                    staffObj.mntcnt1 = Number(
+                                        absCount.MonthStaffcount ?? absCount.monthStaffcount ?? absCount.monthstaffcount ?? 0
+                                    );
+                                    staffObj.totalcnt1 = Number(
+                                        absCount.YearStaffcount ?? absCount.yearStaffcount ?? absCount.yearstaffcount ?? 0
+                                    );
+                                    staffObj.daycnt1 = Number(
+                                        absCount.TodayStaffcount ?? absCount.todayStaffcount ?? absCount.todaystaffcount ?? 0
+                                    );
                                 }
 
-                                const weeklyItem = weeklycntlist.find((xx) => Number(xx.HRME_Id) === staffObj.HRME_Id);
+                                const weeklyItem = weeklycntlist.find(
+                                    (xx) => Number(xx.HRME_Id ?? xx.hrmE_Id ?? xx.hrme_id) === staffObj.HRME_Id
+                                );
                                 if (weeklyItem) {
-                                    staffObj.WWCNT = Number(weeklyItem.TPCOUNT || 0);
+                                    staffObj.WWCNT = Number(weeklyItem.TPCOUNT ?? weeklyItem.tpcount ?? 0);
                                 }
 
                                 // Calculate list of classes/periods taught on this day
@@ -514,13 +548,13 @@ export default function DeputationAssignmentTable({ periodsData, selection, onSa
                                                     )}
                                                 </>
                                             ) : (
-                                                <span className='text-muted-foreground text-xs font-normal italic'>--</span>
+                                                <span className='font-normal text-muted-foreground text-xs italic'>--</span>
                                             )}
                                         </TableCell>
                                         <TableCell className='p-2 text-left'>
                                             <Select
                                                 key={period.Sub_Id || `empty-sub-${period.ttmP_Id}`}
-                                                value={period.Sub_Id ? period.Sub_Id.toString() : ''}
+                                                value={period.Sub_Id ? period.Sub_Id.toString() : undefined}
                                                 onValueChange={(val) => handleSubStaffChange(period.ttmP_Id, val)}>
                                                 <SelectTrigger className='h-9 w-full border-purple-200 bg-white font-medium text-xs focus:border-purple-600'>
                                                     <SelectValue
@@ -528,8 +562,8 @@ export default function DeputationAssignmentTable({ periodsData, selection, onSa
                                                             loadingPeriods && period.substitutestafflist.length === 0
                                                                 ? 'Fetching Substitutes...'
                                                                 : period.substitutestafflist.length === 0
-                                                                ? 'No Substitute Staff Available'
-                                                                : '-- Select Substitute --'
+                                                                  ? 'No Substitute Staff Available'
+                                                                  : '-- Select Substitute --'
                                                         }
                                                     />
                                                 </SelectTrigger>
