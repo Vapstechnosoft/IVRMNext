@@ -14,6 +14,8 @@ export type NoticeBoardData = {
     INTB_StartDate: string;
     INTB_EndDate: string;
     Filecount?: number;
+    INTB_Attachment?: string;
+    INTB_FilePath?: string;
 };
 
 export const noticeColumns: ColumnDef<NoticeBoardData>[] = [
@@ -24,36 +26,64 @@ export const noticeColumns: ColumnDef<NoticeBoardData>[] = [
     },
     {
         accessorKey: 'INTB_Title',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Title' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Title' />,
+        cell: ({ row }) => {
+            const title = row.original.INTB_Title || (row.original as any).intB_Title || '-';
+            return <div className='font-medium'>{title}</div>;
+        }
     },
     {
         accessorKey: 'INTB_Description',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />
+        header: ({ column }) => <DataTableColumnHeader column={column} title='Description' />,
+        cell: ({ row }) => {
+            const desc = row.original.INTB_Description || (row.original as any).intB_Description || '-';
+            return <div>{desc}</div>;
+        }
     },
     {
         accessorKey: 'INTB_StartDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='Start Date' />,
         cell: ({ row }) => {
-            const date = new Date(row.getValue('INTB_StartDate'));
-            return <div>{date.toLocaleDateString()}</div>;
+            const val = row.original.INTB_StartDate || (row.original as any).intB_StartDate;
+            if (!val) return <div>-</div>;
+            const date = new Date(val);
+            return <div>{!Number.isNaN(date.getTime()) ? date.toLocaleDateString() : val}</div>;
         }
     },
     {
         accessorKey: 'INTB_EndDate',
         header: ({ column }) => <DataTableColumnHeader column={column} title='End Date' />,
         cell: ({ row }) => {
-            const date = new Date(row.getValue('INTB_EndDate'));
-            return <div>{date.toLocaleDateString()}</div>;
+            const val = row.original.INTB_EndDate || (row.original as any).intB_EndDate;
+            if (!val) return <div>-</div>;
+            const date = new Date(val);
+            return <div>{!Number.isNaN(date.getTime()) ? date.toLocaleDateString() : val}</div>;
         }
     },
     {
         id: 'actions',
         header: 'View',
-        cell: ({ row }) => (
-            <Button variant='ghost' size='icon' title='View Details'>
-                <Eye className='h-4 w-4 text-primary' />
-            </Button>
-        )
+        cell: ({ row }) => {
+            const file =
+                row.original.INTB_FilePath ||
+                row.original.INTB_Attachment ||
+                (row.original as any).intB_FilePath ||
+                (row.original as any).intB_Attachment;
+            return (
+                <Button
+                    variant='ghost'
+                    size='icon'
+                    title={file ? 'View Attachment' : 'No Attachment'}
+                    onClick={() => {
+                        if (file) {
+                            window.open(file, '_blank');
+                        }
+                    }}
+                    disabled={!file}>
+                    <Eye className={`h-4 w-4 ${file ? 'text-primary' : 'text-muted-foreground'}`} />
+                </Button>
+            );
+        }
     }
 ];
 

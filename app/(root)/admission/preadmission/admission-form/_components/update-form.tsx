@@ -831,12 +831,53 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                         pamR_Id: String(r.pamR_Id),
                         pamR_ReferenceName: r.pamR_ReferenceName || r.name || ''
                     })),
-                    selectedDocuments: (tabSrc.student_documents || tabSrc.selectedDocuments || []).map((d: any) => ({
-                        pasrD_Id: d.pasrD_Id,
-                        pasR_Id: d.pasR_Id,
-                        amsmD_Id: d.amsmD_Id,
-                        document_Path: d.document_Path
-                    }))
+                    selectedDocuments: (() => {
+                        const rawDocs =
+                            tabSrc?.documentList ||
+                            tabSrc?.DocumentList ||
+                            tabSrc?.student_Documents ||
+                            tabSrc?.Student_Documents ||
+                            tabSrc?.student_documents ||
+                            tabSrc?.selectedDocuments ||
+                            srcData?.documentList ||
+                            srcData?.DocumentList ||
+                            srcData?.student_Documents ||
+                            srcData?.Student_Documents ||
+                            srcData?.student_documents ||
+                            srcData?.selectedDocuments ||
+                            sourceData?.documentList ||
+                            sourceData?.DocumentList ||
+                            sourceData?.student_Documents ||
+                            sourceData?.Student_Documents ||
+                            sourceData?.student_documents ||
+                            sourceData?.selectedDocuments ||
+                            rowData?.selectedDocuments ||
+                            rowData?.documentList ||
+                            rowData?.DocumentList ||
+                            [];
+                        return (Array.isArray(rawDocs) ? rawDocs : [])
+                            .filter(Boolean)
+                            .map((d: any) => ({
+                                pasrD_Id: d?.pasrD_Id ?? d?.amstD_Id ?? d?.AMSTD_Id ?? 0,
+                                pasR_Id: d?.pasR_Id ?? d?.amsT_Id ?? d?.AMST_Id ?? 0,
+                                amsmD_Id: Number(d?.amsmD_Id ?? d?.AMSMD_Id ?? d?.id ?? 0),
+                                document_Path:
+                                    d?.document_Path ??
+                                    d?.Document_Path ??
+                                    d?.amstD_DOC_Path ??
+                                    d?.AMSTD_DOC_Path ??
+                                    d?.documentPath ??
+                                    d?.path ??
+                                    '',
+                                documentName:
+                                    d?.documentName ??
+                                    d?.AMSMD_DocumentName ??
+                                    d?.amsmD_DocumentName ??
+                                    d?.amstD_DOC_Name ??
+                                    d?.AMSTD_DOC_Name ??
+                                    ''
+                            }));
+                    })()
                 };
             } else {
                 // Not tabbed, ensure basic fields are mapped if rowData is a flat student object
@@ -1034,7 +1075,43 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             payload.selectedSourceDetails = payload.selectedSourceDetails || payload.selectedSource || payload.student_sources || [];
             payload.selectedRefrenceDetails =
                 payload.selectedRefrenceDetails || payload.selectedReference || payload.student_refrences || [];
-            payload.selectedDocuments = payload.selectedDocuments || payload.student_documents || [];
+            const fallbackRawDocs =
+                payload.selectedDocuments ||
+                payload.documentList ||
+                payload.DocumentList ||
+                payload.student_Documents ||
+                payload.Student_Documents ||
+                payload.student_documents ||
+                srcData?.documentList ||
+                srcData?.DocumentList ||
+                srcData?.student_Documents ||
+                srcData?.Student_Documents ||
+                sourceData?.documentList ||
+                sourceData?.selectedDocuments ||
+                rowData?.selectedDocuments ||
+                [];
+            payload.selectedDocuments = (Array.isArray(fallbackRawDocs) ? fallbackRawDocs : [])
+                .filter(Boolean)
+                .map((d: any) => ({
+                    pasrD_Id: d?.pasrD_Id ?? d?.amstD_Id ?? d?.AMSTD_Id ?? 0,
+                    pasR_Id: d?.pasR_Id ?? d?.amsT_Id ?? d?.AMST_Id ?? 0,
+                    amsmD_Id: Number(d?.amsmD_Id ?? d?.AMSMD_Id ?? d?.id ?? 0),
+                    document_Path:
+                        d?.document_Path ??
+                        d?.Document_Path ??
+                        d?.amstD_DOC_Path ??
+                        d?.AMSTD_DOC_Path ??
+                        d?.documentPath ??
+                        d?.path ??
+                        '',
+                    documentName:
+                        d?.documentName ??
+                        d?.AMSMD_DocumentName ??
+                        d?.amsmD_DocumentName ??
+                        d?.amstD_DOC_Name ??
+                        d?.AMSTD_DOC_Name ??
+                        ''
+                }));
             payload.activities = payload.activities || [];
             payload.sourceDetails = payload.sourceDetails || [];
 
@@ -2122,7 +2199,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             const trimmedRegNo = regNo.trim();
             const currentAmsTId = Number(getValues('amsT_Id' as any));
 
-            const response = await getAllAdmissionLists({
+            const response = await getAllAdmissionLists(Number(asmaYId) || 0, {
                 search_query: trimmedRegNo,
                 search_columns: 'registrationNo'
             });
@@ -2173,7 +2250,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             const trimmedAdmissionNo = admissionNo.trim();
             const currentAmsTId = Number(getValues('amsT_Id' as any));
 
-            const response = await getAllAdmissionLists({
+            const response = await getAllAdmissionLists(Number(asmaYId) || 0, {
                 search_query: trimmedAdmissionNo,
                 search_columns: 'admissionNo'
             });
@@ -3880,18 +3957,16 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             return;
         }
 
-        // Create a local preview URL for the file
-        const localUrl = URL.createObjectURL(file);
-
+        const idNum = Number(amsmD_Id);
         setUploadedDocuments((prev) => {
-            const existingIndex = prev.findIndex((doc) => doc.amsmD_Id === amsmD_Id);
+            const existingIndex = prev.findIndex((doc) => Number(doc.amsmD_Id ?? (doc as any).AMSMD_Id) === idNum);
             const newDoc = {
                 pasrD_Id: 0,
                 pasR_Id: 0,
-                amsmD_Id,
-                document_Path: localUrl,
+                amsmD_Id: idNum,
+                document_Path: '',
                 documentName,
-                isUploading: false,
+                isUploading: true,
                 file
             } as any;
 
@@ -3903,27 +3978,42 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
             return [...prev, newDoc];
         });
 
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('SubContainerName', 'preadmission_student_documents');
+
+            const response = await uploadDocument(formData);
+            if (response.success && response.data) {
+                const blobUrl = response.data as string;
+                setUploadedDocuments((prev) =>
+                    prev.map((doc) =>
+                        Number(doc.amsmD_Id ?? (doc as any).AMSMD_Id) === idNum
+                            ? { ...doc, document_Path: blobUrl, isUploading: false }
+                            : doc
+                    )
+                );
+                toast.success(`${documentName} uploaded successfully`);
+            } else {
+                throw new Error(response.message || 'Upload failed');
+            }
+        } catch (err: any) {
+            setUploadedDocuments((prev) =>
+                prev.filter((doc) => Number(doc.amsmD_Id ?? (doc as any).AMSMD_Id) !== idNum)
+            );
+            toast.error(`Failed to upload ${documentName}: ${err.message || 'Upload failed'}`);
+        }
+
         setDocumentErrors((prev) => {
             const copy = { ...prev };
             delete copy[amsmD_Id];
             return copy;
         });
-
-        toast.success(`${documentName} added (will be submitted with final form)`);
     };
 
     const handleDocumentDelete = (amsmD_Id: number, _blobUrl: string, documentName: string) => {
-        // Remove local document entry (no server call)
-        setUploadedDocuments((prev) => {
-            const target = prev.find((d) => d.amsmD_Id === amsmD_Id);
-            if (target?.file && target.document_Path) {
-                try {
-                    URL.revokeObjectURL(target.document_Path);
-                } catch (_) {}
-            }
-            return prev.filter((doc) => doc.amsmD_Id !== amsmD_Id);
-        });
-        // Clear any errors
+        const idNum = Number(amsmD_Id);
+        setUploadedDocuments((prev) => prev.filter((doc) => Number(doc.amsmD_Id ?? (doc as any).AMSMD_Id) !== idNum));
         setDocumentErrors((prev) => {
             const copy = { ...prev };
             delete copy[amsmD_Id];
@@ -4409,7 +4499,8 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
 
         if (sectionData?.data && sectionData.data.length > 0) {
             const firstSection = sectionData.data[0];
-            setValue('asmS_Id', firstSection.asmS_Id);
+            const firstSecId = firstSection?.asmS_Id ?? firstSection?.asms_Id ?? firstSection?.ASMS_Id ?? firstSection?.id ?? 0;
+            setValue('asmS_Id', Number(firstSecId));
         } else {
             setValue('asmS_Id', 0);
         }
@@ -4420,14 +4511,21 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
         setSubmittingFinal(true);
         try {
             // Ensure mandatory documents are uploaded
-            const missingMandatoryDocs = masterDocuments.filter(
-                (doc: any) =>
-                    doc.amsmD_FLAG &&
-                    !uploadedDocuments.some((uploaded: any) => uploaded.amsmD_Id === doc.amsmD_Id && uploaded.document_Path)
-            );
+            const missingMandatoryDocs = masterDocuments.filter((doc: any) => {
+                const mId = Number(doc.amsmD_Id ?? doc.AMSMD_Id);
+                const isMandatory = doc.amsmD_FLAG ?? doc.AMSMD_FLAG;
+                return (
+                    isMandatory &&
+                    !uploadedDocuments.some(
+                        (uploaded: any) =>
+                            Number(uploaded.amsmD_Id ?? uploaded.AMSMD_Id) === mId &&
+                            Boolean(uploaded.document_Path || uploaded.Document_Path)
+                    )
+                );
+            });
 
             if (missingMandatoryDocs.length > 0) {
-                const missingNames = missingMandatoryDocs.map((d: any) => d.amsmD_DocumentName).join(', ');
+                const missingNames = missingMandatoryDocs.map((d: any) => d.amsmD_DocumentName || d.AMSMD_DocumentName).join(', ');
                 toast.error(`Please upload the following mandatory documents: ${missingNames}`);
                 setSubmittingFinal(false);
                 return;
@@ -4472,6 +4570,16 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                 'MotherSignatureUrl',
                 !motherSignature?.file ? motherSignature?.path || findUploadedPath('mothersignature') || '' : ''
             );
+
+            // Append DocumentListJson for backend SaveLastTabAsync
+            const documentListPayload = uploadedDocuments
+                .filter((d: any) => Boolean(d.document_Path || d.Document_Path))
+                .map((d: any) => ({
+                    AMSMD_Id: Number(d.amsmD_Id ?? d.AMSMD_Id),
+                    AMSMD_DocumentName: d.documentName || d.AMSMD_DocumentName || '',
+                    Document_Path: d.document_Path || d.Document_Path || ''
+                }));
+            fd.append('DocumentListJson', JSON.stringify(documentListPayload));
 
             // Call API with FormData
             const response = await saveFinalTabApi(fd as any);
@@ -4746,13 +4854,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 Error loading classes
                                                                             </SelectItem>
                                                                         ) : admissionClass?.data && admissionClass.data.length > 0 ? (
-                                                                            admissionClass.data.map((classItem: any) => (
-                                                                                <SelectItem
-                                                                                    key={classItem.asmcL_Id}
-                                                                                    value={classItem.asmcL_Id.toString()}>
-                                                                                    {classItem.asmcL_ClassName}
-                                                                                </SelectItem>
-                                                                            ))
+                                                                            admissionClass.data
+                                                                                .filter((classItem: any) => (classItem?.asmcL_Id ?? classItem?.asmcl_Id ?? classItem?.ASMCL_Id ?? classItem?.id) != null)
+                                                                                .map((classItem: any) => {
+                                                                                    const clsId = classItem.asmcL_Id ?? classItem.asmcl_Id ?? classItem.ASMCL_Id ?? classItem.id;
+                                                                                    const clsName = classItem.asmcL_ClassName ?? classItem.asmcl_ClassName ?? classItem.ASMCL_ClassName ?? '';
+                                                                                    return (
+                                                                                        <SelectItem
+                                                                                            key={clsId}
+                                                                                            value={String(clsId)}>
+                                                                                            {clsName}
+                                                                                        </SelectItem>
+                                                                                    );
+                                                                                })
                                                                         ) : (
                                                                             <SelectItem value='0' disabled>
                                                                                 No classes available
@@ -4905,13 +5019,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 Error loading religions
                                                                             </SelectItem>
                                                                         ) : (
-                                                                            religion?.data?.map((item: any) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmR_Id}
-                                                                                    value={item.ivrmmR_Id.toString()}>
-                                                                                    {item.ivrmmR_ReligionName || item.ivrmmR_Name}
-                                                                                </SelectItem>
-                                                                            ))
+                                                                            religion?.data
+                                                                                ?.filter((item: any) => (item?.ivrmmR_Id ?? item?.ivrmmr_Id ?? item?.IVRMMR_Id ?? item?.id) != null)
+                                                                                .map((item: any) => {
+                                                                                    const relId = item.ivrmmR_Id ?? item.ivrmmr_Id ?? item.IVRMMR_Id ?? item.id;
+                                                                                    const relName = item.ivrmmR_ReligionName ?? item.ivrmmr_ReligionName ?? item.ivrmmR_Name ?? item.IVRMMR_Name ?? '';
+                                                                                    return (
+                                                                                        <SelectItem
+                                                                                            key={relId}
+                                                                                            value={String(relId)}>
+                                                                                            {relName}
+                                                                                        </SelectItem>
+                                                                                    );
+                                                                                })
                                                                         )}
                                                                     </SelectContent>
                                                                 </Select>
@@ -4949,13 +5069,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 Error loading countries
                                                                             </SelectItem>
                                                                         ) : (
-                                                                            country?.data?.map((item: any) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmC_Id}
-                                                                                    value={item.ivrmmC_Id.toString()}>
-                                                                                    {item.ivrmmC_CountryName}
-                                                                                </SelectItem>
-                                                                            ))
+                                                                            country?.data
+                                                                                ?.filter((item: any) => (item?.ivrmmC_Id ?? item?.ivrmmc_Id ?? item?.IVRMMC_Id ?? item?.id) != null)
+                                                                                .map((item: any) => {
+                                                                                    const cId = item.ivrmmC_Id ?? item.ivrmmc_Id ?? item.IVRMMC_Id ?? item.id;
+                                                                                    const cName = item.ivrmmC_CountryName ?? item.ivrmmc_CountryName ?? item.IVRMMC_CountryName ?? '';
+                                                                                    return (
+                                                                                        <SelectItem
+                                                                                            key={cId}
+                                                                                            value={String(cId)}>
+                                                                                            {cName}
+                                                                                        </SelectItem>
+                                                                                    );
+                                                                                })
                                                                         )}
                                                                     </SelectContent>
                                                                 </Select>
@@ -4993,13 +5119,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 Error loading states
                                                                             </SelectItem>
                                                                         ) : studentState?.data && studentState.data.length > 0 ? (
-                                                                            studentState.data.map((item: any) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmS_Id}
-                                                                                    value={item.ivrmmS_Id.toString()}>
-                                                                                    {item.ivrmmS_Name}
-                                                                                </SelectItem>
-                                                                            ))
+                                                                            studentState.data
+                                                                                .filter((item: any) => (item?.ivrmmS_Id ?? item?.ivrmms_Id ?? item?.IVRMMS_Id ?? item?.id) != null)
+                                                                                .map((item: any) => {
+                                                                                    const sId = item.ivrmmS_Id ?? item.ivrmms_Id ?? item.IVRMMS_Id ?? item.id;
+                                                                                    const sName = item.ivrmmS_Name ?? item.ivrmms_Name ?? item.IVRMMS_Name ?? '';
+                                                                                    return (
+                                                                                        <SelectItem
+                                                                                            key={sId}
+                                                                                            value={String(sId)}>
+                                                                                            {sName}
+                                                                                        </SelectItem>
+                                                                                    );
+                                                                                })
                                                                         ) : (
                                                                             <SelectItem value='0' disabled>
                                                                                 No states available
@@ -5036,13 +5168,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {(casteCategoryData as any)?.data?.map((item: any) => (
-                                                                            <SelectItem
-                                                                                key={item.imcC_Id || item.imCC_Id}
-                                                                                value={(item.imcC_Id || item.imCC_Id).toString()}>
-                                                                                {item.imcC_CategoryName || item.imcC_CategoryName}
-                                                                            </SelectItem>
-                                                                        ))}
+                                                                        {(casteCategoryData as any)?.data
+                                                                            ?.filter((item: any) => (item?.imcC_Id ?? item?.imCC_Id ?? item?.imcc_Id ?? item?.IMCC_Id ?? item?.id) != null)
+                                                                            .map((item: any) => {
+                                                                                const catId = item.imcC_Id ?? item.imCC_Id ?? item.imcc_Id ?? item.IMCC_Id ?? item.id;
+                                                                                const catName = item.imcC_CategoryName ?? item.imcc_CategoryName ?? item.IMCC_CategoryName ?? '';
+                                                                                return (
+                                                                                    <SelectItem
+                                                                                        key={catId}
+                                                                                        value={String(catId)}>
+                                                                                        {catName}
+                                                                                    </SelectItem>
+                                                                                );
+                                                                            })}
                                                                     </SelectContent>
                                                                 </Select>
                                                             )}
@@ -5075,11 +5213,17 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                         />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {availableCastes?.map((item: any) => (
-                                                                            <SelectItem key={item.imC_Id} value={item.imC_Id.toString()}>
-                                                                                {item.imC_CasteName}
-                                                                            </SelectItem>
-                                                                        ))}
+                                                                        {availableCastes
+                                                                            ?.filter((item: any) => (item?.imC_Id ?? item?.imc_Id ?? item?.IMC_Id ?? item?.id) != null)
+                                                                            .map((item: any) => {
+                                                                                const casteId = item.imC_Id ?? item.imc_Id ?? item.IMC_Id ?? item.id;
+                                                                                const casteName = item.imC_CasteName ?? item.imc_CasteName ?? item.IMC_CasteName ?? '';
+                                                                                return (
+                                                                                    <SelectItem key={casteId} value={String(casteId)}>
+                                                                                        {casteName}
+                                                                                    </SelectItem>
+                                                                                );
+                                                                            })}
                                                                     </SelectContent>
                                                                 </Select>
                                                             )}
@@ -5204,14 +5348,33 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                             <SelectItem value='error' disabled>
                                                                                 Error loading sections
                                                                             </SelectItem>
-                                                                        ) : sectionData?.data && sectionData.data.length > 0 ? (
-                                                                            sectionData.data.map((section: any) => (
-                                                                                <SelectItem
-                                                                                    key={section.asmS_Id}
-                                                                                    value={section.asmS_Id.toString()}>
-                                                                                    {section.asmC_SectionName}
-                                                                                </SelectItem>
-                                                                            ))
+                                                                        ) : Array.isArray(sectionData?.data) && sectionData.data.length > 0 ? (
+                                                                            sectionData.data
+                                                                                .filter(
+                                                                                    (section: any) =>
+                                                                                        (section?.asmS_Id ??
+                                                                                            section?.asms_Id ??
+                                                                                            section?.ASMS_Id ??
+                                                                                            section?.id) != null
+                                                                                )
+                                                                                .map((section: any) => {
+                                                                                    const secId =
+                                                                                        section.asmS_Id ??
+                                                                                        section.asms_Id ??
+                                                                                        section.ASMS_Id ??
+                                                                                        section.id;
+                                                                                    const secName =
+                                                                                        section.asmC_SectionName ??
+                                                                                        section.asmc_SectionName ??
+                                                                                        section.ASMC_SectionName ??
+                                                                                        section.sectionName ??
+                                                                                        '';
+                                                                                    return (
+                                                                                        <SelectItem key={secId} value={String(secId)}>
+                                                                                            {secName}
+                                                                                        </SelectItem>
+                                                                                    );
+                                                                                })
                                                                         ) : (
                                                                             <SelectItem value='0' disabled>
                                                                                 No sections available
@@ -5702,7 +5865,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                     </div>
                                 )}
                                 {/* Step 2: Address Information */}
-                                {currentStep === 2 && (
+                                {currentStep === 2 ? (
                                     <div className='card-box'>
                                         <div className='space-y-6'>
                                             <div>
@@ -6113,7 +6276,7 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                             </div>
                                         </div>
                                     </div>
-                                )}
+                                ) : null}
 
                                 {/* Step 3: Parents Information */}
                                 {currentStep === 3 && (
@@ -8836,13 +8999,19 @@ export default function UpdateStudentAdmissionForm({ onSuccess, className = '', 
                                                                                 Error loading
                                                                             </SelectItem>
                                                                         ) : (
-                                                                            country?.data?.map((item: any) => (
-                                                                                <SelectItem
-                                                                                    key={item.ivrmmC_Id}
-                                                                                    value={item.ivrmmC_Id.toString()}>
-                                                                                    {item.ivrmmC_CountryName}
-                                                                                </SelectItem>
-                                                                            ))
+                                                                            country?.data
+                                                                                ?.filter((item: any) => (item?.ivrmmC_Id ?? item?.ivrmmc_Id ?? item?.IVRMMC_Id ?? item?.id) != null)
+                                                                                .map((item: any) => {
+                                                                                    const cId = item.ivrmmC_Id ?? item.ivrmmc_Id ?? item.IVRMMC_Id ?? item.id;
+                                                                                    const cName = item.ivrmmC_CountryName ?? item.ivrmmc_CountryName ?? item.IVRMMC_CountryName ?? '';
+                                                                                    return (
+                                                                                        <SelectItem
+                                                                                            key={cId}
+                                                                                            value={String(cId)}>
+                                                                                            {cName}
+                                                                                        </SelectItem>
+                                                                                    );
+                                                                                })
                                                                         )}
                                                                     </SelectContent>
                                                                 </Select>

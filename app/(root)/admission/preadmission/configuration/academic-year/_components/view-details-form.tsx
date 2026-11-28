@@ -112,7 +112,7 @@ export default function ViewDetailsForm({ data, institution }: ViewDetailsFormPr
                                     </tr>
                                 </thead>
                                 <tbody className='print:hidden'>
-                                    {data.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((item, index) => (
+                                    {data.map((item:any, index:any) => (
                                         <tr key={item.asmaY_Id} className='border-b last:border-b-0 hover:bg-muted/30'>
                                             <td className='px-6 py-3 text-center'>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                                             <td className='px-6 py-3 text-center'>{item.asmaY_Year}</td>
@@ -155,7 +155,7 @@ export default function ViewDetailsForm({ data, institution }: ViewDetailsFormPr
                                 </tbody>
                             </table>
                         </div>
-                        <div className='mt-4 flex items-center justify-between print:hidden'>
+                        {/* <div className='mt-4 flex items-center justify-between print:hidden'>
                             <div className='text-sm text-muted-foreground'>
                                 Showing {data.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} to{' '}
                                 {Math.min(currentPage * itemsPerPage, data.length)} of {data.length} entries
@@ -179,7 +179,7 @@ export default function ViewDetailsForm({ data, institution }: ViewDetailsFormPr
                                     Next
                                 </Button>
                             </div>
-                        </div>
+                        </div> */}
                     </div>
                 </div>
             </DialogContent>

@@ -48,8 +48,8 @@ export const genConfigSchema = z.object({
     IVRMGC_ClassCapacity: z.string().min(1, 'Class Capacity is required'),
     IVRMGC_SectionCapacity: z.string().min(1, 'Section Capacity is required'),
 
-    IVRMGC_SCLockingPeriod: z.string().optional(),
-    IVRMGC_FPLockingPeriod: z.string().optional(),
+    IVRMGC_SCLockingPeriod: z.number().optional(),
+    IVRMGC_FPLockingPeriod: z.number().optional(),
     IVRMGC_Disclaimer: z.string().optional(),
     IVRMGC_ComTrasaNoFlag: z.boolean().default(false),
     IVRMGC_SCActive: z.boolean().default(false),
